@@ -4,7 +4,7 @@ A planning workbook for documenting the methods, participant/data, consent, priv
 
 ## Prepared artifact
 
-`Research_Project_Ethics_and_IRB_Readiness_Toolkit.xlsx`
+[Download the Excel workbook](Research_Project_Ethics_and_IRB_Readiness_Toolkit.xlsx)
 
 ## What it supports
 
