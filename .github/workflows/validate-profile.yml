@@ -1,0 +1,32 @@
+name: Validate portfolio links
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "scripts/check_local_markdown_links.py"
+      - ".github/workflows/validate-profile.yml"
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "scripts/check_local_markdown_links.py"
+      - ".github/workflows/validate-profile.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  local-links:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate local Markdown links
+        run: python scripts/check_local_markdown_links.py
