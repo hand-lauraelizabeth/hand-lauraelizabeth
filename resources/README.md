@@ -4,6 +4,17 @@ Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-
 
 **Current release:** v1.0.0 · October 1, 2026 · [Release notes](RELEASE_NOTES.md) · [Release manifest](manifest.json)
 
+<table>
+<tr>
+<td width="50%"><img src="previews/decision-engine-preview.png" alt="Portfolio Decision Engine executive dashboard"><br><strong>Decision Engine</strong></td>
+<td width="50%"><img src="previews/project-management-preview.png" alt="Project Management Control Center example"><br><strong>Project Management Control Center</strong></td>
+</tr>
+<tr>
+<td width="50%"><img src="previews/curriculum-preview.png" alt="Curriculum Workshop QA example"><br><strong>Curriculum / Workshop QA</strong></td>
+<td width="50%"><img src="previews/research-writing-preview.png" alt="Research Writing Planner dashboard"><br><strong>Research Writing Planner</strong></td>
+</tr>
+</table>
+
 ## Resource library
 
 | Resource | Download | Focus |
