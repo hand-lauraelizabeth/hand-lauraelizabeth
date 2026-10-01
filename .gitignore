@@ -1,0 +1,34 @@
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Credentials and private keys
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+secrets*.json
+
+# Explicitly private working areas
+private/
+confidential/
+data/private/
+data/raw_private/
+source_private/
+
+# Local/editor artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temporary/downloaded files
+tmp/
+downloads/
