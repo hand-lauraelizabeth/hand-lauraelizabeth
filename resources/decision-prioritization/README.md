@@ -2,6 +2,10 @@
 
 A transparent multi-criteria decision workbook for comparing needs, projects, programs, investments, vendors, or other alternatives without hiding judgment inside a single score.
 
+![Portfolio Decision Engine executive dashboard](../previews/decision-engine-preview.png)
+
+*Preview: the synthetic executive dashboard surfaces recommended actions, priority decisions, topic-level performance, and model controls.*
+
 ## Prepared artifact
 
 [Download the Excel workbook](Laura_Hand_Portfolio_Decision_Engine.xlsx)
