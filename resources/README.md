@@ -53,6 +53,12 @@ Key features include:
 - criterion-by-criterion sensitivity testing;
 - an executive decision-summary view.
 
+### Survey / Needs-Assessment Builder & Analysis Workbook
+
+A survey-research workbook for instrument design, fielding documentation, response QA, item-level descriptive analysis, segmentation, needs-priority gaps, open-text coding, and qualified findings.
+
+The workbook keeps data quality and methodological limits visible. It can flag possible double-barreled or absolute wording for review, apply transparent consent/completion/attention/straightlining/missing-data checks, summarize item means and favorable rates, warn on low-N segments, and separate descriptive evidence from the researcher's final interpretation.
+
 ## Publishing and privacy
 
 Public resources are newly built or reconstructed with synthetic, generic, public-domain, or openly licensed examples. They do not publish private Drive working files or confidential organizational data.
