@@ -1,0 +1,58 @@
+{
+  "release_version": "1.0.0",
+  "release_date": "2026-10-01",
+  "release_scope": "Public Tools & Templates library",
+  "validation": {
+    "workflow": ".github/workflows/validate-profile.yml",
+    "checks": [
+      "local Markdown links resolve",
+      "DOCX/XLSX packages are valid Office Open XML ZIP packages",
+      "no VBA macro project parts",
+      "no ActiveX or embedded executable-style package parts",
+      "no Excel external-link package parts",
+      "no local-file relationship targets"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "resources/project-management/Automated_Project_Management_Control_Center.xlsx",
+      "git_blob_sha": "3c9ff490e6bbe9dcc7ac828cb8c5a1636cfaabde"
+    },
+    {
+      "path": "resources/apa-research-writing/APA7_Student_Research_Paper_Template.docx",
+      "git_blob_sha": "daede9a8af93b3560e8b19014b9887162d837799"
+    },
+    {
+      "path": "resources/apa-research-writing/APA7_Research_Writing_Toolkit_Guide.docx",
+      "git_blob_sha": "0d960bb746282ffc0738a1a4ab0c4831f141b49d"
+    },
+    {
+      "path": "resources/apa-research-writing/Research_Writing_Planner_and_Evidence_Matrix.xlsx",
+      "git_blob_sha": "c9ce17314136f0673d42abaff686652a89506fed"
+    },
+    {
+      "path": "resources/literature-review/Literature_Review_Evidence_Synthesis_Matrix.xlsx",
+      "git_blob_sha": "79a8ac4b77af0a6e8e64cdb16236891ec37049ff"
+    },
+    {
+      "path": "resources/curriculum-workshop-qa/Curriculum_Workshop_QA_and_Outline_Builder.xlsx",
+      "git_blob_sha": "ba48fff06523df789b288b3e979aff5ea0b4954d"
+    },
+    {
+      "path": "resources/decision-prioritization/Laura_Hand_Portfolio_Decision_Engine.xlsx",
+      "git_blob_sha": "e910363a30fbc9eb6ec0afc1d0bdaca1086f273e"
+    },
+    {
+      "path": "resources/survey-needs-assessment/Survey_Needs_Assessment_Builder_and_Analysis_Workbook.xlsx",
+      "git_blob_sha": "1e5cbc3f4cb2fa661a84edae18fe2a4aea02fe19"
+    },
+    {
+      "path": "resources/research-ethics-irb/Research_Project_Ethics_and_IRB_Readiness_Toolkit.xlsx",
+      "git_blob_sha": "eb1acdeb587a3296d54f966e09cd65e0c2f4e17a"
+    },
+    {
+      "path": "resources/quantitative-analysis/Quantitative_Research_Statistical_Analysis_Planner.xlsx",
+      "git_blob_sha": "482f1949ffa48c2362638053d43decb85ff2f932"
+    }
+  ]
+}
