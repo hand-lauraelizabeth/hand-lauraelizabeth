@@ -29,6 +29,8 @@ A digital-humanities demonstration using public-domain Robert Louis Stevenson te
 
 My public repositories focus on reproducible versions of professional and research methods. Projects derived from confidential or organizational work are rebuilt with **de-identified, synthetic, sample, public-domain, or openly licensed data** rather than proprietary source material.
 
+Before publishing files from Drive or professional workspaces, I use a [public portfolio publishing checklist](PORTFOLIO_PUBLISHING_CHECKLIST.md) covering ownership, PII/confidentiality, hidden metadata, Drive sharing, Git history, and WordPress media exposure.
+
 ## Selected Work Beyond GitHub
 
 - [Professional portfolio](https://www.lauraelizabethhand.com/)
