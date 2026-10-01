@@ -4,6 +4,8 @@ Curriculum development, learning analytics, research, writing, and digital syste
 
 I work at the intersection of **data, learning, research, and technology**, building tools and systems that make complex information easier to understand and act on.
 
+[Portfolio](https://www.lauraelizabethhand.com/) · [Tools & Templates](https://www.lauraelizabethhand.com/resources/) · [Publications](https://www.lauraelizabethhand.com/publications/) · [LinkedIn](https://www.linkedin.com/in/lauraelizabethhand)
+
 ## Featured Repositories
 
 ### [Learning Analytics Portfolio](https://github.com/hand-lauraelizabeth/learning-analytics-portfolio)
@@ -17,9 +19,20 @@ A digital-humanities demonstration using public-domain Robert Louis Stevenson te
 
 ## Tools & Templates
 
-I also build reusable public tools that apply the same design principles to research, writing, project management, operations, and curriculum work: **minimum input, maximum useful output, clear instructions, labeled edit zones, accessible cues, and transparent automation**.
+I also build reusable public tools that apply the same design principles to research, writing, project management, operations, curriculum, and decision support: **minimum input, maximum useful output, clear instructions, labeled edit zones, accessible cues, and transparent automation**.
 
-- [Tools & Templates index](resources/README.md) — project-management, research-writing, evidence-synthesis, and curriculum/workshop QA resources.
+| Area | Examples |
+| --- | --- |
+| [Research & Writing](resources/apa-research-writing/) | APA 7 writing toolkit, research planner, evidence matrix |
+| [Evidence Synthesis](resources/literature-review/) | Literature-review and source-to-claim synthesis system |
+| [Project & Operations](resources/project-management/) | Automated project plan, Gantt, RACI, risk/issue controls |
+| [Learning & Curriculum](resources/curriculum-workshop-qa/) | Workshop outline, objective alignment, assessment and QA |
+| [Data & Decisions](resources/decision-prioritization/) | Weighted prioritization, gates, scenarios, sensitivity |
+| [Survey Research](resources/survey-needs-assessment/) | Instrument QA, response analysis, segmentation, findings |
+| [Research Ethics](resources/research-ethics-irb/) | Ethics, consent, privacy, recruitment, IRB-readiness planning |
+| [Quantitative Analysis](resources/quantitative-analysis/) | SPSS-ready planning, hypotheses, QA, assumptions, reporting |
+
+[Browse the full public Tools & Templates index](resources/README.md).
 
 ## Current Areas of Work
 
