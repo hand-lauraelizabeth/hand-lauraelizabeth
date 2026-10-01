@@ -59,6 +59,29 @@ A survey-research workbook for instrument design, fielding documentation, respon
 
 The workbook keeps data quality and methodological limits visible. It can flag possible double-barreled or absolute wording for review, apply transparent consent/completion/attention/straightlining/missing-data checks, summarize item means and favorable rates, warn on low-N segments, and separate descriptive evidence from the researcher's final interpretation.
 
+
+### Research Project Ethics & IRB Readiness Toolkit
+
+A planning workbook for moving from a focused research question to a documented methods, participant/data, consent, privacy, recruitment, and review plan before data collection begins.
+
+It includes:
+
+- a research-methods map from question → evidence → analysis → limits;
+- participant and data-flow mapping;
+- ethics-readiness prompts for human participation, identifiable/private information, sensitive topics, vulnerable populations, authority relationships, deception, consent, privacy, justice, and timing;
+- a consent-planning matrix;
+- a privacy/data-minimization plan;
+- recruitment and justice checks;
+- a review-packet tracker and decision log;
+- an executive readiness dashboard.
+
+The workbook is deliberately **not** an IRB determination engine. It surfaces issues to resolve and tells the user when institutional IRB / research-ethics consultation is appropriate.
+
+Public reference framework:
+- [The Belmont Report — HHS/OHRP](https://www.hhs.gov/ohrp/regulations-and-policy/belmont-report/read-the-belmont-report/index.html)
+- [Informed Consent FAQs — HHS/OHRP](https://www.hhs.gov/ohrp/regulations-and-policy/guidance/faq/informed-consent/index.html)
+- [Human Subject Regulations Decision Charts — HHS/OHRP](https://www.hhs.gov/ohrp/regulations-and-policy/decision-charts/index.html)
+
 ## Publishing and privacy
 
 Public resources are newly built or reconstructed with synthetic, generic, public-domain, or openly licensed examples. They do not publish private Drive working files or confidential organizational data.
