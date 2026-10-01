@@ -2,6 +2,10 @@
 
 A formula-first project-management workbook designed to reduce manual maintenance while keeping project logic visible.
 
+![Project Management Control Center example showing user inputs and automated outputs](../previews/project-management-preview.png)
+
+*Preview: a minimally entered synthetic project and the outputs the workbook is designed to generate.*
+
 ## Prepared artifact
 
 [Download the Excel workbook](Automated_Project_Management_Control_Center.xlsx)
