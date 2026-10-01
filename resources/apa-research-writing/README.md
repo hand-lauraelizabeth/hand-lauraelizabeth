@@ -4,9 +4,9 @@ A coordinated research-writing package for moving from assignment planning throu
 
 ## Prepared artifacts
 
-- `APA7_Student_Research_Paper_Template.docx`
-- `APA7_Research_Writing_Toolkit_Guide.docx`
-- `Research_Writing_Planner_and_Evidence_Matrix.xlsx`
+- [Download the APA 7 Word template](APA7_Student_Research_Paper_Template.docx)
+- [Download the toolkit guide](APA7_Research_Writing_Toolkit_Guide.docx)
+- [Download the research planner and evidence matrix](Research_Writing_Planner_and_Evidence_Matrix.xlsx)
 
 ## What it supports
 
