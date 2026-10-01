@@ -4,7 +4,7 @@ A research workbook for turning a body of sources into a defensible synthesis ra
 
 ## Prepared artifact
 
-`Literature_Review_Evidence_Synthesis_Matrix.xlsx`
+[Download the Excel workbook](Literature_Review_Evidence_Synthesis_Matrix.xlsx)
 
 ## Core model
 
