@@ -4,7 +4,7 @@ A learning-design workbook for developing, reviewing, and handing off workshops 
 
 ## Prepared artifact
 
-`Curriculum_Workshop_QA_and_Outline_Builder.xlsx`
+[Download the Excel workbook](Curriculum_Workshop_QA_and_Outline_Builder.xlsx)
 
 ## What it supports
 
