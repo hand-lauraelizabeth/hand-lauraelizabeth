@@ -2,6 +2,15 @@
 
 A coordinated research-writing package for moving from assignment planning through evidence collection, drafting, revision, and APA-style submission.
 
+<table>
+<tr>
+<td width="34%"><img src="../previews/apa-template-preview.png" alt="APA 7 student research paper template title page"></td>
+<td width="66%"><img src="../previews/research-writing-preview.png" alt="Research Writing Planner dashboard"></td>
+</tr>
+</table>
+
+*Preview: the Word template handles paper structure while the workbook surfaces deadlines, source/evidence gaps, draft progress, revision checks, and next milestones.*
+
 ## Prepared artifacts
 
 - [Download the APA 7 Word template](APA7_Student_Research_Paper_Template.docx)
