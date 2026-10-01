@@ -4,7 +4,7 @@ A survey-research workbook for moving from instrument design through fielding, d
 
 ## Prepared artifact
 
-`Survey_Needs_Assessment_Builder_and_Analysis_Workbook.xlsx`
+[Download the Excel workbook](Survey_Needs_Assessment_Builder_and_Analysis_Workbook.xlsx)
 
 ## What it supports
 
