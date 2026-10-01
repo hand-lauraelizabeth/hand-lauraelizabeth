@@ -4,7 +4,7 @@ A formula-first project-management workbook designed to reduce manual maintenanc
 
 ## Prepared artifact
 
-`Automated_Project_Management_Control_Center.xlsx`
+[Download the Excel workbook](Automated_Project_Management_Control_Center.xlsx)
 
 ## What it supports
 
