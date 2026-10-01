@@ -4,7 +4,7 @@ A quantitative-research planning workbook for moving from a research question an
 
 ## Prepared artifact
 
-`Quantitative_Research_Statistical_Analysis_Planner.xlsx`
+[Download the Excel workbook](Quantitative_Research_Statistical_Analysis_Planner.xlsx)
 
 ## What it supports
 
