@@ -82,6 +82,28 @@ Public reference framework:
 - [Informed Consent FAQs — HHS/OHRP](https://www.hhs.gov/ohrp/regulations-and-policy/guidance/faq/informed-consent/index.html)
 - [Human Subject Regulations Decision Charts — HHS/OHRP](https://www.hhs.gov/ohrp/regulations-and-policy/decision-charts/index.html)
 
+### Quantitative Research & Statistical Analysis Planner
+
+A quantitative-research planning workbook for moving from a question and study design to an SPSS-ready variable dictionary, hypothesis architecture, candidate analysis, data-QA plan, assumption checks, results log, and transparent reporting workflow.
+
+It includes:
+
+- study-purpose, outcome/predictor, group, timepoint, pairing, covariate, alpha, power-target, sample-size, and preregistration inputs;
+- an SPSS-oriented variable dictionary with names, labels, roles, data types, coding, missing-value rules, expected ranges, reverse scoring, derivations, and data sources;
+- primary / secondary / exploratory / descriptive hypothesis classification;
+- an analysis router for common descriptive, comparison, association, and prediction designs;
+- explicit reminders that the router is a planning aid, not an automatic statistical decision-maker;
+- predefined data-QA rules for missingness, exclusions, outliers, transformations, scale scoring, multiple testing, robustness, and analytic-file versioning;
+- assumption/diagnostic tracking for independence, scale/coding, residual behavior, variance, linearity, sparse cells, multicollinearity, influence, and repeated-measures structure;
+- a results log that keeps N, test/statistic, p, effect size, uncertainty, adjustment, assumption issues, and interpretation together;
+- an APA JARS-inspired reporting checklist;
+- an executive readiness dashboard.
+
+Interpretation safeguards draw on:
+- [APA Journal Article Reporting Standards](https://www.apa.org/pubs/journals/resources/manuscript-submission-guidelines)
+- [NIST/SEMATECH e-Handbook of Statistical Methods](https://www.nist.gov/programs-projects/nistsematech-engineering-statistics-handbook)
+- [American Statistical Association statement on p-values](https://www.amstat.org/asa/files/pdfs/p-valuestatement.pdf)
+
 ## Publishing and privacy
 
 Public resources are newly built or reconstructed with synthetic, generic, public-domain, or openly licensed examples. They do not publish private Drive working files or confidential organizational data.
