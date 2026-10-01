@@ -15,6 +15,12 @@ A synthetic curriculum-management model spanning topic, format, delivery mode, l
 ### [Stevenson Text Analysis](https://github.com/hand-lauraelizabeth/stevenson-text-analysis)
 A digital-humanities demonstration using public-domain Robert Louis Stevenson texts. Demonstrates corpus provenance, text cleaning, tokenization, lexical comparison, exploratory keyword analysis, and the responsible use of quantitative methods alongside close reading.
 
+## Tools & Templates
+
+I also build reusable public tools that apply the same design principles to research, writing, project management, operations, and curriculum work: **minimum input, maximum useful output, clear instructions, labeled edit zones, accessible cues, and transparent automation**.
+
+- [Tools & Templates index](resources/README.md) — project-management, research-writing, evidence-synthesis, and curriculum/workshop QA resources.
+
 ## Current Areas of Work
 
 - Learning and utilization analytics
