@@ -2,6 +2,8 @@
 
 Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, analytics, and decision-support methods.
 
+**Current release:** v1.0.0 · October 1, 2026 · [Release notes](RELEASE_NOTES.md) · [Release manifest](manifest.json)
+
 ## Resource library
 
 | Resource | Download | Focus |
