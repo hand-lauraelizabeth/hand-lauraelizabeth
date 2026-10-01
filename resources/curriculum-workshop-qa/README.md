@@ -2,6 +2,10 @@
 
 A learning-design workbook for developing, reviewing, and handing off workshops with stronger alignment between objectives, activities, timing, assessment, and participant materials.
 
+![Curriculum Workshop QA and Outline Builder example showing a synthetic 60-minute workshop](../previews/curriculum-preview.png)
+
+*Preview: a synthetic 60-minute workshop with timing, objectives, participant outputs, assessment, tools, and design rationale in one view.*
+
 ## Prepared artifact
 
 [Download the Excel workbook](Curriculum_Workshop_QA_and_Outline_Builder.xlsx)
