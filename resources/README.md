@@ -1,6 +1,6 @@
 # Tools & Templates
 
-Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, and analytics methods.
+Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, analytics, and decision-support methods.
 
 ## Design standard
 
@@ -35,6 +35,23 @@ It includes source and finding logs, source-by-theme coverage, claim testing, me
 ### Curriculum / Workshop QA & Outline Builder
 
 A learning-design workbook for timed agendas, objective mapping, participant practice, assessment coverage, material planning, accessibility prompts, publication QA, and clean handoff.
+
+### Decision, Prioritization & Needs-Assessment System
+
+A transparent multi-criteria decision workbook for prioritizing needs, projects, programs, investments, vendors, or other alternatives. It separates criterion weights, raw scores, evidence, confidence, must-have gates, scenario assumptions, and sensitivity so users can see why a result changes rather than treating the score as a black box.
+
+Key features include:
+
+- adjustable weighted criteria;
+- automatic higher-is-better / lower-is-better normalization;
+- evidence and source fields for every scored judgment;
+- confidence-adjusted scoring;
+- non-negotiable gate thresholds;
+- Base plus three alternative weight scenarios;
+- evidence-coverage and assessment QA;
+- scenario comparison and ranking;
+- criterion-by-criterion sensitivity testing;
+- an executive decision-summary view.
 
 ## Publishing and privacy
 
