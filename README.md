@@ -17,6 +17,13 @@ A synthetic curriculum-management model spanning topic, format, delivery mode, l
 ### [Stevenson Text Analysis](https://github.com/hand-lauraelizabeth/stevenson-text-analysis)
 A digital-humanities demonstration using public-domain Robert Louis Stevenson texts. Demonstrates corpus provenance, text cleaning, tokenization, lexical comparison, exploratory keyword analysis, and the responsible use of quantitative methods alongside close reading.
 
+## Selected Publications & Creative Work
+
+- [Practical and Case-Based Methods in Teaching and Learning (2022)](https://www.lauraelizabethhand.com/publications/practical-and-case-based-methods-in-teaching-and-learning/) — chapter on multimodality, authenticity, engagement, and practical learning methods including case-based, active, and communicative learning.
+- [AI in Rare Disease Healthcare (2024)](https://www.lauraelizabethhand.com/publications/navigating-challenges-and-opportunities-in-implementing-ai-in-disease-management-ai-and-the-state-of-rare-diseases-in-healthcare/) — Routledge chapter on AI in disease management, clinical research, rare diseases, and orphan-drug development.
+- [Vitreous Humors (2025)](https://www.lauraelizabethhand.com/publications/vitreoushumors/) — poetry published by Dipity Literary Magazine.
+- [Reparation and Resuscitation (2017)](https://www.lauraelizabethhand.com/publications/reparation-and-resuscitation/) — mixed-media work first published in Quarto.
+
 ## Tools & Templates
 
 I also build reusable public tools that apply the same design principles to research, writing, project management, operations, curriculum, and decision support: **minimum input, maximum useful output, clear instructions, labeled edit zones, accessible cues, and transparent automation**.
