@@ -1,6 +1,6 @@
 # Tools & Templates
 
-Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, analytics, and decision-support methods.
+Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, analytics, career-readiness, and decision-support methods.
 
 **Current release:** v1.0.0 · October 1, 2026 · [Release notes](RELEASE_NOTES.md) · [Release manifest](manifest.json)
 
@@ -23,6 +23,7 @@ Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-
 | [APA 7 Research Writing Toolkit](apa-research-writing/) | [Word template](apa-research-writing/APA7_Student_Research_Paper_Template.docx) · [Guide](apa-research-writing/APA7_Research_Writing_Toolkit_Guide.docx) · [Research planner](apa-research-writing/Research_Writing_Planner_and_Evidence_Matrix.xlsx) | Research planning, APA structure, evidence, revision |
 | [Literature Review & Evidence Synthesis Matrix](literature-review/) | [Excel workbook](literature-review/Literature_Review_Evidence_Synthesis_Matrix.xlsx) | Source-to-claim synthesis and gap analysis |
 | [Curriculum / Workshop QA & Outline Builder](curriculum-workshop-qa/) | [Excel workbook](curriculum-workshop-qa/Curriculum_Workshop_QA_and_Outline_Builder.xlsx) | Objectives, agenda, practice, assessment, QA |
+| [Career Readiness Resource System](career-readiness/) | Resource architecture + applied-work provenance | Interview evidence mapping, story banks, accomplishment recovery, career-resource design |
 | [Decision, Prioritization & Needs-Assessment System](decision-prioritization/) | [Excel workbook](decision-prioritization/Laura_Hand_Portfolio_Decision_Engine.xlsx) | Transparent multi-criteria decisions and sensitivity |
 | [Survey / Needs-Assessment Builder & Analysis Workbook](survey-needs-assessment/) | [Excel workbook](survey-needs-assessment/Survey_Needs_Assessment_Builder_and_Analysis_Workbook.xlsx) | Instrument design, data QA, segmentation, findings |
 | [Research Project Ethics & IRB Readiness Toolkit](research-ethics-irb/) | [Excel workbook](research-ethics-irb/Research_Project_Ethics_and_IRB_Readiness_Toolkit.xlsx) | Ethics, consent, privacy, recruitment, review readiness |
@@ -42,6 +43,6 @@ Every resource follows the same usability model:
 
 ## Publishing and privacy
 
-Public resources are newly built or reconstructed with synthetic, generic, public-domain, or openly licensed examples. They do not publish private Drive working files or confidential organizational data.
+Public resources are newly built or reconstructed with synthetic, generic, public-domain, or openly licensed examples. Authorized institutional examples may be linked as applied-work evidence without being duplicated into this repository when their contents include institutional or third-party material.
 
 See the repository's [Public Portfolio Publishing Checklist](../PORTFOLIO_PUBLISHING_CHECKLIST.md) for the publication standard.
