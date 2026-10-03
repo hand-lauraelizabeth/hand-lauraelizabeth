@@ -33,6 +33,16 @@ This sustained work matters because the final interface proposal emerged from an
 
 The record also documents recurring lab and Working Group activity connected to the Making and Knowing Project, including direct communication with Project staff, access to editorial markup and research resources, engagement with conservation questions, and participation in the Project's collaborative research environment.
 
+### AR measurement concept: historically meaningful units
+
+A separate, individually proposed idea from April 2019 explored how augmented reality could connect physical lab space with historically meaningful measurement systems.
+
+Laura proposed combining a phone-camera measurement tool with the Project's space-mapping work so that a user could view dimensions not only in modern units, but in comparative early modern terms—for example, how many cannonballs wide or pans long an object or space might be. She also suggested that such a tool could later connect with other AR lab tools, including annotations.
+
+A contemporaneous reply from Tianna Uchacz explicitly recognized the idea as an AR measurement tool that converts to early modern units.
+
+**Evidence boundary:** the surviving record verifies Laura's independent concept, its connection to the space-mapping work, and the proposed relationship to existing AR annotation ideas. It does **not** currently verify that Laura built, implemented, or tested the annotation system itself. Those stronger claims should not be made unless separate evidence surfaces.
+
 ### Capstone: Material Qualities of the Page
 
 The Epistemic Design group—Gregory Houser, Laura Elizabeth Hand, and Sandra Lehnert—proposed a new way to foreground the material qualities of a manuscript page within a digital critical edition.
