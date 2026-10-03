@@ -6,6 +6,7 @@ Reusable instructional-design resources for moving from learner context and auth
 
 - [Design Around a Real Decision — Curriculum Planning Canvas](Design_Around_a_Real_Decision_Curriculum_Planning_Canvas.md)
 - [Parent & Caregiver ELL Program Architecture Checklist](Parent_Caregiver_ELL_Program_Architecture_Checklist.md)
+- [Community Impact Level 6 Curriculum Architecture Map](Community_Impact_Level_6_Curriculum_Architecture_Map.md)
 
 ## What it supports
 
