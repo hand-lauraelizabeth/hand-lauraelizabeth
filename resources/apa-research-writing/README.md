@@ -11,6 +11,10 @@ A coordinated research-writing package for moving from assignment planning throu
 
 *Preview: the Word template handles paper structure while the workbook surfaces deadlines, source/evidence gaps, draft progress, revision checks, and next milestones.*
 
+## Start here
+
+- [Research Project Roadmap](Research_Project_Roadmap.md) — choose the next research step and route into the right specialized tool.
+
 ## Prepared artifacts
 
 - [Download the APA 7 Word template](APA7_Student_Research_Paper_Template.docx)
