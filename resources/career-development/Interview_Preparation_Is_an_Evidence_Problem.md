@@ -65,4 +65,4 @@ These resources turn the argument above into a practical preparation workflow.
 
 ## Resource note
 
-This post accompanies the Modern Interview Preparation Checklist and Interview Story Bank & Answer Planner, newly developed from methods and archived career-development materials in Laura Hand’s files. The newer resources preserve useful preparation practices while deliberately revising advice that is dated, overly rigid, or based on narrow conventions of professional behavior.
+This post accompanies the Modern Interview Preparation Checklist and Interview Story Bank & Answer Planner, newly developed from methods and archived career-development materials in Laura Elizabeth Hand’s files. The newer resources preserve useful preparation practices while deliberately revising advice that is dated, overly rigid, or based on narrow conventions of professional behavior.
