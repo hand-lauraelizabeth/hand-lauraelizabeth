@@ -1,6 +1,6 @@
 # Modern Interview Preparation Checklist
 
-A practical preparation system adapted and modernized from Laura Hand’s archived career-development materials. It retains useful preparation principles while removing rigid, dated, gendered, or one-size-fits-all interview rules.
+A practical preparation system adapted and modernized from Laura Elizabeth Hand’s archived career-development materials. It retains useful preparation principles while removing rigid, dated, gendered, or one-size-fits-all interview rules.
 
 ## 1. Understand the role
 - [ ] Re-read the posting and identify the 5–8 responsibilities or qualifications that appear most important.
@@ -134,4 +134,4 @@ Afterward ask:
 5. Verify logistics/technology and have your résumé and posting accessible.
 
 ## Development note
-This 2026 resource is a modernized derivative developed from archived interview-preparation and career-development materials in Laura Hand’s files. The archive contains useful preparation principles alongside advice that is dated, overly rigid, gendered, or context-dependent. This version intentionally preserves the useful system—research, evidence, practice, questions, logistics, and follow-up—without reproducing those limitations.
+This 2026 resource is a modernized derivative developed from archived interview-preparation and career-development materials in Laura Elizabeth Hand’s files. The archive contains useful preparation principles alongside advice that is dated, overly rigid, gendered, or context-dependent. This version intentionally preserves the useful system—research, evidence, practice, questions, logistics, and follow-up—without reproducing those limitations.
