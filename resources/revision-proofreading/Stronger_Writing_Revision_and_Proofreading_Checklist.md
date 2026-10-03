@@ -118,7 +118,7 @@ When time is short:
 **What feedback do I need from another reader?**
 
 ## Development & provenance note
-This is a newly written 2026 derivative resource developed after reviewing an archived file titled **“10 Steps - Stronger Writing checklist.2019updated.docx”** in Laura Hand’s Columbia archive.
+This is a newly written 2026 derivative resource developed after reviewing an archived file titled **“10 Steps - Stronger Writing checklist.2019updated.docx”** in Laura Elizabeth Hand’s Columbia archive.
 
 The archived checklist contains a mixture of general writing guidance and externally sourced material; it explicitly credits the UNC Chapel Hill Writing Center for part of its proofreading guidance and links to other institutional resources. The historical document is therefore preserved as source context rather than republished or represented as solely authored material.
 
