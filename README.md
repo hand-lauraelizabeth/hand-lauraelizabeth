@@ -57,6 +57,10 @@ My public repositories focus on reproducible versions of professional and resear
 
 Before publishing files from Drive or professional workspaces, I use a [public portfolio publishing checklist](PORTFOLIO_PUBLISHING_CHECKLIST.md) covering ownership, PII/confidentiality, hidden metadata, Drive sharing, Git history, and WordPress media exposure.
 
+## Selected Case Studies
+
+- [Parent & Caregiver ELL Curriculum — Project Light + CRD Impact](case-studies/parent-caregiver-ell-curriculum/) — ten-module adult ELL curriculum architecture integrating learner, instructor, administrator, digital-literacy, assessment, and flexible-delivery layers.
+
 ## Selected Work Beyond GitHub
 
 - [Professional portfolio](https://www.lauraelizabethhand.com/)
