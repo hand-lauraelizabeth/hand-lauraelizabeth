@@ -8,7 +8,7 @@ A transparent multi-criteria decision workbook for comparing needs, projects, pr
 
 ## Prepared artifact
 
-[Download the Excel workbook](Laura_Hand_Portfolio_Decision_Engine.xlsx)
+[Download the Excel workbook](Laura_Elizabeth_Hand_Portfolio_Decision_Engine.xlsx)
 
 ## What it supports
 
