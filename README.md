@@ -59,6 +59,8 @@ Before publishing files from Drive or professional workspaces, I use a [public p
 
 ## Selected Case Studies
 
+- [Adult ESOL Learning System — Columbia Community Impact](case-studies/community-impact-adult-esol-learning-system/) — 40-lesson Level 6 curriculum architecture, instructor enablement, assessment, handoff, and multi-site adult-learning operations.
+
 - [Parent & Caregiver ELL Curriculum — Project Light + CRD Impact](case-studies/parent-caregiver-ell-curriculum/) — ten-module adult ELL curriculum architecture integrating learner, instructor, administrator, digital-literacy, assessment, and flexible-delivery layers.
 
 ## Selected Work Beyond GitHub
