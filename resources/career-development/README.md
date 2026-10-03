@@ -1,0 +1,8 @@
+# Career & Professional Development Resources
+
+Publication-safe, reusable resources derived from Laura Hand’s archived career-development and advising methods.
+
+- [Modern Interview Preparation Checklist](./Modern_Interview_Preparation_Checklist.md)
+- [Interview Story Bank & Answer Planner](./Interview_Story_Bank_and_Answer_Planner.md)
+
+These resources emphasize evidence, role fit, transparent preparation, accessibility, and accurate self-representation rather than memorized scripts or rigid rules.
