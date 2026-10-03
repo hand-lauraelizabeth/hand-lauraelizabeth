@@ -20,6 +20,8 @@ for path in ROOT.rglob("*"):
         continue
 
     rel = path.relative_to(ROOT)
+    if rel == Path("scripts/check_name_consistency.py"):
+        continue
     rel_text = str(rel)
 
     if any(token in rel_text for token in OLD_FILENAME_TOKENS):
