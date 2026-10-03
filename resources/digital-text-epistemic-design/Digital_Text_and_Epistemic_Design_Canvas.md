@@ -261,4 +261,4 @@ A strong public extension is a small prototype using a public-domain manuscript 
 
 ## Development note
 
-This 2026 resource is a new derivative teaching/design tool informed by Laura Hand's documented participation in the 2019 collaborative project. It should not be represented as an original 2019 handout, a deployed Making and Knowing feature, or evidence of software proficiency not independently demonstrated.
+This 2026 resource is a new derivative teaching/design tool informed by Laura Elizabeth Hand's documented participation in the 2019 collaborative project. It should not be represented as an original 2019 handout, a deployed Making and Knowing feature, or evidence of software proficiency not independently demonstrated.
