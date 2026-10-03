@@ -163,4 +163,4 @@ Before relying on a story, ask:
 - [ ] Do I have a different story available so I do not reuse the same example for every question?
 
 ## Development note
-This resource is a new 2026 derivative tool developed from recurring interview-preparation methods found in Laura Hand’s archived career-development materials. It is designed as a reusable evidence system rather than a script or answer bank.
+This resource is a new 2026 derivative tool developed from recurring interview-preparation methods found in Laura Elizabeth Hand’s archived career-development materials. It is designed as a reusable evidence system rather than a script or answer bank.
