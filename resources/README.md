@@ -21,6 +21,7 @@ Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-
 | --- | --- | --- |
 | [Automated Project Management Control Center](project-management/) | [Excel workbook](project-management/Automated_Project_Management_Control_Center.xlsx) | Scheduling, Gantt, RACI, risks, project health |
 | [APA 7 Research Writing Toolkit](apa-research-writing/) | [Word template](apa-research-writing/APA7_Student_Research_Paper_Template.docx) · [Guide](apa-research-writing/APA7_Research_Writing_Toolkit_Guide.docx) · [Research planner](apa-research-writing/Research_Writing_Planner_and_Evidence_Matrix.xlsx) | Research planning, APA structure, evidence, revision |
+| [Stronger Writing: Revision & Proofreading Checklist](revision-proofreading/) | [Markdown checklist](revision-proofreading/Stronger_Writing_Revision_and_Proofreading_Checklist.md) | Argument, structure, evidence, paragraphs, sentences, accessibility, proofreading |
 | [Literature Review & Evidence Synthesis Matrix](literature-review/) | [Excel workbook](literature-review/Literature_Review_Evidence_Synthesis_Matrix.xlsx) | Source-to-claim synthesis and gap analysis |
 | [Curriculum / Workshop QA & Outline Builder](curriculum-workshop-qa/) | [Excel workbook](curriculum-workshop-qa/Curriculum_Workshop_QA_and_Outline_Builder.xlsx) | Objectives, agenda, practice, assessment, QA |
 | [Career Readiness Resource System](career-readiness/) | Resource architecture + applied-work provenance | Interview evidence mapping, story banks, accomplishment recovery, career-resource design |
