@@ -9,6 +9,7 @@ on:
       - "resources/**/*.docx"
       - "scripts/check_local_markdown_links.py"
       - "scripts/validate_office_resources.py"
+      - "scripts/check_name_consistency.py"
       - ".github/workflows/validate-profile.yml"
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - "resources/**/*.docx"
       - "scripts/check_local_markdown_links.py"
       - "scripts/validate_office_resources.py"
+      - "scripts/check_name_consistency.py"
       - ".github/workflows/validate-profile.yml"
 
 permissions:
@@ -39,3 +41,6 @@ jobs:
 
       - name: Validate Office resource packages
         run: python scripts/validate_office_resources.py
+
+      - name: Enforce full public name
+        run: python scripts/check_name_consistency.py
