@@ -417,57 +417,84 @@ def ingest_cip_soc(source: dict, raw: bytes, snapshot_dir: Path, source_url: str
     return {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
 
 
-def ingest_onet(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
-    wanted = {
-        "occupation data": "occupation.csv",
-        "skills": "skills.csv",
-        "knowledge": "knowledge.csv",
-        "abilities": "abilities.csv",
-        "interests": "interests.csv",
-        "work activities": "work_activities.csv",
-        "work context": "work_context.csv",
-        "education, training, and experience": "education_training_experience.csv",
-        "related occupations": "related_occupations.csv",
-        "technology skills": "technology_skills.csv",
-    }
+def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
+    file_urls = source.get("files") or {}
+    if not file_urls:
+        raise IngestionError("O*NET source has no configured files")
+
+    raw_dir = snapshot_dir / "raw"
+    normalized_dir = snapshot_dir / "normalized"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    normalized_dir.mkdir(parents=True, exist_ok=True)
+
+    file_metadata: dict[str, dict[str, object]] = {}
     extracted: dict[str, int] = {}
     occupation_rows: list[dict[str, object]] = []
 
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-        members = archive.namelist()
-        for label, out_name in wanted.items():
-            matches = [m for m in members if Path(m).stem.lower() == label]
-            if not matches:
-                continue
-            member = matches[0]
-            rows = read_delimited_bytes(archive.read(member))
-            normalized_rows: list[dict[str, object]] = []
-            for row in rows:
-                onet = row.get("O*NET-SOC Code") or row.get("ONET_SOC_CODE") or row.get("O*NET-SOC_Code")
-                new_row: dict[str, object] = dict(row)
-                new_row["ONET_SOC_CODE"] = onet
-                new_row["SOC6"] = normalize_soc6(onet)
-                new_row["onet_version"] = source["release"]["label"]
-                normalized_rows.append(new_row)
-            if normalized_rows:
-                fieldnames = list(normalized_rows[0].keys())
-                write_csv(snapshot_dir / "normalized" / out_name, fieldnames, normalized_rows)
-            extracted[out_name] = len(normalized_rows)
-            if out_name == "occupation.csv":
-                occupation_rows = normalized_rows
+    for table_name, url in file_urls.items():
+        payload = http_get(str(url))
+        raw_name = safe_filename_from_url(str(url), f"{table_name}.csv")
+        (raw_dir / raw_name).write_bytes(payload)
+        file_metadata[table_name] = {
+            "url": url,
+            "raw_filename": raw_name,
+            "sha256": sha256_bytes(payload),
+            "bytes": len(payload),
+        }
+
+        rows = read_delimited_bytes(payload)
+        normalized_rows: list[dict[str, object]] = []
+        for row in rows:
+            onet = (
+                row.get("O*NET-SOC Code")
+                or row.get("ONET_SOC_CODE")
+                or row.get("O*NET-SOC_Code")
+            )
+            new_row: dict[str, object] = dict(row)
+            new_row["ONET_SOC_CODE"] = onet
+            new_row["SOC6"] = normalize_soc6(onet)
+            new_row["onet_version"] = source["release"]["label"]
+            new_row["source_id"] = source["source_id"]
+            normalized_rows.append(new_row)
+
+        if normalized_rows:
+            fieldnames = list(normalized_rows[0].keys())
+            write_csv(normalized_dir / f"{table_name}.csv", fieldnames, normalized_rows)
+        extracted[table_name] = len(normalized_rows)
+        if table_name == "occupation_data":
+            occupation_rows = normalized_rows
+
+    if not occupation_rows:
+        raise IngestionError("O*NET occupation_data produced no rows")
+
+    combined_hash_input = "\n".join(
+        f"{name}:{meta['sha256']}" for name, meta in sorted(file_metadata.items())
+    ).encode("utf-8")
+    snapshot_metadata = {
+        "source_id": source["source_id"],
+        "retrieved_at": utc_now(),
+        "source_release": source["release"]["label"],
+        "source_url": source["official_url"],
+        "raw_filename": "multiple O*NET CSV files",
+        "sha256": sha256_bytes(combined_hash_input),
+        "release_type": source["release"]["label"],
+        "reference_period": source["release"]["label"],
+        "parser_version": "prototype-0.2",
+        "row_count_raw": sum(extracted.values()),
+        "files": file_metadata,
+        "tables_extracted": extracted,
+    }
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+    (snapshot_dir / "source_snapshot.json").write_text(
+        json.dumps(snapshot_metadata, indent=2) + "\n", encoding="utf-8"
+    )
 
     report = qa_report(source["source_id"], occupation_rows, ["ONET_SOC_CODE"])
-    metadata = write_snapshot_metadata(
-        snapshot_dir,
-        source=source,
-        source_url=source_url,
-        raw_filename=safe_filename_from_url(source_url, "onet.zip"),
-        raw_bytes=raw,
-        row_count_raw=sum(extracted.values()),
-        extra={"tables_extracted": extracted},
-    )
-    return {"metadata": metadata, "qa": report, "normalized_rows": extracted}
-
+    return {
+        "metadata": snapshot_metadata,
+        "qa": report,
+        "normalized_rows": extracted,
+    }
 
 def ingest_bls_projection(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
     rows = read_xlsx_rows_bytes(raw)
@@ -639,9 +666,25 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
 
     if source_id == "college_scorecard":
         if dry_run:
-            return {"source_id": source_id, "mode": "dry-run", "access_url": source["access_url"], "requires_api_key": True}
+            return {
+                "source_id": source_id,
+                "mode": "dry-run",
+                "access_url": source["access_url"],
+                "requires_api_key": True,
+            }
         snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         result = ingest_scorecard(source, snapshot_dir)
+
+    elif source_id == "onet_31_0":
+        if dry_run:
+            return {
+                "source_id": source_id,
+                "mode": "dry-run",
+                "access_urls": source.get("files", {}),
+            }
+        snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        result = ingest_onet(source, snapshot_dir)
+
     else:
         source_url = resolve_access_url(source)
         if dry_run:
@@ -657,8 +700,6 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
             result = ingest_ipeds(source, raw, snapshot_dir, source_url)
         elif source_id == "cip_soc_crosswalk_2020_2018":
             result = ingest_cip_soc(source, raw, snapshot_dir, source_url)
-        elif source_id == "onet_31_0":
-            result = ingest_onet(source, raw, snapshot_dir, source_url)
         elif source_id == "bls_employment_projections_2025_2035":
             result = ingest_bls_projection(source, raw, snapshot_dir, source_url)
         elif source_id == "bls_oews_may_2025":
