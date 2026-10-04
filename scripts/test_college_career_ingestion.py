@@ -38,6 +38,14 @@ def main() -> None:
     assert_equal(module.value_status("PrivacySuppressed"), "suppressed", "Scorecard suppression")
     assert_equal(module.value_status("**"), "suppressed", "generic suppression")
     assert_equal(module.value_status("0"), "reported", "zero is reported")
+    assert_equal(module.bls_value_status("**"), "topcoded", "BLS topcode")
+    assert_equal(module.bls_value_status("*"), "suppressed", "BLS suppression marker")
+    assert_equal(module.parse_number("$12,345"), 12345.0, "BLS numeric parsing")
+
+    community, reasons = module.community_college_pathway_flags({"CONTROL": "1", "SECTOR": "1", "INSTCAT": "4"})
+    assert_equal(community, True, "community-college proxy recovers associate-focused public four-year")
+    if "public_associates_certificates_instcat" not in reasons:
+        raise AssertionError("community-college proxy did not record INSTCAT reason")
     assert_equal(module.bls_value_status("**"), "topcoded", "BLS top-coded wage")
     assert_equal(module.bls_value_status("*"), "suppressed", "BLS unavailable estimate")
     assert_equal(module.parse_number("$52,000"), 52000.0, "BLS numeric parsing")
@@ -69,6 +77,7 @@ def main() -> None:
     source_ids = {s["source_id"] for s in manifest["sources"]}
     required = {
         "college_scorecard",
+        "dapip_accreditation",
         "ipeds_directory_2025",
         "ipeds_completions_2025",
         "cip_soc_crosswalk_2020_2018",
@@ -82,6 +91,7 @@ def main() -> None:
         raise AssertionError(f"manifest missing sources: {sorted(missing)}")
 
     expected_urls = {
+        "dapip_accreditation": "https://ope.ed.gov/dapip/api/downloadFiles/accreditationDataFiles",
         "ipeds_directory_2025": "https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip",
         "ipeds_completions_2025": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip",
         "cip_soc_crosswalk_2020_2018": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
@@ -122,6 +132,10 @@ def main() -> None:
         if source_id == "onet_31_0":
             if len(result.get("access_urls", {})) < len(required_onet_files):
                 raise AssertionError("O*NET dry run did not expose configured source files")
+        elif source_id == "dapip_accreditation":
+            assert_equal(result.get("method"), "POST", "DAPIP dry-run method")
+            if result.get("payload") != {"CSVChecked": True, "ExcelChecked": False}:
+                raise AssertionError("DAPIP dry-run payload changed")
         elif not str(result["access_url"]).startswith("https://"):
             raise AssertionError(f"{source_id}: dry-run URL must be HTTPS")
         if source_id == "dapip_accreditation":
