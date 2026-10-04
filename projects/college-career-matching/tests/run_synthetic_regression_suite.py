@@ -10,7 +10,11 @@ if str(HERE) not in sys.path: sys.path.insert(0,str(HERE))
 if __name__=="__main__":
     suite=unittest.TestSuite()
     loader=unittest.defaultTestLoader
-    for name in ["test_synthetic_recommendation_architecture","test_integration_synthetic_modules"]:
+    for name in [
+        "test_synthetic_recommendation_architecture",
+        "test_integration_synthetic_modules",
+        "test_integration_career_pathway_chain",
+    ]:
         suite.addTests(loader.loadTestsFromName(name))
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     raise SystemExit(0 if result.wasSuccessful() else 1)
