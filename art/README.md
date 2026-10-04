@@ -1,75 +1,44 @@
-# Art & Visual Work — Public Provenance Manifest
+# Art & Visual Work — Catalog & Provenance
 
-This manifest documents the public-facing art record for Laura Elizabeth Hand's portfolio. It exists to separate **verified original work**, **process material**, and **archive items still awaiting title/media/award reconciliation** without publishing private archive structure or third-party reference images.
+This catalog accompanies Laura Elizabeth Hand's [Art & Visual Work](https://www.lauraelizabethhand.com/art/) gallery. It highlights selected original work and process studies and records available information about title, date, medium, publication, exhibition, and recognition.
 
-## Publication standard
+## How the gallery is cataloged
 
-A work is added to the public gallery only when there is enough surviving evidence to treat it as Laura Elizabeth Hand's original work or a clearly attributed collaborative/editorial contribution.
+The gallery presents finished original work alongside selected process studies when those studies add useful context. Collaborative or editorial work is identified as such where relevant.
 
-The public gallery does **not** automatically publish:
+Dates, media, titles, and recognition are listed when documented. When a detail is uncertain, it is left unspecified rather than inferred. Website images are web-ready versions of original masters.
 
-- reference images;
-- stock/source images;
-- downloaded visual research;
-- class references;
-- third-party editorial assets;
-- image-manipulation studies whose underlying source-image rights are unclear;
-- duplicates or lower-quality copies when a stronger master survives.
+## Current gallery
 
-Original masters remain in the private archive. The website uses web-optimized copies.
-
-## Current public gallery
-
-| Work | Date | Medium / type | Public status | Provenance note |
-| --- | --- | --- | --- | --- |
-| *Rezoning* | 2017 | Digital / animated work | Published | Finished work plus surviving architectural/process studies |
-| *A Chance Meeting* | c. 2015 | Drawing / mixed-media drawing | Published | Named high-resolution archive master survives |
-| *Loss* | Date under reconciliation | Medium under reconciliation | Published | Existing portfolio work; retain broad label until source record is reconciled |
-| *Limits* | Date under reconciliation | Medium under reconciliation | Published | Existing portfolio work; retain broad label until source record is reconciled |
-| *Pathway* | Date under reconciliation | Medium under reconciliation | Published | Existing portfolio work; retain broad label until source record is reconciled |
-| *Le jour de bonté* | Date under reconciliation | Medium under reconciliation | Published | Existing portfolio work; retain broad label until source record is reconciled |
-| *Reparation and Resuscitation* | 2017 | Mixed media / visual-literary work | Published | Associated with the work first published in *Quarto* |
-| First linocut | 2014 | Linocut / printmaking | Published | Archive file explicitly identifies it as Laura's first linocut and dates it to 2014 |
-| *Spectrum of Innocence* | c. 2015 | Figurative drawing | Published | Named high-resolution archive master survives |
-| Cathedral study | 2014 | Architectural / figurative drawing | Published | Archive master dates to 2014; descriptive label used rather than asserting an unverified formal title |
+| Work | Date | Medium / type | Context |
+| --- | --- | --- | --- |
+| *Rezoning* | 2017 | Digital / animated work | Finished work with selected architectural and process studies |
+| *A Chance Meeting* | c. 2015 | Drawing / mixed-media drawing | High-resolution original master |
+| *Loss* | — | — | Selected portfolio work; additional metadata not listed |
+| *Limits* | — | — | Selected portfolio work; additional metadata not listed |
+| *Pathway* | — | — | Selected portfolio work; additional metadata not listed |
+| *Le jour de bonté* | — | — | Selected portfolio work; additional metadata not listed |
+| *Reparation and Resuscitation* | 2017 | Mixed media / visual-literary work | Associated with the work first published in *Quarto* |
+| First linocut | 2014 | Linocut / printmaking | Early printmaking work |
+| *Spectrum of Innocence* | c. 2015 | Figurative drawing | High-resolution original master |
+| Cathedral study | 2014 | Architectural / figurative drawing | Descriptive title used for the study |
 
 ## Process studies
 
-| Study | Date | Type | Status |
-| --- | --- | --- | --- |
-| *Rezoning* — Brownstone & zoning study | 2017 | Architectural drawing, handwritten zoning research, color studies | Published |
-| *Rezoning* — Layered process study | 2017 | Architectural source drawing with translucent digital overlays and notes | Published |
+| Study | Date | Type |
+| --- | --- | --- |
+| *Rezoning* — Brownstone & zoning study | 2017 | Architectural drawing, handwritten zoning research, color studies |
+| *Rezoning* — Layered process study | 2017 | Architectural source drawing with translucent digital overlays and notes |
 
-## Reviewed but not currently published
+## Awards & recognition
 
-The archive contains additional sketches, digital experiments, collages, editorial files, and image-manipulation studies. Some are strong portfolio candidates, but they are withheld when authorship, title, source-image rights, duplication, or context is not yet sufficiently clear.
+Laura Elizabeth Hand's creative work has received 22 Scholastic Art & Writing Awards, two Congressional Art Competition awards, the Heart of Art Award, the Creativity Award, and the CSArts Award.
 
-Examples include:
+Awards are listed separately from the gallery unless a specific work-to-award relationship is documented.
 
-- a 2016 collage identified in the archive as being in the style of Max Ernst;
-- several digital image-manipulation experiments whose source imagery is not yet documented;
-- unnamed sketches and photographs;
-- editorial-production files that may combine Laura's contribution with publication-owned or third-party assets.
+## Cataloging approach
 
-Withholding these is a provenance decision, not a quality judgment.
-
-## Recognition boundary
-
-The public record supports substantial creative recognition, including 22 Scholastic Art & Writing Awards, two Congressional Art Competition awards, the Heart of Art Award, the Creativity Award, and the CSArts Award.
-
-The archive does **not yet support a complete work-by-work mapping** between every surviving artwork and every award. The site therefore lists awards separately and does not imply that a particular gallery image received a particular award unless that connection is independently verified.
-
-## Archive workflow
-
-For each newly recovered image:
-
-1. confirm it is an original work or clearly attributable contribution;
-2. compare against existing copies and retain the strongest master;
-3. preserve the original master privately;
-4. record title, date, medium, publication/exhibition/award context only when supported;
-5. create a web-optimized derivative for the website;
-6. write descriptive alt text;
-7. keep uncertain metadata explicit rather than guessing.
+The gallery is updated as additional works are prepared for display. New entries are described with the clearest available title, date, medium, and context; collaborative work is credited appropriately; and uncertain metadata is left open rather than guessed.
 
 ## Related portfolio pages
 
