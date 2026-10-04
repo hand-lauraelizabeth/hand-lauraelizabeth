@@ -28,6 +28,14 @@ def make_zip_csv(name: str, text: str) -> bytes:
     return buffer.getvalue()
 
 
+def make_zip_files(files: dict[str, str]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, text in files.items():
+            archive.writestr(name, text)
+    return buffer.getvalue()
+
+
 def main() -> None:
     assert_equal(module.normalize_unitid("190150.0"), "190150", "UNITID decimal cleanup")
     assert_equal(module.normalize_unitid(" 190150 "), "190150", "UNITID whitespace")
@@ -46,6 +54,13 @@ def main() -> None:
     assert_equal(community, True, "community-college proxy recovers associate-focused public four-year")
     if "public_associates_certificates_instcat" not in reasons:
         raise AssertionError("community-college proxy did not record INSTCAT reason")
+
+    carnegie_community, carnegie_reasons = module.community_college_pathway_flags(
+        {"CONTROL": "1", "SECTOR": "1", "INSTCAT": "1", "C21BASIC": "14"}
+    )
+    assert_equal(carnegie_community, True, "community-college proxy recovers public baccalaureate/associate institution")
+    if "public_associate_or_bacc_assoc_carnegie" not in carnegie_reasons:
+        raise AssertionError("community-college proxy did not record Carnegie reason")
     assert_equal(module.bls_value_status("**"), "topcoded", "BLS top-coded wage")
     assert_equal(module.bls_value_status("*"), "suppressed", "BLS unavailable estimate")
     assert_equal(module.parse_number("$52,000"), 52000.0, "BLS numeric parsing")
@@ -72,6 +87,31 @@ def main() -> None:
     member, rows = module.read_zip_table(sample)
     assert_equal(member, "HD2025.csv", "ZIP member")
     assert_equal(rows[0]["UNITID"], "190150", "ZIP CSV read")
+
+    dapip_fixture = make_zip_files({
+        "InstitutionCampus.csv": (
+            "DapipId,ParentDapipId,IpedsUnitIds,ParentName,LocationName,LocationType,Address,OpeId\n"
+            '100,,"190150, 190151",Example University,Main Campus,Institution,"New York, NY",00123400\n'
+        ),
+        "AccreditationRecords.csv": (
+            "DapipId,AgencyId,AgencyName,ProgramId,ProgramName,AccreditationEndDate,AccreditationStatus\n"
+            "100,10,Example Accreditor,1,Institutional,,Accredited\n"
+        ),
+        "AccreditationActions.csv": (
+            "DapipId,AgencyId,AgencyName,ProgramId,ProgramName,ActionDescription,ActionDate,EndDate,Justification\n"
+            "100,10,Example Accreditor,1,Institutional,Renewal,01/01/2026,,\n"
+        ),
+    })
+    dapip_fixture_dir = ROOT / "tmp" / "dapip-fixture"
+    dapip_result = module.ingest_dapip(
+        module.get_source("dapip_accreditation"),
+        dapip_fixture,
+        dapip_fixture_dir,
+        module.get_source("dapip_accreditation")["access_url"],
+    )
+    assert_equal(dapip_result["qa"]["dapip_ipeds_bridge_rows"], 2, "DAPIP multi-UNITID bridge row count")
+    bridge_rows = module.read_csv_path(dapip_fixture_dir / "normalized" / "dapip_ipeds_bridge.csv")
+    assert_equal({row["UNITID"] for row in bridge_rows}, {"190150", "190151"}, "DAPIP multi-UNITID bridge")
 
     manifest = module.load_manifest()
     source_ids = {s["source_id"] for s in manifest["sources"]}
