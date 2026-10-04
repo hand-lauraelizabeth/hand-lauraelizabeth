@@ -1,8 +1,8 @@
 # Parent & Caregiver ELL Program Architecture Checklist
 
-A publication-safe planning tool for designing adult English-language-learning programs that connect language development to real-world family, school, community, digital, and institutional navigation.
+A planning tool for designing adult English-language-learning programs that connect language development to real-world family, school, community, digital, and institutional navigation.
 
-This is a **new derivative resource** informed by documented curriculum-design methods in Laura Elizabeth Hand's 2020 parent/caregiver ELL work. It does not reproduce the original institutional curriculum, learner records, grant materials, or third-party content.
+Created in 2026, this checklist translates methods from Laura Elizabeth Hand's 2020 parent/caregiver ELL work into a reusable program-design framework.
 
 ## 1. Define the learner population without overgeneralizing
 
