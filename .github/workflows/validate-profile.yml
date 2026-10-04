@@ -60,3 +60,9 @@ jobs:
       - name: Live CIP-SOC ingestion smoke test
         if: contains(github.event.head_commit.message, '[live-source-smoke]')
         run: python scripts/college_career_ingest.py --source cip_soc_crosswalk_2020_2018 --output-dir "${{ runner.temp }}/college-career-smoke"
+
+      - name: Live IPEDS ingestion smoke test
+        if: contains(github.event.head_commit.message, '[live-ipeds-smoke]')
+        run: |
+          python scripts/college_career_ingest.py --source ipeds_directory_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
+          python scripts/college_career_ingest.py --source ipeds_completions_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
