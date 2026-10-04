@@ -149,7 +149,8 @@ The build writes:
 - `institution_model.csv` — institution context, accreditation/community-college flags, provenance, and optional Scorecard enrichment when a Scorecard snapshot exists;
 - `program_model.csv` — first-major (`MAJORNUM=1`) institution + CIP6 + award-level rows, with second-major presence retained as context;
 - `program_occupation_pathway.csv` — streamed many-to-many CIP↔SOC↔O*NET pathways enriched with BLS projections and national OEWS data;
-- `model_ready_qa.json` — identity-review, row-count, enrichment-coverage, and scoring-gate checks.
+- `model_ready_qa.json` — identity-review, row-count, enrichment-coverage, regression-gate, and scoring-gate checks.
+- `model_ready_manifest.json` — exact source snapshot lineage (release, retrieval time, SHA-256/reference period where available), table grains, identity policy, and pathway policy.
 
 Shared DAPIP or exact OPEID relationships are review signals, not automatic merges. Program rows with no direct CIP↔SOC mapping remain present with an explicit coverage-gap pathway row. The pathway file is streamed during construction so the full federal universe does not need to be held in memory.
 
