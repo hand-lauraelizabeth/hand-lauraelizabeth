@@ -155,6 +155,16 @@ def normalize_cip6(value: object) -> str | None:
     text = str(value).strip()
     if not text:
         return None
+
+    # IPEDS/CIP codes are a two-digit series plus a four-digit detail code.
+    # Source files may serialize summary codes such as 99.0000 as "99";
+    # left-padding the entire token would incorrectly turn that into 000099.
+    decimal_match = re.fullmatch(r"(\d{1,2})(?:\.(\d{1,4}))?", text)
+    if decimal_match:
+        family = decimal_match.group(1).zfill(2)
+        detail = (decimal_match.group(2) or "").ljust(4, "0")
+        return family + detail
+
     digits = re.sub(r"\D", "", text)
     if not digits:
         return None
@@ -1759,7 +1769,7 @@ def build_program_coverage_report(output_dir: Path) -> dict:
         cip = str(row.get("CIP6") or "")
         award = str(row.get("AWLEVEL") or "")
         # 99.0000 is an IPEDS summary/total code, not a specific field of study.
-        if cip == "990000":
+        if cip in {"990000", "000099"}:
             summary_cip_rows_excluded += 1
             continue
         if not unitid or not cip or not award:
