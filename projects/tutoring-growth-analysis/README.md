@@ -1,6 +1,6 @@
 # Tutoring growth analysis in R
 
-A reproducible demonstration of how I would move from a program-evaluation question to an analysis that accounts for baseline differences and clustered/repeated observations.
+A reconstructed analytical demonstration based on program-evaluation and research workflows I used in institutional teaching and research contexts. The original work was completed on institutional systems/work laptops and cannot be reproduced directly for a public portfolio, so this project approximates the analytical approach using fully synthetic data.
 
 ## Question
 
@@ -26,11 +26,13 @@ install.packages(c("tidyverse", "lme4", "broom.mixed"))
 
 The script generates its own synthetic dataset, fits the model, and prints both the interaction estimate and simple mean-growth summaries.
 
-## Evidence boundary
+## Provenance and evidence boundary
 
-All observations in this repository are **synthetic**. The project demonstrates analytical method and reproducibility; it does not establish that a particular tutoring program produced the simulated effect.
+This is a **reconstructed portfolio demonstration**, not the original institutional analysis. It reflects the kinds of statistical and research-design work I performed in institutional contexts, but it does not reproduce proprietary files, restricted datasets, or employer-owned deliverables.
 
-That distinction is intentional. A production evaluation would additionally document assignment or selection mechanisms, missing-data rules, measurement validity, model diagnostics, sensitivity analyses, and contextual limitations before making causal or program-impact claims.
+All observations in this repository are synthetic. The project demonstrates analytical method, model specification, reproducibility, and interpretation; it does not establish that a particular tutoring program produced the simulated effect.
+
+A production evaluation would additionally document assignment or selection mechanisms, missing-data rules, measurement validity, model diagnostics, sensitivity analyses, and contextual limitations before making causal or program-impact claims.
 
 ## Why mixed effects?
 
