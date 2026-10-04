@@ -186,7 +186,7 @@ The source layer is now defined in both human-readable and machine-checkable for
 - [Coverage regression baselines](coverage_baselines.json) — conservative live-observed minimums for institution, program, and career coverage;
 - [Ingestion contract](INGESTION_CONTRACT.md) — raw → staging → normalized → model-ready rules, key normalization, suppression handling, and refresh behavior;
 - [QA & Join Tests](QA_JOIN_TESTS.md) — source-level, cross-source, coverage-regression, and recommendation-gating acceptance criteria;
-- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 84 fields mapped to source variables, joins, cadence, transformations, and missing-data behavior;
+- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 89 fields mapped to source variables, joins, cadence, transformations, and missing-data behavior;
 - [Machine-readable source matrix](MVP_Field_Level_Source_Matrix.csv) — CSV for ingestion/configuration work.
 
 The repository CI validates manifest structure, source IDs, join references, CIP↔SOC cardinality, production-source privacy boundaries, source-matrix consistency, and coverage-baseline configuration.
