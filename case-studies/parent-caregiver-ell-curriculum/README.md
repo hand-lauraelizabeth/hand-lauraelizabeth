@@ -4,7 +4,7 @@
 
 In 2020, Laura Elizabeth Hand worked with CRD Impact owner Cassandra Decker and Project Light on a parent/caregiver English-language-learning curriculum designed around the practical demands adult learners faced while navigating schools, healthcare, community resources, and digital systems.
 
-The surviving archive supports a substantially broader scope than a conventional lesson-plan project. The work included:
+The project extended well beyond a conventional lesson-plan assignment. The work included:
 
 - a ten-module ELL/platform curriculum with supplementary materials;
 - learner-facing materials;
@@ -21,7 +21,7 @@ This project is separate from Laura Elizabeth Hand's Community Impact ESOL work.
 
 ## Original project scope and timeline
 
-A surviving August 23, 2020 project plan states:
+An August 23, 2020 project plan states:
 
 - **Project:** create ten ELL/platform modules with supplementary materials in collaboration with Cassandra Decker.
 - **First five modules:** targeted for completion by September 14, 2020.
@@ -90,7 +90,7 @@ Teacher materials included more than activity directions. They also preserved:
 
 ### Administrators / program operations
 
-The project plan explicitly calls for administrator progress guides. Surviving materials also connect enrollment, assessment, learner goals, digital access, progress tracking, compliance documentation, and program reporting.
+The project plan explicitly calls for administrator progress guides. The materials also connect enrollment, assessment, learner goals, digital access, progress tracking, compliance documentation, and program reporting.
 
 That architecture treats curriculum as both a learning system and an operating system.
 
@@ -117,7 +117,7 @@ Language, literacy, digital fluency, and institutional navigation were therefore
 
 ## Accessibility and learner support
 
-The surviving materials show attention to access through:
+The materials show attention to access through:
 
 - first-language support where useful;
 - multimodal directions;
@@ -129,7 +129,7 @@ The surviving materials show attention to access through:
 - reduced assumptions about prior familiarity with U.S. educational systems;
 - alternative delivery modes.
 
-The archive also contains program-planning references to ADA/access considerations. Public portfolio materials should describe the design approach without exposing individual learner records, intake responses, or compliance data.
+Program planning also addresses ADA/access considerations alongside instructional and technology access.
 
 ## Assessment and evidence
 
@@ -160,21 +160,13 @@ This made assessment part of the curriculum workflow rather than a separate end-
 - assessment and compliance integration;
 - iterative revision with a program partner.
 
-## Evidence boundary and publication standard
+## Materials & attribution
 
-The source archive contains institutional materials, third-party readings/resources, grant/program references, and private participant/compliance information.
+The original project includes institutional materials, third-party readings and resources, grant/program documentation, and participant information. This case study therefore concentrates on curriculum architecture, learner support, delivery design, assessment, and program operations. The companion tools are newly authored resources that generalize those methods without reproducing participant records or third-party content.
 
-Accordingly:
+## Related resources
 
-- raw intake forms, participant records, and compliance data are not published;
-- substantial textbook/packet excerpts are not reproduced unless rights are clear;
-- third-party readings and commercial materials are not republished;
-- the public toolkit derived from this work is newly authored and generalized;
-- claims in this case study are limited to what the surviving project plan and curriculum materials support.
-
-## Public derivative
-
-The project informed a new publication-safe tool:
+The project informed a new reusable planning tool:
 
 - [Parent & Caregiver ELL Program Architecture Checklist](../../resources/curriculum-lesson-design/Parent_Caregiver_ELL_Program_Architecture_Checklist.md)
 - [Design Around a Real Decision — Curriculum Planning Canvas](../../resources/curriculum-lesson-design/Design_Around_a_Real_Decision_Curriculum_Planning_Canvas.md)
