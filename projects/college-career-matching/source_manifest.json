@@ -15,19 +15,19 @@
       "title": "U.S. Department of Education College Scorecard",
       "agency": "U.S. Department of Education",
       "status": "production_core",
-      "access_type": "api",
+      "access_type": "bulk_download",
       "official_url": "https://collegescorecard.ed.gov/data/",
-      "documentation_url": "https://collegescorecard.ed.gov/data/api-documentation/",
-      "access_url": "https://api.data.gov/ed/collegescorecard/v1/schools.json",
+      "documentation_url": "https://collegescorecard.ed.gov/files/InstitutionDataDocumentation.pdf",
+      "access_url": "https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip",
       "release": {
-        "label": "latest API release",
-        "policy": "Use the latest API release while retaining each metric's reporting/reference year.",
-        "fixed_version": false
+        "label": "Most Recent Institution-Level Data — June 10, 2026",
+        "policy": "Use the official featured most-recent institution-level bulk file; retain metric-specific reporting/reference periods in downstream documentation.",
+        "fixed_version": true
       },
       "authentication": {
-        "required": true,
-        "mechanism": "api.data.gov API key",
-        "environment_variable": "COLLEGE_SCORECARD_API_KEY",
+        "required": false,
+        "mechanism": "none for official featured bulk download",
+        "environment_variable": null,
         "secret_in_repository": false
       },
       "license_or_terms": "U.S. Department of Education public data; follow current College Scorecard/API terms.",
@@ -38,27 +38,30 @@
       "raw_key_mapping": {
         "id": "UNITID"
       },
-      "refresh_policy": "Check for Scorecard data/API updates at least monthly; refresh production snapshot when source data changes.",
-      "retrieval_mode": "Paginated API query with an explicit fields allow-list.",
+      "refresh_policy": "Check the official College Scorecard data page at least monthly; update the dated featured-download URL and release metadata when the Department publishes a new file.",
+      "retrieval_mode": "Official featured institution-level bulk ZIP download; no API key required.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
-        "api_base",
-        "query_fields",
-        "response_metadata",
-        "metric_reference_year"
+        "source_url",
+        "source_release",
+        "bulk_member",
+        "sha256",
+        "row_count_raw",
+        "raw_column_count"
       ],
       "required_artifacts": [
-        "raw_json_or_ndjson",
+        "raw_bulk_zip",
         "normalized_institution_table",
         "source_snapshot_metadata"
       ],
       "qa": [
-        "UNITID is non-null and unique in normalized institution table.",
-        "Pagination completes without duplicate UNITIDs.",
-        "PrivacySuppressed and null values remain null.",
-        "Percentages are range-checked after normalization.",
-        "No metric loses its reporting/reference-year context."
+        "UNITID is non-null and unique in the normalized institution table.",
+        "Bulk ZIP contains an institution CSV with UNITID, INSTNM, CONTROL, and ICLEVEL.",
+        "PrivacySuppressed and null values normalize to null rather than numeric zero.",
+        "Consumer-facing completion, retention, and net-price compatibility fields are derived only from documented Scorecard bulk variables.",
+        "Scorecard absence never removes an otherwise eligible IPEDS institution from the matcher universe.",
+        "No metric loses its reporting/reference-year context in downstream documentation."
       ]
     },
     {
