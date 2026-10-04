@@ -67,7 +67,6 @@ def main() -> None:
         "ipeds_directory_2025": "https://nces.ed.gov/ipeds/datacenter/data/HD2025.zip",
         "ipeds_completions_2025": "https://nces.ed.gov/ipeds/datacenter/data/C2025_A.zip",
         "cip_soc_crosswalk_2020_2018": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
-        "onet_31_0": "https://www.onetcenter.org/dl_files/database/db_31_0_csv.zip",
         "bls_employment_projections_2025_2035": "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
         "bls_oews_may_2025": "https://www.bls.gov/oes/special-requests/oesm25all.zip",
     }
@@ -75,10 +74,36 @@ def main() -> None:
         actual = module.resolve_access_url(module.get_source(source_id))
         assert_equal(actual, expected_url, f"{source_id} URL")
 
+    onet = module.get_source("onet_31_0")
+    required_onet_files = {
+        "occupation_data",
+        "essential_skills",
+        "transferable_skills",
+        "software_skills",
+        "knowledge",
+        "abilities",
+        "education",
+        "training_and_experience",
+        "career_interest_types",
+        "work_activities",
+        "work_context",
+        "related_occupations",
+        "job_zones",
+    }
+    missing_onet = required_onet_files - set(onet.get("files", {}))
+    if missing_onet:
+        raise AssertionError(f"O*NET manifest missing files: {sorted(missing_onet)}")
+    for name, url in onet["files"].items():
+        if not str(url).startswith("https://www.onetcenter.org/dl_files/database/db_31_0_csv/"):
+            raise AssertionError(f"O*NET {name}: unexpected URL {url}")
+
     for source_id in required:
         result = module.ingest_source(source_id, ROOT / "tmp" / "college-career-test", dry_run=True)
         assert_equal(result["mode"], "dry-run", f"{source_id} dry run")
-        if not str(result["access_url"]).startswith("https://"):
+        if source_id == "onet_31_0":
+            if len(result.get("access_urls", {})) < len(required_onet_files):
+                raise AssertionError("O*NET dry run did not expose configured source files")
+        elif not str(result["access_url"]).startswith("https://"):
             raise AssertionError(f"{source_id}: dry-run URL must be HTTPS")
 
     print(
