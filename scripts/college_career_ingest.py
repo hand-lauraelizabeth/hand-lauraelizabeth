@@ -1132,6 +1132,17 @@ def ingest_oews_timeseries(
     (snapshot_dir / "source_snapshot.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(normalized)}
 
+def _row_value(row: dict[str, str], *names: str) -> str | None:
+    normalized = {
+        re.sub(r"[^a-z0-9]", "", str(key).lower()): value
+        for key, value in row.items()
+    }
+    for name in names:
+        value = normalized.get(re.sub(r"[^a-z0-9]", "", name.lower()))
+        if value is not None:
+            return value
+    return None
+
 def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
     expected = {
         "institutioncampus.csv": "institution_campus",
