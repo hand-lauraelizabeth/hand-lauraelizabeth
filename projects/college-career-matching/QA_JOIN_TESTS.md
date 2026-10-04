@@ -94,6 +94,19 @@ Live coverage reports can be run with `--enforce-coverage-baseline`. The configu
 - A source-version change that legitimately moves below a floor requires explicit investigation and a reviewed baseline update; the gate must not be weakened automatically to make CI pass.
 - Reports retain the actual value, configured minimum, and pass/fail result for every guarded metric.
 
+## Model-ready identity and pathway checks
+
+- FAIL if two UNITIDs are collapsed automatically without an authoritative merge/crosswalk rule.
+- FAIL if `RECOMMENDATION_ENTITY_ID` is not one-to-one with UNITID in the default build.
+- INFO/REVIEW when multiple UNITIDs share an exact DAPIP identifier or exact OPEID; keep the rows distinct and surface the cluster/review reason.
+- FAIL if C2025_A `MAJORNUM` is dropped from normalized completions.
+- Default `program_model` uses `MAJORNUM=1`; second-major rows remain auditable but do not create duplicate primary-program rows.
+- FAIL if a first-major institution + CIP6 + award-level row disappears solely because CIP↔SOC is missing.
+- Preserve one-to-many CIP↔SOC and SOC↔O*NET detail. Do not select a single occupation to force uniqueness.
+- BLS projection or OEWS absence lowers enrichment completeness only; it must not delete the program/occupation pathway.
+- Every model-ready layer must carry source release/version metadata or traceable build-level provenance.
+- Recommendation scoring remains disabled in `model_ready_qa.json` until later calibration and authenticated Scorecard validation are complete.
+
 ## Recommendation gate
 
 Recommendation scoring remains disabled until:
