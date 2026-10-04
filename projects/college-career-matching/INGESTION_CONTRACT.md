@@ -36,11 +36,13 @@ Raw snapshots are immutable. A new retrieval or source release creates a new sna
 - Never use institution name as the primary join when UNITID exists.
 - UNITID must be unique in each normalized institution identity table.
 
-### Program — UNITID + CIP6 + AWLEVEL
+### Program completion source — UNITID + MAJORNUM + CIP6 + AWLEVEL
 
 - Normalize CIP to a documented six-digit representation.
 - Retain the original source code alongside the normalized value.
+- Preserve `MAJORNUM` because C2025_A distinguishes first and second majors.
 - Keep award level separate; do not silently collapse certificate, associate, bachelor, master, and doctoral rows.
+- The default model-ready program grain is UNITID + CIP6 + AWLEVEL using `MAJORNUM=1`; second-major records remain auditable enrichment and must not double-count program availability.
 
 ### Occupation — SOC6 and ONET_SOC_CODE
 
@@ -130,6 +132,35 @@ Use the May 2025 all-data release.
 | occupation_outlook | SOC6 + projection_cycle | Growth/openings/preparation |
 | occupation_wage | AREA + OCC_CODE + reference_period | Current geographic employment/wages |
 | source_snapshot | source_id + retrieved_at + sha256 | Reproducibility and source lineage |
+
+## Model-ready identity and pathway layer
+
+The first model-ready build remains non-scoring. It produces four explicit tables plus QA:
+
+| Table | Grain | Rule |
+| --- | --- | --- |
+| institution_identity_resolution | UNITID | Exact identifier review layer; every UNITID remains a distinct recommendation entity by default |
+| institution_model | UNITID | IPEDS identity/context + DAPIP accreditation flags + optional Scorecard enrichment |
+| program_model | UNITID + CIP6 + AWLEVEL | First-major IPEDS program/completion record; second-major presence retained as context |
+| program_occupation_pathway | UNITID + CIP6 + AWLEVEL + SOC6 + ONET_SOC_CODE | Many-to-many education-to-occupation pathways with O*NET/BLS/OEWS enrichment |
+| model_ready_qa | build | Coverage, identity-review, enrichment, and scoring-gate checks |
+
+Identity-resolution rules:
+
+- UNITID remains the recommendation entity key.
+- Exact shared DAPIP relationships can create a **review cluster** but never an automatic merge.
+- Exact shared OPEID is a review signal only; it is not sufficient to collapse campuses.
+- Institution names are not used for production fuzzy deduplication.
+- `AUTO_COLLAPSE` must remain false unless a future authoritative crosswalk explicitly justifies a merge.
+- Shared/system/campus relationships remain visible through cluster IDs, review reasons, DAPIP parent/location context, and source provenance.
+
+Pathway rules:
+
+- Programs without a direct CIP↔SOC mapping remain in `program_model` and receive an explicit coverage-gap row rather than disappearing.
+- One CIP may yield multiple SOC6 pathways and one SOC6 may yield multiple detailed O*NET occupations.
+- BLS projections and OEWS wages enrich the pathway; missing labor-market enrichment does not invalidate the educational pathway.
+- CIP↔SOC is taxonomy evidence, not observed graduate-outcome evidence.
+- Source release/version fields travel with model-ready rows so explanations can identify why a result exists.
 
 ## Join contracts
 
