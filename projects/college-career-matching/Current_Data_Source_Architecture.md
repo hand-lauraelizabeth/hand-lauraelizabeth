@@ -10,7 +10,7 @@ This document defines the preferred production data sources for the modern Colle
 | Institution + programs | NCES IPEDS | Institutional characteristics, enrollment, completions, awards, program inventory | Annual |
 | Program taxonomy | NCES CIP | Standard program codes | Version-controlled taxonomy |
 | Program ↔ occupation | NCES/BLS CIP–SOC Crosswalk | Many-to-many education-to-occupation bridge | Version-controlled crosswalk |
-| Occupation taxonomy + skills | O*NET | Tasks, skills, knowledge, abilities, work activities/context, preparation, related occupations | Each O*NET production release |
+| Occupation taxonomy + work/worker characteristics | O*NET | Occupations, essential and transferable skills, software skills, knowledge, abilities, career interests, work activities/context, preparation, related occupations | Each O*NET production release |
 | Employment outlook | BLS Employment Projections | Jobs, growth, annual openings, education/training, national outlook | Annual projection release |
 | Current wages + geographic employment | BLS OEWS | Wage percentiles, employment, state/metro geography | Annual |
 | Current job demand | Public job-posting sources | Titles, employers, skills, salary, work mode, location, recency | Frequent snapshot with capture date |
@@ -63,18 +63,19 @@ Recommended dimensions:
 
 - occupation title/code;
 - tasks;
-- skills;
+- essential skills;
+- transferable skills;
 - knowledge;
 - abilities;
-- interests;
+- career interest types;
 - work activities;
 - work context;
 - education, training, and experience;
 - job zones;
 - related occupations;
-- technology skills.
+- software skills.
 
-O*NET should drive the **interest/skill ↔ occupation** and **occupation ↔ adjacent occupation** logic.
+O*NET should drive the **career-interest / skill ↔ occupation** and **occupation ↔ adjacent occupation** logic.
 
 ## 5. BLS Employment Projections
 
