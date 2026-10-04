@@ -100,18 +100,33 @@ def http_get(url: str, *, headers: dict[str, str] | None = None, timeout: int = 
 
 def http_post_json(url: str, payload: dict[str, object], *, timeout: int = 90) -> bytes:
     data = json.dumps(payload).encode("utf-8")
+    host = (urllib.parse.urlparse(url).hostname or "").lower()
+    user_agent = USER_AGENT
+    if host == "bls.gov" or host.endswith(".bls.gov"):
+        user_agent = os.getenv(
+            "BLS_USER_AGENT",
+            "LauraElizabethHand-CollegeCareerMatcher/0.3 (https://github.com/hand-lauraelizabeth/hand-lauraelizabeth)",
+        )
     req = urllib.request.Request(
         url,
         data=data,
         method="POST",
         headers={
-            "User-Agent": USER_AGENT,
+            "User-Agent": user_agent,
             "Content-Type": "application/json",
-            "Accept": "application/zip, application/octet-stream, */*",
+            "Accept": "application/json, application/zip, application/octet-stream, */*",
         },
     )
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return response.read()
+
+
+def http_json(url: str, payload: dict[str, object] | None = None, *, timeout: int = 90) -> object:
+    raw = http_get(url, headers={"Accept": "application/json"}, timeout=timeout) if payload is None else http_post_json(url, payload, timeout=timeout)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise IngestionError(f"Expected JSON from {url}, received non-JSON response") from exc
 
 
 def resolve_access_url(source: dict) -> str:
@@ -918,6 +933,240 @@ def ingest_bls_projection(source: dict, raw: bytes, snapshot_dir: Path, source_u
     return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(detailed_rows)}
 
 
+
+def ingest_oews_query(source: dict, snapshot_dir: Path) -> dict:
+    """Ingest the May 2025 national cross-industry OEWS baseline from BLS's live query service."""
+    base = str(source.get("service_base_url") or "https://data.bls.gov").rstrip("/")
+    area_code = "0000000"
+    industry_code = "000000"
+    release_key = str(source.get("release_query_key") or "2025A01")
+    desired_datatypes = {
+        "01": ("TOT_EMP", "TOT_EMP_STATUS"),
+        "12": ("A_PCT25", "A_PCT25_STATUS"),
+        "13": ("A_MEDIAN", "A_MEDIAN_STATUS"),
+        "14": ("A_PCT75", "A_PCT75_STATUS"),
+    }
+
+    raw_dir = snapshot_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+
+    occupation_payload = {"areaCodes": [area_code], "industryCodes": [industry_code]}
+    occupation_response = http_json(f"{base}/OESServices/combo/occ", occupation_payload)
+    if not isinstance(occupation_response, list) or not occupation_response:
+        raise IngestionError("OEWS occupation query returned no rows")
+    (raw_dir / "occupations.json").write_text(
+        json.dumps(occupation_response, indent=2) + "\n", encoding="utf-8"
+    )
+
+    occupation_rows = [
+        row for row in occupation_response
+        if isinstance(row, dict)
+        and str(row.get("displayLevel") or "") == "3"
+        and re.fullmatch(r"\d{2}-\d{4}", str(row.get("formattedOccupationCode") or "").strip())
+    ]
+    if not occupation_rows:
+        raise IngestionError("OEWS occupation query returned no detailed occupations")
+
+    occupation_codes = [str(row["occupationCode"]) for row in occupation_rows]
+    occupation_meta = {
+        str(row["occupationCode"]): {
+            "title": str(row.get("occupationName") or ""),
+            "formatted_code": str(row.get("formattedOccupationCode") or ""),
+            "display_level": str(row.get("displayLevel") or ""),
+        }
+        for row in occupation_rows
+    }
+
+    sample_occ = occupation_codes[0]
+    datatype_payload = {
+        "areaCodes": [area_code],
+        "industryCodes": [industry_code],
+        "occupationCodes": [sample_occ],
+        "occupationExclude": False,
+    }
+    datatype_response = http_json(f"{base}/OESServices/combo/datatype", datatype_payload)
+    if not isinstance(datatype_response, list):
+        raise IngestionError("OEWS datatype query did not return a list")
+    datatype_names = {
+        str(row.get("datatypeCode") or ""): str(row.get("datatypeName") or "")
+        for row in datatype_response if isinstance(row, dict)
+    }
+    missing_datatypes = set(desired_datatypes) - set(datatype_names)
+    if missing_datatypes:
+        raise IngestionError(f"OEWS query missing required datatypes: {sorted(missing_datatypes)}")
+    (raw_dir / "datatypes.json").write_text(
+        json.dumps(datatype_response, indent=2) + "\n", encoding="utf-8"
+    )
+
+    year_payload = {
+        **datatype_payload,
+        "datatypeCodes": list(desired_datatypes),
+    }
+    year_response = http_json(f"{base}/OESServices/combo/year", year_payload)
+    if not isinstance(year_response, list) or not year_response:
+        raise IngestionError("OEWS year query returned no releases")
+    releases = {
+        str(row.get("releaseDate") or ""): str(row.get("description") or "")
+        for row in year_response if isinstance(row, dict)
+    }
+    if release_key not in releases:
+        raise IngestionError(
+            f"OEWS release {release_key} not returned by live query service; available={sorted(releases)}"
+        )
+    (raw_dir / "releases.json").write_text(
+        json.dumps(year_response, indent=2) + "\n", encoding="utf-8"
+    )
+
+    records: dict[str, dict[str, object]] = {}
+    raw_hashes: list[str] = []
+    response_rows = 0
+    batch_size = int(source.get("query_batch_size") or 200)
+    for batch_number, start in enumerate(range(0, len(occupation_codes), batch_size), start=1):
+        batch = occupation_codes[start:start + batch_size]
+        payload = {
+            "areaCodes": [area_code],
+            "industryCodes": [industry_code],
+            "occupationCodes": batch,
+            "occupationExclude": False,
+            "datatypeCodes": list(desired_datatypes),
+            "releaseDates": [release_key],
+            "tableSuffix": "pub",
+            "userId": None,
+            "pwd": None,
+        }
+        response = http_json(f"{base}/OESServices/combo/table", payload, timeout=180)
+        if not isinstance(response, list):
+            raise IngestionError(f"OEWS table batch {batch_number} did not return a list")
+        raw_batch = json.dumps(response, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        raw_hashes.append(sha256_bytes(raw_batch))
+        (raw_dir / f"table_batch_{batch_number:03d}.json").write_bytes(raw_batch + b"\n")
+        response_rows += len(response)
+
+        for row in response:
+            if not isinstance(row, dict):
+                continue
+            occupation_code = str(row.get("occupationCode") or "")
+            if occupation_code not in occupation_meta:
+                continue
+            datatype_code = str(row.get("datatypeCode") or "")
+            if datatype_code not in desired_datatypes:
+                continue
+            meta = occupation_meta[occupation_code]
+            soc = normalize_soc6(meta["formatted_code"] or occupation_code)
+            if not soc:
+                continue
+            item = records.setdefault(occupation_code, {
+                "AREA": area_code,
+                "AREA_TITLE": "National",
+                "AREA_TYPE": "National",
+                "AREA_TYPE_CODE": "N",
+                "STATE_CODE": "00",
+                "OCC_CODE": soc,
+                "OCC_TITLE": meta["title"],
+                "O_GROUP": "detailed",
+                "IS_DETAILED": "1",
+                "reference_period": source["release"]["label"],
+                "source_id": source["source_id"],
+            })
+            value_field, status_field = desired_datatypes[datatype_code]
+            raw_value = row.get("value")
+            item[value_field] = parse_number(raw_value)
+            footnote = str(row.get("footnoteCodes") or "").strip()
+            if parse_number(raw_value) is not None:
+                item[status_field] = "reported"
+            elif footnote:
+                item[status_field] = f"unreported_footnote:{footnote}"
+            else:
+                item[status_field] = bls_value_status(raw_value)
+
+    normalized = list(records.values())
+    for item in normalized:
+        for value_field, status_field in desired_datatypes.values():
+            item.setdefault(value_field, None)
+            item.setdefault(status_field, "null")
+
+    fields = [
+        "AREA", "AREA_TITLE", "AREA_TYPE", "AREA_TYPE_CODE", "STATE_CODE",
+        "OCC_CODE", "OCC_TITLE", "O_GROUP", "IS_DETAILED",
+        "TOT_EMP", "TOT_EMP_STATUS", "A_PCT25", "A_PCT25_STATUS",
+        "A_MEDIAN", "A_MEDIAN_STATUS", "A_PCT75", "A_PCT75_STATUS",
+        "reference_period", "source_id",
+    ]
+    write_csv(snapshot_dir / "normalized" / "occupation_wage.csv", fields, normalized)
+
+    report = qa_report(source["source_id"], normalized, ["AREA_TYPE_CODE", "AREA", "OCC_CODE"])
+    ordering_failures = 0
+    for row in normalized:
+        values = [row.get("A_PCT25"), row.get("A_MEDIAN"), row.get("A_PCT75")]
+        if all(isinstance(value, (int, float)) for value in values):
+            if not (float(values[0]) <= float(values[1]) <= float(values[2])):
+                ordering_failures += 1
+    report.update({
+        "query_release_key": release_key,
+        "query_release_description": releases[release_key],
+        "query_occupation_rows": len(occupation_response),
+        "detailed_occupations_requested": len(occupation_rows),
+        "detailed_occupation_rows_normalized": len(normalized),
+        "table_response_rows": response_rows,
+        "query_batches": math.ceil(len(occupation_codes) / batch_size),
+        "wage_percentile_ordering_failures": ordering_failures,
+        "datatype_mapping": {code: datatype_names[code] for code in desired_datatypes},
+    })
+    if ordering_failures or len(normalized) != len(occupation_rows):
+        report["status"] = "fail"
+
+    coverage = {
+        "source_id": source["source_id"],
+        "source_release": source["release"]["label"],
+        "generated_at": utc_now(),
+        "geography": "National",
+        "area_code": area_code,
+        "industry_code": industry_code,
+        "query_release_key": release_key,
+        "query_occupation_rows_including_aggregates": len(occupation_response),
+        "detailed_occupation_rows": len(normalized),
+        "occupations_with_reported_employment": sum(1 for row in normalized if row["TOT_EMP_STATUS"] == "reported"),
+        "occupations_with_reported_median_wage": sum(1 for row in normalized if row["A_MEDIAN_STATUS"] == "reported"),
+        "notes": [
+            "This automation-safe baseline uses the official BLS OEWS query service on data.bls.gov because the bulk download host blocks GitHub-hosted runners.",
+            "The national cross-industry baseline uses area 0000000, industry 000000, and the May 2025 release key 2025A01.",
+            "Only source displayLevel=3 occupations enter the detailed O*NET join.",
+            "State, metropolitan, and nonmetropolitan expansion remains a separate geography layer; the normalized schema preserves geography explicitly.",
+        ],
+    }
+
+    metadata_hash_input = "\n".join(
+        [
+            sha256_bytes(json.dumps(occupation_response, separators=(",", ":"), ensure_ascii=False).encode("utf-8")),
+            sha256_bytes(json.dumps(datatype_response, separators=(",", ":"), ensure_ascii=False).encode("utf-8")),
+            sha256_bytes(json.dumps(year_response, separators=(",", ":"), ensure_ascii=False).encode("utf-8")),
+            *raw_hashes,
+        ]
+    ).encode("utf-8")
+    metadata = {
+        "source_id": source["source_id"],
+        "retrieved_at": utc_now(),
+        "source_release": source["release"]["label"],
+        "source_url": str(source.get("access_url") or source["official_url"]),
+        "raw_filename": "multiple OEWS query-service JSON responses",
+        "sha256": sha256_bytes(metadata_hash_input),
+        "release_type": source["release"]["label"],
+        "reference_period": source["release"]["label"],
+        "parser_version": "prototype-0.4",
+        "row_count_raw": response_rows,
+        "query_release_key": release_key,
+        "query_geography": {"areaCode": area_code, "areaName": "National"},
+        "query_industry": {"industryCode": industry_code, "industryName": "Cross-Industry"},
+        "query_batch_size": batch_size,
+        "query_batches": math.ceil(len(occupation_codes) / batch_size),
+    }
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+    (snapshot_dir / "source_snapshot.json").write_text(
+        json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
+    )
+    return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(normalized)}
+
+
 def parse_tsv_mapping(raw: bytes) -> list[dict[str, str]]:
     return read_delimited_bytes(raw, delimiter="\t")
 
@@ -1586,22 +1835,18 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
         snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         result = ingest_onet(source, snapshot_dir)
 
-    elif source_id == "bls_oews_may_2025" and source.get("files"):
+    elif source_id == "bls_oews_may_2025":
         if dry_run:
             return {
                 "source_id": source_id,
                 "mode": "dry-run",
-                "access_urls": source.get("files", {}),
+                "access_url": source.get("access_url"),
+                "service_base_url": source.get("service_base_url"),
+                "release_query_key": source.get("release_query_key"),
+                "geography": "National",
             }
         snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        raw_dir = snapshot_dir / "raw"
-        raw_dir.mkdir(parents=True, exist_ok=True)
-        payloads: dict[str, bytes] = {}
-        for name, url in source["files"].items():
-            payload = http_get(str(url), timeout=180)
-            payloads[name] = payload
-            (raw_dir / safe_filename_from_url(str(url), name)).write_bytes(payload)
-        result = ingest_oews_timeseries(source, payloads, snapshot_dir)
+        result = ingest_oews_query(source, snapshot_dir)
 
     else:
         source_url = resolve_access_url(source)
@@ -1620,8 +1865,6 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
             result = ingest_cip_soc(source, raw, snapshot_dir, source_url)
         elif source_id == "bls_employment_projections_2025_2035":
             result = ingest_bls_projection(source, raw, snapshot_dir, source_url)
-        elif source_id == "bls_oews_may_2025":
-            raise IngestionError("OEWS manifest must configure the official time-series files mapping")
         else:
             raise IngestionError(f"No adapter implemented for {source_id}")
 
