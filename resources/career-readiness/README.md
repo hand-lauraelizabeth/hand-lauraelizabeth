@@ -1,11 +1,11 @@
 # Career Readiness Resource System
 
-A public companion project to the career-readiness and curriculum-design work in my portfolio.
+A companion resource system for the career-readiness and curriculum-design work in my portfolio.
 
-This project separates two kinds of evidence:
+The system includes two complementary kinds of material:
 
-1. **Applied institutional work** — the Hostos Grow with Google Career Readiness Guide, which I have permission to display as an example of my work. The guide includes institutional and third-party material and is therefore presented as an applied-work artifact rather than republished here as an open template.
-2. **New reusable resources** — generalized tools developed from recurring methods in my career-services, teaching, advising, and curriculum work. These are designed to stand alone without student, employer, institutional, or proprietary data.
+1. **Applied institutional work** — the Hostos Grow with Google Career Readiness Guide, displayed with permission as an example of my curriculum and resource-design work.
+2. **Reusable resources** — tools developed from recurring methods in my career-services, teaching, advising, and curriculum work.
 
 ## Resource architecture
 
@@ -36,13 +36,13 @@ The same evidence can then be translated for a résumé, interview, portfolio, p
 
 ## Applied example: Hostos Grow with Google Career Readiness Guide
 
-The portfolio site includes the fillable Hostos Grow with Google Career Readiness Guide as an applied example with permission. My archived materials document my 2023 update work on the guide. The artifact coordinates career assessment, résumé and cover-letter development, LinkedIn, interviewing, reflection, and reusable student activities.
+The portfolio site includes the fillable Hostos Grow with Google Career Readiness Guide as an applied example with permission. My 2023 work on the guide included updating and organizing its career-readiness content for student use. The artifact coordinates career assessment, résumé and cover-letter development, LinkedIn, interviewing, reflection, and reusable student activities.
 
-Because the guide incorporates institutional and third-party content, this repository does **not** duplicate the full guide. The website links to the authorized display copy while this repository documents the design system and houses generalized public-safe resources.
+Because the guide incorporates institutional and third-party content, the website links to the authorized display copy while this repository focuses on the reusable design system and companion resources.
 
 [View the Learning & Curriculum Tools page](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/)
 
-## Planned public files
+## Resource roadmap
 
 - Interview Preparation Checklist
 - Interview Story Bank & Answer Planner
@@ -50,6 +50,6 @@ Because the guide incorporates institutional and third-party content, this repos
 - evidence-to-role mapping worksheet
 - printable / accessible versions where useful
 
-## Provenance and privacy
+## Attribution & privacy
 
-The public resources in this directory are newly developed or generalized. They contain no student records, employer-confidential data, member data, or proprietary institutional datasets. Historical artifacts are identified separately, and incorporated third-party materials retain their original attribution and rights.
+Resources in this directory are designed for reuse without student records, employer-confidential data, member data, or proprietary institutional datasets. Applied institutional examples are identified separately, and third-party material retains its original attribution and rights.
