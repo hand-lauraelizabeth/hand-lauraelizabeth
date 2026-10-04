@@ -84,6 +84,16 @@ These are the minimum acceptance criteria for a source snapshot before it can en
 - Report coverage separately by national/state/metro/nonmetro grain.
 - Missing wages stay missing before any later scoring.
 
+## Coverage regression gates
+
+Live coverage reports can be run with `--enforce-coverage-baseline`. The configured floors in `coverage_baselines.json` are deliberately conservative: they are intended to catch silent source truncation, parser regressions, lost join coverage, or accidental filtering—not to freeze federal datasets at exact historical counts.
+
+- **Institution gate:** protects the IPEDS institution universe, DAPIP identifier coverage, current institutional-accreditation coverage, and public community-college pathway representation.
+- **Program gate:** protects completions row volume, summary-CIP detection, institution + CIP6 + award-level coverage, distinct CIP6 coverage, and direct CIP↔SOC mapping rates.
+- **Career gate:** protects O*NET occupation/base-SOC coverage, BLS detailed-projection coverage, and national OEWS detailed-occupation coverage.
+- A source-version change that legitimately moves below a floor requires explicit investigation and a reviewed baseline update; the gate must not be weakened automatically to make CI pass.
+- Reports retain the actual value, configured minimum, and pass/fail result for every guarded metric.
+
 ## Recommendation gate
 
 Recommendation scoring remains disabled until:
@@ -92,7 +102,8 @@ Recommendation scoring remains disabled until:
 - normalized tables exist;
 - key uniqueness checks pass;
 - CIP↔SOC cardinality checks pass;
-- institution and occupation join reports exist;
+- institution, program, and occupation join/coverage reports exist;
+- all enabled coverage-regression gates pass for the source snapshot being promoted;
 - source versions/reference years reach the explanation layer;
 - private institutional sources are absent from production configuration.
 
