@@ -157,11 +157,12 @@ def main() -> None:
     )
     module.write_csv(
         program_fixture_root / "ipeds_completions_2025" / "20261004T000000Z" / "normalized" / "program_completion.csv",
-        ["UNITID", "CIP6", "AWLEVEL", "CTOTALT"],
+        ["UNITID", "MAJORNUM", "CIP6", "AWLEVEL", "CTOTALT"],
         [
-            {"UNITID": "100001", "CIP6": "010101", "AWLEVEL": "5", "CTOTALT": "10"},
-            {"UNITID": "100001", "CIP6": "990000", "AWLEVEL": "5", "CTOTALT": "10"},
-            {"UNITID": "100002", "CIP6": "020202", "AWLEVEL": "3", "CTOTALT": "4"},
+            {"UNITID": "100001", "MAJORNUM": "1", "CIP6": "010101", "AWLEVEL": "5", "CTOTALT": "10"},
+            {"UNITID": "100001", "MAJORNUM": "1", "CIP6": "990000", "AWLEVEL": "5", "CTOTALT": "10"},
+            {"UNITID": "100001", "MAJORNUM": "2", "CIP6": "010101", "AWLEVEL": "5", "CTOTALT": "2"},
+            {"UNITID": "100002", "MAJORNUM": "1", "CIP6": "020202", "AWLEVEL": "3", "CTOTALT": "4"},
         ],
     )
     module.write_csv(
@@ -179,6 +180,7 @@ def main() -> None:
         "program coverage excludes IPEDS summary CIP",
     )
     assert_equal(program_coverage["summary_cip_rows_excluded"], 1, "program summary row count")
+    assert_equal(program_coverage["second_major_rows_excluded"], 1, "second-major row exclusion")
     assert_equal(
         program_coverage["cip_soc_coverage"]["program_combinations_with_direct_mapping"],
         1,
