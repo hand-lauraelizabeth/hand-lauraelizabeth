@@ -67,8 +67,8 @@ def main() -> None:
         raise AssertionError(f"manifest missing sources: {sorted(missing)}")
 
     expected_urls = {
-        "ipeds_directory_2025": "https://nces.ed.gov/ipeds/datacenter/data/HD2025.zip",
-        "ipeds_completions_2025": "https://nces.ed.gov/ipeds/datacenter/data/C2025_A.zip",
+        "ipeds_directory_2025": "https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip",
+        "ipeds_completions_2025": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip",
         "cip_soc_crosswalk_2020_2018": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
         "bls_employment_projections_2025_2035": "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
         "bls_oews_may_2025": "https://www.bls.gov/oes/special-requests/oesm25all.zip",
