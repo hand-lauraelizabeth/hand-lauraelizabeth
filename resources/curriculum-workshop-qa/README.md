@@ -27,7 +27,7 @@ The workbook is designed to surface gaps before delivery without turning instruc
 
 The portfolio also shows how this broader resource-design approach has been used in institutional settings. The **Hostos Grow with Google Career Readiness Guide** is displayed with permission as an applied-work example: a coordinated participant resource spanning career assessment, résumé and cover-letter development, LinkedIn, interviewing, reflection, and reusable activities.
 
-The institutional guide is linked rather than copied into GitHub because it incorporates institutional and third-party material. Generalized public-safe career tools are documented separately in the [Career Readiness Resource System](../career-readiness/).
+The institutional guide is linked as an applied example, while reusable career tools are documented separately in the [Career Readiness Resource System](../career-readiness/).
 
 [View Learning & Curriculum Tools on the portfolio site](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/)
 
