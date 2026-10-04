@@ -304,6 +304,53 @@
       }
     },
     {
+      "source_id": "dapip_accreditation",
+      "title": "U.S. Department of Education DAPIP accreditation bulk export",
+      "agency": "U.S. Department of Education, Office of Postsecondary Education",
+      "status": "production_core",
+      "access_type": "post_download",
+      "official_url": "https://ope.ed.gov/dapip/#/download-data-files",
+      "access_url": "https://ope.ed.gov/dapip/api/downloadFiles/accreditationDataFiles",
+      "release": {
+        "label": "live DAPIP bulk export",
+        "policy": "Retrieve the current official-site CSV bulk export as a timestamped snapshot. The site front-end endpoint is undocumented, so schema/member changes must fail closed and be reviewed before production use.",
+        "fixed_version": false
+      },
+      "license_or_terms": "U.S. Department of Education public accreditation data; verify current DAPIP terms and institution-specific records for high-stakes use.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "DAPIP_ID",
+        "UNITID"
+      ],
+      "raw_key_mapping": {
+        "DapipId": "DAPIP_ID",
+        "IPEDSUnitID": "UNITID"
+      },
+      "refresh_policy": "Refresh with each production data build or when accreditation coverage is used; retain immutable snapshots because the export is generated live.",
+      "retrieval_mode": "POST JSON to the bulk-download endpoint used by the official DAPIP Download Files interface with CSVChecked=true and ExcelChecked=false.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "source_file",
+        "sha256",
+        "archive_members"
+      ],
+      "required_artifacts": [
+        "raw_zip",
+        "normalized_institution_campus",
+        "normalized_accreditation_records",
+        "normalized_accreditation_actions",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "ZIP contains InstitutionCampus.csv, AccreditationRecords.csv, and AccreditationActions.csv.",
+        "DAPIP identifiers remain distinct from IPEDS UNITID.",
+        "One-to-many DAPIP-to-IPEDS mappings are preserved.",
+        "Institutional and programmatic accreditation records remain distinguishable.",
+        "Current-status derivation remains explicit and does not replace institution-specific verification."
+      ]
+    },
+    {
       "source_id": "bls_employment_projections_2025_2035",
       "title": "BLS Employment Projections 2025-2035, Table 1.2",
       "agency": "U.S. Bureau of Labor Statistics",
@@ -335,7 +382,9 @@
       "required_artifacts": [
         "raw_xlsx",
         "normalized_occupation_outlook_table",
-        "source_snapshot_metadata"
+        "source_snapshot_metadata",
+        "coverage_report",
+        "detailed_only_default_join_table"
       ],
       "qa": [
         "SOC6 is valid for line-item occupations.",
@@ -377,7 +426,8 @@
       "required_artifacts": [
         "raw_zip_or_table",
         "normalized_occupation_wage_table",
-        "source_snapshot_metadata"
+        "source_snapshot_metadata",
+        "coverage_report"
       ],
       "qa": [
         "AREA and OCC_CODE are non-null.",
@@ -444,6 +494,19 @@
       ],
       "expected_cardinality": "one_to_many_by_geography_or_unmatched",
       "rule": "Preserve geography; never collapse national/state/metro rows without an explicit aggregation request."
+    },
+    {
+      "join_id": "ipeds_to_dapip",
+      "left_source": "ipeds_directory_2025",
+      "right_source": "dapip_accreditation",
+      "left_key": [
+        "UNITID"
+      ],
+      "right_key": [
+        "UNITID"
+      ],
+      "expected_cardinality": "one_to_many_or_unmatched",
+      "rule": "Join only on explicit IPEDS UNITID carried by DAPIP; preserve multiple DAPIP/campus records and do not fuzzy-repair conflicting identifiers."
     }
   ],
   "prohibited_production_sources": [
