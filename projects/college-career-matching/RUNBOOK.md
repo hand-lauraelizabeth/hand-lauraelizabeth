@@ -44,18 +44,26 @@ Generated data directories are ignored by Git so the repository contains reprodu
 
 ## College Scorecard
 
-College Scorecard requires an API key from api.data.gov.
+College Scorecard institution enrichment no longer requires an API key. The source manifest points to the official featured June 10, 2026 institution-level bulk ZIP.
 
-Set the key in the environment rather than adding it to a file committed to the repository:
+Try the direct official download path first:
 
 ```bash
-export COLLEGE_SCORECARD_API_KEY="..."
 python scripts/college_career_ingest.py \
   --source college_scorecard \
   --output-dir projects/college-career-matching/data/snapshots
 ```
 
-The prototype uses an explicit field allow-list and paginates until the API-reported total has been retrieved.
+As observed on October 4, 2026, the official Scorecard bulk CDN returns HTTP 403 to GitHub-hosted Actions runners even with browser-compatible headers. This is a transport limitation rather than a parser/QA failure. If the file is downloaded through a normal browser or another permitted route, ingest that same official ZIP directly:
+
+```bash
+python scripts/college_career_ingest.py \
+  --source college_scorecard \
+  --source-file /path/to/Most-Recent-Cohorts-Institution_06102026.zip \
+  --output-dir projects/college-career-matching/data/snapshots
+```
+
+Both paths retain the official source URL/release in provenance, copy the raw ZIP into the timestamped snapshot, compute a source hash, normalize the same logical Scorecard fields, preserve privacy-suppressed values as missing, and run the same QA checks. The optional `[live-scorecard-smoke]` workflow step is therefore a non-blocking CDN transport probe; parser correctness is enforced by the local bulk-ZIP fixture in the regular test suite.
 
 ## Validate the source contract
 
