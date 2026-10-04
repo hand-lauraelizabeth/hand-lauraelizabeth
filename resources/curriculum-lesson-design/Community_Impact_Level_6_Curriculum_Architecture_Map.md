@@ -1,8 +1,8 @@
 # Community Impact Level 6 Curriculum Architecture Map
 
-A publication-safe reconstruction of the **structure** of a 40-lesson adult ESOL curriculum used at Community Impact in Summer 2019.
+A curriculum architecture map of the **40-lesson adult ESOL sequence** used at Community Impact in Summer 2019.
 
-This map documents sequence and instructional architecture. It does **not** reproduce the original textbook, third-party readings, transcripts, worksheets, or institutional materials.
+The map focuses on sequence and instructional architecture: how practical adult-learning goals, language objectives, learner work, and instructor handoff fit together.
 
 ## Curriculum progression
 
@@ -47,7 +47,7 @@ Across the sequence, the curriculum repeatedly uses the following structure:
 
 ## Instructor implementation loop
 
-Surviving class-summary records show an operational feedback structure:
+Class-summary records show an operational feedback structure:
 
 | Field | Why it matters |
 | --- | --- |
