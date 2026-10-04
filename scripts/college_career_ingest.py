@@ -91,7 +91,7 @@ def resolve_access_url(source: dict) -> str:
     if source.get("access_url"):
         return str(source["access_url"])
     if source["source_id"].startswith("ipeds_") and source.get("file_stem"):
-        return f"https://nces.ed.gov/ipeds/datacenter/data/{source['file_stem']}.zip"
+        return f"https://nces.ed.gov/ipeds/complete-data-files/{source['file_stem']}.zip"
     raise IngestionError(f"No downloadable access URL configured for {source['source_id']}")
 
 
