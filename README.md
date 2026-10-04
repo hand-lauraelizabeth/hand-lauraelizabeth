@@ -9,7 +9,7 @@ I work at the intersection of **data, learning, research, and technology**, buil
 ## Featured Repositories
 
 ### [Learning Analytics Portfolio](https://github.com/hand-lauraelizabeth/learning-analytics-portfolio)
-Reproducible learning and engagement analytics using fully synthetic data. Demonstrates KPI design, data validation, conversion analysis, quarterly trends, topic segmentation, delivery-format analysis, and privacy-conscious portfolio reconstruction.
+Reproducible learning and engagement analytics using fully synthetic data. Demonstrates KPI design, data validation, conversion analysis, quarterly trends, topic segmentation, delivery-format analysis, and privacy-conscious analytical modeling.
 
 ### [Curriculum Portfolio Analytics](https://github.com/hand-lauraelizabeth/curriculum-portfolio-analytics)
 A synthetic curriculum-management model spanning topic, format, delivery mode, lifecycle stage, utilization, completion, satisfaction, and refresh signals. Demonstrates taxonomy design and decision-support analysis for learning portfolios.
@@ -55,8 +55,6 @@ I also build reusable public tools that apply the same design principles to rese
 
 My public repositories focus on reproducible versions of professional and research methods. Projects derived from confidential or organizational work are rebuilt with **de-identified, synthetic, sample, public-domain, or openly licensed data** rather than proprietary source material.
 
-Before publishing files from Drive or professional workspaces, I use a [public portfolio publishing checklist](PORTFOLIO_PUBLISHING_CHECKLIST.md) covering ownership, PII/confidentiality, hidden metadata, Drive sharing, Git history, and WordPress media exposure.
-
 ## Selected Case Studies
 
 - [Adult ESOL Learning System — Columbia Community Impact](case-studies/community-impact-adult-esol-learning-system/) — 40-lesson Level 6 curriculum architecture, instructor enablement, assessment, handoff, and multi-site adult-learning operations.
@@ -69,7 +67,7 @@ Before publishing files from Drive or professional workspaces, I use a [public p
 
 ## Art & Visual Work
 
-- [Art & Visual Work — Provenance Manifest](art/) — public gallery catalog, process-study record, rights/provenance boundary, and archive publication workflow.
+- [Art & Visual Work — Catalog & Provenance](art/) — selected works, process studies, available metadata, and creative recognition.
 
 ## Selected Work Beyond GitHub
 
