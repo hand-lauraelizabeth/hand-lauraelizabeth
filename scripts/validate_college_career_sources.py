@@ -123,7 +123,7 @@ for source in sources:
     if auth:
         if auth.get("secret_in_repository") is not False:
             fail(f"{source_id}: authentication secrets must not be stored in repository")
-        if not auth.get("environment_variable"):
+        if auth.get("required") is True and not auth.get("environment_variable"):
             fail(f"{source_id}: authenticated source needs an environment_variable name")
 
 if len(source_ids) != len(set(source_ids)):
