@@ -82,6 +82,28 @@ def main() -> None:
     empty_qa = module.qa_report("fixture", [], ["ID"])
     assert_equal(empty_qa["status"], "fail", "zero-row QA must fail")
 
+    baseline_config = module.load_coverage_baselines()
+    assert_equal(set(baseline_config["layers"]), {"institution", "program", "career"}, "coverage baseline layers")
+
+    program_floor_report = {}
+    for metric_path, minimum in baseline_config["layers"]["program"]["minimums"].items():
+        target = program_floor_report
+        parts = metric_path.split(".")
+        for part in parts[:-1]:
+            target = target.setdefault(part, {})
+        target[parts[-1]] = minimum
+    assert_equal(
+        module.evaluate_coverage_baseline("program", program_floor_report)["status"],
+        "pass",
+        "program coverage baseline at configured floors",
+    )
+    program_floor_report["completion_source_rows"] = 0
+    assert_equal(
+        module.evaluate_coverage_baseline("program", program_floor_report)["status"],
+        "fail",
+        "program coverage baseline detects shrinkage",
+    )
+
     sample = make_zip_csv(
         "HD2025.csv",
         "UNITID,INSTNM,CITY,STABBR,ZIP,CONTROL,LOCALE\n"
