@@ -171,15 +171,17 @@ def main() -> None:
         if source_id == "onet_31_0":
             if len(result.get("access_urls", {})) < len(required_onet_files):
                 raise AssertionError("O*NET dry run did not expose configured source files")
+        elif source_id == "bls_oews_may_2025":
+            required_oews_files = {"data", "area", "areatype", "occupation", "datatype", "release"}
+            if required_oews_files - set(result.get("access_urls", {})):
+                raise AssertionError("OEWS dry run did not expose required official time-series files")
+            if any(not str(url).startswith("https://download.bls.gov/") for url in result["access_urls"].values()):
+                raise AssertionError("OEWS time-series files must use official download.bls.gov endpoints")
         elif source_id == "dapip_accreditation":
             assert_equal(result.get("method"), "POST", "DAPIP dry-run method")
-            if result.get("payload") != {"CSVChecked": True, "ExcelChecked": False}:
-                raise AssertionError("DAPIP dry-run payload changed")
+            assert_equal(result.get("payload"), {"CSVChecked": True, "ExcelChecked": False}, "DAPIP dry-run payload")
         elif not str(result["access_url"]).startswith("https://"):
             raise AssertionError(f"{source_id}: dry-run URL must be HTTPS")
-        if source_id == "dapip_accreditation":
-            assert_equal(result.get("method"), "POST", "DAPIP dry-run method")
-            assert_equal(result.get("payload"), {"CSVChecked": True, "ExcelChecked": False}, "DAPIP dry-run payload")
 
     print(
         "College + Career ingestion prototype tests passed: "
