@@ -13,6 +13,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -21,7 +22,7 @@ PROJECT = ROOT / "projects" / "college-career-matching"
 MANIFEST_PATH = PROJECT / "source_manifest.json"
 DEFAULT_DATA_DIR = PROJECT / "data"
 
-USER_AGENT = "LauraElizabethHand-CollegeCareerMatcher/0.1 (+public portfolio prototype)"
+USER_AGENT = "LauraElizabethHand-CollegeCareerMatcher/0.2 (contact: https://github.com/hand-lauraelizabeth/hand-lauraelizabeth; public research data ingestion)"
 SCORECARD_FIELDS = [
     "id",
     "school.name",
@@ -731,58 +732,136 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
         "normalized_rows": extracted,
     }
 
+class SimpleHtmlTableParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.rows: list[list[str]] = []
+        self._row: list[str] | None = None
+        self._cell: list[str] | None = None
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag == "tr":
+            self._row = []
+        elif tag in {"td", "th"} and self._row is not None:
+            self._cell = []
+        elif tag == "br" and self._cell is not None:
+            self._cell.append(" ")
+
+    def handle_data(self, data: str) -> None:
+        if self._cell is not None:
+            self._cell.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"td", "th"} and self._row is not None and self._cell is not None:
+            text = re.sub(r"\s+", " ", "".join(self._cell)).strip()
+            self._row.append(text)
+            self._cell = None
+        elif tag == "tr" and self._row is not None:
+            if self._row:
+                self.rows.append(self._row)
+            self._row = None
+            self._cell = None
+
+
+def parse_bls_projection_html(raw: bytes) -> list[list[str]]:
+    parser = SimpleHtmlTableParser()
+    parser.feed(raw.decode("utf-8", errors="replace"))
+    return [
+        row for row in parser.rows
+        if len(row) >= 8 and len(row) > 1 and re.fullmatch(r"\d{2}-\d{4}", str(row[1]).strip())
+    ]
+
+
 def ingest_bls_projection(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
-    rows = read_xlsx_rows_bytes(raw)
-    data_start: int | None = None
-    for idx, row in enumerate(rows):
-        if len(row) > 2 and re.fullmatch(r"\d{2}-\d{4}", str(row[1]).strip()):
-            data_start = idx
-            break
-    if data_start is None:
-        raise IngestionError("BLS projection workbook contained no occupation data rows")
-
-    header_text = " | ".join(
-        " | ".join(str(value) for value in row)
-        for row in rows[max(0, data_start - 6):data_start]
-    ).lower()
-    if not all(token in header_text for token in ("employment", "2025", "2035")):
-        raise IngestionError("BLS projection workbook header signature changed")
-
+    raw_is_html = raw.lstrip().startswith((b"<!DOCTYPE", b"<!doctype", b"<html", b"<HTML"))
     all_rows: list[dict[str, object]] = []
     detailed_rows: list[dict[str, object]] = []
-    for row in rows[data_start:]:
-        padded = list(row) + [""] * max(0, 16 - len(row))
-        raw_code = str(padded[1]).strip()
-        if not re.fullmatch(r"\d{2}-\d{4}", raw_code):
-            continue
-        soc = normalize_soc6(raw_code)
-        if not soc:
-            continue
-        occupation_type = str(padded[2]).strip()
-        is_detailed = occupation_type.lower() == "line item"
-        wage_raw = padded[11]
-        item = {
-            "SOC6": soc,
-            "TITLE": padded[0],
-            "OCCUPATION_TYPE": occupation_type,
-            "IS_DETAILED": "1" if is_detailed else "0",
-            "EMPLOYMENT_2025_THOUSANDS": parse_number(padded[3]),
-            "EMPLOYMENT_2035_THOUSANDS": parse_number(padded[4]),
-            "EMPLOYMENT_CHANGE_2025_2035_THOUSANDS": parse_number(padded[7]),
-            "EMPLOYMENT_CHANGE_PERCENT_2025_2035": parse_number(padded[8]),
-            "PCT_SELF_EMPLOYED_2025": parse_number(padded[9]),
-            "ANNUAL_OPENINGS_2025_2035_THOUSANDS": parse_number(padded[10]),
-            "MEDIAN_ANNUAL_WAGE_2025": parse_number(wage_raw),
-            "MEDIAN_ANNUAL_WAGE_2025_STATUS": bls_value_status(wage_raw),
-            "TYPICAL_EDUCATION": padded[12],
-            "RELATED_WORK_EXPERIENCE": padded[13],
-            "ON_THE_JOB_TRAINING": padded[14],
-            "projection_cycle": source["release"]["label"],
-            "source_id": source["source_id"],
-        }
-        all_rows.append(item)
-        if is_detailed:
-            detailed_rows.append(item)
+
+    if raw_is_html:
+        records = parse_bls_projection_html(raw)
+        if not records:
+            raise IngestionError("BLS projections HTML contained no occupation rows")
+        for row in records:
+            padded = list(row) + [""] * max(0, 14 - len(row))
+            raw_code = str(padded[1]).strip()
+            soc = normalize_soc6(raw_code)
+            if not soc:
+                continue
+            title = re.split(r"Show/hide Example Job Titles", str(padded[0]), maxsplit=1)[0].strip()
+            is_detailed = raw_code != "00-0000"
+            wage_raw = padded[7]
+            item = {
+                "SOC6": soc,
+                "TITLE": title,
+                "OCCUPATION_TYPE": "Line item" if is_detailed else "Summary",
+                "IS_DETAILED": "1" if is_detailed else "0",
+                "EMPLOYMENT_2025_THOUSANDS": parse_number(padded[2]),
+                "EMPLOYMENT_2035_THOUSANDS": parse_number(padded[3]),
+                "EMPLOYMENT_CHANGE_2025_2035_THOUSANDS": parse_number(padded[4]),
+                "EMPLOYMENT_CHANGE_PERCENT_2025_2035": parse_number(padded[5]),
+                "PCT_SELF_EMPLOYED_2025": None,
+                "ANNUAL_OPENINGS_2025_2035_THOUSANDS": parse_number(padded[6]),
+                "MEDIAN_ANNUAL_WAGE_2025": parse_number(wage_raw),
+                "MEDIAN_ANNUAL_WAGE_2025_STATUS": bls_value_status(wage_raw),
+                "TYPICAL_EDUCATION": padded[8] if len(padded) > 8 else "",
+                "RELATED_WORK_EXPERIENCE": padded[10] if len(padded) > 10 else "",
+                "ON_THE_JOB_TRAINING": padded[12] if len(padded) > 12 else "",
+                "projection_cycle": source["release"]["label"],
+                "source_id": source["source_id"],
+            }
+            all_rows.append(item)
+            if is_detailed:
+                detailed_rows.append(item)
+        source_representation = "BLS Occupational Projections HTML database"
+    else:
+        rows = read_xlsx_rows_bytes(raw)
+        data_start: int | None = None
+        for idx, row in enumerate(rows):
+            if len(row) > 2 and re.fullmatch(r"\d{2}-\d{4}", str(row[1]).strip()):
+                data_start = idx
+                break
+        if data_start is None:
+            raise IngestionError("BLS projection workbook contained no occupation data rows")
+        header_text = " | ".join(
+            " | ".join(str(value) for value in row)
+            for row in rows[max(0, data_start - 6):data_start]
+        ).lower()
+        if not all(token in header_text for token in ("employment", "2025", "2035")):
+            raise IngestionError("BLS projection workbook header signature changed")
+        for row in rows[data_start:]:
+            padded = list(row) + [""] * max(0, 16 - len(row))
+            raw_code = str(padded[1]).strip()
+            if not re.fullmatch(r"\d{2}-\d{4}", raw_code):
+                continue
+            soc = normalize_soc6(raw_code)
+            if not soc:
+                continue
+            occupation_type = str(padded[2]).strip()
+            is_detailed = occupation_type.lower() == "line item"
+            wage_raw = padded[11]
+            item = {
+                "SOC6": soc,
+                "TITLE": padded[0],
+                "OCCUPATION_TYPE": occupation_type,
+                "IS_DETAILED": "1" if is_detailed else "0",
+                "EMPLOYMENT_2025_THOUSANDS": parse_number(padded[3]),
+                "EMPLOYMENT_2035_THOUSANDS": parse_number(padded[4]),
+                "EMPLOYMENT_CHANGE_2025_2035_THOUSANDS": parse_number(padded[7]),
+                "EMPLOYMENT_CHANGE_PERCENT_2025_2035": parse_number(padded[8]),
+                "PCT_SELF_EMPLOYED_2025": parse_number(padded[9]),
+                "ANNUAL_OPENINGS_2025_2035_THOUSANDS": parse_number(padded[10]),
+                "MEDIAN_ANNUAL_WAGE_2025": parse_number(wage_raw),
+                "MEDIAN_ANNUAL_WAGE_2025_STATUS": bls_value_status(wage_raw),
+                "TYPICAL_EDUCATION": padded[12],
+                "RELATED_WORK_EXPERIENCE": padded[13],
+                "ON_THE_JOB_TRAINING": padded[14],
+                "projection_cycle": source["release"]["label"],
+                "source_id": source["source_id"],
+            }
+            all_rows.append(item)
+            if is_detailed:
+                detailed_rows.append(item)
+        source_representation = "BLS Table 1.2 XLSX"
 
     fields = [
         "SOC6", "TITLE", "OCCUPATION_TYPE", "IS_DETAILED",
@@ -803,6 +882,7 @@ def ingest_bls_projection(source: dict, raw: bytes, snapshot_dir: Path, source_u
         "summary_or_other_rows_excluded_from_default_join": len(all_rows) - len(detailed_rows),
         "projection_base_year": 2025,
         "projection_end_year": 2035,
+        "source_representation": source_representation,
     })
     if not detailed_rows:
         report["status"] = "fail"
@@ -816,104 +896,152 @@ def ingest_bls_projection(source: dict, raw: bytes, snapshot_dir: Path, source_u
         "summary_or_other_rows": len(all_rows) - len(detailed_rows),
         "detailed_soc6_count": len({str(row["SOC6"]) for row in detailed_rows}),
         "notes": [
-            "Only BLS rows explicitly labeled Line item enter detailed occupation joins by default.",
+            "Only detailed occupation rows enter detailed occupation joins by default.",
             "Employment and annual-opening values retain the BLS thousands unit in field names.",
+            "The live BLS projections database does not expose percent self-employed in its visible result table; that field stays null rather than being inferred.",
         ],
     }
     metadata = write_snapshot_metadata(
         snapshot_dir,
         source=source,
         source_url=source_url,
-        raw_filename=safe_filename_from_url(source_url, "occupation.xlsx"),
+        raw_filename=safe_filename_from_url(source_url, "occupation-projections.html"),
         raw_bytes=raw,
         row_count_raw=len(all_rows),
-        extra={"projection_base_year": 2025, "projection_end_year": 2035},
+        extra={
+            "projection_base_year": 2025,
+            "projection_end_year": 2035,
+            "source_representation": source_representation,
+        },
     )
     return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(detailed_rows)}
 
 
-def parse_oews_archive(raw: bytes) -> tuple[str, list[dict[str, str]]]:
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-        members = [
-            member for member in archive.namelist()
-            if member.lower().endswith((".txt", ".csv", ".xlsx"))
-        ]
-        if not members:
-            raise IngestionError("OEWS archive has no readable CSV/TXT/XLSX member")
-        preferred = sorted(
-            members,
-            key=lambda name: (
-                0 if ("all_data" in name.lower() or "oesm25all" in name.lower()) else 1,
-                0 if name.lower().endswith((".txt", ".csv")) else 1,
-                -archive.getinfo(name).file_size,
-            ),
-        )[0]
-        payload = archive.read(preferred)
-        if preferred.lower().endswith((".txt", ".csv")):
-            delimiter = "\t" if preferred.lower().endswith(".txt") else None
-            return preferred, read_delimited_bytes(payload, delimiter=delimiter)
-        rows = read_xlsx_rows_bytes(payload)
-        header_index, header = find_header_row(rows, ["area", "occ"])
-        return preferred, row_dicts_from_matrix(rows, header_index, header)
+def parse_tsv_mapping(raw: bytes) -> list[dict[str, str]]:
+    return read_delimited_bytes(raw, delimiter="\t")
 
 
-def _row_value(row: dict[str, str], *names: str) -> str | None:
-    normalized = {
-        re.sub(r"[^a-z0-9]", "", str(key).lower()): value
-        for key, value in row.items()
+def ingest_oews_timeseries(
+    source: dict,
+    payloads: dict[str, bytes],
+    snapshot_dir: Path,
+) -> dict:
+    area_rows = parse_tsv_mapping(payloads["area"])
+    areatype_rows = parse_tsv_mapping(payloads["areatype"])
+    occupation_rows = parse_tsv_mapping(payloads["occupation"])
+    datatype_rows = parse_tsv_mapping(payloads["datatype"])
+    release_rows = parse_tsv_mapping(payloads["release"])
+
+    areas = {
+        str(row.get("area_code") or "").strip(): {
+            "state_code": str(row.get("state_code") or "").strip(),
+            "areatype_code": str(row.get("areatype_code") or "").strip(),
+            "area_name": str(row.get("area_name") or "").strip(),
+        }
+        for row in area_rows
+        if row.get("area_code")
     }
-    for name in names:
-        value = normalized.get(re.sub(r"[^a-z0-9]", "", name.lower()))
-        if value is not None:
-            return value
-    return None
-
-
-def ingest_oews(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
-    member, records = parse_oews_archive(raw)
-    normalized: list[dict[str, object]] = []
-    for row in records:
-        area = _row_value(row, "AREA")
-        occ = _row_value(row, "OCC_CODE")
-        if not area or not occ:
-            continue
-        o_group = _row_value(row, "O_GROUP") or ""
-        is_detailed = str(o_group).strip().lower() == "detailed"
-        wage_values = {
-            name: _row_value(row, name)
-            for name in ("A_PCT10", "A_PCT25", "A_MEDIAN", "A_PCT75", "A_PCT90")
+    areatypes = {
+        str(row.get("areatype_code") or "").strip(): str(row.get("areatype_name") or "").strip()
+        for row in areatype_rows
+        if row.get("areatype_code")
+    }
+    occupations = {
+        str(row.get("occupation_code") or "").strip(): {
+            "occupation_name": str(row.get("occupation_name") or "").strip(),
+            "display_level": str(row.get("display_level") or "").strip(),
         }
-        item: dict[str, object] = {
-            "AREA": area,
-            "AREA_TITLE": _row_value(row, "AREA_TITLE"),
-            "AREA_TYPE": _row_value(row, "AREA_TYPE"),
-            "PRIM_STATE": _row_value(row, "PRIM_STATE"),
-            "OCC_CODE": normalize_soc6(occ) or str(occ).strip(),
-            "OCC_TITLE": _row_value(row, "OCC_TITLE"),
-            "O_GROUP": o_group,
-            "IS_DETAILED": "1" if is_detailed else "0",
-            "TOT_EMP": parse_number(_row_value(row, "TOT_EMP")),
-            "TOT_EMP_STATUS": bls_value_status(_row_value(row, "TOT_EMP")),
-            "A_MEAN": parse_number(_row_value(row, "A_MEAN")),
-            "A_MEAN_STATUS": bls_value_status(_row_value(row, "A_MEAN")),
-            "reference_period": source["release"]["label"],
-            "source_id": source["source_id"],
-        }
-        for name, raw_value in wage_values.items():
-            item[name] = parse_number(raw_value)
-            item[f"{name}_STATUS"] = bls_value_status(raw_value)
-        normalized.append(item)
+        for row in occupation_rows
+        if row.get("occupation_code")
+    }
+    datatypes = {
+        str(row.get("datatype_code") or "").strip(): str(row.get("datatype_name") or "").strip()
+        for row in datatype_rows
+        if row.get("datatype_code")
+    }
+
+    desired_datatypes = {
+        "01": ("TOT_EMP", "TOT_EMP_STATUS"),
+        "04": ("A_MEAN", "A_MEAN_STATUS"),
+        "11": ("A_PCT10", "A_PCT10_STATUS"),
+        "12": ("A_PCT25", "A_PCT25_STATUS"),
+        "13": ("A_MEDIAN", "A_MEDIAN_STATUS"),
+        "14": ("A_PCT75", "A_PCT75_STATUS"),
+        "15": ("A_PCT90", "A_PCT90_STATUS"),
+    }
+    records: dict[tuple[str, str, str], dict[str, object]] = {}
+    observations_seen = 0
+    observations_used = 0
+    periods_seen: set[str] = set()
+    years_seen: set[str] = set()
+
+    with io.TextIOWrapper(io.BytesIO(payloads["data"]), encoding="utf-8-sig", errors="replace") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        for row in reader:
+            observations_seen += 1
+            series_id = str(row.get("series_id") or "").strip()
+            if len(series_id) < 25 or not series_id.startswith("OE"):
+                continue
+            year = str(row.get("year") or "").strip()
+            period = str(row.get("period") or "").strip()
+            years_seen.add(year)
+            periods_seen.add(period)
+            if year != "2025":
+                continue
+
+            areatype_code = series_id[3:4]
+            area_code = series_id[4:11]
+            industry_code = series_id[11:17]
+            occupation_code = series_id[17:23]
+            datatype_code = series_id[23:25]
+            if industry_code != "000000" or datatype_code not in desired_datatypes:
+                continue
+
+            area = areas.get(area_code, {})
+            occ = occupations.get(occupation_code, {})
+            key = (areatype_code, area_code, occupation_code)
+            item = records.setdefault(key, {
+                "AREA": area_code,
+                "AREA_TITLE": area.get("area_name", ""),
+                "AREA_TYPE": areatypes.get(areatype_code, areatype_code),
+                "AREA_TYPE_CODE": areatype_code,
+                "STATE_CODE": area.get("state_code", ""),
+                "OCC_CODE": normalize_soc6(occupation_code) or occupation_code,
+                "OCC_TITLE": occ.get("occupation_name", ""),
+                "O_GROUP": "detailed" if occ.get("display_level") == "3" else "aggregate",
+                "IS_DETAILED": "1" if occ.get("display_level") == "3" else "0",
+                "reference_period": source["release"]["label"],
+                "source_id": source["source_id"],
+            })
+            value_field, status_field = desired_datatypes[datatype_code]
+            raw_value = row.get("value")
+            item[value_field] = parse_number(raw_value)
+            footnote = str(row.get("footnote_codes") or "").strip()
+            if parse_number(raw_value) is not None:
+                item[status_field] = "reported"
+            elif footnote:
+                item[status_field] = f"unreported_footnote:{footnote}"
+            else:
+                item[status_field] = bls_value_status(raw_value)
+            observations_used += 1
+
+    normalized = list(records.values())
+    for item in normalized:
+        for value_field, status_field in desired_datatypes.values():
+            item.setdefault(value_field, None)
+            item.setdefault(status_field, "null")
 
     fields = [
-        "AREA", "AREA_TITLE", "AREA_TYPE", "PRIM_STATE", "OCC_CODE", "OCC_TITLE",
-        "O_GROUP", "IS_DETAILED", "TOT_EMP", "TOT_EMP_STATUS", "A_MEAN", "A_MEAN_STATUS",
+        "AREA", "AREA_TITLE", "AREA_TYPE", "AREA_TYPE_CODE", "STATE_CODE",
+        "OCC_CODE", "OCC_TITLE", "O_GROUP", "IS_DETAILED",
+        "TOT_EMP", "TOT_EMP_STATUS", "A_MEAN", "A_MEAN_STATUS",
         "A_PCT10", "A_PCT10_STATUS", "A_PCT25", "A_PCT25_STATUS",
         "A_MEDIAN", "A_MEDIAN_STATUS", "A_PCT75", "A_PCT75_STATUS",
         "A_PCT90", "A_PCT90_STATUS", "reference_period", "source_id",
     ]
     write_csv(snapshot_dir / "normalized" / "occupation_wage.csv", fields, normalized)
 
-    report = qa_report(source["source_id"], normalized, ["AREA", "OCC_CODE"])
+    report = qa_report(source["source_id"], normalized, ["AREA_TYPE_CODE", "AREA", "OCC_CODE"])
     detailed = [row for row in normalized if row["IS_DETAILED"] == "1"]
     ordering_failures = 0
     for row in detailed:
@@ -921,18 +1049,25 @@ def ingest_oews(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -
         if all(isinstance(value, (int, float)) for value in values):
             if not (float(values[0]) <= float(values[1]) <= float(values[2])):
                 ordering_failures += 1
-    area_titles: dict[str, set[str]] = {}
+
+    area_title_pairs: dict[tuple[str, str], set[str]] = {}
     for row in normalized:
-        area_titles.setdefault(str(row["AREA"]), set()).add(str(row.get("AREA_TITLE") or ""))
-    area_title_conflicts = sum(1 for titles in area_titles.values() if len(titles) > 1)
+        key = (str(row.get("AREA_TYPE_CODE") or ""), str(row.get("AREA") or ""))
+        area_title_pairs.setdefault(key, set()).add(str(row.get("AREA_TITLE") or ""))
+    area_title_conflicts = sum(1 for titles in area_title_pairs.values() if len(titles) > 1)
+
     report.update({
-        "archive_member": member,
+        "observations_seen": observations_seen,
+        "observations_used_cross_industry_2025": observations_used,
+        "years_seen": sorted(years_seen),
+        "periods_seen": sorted(periods_seen),
         "detailed_occupation_rows": len(detailed),
         "aggregate_occupation_rows": len(normalized) - len(detailed),
         "wage_percentile_ordering_failures": ordering_failures,
         "area_title_conflicts": area_title_conflicts,
+        "datatype_mapping": {code: datatypes.get(code, "") for code in desired_datatypes},
     })
-    if ordering_failures or area_title_conflicts:
+    if ordering_failures or area_title_conflicts or not detailed:
         report["status"] = "fail"
 
     area_type_groups: dict[str, dict[str, object]] = {}
@@ -954,26 +1089,47 @@ def ingest_oews(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -
         "source_id": source["source_id"],
         "source_release": source["release"]["label"],
         "generated_at": utc_now(),
-        "all_rows": len(normalized),
+        "all_cross_industry_rows": len(normalized),
         "detailed_occupation_rows": len(detailed),
         "coverage_by_area_type": coverage_by_area_type,
+        "release_mapping": release_rows,
         "notes": [
-            "AREA_TYPE is retained as the source geography classification rather than inferred from AREA_TITLE.",
-            "Aggregate occupation rows remain in the normalized source table but are excluded from detailed O*NET joins.",
-            "Suppressed or top-coded wage values remain null numerically with an explicit status field.",
+            "The current OEWS time-series file is decoded from documented series-id positions; the 1.2 GB oe.series file is not required.",
+            "Only industry_code 000000 (cross-industry) observations for reference year 2025 are normalized.",
+            "Source display_level=3 defines detailed occupations; aggregate occupation rows remain available but are excluded from detailed O*NET joins.",
+            "Suppressed or otherwise unreported estimates remain null numerically with an explicit status/footnote state.",
         ],
     }
-    metadata = write_snapshot_metadata(
-        snapshot_dir,
-        source=source,
-        source_url=source_url,
-        raw_filename=safe_filename_from_url(source_url, "oews.zip"),
-        raw_bytes=raw,
-        row_count_raw=len(records),
-        extra={"archive_member": member},
-    )
-    return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(normalized)}
 
+    file_metadata = {
+        name: {
+            "url": source["files"][name],
+            "raw_filename": safe_filename_from_url(source["files"][name], name),
+            "sha256": sha256_bytes(payload),
+            "bytes": len(payload),
+        }
+        for name, payload in payloads.items()
+    }
+    combined_hash_input = "\n".join(
+        f"{name}:{meta['sha256']}" for name, meta in sorted(file_metadata.items())
+    ).encode("utf-8")
+    metadata = {
+        "source_id": source["source_id"],
+        "retrieved_at": utc_now(),
+        "source_release": source["release"]["label"],
+        "source_url": source["official_url"],
+        "raw_filename": "multiple BLS OEWS time-series files",
+        "sha256": sha256_bytes(combined_hash_input),
+        "release_type": source["release"]["label"],
+        "reference_period": source["release"]["label"],
+        "parser_version": "prototype-0.3",
+        "row_count_raw": observations_seen,
+        "files": file_metadata,
+        "periods_seen": sorted(periods_seen),
+    }
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+    (snapshot_dir / "source_snapshot.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(normalized)}
 
 def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
     expected = {
@@ -1418,6 +1574,23 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
         snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         result = ingest_onet(source, snapshot_dir)
 
+    elif source_id == "bls_oews_may_2025" and source.get("files"):
+        if dry_run:
+            return {
+                "source_id": source_id,
+                "mode": "dry-run",
+                "access_urls": source.get("files", {}),
+            }
+        snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        raw_dir = snapshot_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        payloads: dict[str, bytes] = {}
+        for name, url in source["files"].items():
+            payload = http_get(str(url), timeout=180)
+            payloads[name] = payload
+            (raw_dir / safe_filename_from_url(str(url), name)).write_bytes(payload)
+        result = ingest_oews_timeseries(source, payloads, snapshot_dir)
+
     else:
         source_url = resolve_access_url(source)
         if dry_run:
@@ -1436,7 +1609,7 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
         elif source_id == "bls_employment_projections_2025_2035":
             result = ingest_bls_projection(source, raw, snapshot_dir, source_url)
         elif source_id == "bls_oews_may_2025":
-            result = ingest_oews(source, raw, snapshot_dir, source_url)
+            raise IngestionError("OEWS manifest must configure the official time-series files mapping")
         else:
             raise IngestionError(f"No adapter implemented for {source_id}")
 
