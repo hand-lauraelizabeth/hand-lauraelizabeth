@@ -4,9 +4,9 @@ A reusable planning and critique resource for digital editions, archives, learni
 
 ## Origin and scope
 
-This is a newly authored 2026 resource informed by methods explored in a 2019 collaborative Columbia University course project in *Transforming Text: Textual Analysis*. It is **not** the original course deliverable.
+Created in 2026, this resource develops methods explored in a 2019 collaborative Columbia University course project in *Transforming Text: Textual Analysis* into a reusable design canvas.
 
-The surviving project materials describe a proposed interface for the Making and Knowing Project's Digital Critical Edition that used wireframing to foreground material and structural features of manuscript pages, with a possible genetic/time-based view. The documented project team was Gregory Houser, Laura Elizabeth Hand, and Sandra Lehnert. Laura's documented roles included co-presentation; visual/graphic and time-lapse technical knowledge; epistemic design/wireframing; co-program management; and textual insight.
+The 2019 project proposed an interface for the Making and Knowing Project's Digital Critical Edition that used wireframing to foreground material and structural features of manuscript pages, with a possible genetic/time-based view. The documented project team was Gregory Houser, Laura Elizabeth Hand, and Sandra Lehnert. Laura's documented roles included co-presentation; visual/graphic and time-lapse technical knowledge; epistemic design/wireframing; co-program management; and textual insight.
 
 Use this canvas before building an interface, while reviewing an existing one, or when asking what a digital representation enables a reader to know.
 
@@ -257,8 +257,8 @@ For a course or portfolio project, document:
 - revision history;
 - what was individually created versus collaborative.
 
-A strong public extension is a small prototype using a public-domain manuscript or openly licensed archival object. Keep historical reconstruction separate from newly authored code and design work.
+A useful extension would be a small prototype using a public-domain manuscript or openly licensed archival object, clearly distinguishing the historical project from newly authored code and design work.
 
-## Development note
+## About this resource
 
-This 2026 resource is a new derivative teaching/design tool informed by Laura Elizabeth Hand's documented participation in the 2019 collaborative project. It should not be represented as an original 2019 handout, a deployed Making and Knowing feature, or evidence of software proficiency not independently demonstrated.
+This canvas extends Laura Elizabeth Hand's documented 2019 collaborative work into a reusable teaching and design tool. The 2019 work centered on research, wireframing, interface concepts, presentation, and epistemic design; the canvas broadens those methods for other digital-text and evidence-interface projects.
