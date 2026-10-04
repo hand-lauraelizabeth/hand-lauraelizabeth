@@ -120,6 +120,21 @@ python scripts/college_career_ingest.py --build-institution-coverage \
 The output keeps accreditation separate from institution identity and writes an explicit many-to-many `dapip_ipeds_bridge.csv` by exploding DAPIP's `IpedsUnitIds` field without discarding the raw multi-ID value. The community-college pathway proxy includes public `SECTOR=4`, public `INSTCAT=4`, and public 2021 Carnegie Basic associate/baccalaureate-associate categories (codes 1–14 and 23). The flag is a discovery/coverage proxy, not a legal, state-system, or mission designation.
 
 
+## Program coverage path
+
+A commit message containing \`[live-program-smoke]\` downloads the current HD2025 institution directory, C2025_A completions data, and the official CIP 2020 ↔ SOC 2018 crosswalk, then runs:
+
+\`\`\`bash
+python scripts/college_career_ingest.py --build-program-coverage \
+  --output-dir projects/college-career-matching/data/snapshots
+\`\`\`
+
+The report writes \`program_coverage.json\` plus \`program_coverage_flags.csv\` at the institution + CIP6 + award-level grain. It reports institution coverage, distinct observed CIP6 codes, award-level counts, direct CIP↔SOC mapping coverage, and explicit unmapped CIPs.
+
+IPEDS summary/total CIP rows are excluded from specific-program coverage. The normalizer treats a source serialization of \`99\` as CIP \`99.0000\` rather than \`00.0099\`. A missing CIP↔SOC mapping remains a coverage gap rather than a quality penalty or a reason to remove the program.
+
+
+
 ## GitHub-hosted runner access note for BLS
 
 The BLS adapters use the official 2025–2035 Employment Projections and May 2025 OEWS bulk sources. In October 2026 validation, GitHub-hosted Actions runners received HTTP 403 responses from both `www.bls.gov` bulk-file URLs and BLS's `download.bls.gov` programmatic-download host, while the same releases remained publicly documented on BLS web pages. This is treated as a source/network access limitation, not as a successful live-data test and not as a parser failure.
