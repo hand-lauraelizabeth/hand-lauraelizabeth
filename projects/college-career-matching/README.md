@@ -157,10 +157,19 @@ The career-side source inventory now distinguishes open occupational data, licen
 - [Historical Formula Specification](Historical_College_Model_Formula_Specification.md)
 - [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md)
 
+## Prototype status
+
+The first live federal-source ingestion path has been exercised end to end. On October 4, 2026, the CI smoke test downloaded the official CIP 2020 ↔ SOC 2018 workbook, located the data on worksheet 2, normalized **6,097 unique CIP↔SOC rows**, recorded the raw SHA-256, and passed the repository source-contract and ingestion tests.
+
+The pipeline now supports timestamped raw snapshots, source hashes and metadata, normalized CSV outputs, QA reports, dry-run source resolution, and a credential-aware College Scorecard adapter.
+
+See [Reproduce the Data Build](RUNBOOK.md) for the executable workflow.
+
 ## Ingestion & QA infrastructure
 
 The source layer is now defined in both human-readable and machine-checkable form:
 
+- [Reproduce the Data Build](RUNBOOK.md) — commands for dry runs, public-source ingestion, College Scorecard authentication, and live smoke testing;
 - [Production source manifest](source_manifest.json) — pinned source IDs, releases, access URLs, canonical keys, required artifacts, metadata, and join cardinalities;
 - [Ingestion contract](INGESTION_CONTRACT.md) — raw → staging → normalized → model-ready rules, key normalization, suppression handling, and refresh behavior;
 - [QA & Join Tests](QA_JOIN_TESTS.md) — source-level, cross-source, and recommendation-gating acceptance criteria;
