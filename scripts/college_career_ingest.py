@@ -197,6 +197,20 @@ def normalize_unitid(value: object) -> str | None:
     return digits or None
 
 
+def normalize_opeid(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    if re.fullmatch(r"\d+\.0", text):
+        text = text[:-2]
+    digits = re.sub(r"\D", "", text)
+    if not digits:
+        return None
+    return digits.zfill(8) if len(digits) <= 8 else digits
+
+
 def normalize_cip6(value: object) -> str | None:
     if value is None:
         return None
@@ -1951,6 +1965,500 @@ def build_program_coverage_report(output_dir: Path, *, enforce_baseline: bool = 
     return {"report": report, "output": str(out_dir / "program_coverage.json")}
 
 
+
+def build_institution_identity_resolution(
+    institutions: list[dict[str, str]],
+    dapip_bridge: list[dict[str, str]],
+    dapip_campus: list[dict[str, str]],
+) -> list[dict[str, object]]:
+    """Create review clusters from exact identifiers without auto-merging UNITIDs."""
+    unitids = {
+        str(row.get("UNITID") or "")
+        for row in institutions
+        if row.get("UNITID")
+    }
+
+    parent: dict[str, str] = {unitid: unitid for unitid in unitids}
+
+    def find(unitid: str) -> str:
+        root = parent[unitid]
+        while root != parent[root]:
+            root = parent[root]
+        while unitid != root:
+            nxt = parent[unitid]
+            parent[unitid] = root
+            unitid = nxt
+        return root
+
+    def union(a: str, b: str) -> None:
+        if a not in parent or b not in parent:
+            return
+        ra, rb = find(a), find(b)
+        if ra == rb:
+            return
+        keep, merge = sorted((ra, rb))
+        parent[merge] = keep
+
+    dapip_by_unitid: dict[str, set[str]] = {}
+    unitids_by_dapip: dict[str, set[str]] = {}
+    for row in dapip_bridge:
+        unitid = str(row.get("UNITID") or "")
+        dapip_id = str(row.get("DAPIP_ID") or "")
+        if unitid in unitids and dapip_id:
+            dapip_by_unitid.setdefault(unitid, set()).add(dapip_id)
+            unitids_by_dapip.setdefault(dapip_id, set()).add(unitid)
+
+    for shared_unitids in unitids_by_dapip.values():
+        ordered = sorted(shared_unitids)
+        for other in ordered[1:]:
+            union(ordered[0], other)
+
+    components: dict[str, set[str]] = {}
+    for unitid in sorted(unitids):
+        components.setdefault(find(unitid), set()).add(unitid)
+
+    campus_by_dapip: dict[str, list[dict[str, str]]] = {}
+    for row in dapip_campus:
+        dapip_id = str(row.get("DAPIP_ID") or "")
+        if dapip_id:
+            campus_by_dapip.setdefault(dapip_id, []).append(row)
+
+    opeid_by_unitid: dict[str, str] = {}
+    unitids_by_opeid: dict[str, set[str]] = {}
+    institution_by_unitid = {
+        str(row.get("UNITID") or ""): row
+        for row in institutions
+        if row.get("UNITID")
+    }
+    for unitid, row in institution_by_unitid.items():
+        opeid = normalize_opeid(row.get("OPEID"))
+        if opeid:
+            opeid_by_unitid[unitid] = opeid
+            unitids_by_opeid.setdefault(opeid, set()).add(unitid)
+
+    output: list[dict[str, object]] = []
+    for unitid in sorted(unitids):
+        dapip_ids = dapip_by_unitid.get(unitid, set())
+        component = components[find(unitid)]
+        campus_rows = [
+            campus
+            for dapip_id in dapip_ids
+            for campus in campus_by_dapip.get(dapip_id, [])
+        ]
+        parent_dapip_ids = {
+            str(row.get("PARENT_DAPIP_ID") or "")
+            for row in campus_rows
+            if row.get("PARENT_DAPIP_ID")
+        }
+        location_types = {
+            str(row.get("LOCATION_TYPE") or "")
+            for row in campus_rows
+            if row.get("LOCATION_TYPE")
+        }
+        dapip_opeids = {
+            normalize_opeid(row.get("OPEID"))
+            for row in campus_rows
+            if normalize_opeid(row.get("OPEID"))
+        }
+        opeid = opeid_by_unitid.get(unitid)
+        shared_opeid_count = len(unitids_by_opeid.get(opeid, set())) if opeid else 0
+
+        reasons: list[str] = []
+        if len(component) > 1:
+            reasons.append("shared_dapip_component")
+        if len(dapip_ids) > 1:
+            reasons.append("multiple_dapip_ids")
+        if shared_opeid_count > 1:
+            reasons.append("shared_exact_opeid")
+        if not dapip_ids:
+            reasons.append("no_dapip_unitid_match")
+
+        if len(component) > 1:
+            status = "review_shared_exact_identifier_component"
+        elif len(dapip_ids) > 1:
+            status = "review_multiple_dapip_ids"
+        elif shared_opeid_count > 1:
+            status = "review_shared_exact_opeid"
+        elif not dapip_ids:
+            status = "distinct_unitid_unmatched_dapip"
+        else:
+            status = "distinct_unitid"
+
+        cluster_id = (
+            f"DAPIP-COMPONENT:{min(component)}"
+            if len(component) > 1
+            else f"UNITID:{unitid}"
+        )
+        output.append({
+            "UNITID": unitid,
+            "RECOMMENDATION_ENTITY_ID": f"UNITID:{unitid}",
+            "IDENTITY_CLUSTER_ID": cluster_id,
+            "IDENTITY_CLUSTER_SIZE": len(component),
+            "IDENTITY_REVIEW_STATUS": status,
+            "IDENTITY_REVIEW_REASONS": "|".join(reasons),
+            "AUTO_COLLAPSE": "0",
+            "KEEP_DISTINCT_BY_DEFAULT": "1",
+            "DAPIP_IDS": "|".join(sorted(dapip_ids)),
+            "DAPIP_ID_COUNT": len(dapip_ids),
+            "PARENT_DAPIP_IDS": "|".join(sorted(parent_dapip_ids)),
+            "DAPIP_LOCATION_TYPES": "|".join(sorted(location_types)),
+            "IPEDS_OPEID": opeid or "",
+            "DAPIP_OPEIDS": "|".join(sorted(str(v) for v in dapip_opeids if v)),
+            "SHARED_EXACT_OPEID_UNIT_COUNT": shared_opeid_count,
+            "IDENTITY_PROVENANCE": "IPEDS_UNITID|DAPIP_EXACT_UNITID_BRIDGE|OPEID_EXACT_REVIEW_ONLY",
+        })
+
+    return output
+
+
+def build_model_ready_layer(output_dir: Path) -> dict:
+    """Assemble explanation-ready institution → program → occupation tables without scoring."""
+    ipeds_dir = latest_snapshot_dir(output_dir, "ipeds_directory_2025")
+    completion_dir = latest_snapshot_dir(output_dir, "ipeds_completions_2025")
+    crosswalk_dir = latest_snapshot_dir(output_dir, "cip_soc_crosswalk_2020_2018")
+    onet_dir = latest_snapshot_dir(output_dir, "onet_31_0")
+    projection_dir = latest_snapshot_dir(output_dir, "bls_employment_projections_2025_2035")
+    oews_dir = latest_snapshot_dir(output_dir, "bls_oews_may_2025")
+    dapip_dir = latest_snapshot_dir(output_dir, "dapip_accreditation")
+
+    institutions = read_csv_path(ipeds_dir / "normalized" / "institution.csv")
+    completions = read_csv_path(completion_dir / "normalized" / "program_completion.csv")
+    crosswalk = read_csv_path(crosswalk_dir / "normalized" / "cip_soc_bridge.csv")
+    occupations = read_csv_path(onet_dir / "normalized" / "occupation_data.csv")
+    projections = read_csv_path(projection_dir / "normalized" / "occupation_outlook.csv")
+    wages = read_csv_path(oews_dir / "normalized" / "occupation_wage.csv")
+    dapip_bridge = read_csv_path(dapip_dir / "normalized" / "dapip_ipeds_bridge.csv")
+    dapip_campus = read_csv_path(dapip_dir / "normalized" / "institution_campus.csv")
+    accreditation = read_csv_path(dapip_dir / "normalized" / "accreditation_records.csv")
+
+    identity_rows = build_institution_identity_resolution(
+        institutions, dapip_bridge, dapip_campus
+    )
+    identity_by_unitid = {
+        str(row["UNITID"]): row for row in identity_rows
+    }
+
+    current_accreditation_by_dapip = {
+        str(row.get("DAPIP_ID") or "")
+        for row in accreditation
+        if str(row.get("IS_INSTITUTIONAL") or "") == "1"
+        and str(row.get("IS_CURRENT_BY_EXPORT_RULE") or "") == "1"
+        and row.get("DAPIP_ID")
+    }
+
+    scorecard_rows: list[dict[str, str]] = []
+    scorecard_dir: Path | None = None
+    scorecard_root = output_dir / "college_scorecard"
+    if scorecard_root.exists() and any(p.is_dir() for p in scorecard_root.iterdir()):
+        scorecard_dir = latest_snapshot_dir(output_dir, "college_scorecard")
+        scorecard_file = scorecard_dir / "normalized" / "institution_scorecard.csv"
+        if scorecard_file.exists():
+            scorecard_rows = read_csv_path(scorecard_file)
+    scorecard_by_unitid = {
+        str(row.get("UNITID") or ""): row
+        for row in scorecard_rows
+        if row.get("UNITID")
+    }
+
+    institution_model: list[dict[str, object]] = []
+    institution_by_unitid: dict[str, dict[str, object]] = {}
+    for source_row in institutions:
+        unitid = str(source_row.get("UNITID") or "")
+        if not unitid:
+            continue
+        identity = identity_by_unitid[unitid]
+        dapip_ids = {
+            value for value in str(identity.get("DAPIP_IDS") or "").split("|") if value
+        }
+        community, community_reasons = community_college_pathway_flags(source_row)
+        scorecard = scorecard_by_unitid.get(unitid)
+        row: dict[str, object] = {
+            "UNITID": unitid,
+            "INSTNM": source_row.get("INSTNM"),
+            "CITY": source_row.get("CITY"),
+            "STABBR": source_row.get("STABBR"),
+            "ZIP": source_row.get("ZIP"),
+            "CONTROL": source_row.get("CONTROL"),
+            "LOCALE": source_row.get("LOCALE"),
+            "SECTOR": source_row.get("SECTOR"),
+            "ICLEVEL": source_row.get("ICLEVEL"),
+            "DEGGRANT": source_row.get("DEGGRANT"),
+            "INSTCAT": source_row.get("INSTCAT"),
+            "C21BASIC": source_row.get("C21BASIC"),
+            "IPEDS_OPEID": identity.get("IPEDS_OPEID"),
+            "RECOMMENDATION_ENTITY_ID": identity.get("RECOMMENDATION_ENTITY_ID"),
+            "IDENTITY_CLUSTER_ID": identity.get("IDENTITY_CLUSTER_ID"),
+            "IDENTITY_CLUSTER_SIZE": identity.get("IDENTITY_CLUSTER_SIZE"),
+            "IDENTITY_REVIEW_STATUS": identity.get("IDENTITY_REVIEW_STATUS"),
+            "IDENTITY_REVIEW_REASONS": identity.get("IDENTITY_REVIEW_REASONS"),
+            "AUTO_COLLAPSE": identity.get("AUTO_COLLAPSE"),
+            "KEEP_DISTINCT_BY_DEFAULT": identity.get("KEEP_DISTINCT_BY_DEFAULT"),
+            "DAPIP_IDS": identity.get("DAPIP_IDS"),
+            "DAPIP_ID_COUNT": identity.get("DAPIP_ID_COUNT"),
+            "PARENT_DAPIP_IDS": identity.get("PARENT_DAPIP_IDS"),
+            "DAPIP_LOCATION_TYPES": identity.get("DAPIP_LOCATION_TYPES"),
+            "SHARED_EXACT_OPEID_UNIT_COUNT": identity.get("SHARED_EXACT_OPEID_UNIT_COUNT"),
+            "CURRENT_INSTITUTIONAL_ACCREDITATION_BY_EXPORT_RULE": (
+                "1" if any(dapip_id in current_accreditation_by_dapip for dapip_id in dapip_ids) else "0"
+            ),
+            "COMMUNITY_COLLEGE_PATHWAY_PROXY": "1" if community else "0",
+            "COMMUNITY_COLLEGE_PROXY_REASONS": "|".join(community_reasons),
+            "SCORECARD_MATCH": "1" if scorecard else "0",
+            "SCORECARD_SOURCE_RELEASE": scorecard.get("source_release") if scorecard else "",
+            "IPEDS_SOURCE_RELEASE": source_row.get("source_release"),
+            "DAPIP_SOURCE_RELEASE": get_source("dapip_accreditation")["release"]["label"],
+            "IDENTITY_PROVENANCE": identity.get("IDENTITY_PROVENANCE"),
+        }
+        if scorecard:
+            for field in SCORECARD_FIELDS:
+                if field == "id":
+                    continue
+                row[f"SCORECARD__{field}"] = scorecard.get(field)
+        institution_model.append(row)
+        institution_by_unitid[unitid] = row
+
+    first_major: dict[tuple[str, str, str], dict[str, str]] = {}
+    second_major_keys: set[tuple[str, str, str]] = set()
+    for row in completions:
+        unitid = str(row.get("UNITID") or "")
+        major_num = str(row.get("MAJORNUM") or "").strip()
+        cip = str(row.get("CIP6") or "")
+        award = str(row.get("AWLEVEL") or "")
+        if not unitid or not cip or not award or cip in {"990000", "000099"}:
+            continue
+        key = (unitid, cip, award)
+        if major_num == "2":
+            second_major_keys.add(key)
+        elif major_num in {"", "1"}:
+            first_major[key] = row
+
+    socs_by_cip: dict[str, set[str]] = {}
+    crosswalk_version_by_pair: dict[tuple[str, str], str] = {}
+    for row in crosswalk:
+        cip = str(row.get("CIP6") or "")
+        soc = str(row.get("SOC6") or "")
+        if not cip or not soc:
+            continue
+        socs_by_cip.setdefault(cip, set()).add(soc)
+        crosswalk_version_by_pair[(cip, soc)] = str(row.get("crosswalk_version") or "")
+
+    program_model: list[dict[str, object]] = []
+    for key in sorted(first_major):
+        unitid, cip, award = key
+        source_row = first_major[key]
+        institution = institution_by_unitid.get(unitid)
+        if not institution:
+            continue
+        total = parse_number(source_row.get("CTOTALT"))
+        program_model.append({
+            "UNITID": unitid,
+            "RECOMMENDATION_ENTITY_ID": institution.get("RECOMMENDATION_ENTITY_ID"),
+            "CIP6": cip,
+            "AWLEVEL": award,
+            "MAJORNUM": "1",
+            "COMPLETIONS_TOTAL": total,
+            "COMPLETIONS_TOTAL_STATUS": "reported" if total is not None else "null",
+            "SECOND_MAJOR_RECORD_PRESENT": "1" if key in second_major_keys else "0",
+            "DIRECT_CIP_SOC_MAPPING": "1" if cip in socs_by_cip else "0",
+            "DIRECT_SOC6_COUNT": len(socs_by_cip.get(cip, set())),
+            "PROGRAM_SOURCE_ID": source_row.get("source_id"),
+            "PROGRAM_SOURCE_RELEASE": source_row.get("source_release"),
+            "PROGRAM_EVIDENCE_TYPE": "IPEDS_C2025_A_FIRST_MAJOR_RECORD",
+        })
+
+    onet_by_soc: dict[str, list[dict[str, str]]] = {}
+    for row in occupations:
+        soc = str(row.get("SOC6") or "")
+        if soc:
+            onet_by_soc.setdefault(soc, []).append(row)
+    projection_by_soc = {
+        str(row.get("SOC6") or ""): row
+        for row in projections
+        if row.get("SOC6")
+    }
+    national_wage_by_soc = {
+        str(row.get("OCC_CODE") or ""): row
+        for row in wages
+        if str(row.get("AREA_TYPE") or "") == "National"
+        and str(row.get("IS_DETAILED") or "") == "1"
+        and row.get("OCC_CODE")
+    }
+
+    pathways: list[dict[str, object]] = []
+    for program in program_model:
+        unitid = str(program["UNITID"])
+        cip = str(program["CIP6"])
+        award = str(program["AWLEVEL"])
+        mapped_socs = sorted(socs_by_cip.get(cip, set()))
+        if not mapped_socs:
+            pathways.append({
+                "UNITID": unitid,
+                "RECOMMENDATION_ENTITY_ID": program.get("RECOMMENDATION_ENTITY_ID"),
+                "CIP6": cip,
+                "AWLEVEL": award,
+                "SOC6": "",
+                "ONET_SOC_CODE": "",
+                "OCCUPATION_TITLE": "",
+                "OCCUPATION_DESCRIPTION": "",
+                "PATHWAY_RELATIONSHIP_TYPE": "no_direct_cip_soc_mapping",
+                "PATHWAY_INTERPRETATION": "coverage_gap_not_negative_signal",
+                "HAS_ONET_DETAIL": "0",
+                "HAS_BLS_PROJECTION": "0",
+                "HAS_OEWS_NATIONAL": "0",
+                "CIP_SOC_CROSSWALK_VERSION": "",
+                "ONET_VERSION": "",
+                "BLS_PROJECTION_CYCLE": "",
+                "OEWS_REFERENCE_PERIOD": "",
+            })
+            continue
+
+        for soc in mapped_socs:
+            onet_rows = onet_by_soc.get(soc) or [None]
+            projection = projection_by_soc.get(soc)
+            wage = national_wage_by_soc.get(soc)
+            for occupation in onet_rows:
+                pathways.append({
+                    "UNITID": unitid,
+                    "RECOMMENDATION_ENTITY_ID": program.get("RECOMMENDATION_ENTITY_ID"),
+                    "CIP6": cip,
+                    "AWLEVEL": award,
+                    "SOC6": soc,
+                    "ONET_SOC_CODE": occupation.get("ONET_SOC_CODE") if occupation else "",
+                    "OCCUPATION_TITLE": (
+                        occupation.get("Title")
+                        or occupation.get("TITLE")
+                        or occupation.get("Occupation")
+                        or ""
+                    ) if occupation else "",
+                    "OCCUPATION_DESCRIPTION": (
+                        occupation.get("Description")
+                        or occupation.get("DESCRIPTION")
+                        or ""
+                    ) if occupation else "",
+                    "PATHWAY_RELATIONSHIP_TYPE": "official_cip_soc_direct",
+                    "PATHWAY_INTERPRETATION": "taxonomy_relationship_not_observed_graduate_outcome",
+                    "HAS_ONET_DETAIL": "1" if occupation else "0",
+                    "HAS_BLS_PROJECTION": "1" if projection else "0",
+                    "HAS_OEWS_NATIONAL": "1" if wage else "0",
+                    "BLS_EMPLOYMENT_2025_THOUSANDS": projection.get("EMPLOYMENT_2025_THOUSANDS") if projection else "",
+                    "BLS_EMPLOYMENT_2035_THOUSANDS": projection.get("EMPLOYMENT_2035_THOUSANDS") if projection else "",
+                    "BLS_EMPLOYMENT_CHANGE_PERCENT_2025_2035": projection.get("EMPLOYMENT_CHANGE_PERCENT_2025_2035") if projection else "",
+                    "BLS_ANNUAL_OPENINGS_2025_2035_THOUSANDS": projection.get("ANNUAL_OPENINGS_2025_2035_THOUSANDS") if projection else "",
+                    "BLS_TYPICAL_EDUCATION": projection.get("TYPICAL_EDUCATION") if projection else "",
+                    "OEWS_NATIONAL_EMPLOYMENT": wage.get("TOT_EMP") if wage else "",
+                    "OEWS_NATIONAL_EMPLOYMENT_STATUS": wage.get("TOT_EMP_STATUS") if wage else "",
+                    "OEWS_NATIONAL_P25": wage.get("A_PCT25") if wage else "",
+                    "OEWS_NATIONAL_MEDIAN": wage.get("A_MEDIAN") if wage else "",
+                    "OEWS_NATIONAL_P75": wage.get("A_PCT75") if wage else "",
+                    "OEWS_NATIONAL_MEDIAN_STATUS": wage.get("A_MEDIAN_STATUS") if wage else "",
+                    "CIP_SOC_CROSSWALK_VERSION": crosswalk_version_by_pair.get((cip, soc), ""),
+                    "ONET_VERSION": occupation.get("onet_version") if occupation else "",
+                    "BLS_PROJECTION_CYCLE": projection.get("projection_cycle") if projection else "",
+                    "OEWS_REFERENCE_PERIOD": wage.get("reference_period") if wage else "",
+                })
+
+    out_dir = output_dir / "_model_ready" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    identity_fields = list(identity_rows[0].keys()) if identity_rows else []
+    institution_fields = list(institution_model[0].keys()) if institution_model else []
+    program_fields = list(program_model[0].keys()) if program_model else []
+    pathway_fields: list[str] = []
+    for row in pathways:
+        for field in row:
+            if field not in pathway_fields:
+                pathway_fields.append(field)
+
+    write_csv(out_dir / "institution_identity_resolution.csv", identity_fields, identity_rows)
+    write_csv(out_dir / "institution_model.csv", institution_fields, institution_model)
+    write_csv(out_dir / "program_model.csv", program_fields, program_model)
+    write_csv(out_dir / "program_occupation_pathway.csv", pathway_fields, pathways)
+
+    review_rows = [
+        row for row in identity_rows
+        if str(row.get("IDENTITY_REVIEW_STATUS") or "").startswith("review_")
+    ]
+    shared_clusters = {
+        str(row.get("IDENTITY_CLUSTER_ID") or "")
+        for row in identity_rows
+        if int(row.get("IDENTITY_CLUSTER_SIZE") or 0) > 1
+    }
+    direct_programs = sum(
+        1 for row in program_model if row.get("DIRECT_CIP_SOC_MAPPING") == "1"
+    )
+    mapped_pathways = [
+        row for row in pathways
+        if row.get("PATHWAY_RELATIONSHIP_TYPE") == "official_cip_soc_direct"
+    ]
+    qa = {
+        "generated_at": utc_now(),
+        "sources": {
+            "ipeds_directory": str(ipeds_dir),
+            "ipeds_completions": str(completion_dir),
+            "cip_soc_crosswalk": str(crosswalk_dir),
+            "onet": str(onet_dir),
+            "bls_projections": str(projection_dir),
+            "oews": str(oews_dir),
+            "dapip": str(dapip_dir),
+            "scorecard": str(scorecard_dir) if scorecard_dir else None,
+        },
+        "institution_rows": len(institution_model),
+        "distinct_recommendation_entities": len({
+            str(row.get("RECOMMENDATION_ENTITY_ID") or "")
+            for row in institution_model
+        }),
+        "identity_review_rows": len(review_rows),
+        "shared_exact_identifier_clusters": len(shared_clusters),
+        "auto_collapsed_institutions": sum(
+            1 for row in identity_rows if row.get("AUTO_COLLAPSE") == "1"
+        ),
+        "program_rows_first_major": len(program_model),
+        "programs_with_direct_cip_soc_mapping": direct_programs,
+        "programs_without_direct_cip_soc_mapping": len(program_model) - direct_programs,
+        "pathway_rows": len(pathways),
+        "mapped_pathway_rows": len(mapped_pathways),
+        "mapped_pathways_with_onet_detail": sum(
+            1 for row in mapped_pathways if row.get("HAS_ONET_DETAIL") == "1"
+        ),
+        "mapped_pathways_with_bls_projection": sum(
+            1 for row in mapped_pathways if row.get("HAS_BLS_PROJECTION") == "1"
+        ),
+        "mapped_pathways_with_oews_national": sum(
+            1 for row in mapped_pathways if row.get("HAS_OEWS_NATIONAL") == "1"
+        ),
+        "scorecard_rows_available": len(scorecard_rows),
+        "scorecard_institution_matches": sum(
+            1 for row in institution_model if row.get("SCORECARD_MATCH") == "1"
+        ),
+        "recommendation_scoring_enabled": False,
+        "scoring_gate_reasons": [
+            "Identity review clusters are preserved as distinct UNITIDs until authoritative resolution.",
+            "CIP-SOC relationships describe taxonomy pathways, not observed graduate outcomes.",
+            "College Scorecard enrichment is optional in this build and must be live-validated before affordability/admissions scoring.",
+            "Recommendation calibration remains a later layer after integrated QA.",
+        ],
+    }
+    if qa["auto_collapsed_institutions"] != 0:
+        raise IngestionError("Model-ready identity layer auto-collapsed institutions unexpectedly")
+    if qa["institution_rows"] != qa["distinct_recommendation_entities"]:
+        raise IngestionError("Model-ready institution entity IDs are not one-to-one with UNITID")
+    if not program_model or not pathways:
+        raise IngestionError("Model-ready layer produced no program/pathway rows")
+
+    (out_dir / "model_ready_qa.json").write_text(
+        json.dumps(qa, indent=2) + "\n", encoding="utf-8"
+    )
+    return {
+        "qa": qa,
+        "output_dir": str(out_dir),
+        "files": {
+            "identity": str(out_dir / "institution_identity_resolution.csv"),
+            "institution": str(out_dir / "institution_model.csv"),
+            "program": str(out_dir / "program_model.csv"),
+            "pathway": str(out_dir / "program_occupation_pathway.csv"),
+            "qa": str(out_dir / "model_ready_qa.json"),
+        },
+    }
+
+
 def scorecard_url(page: int, api_key: str) -> str:
     params = {
         "api_key": api_key,
@@ -2123,6 +2631,7 @@ def cli() -> int:
     parser.add_argument("--build-career-joins", action="store_true")
     parser.add_argument("--build-institution-coverage", action="store_true")
     parser.add_argument("--build-program-coverage", action="store_true")
+    parser.add_argument("--build-model-ready", action="store_true")
     parser.add_argument("--enforce-coverage-baseline", action="store_true")
     args = parser.parse_args()
 
@@ -2136,6 +2645,10 @@ def cli() -> int:
 
     if args.build_program_coverage:
         print(json.dumps(build_program_coverage_report(args.output_dir, enforce_baseline=args.enforce_coverage_baseline), indent=2, default=str))
+        return 0
+
+    if args.build_model_ready:
+        print(json.dumps(build_model_ready_layer(args.output_dir), indent=2, default=str))
         return 0
 
     if args.list_sources:
