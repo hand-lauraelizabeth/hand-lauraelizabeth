@@ -2284,93 +2284,123 @@ def build_model_ready_layer(output_dir: Path) -> dict:
         and row.get("OCC_CODE")
     }
 
-    pathways: list[dict[str, object]] = []
-    for program in program_model:
-        unitid = str(program["UNITID"])
-        cip = str(program["CIP6"])
-        award = str(program["AWLEVEL"])
-        mapped_socs = sorted(socs_by_cip.get(cip, set()))
-        if not mapped_socs:
-            pathways.append({
-                "UNITID": unitid,
-                "RECOMMENDATION_ENTITY_ID": program.get("RECOMMENDATION_ENTITY_ID"),
-                "CIP6": cip,
-                "AWLEVEL": award,
-                "SOC6": "",
-                "ONET_SOC_CODE": "",
-                "OCCUPATION_TITLE": "",
-                "OCCUPATION_DESCRIPTION": "",
-                "PATHWAY_RELATIONSHIP_TYPE": "no_direct_cip_soc_mapping",
-                "PATHWAY_INTERPRETATION": "coverage_gap_not_negative_signal",
-                "HAS_ONET_DETAIL": "0",
-                "HAS_BLS_PROJECTION": "0",
-                "HAS_OEWS_NATIONAL": "0",
-                "CIP_SOC_CROSSWALK_VERSION": "",
-                "ONET_VERSION": "",
-                "BLS_PROJECTION_CYCLE": "",
-                "OEWS_REFERENCE_PERIOD": "",
-            })
-            continue
-
-        for soc in mapped_socs:
-            onet_rows = onet_by_soc.get(soc) or [None]
-            projection = projection_by_soc.get(soc)
-            wage = national_wage_by_soc.get(soc)
-            for occupation in onet_rows:
-                pathways.append({
-                    "UNITID": unitid,
-                    "RECOMMENDATION_ENTITY_ID": program.get("RECOMMENDATION_ENTITY_ID"),
-                    "CIP6": cip,
-                    "AWLEVEL": award,
-                    "SOC6": soc,
-                    "ONET_SOC_CODE": occupation.get("ONET_SOC_CODE") if occupation else "",
-                    "OCCUPATION_TITLE": (
-                        occupation.get("Title")
-                        or occupation.get("TITLE")
-                        or occupation.get("Occupation")
-                        or ""
-                    ) if occupation else "",
-                    "OCCUPATION_DESCRIPTION": (
-                        occupation.get("Description")
-                        or occupation.get("DESCRIPTION")
-                        or ""
-                    ) if occupation else "",
-                    "PATHWAY_RELATIONSHIP_TYPE": "official_cip_soc_direct",
-                    "PATHWAY_INTERPRETATION": "taxonomy_relationship_not_observed_graduate_outcome",
-                    "HAS_ONET_DETAIL": "1" if occupation else "0",
-                    "HAS_BLS_PROJECTION": "1" if projection else "0",
-                    "HAS_OEWS_NATIONAL": "1" if wage else "0",
-                    "BLS_EMPLOYMENT_2025_THOUSANDS": projection.get("EMPLOYMENT_2025_THOUSANDS") if projection else "",
-                    "BLS_EMPLOYMENT_2035_THOUSANDS": projection.get("EMPLOYMENT_2035_THOUSANDS") if projection else "",
-                    "BLS_EMPLOYMENT_CHANGE_PERCENT_2025_2035": projection.get("EMPLOYMENT_CHANGE_PERCENT_2025_2035") if projection else "",
-                    "BLS_ANNUAL_OPENINGS_2025_2035_THOUSANDS": projection.get("ANNUAL_OPENINGS_2025_2035_THOUSANDS") if projection else "",
-                    "BLS_TYPICAL_EDUCATION": projection.get("TYPICAL_EDUCATION") if projection else "",
-                    "OEWS_NATIONAL_EMPLOYMENT": wage.get("TOT_EMP") if wage else "",
-                    "OEWS_NATIONAL_EMPLOYMENT_STATUS": wage.get("TOT_EMP_STATUS") if wage else "",
-                    "OEWS_NATIONAL_P25": wage.get("A_PCT25") if wage else "",
-                    "OEWS_NATIONAL_MEDIAN": wage.get("A_MEDIAN") if wage else "",
-                    "OEWS_NATIONAL_P75": wage.get("A_PCT75") if wage else "",
-                    "OEWS_NATIONAL_MEDIAN_STATUS": wage.get("A_MEDIAN_STATUS") if wage else "",
-                    "CIP_SOC_CROSSWALK_VERSION": crosswalk_version_by_pair.get((cip, soc), ""),
-                    "ONET_VERSION": occupation.get("onet_version") if occupation else "",
-                    "BLS_PROJECTION_CYCLE": projection.get("projection_cycle") if projection else "",
-                    "OEWS_REFERENCE_PERIOD": wage.get("reference_period") if wage else "",
-                })
-
     out_dir = output_dir / "_model_ready" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     identity_fields = list(identity_rows[0].keys()) if identity_rows else []
-    institution_fields = list(institution_model[0].keys()) if institution_model else []
-    program_fields = list(program_model[0].keys()) if program_model else []
-    pathway_fields: list[str] = []
-    for row in pathways:
+    institution_fields: list[str] = []
+    for row in institution_model:
         for field in row:
-            if field not in pathway_fields:
-                pathway_fields.append(field)
+            if field not in institution_fields:
+                institution_fields.append(field)
+    program_fields = list(program_model[0].keys()) if program_model else []
+    pathway_fields = [
+        "UNITID", "RECOMMENDATION_ENTITY_ID", "CIP6", "AWLEVEL", "SOC6",
+        "ONET_SOC_CODE", "OCCUPATION_TITLE", "OCCUPATION_DESCRIPTION",
+        "PATHWAY_RELATIONSHIP_TYPE", "PATHWAY_INTERPRETATION",
+        "HAS_ONET_DETAIL", "HAS_BLS_PROJECTION", "HAS_OEWS_NATIONAL",
+        "BLS_EMPLOYMENT_2025_THOUSANDS", "BLS_EMPLOYMENT_2035_THOUSANDS",
+        "BLS_EMPLOYMENT_CHANGE_PERCENT_2025_2035",
+        "BLS_ANNUAL_OPENINGS_2025_2035_THOUSANDS", "BLS_TYPICAL_EDUCATION",
+        "OEWS_NATIONAL_EMPLOYMENT", "OEWS_NATIONAL_EMPLOYMENT_STATUS",
+        "OEWS_NATIONAL_P25", "OEWS_NATIONAL_MEDIAN", "OEWS_NATIONAL_P75",
+        "OEWS_NATIONAL_MEDIAN_STATUS", "CIP_SOC_CROSSWALK_VERSION",
+        "ONET_VERSION", "BLS_PROJECTION_CYCLE", "OEWS_REFERENCE_PERIOD",
+    ]
 
     write_csv(out_dir / "institution_identity_resolution.csv", identity_fields, identity_rows)
     write_csv(out_dir / "institution_model.csv", institution_fields, institution_model)
     write_csv(out_dir / "program_model.csv", program_fields, program_model)
-    write_csv(out_dir / "program_occupation_pathway.csv", pathway_fields, pathways)
+
+    pathway_rows = 0
+    mapped_pathway_rows = 0
+    mapped_pathways_with_onet_detail = 0
+    mapped_pathways_with_bls_projection = 0
+    mapped_pathways_with_oews_national = 0
+    pathway_path = out_dir / "program_occupation_pathway.csv"
+    pathway_path.parent.mkdir(parents=True, exist_ok=True)
+    with pathway_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=pathway_fields, extrasaction="ignore")
+        writer.writeheader()
+        for program in program_model:
+            unitid = str(program["UNITID"])
+            cip = str(program["CIP6"])
+            award = str(program["AWLEVEL"])
+            mapped_socs = sorted(socs_by_cip.get(cip, set()))
+            if not mapped_socs:
+                writer.writerow({
+                    "UNITID": unitid,
+                    "RECOMMENDATION_ENTITY_ID": program.get("RECOMMENDATION_ENTITY_ID"),
+                    "CIP6": cip,
+                    "AWLEVEL": award,
+                    "SOC6": "",
+                    "ONET_SOC_CODE": "",
+                    "OCCUPATION_TITLE": "",
+                    "OCCUPATION_DESCRIPTION": "",
+                    "PATHWAY_RELATIONSHIP_TYPE": "no_direct_cip_soc_mapping",
+                    "PATHWAY_INTERPRETATION": "coverage_gap_not_negative_signal",
+                    "HAS_ONET_DETAIL": "0",
+                    "HAS_BLS_PROJECTION": "0",
+                    "HAS_OEWS_NATIONAL": "0",
+                    "CIP_SOC_CROSSWALK_VERSION": "",
+                    "ONET_VERSION": "",
+                    "BLS_PROJECTION_CYCLE": "",
+                    "OEWS_REFERENCE_PERIOD": "",
+                })
+                pathway_rows += 1
+                continue
+
+            for soc in mapped_socs:
+                onet_rows = onet_by_soc.get(soc) or [None]
+                projection = projection_by_soc.get(soc)
+                wage = national_wage_by_soc.get(soc)
+                for occupation in onet_rows:
+                    row = {
+                        "UNITID": unitid,
+                        "RECOMMENDATION_ENTITY_ID": program.get("RECOMMENDATION_ENTITY_ID"),
+                        "CIP6": cip,
+                        "AWLEVEL": award,
+                        "SOC6": soc,
+                        "ONET_SOC_CODE": occupation.get("ONET_SOC_CODE") if occupation else "",
+                        "OCCUPATION_TITLE": (
+                            occupation.get("Title")
+                            or occupation.get("TITLE")
+                            or occupation.get("Occupation")
+                            or ""
+                        ) if occupation else "",
+                        "OCCUPATION_DESCRIPTION": (
+                            occupation.get("Description")
+                            or occupation.get("DESCRIPTION")
+                            or ""
+                        ) if occupation else "",
+                        "PATHWAY_RELATIONSHIP_TYPE": "official_cip_soc_direct",
+                        "PATHWAY_INTERPRETATION": "taxonomy_relationship_not_observed_graduate_outcome",
+                        "HAS_ONET_DETAIL": "1" if occupation else "0",
+                        "HAS_BLS_PROJECTION": "1" if projection else "0",
+                        "HAS_OEWS_NATIONAL": "1" if wage else "0",
+                        "BLS_EMPLOYMENT_2025_THOUSANDS": projection.get("EMPLOYMENT_2025_THOUSANDS") if projection else "",
+                        "BLS_EMPLOYMENT_2035_THOUSANDS": projection.get("EMPLOYMENT_2035_THOUSANDS") if projection else "",
+                        "BLS_EMPLOYMENT_CHANGE_PERCENT_2025_2035": projection.get("EMPLOYMENT_CHANGE_PERCENT_2025_2035") if projection else "",
+                        "BLS_ANNUAL_OPENINGS_2025_2035_THOUSANDS": projection.get("ANNUAL_OPENINGS_2025_2035_THOUSANDS") if projection else "",
+                        "BLS_TYPICAL_EDUCATION": projection.get("TYPICAL_EDUCATION") if projection else "",
+                        "OEWS_NATIONAL_EMPLOYMENT": wage.get("TOT_EMP") if wage else "",
+                        "OEWS_NATIONAL_EMPLOYMENT_STATUS": wage.get("TOT_EMP_STATUS") if wage else "",
+                        "OEWS_NATIONAL_P25": wage.get("A_PCT25") if wage else "",
+                        "OEWS_NATIONAL_MEDIAN": wage.get("A_MEDIAN") if wage else "",
+                        "OEWS_NATIONAL_P75": wage.get("A_PCT75") if wage else "",
+                        "OEWS_NATIONAL_MEDIAN_STATUS": wage.get("A_MEDIAN_STATUS") if wage else "",
+                        "CIP_SOC_CROSSWALK_VERSION": crosswalk_version_by_pair.get((cip, soc), ""),
+                        "ONET_VERSION": occupation.get("onet_version") if occupation else "",
+                        "BLS_PROJECTION_CYCLE": projection.get("projection_cycle") if projection else "",
+                        "OEWS_REFERENCE_PERIOD": wage.get("reference_period") if wage else "",
+                    }
+                    writer.writerow(row)
+                    pathway_rows += 1
+                    mapped_pathway_rows += 1
+                    if occupation:
+                        mapped_pathways_with_onet_detail += 1
+                    if projection:
+                        mapped_pathways_with_bls_projection += 1
+                    if wage:
+                        mapped_pathways_with_oews_national += 1
 
     review_rows = [
         row for row in identity_rows
@@ -2413,17 +2443,11 @@ def build_model_ready_layer(output_dir: Path) -> dict:
         "program_rows_first_major": len(program_model),
         "programs_with_direct_cip_soc_mapping": direct_programs,
         "programs_without_direct_cip_soc_mapping": len(program_model) - direct_programs,
-        "pathway_rows": len(pathways),
-        "mapped_pathway_rows": len(mapped_pathways),
-        "mapped_pathways_with_onet_detail": sum(
-            1 for row in mapped_pathways if row.get("HAS_ONET_DETAIL") == "1"
-        ),
-        "mapped_pathways_with_bls_projection": sum(
-            1 for row in mapped_pathways if row.get("HAS_BLS_PROJECTION") == "1"
-        ),
-        "mapped_pathways_with_oews_national": sum(
-            1 for row in mapped_pathways if row.get("HAS_OEWS_NATIONAL") == "1"
-        ),
+        "pathway_rows": pathway_rows,
+        "mapped_pathway_rows": mapped_pathway_rows,
+        "mapped_pathways_with_onet_detail": mapped_pathways_with_onet_detail,
+        "mapped_pathways_with_bls_projection": mapped_pathways_with_bls_projection,
+        "mapped_pathways_with_oews_national": mapped_pathways_with_oews_national,
         "scorecard_rows_available": len(scorecard_rows),
         "scorecard_institution_matches": sum(
             1 for row in institution_model if row.get("SCORECARD_MATCH") == "1"
@@ -2440,7 +2464,7 @@ def build_model_ready_layer(output_dir: Path) -> dict:
         raise IngestionError("Model-ready identity layer auto-collapsed institutions unexpectedly")
     if qa["institution_rows"] != qa["distinct_recommendation_entities"]:
         raise IngestionError("Model-ready institution entity IDs are not one-to-one with UNITID")
-    if not program_model or not pathways:
+    if not program_model or pathway_rows == 0:
         raise IngestionError("Model-ready layer produced no program/pathway rows")
 
     (out_dir / "model_ready_qa.json").write_text(
@@ -2453,7 +2477,7 @@ def build_model_ready_layer(output_dir: Path) -> dict:
             "identity": str(out_dir / "institution_identity_resolution.csv"),
             "institution": str(out_dir / "institution_model.csv"),
             "program": str(out_dir / "program_model.csv"),
-            "pathway": str(out_dir / "program_occupation_pathway.csv"),
+            "pathway": str(pathway_path),
             "qa": str(out_dir / "model_ready_qa.json"),
         },
     }
