@@ -37,6 +37,23 @@
         "onet_to_oews_by_area_type.National.onet_soc6_overlap": 800,
         "onet_to_oews_by_area_type.National.onet_base_soc6_match_rate": 0.93
       }
+    },
+    "model_ready": {
+      "reference": "Integrated HD2025 + C2025_A + CIP 2020 ↔ SOC 2018 + O*NET 31.0 + BLS 2025–2035 + May 2025 national OEWS + live DAPIP",
+      "minimums": {
+        "institution_rows": 5900,
+        "distinct_recommendation_entities": 5900,
+        "program_rows_first_major": 260000,
+        "programs_with_direct_cip_soc_mapping": 260000,
+        "pathway_rows": 1750000,
+        "mapped_pathways_with_onet_detail": 1750000,
+        "mapped_pathways_with_bls_projection": 1700000,
+        "mapped_pathways_with_oews_national": 1700000
+      },
+      "equals": {
+        "auto_collapsed_institutions": 0,
+        "recommendation_scoring_enabled": false
+      }
     }
   }
 }
