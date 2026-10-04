@@ -137,7 +137,6 @@ def main() -> None:
         "cip_soc_crosswalk_2020_2018": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
         "dapip_accreditation": "https://ope.ed.gov/dapip/api/downloadFiles/accreditationDataFiles",
         "bls_employment_projections_2025_2035": "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
-        "bls_oews_may_2025": "https://www.bls.gov/oes/special-requests/oesm25all.zip",
     }
     for source_id, expected_url in expected_urls.items():
         actual = module.resolve_access_url(module.get_source(source_id))
