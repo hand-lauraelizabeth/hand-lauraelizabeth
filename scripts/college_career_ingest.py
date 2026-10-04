@@ -2747,8 +2747,16 @@ def ingest_scorecard(source: dict, raw: bytes, snapshot_dir: Path, source_url: s
     return {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
 
 
-def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) -> dict:
+def ingest_source(
+    source_id: str,
+    output_dir: Path,
+    *,
+    dry_run: bool = False,
+    source_file: Path | None = None,
+) -> dict:
     source = get_source(source_id)
+    if source_file is not None and source_id != "college_scorecard":
+        raise IngestionError("--source-file is currently supported only for college_scorecard")
 
     if source_id == "dapip_accreditation":
         source_url = resolve_access_url(source)
@@ -2775,15 +2783,33 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
                 "mode": "dry-run",
                 "access_url": source_url,
                 "requires_api_key": False,
-                "retrieval_mode": "official_featured_bulk_zip",
+                "retrieval_mode": (
+                    "user_supplied_official_bulk_zip"
+                    if source_file is not None
+                    else "official_featured_bulk_zip"
+                ),
+                "source_file": str(source_file) if source_file is not None else None,
             }
-        raw = http_get(source_url)
+        if source_file is not None:
+            if not source_file.exists() or not source_file.is_file():
+                raise IngestionError(f"Scorecard --source-file does not exist or is not a file: {source_file}")
+            raw = source_file.read_bytes()
+            effective_source_url = source_url
+            raw_name = source_file.name
+        else:
+            raw = http_get(source_url)
+            effective_source_url = source_url
+            raw_name = safe_filename_from_url(source_url, "Most-Recent-Cohorts-Institution.zip")
         snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         raw_dir = snapshot_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
-        raw_name = safe_filename_from_url(source_url, "Most-Recent-Cohorts-Institution.zip")
         (raw_dir / raw_name).write_bytes(raw)
-        result = ingest_scorecard(source, raw, snapshot_dir, source_url)
+        result = ingest_scorecard(source, raw, snapshot_dir, effective_source_url)
+        result["retrieval_mode"] = (
+            "user_supplied_official_bulk_zip"
+            if source_file is not None
+            else "official_featured_bulk_zip"
+        )
 
     elif source_id == "onet_31_0":
         if dry_run:
@@ -2854,6 +2880,11 @@ def cli() -> int:
     parser = argparse.ArgumentParser(description="College + Career Matching Tool public-source ingestion prototype")
     parser.add_argument("--source", help="source_id from source_manifest.json")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_DATA_DIR / "snapshots")
+    parser.add_argument(
+        "--source-file",
+        type=Path,
+        help="Local official source file; currently supported for College Scorecard bulk ZIPs.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--list-sources", action="store_true")
     parser.add_argument("--build-career-joins", action="store_true")
@@ -2888,7 +2919,12 @@ def cli() -> int:
         parser.error("--source is required unless --list-sources or a build-report option is used")
 
     try:
-        result = ingest_source(args.source, args.output_dir, dry_run=args.dry_run)
+        result = ingest_source(
+            args.source,
+            args.output_dir,
+            dry_run=args.dry_run,
+            source_file=args.source_file,
+        )
     except (IngestionError, urllib.error.URLError, zipfile.BadZipFile, ET.ParseError, json.JSONDecodeError) as exc:
         print(f"Ingestion failed: {exc}")
         return 1
