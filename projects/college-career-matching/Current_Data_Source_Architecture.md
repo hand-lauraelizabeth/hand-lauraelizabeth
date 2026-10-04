@@ -8,6 +8,7 @@ This document defines the preferred production data sources for the modern Colle
 | --- | --- | --- | --- |
 | Institution + outcomes | U.S. Department of Education College Scorecard | Costs, admissions, completion, debt, earnings, institution and field-of-study outcomes | Refresh on Scorecard release |
 | Institution + programs | NCES IPEDS | Institutional characteristics, enrollment, completions, awards, program inventory | Annual |
+| Transfer + articulation | Authoritative state/system repositories; initial adapters: SUNY STEP and CUNY Transfer Explorer | Program pathways, agreements, course equivalencies, degree applicability, published transfer guarantees/conditions | Source-specific snapshots; preserve effective dates and conditions |
 | Program taxonomy | NCES CIP | Standard program codes | Version-controlled taxonomy |
 | Program ↔ occupation | NCES/BLS CIP–SOC Crosswalk | Many-to-many education-to-occupation bridge | Version-controlled crosswalk |
 | Occupation taxonomy + work/worker characteristics | O*NET | Occupations, essential and transferable skills, software skills, knowledge, abilities, career interests, work activities/context, preparation, related occupations | Each O*NET production release |
@@ -49,13 +50,28 @@ Use IPEDS for the institutional and program backbone:
 
 IPEDS is preferable to hand-entered institution descriptors because it is structured, downloadable, and maintained as the national postsecondary reporting system.
 
-## 3. CIP ↔ SOC bridge
+## 3. Transfer and articulation
+
+Treat transfer evidence as a separate, source-specific layer rather than an institution-level yes/no attribute. The initial implementation is New York public higher education because SUNY and CUNY expose current public transfer resources with useful program/course specificity.
+
+Use authoritative sources in this order:
+
+- SUNY Transfer Equivalency Platform (STEP): Transfer Agreement Inventory, Transfer Paths, core-course/path tools, and public course-equivalency resources;
+- CUNY Transfer Explorer (T-Rex), Program Comparison, Universal Transfer Path evidence, and formal articulation resources;
+- other state/system repositories as source-specific adapters are added;
+- institution-published agreements/policies as lower-structure fallback evidence.
+
+Keep **credit acceptance**, **course equivalency**, **major applicability**, **program articulation**, **admission guarantees**, and **standing** semantically distinct. A general transfer policy is not proof that a particular course advances a particular major. Preserve conditions such as minimum grades, program restrictions, effective dates, and source notes.
+
+See `TRANSFER_ARTICULATION_LAYER_SPECIFICATION.md` for canonical tables, identity/CIP mapping rules, evidence hierarchy, QA gates, explanation contract, and implementation sequence.
+
+## 4. CIP ↔ SOC bridge
 
 Use the official NCES/BLS CIP–SOC Crosswalk as a **many-to-many relationship**, not a deterministic major-to-job lookup.
 
 A program may map to several occupations; an occupation may map from several programs. The model should preserve that multiplicity and attach explanatory labels rather than presenting one career as the inevitable result of one major.
 
-## 4. O*NET
+## 5. O*NET
 
 Use O*NET as the occupational-content layer.
 
@@ -77,7 +93,7 @@ Recommended dimensions:
 
 O*NET should drive the **career-interest / skill ↔ occupation** and **occupation ↔ adjacent occupation** logic.
 
-## 5. BLS Employment Projections
+## 6. BLS Employment Projections
 
 Use BLS projections for:
 
@@ -92,7 +108,7 @@ Use BLS projections for:
 
 These values are better suited to the career-outlook layer than proprietary historical growth fields.
 
-## 6. BLS OEWS
+## 7. BLS OEWS
 
 Use OEWS for current occupational employment and wages at national, state, metropolitan, and nonmetropolitan levels.
 
@@ -104,7 +120,7 @@ The model should distinguish:
 
 Those are different signals and should not be collapsed into one number.
 
-## 7. Public job demand
+## 8. Public job demand
 
 Use public job postings as a fast-changing demand layer rather than as the sole definition of the labor market.
 
@@ -124,7 +140,7 @@ Each posting record should retain:
 
 Possible public sources include government/open-data job feeds and public institutional postings. The NYC Workforce Demand & Skills Signal project provides the initial schema and QA pattern.
 
-## 8. Optional Lightcast enrichment
+## 9. Optional Lightcast enrichment
 
 If a current Lightcast license is available, use it as an enrichment layer for:
 
@@ -159,11 +175,12 @@ The modern matcher should not produce one opaque universal score. It should expo
 1. **College fit** — preferences and constraints.
 2. **Affordability** — cost/net price/debt/outcomes.
 3. **Academic/program fit** — program availability and structure.
-4. **Admissions context** — descriptive selectivity and profile context, not a false certainty of admission.
-5. **Career pathway fit** — CIP↔SOC pathways, skills/interests, outlook, wages.
-6. **Current demand** — job-posting signals.
-7. **Geographic fit** — institution and labor-market geography.
-8. **Explanation** — why each recommendation appears and what data influenced it.
+4. **Transfer/pathway fit** — agreements, course equivalencies, major applicability, path guarantees, and explicit conditions.
+5. **Admissions context** — descriptive selectivity and profile context, not a false certainty of admission.
+6. **Career pathway fit** — CIP↔SOC pathways, skills/interests, outlook, wages.
+7. **Current demand** — job-posting signals.
+8. **Geographic fit** — institution and labor-market geography.
+9. **Explanation** — why each recommendation appears and what data influenced it.
 
 ## Current reference versions — October 2026
 
@@ -172,9 +189,11 @@ The modern matcher should not produce one opaque universal score. It should expo
 - **BLS OEWS May 2025**, released May 15, 2026.
 - **College Scorecard institution-level technical documentation**, September 2025 version located during the architecture review.
 - **2020 CIP ↔ 2018 SOC Crosswalk** remains the official NCES/BLS downloadable crosswalk identified in the current NCES CIP site.
+- **SUNY STEP transfer resources**, current public pages reviewed October 4, 2026.
+- **CUNY Transfer Explorer / 2026 articulation resources**, current public pages reviewed October 4, 2026.
 
 These version labels should be updated as new official releases replace them.
 
 ## Next implementation step
 
-Build a field-level source matrix for the MVP: each desired matcher field → authoritative source → source variable → join key → geography → update cadence → transformation → missing-data behavior.
+Implement the SUNY Transfer Agreement Inventory adapter defined in `TRANSFER_ARTICULATION_LAYER_SPECIFICATION.md`, then establish transfer-layer institution-identity coverage and regression baselines before integrating transfer signals into recommendation calibration.
