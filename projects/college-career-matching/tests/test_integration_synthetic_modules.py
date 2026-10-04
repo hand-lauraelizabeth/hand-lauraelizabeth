@@ -70,7 +70,6 @@ class IntegrationTests(unittest.TestCase):
     def test_pipeline_runner_blocks_downstream_after_required_failure(self):
         with tempfile.TemporaryDirectory() as td:
             d=Path(td); run_dir=d/"run"
-            # First command fails intentionally; second must never execute.
             write_csv(d/"stages.csv",[
                 {"stage_id":"first","command":"{python} -c \"import sys; sys.exit(3)\"","depends_on":"","required":"true","inputs":"","outputs":""},
                 {"stage_id":"second","command":"{python} -c \"from pathlib import Path; Path(r'{run_dir}/should_not_exist').write_text('x')\"","depends_on":"first","required":"true","inputs":"","outputs":"{run_dir}/should_not_exist"},
@@ -80,5 +79,21 @@ class IntegrationTests(unittest.TestCase):
             by={r["stage_id"]:r for r in manifest["stages"]}
             self.assertEqual(by["first"]["status"],"FAIL"); self.assertEqual(by["second"]["status"],"BLOCKED_BY_DEPENDENCY")
             self.assertFalse((run_dir/"should_not_exist").exists())
+            self.assertIn("run_started_utc",manifest); self.assertIn("run_finished_utc",manifest)
+            self.assertIn("argv",by["first"]); self.assertNotIn("command",by["first"])
+
+    def test_pipeline_runner_does_not_interpret_shell_metacharacters(self):
+        with tempfile.TemporaryDirectory() as td:
+            d=Path(td); run_dir=d/"run"; injected=d/"injected"
+            # A semicolon is passed as an ordinary argv token; no second shell command can execute.
+            write_csv(d/"stages.csv",[{
+                "stage_id":"safe","command":f"{{python}} -c \"import sys; print(sys.argv[1:])\" ';' touch {injected}",
+                "depends_on":"","required":"true","inputs":"","outputs":""
+            }])
+            run("recommendation_pipeline_runner.py","--stage-manifest",d/"stages.csv","--run-dir",run_dir)
+            self.assertFalse(injected.exists())
+            manifest=json.loads((run_dir/"recommendation_pipeline_run_manifest.json").read_text())
+            self.assertEqual(manifest["overall_status"],"PIPELINE_COMPLETED")
+            self.assertIn(";",manifest["stages"][0]["argv"])
 
 if __name__=="__main__": unittest.main()
