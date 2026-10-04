@@ -163,9 +163,17 @@ The career-side source inventory now distinguishes open occupational data, licen
 
 ## Prototype status
 
-The first live federal-source ingestion paths have been exercised end to end. The current coverage baselines include **5,985 current IPEDS directory records across 59 states/territories**, **313,566 IPEDS program-completion rows**, **6,097 CIP↔SOC relationships**, and the complete **1,016-occupation O*NET 31.0 occupation table**. On October 4, 2026, live CI tests verified the official CIP 2020 ↔ SOC 2018 workbook, IPEDS HD2025 and C2025_A files, and O*NET 31.0 content files. The IPEDS coverage audit currently identifies **1,973 public institutions**, including **863 public four-year-or-above** and **823 public two-year** records before any prestige/selectivity filtering. Public two-year is treated as a sector count, not as a complete community-college classification.
+The federal-source ingestion and coverage prototype is now exercised end to end for the unauthenticated production sources. Current live baselines include **5,985 IPEDS directory records across 59 states/territories**, **313,566 C2025_A completion rows**, **6,097 CIP↔SOC relationships**, and the complete **1,016-occupation O*NET 31.0 occupation table**.
 
-The pipeline now supports timestamped raw snapshots, source hashes and metadata, normalized CSV outputs, QA reports, dry-run source resolution, and a credential-aware College Scorecard adapter.
+Program coverage now removes **20,708 IPEDS CIP 99.0000 summary rows** from specific-program analysis, leaving **273,404 institution + CIP6 + award-level combinations across 5,811 institutions**. The build observes **1,617 distinct specific CIP6 codes**; **1,616** have a direct relationship in the official CIP 2020 ↔ SOC 2018 crosswalk. Missing direct mappings remain visible coverage gaps rather than exclusions or quality penalties.
+
+The career join baseline contains **867 unique O*NET base SOC6 codes**, with **819** matching detailed BLS 2025–2035 projection occupations (**94.46%**) and **818** matching the May 2025 national OEWS detailed occupation set (**94.35%**). O*NET detail is preserved even where a base SOC is unmatched.
+
+The institution/accreditation build retains **5,985 institutions**, matches **5,713** to at least one DAPIP identifier, and identifies **1,049 public community-college-pathway candidates** through the explicit sector/institution-category/Carnegie proxy. That proxy includes **823 public two-year sector records** and recovers **225 public four-year-sector institutions** with associate-oriented pathway signals; it is not treated as a legal or mission designation.
+
+All three live coverage layers—**institution/accreditation, program, and career**—now have conservative regression floors in [coverage_baselines.json](coverage_baselines.json). The opt-in live CI gates fail if a future source refresh silently falls below those floors. On October 4, 2026, a combined live run passed all three gates.
+
+The pipeline supports timestamped raw snapshots, source hashes and metadata, normalized CSV outputs, QA reports, coverage reports, dry-run source resolution, and a credential-aware College Scorecard adapter. College Scorecard remains the authenticated production-core source whose live snapshot still requires an API key.
 
 See [Reproduce the Data Build](RUNBOOK.md) for the executable workflow.
 
@@ -175,24 +183,26 @@ The source layer is now defined in both human-readable and machine-checkable for
 
 - [Reproduce the Data Build](RUNBOOK.md) — commands for dry runs, public-source ingestion, College Scorecard authentication, and live smoke testing;
 - [Production source manifest](source_manifest.json) — pinned source IDs, releases, access URLs, canonical keys, required artifacts, metadata, and join cardinalities;
+- [Coverage regression baselines](coverage_baselines.json) — conservative live-observed minimums for institution, program, and career coverage;
 - [Ingestion contract](INGESTION_CONTRACT.md) — raw → staging → normalized → model-ready rules, key normalization, suppression handling, and refresh behavior;
-- [QA & Join Tests](QA_JOIN_TESTS.md) — source-level, cross-source, and recommendation-gating acceptance criteria;
+- [QA & Join Tests](QA_JOIN_TESTS.md) — source-level, cross-source, coverage-regression, and recommendation-gating acceptance criteria;
 - [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 84 fields mapped to source variables, joins, cadence, transformations, and missing-data behavior;
 - [Machine-readable source matrix](MVP_Field_Level_Source_Matrix.csv) — CSV for ingestion/configuration work.
 
-The repository CI runs `scripts/validate_college_career_sources.py` to check manifest structure, source IDs, join references, CIP↔SOC cardinality, production-source privacy boundaries, and source-matrix consistency.
+The repository CI validates manifest structure, source IDs, join references, CIP↔SOC cardinality, production-source privacy boundaries, source-matrix consistency, and coverage-baseline configuration.
 
 ## Next development stage
 
-Implement the first **public-source ingestion prototype**:
+The next build stage is the **integrated model-ready institution/program/career layer**, not another parallel ingestion prototype:
 
-1. College Scorecard institution snapshot;
-2. IPEDS HD2025 + C2025_A;
-3. CIP 2020 ↔ SOC 2018 bridge;
-4. O*NET 31.0 occupation, essential/transferable/software skill, career-interest, and related content tables;
-5. BLS 2025–2035 projections + May 2025 OEWS.
+1. run and validate the College Scorecard institution snapshot when an API key is available, using Scorecard only as enrichment rather than as an institution-inclusion filter;
+2. identify and resolve system/campus/administrative duplicates while preserving legitimate campus distinctions;
+3. expand OEWS beyond the national baseline to state, metropolitan, and nonmetropolitan geography where useful;
+4. add authoritative transfer/articulation information so community-college pathways can be modeled explicitly rather than inferred from sector alone;
+5. assemble model-ready institution → program → occupation tables with source-version/confidence metadata and explanation-ready provenance;
+6. only then begin recommendation scoring calibration, keeping admissions context, preferences, affordability, career alignment, and data completeness as separate explainable signals.
 
-The prototype should create immutable raw snapshots, source metadata/hashes, normalized keys, and QA reports. Recommendation scoring remains gated until the source/join tests pass.
+Recommendation scoring remains gated while the authenticated Scorecard snapshot and integrated model-ready QA are incomplete.
 
 
 See the:
