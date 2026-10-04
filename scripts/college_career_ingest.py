@@ -299,6 +299,13 @@ def latest_snapshot_dir(output_dir: Path, source_id: str) -> Path:
     return candidates[-1]
 
 
+def read_snapshot_metadata(snapshot_dir: Path) -> dict:
+    path = snapshot_dir / "source_snapshot.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def flatten_dict(record: dict, prefix: str = "") -> dict[str, object]:
     out: dict[str, object] = {}
     for key, value in record.items():
@@ -2466,8 +2473,58 @@ def build_model_ready_layer(output_dir: Path) -> dict:
     (out_dir / "model_ready_qa.json").write_text(
         json.dumps(qa, indent=2) + "\n", encoding="utf-8"
     )
+
+    source_snapshot_dirs = {
+        "ipeds_directory_2025": ipeds_dir,
+        "ipeds_completions_2025": completion_dir,
+        "cip_soc_crosswalk_2020_2018": crosswalk_dir,
+        "onet_31_0": onet_dir,
+        "bls_employment_projections_2025_2035": projection_dir,
+        "bls_oews_may_2025": oews_dir,
+        "dapip_accreditation": dapip_dir,
+    }
+    if scorecard_dir:
+        source_snapshot_dirs["college_scorecard"] = scorecard_dir
+    source_lineage = {}
+    for source_id, snapshot_dir in source_snapshot_dirs.items():
+        metadata = read_snapshot_metadata(snapshot_dir)
+        source_lineage[source_id] = {
+            "snapshot_dir": str(snapshot_dir),
+            "retrieved_at": metadata.get("retrieved_at"),
+            "source_release": metadata.get("source_release"),
+            "sha256": metadata.get("sha256"),
+            "reference_period": metadata.get("reference_period"),
+        }
+
+    build_manifest = {
+        "generated_at": utc_now(),
+        "source_lineage": source_lineage,
+        "table_grains": {
+            "institution_identity_resolution": "UNITID",
+            "institution_model": "UNITID",
+            "program_model": "UNITID + CIP6 + AWLEVEL (MAJORNUM=1 default)",
+            "program_occupation_pathway": "UNITID + CIP6 + AWLEVEL + SOC6 + ONET_SOC_CODE",
+        },
+        "identity_policy": {
+            "recommendation_entity_key": "UNITID",
+            "automatic_collapse": False,
+            "shared_dapip_behavior": "review_cluster_only",
+            "shared_opeid_behavior": "review_signal_only",
+            "fuzzy_name_merge": False,
+        },
+        "pathway_policy": {
+            "cip_soc_relationship": "many_to_many_taxonomy_not_observed_outcomes",
+            "retain_unmapped_programs": True,
+            "retain_unmatched_occupations": True,
+        },
+        "recommendation_scoring_enabled": False,
+    }
+    (out_dir / "model_ready_manifest.json").write_text(
+        json.dumps(build_manifest, indent=2) + "\n", encoding="utf-8"
+    )
     return {
         "qa": qa,
+        "manifest": build_manifest,
         "output_dir": str(out_dir),
         "files": {
             "identity": str(out_dir / "institution_identity_resolution.csv"),
@@ -2475,6 +2532,7 @@ def build_model_ready_layer(output_dir: Path) -> dict:
             "program": str(out_dir / "program_model.csv"),
             "pathway": str(pathway_path),
             "qa": str(out_dir / "model_ready_qa.json"),
+            "manifest": str(out_dir / "model_ready_manifest.json"),
         },
     }
 
