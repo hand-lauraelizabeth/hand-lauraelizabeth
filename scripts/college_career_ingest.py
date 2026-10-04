@@ -597,11 +597,12 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
         report = qa_report(source["source_id"], normalized, ["UNITID"])
         coverage = build_ipeds_coverage_report(normalized, source)
     else:
-        fields = ["UNITID", "CIP6", "CIPCODE_RAW", "AWLEVEL", "CTOTALT"]
+        fields = ["UNITID", "MAJORNUM", "CIP6", "CIPCODE_RAW", "AWLEVEL", "CTOTALT"]
         for row in records:
             cip_raw = row.get("CIPCODE")
             normalized.append({
                 "UNITID": normalize_unitid(row.get("UNITID")),
+                "MAJORNUM": row.get("MAJORNUM"),
                 "CIP6": normalize_cip6(cip_raw),
                 "CIPCODE_RAW": cip_raw,
                 "AWLEVEL": row.get("AWLEVEL"),
@@ -611,7 +612,7 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
             })
         out = snapshot_dir / "normalized" / "program_completion.csv"
         write_csv(out, fields + ["source_id", "source_release"], normalized)
-        report = qa_report(source["source_id"], normalized, ["UNITID", "CIP6", "AWLEVEL"])
+        report = qa_report(source["source_id"], normalized, ["UNITID", "MAJORNUM", "CIP6", "AWLEVEL"])
 
     metadata = write_snapshot_metadata(
         snapshot_dir,
@@ -1819,14 +1820,25 @@ def build_program_coverage_report(output_dir: Path, *, enforce_baseline: bool = 
 
     program_rows: dict[tuple[str, str, str], int] = {}
     summary_cip_rows_excluded = 0
+    second_major_rows_excluded = 0
     incomplete_key_rows_excluded = 0
     for row in completions:
         unitid = str(row.get("UNITID") or "")
+        major_num = str(row.get("MAJORNUM") or "").strip()
         cip = str(row.get("CIP6") or "")
         award = str(row.get("AWLEVEL") or "")
         # 99.0000 is an IPEDS summary/total code, not a specific field of study.
         if cip in {"990000", "000099"}:
             summary_cip_rows_excluded += 1
+            continue
+        # Program availability uses first-major records. Second-major rows are
+        # retained in the normalized source but kept out of the default
+        # institution-program grain so they cannot double-count a program.
+        if major_num == "2":
+            second_major_rows_excluded += 1
+            continue
+        if major_num not in {"", "1"}:
+            incomplete_key_rows_excluded += 1
             continue
         if not unitid or not cip or not award:
             incomplete_key_rows_excluded += 1
@@ -1894,6 +1906,7 @@ def build_program_coverage_report(output_dir: Path, *, enforce_baseline: bool = 
         "institution_universe": len(institution_ids),
         "completion_source_rows": len(completions),
         "summary_cip_rows_excluded": summary_cip_rows_excluded,
+        "second_major_rows_excluded": second_major_rows_excluded,
         "incomplete_key_rows_excluded": incomplete_key_rows_excluded,
         "unique_institution_program_award_combinations": len(program_keys),
         "institutions_with_specific_program_completions": len(program_unitids),
@@ -1918,6 +1931,7 @@ def build_program_coverage_report(output_dir: Path, *, enforce_baseline: bool = 
         "interpretation_notes": [
             "C2025_A records observed 2024-25 completions by CIP and award level; it is not a complete institutional course catalog or proof that every historically offered program is currently admitting students.",
             "IPEDS CIP 99.0000 summary rows are excluded from specific-program coverage.",
+            "C2025_A MAJORNUM=2 second-major rows remain available in the normalized source but are excluded from the default institution-program grain to prevent double counting.",
             "A missing CIP-SOC relationship means the official crosswalk has no direct mapping for that CIP; it is not a negative quality signal and does not remove the program.",
             "Program-to-occupation relationships remain many-to-many. SOC6_COUNT is descriptive coverage, not a career-fit score.",
         ],
