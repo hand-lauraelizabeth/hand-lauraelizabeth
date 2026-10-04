@@ -2414,10 +2414,6 @@ def build_model_ready_layer(output_dir: Path) -> dict:
     direct_programs = sum(
         1 for row in program_model if row.get("DIRECT_CIP_SOC_MAPPING") == "1"
     )
-    mapped_pathways = [
-        row for row in pathways
-        if row.get("PATHWAY_RELATIONSHIP_TYPE") == "official_cip_soc_direct"
-    ]
     qa = {
         "generated_at": utc_now(),
         "sources": {
