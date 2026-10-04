@@ -89,6 +89,9 @@ for source in sources:
         if "api_key=" in lower or "demo_key" in lower:
             fail(f"{source_id}: access_url must not contain an API key")
 
+    if source.get("access_type") == "post_download" and not access_url:
+        fail(f"{source_id}: post_download requires access_url")
+
     if source.get("access_type") == "multi_file_download":
         files = source.get("files")
         if not isinstance(files, dict) or not files:
@@ -131,6 +134,7 @@ expected_sources = {
     "ipeds_completions_2025",
     "cip_soc_crosswalk_2020_2018",
     "onet_31_0",
+    "dapip_accreditation",
     "bls_employment_projections_2025_2035",
     "bls_oews_may_2025",
 }
