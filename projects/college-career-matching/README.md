@@ -157,9 +157,13 @@ The career-side source inventory now distinguishes open occupational data, licen
 - [Historical Formula Specification](Historical_College_Model_Formula_Specification.md)
 - [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md)
 
+## Comprehensive coverage requirement
+
+- [Coverage Universe Specification](COVERAGE_UNIVERSE_SPECIFICATION.md) — institution, program, and career inclusion rules plus coverage-regression requirements. The matcher begins from a broad legitimate universe rather than a prestige list.
+
 ## Prototype status
 
-The first live federal-source ingestion path has been exercised end to end. On October 4, 2026, the CI smoke test downloaded the official CIP 2020 ↔ SOC 2018 workbook, located the data on worksheet 2, normalized **6,097 unique CIP↔SOC rows**, recorded the raw SHA-256, and passed the repository source-contract and ingestion tests.
+The first live federal-source ingestion paths have been exercised end to end. The current coverage baselines include **5,985 current IPEDS directory records across 59 states/territories**, **313,566 IPEDS program-completion rows**, **6,097 CIP↔SOC relationships**, and the complete **1,016-occupation O*NET 31.0 occupation table**. On October 4, 2026, live CI tests verified the official CIP 2020 ↔ SOC 2018 workbook, IPEDS HD2025 and C2025_A files, and O*NET 31.0 content files. The IPEDS coverage audit currently identifies **1,973 public institutions**, including **863 public four-year-or-above** and **823 public two-year** records before any prestige/selectivity filtering. Public two-year is treated as a sector count, not as a complete community-college classification.
 
 The pipeline now supports timestamped raw snapshots, source hashes and metadata, normalized CSV outputs, QA reports, dry-run source resolution, and a credential-aware College Scorecard adapter.
 
