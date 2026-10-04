@@ -86,10 +86,11 @@ def http_get(url: str, *, headers: dict[str, str] | None = None, timeout: int = 
     request_headers = {"User-Agent": USER_AGENT}
     if host == "bls.gov" or host.endswith(".bls.gov"):
         request_headers.update({
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://www.bls.gov/emp/tables.htm",
+            "User-Agent": os.getenv(
+                "BLS_USER_AGENT",
+                "LauraElizabethHand-CollegeCareerMatcher/0.3 (https://github.com/hand-lauraelizabeth/hand-lauraelizabeth)",
+            ),
+            "Accept": "application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,*/*",
         })
     request_headers.update(headers or {})
     req = urllib.request.Request(url, headers=request_headers)
