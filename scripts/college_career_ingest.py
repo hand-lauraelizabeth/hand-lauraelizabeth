@@ -375,6 +375,9 @@ def community_college_pathway_flags(row: dict[str, object]) -> tuple[bool, list[
         reasons.append("public_two_year_sector")
     if str(row.get("INSTCAT", "")).strip() == "4":
         reasons.append("public_associates_certificates_instcat")
+    c21basic = str(row.get("C21BASIC", "")).strip()
+    if c21basic in {str(value) for value in range(1, 15)} | {"23"}:
+        reasons.append("public_associate_or_bacc_assoc_carnegie")
     return bool(reasons), reasons
 
 
@@ -984,13 +987,29 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
         return _row_value(row, *names)
 
     campus_rows: list[dict[str, object]] = []
+    bridge_rows: list[dict[str, object]] = []
+    seen_bridge: set[tuple[str, str]] = set()
     for row in source_tables["institution_campus"]:
         dapip_id = pick(row, "DapipId", "DAPIPID", "DAPIP ID")
-        unitid = normalize_unitid(pick(row, "IPEDSUnitID", "IPEDS Unit ID", "IPEDSUnitId"))
+        unitids_raw = pick(
+            row,
+            "IpedsUnitIds",
+            "IPEDSUnitIds",
+            "IPEDS Unit IDs",
+            "IPEDSUnitID",
+            "IPEDS Unit ID",
+            "IPEDSUnitId",
+        )
+        unitids = []
+        for token in re.split(r"[,;|]", str(unitids_raw or "")):
+            unitid = normalize_unitid(token)
+            if unitid and unitid not in unitids:
+                unitids.append(unitid)
         campus_rows.append({
             "DAPIP_ID": dapip_id,
             "PARENT_DAPIP_ID": pick(row, "ParentDapipId", "Parent Dapip Id", "Parent DAPIP ID"),
-            "UNITID": unitid,
+            "IPEDS_UNIT_IDS_RAW": unitids_raw,
+            "IPEDS_UNIT_ID_COUNT": len(unitids),
             "INSTITUTION_NAME": pick(row, "InstitutionName", "ParentName", "Institution Name"),
             "LOCATION_NAME": pick(row, "LocationName", "Location Name"),
             "LOCATION_TYPE": pick(row, "LocationType", "Location Type"),
@@ -998,6 +1017,16 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
             "OPEID": pick(row, "OpeId", "OPEID", "OPE ID"),
             "source_id": source["source_id"],
         })
+        for unitid in unitids:
+            pair = (str(dapip_id or ""), unitid)
+            if not pair[0] or pair in seen_bridge:
+                continue
+            seen_bridge.add(pair)
+            bridge_rows.append({
+                "DAPIP_ID": pair[0],
+                "UNITID": unitid,
+                "source_id": source["source_id"],
+            })
 
     accreditation_rows: list[dict[str, object]] = []
     for row in source_tables["accreditation_records"]:
@@ -1045,8 +1074,13 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
 
     write_csv(
         snapshot_dir / "normalized" / "institution_campus.csv",
-        ["DAPIP_ID", "PARENT_DAPIP_ID", "UNITID", "INSTITUTION_NAME", "LOCATION_NAME", "LOCATION_TYPE", "ADDRESS", "OPEID", "source_id"],
+        ["DAPIP_ID", "PARENT_DAPIP_ID", "IPEDS_UNIT_IDS_RAW", "IPEDS_UNIT_ID_COUNT", "INSTITUTION_NAME", "LOCATION_NAME", "LOCATION_TYPE", "ADDRESS", "OPEID", "source_id"],
         campus_rows,
+    )
+    write_csv(
+        snapshot_dir / "normalized" / "dapip_ipeds_bridge.csv",
+        ["DAPIP_ID", "UNITID", "source_id"],
+        bridge_rows,
     )
     write_csv(
         snapshot_dir / "normalized" / "accreditation_records.csv",
@@ -1067,7 +1101,8 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
         "campus_rows": len(campus_rows),
         "accreditation_record_rows": len(accreditation_rows),
         "action_rows": len(action_rows),
-        "campus_rows_with_unitid": sum(1 for row in campus_rows if row.get("UNITID")),
+        "campus_rows_with_unitid": sum(1 for row in campus_rows if int(row.get("IPEDS_UNIT_ID_COUNT") or 0) > 0),
+        "dapip_ipeds_bridge_rows": len(bridge_rows),
         "actions_with_campus_dapip_match": sum(1 for row in action_rows if str(row.get("DAPIP_ID") or "") in campus_ids),
         "action_dapip_ids_not_in_campus_table": len(action_ids - campus_ids),
         "status": "pass" if campus_rows and accreditation_rows else "fail",
@@ -1077,7 +1112,7 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
         "source_release": source["release"]["label"],
         "generated_at": utc_now(),
         "unique_dapip_ids": len(campus_ids),
-        "unique_ipeds_unitids": len({str(row["UNITID"]) for row in campus_rows if row.get("UNITID")}),
+        "unique_ipeds_unitids": len({str(row["UNITID"]) for row in bridge_rows if row.get("UNITID")}),
         "institutional_accreditation_records": sum(1 for row in accreditation_rows if row["IS_INSTITUTIONAL"] == "1"),
         "current_institutional_records_by_export_rule": sum(
             1 for row in accreditation_rows
@@ -1100,6 +1135,7 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
     )
     return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": {
         "institution_campus": len(campus_rows),
+        "dapip_ipeds_bridge": len(bridge_rows),
         "accreditation_records": len(accreditation_rows),
         "accreditation_actions": len(action_rows),
     }}
@@ -1175,11 +1211,11 @@ def build_institution_coverage_report(output_dir: Path) -> dict:
     ipeds_dir = latest_snapshot_dir(output_dir, "ipeds_directory_2025")
     dapip_dir = latest_snapshot_dir(output_dir, "dapip_accreditation")
     institutions = read_csv_path(ipeds_dir / "normalized" / "institution.csv")
-    campuses = read_csv_path(dapip_dir / "normalized" / "institution_campus.csv")
+    bridge = read_csv_path(dapip_dir / "normalized" / "dapip_ipeds_bridge.csv")
     accreditation = read_csv_path(dapip_dir / "normalized" / "accreditation_records.csv")
 
     dapip_by_unitid: dict[str, set[str]] = {}
-    for row in campuses:
+    for row in bridge:
         unitid = str(row.get("UNITID") or "")
         dapip_id = str(row.get("DAPIP_ID") or "")
         if unitid and dapip_id:
@@ -1237,10 +1273,16 @@ def build_institution_coverage_report(output_dir: Path) -> dict:
             "public_associates_certificates_instcat": sum(
                 1 for row in community if "public_associates_certificates_instcat" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
             ),
-            "four_year_sector_recovered_by_instcat": sum(
+            "public_associate_or_bacc_assoc_carnegie": sum(
+                1 for row in community if "public_associate_or_bacc_assoc_carnegie" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
+            ),
+            "four_year_sector_recovered_by_proxy": sum(
                 1 for row in community
                 if str(row.get("SECTOR")) == "1"
-                and "public_associates_certificates_instcat" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
+                and (
+                    "public_associates_certificates_instcat" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
+                    or "public_associate_or_bacc_assoc_carnegie" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
+                )
             ),
         },
         "interpretation_notes": [
