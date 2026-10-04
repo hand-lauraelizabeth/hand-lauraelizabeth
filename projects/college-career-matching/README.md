@@ -153,6 +153,7 @@ The career layer will use program-to-occupation relationships as **probabilistic
 The career-side source inventory now distinguishes open occupational data, licensed labor-market intelligence, institution-specific employer systems, and private relationship/outcome data.
 
 - [Labor-Market, Employer & Occupational Data Inventory](Historical_Labor_Market_and_Employer_Data_Inventory.md)
+- [Labor-Market & Employer Data Dictionary](Labor_Market_and_Employer_Data_Dictionary.md)
 - [Historical Formula Specification](Historical_College_Model_Formula_Specification.md)
 - [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md)
 
