@@ -326,8 +326,6 @@ This canvas and the [Curriculum / Workshop QA & Outline Builder](../curriculum-w
 - Use **this canvas** to design the learning architecture and decide what belongs.
 - Use the **QA & Outline Builder** to operationalize timing, objective/activity alignment, assessment coverage, materials, facilitation requirements, accessibility, and delivery handoff.
 
-## Development note
+## About this resource
 
-This 2026 resource is a newly authored derivative informed by recurring design patterns documented in Laura Elizabeth Hand’s archived curriculum work. Surviving Community Impact materials pair practical tasks and decisions with language objectives, learner artifacts, feedback, and subsequent application; class-summary records also capture topic, resources, learner reaction/mastery, additional exercises, and comments for the next instructor. Later ELL materials explicitly incorporate learner needs, digital-literacy conditions, scaffolding, instructor notes, assessment/compliance requirements, and adaptation across synchronous/asynchronous contexts.
-
-This canvas generalizes those methods for broader instructional-design use. It is not a reproduction of an institutional handout, textbook, or proprietary curriculum.
+Created in 2026, this canvas brings together recurring design methods from Laura Elizabeth Hand’s curriculum work: authentic tasks and decisions, language and skill objectives, learner artifacts, feedback, transfer, learner context, digital access, scaffolding, assessment, instructor handoff, and adaptation across delivery modes. It generalizes those methods for broader instructional-design use.
