@@ -338,6 +338,7 @@
       "required_artifacts": [
         "raw_zip",
         "normalized_institution_campus",
+        "normalized_dapip_ipeds_bridge",
         "normalized_accreditation_records",
         "normalized_accreditation_actions",
         "source_snapshot_metadata"
@@ -506,7 +507,8 @@
         "UNITID"
       ],
       "expected_cardinality": "one_to_many_or_unmatched",
-      "rule": "Join only on explicit IPEDS UNITID carried by DAPIP; preserve multiple DAPIP/campus records and do not fuzzy-repair conflicting identifiers."
+      "rule": "Join only through UNITIDs explicitly supplied in DAPIP IpedsUnitIds; explode the multi-ID field into a many-to-many bridge, retain DAPIP IDs separately, and never fuzzy-name match as a production repair.",
+      "right_table": "dapip_ipeds_bridge"
     }
   ],
   "prohibited_production_sources": [
