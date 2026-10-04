@@ -271,6 +271,6 @@ When time is limited, complete these ten fields before doing anything else:
 - [Quantitative Research & Statistical Analysis Planner](../quantitative-analysis/)
 - [Stronger Writing: Revision & Proofreading Checklist](../revision-proofreading/)
 
-## Development note
+## About this roadmap
 
-This roadmap is a new 2026 synthesis tool. It coordinates the public research-writing resources in this repository rather than reproducing institutional course materials or third-party teaching texts.
+Created in 2026, this roadmap coordinates the research-writing resources in this repository into a single start-to-finish workflow.
