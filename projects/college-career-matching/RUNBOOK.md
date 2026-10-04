@@ -77,4 +77,4 @@ runs the real federal-source download and normalization path in GitHub Actions. 
 
 The pipeline uses public federal sources for production. Historical Lightcast, Handshake, Symplicity, employer-contact, LinkedIn profile, and student-level records informed schema design and validation strategy but are not configured as public production inputs.
 
-Recommendation scoring remains disabled until live source snapshots and cross-source join QA pass.
+The live smoke test is expected to produce at least one normalized row; a zero-row parse is treated as a failure rather than a successful download.\n\nRecommendation scoring remains disabled until live source snapshots and cross-source join QA pass.
