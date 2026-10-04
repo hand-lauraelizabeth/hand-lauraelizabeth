@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "projects" / "college-career-matching"
 MANIFEST = PROJECT / "source_manifest.json"
 MATRIX = PROJECT / "MVP_Field_Level_Source_Matrix.csv"
+COVERAGE_BASELINES = PROJECT / "coverage_baselines.json"
 
 issues: list[str] = []
 
@@ -169,6 +170,32 @@ cip_join = next((j for j in joins if j.get("join_id") == "ipeds_program_to_cip_s
 if not cip_join or cip_join.get("expected_cardinality") != "many_to_many":
     fail("CIP-SOC join must explicitly remain many_to_many")
 
+if not COVERAGE_BASELINES.exists():
+    fail(f"missing coverage baselines: {COVERAGE_BASELINES.relative_to(ROOT)}")
+    coverage_baselines = {}
+else:
+    try:
+        coverage_baselines = json.loads(COVERAGE_BASELINES.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        fail(f"invalid JSON in coverage baselines: {exc}")
+        coverage_baselines = {}
+
+baseline_layers = coverage_baselines.get("layers", {})
+for layer in ("institution", "program", "career"):
+    config = baseline_layers.get(layer)
+    if not isinstance(config, dict):
+        fail(f"coverage baselines missing layer: {layer}")
+        continue
+    minimums = config.get("minimums")
+    if not isinstance(minimums, dict) or not minimums:
+        fail(f"coverage baseline {layer}: minimums must be a non-empty object")
+        continue
+    for metric, minimum in minimums.items():
+        if not str(metric).strip():
+            fail(f"coverage baseline {layer}: metric path must not be blank")
+        if not isinstance(minimum, (int, float)) or isinstance(minimum, bool) or minimum < 0:
+            fail(f"coverage baseline {layer}.{metric}: minimum must be a non-negative number")
+
 if not MATRIX.exists():
     fail(f"missing source matrix: {MATRIX.relative_to(ROOT)}")
     rows: list[dict[str, str]] = []
@@ -225,5 +252,5 @@ if issues:
 
 print(
     "College + Career source contract validation passed: "
-    f"{len(source_ids)} sources, {len(join_ids)} joins, {len(rows)} matrix fields."
+    f"{len(source_ids)} sources, {len(join_ids)} joins, {len(rows)} matrix fields, and 3 coverage baseline layers."
 )
