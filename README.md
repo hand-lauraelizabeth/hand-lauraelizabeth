@@ -53,7 +53,12 @@ I also build reusable public tools that apply the same design principles to rese
 
 ## Portfolio Approach
 
-My public repositories focus on reproducible versions of professional and research methods. Projects derived from confidential or organizational work are rebuilt with **de-identified, synthetic, sample, public-domain, or openly licensed data** rather than proprietary source material.
+My public repositories emphasize reproducible methods, inspectable logic, and privacy-conscious examples using synthetic, sample, public-domain, or openly licensed data.
+
+## Applied Technical Demonstrations
+
+- [Standards Check](projects/standards-check/) — browser-based JavaScript tool that converts standards-level assessment results into targeted reteach groups with adjustable mastery logic.
+- [Tutoring Growth Analysis in R](projects/tutoring-growth-analysis/) — reproducible mixed-effects analysis of pre/post growth with class- and student-level structure, confidence intervals, and explicit interpretation limits.
 
 ## Selected Case Studies
 
