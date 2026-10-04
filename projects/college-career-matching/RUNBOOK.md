@@ -117,4 +117,11 @@ python scripts/college_career_ingest.py --build-institution-coverage \
   --output-dir projects/college-career-matching/data/snapshots
 ```
 
-The output keeps accreditation separate from institution identity and writes an explainable community-college pathway proxy. The proxy includes public `SECTOR=4` institutions plus public `INSTCAT=4` institutions, so associate-focused institutions that sit in a four-year sector because they offer bachelor's degrees are not silently dropped. The flag is a discovery/coverage proxy, not a legal or mission designation.
+The output keeps accreditation separate from institution identity and writes an explicit many-to-many `dapip_ipeds_bridge.csv` by exploding DAPIP's `IpedsUnitIds` field without discarding the raw multi-ID value. The community-college pathway proxy includes public `SECTOR=4`, public `INSTCAT=4`, and public 2021 Carnegie Basic associate/baccalaureate-associate categories (codes 1–14 and 23). The flag is a discovery/coverage proxy, not a legal, state-system, or mission designation.
+
+
+## GitHub-hosted runner access note for BLS
+
+The BLS adapters use the official 2025–2035 Employment Projections and May 2025 OEWS bulk sources. In October 2026 validation, GitHub-hosted Actions runners received HTTP 403 responses from both `www.bls.gov` bulk-file URLs and BLS's `download.bls.gov` programmatic-download host, while the same releases remained publicly documented on BLS web pages. This is treated as a source/network access limitation, not as a successful live-data test and not as a parser failure.
+
+The `[live-bls-smoke]` path is therefore intended for an environment from which BLS permits bulk downloads (for example a local or self-hosted runner). Unit tests, source-contract validation, release metadata, and join logic remain active in ordinary CI; recommendation scoring stays gated until a real BLS snapshot and O*NET↔BLS coverage report have been produced.
