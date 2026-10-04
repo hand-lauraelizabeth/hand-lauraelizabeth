@@ -70,3 +70,18 @@ jobs:
       - name: Live O*NET ingestion smoke test
         if: contains(github.event.head_commit.message, '[live-onet-smoke]')
         run: python scripts/college_career_ingest.py --source onet_31_0 --output-dir "${{ runner.temp }}/college-career-smoke"
+
+      - name: Live BLS ingestion and O*NET coverage joins
+        if: contains(github.event.head_commit.message, '[live-bls-smoke]')
+        run: |
+          python scripts/college_career_ingest.py --source onet_31_0 --output-dir "${{ runner.temp }}/college-career-smoke"
+          python scripts/college_career_ingest.py --source bls_employment_projections_2025_2035 --output-dir "${{ runner.temp }}/college-career-smoke"
+          python scripts/college_career_ingest.py --source bls_oews_may_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
+          python scripts/college_career_ingest.py --build-career-joins --output-dir "${{ runner.temp }}/college-career-smoke"
+
+      - name: Live DAPIP accreditation and community-college coverage
+        if: contains(github.event.head_commit.message, '[live-dapip-smoke]')
+        run: |
+          python scripts/college_career_ingest.py --source ipeds_directory_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
+          python scripts/college_career_ingest.py --source dapip_accreditation --output-dir "${{ runner.temp }}/college-career-smoke"
+          python scripts/college_career_ingest.py --build-institution-coverage --output-dir "${{ runner.temp }}/college-career-smoke"
