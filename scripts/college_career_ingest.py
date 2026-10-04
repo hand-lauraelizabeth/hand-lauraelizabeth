@@ -83,6 +83,7 @@ def evaluate_coverage_baseline(layer: str, report: dict) -> dict:
 
     checks: list[dict[str, object]] = []
     failures: list[str] = []
+
     for metric, minimum in layer_config.get("minimums", {}).items():
         actual = nested_metric(report, metric)
         try:
@@ -92,12 +93,43 @@ def evaluate_coverage_baseline(layer: str, report: dict) -> dict:
         passed = numeric_actual is not None and numeric_actual >= float(minimum)
         checks.append({
             "metric": metric,
+            "comparison": "minimum",
             "actual": actual,
-            "minimum": minimum,
+            "expected": minimum,
             "status": "pass" if passed else "fail",
         })
         if not passed:
             failures.append(f"{metric}: actual={actual!r}, minimum={minimum!r}")
+
+    for metric, maximum in layer_config.get("maximums", {}).items():
+        actual = nested_metric(report, metric)
+        try:
+            numeric_actual = float(actual) if actual is not None else None
+        except (TypeError, ValueError):
+            numeric_actual = None
+        passed = numeric_actual is not None and numeric_actual <= float(maximum)
+        checks.append({
+            "metric": metric,
+            "comparison": "maximum",
+            "actual": actual,
+            "expected": maximum,
+            "status": "pass" if passed else "fail",
+        })
+        if not passed:
+            failures.append(f"{metric}: actual={actual!r}, maximum={maximum!r}")
+
+    for metric, expected in layer_config.get("equals", {}).items():
+        actual = nested_metric(report, metric)
+        passed = actual == expected
+        checks.append({
+            "metric": metric,
+            "comparison": "equals",
+            "actual": actual,
+            "expected": expected,
+            "status": "pass" if passed else "fail",
+        })
+        if not passed:
+            failures.append(f"{metric}: actual={actual!r}, expected={expected!r}")
 
     return {
         "layer": layer,
@@ -2118,7 +2150,7 @@ def build_institution_identity_resolution(
     return output
 
 
-def build_model_ready_layer(output_dir: Path) -> dict:
+def build_model_ready_layer(output_dir: Path, *, enforce_baseline: bool = False) -> dict:
     """Assemble explanation-ready institution → program → occupation tables without scoring."""
     ipeds_dir = latest_snapshot_dir(output_dir, "ipeds_directory_2025")
     completion_dir = latest_snapshot_dir(output_dir, "ipeds_completions_2025")
@@ -2470,6 +2502,11 @@ def build_model_ready_layer(output_dir: Path) -> dict:
     if not program_model or pathway_rows == 0:
         raise IngestionError("Model-ready layer produced no program/pathway rows")
 
+    baseline = evaluate_coverage_baseline("model_ready", qa)
+    qa["baseline_validation"] = baseline
+    if enforce_baseline and baseline["status"] != "pass":
+        raise IngestionError("Model-ready coverage regression gate failed: " + "; ".join(baseline["failures"]))
+
     (out_dir / "model_ready_qa.json").write_text(
         json.dumps(qa, indent=2) + "\n", encoding="utf-8"
     )
@@ -2726,7 +2763,7 @@ def cli() -> int:
         return 0
 
     if args.build_model_ready:
-        print(json.dumps(build_model_ready_layer(args.output_dir), indent=2, default=str))
+        print(json.dumps(build_model_ready_layer(args.output_dir, enforce_baseline=args.enforce_coverage_baseline), indent=2, default=str))
         return 0
 
     if args.list_sources:
