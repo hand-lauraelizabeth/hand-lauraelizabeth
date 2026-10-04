@@ -42,6 +42,8 @@ def main() -> None:
     assert_equal(module.normalize_unitid(" 190150 "), "190150", "UNITID whitespace")
     assert_equal(module.normalize_cip6("16.0104"), "160104", "CIP punctuation")
     assert_equal(module.normalize_cip6("1.0101"), "010101", "CIP leading zero")
+    assert_equal(module.normalize_cip6("99"), "990000", "CIP summary serialization")
+    assert_equal(module.normalize_cip6("99.0000"), "990000", "CIP summary decimal")
     assert_equal(module.normalize_soc6("19-3051.00"), "19-3051", "O*NET to SOC")
     assert_equal(module.normalize_soc6("193051"), "19-3051", "SOC digits")
     assert_equal(module.value_status("PrivacySuppressed"), "suppressed", "Scorecard suppression")
