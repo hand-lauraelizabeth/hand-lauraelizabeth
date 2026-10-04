@@ -89,6 +89,19 @@ for source in sources:
         if "api_key=" in lower or "demo_key" in lower:
             fail(f"{source_id}: access_url must not contain an API key")
 
+    if source.get("access_type") == "multi_file_download":
+        files = source.get("files")
+        if not isinstance(files, dict) or not files:
+            fail(f"{source_id}: multi_file_download requires a non-empty files mapping")
+        else:
+            for file_name, file_url in files.items():
+                if not str(file_name).strip():
+                    fail(f"{source_id}: file mapping contains a blank name")
+                if not is_https(str(file_url)):
+                    fail(f"{source_id}: file URL for {file_name!r} must be HTTPS")
+                if "api_key=" in str(file_url).lower():
+                    fail(f"{source_id}: file URL for {file_name!r} must not contain an API key")
+
     release = source.get("release")
     if not isinstance(release, dict) or not release.get("label") or not release.get("policy"):
         fail(f"{source_id}: release requires label and policy")
