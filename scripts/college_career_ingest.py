@@ -81,7 +81,16 @@ def safe_filename_from_url(url: str, fallback: str) -> str:
 
 
 def http_get(url: str, *, headers: dict[str, str] | None = None, timeout: int = 90) -> bytes:
-    request_headers = {"User-Agent": USER_AGENT, **(headers or {})}
+    host = (urllib.parse.urlparse(url).hostname or "").lower()
+    request_headers = {"User-Agent": USER_AGENT}
+    if host == "bls.gov" or host.endswith(".bls.gov"):
+        request_headers.update({
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.bls.gov/emp/tables.htm",
+        })
+    request_headers.update(headers or {})
     req = urllib.request.Request(url, headers=request_headers)
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return response.read()
