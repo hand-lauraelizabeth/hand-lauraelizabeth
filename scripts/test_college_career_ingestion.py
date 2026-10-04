@@ -109,6 +109,22 @@ def main() -> None:
     assert_equal(scorecard_by_id["100002"]["latest.student.retention_rate"], "0.88", "four-year retention mapping")
     assert_equal(scorecard_by_id["100001"]["latest.earnings.10_yrs_after_entry.median"], "", "Scorecard suppression remains null")
 
+    scorecard_local_zip = scorecard_root / "Most-Recent-Cohorts-Institution_06102026.zip"
+    scorecard_local_zip.write_bytes(scorecard_fixture)
+    scorecard_local_output = ROOT / "tmp" / "scorecard-local-source-fixture"
+    shutil.rmtree(scorecard_local_output, ignore_errors=True)
+    scorecard_local_result = module.ingest_source(
+        "college_scorecard",
+        scorecard_local_output,
+        source_file=scorecard_local_zip,
+    )
+    assert_equal(
+        scorecard_local_result["retrieval_mode"],
+        "user_supplied_official_bulk_zip",
+        "Scorecard local official ZIP retrieval mode",
+    )
+    assert_equal(scorecard_local_result["normalized_rows"], 2, "Scorecard local official ZIP rows")
+
     baseline_config = module.load_coverage_baselines()
     assert_equal(set(baseline_config["layers"]), {"institution", "program", "career", "model_ready"}, "coverage baseline layers")
 
