@@ -1,49 +1,59 @@
-# Public Portfolio Publishing Checklist
+# Portfolio Publishing & Privacy Standards
 
-Use this checklist before moving any file from Google Drive or a work folder into GitHub or WordPress.
+These standards guide what appears in Laura Elizabeth Hand's public portfolio, GitHub repositories, downloadable resources, and WordPress site.
 
-## Source and rights
+## Ownership & attribution
 
-- Confirm the file is mine to publish, or that publication is permitted by the owner/license.
-- Do not publish employer, client, student, member, applicant, or participant source files unless they are already public and permission is clear.
-- Prefer synthetic or public-domain replacements for professional datasets.
+- Publish original work, material that is clearly permitted for reuse, or appropriately attributed excerpts and references.
+- Keep institutional, collaborative, and third-party contributions clearly distinguished from individually authored work.
+- Use synthetic, public-domain, openly licensed, or otherwise shareable examples when a professional method can be demonstrated without reproducing confidential source material.
 
-## Privacy and confidential information
+## Privacy & confidentiality
 
-- Remove names, emails, phone numbers, addresses, IDs, account numbers, internal URLs, meeting links, comments, reviewer identities, and other unnecessary personal or organizational information.
-- Check hidden spreadsheet rows/columns/sheets, speaker notes, slide comments, tracked changes, document comments, revision history, and embedded file attachments.
-- Check formulas, named ranges, pivot caches, workbook connections, document properties, EXIF/IPTC metadata, and exported filenames.
+Public portfolio materials do not include unnecessary personal or confidential information such as private contact details, IDs, account information, internal links, participant records, applicant records, or other restricted organizational data.
 
-## Drive
+Files are reviewed for visible and hidden information, including:
 
-- Keep the working/source file private.
-- Do not use a private working-file Drive URL as a public portfolio link.
-- Create a dedicated sanitized export or public copy when a public artifact is needed.
-- Re-check the sanitized copy before changing any sharing permission.
+- document comments and tracked changes;
+- spreadsheet hidden rows, columns, and sheets;
+- speaker notes;
+- revision metadata;
+- workbook connections and named ranges;
+- image metadata;
+- embedded attachments.
+
+## Public artifacts
+
+Portfolio artifacts are prepared specifically for public use. Where a project involves confidential or proprietary work, the portfolio may instead use:
+
+- a case study;
+- a generalized or synthetic model;
+- a redacted excerpt;
+- an authorized institutional example;
+- a newly authored tool based on the underlying method.
+
+The goal is to make the work understandable and inspectable without exposing material that does not belong in a public portfolio.
 
 ## GitHub
 
-- Never commit credentials, tokens, private keys, `.env` files, private Drive URLs, or confidential raw exports.
-- Put non-public working material only in ignored private directories.
-- Run a final repository search for names, emails, organization-specific identifiers, and common secret markers before publishing.
-- Remember that deleting a file from the latest commit does not remove it from Git history.
+Repository materials are reviewed for credentials, private keys, tokens, confidential exports, private URLs, personal information, and organization-specific identifiers.
+
+Resources should remain understandable when viewed independently of private working files. Git history is treated as public once material is committed.
 
 ## WordPress
 
-- Treat anything uploaded to the WordPress media library as publicly retrievable if its URL is known or indexed.
-- Upload only the sanitized public copy, never the private Drive working file.
-- Prefer a portfolio case study or redacted excerpt over a full employer-owned artifact when the full file is not necessary.
-- After publication, test the page in a signed-out/private browser and search for accidental direct-download URLs.
+Anything placed in the WordPress media library or on a published page is treated as publicly accessible. Portfolio pages use public-ready images, documents, and links with appropriate attribution and accessibility information.
 
 ## Audience-facing language
 
-- Write for the visitor, not for the internal recovery or verification process.
-- Do not explain missing files, computer loss, incomplete archives, recovery work, or evidence-survival unless that history is itself relevant to the project.
-- Avoid internal labels such as **surviving evidence**, **surviving archive**, **evidence boundary**, **public-safe**, **publication-safe**, **portfolio-safe reconstruction**, **recovered materials**, or **source record** in public copy when a direct description will do.
-- Prefer direct audience-facing language: **project documentation**, **project materials**, **documented work**, **case study**, **reusable model**, **curriculum architecture map**, **selected work**, **dates/media are listed where documented**, or simply state the relevant fact.
-- Keep necessary limitations concise and substantive. Explain what a project was or was not; do not narrate the behind-the-scenes process used to verify it.
-- Use terms such as **archive**, **provenance**, **reconstruction**, or **source** when they genuinely describe the subject matter, scholarly method, rights context, or an actual archive—not merely because they were useful during portfolio development.
+Portfolio copy is written for visitors rather than for the internal recovery or verification process.
 
-## Final check
+Public-facing pages generally avoid phrases such as **surviving evidence**, **surviving archive**, **evidence boundary**, **public-safe**, **publication-safe**, **portfolio-safe reconstruction**, **recovered materials**, or **source record** when a direct description of the work is clearer.
 
-A public artifact should remain safe if its URL is copied, indexed by a search engine, downloaded, mirrored, and viewed without authentication.
+Terms such as **archive**, **provenance**, **reconstruction**, and **source** remain appropriate when they genuinely describe the subject matter, scholarly method, rights context, or an actual archive.
+
+Limitations are stated in terms relevant to the work itself—for example, whether something was a proposal rather than a deployed feature, whether an artifact was collaborative, or whether a particular award-to-work relationship is documented.
+
+## Publication standard
+
+A public artifact should be understandable, attributable, accessible, and appropriate to share if its URL is copied, indexed, downloaded, or viewed outside its original portfolio context.
