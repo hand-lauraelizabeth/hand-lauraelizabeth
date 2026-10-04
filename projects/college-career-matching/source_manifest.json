@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of_date": "2026-10-03",
+  "as_of_date": "2026-10-04",
   "project": "College + Career Matching Tool",
   "principles": {
     "public_core_only": true,
@@ -182,7 +182,15 @@
         "Duplicate identical CIP6-SOC6 pairs are removed.",
         "Many-to-many cardinality is preserved.",
         "The bridge is never interpreted as observed graduate outcomes."
-      ]
+      ],
+      "verification": {
+        "verified_at": "2026-10-04T11:02:35Z",
+        "method": "GitHub Actions live ingestion smoke test",
+        "sha256": "ba3d59a191b9d977a5c457a66b9348c4f2f7963aafacf72c0b80113b46bf0ab8",
+        "worksheet_number": 2,
+        "normalized_rows": 6097,
+        "workflow_run_id": 37197361629
+      }
     },
     {
       "source_id": "onet_31_0",
