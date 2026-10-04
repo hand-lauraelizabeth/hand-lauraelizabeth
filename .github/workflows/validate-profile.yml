@@ -93,18 +93,60 @@ jobs:
 
 
 
-      - name: Inspect OEWS combo payloads
-        if: contains(github.event.head_commit.message, '[oes-payload-smoke]')
+
+      - name: Probe OEWS query services
+        if: contains(github.event.head_commit.message, '[oes-service-smoke]')
         run: |
           python - <<'PY'
-          import urllib.request
-          ua = "LauraElizabethHand-CollegeCareerMatcher/0.3 (https://github.com/hand-lauraelizabeth/hand-lauraelizabeth)"
-          url = "https://data.bls.gov/oes/components/combo/comboMod.js"
-          req = urllib.request.Request(url, headers={"User-Agent": ua})
-          with urllib.request.urlopen(req, timeout=60) as r:
-              lines = r.read().decode("utf-8", errors="replace").splitlines()
-          for start,end in [(175,255),(400,510),(700,770),(900,950)]:
-              print(f"\n### LINES {start}-{end}")
-              for i in range(start-1,min(end,len(lines))):
-                  print(f"{i+1}: {lines[i]}")
+          import json, urllib.request
+          base="https://data.bls.gov"
+          ua="LauraElizabethHand-CollegeCareerMatcher/0.3 (https://github.com/hand-lauraelizabeth/hand-lauraelizabeth)"
+          def call(path, payload=None):
+              data=None if payload is None else json.dumps(payload).encode()
+              req=urllib.request.Request(base+path,data=data,headers={"User-Agent":ua,"Content-Type":"application/json"})
+              with urllib.request.urlopen(req,timeout=60) as r:
+                  return json.loads(r.read().decode())
+          states=call("/OESServices/combo/state")
+          print("STATES", len(states), states[:4])
+          national_states=[x for x in states if "national" in str(x).lower() or str(x.get("areaCode","")).startswith("00")]
+          print("NATIONAL_STATE_CANDIDATES", national_states[:10])
+          state_choice=(national_states or states[:1])[0]
+          state_code=str(state_choice.get("areaCode","00"))[:2]
+          areas=call("/OESServices/combo/area",{"stateCodes":[state_code]})
+          print("AREAS",len(areas),areas[:6])
+          national_areas=[x for x in areas if "national" in str(x).lower() or str(x.get("areaCode",""))=="0000000"]
+          print("NATIONAL_AREA_CANDIDATES",national_areas[:10])
+          area=(national_areas or areas[:1])[0]
+          area_code=str(area.get("areaCode"))
+          inds=call("/OESServices/combo/ind",{"areaCodes":[area_code]})
+          print("INDS",len(inds),inds[:8])
+          all_inds=[x for x in inds if str(x.get("industryCode",""))=="000000" or "all industries" in str(x).lower() or "cross-industry" in str(x).lower()]
+          print("ALL_IND_CANDIDATES",all_inds[:10])
+          ind=(all_inds or inds[:1])[0]
+          ind_code=str(ind.get("industryCode"))
+          occs=call("/OESServices/combo/occ",{"areaCodes":[area_code],"industryCodes":[ind_code]})
+          print("OCCS",len(occs),occs[:8])
+          def flatten(items):
+              out=[]
+              for x in items:
+                  out.append(x)
+                  for key in ("children","nodes","items"):
+                      if isinstance(x.get(key),list): out.extend(flatten(x[key]))
+              return out
+          flat=flatten(occs)
+          detailed=[x for x in flat if str(x.get("occupationCode","")).isdigit() and len(str(x.get("occupationCode","")))==6]
+          print("FLAT_OCCS",len(flat),"DETAILED",len(detailed),"SAMPLE",detailed[:5])
+          occ_code=str((detailed or flat)[0].get("occupationCode"))
+          dts=call("/OESServices/combo/datatype",{"areaCodes":[area_code],"industryCodes":[ind_code],"occupationCodes":[occ_code],"occupationExclude":False})
+          print("DATATYPES",len(dts),dts)
+          dt_codes=[str(x.get("datatypeCode")) for x in dts if str(x.get("datatypeCode")) in {"01","04","08","13","14","03","07","09","10"}]
+          if not dt_codes: dt_codes=[str(dts[0].get("datatypeCode"))]
+          years=call("/OESServices/combo/year",{"areaCodes":[area_code],"industryCodes":[ind_code],"occupationCodes":[occ_code],"occupationExclude":False,"datatypeCodes":dt_codes})
+          print("YEARS",len(years),years[:10])
+          year=(next((x for x in years if "2025" in str(x)),years[0]))
+          release=year.get("releaseDate") or year.get("year") or year.get("release") or year.get("value") or str(year)
+          payload={"areaCodes":[area_code],"industryCodes":[ind_code],"occupationCodes":[occ_code],"occupationExclude":False,"datatypeCodes":dt_codes,"releaseDates":[release],"tableSuffix":"pub","userId":None,"pwd":None}
+          print("TABLE_PAYLOAD",payload)
+          table=call("/OESServices/combo/table",payload)
+          print("TABLE_ROWS",len(table),table[:20])
           PY
