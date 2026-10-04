@@ -134,6 +134,25 @@ The report writes \`program_coverage.json\` plus \`program_coverage_flags.csv\` 
 IPEDS summary/total CIP rows are excluded from specific-program coverage. The normalizer treats a source serialization of \`99\` as CIP \`99.0000\` rather than \`00.0099\`. A missing CIP↔SOC mapping remains a coverage gap rather than a quality penalty or a reason to remove the program.
 
 
+## Integrated model-ready path
+
+A commit message containing `[live-model-ready-smoke]` downloads the current unauthenticated production sources—HD2025, C2025_A, CIP 2020 ↔ SOC 2018, O*NET 31.0, BLS 2025–2035 projections, May 2025 national OEWS, and the live DAPIP bulk export—then runs:
+
+```bash
+python scripts/college_career_ingest.py --build-model-ready \
+  --output-dir projects/college-career-matching/data/snapshots
+```
+
+The build writes:
+
+- `institution_identity_resolution.csv` — exact-identifier review clusters while preserving every UNITID as a distinct recommendation entity;
+- `institution_model.csv` — institution context, accreditation/community-college flags, provenance, and optional Scorecard enrichment when a Scorecard snapshot exists;
+- `program_model.csv` — first-major (`MAJORNUM=1`) institution + CIP6 + award-level rows, with second-major presence retained as context;
+- `program_occupation_pathway.csv` — streamed many-to-many CIP↔SOC↔O*NET pathways enriched with BLS projections and national OEWS data;
+- `model_ready_qa.json` — identity-review, row-count, enrichment-coverage, and scoring-gate checks.
+
+Shared DAPIP or exact OPEID relationships are review signals, not automatic merges. Program rows with no direct CIP↔SOC mapping remain present with an explicit coverage-gap pathway row. The pathway file is streamed during construction so the full federal universe does not need to be held in memory.
+
 
 ## GitHub-hosted runner access note for BLS
 
