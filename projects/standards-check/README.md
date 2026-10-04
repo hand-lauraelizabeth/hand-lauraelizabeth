@@ -1,31 +1,38 @@
 # Standards Check: browser-based reteach grouping tool
 
-A reconstructed JavaScript demonstration based on the kinds of instructional workflows and decision-support tools I built in institutional settings. The original institutional artifacts were created on employer systems/work laptops and are not available for public portfolio use, so this version approximates the underlying workflow without reproducing proprietary materials or data.
+A lightweight JavaScript tool for turning standards-level assessment results into actionable reteach groups.
 
-## What it demonstrates
+## What it does
 
-- Vanilla JavaScript and DOM manipulation
-- Adjustable mastery-threshold logic
-- Standards-level grouping
-- Lightweight, no-install browser delivery
-- Privacy-conscious portfolio reconstruction
+- Applies an adjustable mastery threshold
+- Identifies learners below the threshold for each standard
+- Groups learners by the concept that needs reteaching rather than by total score
+- Runs locally in a browser with no installation
+
+## Why this design
+
+Aggregate scores can hide which specific concepts need attention. The tool keeps the interface aligned to the instructional decision: **what needs reteaching, and who needs it?**
+
+## Technical implementation
+
+- Vanilla JavaScript
+- DOM manipulation
+- Responsive browser interface
+- Adjustable range input
+- Dynamic table rendering
+- Standards-level filtering and grouping
+- Local sample-data generation
 
 ## Run it
 
-Open `index.html` in any modern browser. The sample class is generated locally in the browser. No learner data is collected or transmitted.
+Open `index.html` in any modern browser.
 
-## Provenance and evidence boundary
+The demonstration uses sample data so the full workflow can be inspected without exposing learner information.
 
-This is a **reconstructed portfolio demonstration**. It is not the original institutional tool, and it does not reproduce proprietary source files, interfaces, or datasets.
-
-The workflow is an approximation of prior institutional work: translating assessment results into an actionable reteach decision, with grouping organized by the standard needing attention rather than by overall score. The names and scores in this repository are synthetic, and this version does not claim measured classroom impact unless separately documented elsewhere.
-
-The useful evidence is therefore both methodological and technical: the instructional decision being modeled, the structure of the workflow, and the implementation of that logic in a small browser-based tool.
-
-## Possible extensions
+## Next extensions
 
 - CSV paste/import
 - Exportable reteach groups
-- More explicit accessibility testing
-- De-identified or synthetic lesson scenarios
-- Timing/usability evaluation when source evidence is available
+- Additional accessibility testing
+- Saved thresholds and class configurations
+- Usability/timing evaluation
