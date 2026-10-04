@@ -189,10 +189,9 @@
       "title": "O*NET Database 31.0",
       "agency": "O*NET / U.S. Department of Labor",
       "status": "production_core",
-      "access_type": "download",
+      "access_type": "multi_file_download",
       "official_url": "https://www.onetcenter.org/database.html",
       "release_archive_url": "https://www.onetcenter.org/db_releases.html",
-      "access_url": "https://www.onetcenter.org/dl_files/database/db_31_0_csv.zip",
       "release": {
         "label": "31.0",
         "date": "2026-08",
@@ -206,7 +205,7 @@
         "SOC6"
       ],
       "refresh_policy": "Each O*NET production release.",
-      "retrieval_mode": "Official tabular CSV ZIP.",
+      "retrieval_mode": "Official O*NET 31.0 CSV files downloaded individually from the O*NET database directory.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
@@ -216,24 +215,43 @@
       ],
       "required_artifacts": [
         "occupation_data",
-        "skills",
+        "essential_skills",
+        "transferable_skills",
+        "software_skills",
         "knowledge",
         "abilities",
-        "interests",
+        "education",
+        "training_and_experience",
+        "career_interest_types",
         "work_activities",
         "work_context",
-        "education_training_experience",
         "related_occupations",
-        "technology_skills",
+        "job_zones",
         "source_snapshot_metadata"
       ],
       "qa": [
         "ONET_SOC_CODE is non-null and valid.",
         "Base SOC6 mapping is explicit and versioned.",
-        "Element IDs remain stable within the pinned release.",
-        "Scale IDs are retained with values rather than collapsed.",
-        "Occupation table has one row per ONET_SOC_CODE."
-      ]
+        "Element IDs and scale IDs are retained where supplied.",
+        "Essential, transferable, and software skills remain separate tables.",
+        "Occupation table has one row per ONET_SOC_CODE.",
+        "All configured O*NET 31.0 file URLs are recorded with individual SHA-256 hashes."
+      ],
+      "files": {
+        "occupation_data": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/occupation_data.csv",
+        "essential_skills": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/essential_skills.csv",
+        "transferable_skills": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/transferable_skills.csv",
+        "software_skills": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/software_skills.csv",
+        "knowledge": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/knowledge.csv",
+        "abilities": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/abilities.csv",
+        "education": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/education.csv",
+        "training_and_experience": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/training_and_experience.csv",
+        "career_interest_types": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/career_interest_types.csv",
+        "work_activities": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/work_activities.csv",
+        "work_context": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/work_context.csv",
+        "related_occupations": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/related_occupations.csv",
+        "job_zones": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/job_zones.csv"
+      }
     },
     {
       "source_id": "bls_employment_projections_2025_2035",
