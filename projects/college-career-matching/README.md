@@ -174,4 +174,6 @@ See the:
 - [Historical Formula Specification](Historical_College_Model_Formula_Specification.md) for the scoring logic;
 - [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md) for the 147 named fields across the 155-column Data sheet;
 - [Historical Labor-Market & System Data Inventory](Historical_Labor_Market_and_System_Data_Inventory.md) for Lightcast, Symplicity, Handshake, employer/program, and synthetic data lineage;
-- [Current Data Source Architecture](Current_Data_Source_Architecture.md) for the preferred public production stack.
+- [Current Data Source Architecture](Current_Data_Source_Architecture.md) for the preferred public production stack;
+- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 83 source, user-input, and derived fields mapped to authoritative datasets, join keys, refresh cadence, transformations, and missing-data rules;
+- [Machine-readable source matrix](MVP_Field_Level_Source_Matrix.csv) — CSV version for future ingestion/configuration work;
