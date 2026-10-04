@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Standards Check — Reteach Grouping Tool</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#14262b;background:#f4f7f8}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:900px;margin:auto;padding:2rem 1rem 4rem}
+h1{margin-bottom:.25rem}.lede{color:#4d6268;max-width:70ch}
+.controls{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin:1.25rem 0}
+button{background:#315c4b;color:white;border:0;border-radius:.4rem;padding:.6rem 1rem;font-weight:700;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #b86e00;outline-offset:2px}
+.table-wrap{overflow-x:auto;background:#fff;border:1px solid #ccd7d4;border-radius:.5rem}
+table{border-collapse:collapse;width:100%;min-width:560px}th,td{padding:.65rem;text-align:center;border-bottom:1px solid #e2e8e6}th:first-child,td:first-child{text-align:left}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;margin-top:1rem}
+.group{background:#fff;border:1px solid #ccd7d4;border-radius:.5rem;padding:1rem}.group strong{display:block;margin-bottom:.35rem}
+.note{border-left:4px solid #315c4b;padding:.75rem 1rem;background:#fff;margin-top:1.5rem}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>Standards Check</h1>
+<p class="lede">A browser-based demonstration of standards-level reteach grouping. Sample names and scores are generated locally; no learner data is collected or transmitted.</p>
+
+<div class="controls">
+<label for="cutoff"><strong>Mastery cutoff:</strong> <output id="cutoffValue">3</output> of 4</label>
+<input id="cutoff" type="range" min="1" max="4" value="3">
+<button id="refresh" type="button">Load new sample class</button>
+</div>
+
+<div class="table-wrap"><table id="scoreTable"></table></div>
+<section aria-labelledby="groupsHeading">
+<h2 id="groupsHeading">Reteach groups</h2>
+<div id="groups" class="groups" aria-live="polite"></div>
+</section>
+
+<div class="note"><strong>Design choice:</strong> grouping is based on the standard that needs reteaching, not total score. The prototype is instructional-design evidence, not a claim of measured classroom impact.</div>
+</main>
+<script>
+const standards=["Std 1","Std 2","Std 3","Std 4"];
+const sampleNames=["Amara","Ben","Carlos","Dina","Eli","Farah","Gus","Hana"];
+let data=[];
+
+function loadSample(){
+  data=sampleNames.map(name=>({
+    name,
+    scores:standards.map(()=>Math.floor(Math.random()*5))
+  }));
+  render();
+}
+
+function render(){
+  const cutoff=Number(document.getElementById("cutoff").value);
+  document.getElementById("cutoffValue").textContent=cutoff;
+  const head="<tr><th>Student</th>"+standards.map(s=>"<th>"+s+"</th>").join("")+"</tr>";
+  const rows=data.map(row=>"<tr><td>"+row.name+"</td>"+row.scores.map(v=>"<td>"+v+"</td>").join("")+"</tr>").join("");
+  document.getElementById("scoreTable").innerHTML=head+rows;
+
+  document.getElementById("groups").innerHTML=standards.map((standard,i)=>{
+    const names=data.filter(row=>row.scores[i] < cutoff).map(row=>row.name);
+    return "<div class='group'><strong>"+standard+" reteach</strong>"+(names.length?names.join(", "):"No one in this sample")+"</div>";
+  }).join("");
+}
+
+document.getElementById("cutoff").addEventListener("input",render);
+document.getElementById("refresh").addEventListener("click",loadSample);
+loadSample();
+</script>
+</body>
+</html>
