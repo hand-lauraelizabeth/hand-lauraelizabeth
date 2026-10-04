@@ -32,3 +32,9 @@ Thumbs.db
 # Temporary/downloaded files
 tmp/
 downloads/
+
+
+# College + Career Matching Tool generated snapshots
+projects/college-career-matching/data/snapshots/
+projects/college-career-matching/data/normalized/
+projects/college-career-matching/data/reports/
