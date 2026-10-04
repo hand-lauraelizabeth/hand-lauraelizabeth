@@ -173,7 +173,7 @@ The institution/accreditation build retains **5,985 institutions**, matches **5,
 
 All three live coverage layers—**institution/accreditation, program, and career**—now have conservative regression floors in [coverage_baselines.json](coverage_baselines.json). The opt-in live CI gates fail if a future source refresh silently falls below those floors. On October 4, 2026, a combined live run passed all three gates.
 
-The pipeline supports timestamped raw snapshots, source hashes and metadata, normalized CSV outputs, QA reports, coverage reports, dry-run source resolution, and a credential-aware College Scorecard adapter. College Scorecard remains the authenticated production-core source whose live snapshot still requires an API key.
+The pipeline supports timestamped raw snapshots, source hashes and metadata, normalized CSV outputs, QA reports, coverage reports, dry-run source resolution, and a keyless College Scorecard bulk-file adapter. The adapter targets the official June 10, 2026 institution-level ZIP and can ingest either a direct download or a user-supplied copy of that same official ZIP. GitHub-hosted Actions currently receives HTTP 403 from the Scorecard bulk CDN, so CDN reachability is treated as a transport probe rather than a core QA gate.
 
 See [Reproduce the Data Build](RUNBOOK.md) for the executable workflow.
 
@@ -181,7 +181,7 @@ See [Reproduce the Data Build](RUNBOOK.md) for the executable workflow.
 
 The source layer is now defined in both human-readable and machine-checkable form:
 
-- [Reproduce the Data Build](RUNBOOK.md) — commands for dry runs, public-source ingestion, College Scorecard authentication, and live smoke testing;
+- [Reproduce the Data Build](RUNBOOK.md) — commands for dry runs, public-source ingestion, keyless College Scorecard bulk-file ingestion, and live smoke testing;
 - [Production source manifest](source_manifest.json) — pinned source IDs, releases, access URLs, canonical keys, required artifacts, metadata, and join cardinalities;
 - [Coverage regression baselines](coverage_baselines.json) — conservative live-observed minimums for institution, program, and career coverage;
 - [Ingestion contract](INGESTION_CONTRACT.md) — raw → staging → normalized → model-ready rules, key normalization, suppression handling, and refresh behavior;
@@ -193,16 +193,15 @@ The repository CI validates manifest structure, source IDs, join references, CIP
 
 ## Next development stage
 
-The next build stage is the **integrated model-ready institution/program/career layer**, not another parallel ingestion prototype:
+The integrated model-ready institution → program → occupation layer is now implemented, including source lineage, conservative institution-identity review clusters, preservation of unmatched programs/occupations, and regression gates. The next work should extend that validated layer rather than create another parallel prototype:
 
-1. run and validate the College Scorecard institution snapshot when an API key is available, using Scorecard only as enrichment rather than as an institution-inclusion filter;
-2. identify and resolve system/campus/administrative duplicates while preserving legitimate campus distinctions;
-3. expand OEWS beyond the national baseline to state, metropolitan, and nonmetropolitan geography where useful;
-4. add authoritative transfer/articulation information so community-college pathways can be modeled explicitly rather than inferred from sector alone;
-5. assemble model-ready institution → program → occupation tables with source-version/confidence metadata and explanation-ready provenance;
-6. only then begin recommendation scoring calibration, keeping admissions context, preferences, affordability, career alignment, and data completeness as separate explainable signals.
+1. ingest and validate a current College Scorecard bulk snapshot through the keyless official-file adapter when the federal CDN is reachable (or from a user-supplied copy of that same official ZIP), using Scorecard only as enrichment rather than as an institution-inclusion filter;
+2. add authoritative transfer/articulation information so community-college-to-bachelor pathways can be represented directly rather than inferred from sector or taxonomy alone;
+3. expand OEWS beyond the national baseline to state, metropolitan, and nonmetropolitan geography where local labor-market context materially improves matching;
+4. review identity clusters against authoritative system/campus crosswalks where available, while keeping distinct UNITIDs distinct by default and never collapsing on fuzzy names;
+5. only after those enrichment layers pass QA, begin recommendation-scoring calibration while keeping admissions context, preferences, affordability, career alignment, and data completeness as separate explainable signals.
 
-Recommendation scoring remains gated while the authenticated Scorecard snapshot and integrated model-ready QA are incomplete.
+Recommendation scoring remains gated; the model-ready build is validated, but current Scorecard enrichment, transfer evidence, and scoring calibration are not yet production-complete.
 
 
 See the:
