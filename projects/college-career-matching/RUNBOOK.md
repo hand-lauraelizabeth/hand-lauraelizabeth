@@ -85,3 +85,8 @@ The live smoke test is expected to produce at least one normalized row; a zero-r
 A commit message containing `[live-ipeds-smoke]` runs the current HD2025 institution-directory and C2025_A completions adapters against the official NCES complete-data-file endpoints.
 
 Each successful HD2025 run also writes `reports/institution_coverage.json` with state/territory, control, sector, level, degree-granting, and public-sector coverage markers. The report deliberately does not treat `SECTOR=4` as the entire community-college universe.
+
+
+## O*NET live smoke path
+
+A commit message containing `[live-onet-smoke]` downloads the configured O*NET 31.0 occupation/content tables and verifies that the occupation universe and related content normalize successfully.
