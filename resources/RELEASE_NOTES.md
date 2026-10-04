@@ -19,7 +19,7 @@ First complete public release of the reusable Tools & Templates library.
 
 ### Release standard
 
-The public artifacts use generic, synthetic, public-domain, openly licensed, or otherwise publication-safe examples rather than confidential organizational, learner, client, member, or proprietary source data.
+The resources use generic, synthetic, public-domain, openly licensed, or otherwise shareable examples rather than confidential organizational, learner, client, member, or proprietary data.
 
 The repository now validates local documentation links and inspects the Office packages for structural integrity, macro/embedded executable-style parts, Excel external-link packages, and local-file relationship targets on relevant pushes and pull requests.
 
