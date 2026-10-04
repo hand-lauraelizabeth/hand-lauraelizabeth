@@ -82,6 +82,33 @@ def main() -> None:
     empty_qa = module.qa_report("fixture", [], ["ID"])
     assert_equal(empty_qa["status"], "fail", "zero-row QA must fail")
 
+    scorecard_fixture = make_zip_csv(
+        "Most-Recent-Cohorts-Institution.csv",
+        "UNITID,INSTNM,CITY,STABBR,ZIP,CONTROL,LOCALE,PREDDEG,ICLEVEL,CURROPER,UGDS,STUFACR,ADM_RATE,SAT_AVG,SATVR25,SATVR75,SATMT25,SATMT75,ACTCM25,ACTCM75,TUITIONFEE_IN,TUITIONFEE_OUT,NPT4_PUB,NPT4_PRIV,OMAWDP8_ALL_POOLED_SUPP,C150_4_POOLED_SUPP,C150_L4_POOLED_SUPP,RET_FT4_POOLED_SUPP,RET_FTL4_POOLED_SUPP,DEBT_MDN,MD_EARN_WNE_P6,MD_EARN_WNE_P10\n"
+        "100001,Public Community College,Alpha,NY,10001,1,21,2,2,1,5000,14,0.65,1100,500,650,520,670,21,28,5500,9500,12000,,0.61,,0.42,,0.72,9000,42000,PrivacySuppressed\n"
+        "100002,Private University,Beta,NY,10002,2,12,3,1,1,8000,10,0.40,1250,600,700,610,710,26,31,45000,45000,,25000,PrivacySuppressed,0.55,,0.88,,18000,52000,65000\n",
+    )
+    scorecard_root = ROOT / "tmp" / "scorecard-bulk-fixture"
+    shutil.rmtree(scorecard_root, ignore_errors=True)
+    scorecard_source = module.get_source("college_scorecard")
+    scorecard_result = module.ingest_scorecard(
+        scorecard_source,
+        scorecard_fixture,
+        scorecard_root,
+        "https://example.invalid/Most-Recent-Cohorts-Institution.zip",
+    )
+    assert_equal(scorecard_result["qa"]["status"], "pass", "Scorecard bulk fixture QA")
+    assert_equal(scorecard_result["normalized_rows"], 2, "Scorecard bulk normalized rows")
+    scorecard_rows = module.read_csv_path(scorecard_root / "normalized" / "institution_scorecard.csv")
+    scorecard_by_id = {row["UNITID"]: row for row in scorecard_rows}
+    assert_equal(scorecard_by_id["100001"]["latest.cost.avg_net_price.overall"], "12000", "public net price mapping")
+    assert_equal(scorecard_by_id["100002"]["latest.cost.avg_net_price.overall"], "25000", "private net price mapping")
+    assert_equal(scorecard_by_id["100001"]["latest.completion.consumer_rate"], "0.61", "degree-granting completion mapping")
+    assert_equal(scorecard_by_id["100002"]["latest.completion.consumer_rate"], "0.55", "completion fallback mapping")
+    assert_equal(scorecard_by_id["100001"]["latest.student.retention_rate"], "0.72", "less-than-four-year retention mapping")
+    assert_equal(scorecard_by_id["100002"]["latest.student.retention_rate"], "0.88", "four-year retention mapping")
+    assert_equal(scorecard_by_id["100001"]["latest.earnings.10_yrs_after_entry.median"], "", "Scorecard suppression remains null")
+
     baseline_config = module.load_coverage_baselines()
     assert_equal(set(baseline_config["layers"]), {"institution", "program", "career", "model_ready"}, "coverage baseline layers")
 
@@ -370,6 +397,7 @@ def main() -> None:
         raise AssertionError(f"manifest missing sources: {sorted(missing)}")
 
     expected_urls = {
+        "college_scorecard": "https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip",
         "dapip_accreditation": "https://ope.ed.gov/dapip/api/downloadFiles/accreditationDataFiles",
         "ipeds_directory_2025": "https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip",
         "ipeds_completions_2025": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip",
@@ -415,6 +443,9 @@ def main() -> None:
             assert_equal(result.get("service_base_url"), "https://data.bls.gov", "OEWS query service base")
             assert_equal(result.get("release_query_key"), "2025A01", "OEWS May 2025 query release")
             assert_equal(result.get("geography"), "National", "OEWS automation-safe baseline geography")
+        elif source_id == "college_scorecard":
+            assert_equal(result.get("requires_api_key"), False, "Scorecard bulk download is keyless")
+            assert_equal(result.get("retrieval_mode"), "official_featured_bulk_zip", "Scorecard bulk retrieval mode")
         elif source_id == "dapip_accreditation":
             assert_equal(result.get("method"), "POST", "DAPIP dry-run method")
             assert_equal(result.get("payload"), {"CSVChecked": True, "ExcelChecked": False}, "DAPIP dry-run payload")
