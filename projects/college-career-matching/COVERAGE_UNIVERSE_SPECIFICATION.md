@@ -258,18 +258,17 @@ to narrow and rank results.
 
 A student should be able to discover a strong-fit state school, community college, specialized institution, or less nationally prominent college even when it would never appear on a conventional "top schools" list.
 
-## Implementation backlog
+## Implementation status
 
-1. Ingest the complete current IPEDS institution directory without four-year/prestige filtering.
-2. Add current institution-status and accreditation validation.
-3. Produce state × sector × award-level coverage counts.
-4. Identify and resolve system/campus/administrative duplicates.
-5. Validate community-college coverage explicitly.
-6. Add Scorecard enrichment without using Scorecard availability as an inclusion filter.
-7. Ingest the complete O*NET detailed occupation universe.
-8. Join BLS projections/OEWS while retaining unmatched occupations.
-9. Produce career and program coverage reports.
-10. Add automated regression thresholds so future source refreshes cannot silently shrink the universe.
+The coverage-first ingestion work is substantially implemented. Completed layers include the full current IPEDS directory/completions baseline, DAPIP accreditation bridging, state/sector coverage reporting, explicit community-college pathway coverage, the full O*NET 31.0 occupation universe, BLS projections and national OEWS joins with unmatched occupations retained, career/program coverage reports, and live-observed regression floors that fail closed when a refresh materially shrinks coverage.
+
+Remaining coverage work is narrower and should build on these layers rather than replace them:
+
+1. **Resolve system/campus/administrative duplicates** while preserving legitimately distinct campuses and auditable source identities.
+2. **Run College Scorecard enrichment** once credentials are available; Scorecard absence must never remove an otherwise eligible IPEDS institution.
+3. **Expand OEWS geography** from the validated national baseline to state/metropolitan/nonmetropolitan coverage where the matcher needs local labor-market context.
+4. **Add authoritative transfer/articulation data** so associate-to-bachelor pathways can be represented directly.
+5. **Build the integrated model-ready join layer** and promote recommendation scoring only after its QA and explanation/provenance requirements pass.
 
 
 ## Live coverage verification
