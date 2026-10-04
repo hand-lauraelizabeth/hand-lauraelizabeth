@@ -92,27 +92,19 @@ jobs:
 
 
 
-      - name: Inspect OEWS query request definitions
-        if: contains(github.event.head_commit.message, '[oes-request-smoke]')
+
+      - name: Inspect OEWS combo payloads
+        if: contains(github.event.head_commit.message, '[oes-payload-smoke]')
         run: |
           python - <<'PY'
           import urllib.request
           ua = "LauraElizabethHand-CollegeCareerMatcher/0.3 (https://github.com/hand-lauraelizabeth/hand-lauraelizabeth)"
-          urls = [
-              "https://data.bls.gov/oes/components/combo/comboMod.js",
-              "https://data.bls.gov/oes/components/prefilter/prefilterMod.js",
-              "https://data.bls.gov/oes/assets/javascript/homeservice.js",
-          ]
-          for url in urls:
-              print("\n###", url)
-              req = urllib.request.Request(url, headers={"User-Agent": ua})
-              with urllib.request.urlopen(req, timeout=60) as r:
-                  lines = r.read().decode("utf-8", errors="replace").splitlines()
-              for i, line in enumerate(lines):
-                  low = line.lower()
-                  if "$http." in line or "url" in low or "endpoint" in low or "service" in low or "getdata" in low or "getoccup" in low or "getdatatype" in low:
-                      lo=max(0,i-3); hi=min(len(lines),i+5)
-                      print(f"--- lines {lo+1}-{hi} ---")
-                      for j in range(lo,hi):
-                          print(f"{j+1}: {lines[j]}")
+          url = "https://data.bls.gov/oes/components/combo/comboMod.js"
+          req = urllib.request.Request(url, headers={"User-Agent": ua})
+          with urllib.request.urlopen(req, timeout=60) as r:
+              lines = r.read().decode("utf-8", errors="replace").splitlines()
+          for start,end in [(175,255),(400,510),(700,770),(900,950)]:
+              print(f"\n### LINES {start}-{end}")
+              for i in range(start-1,min(end,len(lines))):
+                  print(f"{i+1}: {lines[i]}")
           PY
