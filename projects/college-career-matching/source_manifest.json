@@ -1,0 +1,389 @@
+{
+  "schema_version": "1.0",
+  "as_of_date": "2026-10-03",
+  "project": "College + Career Matching Tool",
+  "principles": {
+    "public_core_only": true,
+    "missing_is_not_zero": true,
+    "admissions_is_context_not_probability": true,
+    "cip_soc_is_many_to_many": true,
+    "private_system_exports_allowed_in_production": false
+  },
+  "sources": [
+    {
+      "source_id": "college_scorecard",
+      "title": "U.S. Department of Education College Scorecard",
+      "agency": "U.S. Department of Education",
+      "status": "production_core",
+      "access_type": "api",
+      "official_url": "https://collegescorecard.ed.gov/data/",
+      "documentation_url": "https://collegescorecard.ed.gov/data/api-documentation/",
+      "access_url": "https://api.data.gov/ed/collegescorecard/v1/schools.json",
+      "release": {
+        "label": "latest API release",
+        "policy": "Use the latest API release while retaining each metric's reporting/reference year.",
+        "fixed_version": false
+      },
+      "authentication": {
+        "required": true,
+        "mechanism": "api.data.gov API key",
+        "environment_variable": "COLLEGE_SCORECARD_API_KEY",
+        "secret_in_repository": false
+      },
+      "license_or_terms": "U.S. Department of Education public data; follow current College Scorecard/API terms.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "UNITID"
+      ],
+      "raw_key_mapping": {
+        "id": "UNITID"
+      },
+      "refresh_policy": "Check for Scorecard data/API updates at least monthly; refresh production snapshot when source data changes.",
+      "retrieval_mode": "Paginated API query with an explicit fields allow-list.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "api_base",
+        "query_fields",
+        "response_metadata",
+        "metric_reference_year"
+      ],
+      "required_artifacts": [
+        "raw_json_or_ndjson",
+        "normalized_institution_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "UNITID is non-null and unique in normalized institution table.",
+        "Pagination completes without duplicate UNITIDs.",
+        "PrivacySuppressed and null values remain null.",
+        "Percentages are range-checked after normalization.",
+        "No metric loses its reporting/reference-year context."
+      ]
+    },
+    {
+      "source_id": "ipeds_directory_2025",
+      "title": "IPEDS 2025 Directory / Institutional Characteristics",
+      "agency": "National Center for Education Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7&rtid=1&year=-1",
+      "file_stem": "HD2025",
+      "release": {
+        "label": "2025 provisional",
+        "policy": "Use the latest available provisional release for current institution structure; replace with final release when published and record release type.",
+        "fixed_version": true
+      },
+      "license_or_terms": "NCES/IPEDS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "UNITID"
+      ],
+      "refresh_policy": "Annual, with provisional-to-final replacement tracked as a new source snapshot.",
+      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "collection_year",
+        "release_type",
+        "file_stem",
+        "dictionary_version"
+      ],
+      "required_artifacts": [
+        "raw_zip_or_csv",
+        "normalized_institution_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "UNITID is non-null and unique.",
+        "Institution names are nonblank for active rows.",
+        "Release type is explicitly provisional or final.",
+        "No cross-year field is silently mixed into a single row."
+      ]
+    },
+    {
+      "source_id": "ipeds_completions_2025",
+      "title": "IPEDS 2025 Completions by 6-digit CIP and award level",
+      "agency": "National Center for Education Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7&rtid=1&year=-1",
+      "file_stem": "C2025_A",
+      "release": {
+        "label": "2024-25 completions, 2025 provisional release",
+        "policy": "Use C2025_A for current program completions; preserve release type and collection period.",
+        "fixed_version": true
+      },
+      "license_or_terms": "NCES/IPEDS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "UNITID",
+        "CIPCODE",
+        "AWLEVEL"
+      ],
+      "refresh_policy": "Annual.",
+      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "collection_year",
+        "release_type",
+        "file_stem",
+        "dictionary_version"
+      ],
+      "required_artifacts": [
+        "raw_zip_or_csv",
+        "normalized_program_completion_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "UNITID and CIPCODE are non-null.",
+        "CIPCODE normalizes to a 6-digit CIP representation.",
+        "Completions are nonnegative or valid source suppression/missing codes.",
+        "Rows aggregate consistently within UNITID + CIPCODE + AWLEVEL after demographic dimensions are handled explicitly."
+      ]
+    },
+    {
+      "source_id": "cip_soc_crosswalk_2020_2018",
+      "title": "NCES/BLS 2020 CIP to 2018 SOC Crosswalk",
+      "agency": "NCES and U.S. Bureau of Labor Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://nces.ed.gov/ipeds/cipcode/resources.aspx?y=56",
+      "access_url": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
+      "release": {
+        "label": "CIP 2020 ↔ SOC 2018",
+        "policy": "Treat as a versioned qualitative many-to-many crosswalk; replace only with an official successor.",
+        "fixed_version": true
+      },
+      "license_or_terms": "Federal public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "CIP6",
+        "SOC6"
+      ],
+      "refresh_policy": "Version-driven, not calendar-driven.",
+      "retrieval_mode": "Official XLSX crosswalk.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "cip_version",
+        "soc_version",
+        "source_file"
+      ],
+      "required_artifacts": [
+        "raw_xlsx",
+        "normalized_cip_soc_bridge",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "CIP6 is exactly six digits after punctuation removal.",
+        "SOC6 is exactly six digits after punctuation removal.",
+        "Duplicate identical CIP6-SOC6 pairs are removed.",
+        "Many-to-many cardinality is preserved.",
+        "The bridge is never interpreted as observed graduate outcomes."
+      ]
+    },
+    {
+      "source_id": "onet_31_0",
+      "title": "O*NET Database 31.0",
+      "agency": "O*NET / U.S. Department of Labor",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://www.onetcenter.org/database.html",
+      "release_archive_url": "https://www.onetcenter.org/db_releases.html",
+      "access_url": "https://www.onetcenter.org/dl_files/database/db_31_0_csv.zip",
+      "release": {
+        "label": "31.0",
+        "date": "2026-08",
+        "policy": "Pin production snapshots to an O*NET release; upgrade deliberately after schema and join validation.",
+        "fixed_version": true
+      },
+      "license_or_terms": "O*NET database is available under a Creative Commons license; retain required attribution.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "ONET_SOC_CODE",
+        "SOC6"
+      ],
+      "refresh_policy": "Each O*NET production release.",
+      "retrieval_mode": "Official tabular CSV ZIP.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "onet_version",
+        "release_date",
+        "source_file"
+      ],
+      "required_artifacts": [
+        "occupation_data",
+        "skills",
+        "knowledge",
+        "abilities",
+        "interests",
+        "work_activities",
+        "work_context",
+        "education_training_experience",
+        "related_occupations",
+        "technology_skills",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "ONET_SOC_CODE is non-null and valid.",
+        "Base SOC6 mapping is explicit and versioned.",
+        "Element IDs remain stable within the pinned release.",
+        "Scale IDs are retained with values rather than collapsed.",
+        "Occupation table has one row per ONET_SOC_CODE."
+      ]
+    },
+    {
+      "source_id": "bls_employment_projections_2025_2035",
+      "title": "BLS Employment Projections 2025-2035, Table 1.2",
+      "agency": "U.S. Bureau of Labor Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
+      "access_url": "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
+      "release": {
+        "label": "2025-2035",
+        "date": "2026-08-27",
+        "policy": "Pin to the annual projection cycle and replace only after validating code/schema changes.",
+        "fixed_version": true
+      },
+      "license_or_terms": "BLS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "SOC6"
+      ],
+      "refresh_policy": "Annual BLS projection release.",
+      "retrieval_mode": "Official XLSX.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "projection_base_year",
+        "projection_end_year",
+        "release_date",
+        "source_file"
+      ],
+      "required_artifacts": [
+        "raw_xlsx",
+        "normalized_occupation_outlook_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "SOC6 is valid for line-item occupations.",
+        "Summary rows are identified and excluded from detailed occupation joins by default.",
+        "Employment/opening units are preserved and normalized explicitly.",
+        "Growth percent is numeric where reported.",
+        "Education/work-experience/training categories remain categorical."
+      ]
+    },
+    {
+      "source_id": "bls_oews_may_2025",
+      "title": "BLS Occupational Employment and Wage Statistics — May 2025 all data",
+      "agency": "U.S. Bureau of Labor Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://www.bls.gov/oes/tables.htm",
+      "access_url": "https://www.bls.gov/oes/special-requests/oesm25all.zip",
+      "release": {
+        "label": "May 2025",
+        "date": "2026-05-15",
+        "policy": "Pin to annual OEWS release; retain source suppression flags and geography codes.",
+        "fixed_version": true
+      },
+      "license_or_terms": "BLS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "AREA",
+        "OCC_CODE"
+      ],
+      "refresh_policy": "Annual OEWS release.",
+      "retrieval_mode": "Official all-data ZIP; XLSX/TXT are both acceptable raw inputs if snapshot metadata records which was used.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "reference_month",
+        "release_date",
+        "source_file"
+      ],
+      "required_artifacts": [
+        "raw_zip_or_table",
+        "normalized_occupation_wage_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "AREA and OCC_CODE are non-null.",
+        "Suppressed wage/employment values remain null with suppression state retained.",
+        "Percentile wages are ordered where all are present.",
+        "AREA_TITLE matches a stable AREA code within a release.",
+        "Detailed occupation joins exclude aggregate occupation rows unless explicitly requested."
+      ]
+    }
+  ],
+  "join_contracts": [
+    {
+      "join_id": "scorecard_to_ipeds",
+      "left_source": "college_scorecard",
+      "right_source": "ipeds_directory_2025",
+      "left_key": [
+        "UNITID"
+      ],
+      "right_key": [
+        "UNITID"
+      ],
+      "expected_cardinality": "one_to_one_or_unmatched",
+      "rule": "Never fuzzy-match institution names when UNITID is available.",
+      "qa_thresholds": {
+        "duplicate_key_count": 0,
+        "minimum_match_rate": 0.95
+      }
+    },
+    {
+      "join_id": "ipeds_program_to_cip_soc",
+      "left_source": "ipeds_completions_2025",
+      "right_source": "cip_soc_crosswalk_2020_2018",
+      "left_key": [
+        "CIP6"
+      ],
+      "right_key": [
+        "CIP6"
+      ],
+      "expected_cardinality": "many_to_many",
+      "rule": "Preserve all valid CIP-SOC mappings; never choose a single occupation solely to force uniqueness."
+    },
+    {
+      "join_id": "onet_to_bls_ep",
+      "left_source": "onet_31_0",
+      "right_source": "bls_employment_projections_2025_2035",
+      "left_key": [
+        "SOC6"
+      ],
+      "right_key": [
+        "SOC6"
+      ],
+      "expected_cardinality": "many_to_one_or_unmatched",
+      "rule": "Map O*NET-SOC detail to base SOC6 explicitly; exclude BLS summary rows from detailed joins."
+    },
+    {
+      "join_id": "onet_to_oews",
+      "left_source": "onet_31_0",
+      "right_source": "bls_oews_may_2025",
+      "left_key": [
+        "SOC6"
+      ],
+      "right_key": [
+        "OCC_CODE"
+      ],
+      "expected_cardinality": "one_to_many_by_geography_or_unmatched",
+      "rule": "Preserve geography; never collapse national/state/metro rows without an explicit aggregation request."
+    }
+  ],
+  "prohibited_production_sources": [
+    "Handshake student-level exports",
+    "Handshake application-level exports containing student data",
+    "Symplicity student/advising/career-outcome records",
+    "private employer-contact lists",
+    "LinkedIn profile-level pulls",
+    "historical Lightcast extracts without current reuse rights"
+  ]
+}
