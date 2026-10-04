@@ -181,7 +181,7 @@ else:
         coverage_baselines = {}
 
 baseline_layers = coverage_baselines.get("layers", {})
-for layer in ("institution", "program", "career"):
+for layer in ("institution", "program", "career", "model_ready"):
     config = baseline_layers.get(layer)
     if not isinstance(config, dict):
         fail(f"coverage baselines missing layer: {layer}")
@@ -190,11 +190,23 @@ for layer in ("institution", "program", "career"):
     if not isinstance(minimums, dict) or not minimums:
         fail(f"coverage baseline {layer}: minimums must be a non-empty object")
         continue
-    for metric, minimum in minimums.items():
-        if not str(metric).strip():
-            fail(f"coverage baseline {layer}: metric path must not be blank")
-        if not isinstance(minimum, (int, float)) or isinstance(minimum, bool) or minimum < 0:
-            fail(f"coverage baseline {layer}.{metric}: minimum must be a non-negative number")
+    for section_name in ("minimums", "maximums"):
+        section = config.get(section_name, {})
+        if not isinstance(section, dict):
+            fail(f"coverage baseline {layer}: {section_name} must be an object")
+            continue
+        for metric, value in section.items():
+            if not str(metric).strip():
+                fail(f"coverage baseline {layer}: metric path must not be blank")
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+                fail(f"coverage baseline {layer}.{metric}: {section_name} value must be a non-negative number")
+    equals = config.get("equals", {})
+    if not isinstance(equals, dict):
+        fail(f"coverage baseline {layer}: equals must be an object")
+    else:
+        for metric in equals:
+            if not str(metric).strip():
+                fail(f"coverage baseline {layer}: equals metric path must not be blank")
 
 if not MATRIX.exists():
     fail(f"missing source matrix: {MATRIX.relative_to(ROOT)}")
@@ -252,5 +264,5 @@ if issues:
 
 print(
     "College + Career source contract validation passed: "
-    f"{len(source_ids)} sources, {len(join_ids)} joins, {len(rows)} matrix fields, and 3 coverage baseline layers."
+    f"{len(source_ids)} sources, {len(join_ids)} joins, {len(rows)} matrix fields, and 4 coverage baseline layers."
 )
