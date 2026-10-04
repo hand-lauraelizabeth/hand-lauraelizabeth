@@ -168,3 +168,10 @@ The next stage is to define the **current-data refresh architecture**:
 - distinguish open/public, licensed commercial, and authorized institutional inputs;
 - define validation and bias checks before implementation;
 - preserve user-adjustable weights and sensitivity testing.
+
+
+See the:
+- [Historical Formula Specification](Historical_College_Model_Formula_Specification.md) for the scoring logic;
+- [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md) for the 147 named fields across the 155-column Data sheet;
+- [Historical Labor-Market & System Data Inventory](Historical_Labor_Market_and_System_Data_Inventory.md) for Lightcast, Symplicity, Handshake, employer/program, and synthetic data lineage;
+- [Current Data Source Architecture](Current_Data_Source_Architecture.md) for the preferred public production stack.
