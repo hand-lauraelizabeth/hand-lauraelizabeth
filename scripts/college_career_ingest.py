@@ -53,6 +53,43 @@ SCORECARD_FIELDS = [
     "latest.earnings.10_yrs_after_entry.median",
 ]
 
+SCORECARD_BULK_FIELD_MAP = {
+    "school.name": ("INSTNM",),
+    "school.city": ("CITY",),
+    "school.state": ("STABBR",),
+    "school.zip": ("ZIP",),
+    "school.ownership": ("CONTROL",),
+    "school.locale": ("LOCALE",),
+    "school.degrees_awarded.predominant": ("PREDDEG",),
+    "latest.student.size": ("UGDS",),
+    "latest.student.faculty_ratio": ("STUFACR",),
+    "latest.admissions.admission_rate.overall": ("ADM_RATE",),
+    "latest.admissions.sat_scores.average.overall": ("SAT_AVG",),
+    "latest.admissions.sat_scores.25th_percentile.critical_reading": ("SATVR25",),
+    "latest.admissions.sat_scores.75th_percentile.critical_reading": ("SATVR75",),
+    "latest.admissions.sat_scores.25th_percentile.math": ("SATMT25",),
+    "latest.admissions.sat_scores.75th_percentile.math": ("SATMT75",),
+    "latest.admissions.act_scores.25th_percentile.cumulative": ("ACTCM25",),
+    "latest.admissions.act_scores.75th_percentile.cumulative": ("ACTCM75",),
+    "latest.cost.tuition.in_state": ("TUITIONFEE_IN",),
+    "latest.cost.tuition.out_of_state": ("TUITIONFEE_OUT",),
+    "latest.aid.median_debt.completers.overall": ("DEBT_MDN", "GRAD_DEBT_MDN_SUPP"),
+    "latest.earnings.6_yrs_after_entry.median": ("MD_EARN_WNE_P6",),
+    "latest.earnings.10_yrs_after_entry.median": ("MD_EARN_WNE_P10",),
+}
+
+SCORECARD_BULK_CONTEXT_FIELDS = [
+    "ICLEVEL",
+    "CURROPER",
+    "NPT4_PUB",
+    "NPT4_PRIV",
+    "OMAWDP8_ALL_POOLED_SUPP",
+    "C150_4_POOLED_SUPP",
+    "C150_L4_POOLED_SUPP",
+    "RET_FT4_POOLED_SUPP",
+    "RET_FTL4_POOLED_SUPP",
+]
+
 
 class IngestionError(RuntimeError):
     pass
@@ -2574,69 +2611,127 @@ def build_model_ready_layer(output_dir: Path, *, enforce_baseline: bool = False)
     }
 
 
-def scorecard_url(page: int, api_key: str) -> str:
-    params = {
-        "api_key": api_key,
-        "fields": ",".join(SCORECARD_FIELDS),
-        "per_page": "100",
-        "page": str(page),
-    }
-    return "https://api.data.gov/ed/collegescorecard/v1/schools.json?" + urllib.parse.urlencode(params)
+def scorecard_clean_value(value: object) -> object | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text or text.lower() in {"null", "na", "n/a", "privacysuppressed"}:
+        return None
+    return text
 
 
-def ingest_scorecard(source: dict, snapshot_dir: Path) -> dict:
-    api_key = os.getenv("COLLEGE_SCORECARD_API_KEY")
-    if not api_key:
-        raise IngestionError("COLLEGE_SCORECARD_API_KEY is required for College Scorecard ingestion")
+def scorecard_bulk_metric(record: dict[str, str], field: str) -> object | None:
+    if field == "latest.cost.avg_net_price.overall":
+        control = str(record.get("CONTROL") or "").strip()
+        columns = ("NPT4_PUB", "NPT4_PRIV") if control == "1" else ("NPT4_PRIV", "NPT4_PUB")
+    elif field == "latest.completion.consumer_rate":
+        preddeg = str(record.get("PREDDEG") or "").strip()
+        iclevel = str(record.get("ICLEVEL") or "").strip()
+        if preddeg and preddeg != "0":
+            columns = ("OMAWDP8_ALL_POOLED_SUPP", "C150_4_POOLED_SUPP", "C150_L4_POOLED_SUPP")
+        elif iclevel == "1":
+            columns = ("C150_4_POOLED_SUPP", "OMAWDP8_ALL_POOLED_SUPP")
+        else:
+            columns = ("C150_L4_POOLED_SUPP", "OMAWDP8_ALL_POOLED_SUPP")
+    elif field == "latest.student.retention_rate":
+        iclevel = str(record.get("ICLEVEL") or "").strip()
+        columns = ("RET_FT4_POOLED_SUPP", "RET_FT4") if iclevel == "1" else ("RET_FTL4_POOLED_SUPP", "RET_FTL4")
+    else:
+        columns = SCORECARD_BULK_FIELD_MAP.get(field, ())
 
-    all_results: list[dict] = []
-    page = 0
-    metadata_last: dict = {}
-    raw_pages: list[bytes] = []
-    while True:
-        payload = http_get(scorecard_url(page, api_key))
-        raw_pages.append(payload)
-        parsed = json.loads(payload)
-        results = parsed.get("results", [])
-        metadata_last = parsed.get("metadata", {}) or {}
-        all_results.extend(results)
-        per_page = int(metadata_last.get("per_page") or 100)
-        total = int(metadata_last.get("total") or len(all_results))
-        if not results or len(all_results) >= total:
-            break
-        page += 1
-        if page > math.ceil(total / max(per_page, 1)) + 2:
-            raise IngestionError("Scorecard pagination exceeded expected page count")
+    for column in columns:
+        value = scorecard_clean_value(record.get(column))
+        if value is not None:
+            return value
+    return None
+
+
+def read_scorecard_bulk_zip(raw: bytes) -> tuple[str, list[dict[str, str]]]:
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        candidates = [
+            name for name in archive.namelist()
+            if name.lower().endswith(".csv") and "institution" in name.lower()
+        ]
+        if not candidates:
+            candidates = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+        if not candidates:
+            raise IngestionError("College Scorecard bulk ZIP contains no CSV member")
+        member = sorted(candidates, key=lambda name: ("most-recent" not in name.lower(), len(name), name))[0]
+        with archive.open(member) as handle:
+            text = io.TextIOWrapper(handle, encoding="utf-8-sig", newline="")
+            rows = [dict(row) for row in csv.DictReader(text)]
+    return member, rows
+
+
+def ingest_scorecard(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
+    """Ingest the official most-recent College Scorecard institution bulk ZIP without an API key."""
+    member, records = read_scorecard_bulk_zip(raw)
+    if not records:
+        raise IngestionError("College Scorecard bulk institution file returned no rows")
+
+    required_columns = {"UNITID", "INSTNM", "CONTROL", "ICLEVEL"}
+    observed_columns = set(records[0])
+    missing_required = required_columns - observed_columns
+    if missing_required:
+        raise IngestionError(f"College Scorecard bulk file missing required columns: {sorted(missing_required)}")
 
     normalized: list[dict[str, object]] = []
-    for record in all_results:
-        flat = flatten_dict(record)
-        row: dict[str, object] = {"UNITID": normalize_unitid(flat.get("id"))}
+    for record in records:
+        unitid = normalize_unitid(record.get("UNITID"))
+        if not unitid:
+            continue
+        row: dict[str, object] = {"UNITID": unitid}
         for field in SCORECARD_FIELDS:
             if field == "id":
                 continue
-            row[field] = flat.get(field)
+            row[field] = scorecard_bulk_metric(record, field)
+        for field in SCORECARD_BULK_CONTEXT_FIELDS:
+            row[f"bulk.{field}"] = scorecard_clean_value(record.get(field))
         row["source_id"] = source["source_id"]
         row["source_release"] = source["release"]["label"]
         normalized.append(row)
 
-    fieldnames = ["UNITID"] + [f for f in SCORECARD_FIELDS if f != "id"] + ["source_id", "source_release"]
+    fieldnames = (
+        ["UNITID"]
+        + [field for field in SCORECARD_FIELDS if field != "id"]
+        + [f"bulk.{field}" for field in SCORECARD_BULK_CONTEXT_FIELDS]
+        + ["source_id", "source_release"]
+    )
     write_csv(snapshot_dir / "normalized" / "institution_scorecard.csv", fieldnames, normalized)
 
-    raw_ndjson = b"\n".join(json.dumps(r, separators=(",", ":")).encode("utf-8") for r in all_results) + b"\n"
-    raw_dir = snapshot_dir / "raw"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    (raw_dir / "scorecard.ndjson").write_bytes(raw_ndjson)
-
     report = qa_report(source["source_id"], normalized, ["UNITID"])
+    report.update({
+        "bulk_member": member,
+        "raw_rows": len(records),
+        "normalized_rows": len(normalized),
+        "raw_column_count": len(observed_columns),
+        "current_operating_rows": sum(1 for row in records if str(row.get("CURROPER") or "").strip() == "1"),
+        "rows_with_net_price": sum(
+            1 for row in normalized if row.get("latest.cost.avg_net_price.overall") is not None
+        ),
+        "rows_with_completion_rate": sum(
+            1 for row in normalized if row.get("latest.completion.consumer_rate") is not None
+        ),
+        "rows_with_retention_rate": sum(
+            1 for row in normalized if row.get("latest.student.retention_rate") is not None
+        ),
+        "rows_with_10yr_earnings": sum(
+            1 for row in normalized if row.get("latest.earnings.10_yrs_after_entry.median") is not None
+        ),
+    })
     metadata = write_snapshot_metadata(
         snapshot_dir,
         source=source,
-        source_url=source["access_url"],
-        raw_filename="scorecard.ndjson",
-        raw_bytes=raw_ndjson,
-        row_count_raw=len(all_results),
-        extra={"response_metadata": metadata_last, "query_fields": SCORECARD_FIELDS},
+        source_url=source_url,
+        raw_filename=safe_filename_from_url(source_url, "Most-Recent-Cohorts-Institution.zip"),
+        raw_bytes=raw,
+        row_count_raw=len(records),
+        extra={
+            "bulk_member": member,
+            "raw_column_count": len(observed_columns),
+            "retrieval_mode": "official_featured_bulk_zip",
+            "metric_mapping": "College Scorecard CSV variables normalized into existing API-compatible logical field names",
+        },
     )
     return {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
 
@@ -2662,15 +2757,22 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
         result = ingest_dapip(source, raw, snapshot_dir, source_url)
 
     elif source_id == "college_scorecard":
+        source_url = resolve_access_url(source)
         if dry_run:
             return {
                 "source_id": source_id,
                 "mode": "dry-run",
-                "access_url": source["access_url"],
-                "requires_api_key": True,
+                "access_url": source_url,
+                "requires_api_key": False,
+                "retrieval_mode": "official_featured_bulk_zip",
             }
+        raw = http_get(source_url)
         snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        result = ingest_scorecard(source, snapshot_dir)
+        raw_dir = snapshot_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        raw_name = safe_filename_from_url(source_url, "Most-Recent-Cohorts-Institution.zip")
+        (raw_dir / raw_name).write_bytes(raw)
+        result = ingest_scorecard(source, raw, snapshot_dir, source_url)
 
     elif source_id == "onet_31_0":
         if dry_run:
