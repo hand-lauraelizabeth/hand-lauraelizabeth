@@ -61,6 +61,10 @@ My public repositories focus on reproducible versions of professional and resear
 
 - [Parent & Caregiver ELL Curriculum — Project Light + CRD Impact](case-studies/parent-caregiver-ell-curriculum/) — ten-module adult ELL curriculum architecture integrating learner, instructor, administrator, digital-literacy, assessment, and flexible-delivery layers.
 
+## Projects in Development
+
+- [College + Career Matching Tool](projects/college-career-matching/) — rebuilding a 2017 explainable college-selection model with current data, uncertainty-aware admissions logic, college-to-career crosswalks, and user-adjustable weights.
+
 ## Research Notes
 
 - [What Happens When an Epic Refuses to Name Its Dead?](research-notes/alice-notley-descent-of-alette/) — Alice Notley, naming, punctuation, feminist katabasis, and the bridge from close reading to computational analysis.
