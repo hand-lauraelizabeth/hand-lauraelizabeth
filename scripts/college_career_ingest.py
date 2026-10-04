@@ -20,6 +20,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "projects" / "college-career-matching"
 MANIFEST_PATH = PROJECT / "source_manifest.json"
+COVERAGE_BASELINES_PATH = PROJECT / "coverage_baselines.json"
 DEFAULT_DATA_DIR = PROJECT / "data"
 
 USER_AGENT = "LauraElizabethHand-CollegeCareerMatcher/0.2 (contact: https://github.com/hand-lauraelizabeth/hand-lauraelizabeth; public research data ingestion)"
@@ -59,6 +60,53 @@ class IngestionError(RuntimeError):
 
 def load_manifest() -> dict:
     return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+
+
+def load_coverage_baselines() -> dict:
+    return json.loads(COVERAGE_BASELINES_PATH.read_text(encoding="utf-8"))
+
+
+def nested_metric(report: dict, path: str) -> object | None:
+    current: object = report
+    for part in path.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return None
+        current = current[part]
+    return current
+
+
+def evaluate_coverage_baseline(layer: str, report: dict) -> dict:
+    config = load_coverage_baselines()
+    layer_config = config.get("layers", {}).get(layer)
+    if not isinstance(layer_config, dict):
+        raise IngestionError(f"No coverage baseline configured for layer: {layer}")
+
+    checks: list[dict[str, object]] = []
+    failures: list[str] = []
+    for metric, minimum in layer_config.get("minimums", {}).items():
+        actual = nested_metric(report, metric)
+        try:
+            numeric_actual = float(actual) if actual is not None else None
+        except (TypeError, ValueError):
+            numeric_actual = None
+        passed = numeric_actual is not None and numeric_actual >= float(minimum)
+        checks.append({
+            "metric": metric,
+            "actual": actual,
+            "minimum": minimum,
+            "status": "pass" if passed else "fail",
+        })
+        if not passed:
+            failures.append(f"{metric}: actual={actual!r}, minimum={minimum!r}")
+
+    return {
+        "layer": layer,
+        "baseline_as_of": config.get("as_of"),
+        "reference": layer_config.get("reference"),
+        "status": "pass" if not failures else "fail",
+        "checks": checks,
+        "failures": failures,
+    }
 
 
 def get_source(source_id: str) -> dict:
@@ -1576,7 +1624,7 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
     }}
 
 
-def build_career_join_report(output_dir: Path) -> dict:
+def build_career_join_report(output_dir: Path, *, enforce_baseline: bool = False) -> dict:
     onet_dir = latest_snapshot_dir(output_dir, "onet_31_0")
     ep_dir = latest_snapshot_dir(output_dir, "bls_employment_projections_2025_2035")
     oews_dir = latest_snapshot_dir(output_dir, "bls_oews_may_2025")
@@ -1636,13 +1684,17 @@ def build_career_join_report(output_dir: Path) -> dict:
             "OEWS geography is preserved; coverage is reported separately by source AREA_TYPE.",
         ],
     }
+    baseline = evaluate_coverage_baseline("career", report)
+    report["baseline_validation"] = baseline
     out_dir = output_dir / "_joins" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "career_source_coverage.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if enforce_baseline and baseline["status"] != "pass":
+        raise IngestionError("Career coverage regression gate failed: " + "; ".join(baseline["failures"]))
     return {"report": report, "output": str(out_dir / "career_source_coverage.json")}
 
 
-def build_institution_coverage_report(output_dir: Path) -> dict:
+def build_institution_coverage_report(output_dir: Path, *, enforce_baseline: bool = False) -> dict:
     ipeds_dir = latest_snapshot_dir(output_dir, "ipeds_directory_2025")
     dapip_dir = latest_snapshot_dir(output_dir, "dapip_accreditation")
     institutions = read_csv_path(ipeds_dir / "normalized" / "institution.csv")
@@ -1734,11 +1786,15 @@ def build_institution_coverage_report(output_dir: Path) -> dict:
          "COMMUNITY_COLLEGE_PROXY_REASONS"],
         flags,
     )
+    baseline = evaluate_coverage_baseline("institution", report)
+    report["baseline_validation"] = baseline
     (out_dir / "institution_coverage.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if enforce_baseline and baseline["status"] != "pass":
+        raise IngestionError("Institution coverage regression gate failed: " + "; ".join(baseline["failures"]))
     return {"report": report, "output": str(out_dir / "institution_coverage.json")}
 
 
-def build_program_coverage_report(output_dir: Path) -> dict:
+def build_program_coverage_report(output_dir: Path, *, enforce_baseline: bool = False) -> dict:
     """Report program/completion coverage without treating missing mappings as quality failures."""
     institution_dir = latest_snapshot_dir(output_dir, "ipeds_directory_2025")
     completion_dir = latest_snapshot_dir(output_dir, "ipeds_completions_2025")
@@ -1873,7 +1929,11 @@ def build_program_coverage_report(output_dir: Path) -> dict:
         ["UNITID", "CIP6", "AWLEVEL", "DIRECT_CIP_SOC_MAPPING", "SOC6_COUNT", "SOURCE_ROW_COUNT"],
         flags,
     )
+    baseline = evaluate_coverage_baseline("program", report)
+    report["baseline_validation"] = baseline
     (out_dir / "program_coverage.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if enforce_baseline and baseline["status"] != "pass":
+        raise IngestionError("Program coverage regression gate failed: " + "; ".join(baseline["failures"]))
     return {"report": report, "output": str(out_dir / "program_coverage.json")}
 
 
@@ -2049,18 +2109,19 @@ def cli() -> int:
     parser.add_argument("--build-career-joins", action="store_true")
     parser.add_argument("--build-institution-coverage", action="store_true")
     parser.add_argument("--build-program-coverage", action="store_true")
+    parser.add_argument("--enforce-coverage-baseline", action="store_true")
     args = parser.parse_args()
 
     if args.build_career_joins:
-        print(json.dumps(build_career_join_report(args.output_dir), indent=2, default=str))
+        print(json.dumps(build_career_join_report(args.output_dir, enforce_baseline=args.enforce_coverage_baseline), indent=2, default=str))
         return 0
 
     if args.build_institution_coverage:
-        print(json.dumps(build_institution_coverage_report(args.output_dir), indent=2, default=str))
+        print(json.dumps(build_institution_coverage_report(args.output_dir, enforce_baseline=args.enforce_coverage_baseline), indent=2, default=str))
         return 0
 
     if args.build_program_coverage:
-        print(json.dumps(build_program_coverage_report(args.output_dir), indent=2, default=str))
+        print(json.dumps(build_program_coverage_report(args.output_dir, enforce_baseline=args.enforce_coverage_baseline), indent=2, default=str))
         return 0
 
     if args.list_sources:
