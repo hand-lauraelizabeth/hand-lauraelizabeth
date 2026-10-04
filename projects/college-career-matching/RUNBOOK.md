@@ -129,7 +129,7 @@ python scripts/college_career_ingest.py --build-program-coverage \
   --output-dir projects/college-career-matching/data/snapshots
 \`\`\`
 
-The report writes \`program_coverage.json\` plus \`program_coverage_flags.csv\` at the institution + CIP6 + award-level grain. It reports institution coverage, distinct observed CIP6 codes, award-level counts, direct CIP↔SOC mapping coverage, and explicit unmapped CIPs.
+The report writes \`program_coverage.json\` plus \`program_coverage_flags.csv\` at the institution + CIP6 + award-level grain. The normalized completions source retains \`MAJORNUM\`; default program coverage uses first-major (\`MAJORNUM=1\`) rows and reports second-major rows separately so the same program is not double-counted. It reports institution coverage, distinct observed CIP6 codes, award-level counts, direct CIP↔SOC mapping coverage, and explicit unmapped CIPs.
 
 IPEDS summary/total CIP rows are excluded from specific-program coverage. The normalizer treats a source serialization of \`99\` as CIP \`99.0000\` rather than \`00.0099\`. A missing CIP↔SOC mapping remains a coverage gap rather than a quality penalty or a reason to remove the program.
 
