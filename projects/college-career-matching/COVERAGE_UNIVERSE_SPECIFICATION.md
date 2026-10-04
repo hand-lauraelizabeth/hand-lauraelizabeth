@@ -260,15 +260,17 @@ A student should be able to discover a strong-fit state school, community colleg
 
 ## Implementation status
 
-The coverage-first ingestion work is substantially implemented. Completed layers include the full current IPEDS directory/completions baseline, DAPIP accreditation bridging, state/sector coverage reporting, explicit community-college pathway coverage, the full O*NET 31.0 occupation universe, BLS projections and national OEWS joins with unmatched occupations retained, career/program coverage reports, and live-observed regression floors that fail closed when a refresh materially shrinks coverage.
+The coverage-first ingestion work is substantially implemented. Completed layers include the full current IPEDS directory/completions baseline, DAPIP accreditation bridging, state/sector coverage reporting, explicit community-college pathway coverage, the full O*NET 31.0 occupation universe, BLS projections and national OEWS joins with unmatched occupations retained, career/program coverage reports, conservative institution-identity review clustering, the integrated model-ready institution → program → occupation layer, and live-observed regression floors that fail closed when a refresh materially shrinks coverage.
+
+College Scorecard now has a keyless bulk-file adapter for the official June 10, 2026 institution release. The official Scorecard CDN returns HTTP 403 to GitHub-hosted Actions as observed on October 4, 2026, so direct CDN reachability is not used as a blocking CI gate; the same official ZIP can be supplied locally through `--source-file` without changing normalization or provenance rules.
 
 Remaining coverage work is narrower and should build on these layers rather than replace them:
 
-1. **Resolve system/campus/administrative duplicates** while preserving legitimately distinct campuses and auditable source identities.
-2. **Run College Scorecard enrichment** once credentials are available; Scorecard absence must never remove an otherwise eligible IPEDS institution.
+1. **Validate current College Scorecard enrichment** from the official bulk ZIP when transport is available; Scorecard absence must never remove an otherwise eligible IPEDS institution.
+2. **Add authoritative transfer/articulation data** so associate-to-bachelor pathways can be represented directly.
 3. **Expand OEWS geography** from the validated national baseline to state/metropolitan/nonmetropolitan coverage where the matcher needs local labor-market context.
-4. **Add authoritative transfer/articulation data** so associate-to-bachelor pathways can be represented directly.
-5. **Build the integrated model-ready join layer** and promote recommendation scoring only after its QA and explanation/provenance requirements pass.
+4. **Review identity clusters against authoritative system/campus crosswalks** where available; keep distinct UNITIDs distinct by default and do not infer mergers from fuzzy names.
+5. **Promote recommendation scoring only after enrichment/calibration QA passes**, with provenance and explanation requirements preserved.
 
 
 ## Live coverage verification
