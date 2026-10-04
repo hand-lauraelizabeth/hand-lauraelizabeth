@@ -83,7 +83,7 @@ def main() -> None:
     assert_equal(empty_qa["status"], "fail", "zero-row QA must fail")
 
     baseline_config = module.load_coverage_baselines()
-    assert_equal(set(baseline_config["layers"]), {"institution", "program", "career"}, "coverage baseline layers")
+    assert_equal(set(baseline_config["layers"]), {"institution", "program", "career", "model_ready"}, "coverage baseline layers")
 
     program_floor_report = {}
     for metric_path, minimum in baseline_config["layers"]["program"]["minimums"].items():
@@ -102,6 +102,27 @@ def main() -> None:
         module.evaluate_coverage_baseline("program", program_floor_report)["status"],
         "fail",
         "program coverage baseline detects shrinkage",
+    )
+
+    model_floor_report = {}
+    model_config = baseline_config["layers"]["model_ready"]
+    for section_name in ("minimums", "maximums", "equals"):
+        for metric_path, expected in model_config.get(section_name, {}).items():
+            target = model_floor_report
+            parts = metric_path.split(".")
+            for part in parts[:-1]:
+                target = target.setdefault(part, {})
+            target[parts[-1]] = expected
+    assert_equal(
+        module.evaluate_coverage_baseline("model_ready", model_floor_report)["status"],
+        "pass",
+        "model-ready baseline at configured thresholds",
+    )
+    model_floor_report["auto_collapsed_institutions"] = 1
+    assert_equal(
+        module.evaluate_coverage_baseline("model_ready", model_floor_report)["status"],
+        "fail",
+        "model-ready baseline rejects identity auto-collapse",
     )
 
     sample = make_zip_csv(
@@ -319,6 +340,17 @@ def main() -> None:
         {row["RECOMMENDATION_ENTITY_ID"] for row in identity_fixture_rows},
         {"UNITID:100001", "UNITID:100002", "UNITID:100003"},
         "identity resolution preserves each UNITID",
+    )
+
+    assert_equal(
+        model_ready["manifest"]["identity_policy"]["automatic_collapse"],
+        False,
+        "model-ready manifest records no automatic collapse",
+    )
+    assert_equal(
+        model_qa["baseline_validation"]["status"],
+        "fail",
+        "small fixture remains below production model-ready baseline",
     )
 
     manifest = module.load_manifest()
