@@ -294,6 +294,59 @@ def write_snapshot_metadata(
     return metadata
 
 
+def count_values(rows: list[dict[str, object]], field: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        value = "" if row.get(field) is None else str(row.get(field)).strip()
+        key = value or "(blank)"
+        counts[key] = counts.get(key, 0) + 1
+    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+
+
+def build_ipeds_coverage_report(rows: list[dict[str, object]], source: dict) -> dict:
+    def count_where(field: str, value: str) -> int:
+        return sum(1 for row in rows if str(row.get(field, "")).strip() == value)
+
+    states = count_values(rows, "STABBR")
+    sector = count_values(rows, "SECTOR")
+    control = count_values(rows, "CONTROL")
+    level = count_values(rows, "ICLEVEL")
+    degree = count_values(rows, "DEGGRANT")
+
+    return {
+        "source_id": source["source_id"],
+        "source_release": source["release"]["label"],
+        "generated_at": utc_now(),
+        "total_institution_records": len(rows),
+        "states_and_territories_with_records": sum(1 for k in states if k != "(blank)"),
+        "institution_counts_by_state_or_territory": states,
+        "institution_counts_by_control_code": control,
+        "institution_counts_by_sector_code": sector,
+        "institution_counts_by_level_code": level,
+        "institution_counts_by_degree_granting_code": degree,
+        "coverage_markers": {
+            "public_four_year_or_above_sector_1": count_where("SECTOR", "1"),
+            "private_nonprofit_four_year_or_above_sector_2": count_where("SECTOR", "2"),
+            "private_for_profit_four_year_or_above_sector_3": count_where("SECTOR", "3"),
+            "public_two_year_sector_4": count_where("SECTOR", "4"),
+            "private_nonprofit_two_year_sector_5": count_where("SECTOR", "5"),
+            "private_for_profit_two_year_sector_6": count_where("SECTOR", "6"),
+            "public_less_than_two_year_sector_7": count_where("SECTOR", "7"),
+            "private_nonprofit_less_than_two_year_sector_8": count_where("SECTOR", "8"),
+            "private_for_profit_less_than_two_year_sector_9": count_where("SECTOR", "9"),
+            "all_public_control_1": count_where("CONTROL", "1"),
+            "all_private_nonprofit_control_2": count_where("CONTROL", "2"),
+            "all_private_for_profit_control_3": count_where("CONTROL", "3"),
+        },
+        "interpretation_notes": [
+            "IPEDS public 2-year is not a complete synonym for community college.",
+            "Some institutions commonly understood as community colleges are classified as public 4-year because they offer bachelor's programs.",
+            "A separate operational community-college classification must be built from additional IPEDS grouping/context fields rather than name or sector alone.",
+            "These counts describe the complete ingested directory snapshot before prestige, selectivity, geography, or user-profile filtering."
+        ],
+    }
+
+
 def qa_report(source_id: str, rows: list[dict[str, object]], key_fields: list[str]) -> dict:
     null_key_rows = 0
     seen: set[tuple[str, ...]] = set()
@@ -327,7 +380,10 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
     normalized: list[dict[str, object]] = []
 
     if source["source_id"] == "ipeds_directory_2025":
-        fields = ["UNITID", "INSTNM", "CITY", "STABBR", "ZIP", "CONTROL", "LOCALE"]
+        fields = [
+            "UNITID", "INSTNM", "CITY", "STABBR", "ZIP", "CONTROL", "LOCALE",
+            "SECTOR", "ICLEVEL", "HLOFFER", "DEGGRANT", "CYACTIVE", "ACT", "CLOSEDAT"
+        ]
         for row in records:
             normalized.append({
                 "UNITID": normalize_unitid(row.get("UNITID")),
@@ -337,12 +393,20 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
                 "ZIP": row.get("ZIP"),
                 "CONTROL": row.get("CONTROL"),
                 "LOCALE": row.get("LOCALE"),
+                "SECTOR": row.get("SECTOR"),
+                "ICLEVEL": row.get("ICLEVEL"),
+                "HLOFFER": row.get("HLOFFER"),
+                "DEGGRANT": row.get("DEGGRANT"),
+                "CYACTIVE": row.get("CYACTIVE"),
+                "ACT": row.get("ACT"),
+                "CLOSEDAT": row.get("CLOSEDAT"),
                 "source_id": source["source_id"],
                 "source_release": source["release"]["label"],
             })
         out = snapshot_dir / "normalized" / "institution.csv"
         write_csv(out, fields + ["source_id", "source_release"], normalized)
         report = qa_report(source["source_id"], normalized, ["UNITID"])
+        coverage = build_ipeds_coverage_report(normalized, source)
     else:
         fields = ["UNITID", "CIP6", "CIPCODE_RAW", "AWLEVEL", "CTOTALT"]
         for row in records:
@@ -369,7 +433,10 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
         row_count_raw=len(records),
         extra={"archive_member": member},
     )
-    return {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
+    result = {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
+    if source["source_id"] == "ipeds_directory_2025":
+        result["coverage"] = coverage
+    return result
 
 
 def ingest_cip_soc(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
@@ -743,6 +810,10 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
     reports = snapshot_dir / "reports"
     reports.mkdir(parents=True, exist_ok=True)
     (reports / "qa.json").write_text(json.dumps(result["qa"], indent=2) + "\n", encoding="utf-8")
+    if "coverage" in result:
+        (reports / "institution_coverage.json").write_text(
+            json.dumps(result["coverage"], indent=2) + "\n", encoding="utf-8"
+        )
     if result["qa"].get("status") == "fail":
         raise IngestionError(
             f"{source_id} normalization failed QA: {json.dumps(result['qa'], sort_keys=True)}"
