@@ -18,7 +18,7 @@ The Project's Digital Critical Edition, *Secrets of Craft and Nature in Renaissa
 
 ### Sustained manuscript and digital-edition analysis
 
-Across the Spring 2019 term, Laura repeatedly worked with Ms. Fr. 640 and its developing digital representations. Surviving coursework and correspondence document work involving:
+Across the Spring 2019 term, Laura repeatedly worked with Ms. Fr. 640 and its developing digital representations. Coursework and project correspondence document work involving:
 
 - close reading and textual analysis;
 - grammar, syntax, translation, and historical-language problems;
@@ -31,7 +31,7 @@ This sustained work matters because the final interface proposal emerged from an
 
 ### Lab and working-group participation
 
-The record also documents recurring lab and Working Group activity connected to the Making and Knowing Project, including direct communication with Project staff, access to editorial markup and research resources, engagement with conservation questions, and participation in the Project's collaborative research environment.
+The work also included recurring lab and Working Group activity connected to the Making and Knowing Project, direct communication with Project staff, engagement with editorial resources and conservation questions, and participation in the Project's collaborative research environment.
 
 ### AR measurement concept: historically meaningful units
 
@@ -41,7 +41,7 @@ Laura proposed combining a phone-camera measurement tool with the Project's spac
 
 A contemporaneous reply from Tianna Uchacz explicitly recognized the idea as an AR measurement tool that converts to early modern units.
 
-**Evidence boundary:** the surviving record verifies Laura's independent concept, its connection to the space-mapping work, and the proposed relationship to existing AR annotation ideas. It does **not** currently verify that Laura built, implemented, or tested the annotation system itself. Those stronger claims should not be made unless separate evidence surfaces.
+**Scope:** Laura proposed the AR measurement concept and its connection to space mapping and annotation ideas. The project is presented as a documented concept rather than as a built or tested annotation system.
 
 ### Capstone: Material Qualities of the Page
 
@@ -59,9 +59,9 @@ The team explored:
 - possible genetic readings showing the page through time;
 - a time-lapse or related visual representation of page development.
 
-## Laura's documented capstone role
+## Laura's capstone role
 
-The surviving project proposal describes Laura's role as including:
+The project proposal describes Laura's role as including:
 
 - co-presentation;
 - creative and visual ideation;
@@ -92,32 +92,19 @@ That design hypothesis can be expressed as:
 
 The historical project used hover-oriented interaction language typical of the period. The 2026 derivative resource updates this approach by requiring keyboard, touch, non-hover, motion-reduced, and low-bandwidth alternatives.
 
-## What was proposed vs. what was implemented
+## Proposal and implementation
 
-This distinction is essential.
-
-The surviving materials support claims about research, analysis, wireframing, interface proposals, presentation, and prototype concepts. They do **not** support representing the student group's proposed feature as software Laura deployed into the published Digital Critical Edition.
+The student project centered on research, analysis, wireframing, interface proposals, presentation, and prototype concepts. It is presented here as a design proposal rather than as software deployed into the published Digital Critical Edition.
 
 The final public Edition was developed through the Making and Knowing Project's larger editorial and digital-development process. The Project's published documentation credits the core team, Columbia University Libraries, and Performant Software Solutions for the Edition's digital development.
 
-## Evidence base
+## Project materials
 
-Private archival evidence includes:
+The case study draws on semester-long *Transforming Texts* assignments and exercises, the collaborative **1 - Epistemic Design** planning document, the Week 10 project proposal, the final project submission and presentation, group correspondence around wireframing and the genetic/time-lapse component, and the Making and Knowing Project's public Digital Critical Edition and student-project documentation.
 
-- semester-long *Transforming Texts* assignments and exercises;
-- the collaborative **1 - Epistemic Design** planning document;
-- the Week 10 project proposal;
-- the final project submission;
-- final presentation materials;
-- group correspondence around wireframing and the genetic/time-lapse component;
-- Making and Knowing Project course, lab, and Working Group correspondence;
-- later CV and portfolio records listing the Making and Knowing Project among Laura's project highlights.
+## Related resource
 
-Public evidence includes the Making and Knowing Project's Digital Critical Edition, project documentation, and student-project archive.
-
-## 2026 derivative resource
-
-The historical work has also been translated into a new, publication-safe resource:
+The 2019 work also informed a reusable design resource:
 
 - [Digital Text & Epistemic Design Canvas](Digital_Text_and_Epistemic_Design_Canvas.md)
 
