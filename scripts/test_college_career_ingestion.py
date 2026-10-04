@@ -36,8 +36,22 @@ def main() -> None:
     assert_equal(module.normalize_soc6("19-3051.00"), "19-3051", "O*NET to SOC")
     assert_equal(module.normalize_soc6("193051"), "19-3051", "SOC digits")
     assert_equal(module.value_status("PrivacySuppressed"), "suppressed", "Scorecard suppression")
-    assert_equal(module.value_status("**"), "suppressed", "BLS suppression")
+    assert_equal(module.value_status("**"), "suppressed", "generic suppression")
     assert_equal(module.value_status("0"), "reported", "zero is reported")
+    assert_equal(module.bls_value_status("**"), "topcoded", "BLS top-coded wage")
+    assert_equal(module.bls_value_status("*"), "suppressed", "BLS unavailable estimate")
+    assert_equal(module.parse_number("$52,000"), 52000.0, "BLS numeric parsing")
+
+    candidate, reasons = module.community_college_pathway_flags(
+        {"CONTROL": "1", "SECTOR": "1", "INSTCAT": "4"}
+    )
+    assert_equal(candidate, True, "INSTCAT recovers public associate-focused pathway")
+    if "public_associates_certificates_instcat" not in reasons:
+        raise AssertionError("INSTCAT community-college proxy reason missing")
+    candidate, _ = module.community_college_pathway_flags(
+        {"CONTROL": "2", "SECTOR": "4", "INSTCAT": "4"}
+    )
+    assert_equal(candidate, False, "community-college proxy is public-sector scoped")
 
     empty_qa = module.qa_report("fixture", [], ["ID"])
     assert_equal(empty_qa["status"], "fail", "zero-row QA must fail")
@@ -59,6 +73,7 @@ def main() -> None:
         "ipeds_completions_2025",
         "cip_soc_crosswalk_2020_2018",
         "onet_31_0",
+        "dapip_accreditation",
         "bls_employment_projections_2025_2035",
         "bls_oews_may_2025",
     }
@@ -70,6 +85,7 @@ def main() -> None:
         "ipeds_directory_2025": "https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip",
         "ipeds_completions_2025": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip",
         "cip_soc_crosswalk_2020_2018": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
+        "dapip_accreditation": "https://ope.ed.gov/dapip/api/downloadFiles/accreditationDataFiles",
         "bls_employment_projections_2025_2035": "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
         "bls_oews_may_2025": "https://www.bls.gov/oes/special-requests/oesm25all.zip",
     }
@@ -108,10 +124,13 @@ def main() -> None:
                 raise AssertionError("O*NET dry run did not expose configured source files")
         elif not str(result["access_url"]).startswith("https://"):
             raise AssertionError(f"{source_id}: dry-run URL must be HTTPS")
+        if source_id == "dapip_accreditation":
+            assert_equal(result.get("method"), "POST", "DAPIP dry-run method")
+            assert_equal(result.get("payload"), {"CSVChecked": True, "ExcelChecked": False}, "DAPIP dry-run payload")
 
     print(
         "College + Career ingestion prototype tests passed: "
-        f"{len(required)} sources, key normalization, ZIP parsing, and dry-run resolution."
+        f"{len(required)} sources, key normalization, coverage classification, ZIP parsing, and dry-run resolution."
     )
 
 
