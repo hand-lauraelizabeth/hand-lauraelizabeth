@@ -1,6 +1,6 @@
 # Career & Professional Development Resources
 
-Publication-safe, reusable resources derived from Laura Elizabeth Hand’s archived career-development and advising methods.
+Reusable career-development resources based on Laura Elizabeth Hand’s advising, teaching, and career-services methods.
 
 - [Interview Preparation Is an Evidence Problem](./Interview_Preparation_Is_an_Evidence_Problem.md)
 - [Modern Interview Preparation Checklist](./Modern_Interview_Preparation_Checklist.md)
