@@ -63,6 +63,10 @@ Before publishing files from Drive or professional workspaces, I use a [public p
 
 - [Parent & Caregiver ELL Curriculum — Project Light + CRD Impact](case-studies/parent-caregiver-ell-curriculum/) — ten-module adult ELL curriculum architecture integrating learner, instructor, administrator, digital-literacy, assessment, and flexible-delivery layers.
 
+## Research Notes
+
+- [What Happens When an Epic Refuses to Name Its Dead?](research-notes/alice-notley-descent-of-alette/) — Alice Notley, naming, punctuation, feminist katabasis, and the bridge from close reading to computational analysis.
+
 ## Art & Visual Work
 
 - [Art & Visual Work — Provenance Manifest](art/) — public gallery catalog, process-study record, rights/provenance boundary, and archive publication workflow.
