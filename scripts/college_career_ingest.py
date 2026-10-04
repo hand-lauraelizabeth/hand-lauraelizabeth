@@ -305,6 +305,12 @@ def qa_report(source_id: str, rows: list[dict[str, object]], key_fields: list[st
         if key in seen:
             duplicate_keys += 1
         seen.add(key)
+    if len(rows) == 0:
+        status = "fail"
+    elif null_key_rows == 0 and duplicate_keys == 0:
+        status = "pass"
+    else:
+        status = "review"
     return {
         "source_id": source_id,
         "generated_at": utc_now(),
@@ -312,7 +318,7 @@ def qa_report(source_id: str, rows: list[dict[str, object]], key_fields: list[st
         "key_fields": key_fields,
         "null_key_rows": null_key_rows,
         "duplicate_key_rows": duplicate_keys,
-        "status": "pass" if null_key_rows == 0 and duplicate_keys == 0 else "review",
+        "status": status,
     }
 
 
@@ -367,10 +373,6 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
 
 
 def ingest_cip_soc(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
-    rows = read_xlsx_rows_bytes(raw)
-    header_index, header = find_header_row(rows, ["cip", "soc"])
-    records = row_dicts_from_matrix(rows, header_index, header)
-
     def choose(record: dict[str, str], must_include: tuple[str, ...]) -> str | None:
         for key, value in record.items():
             low = key.lower()
@@ -378,27 +380,58 @@ def ingest_cip_soc(source: dict, raw: bytes, snapshot_dir: Path, source_url: str
                 return value
         return None
 
+    chosen_sheet: int | None = None
+    chosen_records: list[dict[str, str]] = []
     normalized: list[dict[str, object]] = []
-    seen: set[tuple[str, str]] = set()
-    for record in records:
-        cip_raw = choose(record, ("cip", "code"))
-        soc_raw = choose(record, ("soc", "code"))
-        cip = normalize_cip6(cip_raw)
-        soc = normalize_soc6(soc_raw)
-        if not cip or not soc:
+
+    # The official workbook includes introductory material before the data sheet.
+    # Search available worksheet XML files and accept the first sheet that
+    # yields valid CIP-SOC pairs rather than assuming sheet1.
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        sheet_numbers = sorted(
+            int(match.group(1))
+            for name in archive.namelist()
+            if (match := re.fullmatch(r"xl/worksheets/sheet(\d+)\.xml", name))
+        )
+
+    for sheet_number in sheet_numbers:
+        try:
+            rows = read_xlsx_rows_bytes(raw, sheet_number=sheet_number)
+            header_index, header = find_header_row(rows, ["cip", "soc"])
+        except IngestionError:
             continue
-        pair = (cip, soc)
-        if pair in seen:
-            continue
-        seen.add(pair)
-        normalized.append({
-            "CIP6": cip,
-            "SOC6": soc,
-            "CIP_RAW": cip_raw,
-            "SOC_RAW": soc_raw,
-            "crosswalk_version": source["release"]["label"],
-            "source_id": source["source_id"],
-        })
+
+        records = row_dicts_from_matrix(rows, header_index, header)
+        candidate: list[dict[str, object]] = []
+        seen: set[tuple[str, str]] = set()
+        for record in records:
+            cip_raw = choose(record, ("cip", "code"))
+            soc_raw = choose(record, ("soc", "code"))
+            cip = normalize_cip6(cip_raw)
+            soc = normalize_soc6(soc_raw)
+            if not cip or not soc:
+                continue
+            pair = (cip, soc)
+            if pair in seen:
+                continue
+            seen.add(pair)
+            candidate.append({
+                "CIP6": cip,
+                "SOC6": soc,
+                "CIP_RAW": cip_raw,
+                "SOC_RAW": soc_raw,
+                "crosswalk_version": source["release"]["label"],
+                "source_id": source["source_id"],
+            })
+
+        if candidate:
+            chosen_sheet = sheet_number
+            chosen_records = records
+            normalized = candidate
+            break
+
+    if not normalized or chosen_sheet is None:
+        raise IngestionError("CIP-SOC workbook contained no parseable CIP-SOC data rows")
 
     write_csv(
         snapshot_dir / "normalized" / "cip_soc_bridge.csv",
@@ -412,10 +445,10 @@ def ingest_cip_soc(source: dict, raw: bytes, snapshot_dir: Path, source_url: str
         source_url=source_url,
         raw_filename=safe_filename_from_url(source_url, "cip_soc_crosswalk.xlsx"),
         raw_bytes=raw,
-        row_count_raw=len(records),
+        row_count_raw=len(chosen_records),
+        extra={"worksheet_number": chosen_sheet},
     )
     return {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
-
 
 def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
     file_urls = source.get("files") or {}
@@ -710,6 +743,10 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
     reports = snapshot_dir / "reports"
     reports.mkdir(parents=True, exist_ok=True)
     (reports / "qa.json").write_text(json.dumps(result["qa"], indent=2) + "\n", encoding="utf-8")
+    if result["qa"].get("status") == "fail":
+        raise IngestionError(
+            f"{source_id} normalization failed QA: {json.dumps(result['qa'], sort_keys=True)}"
+        )
     result["snapshot_dir"] = str(snapshot_dir)
     return result
 
