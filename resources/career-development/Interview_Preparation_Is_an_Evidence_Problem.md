@@ -63,6 +63,6 @@ Once I frame it that way, the preparation process becomes much more useful: iden
 
 These resources turn the argument above into a practical preparation workflow.
 
-## Resource note
+## Related resources
 
-This post accompanies the Modern Interview Preparation Checklist and Interview Story Bank & Answer Planner, newly developed from methods and archived career-development materials in Laura Elizabeth Hand’s files. The newer resources preserve useful preparation practices while deliberately revising advice that is dated, overly rigid, or based on narrow conventions of professional behavior.
+This essay accompanies the Modern Interview Preparation Checklist and Interview Story Bank & Answer Planner. Together, the three resources turn the evidence-based preparation model into a practical workflow while avoiding rigid or one-size-fits-all rules about professional behavior.
