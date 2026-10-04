@@ -87,6 +87,22 @@ def http_get(url: str, *, headers: dict[str, str] | None = None, timeout: int = 
         return response.read()
 
 
+def http_post_json(url: str, payload: dict[str, object], *, timeout: int = 90) -> bytes:
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        method="POST",
+        headers={
+            "User-Agent": USER_AGENT,
+            "Content-Type": "application/json",
+            "Accept": "application/zip, application/octet-stream, */*",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        return response.read()
+
+
 def resolve_access_url(source: dict) -> str:
     if source.get("access_url"):
         return str(source["access_url"])
@@ -142,9 +158,47 @@ def value_status(value: object) -> str:
     text = str(value).strip()
     if not text:
         return "null"
-    if text.lower() in {"privacysuppressed", "#", "**", "***", "n/a", "na"}:
+    if text.lower() in {"privacysuppressed", "#", "*", "**", "***", "n/a", "na"}:
         return "suppressed"
     return "reported"
+
+
+def bls_value_status(value: object) -> str:
+    if value is None:
+        return "null"
+    text = str(value).strip()
+    if not text or text in {"—", "-", "–"}:
+        return "null"
+    if text == "**":
+        return "topcoded"
+    if text in {"*", "***", "#"}:
+        return "suppressed"
+    return "reported"
+
+
+def parse_number(value: object) -> float | None:
+    if bls_value_status(value) != "reported":
+        return None
+    text = str(value).strip().replace(",", "").replace("$", "").replace("%", "")
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def read_csv_path(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def latest_snapshot_dir(output_dir: Path, source_id: str) -> Path:
+    root = output_dir / source_id
+    if not root.exists():
+        raise IngestionError(f"No snapshots found for {source_id}: {root}")
+    candidates = sorted(p for p in root.iterdir() if p.is_dir())
+    if not candidates:
+        raise IngestionError(f"No timestamped snapshots found for {source_id}: {root}")
+    return candidates[-1]
 
 
 def flatten_dict(record: dict, prefix: str = "") -> dict[str, object]:
@@ -303,6 +357,18 @@ def count_values(rows: list[dict[str, object]], field: str) -> dict[str, int]:
     return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
 
 
+def community_college_pathway_flags(row: dict[str, object]) -> tuple[bool, list[str]]:
+    """Broad, explainable coverage proxy; not a legal/mission designation."""
+    if str(row.get("CONTROL", "")).strip() != "1":
+        return False, []
+    reasons: list[str] = []
+    if str(row.get("SECTOR", "")).strip() == "4":
+        reasons.append("public_two_year_sector")
+    if str(row.get("INSTCAT", "")).strip() == "4":
+        reasons.append("public_associates_certificates_instcat")
+    return bool(reasons), reasons
+
+
 def build_ipeds_coverage_report(rows: list[dict[str, object]], source: dict) -> dict:
     def count_where(field: str, value: str) -> int:
         return sum(1 for row in rows if str(row.get(field, "")).strip() == value)
@@ -312,6 +378,19 @@ def build_ipeds_coverage_report(rows: list[dict[str, object]], source: dict) -> 
     control = count_values(rows, "CONTROL")
     level = count_values(rows, "ICLEVEL")
     degree = count_values(rows, "DEGGRANT")
+    instcat = count_values(rows, "INSTCAT")
+
+    community_candidates = []
+    four_year_recovered = 0
+    for row in rows:
+        candidate, reasons = community_college_pathway_flags(row)
+        if candidate:
+            community_candidates.append(row)
+            if (
+                str(row.get("SECTOR", "")).strip() == "1"
+                and "public_associates_certificates_instcat" in reasons
+            ):
+                four_year_recovered += 1
 
     return {
         "source_id": source["source_id"],
@@ -324,6 +403,7 @@ def build_ipeds_coverage_report(rows: list[dict[str, object]], source: dict) -> 
         "institution_counts_by_sector_code": sector,
         "institution_counts_by_level_code": level,
         "institution_counts_by_degree_granting_code": degree,
+        "institution_counts_by_instcat_code": instcat,
         "coverage_markers": {
             "public_four_year_or_above_sector_1": count_where("SECTOR", "1"),
             "private_nonprofit_four_year_or_above_sector_2": count_where("SECTOR", "2"),
@@ -337,15 +417,22 @@ def build_ipeds_coverage_report(rows: list[dict[str, object]], source: dict) -> 
             "all_public_control_1": count_where("CONTROL", "1"),
             "all_private_nonprofit_control_2": count_where("CONTROL", "2"),
             "all_private_for_profit_control_3": count_where("CONTROL", "3"),
+            "public_associates_certificates_instcat_4": sum(
+                1 for row in rows
+                if str(row.get("CONTROL", "")).strip() == "1"
+                and str(row.get("INSTCAT", "")).strip() == "4"
+            ),
+            "community_college_pathway_proxy_union": len(community_candidates),
+            "four_year_sector_recovered_by_instcat_4": four_year_recovered,
         },
         "interpretation_notes": [
             "IPEDS public 2-year is not a complete synonym for community college.",
-            "Some institutions commonly understood as community colleges are classified as public 4-year because they offer bachelor's programs.",
-            "A separate operational community-college classification must be built from additional IPEDS grouping/context fields rather than name or sector alone.",
+            "The community-college pathway proxy is a transparent union of public SECTOR=4 and public INSTCAT=4 records.",
+            "INSTCAT=4 denotes degree-granting institutions classified around associate's degrees and certificates and can recover institutions that offer bachelor's degrees but remain associate-focused.",
+            "The proxy is a coverage layer, not a legal, state-system, or mission designation.",
             "These counts describe the complete ingested directory snapshot before prestige, selectivity, geography, or user-profile filtering."
         ],
     }
-
 
 def qa_report(source_id: str, rows: list[dict[str, object]], key_fields: list[str]) -> dict:
     null_key_rows = 0
@@ -382,7 +469,8 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
     if source["source_id"] == "ipeds_directory_2025":
         fields = [
             "UNITID", "INSTNM", "CITY", "STABBR", "ZIP", "CONTROL", "LOCALE",
-            "SECTOR", "ICLEVEL", "HLOFFER", "DEGGRANT", "CYACTIVE", "ACT", "CLOSEDAT"
+            "SECTOR", "ICLEVEL", "HLOFFER", "DEGGRANT", "CYACTIVE", "ACT", "CLOSEDAT",
+            "INSTCAT", "HDEGOFR1", "UGOFFER", "OPENPUBL", "OPEID", "C21BASIC"
         ]
         for row in records:
             normalized.append({
@@ -400,6 +488,12 @@ def ingest_ipeds(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
                 "CYACTIVE": row.get("CYACTIVE"),
                 "ACT": row.get("ACT"),
                 "CLOSEDAT": row.get("CLOSEDAT"),
+                "INSTCAT": row.get("INSTCAT"),
+                "HDEGOFR1": row.get("HDEGOFR1"),
+                "UGOFFER": row.get("UGOFFER"),
+                "OPENPUBL": row.get("OPENPUBL"),
+                "OPEID": row.get("OPEID"),
+                "C21BASIC": row.get("C21BASIC"),
                 "source_id": source["source_id"],
                 "source_release": source["release"]["label"],
             })
@@ -619,91 +713,236 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
 
 def ingest_bls_projection(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
     rows = read_xlsx_rows_bytes(raw)
-    header_index, header = find_header_row(rows, ["employment", "2025", "2035"])
-    records = row_dicts_from_matrix(rows, header_index, header)
+    data_start: int | None = None
+    for idx, row in enumerate(rows):
+        if len(row) > 2 and re.fullmatch(r"\d{2}-\d{4}", str(row[1]).strip()):
+            data_start = idx
+            break
+    if data_start is None:
+        raise IngestionError("BLS projection workbook contained no occupation data rows")
 
-    def find_key(record: dict[str, str], fragments: tuple[str, ...]) -> str | None:
-        for key in record:
-            low = key.lower()
-            if all(fragment in low for fragment in fragments):
-                return key
-        return None
+    header_text = " | ".join(
+        " | ".join(str(value) for value in row)
+        for row in rows[max(0, data_start - 6):data_start]
+    ).lower()
+    if not all(token in header_text for token in ("employment", "2025", "2035")):
+        raise IngestionError("BLS projection workbook header signature changed")
 
-    normalized: list[dict[str, object]] = []
-    for record in records:
-        code_key = find_key(record, ("matrix", "code")) or find_key(record, ("code",))
-        title_key = find_key(record, ("matrix", "title")) or find_key(record, ("title",))
-        type_key = find_key(record, ("occupation", "type"))
-        soc = normalize_soc6(record.get(code_key) if code_key else None)
+    all_rows: list[dict[str, object]] = []
+    detailed_rows: list[dict[str, object]] = []
+    for row in rows[data_start:]:
+        padded = list(row) + [""] * max(0, 16 - len(row))
+        raw_code = str(padded[1]).strip()
+        if not re.fullmatch(r"\d{2}-\d{4}", raw_code):
+            continue
+        soc = normalize_soc6(raw_code)
         if not soc:
             continue
-        normalized.append({
+        occupation_type = str(padded[2]).strip()
+        is_detailed = occupation_type.lower() == "line item"
+        wage_raw = padded[11]
+        item = {
             "SOC6": soc,
-            "TITLE": record.get(title_key, "") if title_key else "",
-            "OCCUPATION_TYPE": record.get(type_key, "") if type_key else "",
+            "TITLE": padded[0],
+            "OCCUPATION_TYPE": occupation_type,
+            "IS_DETAILED": "1" if is_detailed else "0",
+            "EMPLOYMENT_2025_THOUSANDS": parse_number(padded[3]),
+            "EMPLOYMENT_2035_THOUSANDS": parse_number(padded[4]),
+            "EMPLOYMENT_CHANGE_2025_2035_THOUSANDS": parse_number(padded[7]),
+            "EMPLOYMENT_CHANGE_PERCENT_2025_2035": parse_number(padded[8]),
+            "PCT_SELF_EMPLOYED_2025": parse_number(padded[9]),
+            "ANNUAL_OPENINGS_2025_2035_THOUSANDS": parse_number(padded[10]),
+            "MEDIAN_ANNUAL_WAGE_2025": parse_number(wage_raw),
+            "MEDIAN_ANNUAL_WAGE_2025_STATUS": bls_value_status(wage_raw),
+            "TYPICAL_EDUCATION": padded[12],
+            "RELATED_WORK_EXPERIENCE": padded[13],
+            "ON_THE_JOB_TRAINING": padded[14],
             "projection_cycle": source["release"]["label"],
             "source_id": source["source_id"],
-        })
+        }
+        all_rows.append(item)
+        if is_detailed:
+            detailed_rows.append(item)
 
-    write_csv(
-        snapshot_dir / "normalized" / "occupation_outlook.csv",
-        ["SOC6", "TITLE", "OCCUPATION_TYPE", "projection_cycle", "source_id"],
-        normalized,
-    )
-    report = qa_report(source["source_id"], normalized, ["SOC6"])
+    fields = [
+        "SOC6", "TITLE", "OCCUPATION_TYPE", "IS_DETAILED",
+        "EMPLOYMENT_2025_THOUSANDS", "EMPLOYMENT_2035_THOUSANDS",
+        "EMPLOYMENT_CHANGE_2025_2035_THOUSANDS", "EMPLOYMENT_CHANGE_PERCENT_2025_2035",
+        "PCT_SELF_EMPLOYED_2025", "ANNUAL_OPENINGS_2025_2035_THOUSANDS",
+        "MEDIAN_ANNUAL_WAGE_2025", "MEDIAN_ANNUAL_WAGE_2025_STATUS",
+        "TYPICAL_EDUCATION", "RELATED_WORK_EXPERIENCE", "ON_THE_JOB_TRAINING",
+        "projection_cycle", "source_id",
+    ]
+    write_csv(snapshot_dir / "normalized" / "occupation_outlook_all.csv", fields, all_rows)
+    write_csv(snapshot_dir / "normalized" / "occupation_outlook.csv", fields, detailed_rows)
+
+    report = qa_report(source["source_id"], detailed_rows, ["SOC6"])
+    report.update({
+        "all_occupation_rows": len(all_rows),
+        "detailed_line_item_rows": len(detailed_rows),
+        "summary_or_other_rows_excluded_from_default_join": len(all_rows) - len(detailed_rows),
+        "projection_base_year": 2025,
+        "projection_end_year": 2035,
+    })
+    if not detailed_rows:
+        report["status"] = "fail"
+
+    coverage = {
+        "source_id": source["source_id"],
+        "source_release": source["release"]["label"],
+        "generated_at": utc_now(),
+        "all_occupation_rows": len(all_rows),
+        "detailed_line_item_rows": len(detailed_rows),
+        "summary_or_other_rows": len(all_rows) - len(detailed_rows),
+        "detailed_soc6_count": len({str(row["SOC6"]) for row in detailed_rows}),
+        "notes": [
+            "Only BLS rows explicitly labeled Line item enter detailed occupation joins by default.",
+            "Employment and annual-opening values retain the BLS thousands unit in field names.",
+        ],
+    }
     metadata = write_snapshot_metadata(
         snapshot_dir,
         source=source,
         source_url=source_url,
         raw_filename=safe_filename_from_url(source_url, "occupation.xlsx"),
         raw_bytes=raw,
-        row_count_raw=len(records),
+        row_count_raw=len(all_rows),
+        extra={"projection_base_year": 2025, "projection_end_year": 2035},
     )
-    return {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
+    return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(detailed_rows)}
 
 
-def parse_oews_archive(raw: bytes) -> list[dict[str, str]]:
+def parse_oews_archive(raw: bytes) -> tuple[str, list[dict[str, str]]]:
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-        members = archive.namelist()
-        for member in members:
-            low = member.lower()
-            if low.endswith(".txt") or low.endswith(".csv"):
-                delimiter = "\t" if low.endswith(".txt") else None
-                return read_delimited_bytes(archive.read(member), delimiter=delimiter)
-        xlsx_members = [m for m in members if m.lower().endswith(".xlsx")]
-        if xlsx_members:
-            rows = read_xlsx_rows_bytes(archive.read(xlsx_members[0]))
-            header_index, header = find_header_row(rows, ["area", "occ"])
-            return row_dicts_from_matrix(rows, header_index, header)
-    raise IngestionError("OEWS archive has no readable CSV/TXT/XLSX member")
+        members = [
+            member for member in archive.namelist()
+            if member.lower().endswith((".txt", ".csv", ".xlsx"))
+        ]
+        if not members:
+            raise IngestionError("OEWS archive has no readable CSV/TXT/XLSX member")
+        preferred = sorted(
+            members,
+            key=lambda name: (
+                0 if ("all_data" in name.lower() or "oesm25all" in name.lower()) else 1,
+                0 if name.lower().endswith((".txt", ".csv")) else 1,
+                -archive.getinfo(name).file_size,
+            ),
+        )[0]
+        payload = archive.read(preferred)
+        if preferred.lower().endswith((".txt", ".csv")):
+            delimiter = "\t" if preferred.lower().endswith(".txt") else None
+            return preferred, read_delimited_bytes(payload, delimiter=delimiter)
+        rows = read_xlsx_rows_bytes(payload)
+        header_index, header = find_header_row(rows, ["area", "occ"])
+        return preferred, row_dicts_from_matrix(rows, header_index, header)
+
+
+def _row_value(row: dict[str, str], *names: str) -> str | None:
+    normalized = {
+        re.sub(r"[^a-z0-9]", "", str(key).lower()): value
+        for key, value in row.items()
+    }
+    for name in names:
+        value = normalized.get(re.sub(r"[^a-z0-9]", "", name.lower()))
+        if value is not None:
+            return value
+    return None
 
 
 def ingest_oews(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
-    records = parse_oews_archive(raw)
+    member, records = parse_oews_archive(raw)
     normalized: list[dict[str, object]] = []
     for row in records:
-        area = row.get("AREA") or row.get("area")
-        occ = row.get("OCC_CODE") or row.get("occ_code")
+        area = _row_value(row, "AREA")
+        occ = _row_value(row, "OCC_CODE")
         if not area or not occ:
             continue
-        normalized.append({
+        o_group = _row_value(row, "O_GROUP") or ""
+        is_detailed = str(o_group).strip().lower() == "detailed"
+        wage_values = {
+            name: _row_value(row, name)
+            for name in ("A_PCT10", "A_PCT25", "A_MEDIAN", "A_PCT75", "A_PCT90")
+        }
+        item: dict[str, object] = {
             "AREA": area,
-            "AREA_TITLE": row.get("AREA_TITLE") or row.get("area_title"),
-            "OCC_CODE": normalize_soc6(occ) or occ,
-            "TOT_EMP": row.get("TOT_EMP") or row.get("tot_emp"),
-            "A_PCT25": row.get("A_PCT25") or row.get("a_pct25"),
-            "A_MEDIAN": row.get("A_MEDIAN") or row.get("a_median"),
-            "A_PCT75": row.get("A_PCT75") or row.get("a_pct75"),
+            "AREA_TITLE": _row_value(row, "AREA_TITLE"),
+            "AREA_TYPE": _row_value(row, "AREA_TYPE"),
+            "PRIM_STATE": _row_value(row, "PRIM_STATE"),
+            "OCC_CODE": normalize_soc6(occ) or str(occ).strip(),
+            "OCC_TITLE": _row_value(row, "OCC_TITLE"),
+            "O_GROUP": o_group,
+            "IS_DETAILED": "1" if is_detailed else "0",
+            "TOT_EMP": parse_number(_row_value(row, "TOT_EMP")),
+            "TOT_EMP_STATUS": bls_value_status(_row_value(row, "TOT_EMP")),
+            "A_MEAN": parse_number(_row_value(row, "A_MEAN")),
+            "A_MEAN_STATUS": bls_value_status(_row_value(row, "A_MEAN")),
             "reference_period": source["release"]["label"],
             "source_id": source["source_id"],
-        })
+        }
+        for name, raw_value in wage_values.items():
+            item[name] = parse_number(raw_value)
+            item[f"{name}_STATUS"] = bls_value_status(raw_value)
+        normalized.append(item)
 
-    write_csv(
-        snapshot_dir / "normalized" / "occupation_wage.csv",
-        ["AREA", "AREA_TITLE", "OCC_CODE", "TOT_EMP", "A_PCT25", "A_MEDIAN", "A_PCT75", "reference_period", "source_id"],
-        normalized,
-    )
+    fields = [
+        "AREA", "AREA_TITLE", "AREA_TYPE", "PRIM_STATE", "OCC_CODE", "OCC_TITLE",
+        "O_GROUP", "IS_DETAILED", "TOT_EMP", "TOT_EMP_STATUS", "A_MEAN", "A_MEAN_STATUS",
+        "A_PCT10", "A_PCT10_STATUS", "A_PCT25", "A_PCT25_STATUS",
+        "A_MEDIAN", "A_MEDIAN_STATUS", "A_PCT75", "A_PCT75_STATUS",
+        "A_PCT90", "A_PCT90_STATUS", "reference_period", "source_id",
+    ]
+    write_csv(snapshot_dir / "normalized" / "occupation_wage.csv", fields, normalized)
+
     report = qa_report(source["source_id"], normalized, ["AREA", "OCC_CODE"])
+    detailed = [row for row in normalized if row["IS_DETAILED"] == "1"]
+    ordering_failures = 0
+    for row in detailed:
+        values = [row.get("A_PCT25"), row.get("A_MEDIAN"), row.get("A_PCT75")]
+        if all(isinstance(value, (int, float)) for value in values):
+            if not (float(values[0]) <= float(values[1]) <= float(values[2])):
+                ordering_failures += 1
+    area_titles: dict[str, set[str]] = {}
+    for row in normalized:
+        area_titles.setdefault(str(row["AREA"]), set()).add(str(row.get("AREA_TITLE") or ""))
+    area_title_conflicts = sum(1 for titles in area_titles.values() if len(titles) > 1)
+    report.update({
+        "archive_member": member,
+        "detailed_occupation_rows": len(detailed),
+        "aggregate_occupation_rows": len(normalized) - len(detailed),
+        "wage_percentile_ordering_failures": ordering_failures,
+        "area_title_conflicts": area_title_conflicts,
+    })
+    if ordering_failures or area_title_conflicts:
+        report["status"] = "fail"
+
+    area_type_groups: dict[str, dict[str, object]] = {}
+    for row in detailed:
+        area_type = str(row.get("AREA_TYPE") or "(blank)")
+        group = area_type_groups.setdefault(area_type, {"rows": 0, "areas": set(), "soc6": set()})
+        group["rows"] = int(group["rows"]) + 1
+        group["areas"].add(str(row["AREA"]))
+        group["soc6"].add(str(row["OCC_CODE"]))
+    coverage_by_area_type = {
+        key: {
+            "detailed_rows": int(value["rows"]),
+            "unique_areas": len(value["areas"]),
+            "unique_detailed_soc6": len(value["soc6"]),
+        }
+        for key, value in sorted(area_type_groups.items())
+    }
+    coverage = {
+        "source_id": source["source_id"],
+        "source_release": source["release"]["label"],
+        "generated_at": utc_now(),
+        "all_rows": len(normalized),
+        "detailed_occupation_rows": len(detailed),
+        "coverage_by_area_type": coverage_by_area_type,
+        "notes": [
+            "AREA_TYPE is retained as the source geography classification rather than inferred from AREA_TITLE.",
+            "Aggregate occupation rows remain in the normalized source table but are excluded from detailed O*NET joins.",
+            "Suppressed or top-coded wage values remain null numerically with an explicit status field.",
+        ],
+    }
     metadata = write_snapshot_metadata(
         snapshot_dir,
         source=source,
@@ -711,9 +950,306 @@ def ingest_oews(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -
         raw_filename=safe_filename_from_url(source_url, "oews.zip"),
         raw_bytes=raw,
         row_count_raw=len(records),
+        extra={"archive_member": member},
     )
-    return {"metadata": metadata, "qa": report, "normalized_rows": len(normalized)}
+    return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": len(normalized)}
 
+
+def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) -> dict:
+    expected = {
+        "institutioncampus.csv": "institution_campus",
+        "accreditationrecords.csv": "accreditation_records",
+        "accreditationactions.csv": "accreditation_actions",
+    }
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        by_basename = {Path(name).name.lower(): name for name in archive.namelist()}
+        missing = set(expected) - set(by_basename)
+        if missing:
+            raise IngestionError(f"DAPIP ZIP missing expected files: {sorted(missing)}")
+        source_tables = {
+            table_name: read_delimited_bytes(archive.read(by_basename[filename]))
+            for filename, table_name in expected.items()
+        }
+
+    def pick(row: dict[str, str], *names: str) -> str | None:
+        return _row_value(row, *names)
+
+    campus_rows: list[dict[str, object]] = []
+    for row in source_tables["institution_campus"]:
+        dapip_id = pick(row, "DapipId", "DAPIPID", "DAPIP ID")
+        unitid = normalize_unitid(pick(row, "IPEDSUnitID", "IPEDS Unit ID", "IPEDSUnitId"))
+        campus_rows.append({
+            "DAPIP_ID": dapip_id,
+            "PARENT_DAPIP_ID": pick(row, "ParentDapipId", "Parent Dapip Id", "Parent DAPIP ID"),
+            "UNITID": unitid,
+            "INSTITUTION_NAME": pick(row, "InstitutionName", "ParentName", "Institution Name"),
+            "LOCATION_NAME": pick(row, "LocationName", "Location Name"),
+            "LOCATION_TYPE": pick(row, "LocationType", "Location Type"),
+            "ADDRESS": pick(row, "Address"),
+            "OPEID": pick(row, "OpeId", "OPEID", "OPE ID"),
+            "source_id": source["source_id"],
+        })
+
+    accreditation_rows: list[dict[str, object]] = []
+    for row in source_tables["accreditation_records"]:
+        program_id = pick(row, "ProgramId", "Program ID")
+        program_name = pick(row, "ProgramName", "Program Name")
+        end_date = pick(row, "AccreditationEndDate", "Accreditation End Date", "EndDate", "End Date")
+        status = pick(row, "AccreditationStatus", "Status")
+        institutional = (
+            str(program_id or "").strip() == "1"
+            or "institutional" in str(program_name or "").lower()
+        )
+        status_text = str(status or "").lower()
+        source_current = not end_date and not any(
+            term in status_text for term in ("expired", "withdrawn", "terminated", "inactive", "closed")
+        )
+        accreditation_rows.append({
+            "DAPIP_ID": pick(row, "DapipId", "DAPIPID", "DAPIP ID"),
+            "AGENCY_ID": pick(row, "AgencyId", "Agency ID"),
+            "AGENCY_NAME": pick(row, "AgencyName", "Agency Name"),
+            "PROGRAM_ID": program_id,
+            "PROGRAM_NAME": program_name,
+            "ACCREDITATION_STATUS": status,
+            "ACCREDITATION_DATE": pick(row, "AccreditationDate", "Accreditation Date", "InitialDate"),
+            "ACCREDITATION_END_DATE": end_date,
+            "NEXT_REVIEW_DATE": pick(row, "NextReviewDate", "Next Review Date", "DateOfNextReview"),
+            "IS_INSTITUTIONAL": "1" if institutional else "0",
+            "IS_CURRENT_BY_EXPORT_RULE": "1" if source_current else "0",
+            "source_id": source["source_id"],
+        })
+
+    action_rows: list[dict[str, object]] = []
+    for row in source_tables["accreditation_actions"]:
+        action_rows.append({
+            "DAPIP_ID": pick(row, "DapipId", "DAPIPID", "DAPIP ID"),
+            "AGENCY_ID": pick(row, "AgencyId", "Agency ID"),
+            "AGENCY_NAME": pick(row, "AgencyName", "Agency Name"),
+            "PROGRAM_ID": pick(row, "ProgramId", "Program ID"),
+            "PROGRAM_NAME": pick(row, "ProgramName", "Program Name"),
+            "ACTION_DESCRIPTION": pick(row, "ActionDescription", "Action Description"),
+            "ACTION_DATE": pick(row, "ActionDate", "Action Date"),
+            "END_DATE": pick(row, "EndDate", "End Date"),
+            "JUSTIFICATION": pick(row, "Justification"),
+            "source_id": source["source_id"],
+        })
+
+    write_csv(
+        snapshot_dir / "normalized" / "institution_campus.csv",
+        ["DAPIP_ID", "PARENT_DAPIP_ID", "UNITID", "INSTITUTION_NAME", "LOCATION_NAME", "LOCATION_TYPE", "ADDRESS", "OPEID", "source_id"],
+        campus_rows,
+    )
+    write_csv(
+        snapshot_dir / "normalized" / "accreditation_records.csv",
+        ["DAPIP_ID", "AGENCY_ID", "AGENCY_NAME", "PROGRAM_ID", "PROGRAM_NAME", "ACCREDITATION_STATUS", "ACCREDITATION_DATE", "ACCREDITATION_END_DATE", "NEXT_REVIEW_DATE", "IS_INSTITUTIONAL", "IS_CURRENT_BY_EXPORT_RULE", "source_id"],
+        accreditation_rows,
+    )
+    write_csv(
+        snapshot_dir / "normalized" / "accreditation_actions.csv",
+        ["DAPIP_ID", "AGENCY_ID", "AGENCY_NAME", "PROGRAM_ID", "PROGRAM_NAME", "ACTION_DESCRIPTION", "ACTION_DATE", "END_DATE", "JUSTIFICATION", "source_id"],
+        action_rows,
+    )
+
+    campus_ids = {str(row["DAPIP_ID"]) for row in campus_rows if row.get("DAPIP_ID")}
+    action_ids = {str(row["DAPIP_ID"]) for row in action_rows if row.get("DAPIP_ID")}
+    report = {
+        "source_id": source["source_id"],
+        "generated_at": utc_now(),
+        "campus_rows": len(campus_rows),
+        "accreditation_record_rows": len(accreditation_rows),
+        "action_rows": len(action_rows),
+        "campus_rows_with_unitid": sum(1 for row in campus_rows if row.get("UNITID")),
+        "actions_with_campus_dapip_match": sum(1 for row in action_rows if str(row.get("DAPIP_ID") or "") in campus_ids),
+        "action_dapip_ids_not_in_campus_table": len(action_ids - campus_ids),
+        "status": "pass" if campus_rows and accreditation_rows else "fail",
+    }
+    coverage = {
+        "source_id": source["source_id"],
+        "source_release": source["release"]["label"],
+        "generated_at": utc_now(),
+        "unique_dapip_ids": len(campus_ids),
+        "unique_ipeds_unitids": len({str(row["UNITID"]) for row in campus_rows if row.get("UNITID")}),
+        "institutional_accreditation_records": sum(1 for row in accreditation_rows if row["IS_INSTITUTIONAL"] == "1"),
+        "current_institutional_records_by_export_rule": sum(
+            1 for row in accreditation_rows
+            if row["IS_INSTITUTIONAL"] == "1" and row["IS_CURRENT_BY_EXPORT_RULE"] == "1"
+        ),
+        "interpretation_notes": [
+            "DAPIP and IPEDS identifiers are retained separately because one DAPIP entity can map to multiple IPEDS UNITIDs.",
+            "The current-by-export rule is intentionally conservative and is not a substitute for verifying a specific institution with DAPIP or the accreditor.",
+            "Programmatic accreditation is retained separately from institutional accreditation.",
+        ],
+    }
+    metadata = write_snapshot_metadata(
+        snapshot_dir,
+        source=source,
+        source_url=source_url,
+        raw_filename="DAPIPData.zip",
+        raw_bytes=raw,
+        row_count_raw=sum(len(rows) for rows in source_tables.values()),
+        extra={"archive_members": sorted(by_basename.values())},
+    )
+    return {"metadata": metadata, "qa": report, "coverage": coverage, "normalized_rows": {
+        "institution_campus": len(campus_rows),
+        "accreditation_records": len(accreditation_rows),
+        "accreditation_actions": len(action_rows),
+    }}
+
+
+def build_career_join_report(output_dir: Path) -> dict:
+    onet_dir = latest_snapshot_dir(output_dir, "onet_31_0")
+    ep_dir = latest_snapshot_dir(output_dir, "bls_employment_projections_2025_2035")
+    oews_dir = latest_snapshot_dir(output_dir, "bls_oews_may_2025")
+
+    onet = read_csv_path(onet_dir / "normalized" / "occupation_data.csv")
+    projections = read_csv_path(ep_dir / "normalized" / "occupation_outlook.csv")
+    oews = read_csv_path(oews_dir / "normalized" / "occupation_wage.csv")
+
+    onet_soc = {str(row.get("SOC6") or "") for row in onet if row.get("SOC6")}
+    ep_soc = {str(row.get("SOC6") or "") for row in projections if row.get("SOC6")}
+    projection_overlap = onet_soc & ep_soc
+
+    oews_by_area_type: dict[str, set[str]] = {}
+    oews_areas_by_type: dict[str, set[str]] = {}
+    for row in oews:
+        if str(row.get("IS_DETAILED") or "") != "1":
+            continue
+        area_type = str(row.get("AREA_TYPE") or "(blank)")
+        oews_by_area_type.setdefault(area_type, set()).add(str(row.get("OCC_CODE") or ""))
+        oews_areas_by_type.setdefault(area_type, set()).add(str(row.get("AREA") or ""))
+
+    def rate(numerator: int, denominator: int) -> float | None:
+        return round(numerator / denominator, 6) if denominator else None
+
+    oews_coverage = {}
+    for area_type, socs in sorted(oews_by_area_type.items()):
+        overlap = onet_soc & socs
+        oews_coverage[area_type] = {
+            "unique_areas": len(oews_areas_by_type.get(area_type, set())),
+            "oews_detailed_soc6": len(socs),
+            "onet_soc6_overlap": len(overlap),
+            "onet_base_soc6_match_rate": rate(len(overlap), len(onet_soc)),
+        }
+
+    report = {
+        "generated_at": utc_now(),
+        "sources": {
+            "onet_snapshot": str(onet_dir),
+            "employment_projections_snapshot": str(ep_dir),
+            "oews_snapshot": str(oews_dir),
+        },
+        "onet": {
+            "occupation_rows": len(onet),
+            "unique_base_soc6": len(onet_soc),
+        },
+        "onet_to_bls_employment_projections": {
+            "bls_detailed_soc6": len(ep_soc),
+            "overlap_soc6": len(projection_overlap),
+            "onet_base_soc6_match_rate": rate(len(projection_overlap), len(onet_soc)),
+            "unmatched_onet_soc6": sorted(onet_soc - ep_soc),
+            "bls_detailed_soc6_not_in_onet": sorted(ep_soc - onet_soc),
+        },
+        "onet_to_oews_by_area_type": oews_coverage,
+        "join_rules": [
+            "O*NET extension occupations join through explicit base SOC6 normalization.",
+            "BLS projection summary rows and OEWS aggregate occupation rows are excluded from detailed joins.",
+            "OEWS geography is preserved; coverage is reported separately by source AREA_TYPE.",
+        ],
+    }
+    out_dir = output_dir / "_joins" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "career_source_coverage.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return {"report": report, "output": str(out_dir / "career_source_coverage.json")}
+
+
+def build_institution_coverage_report(output_dir: Path) -> dict:
+    ipeds_dir = latest_snapshot_dir(output_dir, "ipeds_directory_2025")
+    dapip_dir = latest_snapshot_dir(output_dir, "dapip_accreditation")
+    institutions = read_csv_path(ipeds_dir / "normalized" / "institution.csv")
+    campuses = read_csv_path(dapip_dir / "normalized" / "institution_campus.csv")
+    accreditation = read_csv_path(dapip_dir / "normalized" / "accreditation_records.csv")
+
+    dapip_by_unitid: dict[str, set[str]] = {}
+    for row in campuses:
+        unitid = str(row.get("UNITID") or "")
+        dapip_id = str(row.get("DAPIP_ID") or "")
+        if unitid and dapip_id:
+            dapip_by_unitid.setdefault(unitid, set()).add(dapip_id)
+
+    current_institutional = {
+        str(row.get("DAPIP_ID") or "")
+        for row in accreditation
+        if str(row.get("IS_INSTITUTIONAL") or "") == "1"
+        and str(row.get("IS_CURRENT_BY_EXPORT_RULE") or "") == "1"
+        and row.get("DAPIP_ID")
+    }
+
+    flags: list[dict[str, object]] = []
+    for row in institutions:
+        unitid = str(row.get("UNITID") or "")
+        dapip_ids = dapip_by_unitid.get(unitid, set())
+        candidate, reasons = community_college_pathway_flags(row)
+        has_current = any(dapip_id in current_institutional for dapip_id in dapip_ids)
+        flags.append({
+            "UNITID": unitid,
+            "INSTNM": row.get("INSTNM"),
+            "STABBR": row.get("STABBR"),
+            "CONTROL": row.get("CONTROL"),
+            "SECTOR": row.get("SECTOR"),
+            "INSTCAT": row.get("INSTCAT"),
+            "DAPIP_MATCH": "1" if dapip_ids else "0",
+            "DAPIP_IDS": "|".join(sorted(dapip_ids)),
+            "CURRENT_INSTITUTIONAL_ACCREDITATION_BY_EXPORT_RULE": "1" if has_current else "0",
+            "COMMUNITY_COLLEGE_PATHWAY_PROXY": "1" if candidate else "0",
+            "COMMUNITY_COLLEGE_PROXY_REASONS": "|".join(reasons),
+        })
+
+    community = [row for row in flags if row["COMMUNITY_COLLEGE_PATHWAY_PROXY"] == "1"]
+    report = {
+        "generated_at": utc_now(),
+        "sources": {
+            "ipeds_snapshot": str(ipeds_dir),
+            "dapip_snapshot": str(dapip_dir),
+        },
+        "institution_universe": len(flags),
+        "institutions_with_dapip_id_match": sum(1 for row in flags if row["DAPIP_MATCH"] == "1"),
+        "institutions_with_current_institutional_accreditation_by_export_rule": sum(
+            1 for row in flags if row["CURRENT_INSTITUTIONAL_ACCREDITATION_BY_EXPORT_RULE"] == "1"
+        ),
+        "community_college_pathway_proxy": {
+            "count": len(community),
+            "with_dapip_id_match": sum(1 for row in community if row["DAPIP_MATCH"] == "1"),
+            "with_current_institutional_accreditation_by_export_rule": sum(
+                1 for row in community if row["CURRENT_INSTITUTIONAL_ACCREDITATION_BY_EXPORT_RULE"] == "1"
+            ),
+            "public_two_year_sector": sum(
+                1 for row in community if "public_two_year_sector" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
+            ),
+            "public_associates_certificates_instcat": sum(
+                1 for row in community if "public_associates_certificates_instcat" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
+            ),
+            "four_year_sector_recovered_by_instcat": sum(
+                1 for row in community
+                if str(row.get("SECTOR")) == "1"
+                and "public_associates_certificates_instcat" in str(row["COMMUNITY_COLLEGE_PROXY_REASONS"])
+            ),
+        },
+        "interpretation_notes": [
+            "The community-college pathway proxy is deliberately broader than SECTOR=4 and deliberately narrower than a name-based search.",
+            "It is a discovery/coverage flag, not a claim that an institution is legally designated a community college.",
+            "Accreditation status is kept as a separate layer and should be verified for high-stakes enrollment decisions.",
+        ],
+    }
+    out_dir = output_dir / "_institution_coverage" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    write_csv(
+        out_dir / "institution_coverage_flags.csv",
+        ["UNITID", "INSTNM", "STABBR", "CONTROL", "SECTOR", "INSTCAT", "DAPIP_MATCH", "DAPIP_IDS",
+         "CURRENT_INSTITUTIONAL_ACCREDITATION_BY_EXPORT_RULE", "COMMUNITY_COLLEGE_PATHWAY_PROXY",
+         "COMMUNITY_COLLEGE_PROXY_REASONS"],
+        flags,
+    )
+    (out_dir / "institution_coverage.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return {"report": report, "output": str(out_dir / "institution_coverage.json")}
 
 def scorecard_url(page: int, api_key: str) -> str:
     params = {
@@ -785,7 +1321,24 @@ def ingest_scorecard(source: dict, snapshot_dir: Path) -> dict:
 def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) -> dict:
     source = get_source(source_id)
 
-    if source_id == "college_scorecard":
+    if source_id == "dapip_accreditation":
+        source_url = resolve_access_url(source)
+        if dry_run:
+            return {
+                "source_id": source_id,
+                "mode": "dry-run",
+                "access_url": source_url,
+                "method": "POST",
+                "payload": {"CSVChecked": True, "ExcelChecked": False},
+            }
+        raw = http_post_json(source_url, {"CSVChecked": True, "ExcelChecked": False})
+        snapshot_dir = output_dir / source_id / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        raw_dir = snapshot_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        (raw_dir / "DAPIPData.zip").write_bytes(raw)
+        result = ingest_dapip(source, raw, snapshot_dir, source_url)
+
+    elif source_id == "college_scorecard":
         if dry_run:
             return {
                 "source_id": source_id,
@@ -856,7 +1409,17 @@ def cli() -> int:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_DATA_DIR / "snapshots")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--list-sources", action="store_true")
+    parser.add_argument("--build-career-joins", action="store_true")
+    parser.add_argument("--build-institution-coverage", action="store_true")
     args = parser.parse_args()
+
+    if args.build_career_joins:
+        print(json.dumps(build_career_join_report(args.output_dir), indent=2, default=str))
+        return 0
+
+    if args.build_institution_coverage:
+        print(json.dumps(build_institution_coverage_report(args.output_dir), indent=2, default=str))
+        return 0
 
     if args.list_sources:
         for source in load_manifest()["sources"]:
@@ -864,7 +1427,7 @@ def cli() -> int:
         return 0
 
     if not args.source:
-        parser.error("--source is required unless --list-sources is used")
+        parser.error("--source is required unless --list-sources or a build-report option is used")
 
     try:
         result = ingest_source(args.source, args.output_dir, dry_run=args.dry_run)
