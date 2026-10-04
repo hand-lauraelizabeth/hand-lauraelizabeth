@@ -99,7 +99,8 @@
         "Institution names are nonblank for active rows.",
         "Release type is explicitly provisional or final.",
         "No cross-year field is silently mixed into a single row."
-      ]
+      ],
+      "access_url": "https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip"
     },
     {
       "source_id": "ipeds_completions_2025",
@@ -141,7 +142,8 @@
         "CIPCODE normalizes to a 6-digit CIP representation.",
         "Completions are nonnegative or valid source suppression/missing codes.",
         "Rows aggregate consistently within UNITID + CIPCODE + AWLEVEL after demographic dimensions are handled explicitly."
-      ]
+      ],
+      "access_url": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip"
     },
     {
       "source_id": "cip_soc_crosswalk_2020_2018",
