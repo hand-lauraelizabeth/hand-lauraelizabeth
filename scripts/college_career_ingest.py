@@ -1727,6 +1727,146 @@ def build_institution_coverage_report(output_dir: Path) -> dict:
     (out_dir / "institution_coverage.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     return {"report": report, "output": str(out_dir / "institution_coverage.json")}
 
+
+def build_program_coverage_report(output_dir: Path) -> dict:
+    """Report program/completion coverage without treating missing mappings as quality failures."""
+    institution_dir = latest_snapshot_dir(output_dir, "ipeds_directory_2025")
+    completion_dir = latest_snapshot_dir(output_dir, "ipeds_completions_2025")
+    crosswalk_dir = latest_snapshot_dir(output_dir, "cip_soc_crosswalk_2020_2018")
+
+    institutions = read_csv_path(institution_dir / "normalized" / "institution.csv")
+    completions = read_csv_path(completion_dir / "normalized" / "program_completion.csv")
+    bridge = read_csv_path(crosswalk_dir / "normalized" / "cip_soc_bridge.csv")
+
+    institution_ids = {
+        str(row.get("UNITID") or "")
+        for row in institutions
+        if row.get("UNITID")
+    }
+
+    bridge_by_cip: dict[str, set[str]] = {}
+    for row in bridge:
+        cip = str(row.get("CIP6") or "")
+        soc = str(row.get("SOC6") or "")
+        if cip and soc:
+            bridge_by_cip.setdefault(cip, set()).add(soc)
+
+    program_rows: dict[tuple[str, str, str], int] = {}
+    summary_cip_rows_excluded = 0
+    incomplete_key_rows_excluded = 0
+    for row in completions:
+        unitid = str(row.get("UNITID") or "")
+        cip = str(row.get("CIP6") or "")
+        award = str(row.get("AWLEVEL") or "")
+        # 99.0000 is an IPEDS summary/total code, not a specific field of study.
+        if cip == "990000":
+            summary_cip_rows_excluded += 1
+            continue
+        if not unitid or not cip or not award:
+            incomplete_key_rows_excluded += 1
+            continue
+        key = (unitid, cip, award)
+        program_rows[key] = program_rows.get(key, 0) + 1
+
+    program_keys = sorted(program_rows)
+    program_unitids = {unitid for unitid, _, _ in program_keys}
+    observed_cips = {cip for _, cip, _ in program_keys}
+    mapped_observed_cips = observed_cips & set(bridge_by_cip)
+    unmapped_observed_cips = observed_cips - set(bridge_by_cip)
+
+    mapped_programs = [
+        key for key in program_keys
+        if key[1] in bridge_by_cip
+    ]
+    unmapped_programs = [
+        key for key in program_keys
+        if key[1] not in bridge_by_cip
+    ]
+
+    institutions_with_mapped_programs = {unitid for unitid, _, _ in mapped_programs}
+    institutions_with_only_unmapped_programs = program_unitids - institutions_with_mapped_programs
+
+    def rate(numerator: int, denominator: int) -> float | None:
+        return round(numerator / denominator, 6) if denominator else None
+
+    award_level_coverage: dict[str, dict[str, object]] = {}
+    for award in sorted({award for _, _, award in program_keys}):
+        award_keys = [key for key in program_keys if key[2] == award]
+        mapped = sum(1 for _, cip, _ in award_keys if cip in bridge_by_cip)
+        award_level_coverage[award] = {
+            "program_combinations": len(award_keys),
+            "with_direct_cip_soc_mapping": mapped,
+            "without_direct_cip_soc_mapping": len(award_keys) - mapped,
+            "direct_mapping_rate": rate(mapped, len(award_keys)),
+        }
+
+    flags = [
+        {
+            "UNITID": unitid,
+            "CIP6": cip,
+            "AWLEVEL": award,
+            "DIRECT_CIP_SOC_MAPPING": "1" if cip in bridge_by_cip else "0",
+            "SOC6_COUNT": len(bridge_by_cip.get(cip, set())),
+            "SOURCE_ROW_COUNT": program_rows[(unitid, cip, award)],
+        }
+        for unitid, cip, award in program_keys
+    ]
+
+    observed_bridge_pairs = sum(
+        len(bridge_by_cip[cip])
+        for cip in observed_cips
+        if cip in bridge_by_cip
+    )
+
+    report = {
+        "generated_at": utc_now(),
+        "sources": {
+            "institution_snapshot": str(institution_dir),
+            "completion_snapshot": str(completion_dir),
+            "cip_soc_crosswalk_snapshot": str(crosswalk_dir),
+        },
+        "institution_universe": len(institution_ids),
+        "completion_source_rows": len(completions),
+        "summary_cip_rows_excluded": summary_cip_rows_excluded,
+        "incomplete_key_rows_excluded": incomplete_key_rows_excluded,
+        "unique_institution_program_award_combinations": len(program_keys),
+        "institutions_with_specific_program_completions": len(program_unitids),
+        "institution_completion_coverage_rate": rate(len(program_unitids & institution_ids), len(institution_ids)),
+        "completion_unitids_not_in_current_directory": len(program_unitids - institution_ids),
+        "distinct_cip6_observed": len(observed_cips),
+        "award_level_coverage": award_level_coverage,
+        "cip_soc_coverage": {
+            "crosswalk_pairs_total": len(bridge),
+            "distinct_cip6_in_crosswalk": len(bridge_by_cip),
+            "observed_cip6_with_direct_mapping": len(mapped_observed_cips),
+            "observed_cip6_without_direct_mapping": len(unmapped_observed_cips),
+            "observed_cip6_direct_mapping_rate": rate(len(mapped_observed_cips), len(observed_cips)),
+            "program_combinations_with_direct_mapping": len(mapped_programs),
+            "program_combinations_without_direct_mapping": len(unmapped_programs),
+            "program_combination_direct_mapping_rate": rate(len(mapped_programs), len(program_keys)),
+            "institutions_with_at_least_one_direct_mapped_program": len(institutions_with_mapped_programs),
+            "institutions_with_only_unmapped_specific_programs": len(institutions_with_only_unmapped_programs),
+            "cip_soc_pairs_relevant_to_observed_cips": observed_bridge_pairs,
+            "unmapped_observed_cip6": sorted(unmapped_observed_cips),
+        },
+        "interpretation_notes": [
+            "C2025_A records observed 2024-25 completions by CIP and award level; it is not a complete institutional course catalog or proof that every historically offered program is currently admitting students.",
+            "IPEDS CIP 99.0000 summary rows are excluded from specific-program coverage.",
+            "A missing CIP-SOC relationship means the official crosswalk has no direct mapping for that CIP; it is not a negative quality signal and does not remove the program.",
+            "Program-to-occupation relationships remain many-to-many. SOC6_COUNT is descriptive coverage, not a career-fit score.",
+        ],
+    }
+
+    out_dir = output_dir / "_program_coverage" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    write_csv(
+        out_dir / "program_coverage_flags.csv",
+        ["UNITID", "CIP6", "AWLEVEL", "DIRECT_CIP_SOC_MAPPING", "SOC6_COUNT", "SOURCE_ROW_COUNT"],
+        flags,
+    )
+    (out_dir / "program_coverage.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return {"report": report, "output": str(out_dir / "program_coverage.json")}
+
+
 def scorecard_url(page: int, api_key: str) -> str:
     params = {
         "api_key": api_key,
@@ -1898,6 +2038,7 @@ def cli() -> int:
     parser.add_argument("--list-sources", action="store_true")
     parser.add_argument("--build-career-joins", action="store_true")
     parser.add_argument("--build-institution-coverage", action="store_true")
+    parser.add_argument("--build-program-coverage", action="store_true")
     args = parser.parse_args()
 
     if args.build_career_joins:
@@ -1906,6 +2047,10 @@ def cli() -> int:
 
     if args.build_institution_coverage:
         print(json.dumps(build_institution_coverage_report(args.output_dir), indent=2, default=str))
+        return 0
+
+    if args.build_program_coverage:
+        print(json.dumps(build_program_coverage_report(args.output_dir), indent=2, default=str))
         return 0
 
     if args.list_sources:
