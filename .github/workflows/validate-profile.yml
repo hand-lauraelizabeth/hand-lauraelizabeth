@@ -10,6 +10,8 @@ on:
       - "scripts/check_local_markdown_links.py"
       - "scripts/validate_office_resources.py"
       - "scripts/check_name_consistency.py"
+      - "scripts/validate_college_career_sources.py"
+      - "projects/college-career-matching/**"
       - ".github/workflows/validate-profile.yml"
   pull_request:
     paths:
@@ -19,6 +21,8 @@ on:
       - "scripts/check_local_markdown_links.py"
       - "scripts/validate_office_resources.py"
       - "scripts/check_name_consistency.py"
+      - "scripts/validate_college_career_sources.py"
+      - "projects/college-career-matching/**"
       - ".github/workflows/validate-profile.yml"
 
 permissions:
@@ -44,3 +48,6 @@ jobs:
 
       - name: Enforce full public name
         run: python scripts/check_name_consistency.py
+
+      - name: Validate college career source contract
+        run: python scripts/validate_college_career_sources.py
