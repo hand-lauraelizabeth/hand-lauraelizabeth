@@ -353,12 +353,12 @@
     },
     {
       "source_id": "bls_employment_projections_2025_2035",
-      "title": "BLS Employment Projections 2025-2035, Table 1.2",
+      "title": "BLS Occupational Projections Data 2025–2035",
       "agency": "U.S. Bureau of Labor Statistics",
       "status": "production_core",
       "access_type": "download",
-      "official_url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
-      "access_url": "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
+      "official_url": "https://www.bls.gov/emp/data/occupational-data.htm",
+      "access_url": "https://data.bls.gov/projections/occupationProj",
       "release": {
         "label": "2025-2035",
         "date": "2026-08-27",
@@ -371,14 +371,15 @@
         "SOC6"
       ],
       "refresh_policy": "Annual BLS projection release.",
-      "retrieval_mode": "Official XLSX.",
+      "retrieval_mode": "Official BLS Occupational Projections HTML database; parser retains detailed occupation rows and 2025–2035 outlook fields. The downloadable Table 1.2 XLSX remains a documented reference but is not required by CI.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
         "projection_base_year",
         "projection_end_year",
         "release_date",
-        "source_file"
+        "source_file",
+        "source_representation"
       ],
       "required_artifacts": [
         "raw_xlsx",
@@ -388,21 +389,25 @@
         "detailed_only_default_join_table"
       ],
       "qa": [
-        "SOC6 is valid for line-item occupations.",
-        "Summary rows are identified and excluded from detailed occupation joins by default.",
-        "Employment/opening units are preserved and normalized explicitly.",
+        "SOC6 is valid for detailed occupations.",
+        "Total/all-occupation summary row is identified and excluded from detailed occupation joins by default.",
+        "Employment/opening units remain in thousands and are named explicitly.",
         "Growth percent is numeric where reported.",
-        "Education/work-experience/training categories remain categorical."
-      ]
+        "Education/work-experience/training categories remain categorical.",
+        "Fields absent from the live database table remain null rather than inferred."
+      ],
+      "reference_urls": {
+        "table_1_2": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
+        "downloadable_data": "https://www.bls.gov/emp/data/occupational-data.htm"
+      }
     },
     {
       "source_id": "bls_oews_may_2025",
       "title": "BLS Occupational Employment and Wage Statistics — May 2025 all data",
       "agency": "U.S. Bureau of Labor Statistics",
       "status": "production_core",
-      "access_type": "download",
+      "access_type": "multi_file_download",
       "official_url": "https://www.bls.gov/oes/tables.htm",
-      "access_url": "https://www.bls.gov/oes/special-requests/oesm25all.zip",
       "release": {
         "label": "May 2025",
         "date": "2026-05-15",
@@ -416,27 +421,38 @@
         "OCC_CODE"
       ],
       "refresh_policy": "Annual OEWS release.",
-      "retrieval_mode": "Official all-data ZIP; XLSX/TXT are both acceptable raw inputs if snapshot metadata records which was used.",
+      "retrieval_mode": "Official BLS public time-series files. Decode documented OE series-id positions and retain 2025 cross-industry observations; no oe.series download is required.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
         "reference_month",
         "release_date",
-        "source_file"
+        "source_files",
+        "sha256",
+        "periods_seen"
       ],
       "required_artifacts": [
-        "raw_zip_or_table",
+        "raw_time_series_files",
         "normalized_occupation_wage_table",
         "source_snapshot_metadata",
         "coverage_report"
       ],
       "qa": [
-        "AREA and OCC_CODE are non-null.",
-        "Suppressed wage/employment values remain null with suppression state retained.",
-        "Percentile wages are ordered where all are present.",
-        "AREA_TITLE matches a stable AREA code within a release.",
-        "Detailed occupation joins exclude aggregate occupation rows unless explicitly requested."
-      ]
+        "AREA_TYPE_CODE + AREA + OCC_CODE is unique in normalized cross-industry output.",
+        "Only reference-year 2025 and industry_code 000000 observations enter the normalized cross-industry table.",
+        "Suppressed or otherwise unreported wage/employment values remain null with a status or footnote state.",
+        "Percentile wages are ordered where P25, median, and P75 are all reported.",
+        "AREA title is stable within AREA_TYPE_CODE + AREA.",
+        "Detailed occupation joins use source occupation display_level=3."
+      ],
+      "files": {
+        "data": "https://download.bls.gov/pub/time.series/oe/oe.data.0.Current",
+        "area": "https://download.bls.gov/pub/time.series/oe/oe.area",
+        "areatype": "https://download.bls.gov/pub/time.series/oe/oe.areatype",
+        "occupation": "https://download.bls.gov/pub/time.series/oe/oe.occupation",
+        "datatype": "https://download.bls.gov/pub/time.series/oe/oe.datatype",
+        "release": "https://download.bls.gov/pub/time.series/oe/oe.release"
+      }
     }
   ],
   "join_contracts": [
