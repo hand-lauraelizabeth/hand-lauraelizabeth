@@ -164,7 +164,7 @@ The source layer is now defined in both human-readable and machine-checkable for
 - [Production source manifest](source_manifest.json) — pinned source IDs, releases, access URLs, canonical keys, required artifacts, metadata, and join cardinalities;
 - [Ingestion contract](INGESTION_CONTRACT.md) — raw → staging → normalized → model-ready rules, key normalization, suppression handling, and refresh behavior;
 - [QA & Join Tests](QA_JOIN_TESTS.md) — source-level, cross-source, and recommendation-gating acceptance criteria;
-- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 83 fields mapped to source variables, joins, cadence, transformations, and missing-data behavior;
+- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 84 fields mapped to source variables, joins, cadence, transformations, and missing-data behavior;
 - [Machine-readable source matrix](MVP_Field_Level_Source_Matrix.csv) — CSV for ingestion/configuration work.
 
 The repository CI runs `scripts/validate_college_career_sources.py` to check manifest structure, source IDs, join references, CIP↔SOC cardinality, production-source privacy boundaries, and source-matrix consistency.
@@ -176,7 +176,7 @@ Implement the first **public-source ingestion prototype**:
 1. College Scorecard institution snapshot;
 2. IPEDS HD2025 + C2025_A;
 3. CIP 2020 ↔ SOC 2018 bridge;
-4. O*NET 31.0 occupation/skills tables;
+4. O*NET 31.0 occupation, essential/transferable/software skill, career-interest, and related content tables;
 5. BLS 2025–2035 projections + May 2025 OEWS.
 
 The prototype should create immutable raw snapshots, source metadata/hashes, normalized keys, and QA reports. Recommendation scoring remains gated until the source/join tests pass.
@@ -187,5 +187,5 @@ See the:
 - [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md) for the 147 named fields across the 155-column Data sheet;
 - [Historical Labor-Market & System Data Inventory](Historical_Labor_Market_and_System_Data_Inventory.md) for Lightcast, Symplicity, Handshake, employer/program, and synthetic data lineage;
 - [Current Data Source Architecture](Current_Data_Source_Architecture.md) for the preferred public production stack;
-- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 83 source, user-input, and derived fields mapped to authoritative datasets, join keys, refresh cadence, transformations, and missing-data rules;
+- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 84 source, user-input, and derived fields mapped to authoritative datasets, join keys, refresh cadence, transformations, and missing-data rules;
 - [Machine-readable source matrix](MVP_Field_Level_Source_Matrix.csv) — CSV version for future ingestion/configuration work;
