@@ -24,4 +24,12 @@ A transparent multi-criteria decision workbook for comparing needs, projects, pr
 
 The workbook exposes assumptions so users can see **why** a result changes.
 
+## Design lineage
+
+This decision-engine approach has an earlier precursor in a 2017 college-selection model that combined user preferences, institutional attributes, admissions-category logic, weighted fit scoring, ranking, and explicit tie-breaking in a 155-column spreadsheet model.
+
+The modern Decision Engine generalizes the durable parts of that approach—visible assumptions, adjustable weights, separate criteria, transparent normalization, and sensitivity—without carrying forward the historical model's stale admissions data or hand-tuned Reach/Target/Safety coefficients.
+
+[Explore the College + Career Matching Tool lineage →](../../projects/college-career-matching/)
+
 [Back to Tools & Templates](../README.md)
