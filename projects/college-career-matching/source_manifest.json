@@ -39,7 +39,7 @@
         "id": "UNITID"
       },
       "refresh_policy": "Check the official College Scorecard data page at least monthly; update the dated featured-download URL and release metadata when the Department publishes a new file.",
-      "retrieval_mode": "Official featured institution-level bulk ZIP download; no API key required.",
+      "retrieval_mode": "Official featured institution-level bulk ZIP. Direct download when permitted; otherwise ingest a user-supplied copy of that same official ZIP with --source-file. No API key required.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
@@ -62,6 +62,12 @@
         "Consumer-facing completion, retention, and net-price compatibility fields are derived only from documented Scorecard bulk variables.",
         "Scorecard absence never removes an otherwise eligible IPEDS institution from the matcher universe.",
         "No metric loses its reporting/reference-year context in downstream documentation."
+      ],
+      "transport_notes": [
+        "The official June 10, 2026 featured institution ZIP is the canonical bulk source.",
+        "As observed on 2026-10-04, ed-public-download.scorecard.network returns HTTP 403 to GitHub-hosted Actions runners even with browser-compatible headers.",
+        "This is treated as a transport limitation, not a source-validation failure. Use --source-file with an official Scorecard bulk ZIP when direct automated retrieval is blocked.",
+        "Do not substitute an unofficial mirror as production-core data solely to bypass the official host restriction."
       ]
     },
     {
