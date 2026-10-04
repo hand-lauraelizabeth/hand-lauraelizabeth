@@ -35,6 +35,15 @@ Use this checklist before moving any file from Google Drive or a work folder int
 - Prefer a portfolio case study or redacted excerpt over a full employer-owned artifact when the full file is not necessary.
 - After publication, test the page in a signed-out/private browser and search for accidental direct-download URLs.
 
+## Audience-facing language
+
+- Write for the visitor, not for the internal recovery or verification process.
+- Do not explain missing files, computer loss, incomplete archives, recovery work, or evidence-survival unless that history is itself relevant to the project.
+- Avoid internal labels such as **surviving evidence**, **surviving archive**, **evidence boundary**, **public-safe**, **publication-safe**, **portfolio-safe reconstruction**, **recovered materials**, or **source record** in public copy when a direct description will do.
+- Prefer direct audience-facing language: **project documentation**, **project materials**, **documented work**, **case study**, **reusable model**, **curriculum architecture map**, **selected work**, **dates/media are listed where documented**, or simply state the relevant fact.
+- Keep necessary limitations concise and substantive. Explain what a project was or was not; do not narrate the behind-the-scenes process used to verify it.
+- Use terms such as **archive**, **provenance**, **reconstruction**, or **source** when they genuinely describe the subject matter, scholarly method, rights context, or an actual archive—not merely because they were useful during portfolio development.
+
 ## Final check
 
 A public artifact should remain safe if its URL is copied, indexed by a search engine, downloaded, mirrored, and viewed without authentication.
