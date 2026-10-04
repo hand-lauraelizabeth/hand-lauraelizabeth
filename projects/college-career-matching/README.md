@@ -160,4 +160,4 @@ The next stage is to inventory the historical Lightcast/O*NET/employer/system da
 - validation and bias checks;
 - user-adjustable weights and sensitivity testing.
 
-See [Historical Formula Specification](Historical_College_Model_Formula_Specification.md) for the scoring logic extracted from the 2017 workbook.
+See the [Historical Formula Specification](Historical_College_Model_Formula_Specification.md) for the scoring logic and the [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md) for the 147 named fields across the 155-column Data sheet.
