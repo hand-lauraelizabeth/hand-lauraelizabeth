@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "match_response.schema.json",
+  "title": "College + Career Match Response v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "request_id", "data_version", "model_version", "results", "result_count", "warnings"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_id": {"type": "string"},
+    "data_version": {"type": "string"},
+    "model_version": {"type": "string"},
+    "generated_at_utc": {"type": "string"},
+    "result_count": {"type": "integer", "minimum": 0},
+    "warnings": {"type": "array", "items": {"type": "object", "required": ["code", "message"], "properties": {"code": {"type": "string"}, "message": {"type": "string"}, "candidate_id": {"type": ["string", "null"]}}}},
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["candidate_id", "institution", "program", "eligibility", "dimensions", "explanation", "evidence_coverage", "source_freshness"],
+        "properties": {
+          "candidate_id": {"type": "string"},
+          "institution": {"type": "object", "required": ["unitid", "name"], "properties": {"unitid": {"type": "string"}, "name": {"type": "string"}, "city": {"type": ["string", "null"]}, "state": {"type": ["string", "null"]}}},
+          "program": {"type": "object", "required": ["program_id", "name", "cip_code"], "properties": {"program_id": {"type": "string"}, "name": {"type": "string"}, "cip_code": {"type": "string"}, "credential_level": {"type": ["string", "null"]}}},
+          "eligibility": {"type": "object", "required": ["status", "reason_codes"], "properties": {"status": {"enum": ["eligible", "eligible_with_unknown", "review"]}, "reason_codes": {"type": "array", "items": {"type": "string"}}}},
+          "dimensions": {"type": "array", "items": {"type": "object", "required": ["dimension", "value", "coverage_rate", "evidence_state"], "properties": {"dimension": {"type": "string"}, "value": {"type": ["number", "null"]}, "coverage_rate": {"type": "number", "minimum": 0, "maximum": 1}, "evidence_state": {"type": "string"}}}},
+          "explanation": {"type": "object", "required": ["why_it_matches", "tradeoffs", "unknowns"], "properties": {"why_it_matches": {"type": "array", "items": {"$ref": "#/$defs/reason"}}, "tradeoffs": {"type": "array", "items": {"$ref": "#/$defs/reason"}}, "unknowns": {"type": "array", "items": {"$ref": "#/$defs/reason"}}}},
+          "career_pathways": {"type": "object", "properties": {"pathway_count": {"type": "integer", "minimum": 0}, "representative_pathways": {"type": "array", "items": {"type": "object", "properties": {"occ_code": {"type": "string"}, "title": {"type": ["string", "null"]}, "alignment_score": {"type": ["number", "null"]}, "alignment_coverage": {"type": ["number", "null"]}}}}}},
+          "transfer": {"type": ["object", "null"], "properties": {"status": {"type": "string"}, "applicability": {"type": ["string", "null"]}, "conditions": {"type": "array", "items": {"type": "string"}}, "evidence_ids": {"type": "array", "items": {"type": "string"}}}},
+          "labor_market": {"type": "object", "properties": {"current_local": {"type": ["object", "null"]}, "long_term_outlook": {"type": ["object", "null"]}, "geography_label": {"type": ["string", "null"]}}},
+          "evidence_coverage": {"type": "object", "required": ["overall_status", "review_flags"], "properties": {"overall_status": {"enum": ["broad", "partial", "limited"]}, "review_flags": {"type": "array", "items": {"type": "string"}}}},
+          "source_freshness": {"type": "array", "items": {"type": "object", "required": ["source_family", "vintage"], "properties": {"source_family": {"type": "string"}, "vintage": {"type": "string"}, "retrieved_at_utc": {"type": ["string", "null"]}}}}
+        }
+      }
+    }
+  },
+  "$defs": {"reason": {"type": "object", "required": ["code", "text", "evidence_ids"], "properties": {"code": {"type": "string"}, "text": {"type": "string"}, "evidence_ids": {"type": "array", "items": {"type": "string"}}}}}
+}
