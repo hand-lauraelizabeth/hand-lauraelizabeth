@@ -148,16 +148,22 @@ The new system will separate the model into explicit layers:
 
 The career layer will use program-to-occupation relationships as **probabilistic pathways**, not deterministic major-to-job mappings.
 
+## Data-source architecture
+
+The career-side source inventory now distinguishes open occupational data, licensed labor-market intelligence, institution-specific employer systems, and private relationship/outcome data.
+
+- [Labor-Market, Employer & Occupational Data Inventory](Historical_Labor_Market_and_Employer_Data_Inventory.md)
+- [Historical Formula Specification](Historical_College_Model_Formula_Specification.md)
+- [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md)
+
 ## Next development stage
 
-The next stage is to inventory the historical Lightcast/O*NET/employer/system datasets, then define:
+The next stage is to define the **current-data refresh architecture**:
 
-- authoritative current data sources;
-- field-level refresh cadence;
-- CIP ↔ SOC ↔ skill crosswalks;
-- missing-data rules;
-- uncertainty controls;
-- validation and bias checks;
-- user-adjustable weights and sensitivity testing.
-
-See the [Historical Formula Specification](Historical_College_Model_Formula_Specification.md) for the scoring logic and the [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md) for the 147 named fields across the 155-column Data sheet.
+- assign an authoritative source and stable identifier to each field;
+- define field-level refresh cadence and source-version metadata;
+- define CIP ↔ SOC ↔ skill crosswalks and ambiguity handling;
+- establish missing-data and uncertainty rules;
+- distinguish open/public, licensed commercial, and authorized institutional inputs;
+- define validation and bias checks before implementation;
+- preserve user-adjustable weights and sensitivity testing.
