@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import shutil
 import sys
 import zipfile
 from pathlib import Path
@@ -112,6 +113,63 @@ def main() -> None:
     assert_equal(dapip_result["qa"]["dapip_ipeds_bridge_rows"], 2, "DAPIP multi-UNITID bridge row count")
     bridge_rows = module.read_csv_path(dapip_fixture_dir / "normalized" / "dapip_ipeds_bridge.csv")
     assert_equal({row["UNITID"] for row in bridge_rows}, {"190150", "190151"}, "DAPIP multi-UNITID bridge")
+
+
+    program_fixture_root = ROOT / "tmp" / "program-coverage-fixture"
+    shutil.rmtree(program_fixture_root, ignore_errors=True)
+    for source_id in ("ipeds_directory_2025", "ipeds_completions_2025", "cip_soc_crosswalk_2020_2018"):
+        (program_fixture_root / source_id / "20261004T000000Z" / "normalized").mkdir(
+            parents=True, exist_ok=True
+        )
+
+    module.write_csv(
+        program_fixture_root / "ipeds_directory_2025" / "20261004T000000Z" / "normalized" / "institution.csv",
+        ["UNITID", "INSTNM"],
+        [
+            {"UNITID": "100001", "INSTNM": "Mapped College"},
+            {"UNITID": "100002", "INSTNM": "Unmapped College"},
+            {"UNITID": "100003", "INSTNM": "No Completions College"},
+        ],
+    )
+    module.write_csv(
+        program_fixture_root / "ipeds_completions_2025" / "20261004T000000Z" / "normalized" / "program_completion.csv",
+        ["UNITID", "CIP6", "AWLEVEL", "CTOTALT"],
+        [
+            {"UNITID": "100001", "CIP6": "010101", "AWLEVEL": "5", "CTOTALT": "10"},
+            {"UNITID": "100001", "CIP6": "990000", "AWLEVEL": "5", "CTOTALT": "10"},
+            {"UNITID": "100002", "CIP6": "020202", "AWLEVEL": "3", "CTOTALT": "4"},
+        ],
+    )
+    module.write_csv(
+        program_fixture_root / "cip_soc_crosswalk_2020_2018" / "20261004T000000Z" / "normalized" / "cip_soc_bridge.csv",
+        ["CIP6", "SOC6"],
+        [
+            {"CIP6": "010101", "SOC6": "11-1011"},
+            {"CIP6": "010101", "SOC6": "11-1021"},
+        ],
+    )
+    program_coverage = module.build_program_coverage_report(program_fixture_root)["report"]
+    assert_equal(
+        program_coverage["unique_institution_program_award_combinations"],
+        2,
+        "program coverage excludes IPEDS summary CIP",
+    )
+    assert_equal(program_coverage["summary_cip_rows_excluded"], 1, "program summary row count")
+    assert_equal(
+        program_coverage["cip_soc_coverage"]["program_combinations_with_direct_mapping"],
+        1,
+        "mapped program combinations",
+    )
+    assert_equal(
+        program_coverage["cip_soc_coverage"]["program_combinations_without_direct_mapping"],
+        1,
+        "unmapped program combinations",
+    )
+    assert_equal(
+        program_coverage["institutions_with_specific_program_completions"],
+        2,
+        "institutions with specific program completions",
+    )
 
     manifest = module.load_manifest()
     source_ids = {s["source_id"] for s in manifest["sources"]}
