@@ -400,7 +400,10 @@ def build_ipeds_coverage_report(rows: list[dict[str, object]], source: dict) -> 
             community_candidates.append(row)
             if (
                 str(row.get("SECTOR", "")).strip() == "1"
-                and "public_associates_certificates_instcat" in reasons
+                and (
+                    "public_associates_certificates_instcat" in reasons
+                    or "public_associate_or_bacc_assoc_carnegie" in reasons
+                )
             ):
                 four_year_recovered += 1
 
@@ -434,13 +437,18 @@ def build_ipeds_coverage_report(rows: list[dict[str, object]], source: dict) -> 
                 if str(row.get("CONTROL", "")).strip() == "1"
                 and str(row.get("INSTCAT", "")).strip() == "4"
             ),
+            "public_associate_or_bacc_assoc_carnegie": sum(
+                1 for row in rows
+                if str(row.get("CONTROL", "")).strip() == "1"
+                and str(row.get("C21BASIC", "")).strip() in {str(value) for value in range(1, 15)} | {"23"}
+            ),
             "community_college_pathway_proxy_union": len(community_candidates),
-            "four_year_sector_recovered_by_instcat_4": four_year_recovered,
+            "four_year_sector_recovered_by_proxy": four_year_recovered,
         },
         "interpretation_notes": [
             "IPEDS public 2-year is not a complete synonym for community college.",
-            "The community-college pathway proxy is a transparent union of public SECTOR=4 and public INSTCAT=4 records.",
-            "INSTCAT=4 denotes degree-granting institutions classified around associate's degrees and certificates and can recover institutions that offer bachelor's degrees but remain associate-focused.",
+            "The community-college pathway proxy is a transparent union of public SECTOR=4, public INSTCAT=4, and public 2021 Carnegie Basic associate/baccalaureate-associate categories.",
+            "Carnegie Basic codes 1-14 and 23 represent associate's, special-focus two-year, or baccalaureate/associate institutions; this adds an explicit pathway signal for public institutions that may sit in a four-year IPEDS sector.",
             "The proxy is a coverage layer, not a legal, state-system, or mission designation.",
             "These counts describe the complete ingested directory snapshot before prestige, selectivity, geography, or user-profile filtering."
         ],
