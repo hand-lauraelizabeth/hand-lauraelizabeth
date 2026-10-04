@@ -4,11 +4,11 @@
 
 From 2018 to 2020, Laura Elizabeth Hand served as ESOL Lead Teacher Coordinator and instructor with Community Impact at Columbia University. The role combined curriculum development, instructor recruitment and support, assessment, staffing, professional development, program operations, and adult-learning pedagogy across a multi-site ESOL program.
 
-The surviving archive documents this as a learning **system**, not a single course or textbook.
+The project is best understood as a learning **system**, not a single course or textbook.
 
 ## Program scope
 
-The surviving CV and program materials support the following scope:
+The CV and program materials document the following scope:
 
 - adult ESOL programming across five primary instructional sites;
 - roughly 85–110 volunteer and part-time instructors per 12-week cycle;
@@ -21,7 +21,7 @@ The surviving CV and program materials support the following scope:
 
 ## The Level 6 curriculum
 
-A surviving Summer 2019 Level 6 booklet contains **10 chapters and 40 lessons** across more than 329 pages.
+The Summer 2019 Level 6 booklet contains **10 chapters and 40 lessons** across more than 329 pages.
 
 Its sequence moves through:
 
@@ -58,7 +58,7 @@ This architecture makes language practice consequential: learners use English wh
 
 ## Instructor enablement
 
-The learning system depended on a large, rotating teaching workforce. Surviving orientation and teacher-development materials emphasize:
+The learning system depended on a large, rotating teaching workforce. Orientation and teacher-development materials emphasize:
 
 - Communicative Language Teaching;
 - authentic production;
@@ -112,18 +112,11 @@ The important design principle is that assessment data was connected to instruct
 - iterative handoff across instructors;
 - program adaptation under disruption.
 
-## Publication boundary
+## Materials & attribution
 
-The original compiled curriculum incorporates external readings, transcripts, institutional resources, and other material whose authorship/rights vary. Raw teacher-observation records also contain identifiable information.
+The original compiled curriculum includes external readings, transcripts, institutional resources, and instructor records. This case study therefore focuses on the curriculum architecture, teaching model, program operations, and design methods rather than reproducing the full textbook or identifiable observation records. Third-party material remains attributed to its original sources.
 
-Accordingly, the public portfolio:
-
-- does not republish the full original textbook;
-- does not publish identifiable observation records;
-- distinguishes curriculum architecture from ownership of third-party readings;
-- uses newly authored summaries, maps, and derivative tools to demonstrate the design method.
-
-## Public derivative
+## Related resources
 
 - [Community Impact Level 6 Curriculum Architecture Map](../../resources/curriculum-lesson-design/Community_Impact_Level_6_Curriculum_Architecture_Map.md)
 - [Design Around a Real Decision — Curriculum Planning Canvas](../../resources/curriculum-lesson-design/Design_Around_a_Real_Decision_Curriculum_Planning_Canvas.md)
