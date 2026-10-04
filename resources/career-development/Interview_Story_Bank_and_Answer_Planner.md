@@ -162,5 +162,5 @@ Before relying on a story, ask:
 - [ ] Can I shorten it if the interviewer wants a concise answer?
 - [ ] Do I have a different story available so I do not reuse the same example for every question?
 
-## Development note
-This resource is a new 2026 derivative tool developed from recurring interview-preparation methods found in Laura Elizabeth Hand’s archived career-development materials. It is designed as a reusable evidence system rather than a script or answer bank.
+## About this resource
+Created in 2026, this planner develops recurring interview-preparation methods from Laura Elizabeth Hand’s career-development work into a reusable evidence system rather than a script or answer bank.
