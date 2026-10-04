@@ -130,6 +130,7 @@ if len(source_ids) != len(set(source_ids)):
 
 expected_sources = {
     "college_scorecard",
+    "dapip_accreditation",
     "ipeds_directory_2025",
     "ipeds_completions_2025",
     "cip_soc_crosswalk_2020_2018",
@@ -159,6 +160,10 @@ for join in joins if isinstance(joins, list) else []:
 
     if not join.get("left_key") or not join.get("right_key"):
         fail(f"{join_id}: both join keys are required")
+
+dapip_join = next((j for j in joins if j.get("join_id") == "ipeds_to_dapip"), None)
+if not dapip_join or dapip_join.get("left_key") != ["UNITID"] or dapip_join.get("right_key") != ["UNITID"]:
+    fail("IPEDS-DAPIP join must explicitly use UNITID on both sides")
 
 cip_join = next((j for j in joins if j.get("join_id") == "ipeds_program_to_cip_soc"), None)
 if not cip_join or cip_join.get("expected_cardinality") != "many_to_many":
