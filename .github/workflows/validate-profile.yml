@@ -66,3 +66,7 @@ jobs:
         run: |
           python scripts/college_career_ingest.py --source ipeds_directory_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
           python scripts/college_career_ingest.py --source ipeds_completions_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
+
+      - name: Live O*NET ingestion smoke test
+        if: contains(github.event.head_commit.message, '[live-onet-smoke]')
+        run: python scripts/college_career_ingest.py --source onet_31_0 --output-dir "${{ runner.temp }}/college-career-smoke"
