@@ -157,17 +157,29 @@ The career-side source inventory now distinguishes open occupational data, licen
 - [Historical Formula Specification](Historical_College_Model_Formula_Specification.md)
 - [Historical Data Dictionary](Historical_College_Model_Data_Dictionary.md)
 
+## Ingestion & QA infrastructure
+
+The source layer is now defined in both human-readable and machine-checkable form:
+
+- [Production source manifest](source_manifest.json) — pinned source IDs, releases, access URLs, canonical keys, required artifacts, metadata, and join cardinalities;
+- [Ingestion contract](INGESTION_CONTRACT.md) — raw → staging → normalized → model-ready rules, key normalization, suppression handling, and refresh behavior;
+- [QA & Join Tests](QA_JOIN_TESTS.md) — source-level, cross-source, and recommendation-gating acceptance criteria;
+- [MVP Field-Level Source Matrix](MVP_Field_Level_Source_Matrix.md) — 83 fields mapped to source variables, joins, cadence, transformations, and missing-data behavior;
+- [Machine-readable source matrix](MVP_Field_Level_Source_Matrix.csv) — CSV for ingestion/configuration work.
+
+The repository CI runs `scripts/validate_college_career_sources.py` to check manifest structure, source IDs, join references, CIP↔SOC cardinality, production-source privacy boundaries, and source-matrix consistency.
+
 ## Next development stage
 
-The next stage is to define the **current-data refresh architecture**:
+Implement the first **public-source ingestion prototype**:
 
-- assign an authoritative source and stable identifier to each field;
-- define field-level refresh cadence and source-version metadata;
-- define CIP ↔ SOC ↔ skill crosswalks and ambiguity handling;
-- establish missing-data and uncertainty rules;
-- distinguish open/public, licensed commercial, and authorized institutional inputs;
-- define validation and bias checks before implementation;
-- preserve user-adjustable weights and sensitivity testing.
+1. College Scorecard institution snapshot;
+2. IPEDS HD2025 + C2025_A;
+3. CIP 2020 ↔ SOC 2018 bridge;
+4. O*NET 31.0 occupation/skills tables;
+5. BLS 2025–2035 projections + May 2025 OEWS.
+
+The prototype should create immutable raw snapshots, source metadata/hashes, normalized keys, and QA reports. Recommendation scoring remains gated until the source/join tests pass.
 
 
 See the:
