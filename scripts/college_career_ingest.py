@@ -209,6 +209,17 @@ def http_get(url: str, *, headers: dict[str, str] | None = None, timeout: int = 
             ),
             "Accept": "application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,*/*",
         })
+    if host == "scorecard.network" or host.endswith(".scorecard.network"):
+        request_headers.update({
+            "User-Agent": os.getenv(
+                "SCORECARD_USER_AGENT",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+            ),
+            "Accept": "application/zip,application/octet-stream,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://collegescorecard.ed.gov/data/",
+        })
     request_headers.update(headers or {})
     req = urllib.request.Request(url, headers=request_headers)
     with urllib.request.urlopen(req, timeout=timeout) as response:
