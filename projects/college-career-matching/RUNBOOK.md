@@ -90,3 +90,5 @@ Each successful HD2025 run also writes `reports/institution_coverage.json` with 
 ## O*NET live smoke path
 
 A commit message containing `[live-onet-smoke]` downloads the configured O*NET 31.0 occupation/content tables and verifies that the occupation universe and related content normalize successfully.
+
+A successful O*NET run also writes `reports/career_coverage.json`, including the total detailed occupation universe and occupation coverage by each O*NET content table.
