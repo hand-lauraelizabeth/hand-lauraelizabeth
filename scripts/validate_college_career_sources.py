@@ -167,8 +167,8 @@ else:
                 fail(f"source matrix missing headers: {sorted(missing_headers)}")
             rows = list(reader)
 
-if len(rows) < 83:
-    fail(f"source matrix unexpectedly small: {len(rows)} rows; expected at least 83")
+if len(rows) < 84:
+    fail(f"source matrix unexpectedly small: {len(rows)} rows; expected at least 84")
 
 pairs: set[tuple[str, str]] = set()
 private_terms = ("handshake", "symplicity", "linkedin", "private employer")
