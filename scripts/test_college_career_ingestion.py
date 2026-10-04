@@ -39,6 +39,9 @@ def main() -> None:
     assert_equal(module.value_status("**"), "suppressed", "BLS suppression")
     assert_equal(module.value_status("0"), "reported", "zero is reported")
 
+    empty_qa = module.qa_report("fixture", [], ["ID"])
+    assert_equal(empty_qa["status"], "fail", "zero-row QA must fail")
+
     sample = make_zip_csv(
         "HD2025.csv",
         "UNITID,INSTNM,CITY,STABBR,ZIP,CONTROL,LOCALE\n"
