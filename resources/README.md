@@ -1,6 +1,6 @@
 # Tools & Templates
 
-Public-safe tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, analytics, career-readiness, and decision-support methods.
+Reusable tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, analytics, career-readiness, and decision-support methods.
 
 **Current release:** v1.0.0 · October 1, 2026 · [Release notes](RELEASE_NOTES.md) · [Release manifest](manifest.json)
 
@@ -46,10 +46,10 @@ Every resource follows the same usability model:
 - **labeled edit zones** — INPUT, AUTO, OPTIONAL, and ACTION NEEDED are explicitly distinguished;
 - **accessible meaning** — color supports labels but does not carry meaning by itself;
 - **transparent automation** — automation handles repetitive work without presenting judgment as a formula;
-- **public-safe examples** — no employer, client, learner, member, or proprietary source data is included.
+- **shareable examples** — examples are designed for public use and do not include confidential employer, client, learner, member, or proprietary data.
 
 ## Publishing and privacy
 
-Public resources are newly built or reconstructed with synthetic, generic, public-domain, or openly licensed examples. Authorized institutional examples may be linked as applied-work evidence without being duplicated into this repository when their contents include institutional or third-party material.
+Resources use synthetic, generic, public-domain, openly licensed, or otherwise shareable examples. Institutional examples are linked where useful and appropriate, with attribution and rights kept clear.
 
 See the repository's [Public Portfolio Publishing Checklist](../PORTFOLIO_PUBLISHING_CHECKLIST.md) for the publication standard.
