@@ -18,7 +18,7 @@ This document defines the preferred production data sources for the modern Colle
 
 ## 1. College Scorecard
 
-Use College Scorecard as the primary student-facing institution/outcome layer where available.
+Use College Scorecard as the primary student-facing institution/outcome enrichment layer where available. The production adapter uses the official featured institution-level bulk ZIP rather than requiring an api.data.gov key. Direct download is preferred; when the federal bulk CDN blocks automated runners, the exact official ZIP can be supplied with `--source-file` and is still hashed, snapshotted, normalized, and QA-checked under the same source contract. CDN reachability is not treated as evidence that the dataset itself is unavailable.
 
 Relevant categories include:
 
