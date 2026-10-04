@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "as_of": "2026-10-04",
+  "purpose": "Conservative regression floors derived from successful live federal-source coverage builds. A new source release may require deliberate baseline review; silently shrinking below these floors fails the opt-in coverage gate.",
+  "layers": {
+    "institution": {
+      "reference": "HD2025 + live DAPIP bulk export",
+      "minimums": {
+        "institution_universe": 5900,
+        "institutions_with_dapip_id_match": 5600,
+        "institutions_with_current_institutional_accreditation_by_export_rule": 5200,
+        "community_college_pathway_proxy.count": 1000,
+        "community_college_pathway_proxy.public_two_year_sector": 800
+      }
+    },
+    "program": {
+      "reference": "C2025_A + CIP 2020 ↔ SOC 2018",
+      "minimums": {
+        "completion_source_rows": 300000,
+        "summary_cip_rows_excluded": 20000,
+        "unique_institution_program_award_combinations": 260000,
+        "institutions_with_specific_program_completions": 5700,
+        "distinct_cip6_observed": 1550,
+        "cip_soc_coverage.observed_cip6_direct_mapping_rate": 0.99,
+        "cip_soc_coverage.program_combination_direct_mapping_rate": 0.99
+      }
+    },
+    "career": {
+      "reference": "O*NET 31.0 + BLS 2025–2035 projections + May 2025 OEWS national",
+      "minimums": {
+        "onet.occupation_rows": 1000,
+        "onet.unique_base_soc6": 850,
+        "onet_to_bls_employment_projections.bls_detailed_soc6": 800,
+        "onet_to_bls_employment_projections.overlap_soc6": 800,
+        "onet_to_bls_employment_projections.onet_base_soc6_match_rate": 0.93,
+        "onet_to_oews_by_area_type.National.oews_detailed_soc6": 800,
+        "onet_to_oews_by_area_type.National.onet_soc6_overlap": 800,
+        "onet_to_oews_by_area_type.National.onet_base_soc6_match_rate": 0.93
+      }
+    }
+  }
+}
