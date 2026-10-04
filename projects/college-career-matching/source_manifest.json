@@ -403,10 +403,10 @@
     },
     {
       "source_id": "bls_oews_may_2025",
-      "title": "BLS Occupational Employment and Wage Statistics — May 2025 all data",
+      "title": "BLS Occupational Employment and Wage Statistics — May 2025 national baseline",
       "agency": "U.S. Bureau of Labor Statistics",
       "status": "production_core",
-      "access_type": "multi_file_download",
+      "access_type": "api",
       "official_url": "https://www.bls.gov/oes/tables.htm",
       "release": {
         "label": "May 2025",
@@ -420,32 +420,38 @@
         "AREA",
         "OCC_CODE"
       ],
-      "refresh_policy": "Annual OEWS release.",
-      "retrieval_mode": "Official BLS public time-series files. Decode documented OE series-id positions and retain 2025 cross-industry observations; no oe.series download is required.",
+      "refresh_policy": "Annual OEWS release; national automation-safe baseline first, with state/metro/nonmetro geography expansion retained as a separate layer.",
+      "retrieval_mode": "Official BLS OEWS query services under data.bls.gov/OESServices. Query May 2025 release 2025A01 for National area 0000000, cross-industry 000000, batching detailed occupations below query-size limits.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
         "reference_month",
         "release_date",
-        "source_files",
-        "sha256",
-        "periods_seen"
+        "query_release_key",
+        "query_geography",
+        "query_industry",
+        "query_batch_size",
+        "sha256"
       ],
       "required_artifacts": [
-        "raw_time_series_files",
+        "raw_query_json",
         "normalized_occupation_wage_table",
         "source_snapshot_metadata",
         "coverage_report"
       ],
       "qa": [
-        "AREA_TYPE_CODE + AREA + OCC_CODE is unique in normalized cross-industry output.",
-        "Only reference-year 2025 and industry_code 000000 observations enter the normalized cross-industry table.",
+        "National AREA + detailed OCC_CODE is unique in normalized output.",
+        "May 2025 release key 2025A01 is confirmed by the live BLS year service.",
+        "Only cross-industry 000000 and National area 0000000 enter the automation-safe baseline.",
+        "Only source displayLevel=3 occupations enter detailed joins.",
         "Suppressed or otherwise unreported wage/employment values remain null with a status or footnote state.",
-        "Percentile wages are ordered where P25, median, and P75 are all reported.",
-        "AREA title is stable within AREA_TYPE_CODE + AREA.",
-        "Detailed occupation joins use source occupation display_level=3."
+        "Annual P25 <= median <= P75 where all three estimates are reported."
       ],
-      "files": {
+      "access_url": "https://data.bls.gov/oes/",
+      "service_base_url": "https://data.bls.gov",
+      "release_query_key": "2025A01",
+      "query_batch_size": 200,
+      "optional_bulk_files": {
         "data": "https://download.bls.gov/pub/time.series/oe/oe.data.0.Current",
         "area": "https://download.bls.gov/pub/time.series/oe/oe.area",
         "areatype": "https://download.bls.gov/pub/time.series/oe/oe.areatype",
