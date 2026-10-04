@@ -122,7 +122,6 @@ def main() -> None:
         "ipeds_completions_2025",
         "cip_soc_crosswalk_2020_2018",
         "onet_31_0",
-        "dapip_accreditation",
         "bls_employment_projections_2025_2035",
         "bls_oews_may_2025",
     }
@@ -135,8 +134,8 @@ def main() -> None:
         "ipeds_directory_2025": "https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip",
         "ipeds_completions_2025": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip",
         "cip_soc_crosswalk_2020_2018": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
-        "dapip_accreditation": "https://ope.ed.gov/dapip/api/downloadFiles/accreditationDataFiles",
         "bls_employment_projections_2025_2035": "https://data.bls.gov/projections/occupationProj",
+        "bls_oews_may_2025": "https://data.bls.gov/oes/",
     }
     for source_id, expected_url in expected_urls.items():
         actual = module.resolve_access_url(module.get_source(source_id))
@@ -172,11 +171,10 @@ def main() -> None:
             if len(result.get("access_urls", {})) < len(required_onet_files):
                 raise AssertionError("O*NET dry run did not expose configured source files")
         elif source_id == "bls_oews_may_2025":
-            required_oews_files = {"data", "area", "areatype", "occupation", "datatype", "release"}
-            if required_oews_files - set(result.get("access_urls", {})):
-                raise AssertionError("OEWS dry run did not expose required official time-series files")
-            if any(not str(url).startswith("https://download.bls.gov/") for url in result["access_urls"].values()):
-                raise AssertionError("OEWS time-series files must use official download.bls.gov endpoints")
+            assert_equal(result.get("access_url"), "https://data.bls.gov/oes/", "OEWS query app URL")
+            assert_equal(result.get("service_base_url"), "https://data.bls.gov", "OEWS query service base")
+            assert_equal(result.get("release_query_key"), "2025A01", "OEWS May 2025 query release")
+            assert_equal(result.get("geography"), "National", "OEWS automation-safe baseline geography")
         elif source_id == "dapip_accreditation":
             assert_equal(result.get("method"), "POST", "DAPIP dry-run method")
             assert_equal(result.get("payload"), {"CSVChecked": True, "ExcelChecked": False}, "DAPIP dry-run payload")
