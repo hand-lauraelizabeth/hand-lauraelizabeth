@@ -2,7 +2,7 @@
 
 A reusable system for recovering evidence from work, school, volunteering, projects, caregiving, community work, and other experience—then translating it into résumé bullets, interview stories, portfolios, performance reviews, and applications.
 
-This develops an accomplishment-identification method present in Laura Elizabeth Hand's archived career-readiness materials: focus on what you did and changed, not merely what your title or job description said.
+This develops an accomplishment-identification method used across Laura Elizabeth Hand's career-readiness work: focus on what you did and changed, not merely what your title or job description said.
 
 ## 1. Experience inventory
 
@@ -176,8 +176,8 @@ If you no longer have the original system or deliverable, search for:
 - [ ] Calendar records
 - [ ] Version history
 
-Separate what you remember from what the surviving record proves.
+Separate what you remember from what you can document.
 
-## Development note
+## About this resource
 
-This 2026 resource is derived from accomplishment-identification and résumé-development activities found in Laura Elizabeth Hand's archived career-readiness materials, including prompts about training coworkers, recognition, saving time/money/resources, exceeding goals, taking on work beyond a job description, simplifying procedures, leading projects, and community work. It expands that method into a reusable evidence inventory that supports résumés, interviews, portfolios, performance reviews, and archival recovery while adding explicit evidence, confidentiality, and overclaim checks.
+Created in 2026, this inventory expands accomplishment-identification and résumé-development methods from Laura Elizabeth Hand's career-readiness work into a reusable system for résumés, interviews, portfolios, performance reviews, and career-history review. It adds explicit checks for evidence, confidentiality, and overclaiming.
