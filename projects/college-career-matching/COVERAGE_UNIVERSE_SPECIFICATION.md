@@ -270,3 +270,8 @@ A student should be able to discover a strong-fit state school, community colleg
 8. Join BLS projections/OEWS while retaining unmatched occupations.
 9. Produce career and program coverage reports.
 10. Add automated regression thresholds so future source refreshes cannot silently shrink the universe.
+
+
+## Live coverage verification
+
+The ingestion pipeline should verify the full IPEDS institution and completions feeds directly rather than testing only handpicked institutions. A live CI smoke path exercises both the current institution directory and 6-digit CIP completions source so schema changes or unexpected filtering are caught before coverage logic is built on top of them.
