@@ -197,6 +197,130 @@ def main() -> None:
         "institutions with specific program completions",
     )
 
+
+    model_root = ROOT / "tmp" / "model-ready-fixture"
+    shutil.rmtree(model_root, ignore_errors=True)
+    model_sources = (
+        "ipeds_directory_2025",
+        "ipeds_completions_2025",
+        "cip_soc_crosswalk_2020_2018",
+        "onet_31_0",
+        "bls_employment_projections_2025_2035",
+        "bls_oews_may_2025",
+        "dapip_accreditation",
+    )
+    for source_id in model_sources:
+        (model_root / source_id / "20261004T000000Z" / "normalized").mkdir(
+            parents=True, exist_ok=True
+        )
+
+    module.write_csv(
+        model_root / "ipeds_directory_2025" / "20261004T000000Z" / "normalized" / "institution.csv",
+        ["UNITID", "INSTNM", "CITY", "STABBR", "ZIP", "CONTROL", "LOCALE", "SECTOR",
+         "ICLEVEL", "DEGGRANT", "INSTCAT", "C21BASIC", "OPEID", "source_release"],
+        [
+            {"UNITID": "100001", "INSTNM": "Alpha College", "CITY": "A", "STABBR": "NY",
+             "ZIP": "10001", "CONTROL": "1", "LOCALE": "11", "SECTOR": "1", "ICLEVEL": "1",
+             "DEGGRANT": "1", "INSTCAT": "1", "C21BASIC": "15", "OPEID": "00111100",
+             "source_release": "2025 provisional"},
+            {"UNITID": "100002", "INSTNM": "Alpha Branch", "CITY": "B", "STABBR": "NY",
+             "ZIP": "10002", "CONTROL": "1", "LOCALE": "12", "SECTOR": "4", "ICLEVEL": "2",
+             "DEGGRANT": "1", "INSTCAT": "4", "C21BASIC": "2", "OPEID": "00111100",
+             "source_release": "2025 provisional"},
+            {"UNITID": "100003", "INSTNM": "Beta College", "CITY": "C", "STABBR": "NJ",
+             "ZIP": "07001", "CONTROL": "2", "LOCALE": "21", "SECTOR": "2", "ICLEVEL": "1",
+             "DEGGRANT": "1", "INSTCAT": "1", "C21BASIC": "15", "OPEID": "00222200",
+             "source_release": "2025 provisional"},
+        ],
+    )
+    module.write_csv(
+        model_root / "ipeds_completions_2025" / "20261004T000000Z" / "normalized" / "program_completion.csv",
+        ["UNITID", "MAJORNUM", "CIP6", "AWLEVEL", "CTOTALT", "source_id", "source_release"],
+        [
+            {"UNITID": "100001", "MAJORNUM": "1", "CIP6": "010101", "AWLEVEL": "5", "CTOTALT": "10",
+             "source_id": "ipeds_completions_2025", "source_release": "2024-25"},
+            {"UNITID": "100001", "MAJORNUM": "2", "CIP6": "010101", "AWLEVEL": "5", "CTOTALT": "2",
+             "source_id": "ipeds_completions_2025", "source_release": "2024-25"},
+            {"UNITID": "100003", "MAJORNUM": "1", "CIP6": "020202", "AWLEVEL": "3", "CTOTALT": "0",
+             "source_id": "ipeds_completions_2025", "source_release": "2024-25"},
+        ],
+    )
+    module.write_csv(
+        model_root / "cip_soc_crosswalk_2020_2018" / "20261004T000000Z" / "normalized" / "cip_soc_bridge.csv",
+        ["CIP6", "SOC6", "crosswalk_version"],
+        [{"CIP6": "010101", "SOC6": "11-1011", "crosswalk_version": "CIP 2020 ↔ SOC 2018"}],
+    )
+    module.write_csv(
+        model_root / "onet_31_0" / "20261004T000000Z" / "normalized" / "occupation_data.csv",
+        ["ONET_SOC_CODE", "SOC6", "Title", "Description", "onet_version"],
+        [{"ONET_SOC_CODE": "11-1011.00", "SOC6": "11-1011", "Title": "Chief Executives",
+          "Description": "Determine and formulate policies.", "onet_version": "31.0"}],
+    )
+    module.write_csv(
+        model_root / "bls_employment_projections_2025_2035" / "20261004T000000Z" / "normalized" / "occupation_outlook.csv",
+        ["SOC6", "EMPLOYMENT_2025_THOUSANDS", "EMPLOYMENT_2035_THOUSANDS",
+         "EMPLOYMENT_CHANGE_PERCENT_2025_2035", "ANNUAL_OPENINGS_2025_2035_THOUSANDS",
+         "TYPICAL_EDUCATION", "projection_cycle"],
+        [{"SOC6": "11-1011", "EMPLOYMENT_2025_THOUSANDS": "300", "EMPLOYMENT_2035_THOUSANDS": "310",
+          "EMPLOYMENT_CHANGE_PERCENT_2025_2035": "3.3", "ANNUAL_OPENINGS_2025_2035_THOUSANDS": "20",
+          "TYPICAL_EDUCATION": "Bachelor's degree", "projection_cycle": "2025-2035"}],
+    )
+    module.write_csv(
+        model_root / "bls_oews_may_2025" / "20261004T000000Z" / "normalized" / "occupation_wage.csv",
+        ["AREA", "AREA_TYPE", "IS_DETAILED", "OCC_CODE", "TOT_EMP", "TOT_EMP_STATUS",
+         "A_PCT25", "A_MEDIAN", "A_PCT75", "A_MEDIAN_STATUS", "reference_period"],
+        [{"AREA": "0000000", "AREA_TYPE": "National", "IS_DETAILED": "1", "OCC_CODE": "11-1011",
+          "TOT_EMP": "200000", "TOT_EMP_STATUS": "reported", "A_PCT25": "90000",
+          "A_MEDIAN": "150000", "A_PCT75": "220000", "A_MEDIAN_STATUS": "reported",
+          "reference_period": "May 2025"}],
+    )
+    module.write_csv(
+        model_root / "dapip_accreditation" / "20261004T000000Z" / "normalized" / "dapip_ipeds_bridge.csv",
+        ["DAPIP_ID", "UNITID"],
+        [
+            {"DAPIP_ID": "500", "UNITID": "100001"},
+            {"DAPIP_ID": "500", "UNITID": "100002"},
+            {"DAPIP_ID": "600", "UNITID": "100003"},
+        ],
+    )
+    module.write_csv(
+        model_root / "dapip_accreditation" / "20261004T000000Z" / "normalized" / "institution_campus.csv",
+        ["DAPIP_ID", "PARENT_DAPIP_ID", "LOCATION_TYPE", "OPEID"],
+        [
+            {"DAPIP_ID": "500", "PARENT_DAPIP_ID": "", "LOCATION_TYPE": "Institution", "OPEID": "00111100"},
+            {"DAPIP_ID": "600", "PARENT_DAPIP_ID": "", "LOCATION_TYPE": "Institution", "OPEID": "00222200"},
+        ],
+    )
+    module.write_csv(
+        model_root / "dapip_accreditation" / "20261004T000000Z" / "normalized" / "accreditation_records.csv",
+        ["DAPIP_ID", "IS_INSTITUTIONAL", "IS_CURRENT_BY_EXPORT_RULE"],
+        [
+            {"DAPIP_ID": "500", "IS_INSTITUTIONAL": "1", "IS_CURRENT_BY_EXPORT_RULE": "1"},
+            {"DAPIP_ID": "600", "IS_INSTITUTIONAL": "1", "IS_CURRENT_BY_EXPORT_RULE": "1"},
+        ],
+    )
+
+    model_ready = module.build_model_ready_layer(model_root)
+    model_qa = model_ready["qa"]
+    assert_equal(model_qa["institution_rows"], 3, "model-ready institution rows")
+    assert_equal(model_qa["distinct_recommendation_entities"], 3, "UNITIDs remain distinct entities")
+    assert_equal(model_qa["shared_exact_identifier_clusters"], 1, "shared DAPIP review cluster")
+    assert_equal(model_qa["auto_collapsed_institutions"], 0, "no identity auto-collapse")
+    assert_equal(model_qa["program_rows_first_major"], 2, "second-major excluded from model-ready programs")
+    assert_equal(model_qa["programs_without_direct_cip_soc_mapping"], 1, "unmapped program retained")
+    pathway_fixture_rows = module.read_csv_path(Path(model_ready["files"]["pathway"]))
+    assert_equal(
+        any(row["PATHWAY_RELATIONSHIP_TYPE"] == "no_direct_cip_soc_mapping" for row in pathway_fixture_rows),
+        True,
+        "unmapped program pathway row retained",
+    )
+    identity_fixture_rows = module.read_csv_path(Path(model_ready["files"]["identity"]))
+    assert_equal(
+        {row["RECOMMENDATION_ENTITY_ID"] for row in identity_fixture_rows},
+        {"UNITID:100001", "UNITID:100002", "UNITID:100003"},
+        "identity resolution preserves each UNITID",
+    )
+
     manifest = module.load_manifest()
     source_ids = {s["source_id"] for s in manifest["sources"]}
     required = {
