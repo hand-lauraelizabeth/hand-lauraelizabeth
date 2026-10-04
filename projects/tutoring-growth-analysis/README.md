@@ -1,15 +1,15 @@
 # Tutoring growth analysis in R
 
-A reconstructed analytical demonstration based on program-evaluation and research workflows I used in institutional teaching and research contexts. The original work was completed on institutional systems/work laptops and cannot be reproduced directly for a public portfolio, so this project approximates the analytical approach using fully synthetic data.
+A reproducible program-evaluation example that models pre/post growth while accounting for repeated observations and class structure.
 
-## Question
+## Analytical question
 
-If tutored and comparison classes begin at different levels, raw post-test averages are not enough to evaluate relative growth. This example models change from fall to spring and estimates whether the change differs by tutoring status.
+When groups begin at different levels, post-test averages alone are not enough to evaluate relative growth. This analysis estimates whether change from fall to spring differs by tutoring status.
 
 ## Methods demonstrated
 
 - Synthetic-data generation with a fixed random seed
-- Tidy data reshaping with `pivot_longer()`
+- Tidy reshaping with `pivot_longer()`
 - Mixed-effects modeling with `lme4::lmer()`
 - Random intercepts for class and student
 - Interaction-based estimation of differential growth
@@ -18,26 +18,26 @@ If tutored and comparison classes begin at different levels, raw post-test avera
 
 ## Reproduce
 
-Run `analysis.R` with these packages installed:
+Run `analysis.R` with:
 
 ```r
 install.packages(c("tidyverse", "lme4", "broom.mixed"))
 ```
 
-The script generates its own synthetic dataset, fits the model, and prints both the interaction estimate and simple mean-growth summaries.
-
-## Provenance and evidence boundary
-
-This is a **reconstructed portfolio demonstration**, not the original institutional analysis. It reflects the kinds of statistical and research-design work I performed in institutional contexts, but it does not reproduce proprietary files, restricted datasets, or employer-owned deliverables.
-
-All observations in this repository are synthetic. The project demonstrates analytical method, model specification, reproducibility, and interpretation; it does not establish that a particular tutoring program produced the simulated effect.
-
-A production evaluation would additionally document assignment or selection mechanisms, missing-data rules, measurement validity, model diagnostics, sensitivity analyses, and contextual limitations before making causal or program-impact claims.
+The script generates a synthetic dataset, fits the model, and prints both the interaction estimate and simple mean-growth summaries.
 
 ## Why mixed effects?
 
-Each learner contributes repeated observations, and learners are nested within classes. Random intercepts represent those dependencies more appropriately than treating every score as an independent observation.
+Each learner contributes repeated observations, and learners are nested within classes. Random intercepts represent those dependencies more appropriately than treating every score as independent.
 
-## Next extension
+## Interpretation
 
-A fuller version can be rendered in Quarto with a data dictionary, diagnostic plots, model checks, an executive summary, and an explicitly non-causal interpretation where random assignment is absent.
+The synthetic dataset makes the complete analytical workflow reproducible. The project demonstrates model specification, uncertainty-aware reporting, and the distinction between an estimated association and a causal claim.
+
+## Next extensions
+
+- Quarto report
+- Data dictionary
+- Diagnostic plots and model checks
+- Sensitivity analysis
+- One-page stakeholder summary
