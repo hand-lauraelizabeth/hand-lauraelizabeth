@@ -529,6 +529,7 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
 
     file_metadata: dict[str, dict[str, object]] = {}
     extracted: dict[str, int] = {}
+    table_occupation_coverage: dict[str, int] = {}
     occupation_rows: list[dict[str, object]] = []
 
     for table_name, url in file_urls.items():
@@ -561,6 +562,11 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
             fieldnames = list(normalized_rows[0].keys())
             write_csv(normalized_dir / f"{table_name}.csv", fieldnames, normalized_rows)
         extracted[table_name] = len(normalized_rows)
+        table_occupation_coverage[table_name] = len({
+            str(row.get("ONET_SOC_CODE"))
+            for row in normalized_rows
+            if row.get("ONET_SOC_CODE")
+        })
         if table_name == "occupation_data":
             occupation_rows = normalized_rows
 
@@ -590,9 +596,24 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
     )
 
     report = qa_report(source["source_id"], occupation_rows, ["ONET_SOC_CODE"])
+    coverage = {
+        "source_id": source["source_id"],
+        "source_release": source["release"]["label"],
+        "generated_at": utc_now(),
+        "total_detailed_occupations": len(occupation_rows),
+        "occupations_with_base_soc6": sum(1 for row in occupation_rows if row.get("SOC6")),
+        "table_row_counts": extracted,
+        "occupations_represented_by_table": table_occupation_coverage,
+        "coverage_notes": [
+            "The baseline retains the full O*NET occupation table rather than filtering by wage, growth, prestige, or posting volume.",
+            "Missing content in a secondary O*NET table is treated as a coverage gap, not a reason to remove an occupation from the universe.",
+            "BLS projection, OEWS wage, and CIP-SOC linkage coverage are evaluated in later cross-source join reports."
+        ],
+    }
     return {
         "metadata": snapshot_metadata,
         "qa": report,
+        "coverage": coverage,
         "normalized_rows": extracted,
     }
 
@@ -811,7 +832,14 @@ def ingest_source(source_id: str, output_dir: Path, *, dry_run: bool = False) ->
     reports.mkdir(parents=True, exist_ok=True)
     (reports / "qa.json").write_text(json.dumps(result["qa"], indent=2) + "\n", encoding="utf-8")
     if "coverage" in result:
-        (reports / "institution_coverage.json").write_text(
+        coverage_name = (
+            "institution_coverage.json"
+            if source_id == "ipeds_directory_2025"
+            else "career_coverage.json"
+            if source_id == "onet_31_0"
+            else "coverage.json"
+        )
+        (reports / coverage_name).write_text(
             json.dumps(result["coverage"], indent=2) + "\n", encoding="utf-8"
         )
     if result["qa"].get("status") == "fail":
