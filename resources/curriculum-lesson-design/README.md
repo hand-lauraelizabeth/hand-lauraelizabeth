@@ -26,6 +26,6 @@ Reusable instructional-design resources for moving from learner context and auth
 
 Use the [Curriculum / Workshop QA & Outline Builder](../curriculum-workshop-qa/) after the learning architecture is defined to operationalize timing, activities, assessments, materials, and delivery QA.
 
-The resources are newly authored public derivatives. They do not reproduce institutional curricula or third-party teaching materials.
+The resources are newly authored tools that translate recurring curriculum-design methods into reusable planning frameworks.
 
 [Back to Tools & Templates](../README.md)
