@@ -94,9 +94,9 @@ Use the official NCES/BLS CIP 2020 ↔ SOC 2018 crosswalk.
 
 ### O*NET 31.0
 
-Use the pinned 31.0 CSV release. Minimum normalized tables: occupation, skills, knowledge, abilities, interests, work activities, work context, education/training/experience, related occupations, and technology skills.
+Use the pinned 31.0 CSV release. Minimum normalized tables: occupation data, essential skills, transferable skills, software skills, knowledge, abilities, education, training and experience, career interest types, work activities, work context, related occupations, and job zones.
 
-Retain O*NET element IDs and scale IDs; importance and level scales remain distinct during ingestion.
+Retain O*NET element IDs and scale IDs wherever the table supplies them. Essential skills, transferable skills, and software skills remain separate dimensions during ingestion rather than being collapsed into one generic skills score.
 
 ### BLS Employment Projections
 
