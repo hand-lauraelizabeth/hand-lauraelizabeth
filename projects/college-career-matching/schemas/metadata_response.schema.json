@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.lauraelizabethhand.com/schemas/college-career-metadata-response-1.0.json",
+  "title": "College + Career Metadata Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "data_version",
+    "model_version",
+    "serving_state",
+    "production_authorized",
+    "snapshot",
+    "source_vintages",
+    "release",
+    "semantic_rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "data_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "serving_state": {
+      "enum": [
+        "blocked",
+        "review_eligible",
+        "data_review_eligible_model_not_evaluated",
+        "not_evaluated"
+      ]
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generated_at_utc",
+        "candidate_grain",
+        "candidate_count",
+        "institution_count",
+        "output_sha256",
+        "enrichment_registry_version"
+      ],
+      "properties": {
+        "generated_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "candidate_grain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "candidate_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "institution_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "output_sha256": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "enrichment_registry_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "source_vintages": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "null"
+        ]
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_snapshot_decision",
+        "recommendation_decision",
+        "product_checks",
+        "blocked_recommendation_checks"
+      ],
+      "properties": {
+        "product_snapshot_decision": {
+          "type": "string"
+        },
+        "recommendation_decision": {
+          "type": "string"
+        },
+        "product_checks": {
+          "type": "array"
+        },
+        "blocked_recommendation_checks": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "semantic_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_eligibility_is_not_production_authorization",
+        "source_vintage_is_not_inferred_freshness",
+        "browser_must_not_select_versions_independently"
+      ],
+      "properties": {
+        "review_eligibility_is_not_production_authorization": {
+          "const": true
+        },
+        "source_vintage_is_not_inferred_freshness": {
+          "const": true
+        },
+        "browser_must_not_select_versions_independently": {
+          "const": true
+        }
+      }
+    }
+  }
+}
