@@ -20,6 +20,9 @@ class TextLensContractTests(unittest.TestCase):
  def test_document_aware_corpus_mode_preserves_file_identity(self):
   for token in ["const sourceDocs=",'id="corpusres"',"function renderCorpus(","document_profiles:{","document_summary","Manual edits detected · file identity cleared"]:
    self.assertIn(token,HTML)
+ def test_cross_document_keyness_and_similarity_are_explicit(self):
+  for token in ['id="keyMin"',"function signedLogLikelihood(","function keynessAgainstRemainder(","Document-to-document lexical similarity","Distinctive terms by document","signed log-likelihood G²","document_similarity","document_keyness","corpus_analysis:publicCorpusComparison()"]:
+   self.assertIn(token,HTML)
  def test_exports_do_not_include_source_text(self):
   self.assertIn("Source text itself is not included in the file.",HTML)
   self.assertIn("text-lens-tables.csv",HTML)
