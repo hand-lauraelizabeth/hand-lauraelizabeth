@@ -21,9 +21,13 @@ The initial registry recognizes:
 7. `current_labor_market_evidence`
 8. `long_term_outlook`
 9. `geographic_fit`
-10. `evidence_quality_coverage`
+10. `transit_access_fit`
+11. `walkability_fit`
+12. `housing_context_fit`
+13. `accessibility_evidence_fit`
+14. `evidence_quality_coverage`
 
-Current labor-market evidence and long-term outlook are deliberately separate. Evidence quality/coverage is also separate from fit.
+Current labor-market evidence and long-term outlook are deliberately separate. Transit access, walkability, housing context, and disability-services evidence are also separate so none can silently stand in for a generic “accessible campus” score. Evidence quality/coverage remains separate from fit.
 
 ## Required registry fields
 
