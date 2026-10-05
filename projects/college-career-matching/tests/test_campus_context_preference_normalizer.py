@@ -38,8 +38,8 @@ class CampusPreferenceNormalizerTests(unittest.TestCase):
   missing=self.by_feature(normalize([cand("B",disability="",disability_state="not_published")],self.reference,"R")[0])["campus_disability_services_documented"]
   self.assertEqual(observed["normalized_value"],1.0);self.assertIsNone(missing["normalized_value"]);self.assertEqual(missing["evidence_state"],"not_published")
  def test_each_dimension_has_one_unit_weight_feature(self):
-  _,policy,_=normalize([cand("A")],self.reference,"R")
-  self.assertEqual(len(policy),4);self.assertTrue(all(x["within_dimension_weight"]=="1" and x["partial_policy"]=="block" for x in policy));self.assertEqual(len({x["dimension"] for x in policy}),4)
+  rows,policy,_=normalize([cand("A")],self.reference,"R")
+  self.assertEqual(len(policy),4);self.assertTrue(all(x["within_dimension_weight"]=="1" and x["partial_policy"]=="block" for x in policy));self.assertEqual(len({x["dimension"] for x in rows}),4);self.assertTrue(all(set(x)=={"feature_id","within_dimension_weight","partial_policy"} for x in policy))
  def test_duplicate_reference_institution_fails(self):
   with self.assertRaises(ValueError):normalize([cand("A")],[ref("1",100,5),ref("1",200,8)],"R")
  def test_too_small_reference_fails(self):
