@@ -58,66 +58,66 @@
       "zero_is_valid": true
     },
     "net_price_overall": {
-      "label": "Average net price",
+      "label": "Overall average net price",
       "grain": "institution",
       "unit": "USD",
-      "concept": "institution average net price after grants/scholarships under source definition",
+      "concept": "average net price after federal, state/local, and institutional grant/scholarship aid under source definition",
       "zero_is_valid": true
     },
     "net_price_income_0_30": {
-      "label": "Average net price, income $0–30,000",
+      "label": "Average net price, $0-$30,000 income band",
       "grain": "institution",
       "unit": "USD",
-      "concept": "published institutional average net price for the $0–30,000 family-income band",
+      "concept": "published income-band average net price; not a personalized estimate",
       "zero_is_valid": true
     },
     "net_price_income_30_48": {
-      "label": "Average net price, income $30,001–48,000",
+      "label": "Average net price, $30,001-$48,000 income band",
       "grain": "institution",
       "unit": "USD",
-      "concept": "published institutional average net price for the $30,001–48,000 family-income band",
+      "concept": "published income-band average net price; not a personalized estimate",
       "zero_is_valid": true
     },
     "net_price_income_48_75": {
-      "label": "Average net price, income $48,001–75,000",
+      "label": "Average net price, $48,001-$75,000 income band",
       "grain": "institution",
       "unit": "USD",
-      "concept": "published institutional average net price for the $48,001–75,000 family-income band",
+      "concept": "published income-band average net price; not a personalized estimate",
       "zero_is_valid": true
     },
     "net_price_income_75_110": {
-      "label": "Average net price, income $75,001–110,000",
+      "label": "Average net price, $75,001-$110,000 income band",
       "grain": "institution",
       "unit": "USD",
-      "concept": "published institutional average net price for the $75,001–110,000 family-income band",
+      "concept": "published income-band average net price; not a personalized estimate",
       "zero_is_valid": true
     },
     "net_price_income_110_plus": {
-      "label": "Average net price, income $110,001+",
+      "label": "Average net price, $110,001+ income band",
       "grain": "institution",
       "unit": "USD",
-      "concept": "published institutional average net price for the $110,001+ family-income band",
+      "concept": "published income-band average net price; not a personalized estimate",
       "zero_is_valid": true
     },
     "institutional_grant_share": {
-      "label": "Share receiving institutional grants/scholarships",
+      "label": "Institutional grant/scholarship recipient share",
       "grain": "institution",
       "unit": "proportion",
-      "concept": "share under source-defined cohort receiving institution-funded grant/scholarship aid",
+      "concept": "published institution-funded grant/scholarship recipient share under source cohort definition",
       "zero_is_valid": true
     },
     "work_study_share": {
-      "label": "Share receiving Federal Work-Study",
+      "label": "Federal Work-Study recipient/participation share",
       "grain": "institution",
       "unit": "proportion",
-      "concept": "share under source-defined cohort receiving Federal Work-Study",
+      "concept": "published Federal Work-Study participation evidence under source cohort definition",
       "zero_is_valid": true
     },
     "state_local_grant_share": {
-      "label": "Share receiving state/local grants",
+      "label": "State/local grant recipient share",
       "grain": "institution",
       "unit": "proportion",
-      "concept": "share under source-defined cohort receiving state/local grant/scholarship aid",
+      "concept": "published state/local grant or scholarship recipient share under source cohort definition",
       "zero_is_valid": true
     }
   },
@@ -126,6 +126,8 @@
     "Blank value without a source state is missing, never suppressed by inference.",
     "Suppressed, unresolved, not-published, and missing are distinct from numeric zero.",
     "Measure labels and grains must remain explicit in product responses.",
-    "Income-band net-price measures are published institutional averages and must never be presented as personalized aid estimates or adjusted for household size without a separate authoritative method."
+    "Income-band net-price measures are published institutional averages and must never be presented as personalized aid estimates or adjusted for household size without a separate authoritative method.",
+    "Income-band net prices are population averages and must not be presented as personalized estimates or adjusted for household size without an authoritative method.",
+    "Federal Work-Study and state/local aid are not school-funded institutional aid."
   ]
 }
