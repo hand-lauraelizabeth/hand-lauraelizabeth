@@ -28,7 +28,7 @@ Each build writes:
 1. `institution_program_product_snapshot.csv`
 2. `institution_program_product_snapshot_manifest.json`
 
-The manifest records data version, build time, grain, candidate/institution counts, SHA-256 hashes of every supplied input, and enrichment coverage counts. A released snapshot should additionally be governed by the existing recommendation release gate before it becomes the active product version.
+The manifest records data version, build time, grain, candidate/institution counts, SHA-256 hashes of every supplied input, the SHA-256 of the generated snapshot itself, and enrichment coverage counts. The release gate recomputes the snapshot hash and blocks activation if the reviewed CSV is missing a valid manifest hash or does not match it.
 
 ## Current-data integration
 
@@ -40,6 +40,6 @@ Source vintages must remain available in the joined evidence or accompanying lin
 
 `interface_options_builder.py` should consume this snapshot for current selectable choices. Matching should consume this same snapshot/version for its candidate universe. This prevents a user from selecting a college/program that the active matcher cannot identify—or receiving a recommendation for an entity absent from the active interface universe.
 
-## Release checks to add
+## Release checks
 
-Before activation, QA should verify base identity uniqueness, non-empty required fields, candidate-count regression floors, institution/program coverage against source baselines, enrichment join cardinality, unresolved identity counts, source vintages, input hashes, and successful interface-options generation. Thresholds must be evidence-based and configured rather than invented in code.
+Before activation, QA verifies base identity uniqueness, non-empty required fields, candidate-count regression floors, configured enrichment-coverage thresholds, source vintages, input hashes, exact snapshot-output hash identity, manifest counts/versioning, and successful interface-options generation. Thresholds remain policy-configured rather than invented in code. Enrichment join cardinality and orphan identities are enforced during snapshot assembly, so invalid enrichment cannot reach the activation gate as a silently altered candidate universe.
