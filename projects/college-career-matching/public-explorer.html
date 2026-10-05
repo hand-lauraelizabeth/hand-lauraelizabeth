@@ -166,7 +166,7 @@
           <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Sample</div><h3>Information Technology</h3><p class="ccx-school">Metro Public College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-meta"><span class="ccx-pill">Associate</span><span class="ccx-pill">city setting</span><span class="ccx-pill">$22,000 cost of attendance</span><span class="ccx-pill">$11,200 overall avg net price</span><span class="ccx-pill">No institutional housing</span></div><div class="ccx-reasons"><div class="ccx-reason">No soft priorities selected — showing programs that pass the filters</div></div></article>
           <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Sample</div><h3>Early Childhood Education</h3><p class="ccx-school">Garden State College · NJ</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-meta"><span class="ccx-pill">Bachelor</span><span class="ccx-pill">suburban setting</span><span class="ccx-pill">$33,000 cost of attendance</span><span class="ccx-pill">$17,600 overall avg net price</span><span class="ccx-pill">Housing available by choice</span></div><div class="ccx-reasons"><div class="ccx-reason">No soft priorities selected — showing programs that pass the filters</div></div></article>
         </div><noscript><p class="ccx-note">These example results remain readable without JavaScript. Interactive filtering and reordering require JavaScript in your browser.</p></noscript>
-        <div class="ccx-compare-panel" id="ccx-compare-panel"><h3>Compare programs</h3><p class="ccx-compare-note" id="ccx-compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="ccx-compare-table" id="ccx-compare-table"></div><button type="button" class="ccx-clear" id="ccx-clear" hidden>Clear comparison</button></div><div class="ccx-safety"><strong>How to read this:</strong> cost of attendance and average net price are shown separately. Income-band net price is a historical institutional average after grants/scholarships, not a personalized aid quote. Hard filters narrow the sample immediately; numeric fit appears only after you select a soft priority. Transit, walkability, housing, and disability-services evidence remain separate signals rather than being collapsed into a single claim that a campus is “accessible.”</div>
+        <div class="ccx-compare-panel" id="ccx-compare-panel"><h3>Compare programs</h3><p class="ccx-compare-note" id="ccx-compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="ccx-compare-table" id="ccx-compare-table"></div><button type="button" class="ccx-clear" id="ccx-clear" hidden>Clear comparison</button></div><div class="ccx-safety"><strong>How to read this:</strong> cost of attendance and average net price are shown separately. Income-band net price is a historical institutional average after grants/scholarships, not a personalized aid quote. Hard filters narrow the sample immediately. In this fictional demonstration, checked soft priorities are equally weighted and the illustrative cost/1–5 scales are not production scoring. Transit, walkability, housing, and disability-services evidence remain separate signals rather than being collapsed into a single claim that a campus is “accessible.”</div>
       </section>
     </div>
   </div>
@@ -192,6 +192,36 @@
     function incomeLabel(v){return {'0-30':'$0–30k income','30-48':'$30–48k income','48-75':'$48–75k income','75-110':'$75–110k income','110+':'$110k+ income'}[v]||'overall average'}
     function housingLabel(x){if(!x.housingAvailable)return 'No institutional housing';return x.housingRequired?'Housing required for all FTFT in sample':'Housing available by choice'}
     function aidLabel(x){var a=[];if(x.instAid)a.push('institutional grants');if(x.workStudy)a.push('Federal Work-Study');if(x.stateAid)a.push('state/local grants');return a.length?a.join(', '):'no selected aid evidence'}
+    function governedIncomeSelector(v){return {'0-30':'0_30','30-48':'30_48','48-75':'48_75','75-110':'75_110','110+':'110_plus'}[v]||'overall'}
+    function governedSetting(v){return {'city':'City','suburban':'Suburban','town':'Town','rural':'Rural'}[v]||v}
+    function buildGovernedRequest(s){
+      var constraints=[],preferences=[];
+      function hard(id,field,operator,value){constraints.push({constraint_id:id,field:field,operator:operator,value:value,unknown_policy:'keep_visible',source_question_id:id})}
+      function soft(id,dimension,enabled){if(enabled)preferences.push({preference_id:id,dimension:dimension,importance:1,priority_explicit:true,source_question_id:id})}
+      if(s.state)hard('school_states','state','eq',s.state);
+      if(s.setting)hard('campus_settings','campus__locale_category','eq',governedSetting(s.setting));
+      if(s.credential)hard('credential_levels','credential_level','eq',s.credential);
+      if(s.price){
+        var band=governedIncomeSelector(s.income),priceFields={overall:'finance__net_price_overall','0_30':'finance__net_price_income_0_30','30_48':'finance__net_price_income_30_48','48_75':'finance__net_price_income_48_75','75_110':'finance__net_price_income_75_110','110_plus':'finance__net_price_income_110_plus'};
+        hard('net_price_ceiling',priceFields[band],'lte',s.price);
+      }
+      if(s.housing==='available')hard('housing_requirement:1','campus__housing_available','eq',true);
+      if(s.housing==='choice'){hard('housing_requirement:1','campus__housing_available','eq',true);hard('housing_requirement:2','campus__housing_required_all_ftft','eq',false)}
+      if(s.housing==='commuter')hard('housing_requirement:1','campus__housing_available','eq',false);
+      if(s.online)hard('online_requirement','online_available','eq',true);
+      if(s.instAid)hard('institutional_aid_required','finance__institutional_grant_evidence','eq',true);
+      if(s.workStudy)hard('work_study_required','finance__work_study_evidence','eq',true);
+      if(s.stateAid)hard('state_local_aid_required','finance__state_local_grant_evidence','eq',true);
+      soft('affordability_priority','affordability',s.afford);
+      soft('career_pathway_priority','career_pathway_fit',s.career);
+      soft('transfer_priority','transfer_pathway_fit',s.transfer);
+      soft('smaller_environment_priority','college_fit',s.small);
+      soft('transit_access_priority','transit_access_fit',s.transit);
+      soft('walkability_priority','walkability_fit',s.walk);
+      soft('housing_choice_priority','housing_context_fit',s.housingChoice);
+      soft('disability_services_priority','accessibility_evidence_fit',s.disabilityInfo);
+      return {schema_version:'1.0',decision_mode:'broad_exploration',constraints:constraints,preferences:preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:1,page_size:20,data_version:null,model_version:null}
+    }
     function score(x,s){
       var parts=[],reasons=[],np=netPrice(x,s);
       if(s.afford){parts.push(Math.max(0,Math.min(100,100-((np-5000)/40000)*100)));reasons.push('Avg net price: $'+np.toLocaleString()+' ('+incomeLabel(s.income)+')')}
@@ -228,6 +258,7 @@
     }
     function render(){
       var s=state();
+      root.dataset.governedRequest=JSON.stringify(buildGovernedRequest(s));
       var rows=data.filter(function(x){
         var np=netPrice(x,s);
         if(s.interest&&x.interest!==s.interest)return false;
@@ -256,6 +287,7 @@
     controls.forEach(function(id){var el=q(id);el.addEventListener('change',render);el.addEventListener('input',render)});
     q('ccx-reset').addEventListener('click',function(){q('ccx-form').reset();selected.clear();render();q('ccx-interest').focus()});
     q('ccx-clear').addEventListener('click',function(){selected.clear();render()});
+    root.getGovernedRequest=function(){return buildGovernedRequest(state())};
     render();
   })();
   </script>
