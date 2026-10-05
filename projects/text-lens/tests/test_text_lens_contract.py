@@ -27,15 +27,18 @@ class TextLensContractTests(unittest.TestCase):
   for token in ['id="focusDoc"','id="vizMetric"',"function syncCorpusSelectors(","function renderMetricBars(","function kwicTarget()","similarity-meter","focus_document:","document_chart:"]:
    self.assertIn(token,HTML)
  def test_corpus_document_management_and_reference_keyness_are_present(self):
-  for token in ['id="keyRef"','id="docManager"',"let docSeq=0","function manageDocument(","function renderDocumentManager(","function keynessAgainstReference(","reference_document:reference","keyness_reference:","version:\"3.4\""]:
+  for token in ['id="keyRef"','id="docManager"',"let docSeq=0","function manageDocument(","function renderDocumentManager(","function keynessAgainstReference(","reference_document:reference","keyness_reference:","version:\"3.5\""]:
    self.assertIn(token,HTML)
  def test_corpus_refreshes_before_document_scoped_concordance(self):
   self.assertIn("lastCompare=two;renderCorpus();renderKwic();",HTML)
  def test_custom_reference_sets_and_source_free_setup_are_present(self):
-  for token in ['value="custom"',"const customRefIds=new Set()","function customReference(","reference_id:'custom'",'id="saveCorpusSetup"','id="loadCorpusSetup"',"function buildCorpusSetup()","contains_source_text:false","function containsSourcePayload(","Corpus setup must not contain source text","version:\"3.4\""]:
+  for token in ['value="custom"',"const customRefIds=new Set()","function customReference(","reference_id:'custom'",'id="saveCorpusSetup"','id="loadCorpusSetup"',"function buildCorpusSetup()","contains_source_text:false","function containsSourcePayload(","Corpus setup must not contain source text","version:\"3.5\""]:
    self.assertIn(token,HTML)
  def test_setup_restore_is_metadata_only_and_pending_safe(self):
   for token in ["name:doc.name","size:Number(doc.size||0)","last_modified:Number(doc.lastModified||0)","pendingCorpusConfig?applyCorpusSetup","Saved corpus setup without source text."]:
+   self.assertIn(token,HTML)
+ def test_corpus_organization_and_keyness_presentation_are_structured(self):
+  for token in ['id="refAll"','id="refClear"','id="refSummary"',"corpus-group-head","role-badge focus","role-badge reference",'class="keyness-table"',"Target document","Reference mode: remainder"]:
    self.assertIn(token,HTML)
  def test_exports_do_not_include_source_text(self):
   self.assertIn("Source text itself is not included in the file.",HTML)
