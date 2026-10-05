@@ -13,7 +13,8 @@
     "result_count",
     "pagination",
     "warnings",
-    "results"
+    "results",
+    "ordering"
   ],
   "properties": {
     "schema_version": {
@@ -108,7 +109,8 @@
           "transfer",
           "labor_market",
           "evidence_coverage",
-          "source_freshness"
+          "source_freshness",
+          "recommendation"
         ],
         "properties": {
           "candidate_id": {
