@@ -161,6 +161,21 @@ The career-side source inventory now distinguishes open occupational data, licen
 
 - [Coverage Universe Specification](COVERAGE_UNIVERSE_SPECIFICATION.md) — institution, program, and career inclusion rules plus coverage-regression requirements. The matcher begins from a broad legitimate universe rather than a prestige list.
 
+## Public interactive experience
+
+The visitor-facing interaction model is now represented in [public-explorer.html](public-explorer.html) and on the portfolio site. It is intentionally different from a developer demo:
+
+- useful results are visible on first render;
+- ordinary preference controls are immediately available;
+- hard filters update the visible set without a submit/run step;
+- soft priorities create an explainable fit ordering only after the visitor explicitly selects them;
+- no account, installation, notebook, terminal, or local runtime is required;
+- up to three programs can be compared inline;
+- readable example content remains available without JavaScript;
+- all current records are explicitly fictional demonstration data until the governed current-data release is production-ready.
+
+The `prototype/` directory remains a service-contract harness for exercising `/metadata`, `/options`, `/match`, candidate detail, and comparison semantics. It should not be treated as the primary public UX.
+
 ## Prototype status
 
 The federal-source ingestion and coverage prototype is now exercised end to end for the unauthenticated production sources. Current live baselines include **5,985 IPEDS directory records across 59 states/territories**, **313,566 C2025_A completion rows**, **6,097 CIP↔SOC relationships**, and the complete **1,016-occupation O*NET 31.0 occupation table**.
