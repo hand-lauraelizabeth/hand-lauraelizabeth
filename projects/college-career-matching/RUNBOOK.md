@@ -311,3 +311,11 @@ CI also runs `staging_browser_edge_scenarios.py` against the loopback staging se
 ### WordPress fixture embed
 
 The public WordPress page must be built from the default fixture-mode explorer with `wordpress_explorer_embed.py`; do not hand-concatenate the module source. The builder inlines the synthetic fixture client without changing runtime authorization and enforces exactly one explorer initializer and one service-client class. This specifically prevents JavaScript replacement strings such as `$1` from being interpreted as replacement-group references and duplicating the application script.
+
+### Request concurrency and transient recovery
+
+The explorer uses last-writer-wins request generations. A newly scheduled match aborts the prior browser fetch when `AbortController` is available, but correctness does not depend on abort support: responses and errors from superseded generations are discarded before they can change visible results or service state.
+
+After a transient request failure, stale results and comparison selections are cleared and the UI exposes **Retry matcher**. Retry does not blindly resend the previous request. It first reloads `/metadata` and `/options`, revalidates the runtime-pinned data/model/snapshot identity, and only then issues a fresh governed match request. A recovered service with invalid identity fails closed and disables the matcher.
+
+CI runs `staging_browser_concurrency_scenarios.py` through a loopback latency proxy. The scenario deliberately makes older state-filter requests finish after the newest request and verifies that only the newest response remains visible. It then takes the staging backend offline, verifies fail-closed clearing, restarts the same pinned service, and verifies governed recovery through the explicit retry control.
