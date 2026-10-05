@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mode": "fixture",
+  "production_authorized": false,
+  "fixture_url": "contract-fixtures.json",
+  "service_base_url": "",
+  "expected_identity": null,
+  "rules": {
+    "fixture_is_non_authoritative": true,
+    "production_requires_activation_record": true,
+    "browser_must_verify_metadata_identity": true
+  }
+}
