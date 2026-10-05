@@ -26,27 +26,11 @@ CANONICAL_FIELDS=(
  "housing_available",
  "housing_capacity",
  "housing_required_all_ftft",
- "net_price_income_0_30k",
- "net_price_income_30_48k",
- "net_price_income_48_75k",
- "net_price_income_75_110k",
- "net_price_income_110k_plus",
- "institutional_grant_share",
- "work_study_share",
- "state_local_grant_share",
  "disability_services_registered_share",
  "transit_stop_distance_m",
  "transit_stop_count_800m",
  "walkability_index",
 )
-INCOME_BAND_FIELDS={
- "0_30k":"net_price_income_0_30k",
- "30_48k":"net_price_income_30_48k",
- "48_75k":"net_price_income_48_75k",
- "75_110k":"net_price_income_75_110k",
- "110k_plus":"net_price_income_110k_plus",
-}
-
 def clean(value):
  return str(value).strip() if value is not None else ""
 
@@ -95,19 +79,9 @@ def normalize(rows):
   elif housing=="true" and required=="true":choice="required_for_all_ftft"
   else:choice="unknown"
   record["housing_choice_state"]=choice
-  for field,prefix in [
-   ("institutional_grant_share","institutional_grant"),
-   ("work_study_share","work_study"),
-   ("state_local_grant_share","state_local_grant"),
-   ("disability_services_registered_share","disability_services"),
-  ]:
-   record[f"{prefix}_evidence_available"]="true" if record[f"{field}__state"]=="observed" else "false"
+  record["disability_services_evidence_available"]="true" if record["disability_services_registered_share__state"]=="observed" else "false"
   out.append(record)
  return out
-
-def income_band_field(band):
- if band not in INCOME_BAND_FIELDS:raise ValueError(f"unsupported income band: {band}")
- return INCOME_BAND_FIELDS[band]
 
 def write_csv(path,rows):
  if not rows:return
@@ -133,7 +107,6 @@ def main():
    "Missing evidence is not zero or false.",
    "NCES locale detail is retained while a four-category setting is derived.",
    "Housing availability and universal FTFT residency requirements remain distinct.",
-   "Income-band net prices remain separate published averages, not personalized estimates.",
    "Transit, walkability, and disability-services evidence remain separate accessibility signals.",
    "Every canonical field can retain source_id and source_vintage independently."
   ]
