@@ -67,10 +67,11 @@ def run():
    text_has(driver,"#ccx-service-state","Synthetic staging HTTP service")
    text_has(driver,"#ccx-service-state","production authorized: no")
    text_has(driver,"#ccx-mode-note","Synthetic staging mode:")
-   text_has(driver,"#ccx-count","3 service-returned programs")
+   text_has(driver,"#ccx-count","4 service-returned programs")
    assert "North Harbor College" in driver.find_element(By.ID,"ccx-results").text
    assert "Metro Public College" in driver.find_element(By.ID,"ccx-results").text
    assert "River State University" in driver.find_element(By.ID,"ccx-results").text
+   assert "Cedar Valley College" in driver.find_element(By.ID,"ccx-results").text
 
    # Governed hard constraint: NJ should return only the fictional NJ candidate.
    Select(driver.find_element(By.ID,"ccx-state")).select_by_value("NJ")
@@ -91,7 +92,7 @@ def run():
    # Reset restores the full service-returned set and clears governed constraints.
    driver.find_element(By.ID,"ccx-reset").click()
    text_has(driver,"#ccx-request-state","0 must-have constraints")
-   text_has(driver,"#ccx-count","3 service-returned programs")
+   text_has(driver,"#ccx-count","4 service-returned programs")
    assert Select(driver.find_element(By.ID,"ccx-state")).first_selected_option.get_attribute("value")==""
    assert not driver.find_element(By.ID,"ccx-online").is_selected()
 
@@ -107,7 +108,7 @@ def run():
    # Clear comparison leaves results intact.
    driver.find_element(By.ID,"ccx-clear").click()
    text_has(driver,"#ccx-compare-note","Select two or three programs")
-   assert driver.find_element(By.ID,"ccx-count").text.startswith("3 service-returned programs")
+   assert driver.find_element(By.ID,"ccx-count").text.startswith("4 service-returned programs")
 
    print("PASS staging browser scenarios: state, online, request feedback, compare, reset, service-state language")
   finally:
