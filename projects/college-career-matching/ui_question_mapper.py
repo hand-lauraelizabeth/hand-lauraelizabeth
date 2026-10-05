@@ -12,7 +12,17 @@ def validate_definitions(defs,registry=None):
   qid=q.get("question_id")
   if not qid or qid in ids:raise ValueError(f"invalid or duplicate question_id: {qid}")
   ids.add(qid);m=q.get("mapping",{})
-  if m.get("target") in {"constraint","conditional_constraint"}:validate_constraint({"field":m.get("field"),"operator":m.get("operator")},registry)
+  target=m.get("target")
+  if target in {"constraint","conditional_constraint"}:validate_constraint({"field":m.get("field"),"operator":m.get("operator")},registry)
+  elif target=="income_band_net_price_constraint":
+   fields=m.get("field_by_selector") or {}
+   if not fields:raise ValueError(f"{qid}: income-band field map is empty")
+   for field in fields.values():validate_constraint({"field":field,"operator":m.get("operator")},registry)
+  elif target=="housing_constraint_bundle":
+   rules=m.get("rules") or {}
+   if not rules:raise ValueError(f"{qid}: housing constraint rules are empty")
+   for specs in rules.values():
+    for spec in specs:validate_constraint({"field":spec.get("field"),"operator":spec.get("operator")},registry)
  return True
 def option_values(options,path):
  cur=options
@@ -36,12 +46,24 @@ def map_answers(defs,answers,options=None):
    bad=[x for x in vals if str(x) not in allowed]
    if bad:raise ValueError(f"{qid} contains values outside active options: {bad}")
   m=q["mapping"];target=m["target"]
+  def add_constraint(cid,field,operator,value,unknown_policy):
+   c={"constraint_id":cid,"field":field,"operator":operator,"value":value,"unknown_policy":unknown_policy,"source_question_id":qid};validate_constraint(c);out["constraints"].append(c)
   if target=="constraint":
-   c={"constraint_id":qid,"field":m["field"],"operator":m["operator"],"value":val,"unknown_policy":m["unknown_policy"],"source_question_id":qid};validate_constraint(c);out["constraints"].append(c)
+   add_constraint(qid,m["field"],m["operator"],val,m["unknown_policy"])
    if qid=="school_states":out["geography"]["school_location_semantics"]="selected_places";out["geography"]["selected_states"]=val
   elif target=="conditional_constraint":
-   if val==m["when_value"]:
-    c={"constraint_id":qid,"field":m["field"],"operator":m["operator"],"value":m["value"],"unknown_policy":m["unknown_policy"],"source_question_id":qid};validate_constraint(c);out["constraints"].append(c)
+   if val==m["when_value"]:add_constraint(qid,m["field"],m["operator"],m["value"],m["unknown_policy"])
+  elif target=="income_band_net_price_constraint":
+   selector=answers.get(m["selector_question_id"]) or m.get("default_selector")
+   field=(m.get("field_by_selector") or {}).get(str(selector))
+   if not field:raise ValueError(f"{qid}: unsupported net-price income band {selector}")
+   add_constraint(qid,field,m["operator"],val,m["unknown_policy"])
+  elif target=="housing_constraint_bundle":
+   specs=(m.get("rules") or {}).get(str(val))
+   if not specs:raise ValueError(f"{qid}: unsupported housing requirement {val}")
+   for i,spec in enumerate(specs):add_constraint(f"{qid}:{i+1}",spec["field"],spec["operator"],spec["value"],spec["unknown_policy"])
+  elif target=="selector_only":
+   pass
   elif target=="preference":
    imp=float(val)
    if imp<0:raise ValueError(f"negative importance for {qid}")
