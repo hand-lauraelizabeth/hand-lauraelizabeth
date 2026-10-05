@@ -27,7 +27,7 @@ class TextLensContractTests(unittest.TestCase):
   for token in ['id="focusDoc"','id="vizMetric"',"function syncCorpusSelectors(","function renderMetricBars(","function kwicTarget()","similarity-meter","focus_document:","document_chart:"]:
    self.assertIn(token,HTML)
  def test_corpus_document_management_and_reference_keyness_are_present(self):
-  for token in ['id="keyRef"','id="docManager"',"let docSeq=0","function manageDocument(","function renderDocumentManager(","function keynessAgainstReference(","reference_document:reference","keyness_reference:","version:\"3.3\""]:
+  for token in ['id="keyRef"','id="docManager"',"let docSeq=0","function manageDocument(","function renderDocumentManager(","function keynessAgainstReference(","reference_document:reference","keyness_reference:","version:\"3.4\""]:
    self.assertIn(token,HTML)
  def test_corpus_refreshes_before_document_scoped_concordance(self):
   self.assertIn("lastCompare=two;renderCorpus();renderKwic();",HTML)
@@ -40,7 +40,9 @@ class TextLensContractTests(unittest.TestCase):
  def test_exports_do_not_include_source_text(self):
   self.assertIn("Source text itself is not included in the file.",HTML)
   self.assertIn("text-lens-tables.csv",HTML)
-  self.assertNotIn("source_text:",HTML)
+  m=re.search(r"function docDescriptor\(doc,source,order\)\{return\{([^}]*)\}\}",HTML)
+  self.assertIsNotNone(m);self.assertNotIn("text",m.group(1).lower());self.assertIn("name:doc.name",m.group(1));self.assertIn("size:Number(doc.size||0)",m.group(1))
+  self.assertIn("contains_source_text:false",HTML);self.assertIn("Corpus setup must not contain source text or content fields",HTML)
  def test_javascript_syntax(self):
   node=shutil.which("node");self.assertIsNotNone(node,"Node.js is required for Text Lens syntax validation")
   parts=re.findall(r"<script>(.*?)</script>",HTML,re.S);self.assertEqual(len(parts),1)
