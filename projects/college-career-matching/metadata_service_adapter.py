@@ -18,7 +18,7 @@ def valid_sha256(v):
  s=clean(v)
  return len(s)==64 and all(c in "0123456789abcdefABCDEF" for c in s)
 
-def build_metadata(snapshot_manifest,model_version,product_release=None,recommendation_release=None):
+def build_metadata(snapshot_manifest,model_version,product_release=None,recommendation_release=None,activation_record=None):
  data_version=clean(snapshot_manifest.get("data_version"))
  if not data_version: raise ValueError("snapshot manifest data_version must be nonblank")
  model_version=clean(model_version)
@@ -27,7 +27,17 @@ def build_metadata(snapshot_manifest,model_version,product_release=None,recommen
  if not valid_sha256(output_hash): raise ValueError("snapshot manifest output_sha256 must be a valid SHA-256")
  product_decision=clean((product_release or {}).get("decision")) or "NOT_EVALUATED"
  recommendation_decision=clean((recommendation_release or {}).get("release_decision")) or "NOT_EVALUATED"
- if product_decision in BLOCKED or recommendation_decision in BLOCKED:
+ production_authorized=False
+ if activation_record is not None:
+  if activation_record.get("production_authorized") is not True or clean(activation_record.get("activation_state"))!="PRODUCTION_SERVICE_AUTHORIZED":
+   raise ValueError("activation_record is not a valid production authorization")
+  if clean(activation_record.get("data_version"))!=data_version: raise ValueError("activation_record data_version mismatch")
+  if clean(activation_record.get("model_version"))!=model_version: raise ValueError("activation_record model_version mismatch")
+  if clean(activation_record.get("snapshot_sha256")).lower()!=output_hash.lower(): raise ValueError("activation_record snapshot_sha256 mismatch")
+  production_authorized=True
+ if production_authorized:
+  serving_state="production"
+ elif product_decision in BLOCKED or recommendation_decision in BLOCKED:
   serving_state="blocked"
  elif product_decision in PRODUCT_ELIGIBLE and recommendation_decision in RECOMMENDATION_ELIGIBLE:
   serving_state="review_eligible"
@@ -42,7 +52,7 @@ def build_metadata(snapshot_manifest,model_version,product_release=None,recommen
   "data_version":data_version,
   "model_version":model_version,
   "serving_state":serving_state,
-  "production_authorized":False,
+  "production_authorized":production_authorized,
   "snapshot":{
    "generated_at_utc":snapshot_manifest.get("generated_at_utc"),
    "candidate_grain":snapshot_manifest.get("candidate_grain"),
@@ -61,7 +71,8 @@ def build_metadata(snapshot_manifest,model_version,product_release=None,recommen
   "semantic_rules":{
    "review_eligibility_is_not_production_authorization":True,
    "source_vintage_is_not_inferred_freshness":True,
-   "browser_must_not_select_versions_independently":True
+   "browser_must_not_select_versions_independently":True,
+   "production_requires_exact_activation_record":True
   }
  }
 
@@ -71,12 +82,14 @@ def main():
  ap.add_argument("--model-version",required=True)
  ap.add_argument("--product-release",type=Path)
  ap.add_argument("--recommendation-release",type=Path)
+ ap.add_argument("--activation-record",type=Path)
  ap.add_argument("--output",type=Path,required=True)
  a=ap.parse_args()
  response=build_metadata(
   load_json(a.snapshot_manifest),a.model_version,
   load_json(a.product_release) if a.product_release else None,
-  load_json(a.recommendation_release) if a.recommendation_release else None)
+  load_json(a.recommendation_release) if a.recommendation_release else None,
+  load_json(a.activation_record) if a.activation_record else None)
  a.output.parent.mkdir(parents=True,exist_ok=True)
  a.output.write_text(json.dumps(response,indent=2),encoding="utf-8")
 
