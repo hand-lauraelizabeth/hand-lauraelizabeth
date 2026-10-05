@@ -12,7 +12,7 @@ import pandas as pd
 ALLOWED_DIMENSIONS={
  "college_fit","affordability","academic_program_fit","transfer_pathway_fit",
  "admissions_context","career_pathway_fit","current_labor_market_evidence",
- "long_term_outlook","geographic_fit","evidence_quality_coverage"
+ "long_term_outlook","geographic_fit","transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit","evidence_quality_coverage"
 }
 ALLOWED_ROLES={"comparison","context","coverage","explanation_only"}
 ALLOWED_DIRECTIONS={"higher_better","lower_better","target_match","none"}
