@@ -11,9 +11,10 @@ from pathlib import Path
 def inject(source,runtime):
  if runtime.get("schema_version")!="1.0": raise ValueError("unsupported runtime config schema")
  mode=runtime.get("mode")
- if mode not in {"fixture","production"}: raise ValueError("unsupported runtime mode")
+ if mode not in {"fixture","staging","production"}: raise ValueError("unsupported runtime mode")
  if mode=="production" and runtime.get("production_authorized") is not True: raise ValueError("production runtime is not authorized")
  if mode=="fixture" and runtime.get("production_authorized") is not False: raise ValueError("fixture runtime must not be production authorized")
+ if mode=="staging" and runtime.get("production_authorized") is not False: raise ValueError("staging runtime must not be production authorized")
  payload=json.dumps(runtime,separators=(",",":"),ensure_ascii=False).replace("</","<\/")
  marker='<script type="application/json" id="ccx-runtime-config">'
  block=marker+payload+"</script>"
