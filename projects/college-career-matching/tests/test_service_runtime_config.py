@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys,unittest
 from pathlib import Path
 P=Path(__file__).resolve().parents[1];sys.path.insert(0,str(P))
-from service_runtime_config import build
+from service_runtime_config import build,build_staging
 from public_explorer_deployment import inject
 
 def record():
@@ -16,6 +16,12 @@ class ServiceRuntimeConfigTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,"HTTPS"):build(record(),"http://example.org/api")
   bad=record();bad["production_authorized"]=False
   with self.assertRaisesRegex(ValueError,"does not authorize"):build(bad,"https://example.org/api")
+ def test_staging_is_nonproduction_and_identity_pinned(self):
+  r=build_staging("http://127.0.0.1:18765","SYN-DATA","SYN-MODEL","a"*64)
+  self.assertEqual(r["mode"],"staging");self.assertFalse(r["production_authorized"]);self.assertEqual(r["expected_identity"]["snapshot_sha256"],"a"*64)
+ def test_staging_http_is_loopback_only(self):
+  with self.assertRaisesRegex(ValueError,"loopback HTTP"):build_staging("http://example.org","D","M","a"*64)
+  self.assertEqual(build_staging("https://staging.example.org","D","M","a"*64)["mode"],"staging")
  def test_production_config_pins_identity(self):
   r=build(record(),"https://example.org/api/");self.assertEqual(r["mode"],"production");self.assertTrue(r["production_authorized"]);self.assertEqual(r["service_base_url"],"https://example.org/api");self.assertEqual(r["expected_identity"]["data_version"],"D1")
  def test_deployment_injects_runtime_without_changing_source_semantics(self):
