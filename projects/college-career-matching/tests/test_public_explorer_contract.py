@@ -34,7 +34,7 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("client.options()",HTML);self.assertIn("applyServiceOptions(optionResponse)",HTML);self.assertIn("optionResponse.data_version!==metadata.data_version",HTML)
   for token in ["o.cip_fields","o.states","o.campus_settings","o.credential_levels","o.affordability&&o.affordability.income_bands"]:self.assertIn(token,HTML)
  def test_explorer_consumes_service_response_instead_of_local_scoring(self):
-  self.assertIn("MatchingServiceClient",HTML);self.assertIn("assertContract",HTML);self.assertIn("client.match(request)",HTML);self.assertIn("renderResponse(response)",HTML)
+  self.assertIn("MatchingServiceClient",HTML);self.assertIn("assertContract",HTML);self.assertIn("client.match(request,{signal})",HTML);self.assertIn("renderResponse(response)",HTML)
   self.assertNotIn("var data=[",HTML);self.assertNotIn("function score(",HTML)
   self.assertIn("no browser-side filtering or ranking is performed",HTML)
  def test_ranking_is_rendered_only_from_service_recommendation_metadata(self):
