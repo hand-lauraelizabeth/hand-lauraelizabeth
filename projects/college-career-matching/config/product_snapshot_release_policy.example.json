@@ -1,0 +1,11 @@
+{
+  "policy_version": "1.0-example",
+  "note": "Illustrative structure only. Replace nulls/example values with evidence-based release thresholds before production activation.",
+  "required_fields": ["candidate_id", "UNITID", "institution_name", "program_id", "program_name", "cip_code", "credential_level", "state"],
+  "min_candidate_count": null,
+  "min_institution_count": null,
+  "previous_candidate_count": null,
+  "min_candidate_retention_ratio": null,
+  "min_coverage_rate": {},
+  "required_source_vintages": []
+}
