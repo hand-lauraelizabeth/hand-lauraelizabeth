@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys,unittest
 from pathlib import Path
 P=Path(__file__).resolve().parents[1];sys.path.insert(0,str(P))
-from service_activation_guard import authorize,canonical_sha256
+from service_activation_guard import authorize,canonical_sha256,validate_activation_record
 from metadata_service_adapter import build_metadata
 
 def bundle():
@@ -23,6 +23,9 @@ class ServiceActivationGuardTests(unittest.TestCase):
  def test_changed_data_version_invalidates_approval(self):
   b=bundle();d=decision(b);d["data_version"]="D2"
   with self.assertRaisesRegex(ValueError,"data_version"):authorize(b,d)
+ def test_malformed_production_record_fails_closed(self):
+  b=bundle();record=authorize(b,decision(b));record["approved_by"]=""
+  with self.assertRaisesRegex(ValueError,"approved_by"):validate_activation_record(record,"D1","M1","a"*64)
  def test_metadata_can_become_production_only_with_matching_activation_record(self):
   b=bundle();record=authorize(b,decision(b));manifest={"data_version":"D1","output_sha256":"a"*64,"candidate_count":2,"institution_count":2,"source_vintages":{}}
   m=build_metadata(manifest,"M1",activation_record=record);self.assertTrue(m["production_authorized"]);self.assertEqual(m["serving_state"],"production")
