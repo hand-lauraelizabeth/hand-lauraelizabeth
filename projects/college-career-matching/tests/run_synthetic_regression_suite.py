@@ -7,5 +7,5 @@ HERE=Path(__file__).resolve().parent
 if str(HERE) not in sys.path:sys.path.insert(0,str(HERE))
 if __name__=="__main__":
  suite=unittest.TestSuite();loader=unittest.defaultTestLoader
- for name in ["test_synthetic_recommendation_architecture","test_integration_synthetic_modules","test_integration_career_pathway_chain","test_regression_semantic_fixes","test_career_preference_operators","test_product_snapshot_builder","test_match_service_adapter","test_ui_question_mapper","test_interface_options_builder"]:suite.addTests(loader.loadTestsFromName(name))
+ for name in ["test_synthetic_recommendation_architecture","test_integration_synthetic_modules","test_integration_career_pathway_chain","test_regression_semantic_fixes","test_career_preference_operators","test_product_snapshot_builder","test_product_snapshot_release_gate","test_match_service_adapter","test_ui_question_mapper","test_interface_options_builder"]:suite.addTests(loader.loadTestsFromName(name))
  result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(0 if result.wasSuccessful() else 1)
