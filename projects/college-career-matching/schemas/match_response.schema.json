@@ -1,1 +1,489 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"match_response.schema.json","title":"College + Career Match Response v1","type":"object","additionalProperties":false,"required":["schema_version","request_id","data_version","model_version","generated_at_utc","result_count","pagination","warnings","results"],"properties":{"schema_version":{"const":"1.0"},"request_id":{"type":"string","pattern":"^req_[0-9a-f]{20}$"},"data_version":{"type":"string"},"model_version":{"type":"string"},"generated_at_utc":{"type":"string"},"result_count":{"type":"integer","minimum":0},"pagination":{"type":"object","additionalProperties":false,"required":["page","page_size","total_pages","has_next","has_previous"],"properties":{"page":{"type":"integer","minimum":1},"page_size":{"type":"integer","minimum":1,"maximum":100},"total_pages":{"type":"integer","minimum":0},"has_next":{"type":"boolean"},"has_previous":{"type":"boolean"}}},"warnings":{"type":"array","items":{"type":"object","required":["code","message"],"properties":{"code":{"type":"string"},"message":{"type":"string"},"candidate_id":{"type":["string","null"]}}}},"results":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["candidate_id","institution","program","eligibility","dimensions","explanation","career_pathways","transfer","labor_market","evidence_coverage","source_freshness"],"properties":{"candidate_id":{"type":"string","minLength":1},"institution":{"type":"object","required":["unitid","name","city","state"],"properties":{"unitid":{"type":"string"},"name":{"type":"string"},"city":{"type":["string","null"]},"state":{"type":["string","null"]}}},"program":{"type":"object","required":["program_id","name","cip_code","credential_level"],"properties":{"program_id":{"type":"string"},"name":{"type":"string"},"cip_code":{"type":"string"},"credential_level":{"type":["string","null"]}}},"eligibility":{"type":"object","required":["status","reason_codes"],"properties":{"status":{"enum":["eligible","eligible_with_unknown","review"]},"reason_codes":{"type":"array","items":{"type":"string"}}}},"dimensions":{"type":"array","items":{"type":"object","required":["dimension","value","coverage_rate","evidence_state"],"properties":{"dimension":{"type":"string"},"value":{"type":["number","null"]},"coverage_rate":{"type":"number","minimum":0,"maximum":1},"evidence_state":{"type":"string"}}}},"explanation":{"type":"object","required":["why_it_matches","tradeoffs","unknowns"],"properties":{"why_it_matches":{"type":"array","items":{"$ref":"#/$defs/reason"}},"tradeoffs":{"type":"array","items":{"$ref":"#/$defs/reason"}},"unknowns":{"type":"array","items":{"$ref":"#/$defs/reason"}}}},"career_pathways":{"type":"object","required":["pathway_count","soc_codes","representative_pathways"],"properties":{"pathway_count":{"type":"integer","minimum":0},"soc_codes":{"type":"array","items":{"type":"string"}},"representative_pathways":{"type":"array"}}},"transfer":{"type":["object","null"]},"labor_market":{"$ref":"#/$defs/labor"},"evidence_coverage":{"type":"object","required":["overall_status","review_flags"],"properties":{"overall_status":{"enum":["broad","partial","limited"]},"review_flags":{"type":"array","items":{"type":"string"}}}},"source_freshness":{"type":"array"}}}}},"$defs":{"reason":{"type":"object","required":["code","text","evidence_ids"],"properties":{"code":{"type":"string"},"text":{"type":"string"},"evidence_ids":{"type":"array","items":{"type":"string"}}}},"labor":{"type":"object","required":["selected_work_market","long_term_outlook"],"properties":{"selected_work_market":{"type":"object","required":["evidence_state"],"properties":{"market_id":{"type":["string","null"]},"market_type":{"type":["string","null"]},"evidence_state":{"enum":["observed","not_requested","unavailable"]},"soc_evidence":{"type":"array","items":{"type":"object"}}}},"long_term_outlook":{"type":"object","required":["evidence_state"],"properties":{"evidence_state":{"enum":["observed","unavailable"]},"soc_evidence":{"type":"array","items":{"type":"object"}}}},"semantic_note":{"type":"string"}}}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "match_response.schema.json",
+  "title": "College + Career Match Response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "data_version",
+    "model_version",
+    "generated_at_utc",
+    "result_count",
+    "pagination",
+    "warnings",
+    "results"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^req_[0-9a-f]{20}$"
+    },
+    "data_version": {
+      "type": "string"
+    },
+    "model_version": {
+      "type": "string"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "result_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pagination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page",
+        "page_size",
+        "total_pages",
+        "has_next",
+        "has_previous"
+      ],
+      "properties": {
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "page_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "total_pages": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "has_next": {
+          "type": "boolean"
+        },
+        "has_previous": {
+          "type": "boolean"
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "candidate_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "institution",
+          "program",
+          "eligibility",
+          "dimensions",
+          "explanation",
+          "career_pathways",
+          "transfer",
+          "labor_market",
+          "evidence_coverage",
+          "source_freshness"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "institution": {
+            "type": "object",
+            "required": [
+              "unitid",
+              "name",
+              "city",
+              "state"
+            ],
+            "properties": {
+              "unitid": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "city": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "state": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "program": {
+            "type": "object",
+            "required": [
+              "program_id",
+              "name",
+              "cip_code",
+              "credential_level"
+            ],
+            "properties": {
+              "program_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "cip_code": {
+                "type": "string"
+              },
+              "credential_level": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "eligibility": {
+            "type": "object",
+            "required": [
+              "status",
+              "reason_codes"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "eligible",
+                  "eligible_with_unknown",
+                  "review"
+                ]
+              },
+              "reason_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "dimension",
+                "value",
+                "coverage_rate",
+                "evidence_state"
+              ],
+              "properties": {
+                "dimension": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "coverage_rate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "evidence_state": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "explanation": {
+            "type": "object",
+            "required": [
+              "why_it_matches",
+              "tradeoffs",
+              "unknowns"
+            ],
+            "properties": {
+              "why_it_matches": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/reason"
+                }
+              },
+              "tradeoffs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/reason"
+                }
+              },
+              "unknowns": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/reason"
+                }
+              }
+            }
+          },
+          "career_pathways": {
+            "type": "object",
+            "required": [
+              "pathway_count",
+              "soc_codes",
+              "representative_pathways"
+            ],
+            "properties": {
+              "pathway_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "soc_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "representative_pathways": {
+                "type": "array"
+              }
+            }
+          },
+          "transfer": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "labor_market": {
+            "$ref": "#/$defs/labor"
+          },
+          "evidence_coverage": {
+            "type": "object",
+            "required": [
+              "overall_status",
+              "review_flags"
+            ],
+            "properties": {
+              "overall_status": {
+                "enum": [
+                  "broad",
+                  "partial",
+                  "limited"
+                ]
+              },
+              "review_flags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "source_freshness": {
+            "type": "array"
+          },
+          "recommendation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "rank",
+              "baseline_score",
+              "review_eligibility",
+              "production_authorized"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "not_ranked",
+                  "review_eligible_ranked",
+                  "eligible_unranked"
+                ]
+              },
+              "rank": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "baseline_score": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "review_eligibility": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "eligible_for_review",
+                  null
+                ]
+              },
+              "production_authorized": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "ordering": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "ranking_context_id",
+        "review_eligible_ranked_count",
+        "unranked_eligible_count",
+        "production_authorized"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "deterministic_unranked",
+            "review_eligible_ranking"
+          ]
+        },
+        "ranking_context_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^rankctx_[0-9a-f]{24}$"
+        },
+        "review_eligible_ranked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unranked_eligible_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "production_authorized": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "reason": {
+      "type": "object",
+      "required": [
+        "code",
+        "text",
+        "evidence_ids"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "labor": {
+      "type": "object",
+      "required": [
+        "selected_work_market",
+        "long_term_outlook"
+      ],
+      "properties": {
+        "selected_work_market": {
+          "type": "object",
+          "required": [
+            "evidence_state"
+          ],
+          "properties": {
+            "market_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "market_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidence_state": {
+              "enum": [
+                "observed",
+                "not_requested",
+                "unavailable"
+              ]
+            },
+            "soc_evidence": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "long_term_outlook": {
+          "type": "object",
+          "required": [
+            "evidence_state"
+          ],
+          "properties": {
+            "evidence_state": {
+              "enum": [
+                "observed",
+                "unavailable"
+              ]
+            },
+            "soc_evidence": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "semantic_note": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
