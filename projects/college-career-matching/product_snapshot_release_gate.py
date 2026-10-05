@@ -5,7 +5,7 @@ Thresholds are supplied in policy JSON; this module invents none. It validates
 identity, counts, coverage, provenance, freshness metadata, and UI-option buildability.
 """
 from __future__ import annotations
-import argparse,csv,json
+import argparse,csv,hashlib,json
 from datetime import datetime,timezone
 from pathlib import Path
 from interface_options_builder import build as build_options
@@ -16,9 +16,14 @@ def load_csv(p):
 def n(v):
  try:return float(v)
  except (TypeError,ValueError):return None
+def sha256_path(p):
+ h=hashlib.sha256()
+ with Path(p).open("rb") as f:
+  for b in iter(lambda:f.read(1024*1024),b""):h.update(b)
+ return h.hexdigest()
 def check(cid,passed,actual,expected,required=True,message=""):
  return {"check_id":cid,"required":required,"status":"PASS" if passed else ("FAIL" if required else "WARN"),"actual":actual,"expected":expected,"message":message}
-def evaluate(snapshot,manifest,policy):
+def evaluate(snapshot,manifest,policy,snapshot_sha256=None):
  out=[];required_fields=policy.get("required_fields",["candidate_id","UNITID","institution_name","program_id","program_name","cip_code","credential_level","state"])
  missing=[f for f in required_fields if not snapshot or f not in snapshot[0]];out.append(check("required_fields",not missing,missing,"none missing",True))
  if snapshot:
@@ -31,6 +36,10 @@ def evaluate(snapshot,manifest,policy):
  for family,min_rate in policy.get("min_coverage_rate",{}).items():
   col=f"coverage__{family}";present=sum(str(r.get(col,"0")).strip().lower() in {"1","true","yes"} for r in snapshot);rate=present/count if count else 0;out.append(check(f"coverage_{family}",rate>=float(min_rate),rate,f">={min_rate}",True))
  hashes=manifest.get("input_sha256",{});out.append(check("input_hashes_present",bool(hashes) and all(len(str(v))==64 for v in hashes.values()),len(hashes),">=1 valid SHA-256",True))
+ if snapshot_sha256 is not None:
+  expected_hash=str(manifest.get("output_sha256","")).strip();valid_hash=len(expected_hash)==64 and all(c in "0123456789abcdefABCDEF" for c in expected_hash)
+  out.append(check("output_hash_present",valid_hash,expected_hash or None,"valid SHA-256",True))
+  out.append(check("output_hash_matches_snapshot",valid_hash and expected_hash.lower()==str(snapshot_sha256).lower(),snapshot_sha256,expected_hash or "manifest output_sha256",True))
  out.append(check("manifest_candidate_count",manifest.get("candidate_count")==count,manifest.get("candidate_count"),count,True))
  out.append(check("manifest_data_version",bool(str(manifest.get("data_version","")).strip()),manifest.get("data_version"),"nonblank",True))
  required_vintages=policy.get("required_source_vintages",[]);vintages=manifest.get("source_vintages",{})
@@ -41,5 +50,5 @@ def evaluate(snapshot,manifest,policy):
  out.append(check("interface_options_build",ok,actual,count,True))
  return out
 def main():
- ap=argparse.ArgumentParser();ap.add_argument("--snapshot",type=Path,required=True);ap.add_argument("--manifest",type=Path,required=True);ap.add_argument("--policy",type=Path,required=True);ap.add_argument("--output",type=Path,required=True);a=ap.parse_args();checks=evaluate(load_csv(a.snapshot),load_json(a.manifest),load_json(a.policy));blocked=any(x["status"]=="FAIL" for x in checks);decision={"schema_version":"1.0","evaluated_at_utc":datetime.now(timezone.utc).isoformat(),"decision":"BLOCKED" if blocked else "ELIGIBLE_FOR_ACTIVATION_REVIEW","checks":checks};a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(decision,indent=2),encoding="utf-8");raise SystemExit(2 if blocked else 0)
+ ap=argparse.ArgumentParser();ap.add_argument("--snapshot",type=Path,required=True);ap.add_argument("--manifest",type=Path,required=True);ap.add_argument("--policy",type=Path,required=True);ap.add_argument("--output",type=Path,required=True);a=ap.parse_args();checks=evaluate(load_csv(a.snapshot),load_json(a.manifest),load_json(a.policy),sha256_path(a.snapshot));blocked=any(x["status"]=="FAIL" for x in checks);decision={"schema_version":"1.0","evaluated_at_utc":datetime.now(timezone.utc).isoformat(),"decision":"BLOCKED" if blocked else "ELIGIBLE_FOR_ACTIVATION_REVIEW","checks":checks};a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(decision,indent=2),encoding="utf-8");raise SystemExit(2 if blocked else 0)
 if __name__=="__main__":main()
