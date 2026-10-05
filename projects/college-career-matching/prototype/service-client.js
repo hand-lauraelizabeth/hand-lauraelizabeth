@@ -14,10 +14,15 @@ export class MatchingServiceClient {
 }
 export function validateRuntimeConfig(config){
  if(!config||config.schema_version!=='1.0')throw new Error('runtime: unsupported schema_version')
- if(!['fixture','production'].includes(config.mode))throw new Error('runtime: unsupported mode')
+ if(!['fixture','staging','production'].includes(config.mode))throw new Error('runtime: unsupported mode')
  if(config.mode==='fixture'){
   if(config.production_authorized!==false)throw new Error('runtime: fixture cannot be production authorized')
   if(!config.fixture_url)throw new Error('runtime: fixture_url required')
+ }else if(config.mode==='staging'){
+  if(config.production_authorized!==false)throw new Error('runtime: staging cannot be production authorized')
+  if(!/^(https:\/\/|http:\/\/(127\.0\.0\.1|localhost|\[::1\])(?::\d+)?(?:\/|$))/.test(config.service_base_url||''))throw new Error('runtime: staging service must use HTTPS or loopback HTTP')
+  const x=config.expected_identity||{}
+  if(!x.data_version||!x.model_version||!/^([0-9a-f]{64})$/i.test(x.snapshot_sha256||''))throw new Error('runtime: expected staging identity missing')
  }else{
   if(config.production_authorized!==true)throw new Error('runtime: production authorization required')
   if(!/^https:\/\//.test(config.service_base_url||''))throw new Error('runtime: production service must use HTTPS')
@@ -33,6 +38,12 @@ export function assertRuntimeMetadata(config,metadata){
   return metadata
  }
  const x=config.expected_identity
+ if(config.mode==='staging'){
+  if(metadata.production_authorized!==false||metadata.serving_state==='production')throw new Error('runtime: staging metadata cannot be production')
+  if(metadata.data_version!==x.data_version||metadata.model_version!==x.model_version)throw new Error('runtime: staging version identity mismatch')
+  if((metadata.snapshot?.output_sha256||'').toLowerCase()!==x.snapshot_sha256.toLowerCase())throw new Error('runtime: staging snapshot identity mismatch')
+  return metadata
+ }
  if(metadata.production_authorized!==true||metadata.serving_state!=='production')throw new Error('runtime: service metadata is not production authorized')
  if(metadata.data_version!==x.data_version||metadata.model_version!==x.model_version)throw new Error('runtime: service version identity mismatch')
  if((metadata.snapshot?.output_sha256||'').toLowerCase()!==x.snapshot_sha256.toLowerCase())throw new Error('runtime: snapshot identity mismatch')
