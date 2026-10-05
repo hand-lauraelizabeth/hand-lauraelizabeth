@@ -153,7 +153,7 @@ def normalize(candidates,reference,reference_id):
   ]
  }
  policy=[{
-  "feature_id":spec["feature_id"],"dimension":spec["dimension"],"within_dimension_weight":"1","partial_policy":"block"
+  "feature_id":spec["feature_id"],"within_dimension_weight":"1","partial_policy":"block"
  } for spec in NUMERIC_FEATURES+CATEGORICAL_FEATURES]
  return rows,policy,qa
 
