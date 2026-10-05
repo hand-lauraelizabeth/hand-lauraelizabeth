@@ -307,3 +307,7 @@ Staging mode is intentionally distinct from production. Loopback HTTP is permitt
 ### Browser edge-state gate
 
 CI also runs `staging_browser_edge_scenarios.py` against the loopback staging service. This deliberately exercises zero-result requests, unresolved must-have evidence, the three-program comparison cap, runtime service loss, and mismatched pinned metadata. The expected behavior is fail-closed: stale results/comparisons are cleared after a request failure, unresolved evidence remains visibly unknown rather than false, and an invalid service identity disables the matcher rather than allowing interaction.
+
+### WordPress fixture embed
+
+The public WordPress page must be built from the default fixture-mode explorer with `wordpress_explorer_embed.py`; do not hand-concatenate the module source. The builder inlines the synthetic fixture client without changing runtime authorization and enforces exactly one explorer initializer and one service-client class. This specifically prevents JavaScript replacement strings such as `$1` from being interpreted as replacement-group references and duplicating the application script.
