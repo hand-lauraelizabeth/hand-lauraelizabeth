@@ -40,7 +40,7 @@ Institution-level outcomes are not presented as program outcomes. Tuition, cost 
 
 ## Other service operations
 
-`GET /options` returns choices and constraint capabilities from the active product snapshot. `GET /candidate/{id}` returns evidence-oriented candidate detail. `POST /compare` returns 2–5 candidates side by side without declaring an automatic winner. `GET /metadata` remains the planned release/version summary endpoint.
+`GET /metadata` returns governed data/model version information, snapshot identity, source-vintage labels, and machine-readable release readiness. It does not convert review eligibility into production authorization and does not infer freshness from a vintage label. `GET /options` returns choices and constraint capabilities from the same product data version. `GET /candidate/{id}` returns evidence-oriented candidate detail. `POST /compare` returns 2–5 candidates side by side without declaring an automatic winner.
 
 ## Browser boundary
 
@@ -54,6 +54,8 @@ Anonymous matching should be possible. Requests should contain decision-relevant
 
 - `schemas/match_request.schema.json`
 - `schemas/match_response.schema.json`
+- `schemas/metadata_response.schema.json`
+- `metadata_service_adapter.py`
 - `match_service_adapter.py`
 - `constraint_field_registry.py`
 - `measure_metadata_registry.py`
