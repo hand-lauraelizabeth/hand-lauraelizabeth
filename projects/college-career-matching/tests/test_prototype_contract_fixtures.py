@@ -13,6 +13,13 @@ class PrototypeContractTests(unittest.TestCase):
  def test_metadata_does_not_claim_production_authorization(self):self.assertFalse(F['metadata']['production_authorized']);self.assertTrue(F['metadata']['semantic_rules']['review_eligibility_is_not_production_authorization'])
  def test_match_results_have_unique_candidate_ids(self):
   ids=[x['candidate_id'] for x in F['match']['results']];self.assertEqual(len(ids),len(set(ids)))
+ def test_match_fixture_has_current_service_response_shape(self):
+  m=F["match"];self.assertTrue(m["request_id"].startswith("req_"));self.assertEqual(len(m["request_id"]),24);int(m["request_id"][4:],16)
+  self.assertIn("pagination",m);self.assertEqual(m["pagination"]["page"],1);self.assertEqual(m["pagination"]["page_size"],100)
+  self.assertTrue(all(isinstance(w,dict) and {"code","message"}.issubset(w) for w in m["warnings"]))
+  for x in m["results"]:
+   for key in ["dimensions","explanation","transfer","source_freshness","recommendation"]:self.assertIn(key,x)
+   self.assertEqual(set(x["explanation"]),{"why_it_matches","tradeoffs","unknowns"})
  def test_match_fixture_is_explicitly_unranked_and_not_production_authorized(self):
   self.assertEqual(F["match"]["ordering"]["mode"],"deterministic_unranked");self.assertFalse(F["match"]["ordering"]["production_authorized"])
   for x in F["match"]["results"]:self.assertEqual(x["recommendation"]["status"],"not_ranked");self.assertFalse(x["recommendation"]["production_authorized"])
