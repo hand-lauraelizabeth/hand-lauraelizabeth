@@ -47,6 +47,34 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual({r["dimension"] for r in baseline},{"affordability","career_pathway_fit"})
             bw={r["dimension"]:float(r["weight"]) for r in baseline}; self.assertAlmostEqual(bw["affordability"],.6); self.assertAlmostEqual(bw["career_pathway_fit"],.4)
 
+    def test_campus_context_normalization_feeds_explicit_weight_scenarios(self):
+        with tempfile.TemporaryDirectory() as td:
+            d=Path(td); norm=d/"norm"; composed=d/"composed"
+            write_csv(d/"reference.csv",[
+                {"UNITID":"1","campus__transit_stop_distance_m":"100","campus__transit_stop_distance_m__state":"observed","campus__walkability_index":"5","campus__walkability_index__state":"observed"},
+                {"UNITID":"2","campus__transit_stop_distance_m":"300","campus__transit_stop_distance_m__state":"observed","campus__walkability_index":"10","campus__walkability_index__state":"observed"},
+                {"UNITID":"3","campus__transit_stop_distance_m":"700","campus__transit_stop_distance_m__state":"observed","campus__walkability_index":"15","campus__walkability_index__state":"observed"},
+                {"UNITID":"4","campus__transit_stop_distance_m":"1100","campus__transit_stop_distance_m__state":"observed","campus__walkability_index":"20","campus__walkability_index__state":"observed"},
+            ])
+            write_csv(d/"candidates.csv",[
+                {"candidate_id":"A","campus__transit_stop_distance_m":"300","campus__transit_stop_distance_m__state":"observed","campus__walkability_index":"15","campus__walkability_index__state":"observed","campus__housing_choice_state":"choice_available","campus__disability_services_evidence_available":"true","campus__disability_services_registered_share__state":"observed"},
+                {"candidate_id":"B","campus__transit_stop_distance_m":"700","campus__transit_stop_distance_m__state":"observed","campus__walkability_index":"10","campus__walkability_index__state":"observed","campus__housing_choice_state":"required_for_all_ftft","campus__disability_services_evidence_available":"","campus__disability_services_registered_share__state":"not_published"},
+            ])
+            run("campus_context_preference_normalizer.py","--candidates",d/"candidates.csv","--reference",d/"reference.csv","--reference-id","SYN-REF-1","--out-dir",norm)
+            write_csv(d/"prefs.csv",[
+                {"dimension":"transit_access_fit","importance":"4","priority_explicit":"true"},
+                {"dimension":"accessibility_evidence_fit","importance":"2","priority_explicit":"true"},
+                {"dimension":"walkability_fit","importance":"99","priority_explicit":"false"},
+                {"dimension":"housing_context_fit","importance":"99","priority_explicit":"false"},
+            ])
+            run("dimension_composer_weight_scenarios.py","--normalized-features",norm/"campus_context_normalized_features.csv","--composition-policy",norm/"campus_context_composition_policy.csv","--preferences",d/"prefs.csv","--out-dir",composed)
+            dims=read_csv(composed/"composed_candidate_dimensions.csv")
+            b_access=next(r for r in dims if r["candidate_id"]=="B" and r["dimension"]=="accessibility_evidence_fit")
+            self.assertEqual(b_access["dimension_status"],"partial_blocked");self.assertEqual(b_access["dimension_value"],"")
+            baseline=[r for r in read_csv(composed/"explicit_preference_weight_scenarios.csv") if r["scenario_id"]=="baseline"]
+            self.assertEqual({r["dimension"] for r in baseline},{"transit_access_fit","accessibility_evidence_fit"})
+            weights={r["dimension"]:float(r["weight"]) for r in baseline};self.assertAlmostEqual(weights["transit_access_fit"],2/3);self.assertAlmostEqual(weights["accessibility_evidence_fit"],1/3)
+
     def test_feature_registry_keeps_coverage_out_of_comparison_direction(self):
         with tempfile.TemporaryDirectory() as td:
             d=Path(td); out=d/"out"
