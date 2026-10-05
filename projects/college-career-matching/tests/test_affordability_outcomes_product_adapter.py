@@ -7,6 +7,10 @@ from affordability_outcomes_product_adapter import normalize,attach_field_to_pro
 class AffordabilityTests(unittest.TestCase):
  def test_institution_cost_concepts_remain_separate(self):
   r=normalize([{"UNITID":"1","tuition_in_state":"5000","cost_of_attendance":"20000","net_price":"9000","median_debt":"12000"}],"institution")[0];self.assertEqual(r["tuition_in_state"],"5000");self.assertEqual(r["cost_of_attendance"],"20000");self.assertEqual(r["net_price"],"9000");self.assertEqual(r["median_debt"],"12000")
+ def test_income_band_net_prices_remain_distinct(self):
+  r=normalize([{"UNITID":"1","net_price_overall":"12000","net_price_income_0_30":"7000","net_price_income_110_plus":"21000"}],"institution")[0];self.assertEqual(r["net_price_overall"],"12000");self.assertEqual(r["net_price_income_0_30"],"7000");self.assertEqual(r["net_price_income_110_plus"],"21000")
+ def test_aid_evidence_is_not_collapsed_into_cost(self):
+  r=normalize([{"UNITID":"1","institutional_grant_share":"0.45","work_study_share":"","state_local_grant_share":"0.20"}],"institution")[0];self.assertEqual(r["institutional_grant_evidence"],"true");self.assertEqual(r["work_study_evidence"],"false");self.assertEqual(r["state_local_grant_evidence"],"true")
  def test_missing_is_not_zero(self):
   r=normalize([{"UNITID":"1","net_price":""}],"institution")[0];self.assertEqual(r["net_price"],"");self.assertEqual(r["net_price__state"],"missing")
  def test_source_suppression_is_preserved(self):
