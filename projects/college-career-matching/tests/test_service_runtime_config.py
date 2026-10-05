@@ -7,7 +7,7 @@ from service_runtime_config import build
 from public_explorer_deployment import inject
 
 def record():
- return {"activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"D1","model_version":"M1","snapshot_sha256":"a"*64,"activation_bundle_sha256":"b"*64}
+ return {"schema_version":"1.0","activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"D1","model_version":"M1","snapshot_sha256":"a"*64,"activation_bundle_sha256":"b"*64,"approved_by":"Human Reviewer","approved_at_utc":"2026-10-05T19:00:00Z","decision_reference":"review-1","recorded_at_utc":"2026-10-05T19:01:00Z","rules":[]}
 
 class ServiceRuntimeConfigTests(unittest.TestCase):
  def test_no_activation_record_defaults_to_fixture(self):
