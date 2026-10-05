@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "questionnaire_version": "2026-10-05.3",
+  "questionnaire_version": "2026-10-05.4",
   "principles": {
     "skippable_preferences": true,
     "no_default_priority_weights": true,
@@ -341,6 +341,54 @@
       "mapping": {
         "target": "preference",
         "dimension": "affordability"
+      }
+    },
+    {
+      "question_id": "transit_access_priority",
+      "section": "priorities",
+      "prompt": "How important is convenient public-transit access near the school?",
+      "help": "Transit proximity is treated separately from route/station accessibility and does not by itself establish an accessible path or vehicle.",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "preference",
+        "dimension": "transit_access_fit"
+      }
+    },
+    {
+      "question_id": "walkability_priority",
+      "section": "priorities",
+      "prompt": "How important is a more walkable area for everyday needs?",
+      "help": "Walkability/location-efficiency evidence is vintage-labeled and remains separate from physical-accessibility evidence.",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "preference",
+        "dimension": "walkability_fit"
+      }
+    },
+    {
+      "question_id": "housing_choice_priority",
+      "section": "priorities",
+      "prompt": "How important is having institutionally controlled housing without a universal full-time first-time residency requirement?",
+      "help": "This preference is about housing choice. Roommate or private-room configuration requires separate school-specific evidence.",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "preference",
+        "dimension": "housing_context_fit"
+      }
+    },
+    {
+      "question_id": "disability_services_priority",
+      "section": "priorities",
+      "prompt": "How important is having documented disability-services information available?",
+      "help": "This preference concerns documentation/evidence availability only. It is not a score of service quality or physical campus accessibility.",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "preference",
+        "dimension": "accessibility_evidence_fit"
       }
     },
     {
