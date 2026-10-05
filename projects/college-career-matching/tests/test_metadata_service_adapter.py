@@ -7,15 +7,17 @@ from metadata_service_adapter import build_metadata
 
 def manifest():
  return {"data_version":"SYN-DATA-1","generated_at_utc":"2026-10-05T00:00:00Z","candidate_grain":"UNITID x program_id","candidate_count":2,"institution_count":2,"output_sha256":"a"*64,"enrichment_registry_version":"1.0","source_vintages":{"IPEDS":"2025","OEWS":"May 2025"}}
+def activation_record(data_version="SYN-DATA-1",model_version="SYN-MODEL-1"):
+ return {"schema_version":"1.0","activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":data_version,"model_version":model_version,"snapshot_sha256":"a"*64,"activation_bundle_sha256":"b"*64,"approved_by":"Human Reviewer","approved_at_utc":"2026-10-05T19:00:00Z","decision_reference":"review-1","recorded_at_utc":"2026-10-05T19:01:00Z","rules":[]}
 class MetadataServiceTests(unittest.TestCase):
  def test_review_eligible_is_not_production_authorized(self):
   r=build_metadata(manifest(),"SYN-MODEL-1",{"decision":"ELIGIBLE_FOR_ACTIVATION_REVIEW","checks":[]},{"release_decision":"ELIGIBLE_FOR_REVIEW","blocked_required_checks":0})
   self.assertEqual(r["serving_state"],"review_eligible");self.assertFalse(r["production_authorized"]);self.assertTrue(r["semantic_rules"]["review_eligibility_is_not_production_authorization"])
  def test_exact_activation_record_enables_production_state(self):
-  record={"activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"SYN-DATA-1","model_version":"SYN-MODEL-1","snapshot_sha256":"a"*64}
+  record=activation_record()
   r=build_metadata(manifest(),"SYN-MODEL-1",activation_record=record);self.assertEqual(r["serving_state"],"production");self.assertTrue(r["production_authorized"]);self.assertTrue(r["semantic_rules"]["production_requires_exact_activation_record"])
  def test_mismatched_activation_record_fails_closed(self):
-  record={"activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"OTHER","model_version":"M","snapshot_sha256":"a"*64}
+  record=activation_record("OTHER","M")
   with self.assertRaisesRegex(ValueError,"data_version mismatch"):build_metadata(manifest(),"M",activation_record=record)
  def test_blocked_gate_blocks_serving_state(self):
   r=build_metadata(manifest(),"M",{"decision":"BLOCKED"},{"release_decision":"ELIGIBLE_FOR_REVIEW"})
