@@ -132,8 +132,8 @@ function syncCorpusSelectors(rows){
  const focus=$('focusDoc'),kw=$('kwicText'),ref=$('keyRef'),focusCurrent=focus.value,kwCurrent=kw.value,refCurrent=ref.value;
  focus.innerHTML='<option value="">All loaded documents</option>'+rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.text+' · '+x.name)+'</option>').join('');
  if(rows.some(x=>x.id===focusCurrent))focus.value=focusCurrent;
- ref.innerHTML='<option value="remainder">Remainder of corpus</option>'+rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.text+' · '+x.name)+'</option>').join('');
- if(refCurrent==='remainder'||rows.some(x=>x.id===refCurrent))ref.value=refCurrent;
+ ref.innerHTML='<option value="remainder">Remainder of corpus</option><option value="custom">Custom reference set</option>'+rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.text+' · '+x.name)+'</option>').join('');
+ if(refCurrent==='remainder'||refCurrent==='custom'||rows.some(x=>x.id===refCurrent))ref.value=refCurrent;
  if(focus.value&&ref.value===focus.value)ref.value='remainder';
  const base=[['a','Text A']];if(lastCompare)base.push(['b','Text B']);
  kw.innerHTML=base.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('')+rows.map(x=>'<option value="doc:'+esc(x.id)+'">'+esc(x.text+' · '+x.name)+'</option>').join('');
@@ -149,7 +149,7 @@ function manageDocument(id,action){
  for(const k of ['a','b']){const i=sourceDocs[k].findIndex(d=>d.id===id);if(i>=0){key=k;index=i;break}}
  if(key===null)return;
  const docs=sourceDocs[key];
- if(action==='remove')docs.splice(index,1);
+ if(action==='remove'){customRefIds.delete(id);docs.splice(index,1);}
  else if(action==='up'&&index>0)[docs[index-1],docs[index]]=[docs[index],docs[index-1]];
  else if(action==='down'&&index<docs.length-1)[docs[index],docs[index+1]]=[docs[index+1],docs[index]];
  rebuildTextFromDocs(key);run()
@@ -157,7 +157,7 @@ function manageDocument(id,action){
 function renderDocumentManager(rows){
  const box=$('docManager'),holder=$('docManagerRows');box.hidden=!rows.length;
  if(!rows.length){holder.innerHTML='';return}
- holder.innerHTML=rows.map(x=>{const group=sourceDocs[x.source_key],i=group.findIndex(d=>d.id===x.id);return'<div class="doc-row"><span class="doc-source">Text '+esc(x.text)+'</span><span class="doc-name" title="'+esc(x.name)+'">'+esc(x.name)+'</span><span class="doc-actions"><button type="button" data-doc="'+esc(x.id)+'" data-action="up"'+(i<=0?' disabled':'')+' aria-label="Move '+esc(x.name)+' up">↑ Up</button><button type="button" data-doc="'+esc(x.id)+'" data-action="down"'+(i>=group.length-1?' disabled':'')+' aria-label="Move '+esc(x.name)+' down">↓ Down</button><button type="button" data-doc="'+esc(x.id)+'" data-action="remove" aria-label="Remove '+esc(x.name)+'">Remove</button></span></div>'}).join('')
+ holder.innerHTML=rows.map(x=>{const group=sourceDocs[x.source_key],i=group.findIndex(d=>d.id===x.id);return'<div class="doc-row"><span class="doc-source">Text '+esc(x.text)+'</span><span class="doc-name" title="'+esc(x.name)+'">'+esc(x.name)+'</span><span class="doc-actions"><label class="doc-ref"><input type="checkbox" data-refcheck="'+esc(x.id)+'"'+(customRefIds.has(x.id)?' checked':'')+'> Reference</label><button type="button" data-doc="'+esc(x.id)+'" data-action="up"'+(i<=0?' disabled':'')+' aria-label="Move '+esc(x.name)+' up">↑ Up</button><button type="button" data-doc="'+esc(x.id)+'" data-action="down"'+(i>=group.length-1?' disabled':'')+' aria-label="Move '+esc(x.name)+' down">↓ Down</button><button type="button" data-doc="'+esc(x.id)+'" data-action="remove" aria-label="Remove '+esc(x.name)+'">Remove</button></span></div>'}).join('')
 }
 function focusedRows(rows){const id=$('focusDoc').value;return id?rows.filter(x=>x.id===id):rows}
 function documentMetric(row,metric){
@@ -178,15 +178,22 @@ function kwicTarget(){
  if(v==='b'&&lastCompare)return lastB?{text:lastB.t,label:'Text B'}:null;
  return lastA?{text:lastA.t,label:'Text A'}:null
 }
-function corpusComparison(rows,minTotal=3,referenceId='remainder'){
- if(rows.length<2)return{similarity:[],keyness:[],reference:referenceId};
+function customReference(rows,referenceIds,targetId){
+ const selected=rows.filter(x=>referenceIds.includes(x.id)&&x.id!==targetId),freq={};
+ for(const x of selected)for(const [w,n] of Object.entries(x.r.freq))freq[w]=(freq[w]||0)+n;
+ return{row:{r:{freq}},ids:selected.map(x=>x.id),label:selected.map(x=>x.text+' · '+x.name).join('; ')}
+}
+function corpusComparison(rows,minTotal=3,referenceId='remainder',referenceIds=[...customRefIds]){
+ if(rows.length<2)return{similarity:[],keyness:[],reference:referenceId,reference_ids:referenceIds};
  const similarity=[];for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++)similarity.push({a:rows[i].text+' · '+rows[i].name,b:rows[j].text+' · '+rows[j].name,cosine:cosine(rows[i].r.freq,rows[j].r.freq)});
  let keyness=[];
- if(referenceId&&referenceId!=='remainder'){
+ if(referenceId==='custom'){
+  keyness=rows.map(x=>{const ref=customReference(rows,referenceIds,x.id);return{document:x.text+' · '+x.name,document_id:x.id,reference:ref.ids.length?('custom set: '+ref.label):'custom reference set has no other document',reference_id:'custom',reference_ids:ref.ids,terms:ref.ids.length?keynessAgainstReference(x,ref.row,minTotal).slice(0,12):[]}})
+ }else if(referenceId&&referenceId!=='remainder'){
   const reference=rows.find(x=>x.id===referenceId);
-  if(reference)keyness=rows.filter(x=>x.id!==reference.id).map(x=>({document:x.text+' · '+x.name,document_id:x.id,reference:reference.text+' · '+reference.name,reference_id:reference.id,terms:keynessAgainstReference(x,reference,minTotal).slice(0,12)}))
- }else keyness=rows.map(x=>({document:x.text+' · '+x.name,document_id:x.id,reference:'remainder of corpus',reference_id:'remainder',terms:keynessAgainstRemainder(x,rows,minTotal).slice(0,12)}));
- return{similarity,keyness,reference:referenceId}
+  if(reference)keyness=rows.filter(x=>x.id!==reference.id).map(x=>({document:x.text+' · '+x.name,document_id:x.id,reference:reference.text+' · '+reference.name,reference_id:reference.id,reference_ids:[reference.id],terms:keynessAgainstReference(x,reference,minTotal).slice(0,12)}))
+ }else keyness=rows.map(x=>({document:x.text+' · '+x.name,document_id:x.id,reference:'remainder of corpus',reference_id:'remainder',reference_ids:rows.filter(y=>y.id!==x.id).map(y=>y.id),terms:keynessAgainstRemainder(x,rows,minTotal).slice(0,12)}));
+ return{similarity,keyness,reference:referenceId,reference_ids:referenceIds}
 }
 
 function distinctive(a,b,n=8){const keys=new Set([...Object.keys(a.freq),...Object.keys(b.freq)]),A=[],B=[];keys.forEach(k=>{const pa=(a.freq[k]||0)/Math.max(1,a.W),pb=(b.freq[k]||0)/Math.max(1,b.W),d=pa-pb;if(d>0)A.push([k,d]);else if(d<0)B.push([k,-d])});return{a:A.sort((x,y)=>y[1]-x[1]||x[0].localeCompare(y[0])).slice(0,n),b:B.sort((x,y)=>y[1]-x[1]||x[0].localeCompare(y[0])).slice(0,n)}}
@@ -251,7 +258,7 @@ function run(){
 }
 function downloadAnalysis(){const payload={tool:"Text Lens",version:"3.3",generated_at:new Date().toISOString(),method_note:"Browser-only descriptive text analysis. English readability and syllable counts are heuristic. Sentiment is a transparent lexicon signal, not a trained model.",settings:{ignore_common_words:$('stop').checked,phrase_size:Number($('ngram').value),collocation_minimum:Number($('collMin').value),keyness_minimum:Number($('keyMin').value),keyness_reference:$('keyRef').value,focus_document:$('focusDoc').value||null,document_chart:$('vizMetric').value,comparison:lastCompare,concordance_query:$('kwic').value.trim()},source_files:{text_a:sourceFiles.a,text_b:sourceFiles.b},document_profiles:{text_a:sourceDocs.a.map(d=>({id:d.id,name:d.name,analysis:publicResult(analyze(d.text,$('stop').checked,Number($('ngram').value)))})),text_b:lastCompare?sourceDocs.b.map(d=>({id:d.id,name:d.name,analysis:publicResult(analyze(d.text,$('stop').checked,Number($('ngram').value)))})):[]},corpus_analysis:publicCorpusComparison(),text_a:publicResult(lastA),text_b:lastCompare?publicResult(lastB):null,comparison:lastCompare?comparisonExport(lastA,lastB):null};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='text-lens-analysis.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);$('status').textContent='Downloaded analysis JSON. Source text itself is not included in the file.'}
 async function copySummary(){let txt=summaryText(lastCompare?'Text A':'Text',lastA);if(lastCompare)txt+='\n'+summaryText('Text B',lastB);if(lastCompare&&lastA&&lastB&&lastA.W&&lastB.W){const ce=comparisonExport(lastA,lastB);txt+=`\nComparison: ${fmt(ce.cosine_similarity*100,0)}% cosine similarity; ${fmt(ce.jaccard_vocabulary_overlap*100,0)}% vocabulary overlap.`}try{await navigator.clipboard.writeText(txt)}catch(e){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}$('status').textContent='Copied a compact analysis summary to the clipboard.'}
-let tm;const later=()=>{clearTimeout(tm);tm=setTimeout(run,220)};['a','b'].forEach(i=>$(i).addEventListener('input',()=>{const key=i==='a'?'a':'b';if(sourceDocs[key].length){sourceDocs[key]=[];sourceFiles[key]=[];$(key==='a'?'fileMetaA':'fileMetaB').textContent='Manual edits detected · file identity cleared';$(key==='a'?'fileA':'fileB').value=''}later()}));['cmp','stop','ngram','collMin','keyMin'].forEach(i=>$(i).addEventListener('change',run));['focusDoc','vizMetric'].forEach(i=>$(i).addEventListener('change',()=>{renderCorpus();renderKwic()}));$('keyRef').addEventListener('change',renderCorpus);$('docManager').addEventListener('click',e=>{const b=e.target.closest('button[data-doc]');if(b&&!b.disabled)manageDocument(b.dataset.doc,b.dataset.action)});['kwic','kwicWindow','kwicText'].forEach(i=>$(i).addEventListener(i==='kwic'?'input':'change',renderKwic));$('fileA').addEventListener('change',()=>loadFiles($('fileA'),'a','fileMetaA','a'));$('fileB').addEventListener('change',()=>loadFiles($('fileB'),'b','fileMetaB','b'));$('sample').onclick=()=>{$('a').value=SAMPLE_A;$('b').value=SAMPLE_B;sourceFiles.a=[];sourceFiles.b=[];sourceDocs.a=[];sourceDocs.b=[];customRefIds.clear();pendingCorpusConfig=null;docSeq=0;$('fileMetaA').textContent='Sample text loaded';$('fileMetaB').textContent='Sample text loaded';$('cmp').checked=true;run()};$('clear').onclick=()=>{$('a').value=$('b').value='';$('fileA').value=$('fileB').value='';sourceFiles.a=[];sourceFiles.b=[];sourceDocs.a=[];sourceDocs.b=[];customRefIds.clear();pendingCorpusConfig=null;docSeq=0;$('fileMetaA').textContent='.txt, .md, or .csv · files stay in this browser';$('fileMetaB').textContent='.txt, .md, or .csv · files stay in this browser';$('kwic').value='';run();$('a').focus()};$('copy').onclick=copySummary;$('download').onclick=downloadAnalysis;$('downloadcsv').onclick=downloadTables;run();
+let tm;const later=()=>{clearTimeout(tm);tm=setTimeout(run,220)};['a','b'].forEach(i=>$(i).addEventListener('input',()=>{const key=i==='a'?'a':'b';if(sourceDocs[key].length){sourceDocs[key]=[];sourceFiles[key]=[];$(key==='a'?'fileMetaA':'fileMetaB').textContent='Manual edits detected · file identity cleared';$(key==='a'?'fileA':'fileB').value=''}later()}));['cmp','stop','ngram','collMin','keyMin'].forEach(i=>$(i).addEventListener('change',run));['focusDoc','vizMetric'].forEach(i=>$(i).addEventListener('change',()=>{renderCorpus();renderKwic()}));$('keyRef').addEventListener('change',renderCorpus);$('docManager').addEventListener('click',e=>{const b=e.target.closest('button[data-doc]');if(b&&!b.disabled)manageDocument(b.dataset.doc,b.dataset.action)});$('docManager').addEventListener('change',e=>{const c=e.target.closest('input[data-refcheck]');if(!c)return;c.checked?customRefIds.add(c.dataset.refcheck):customRefIds.delete(c.dataset.refcheck);$('keyRef').value='custom';renderCorpus()});['kwic','kwicWindow','kwicText'].forEach(i=>$(i).addEventListener(i==='kwic'?'input':'change',renderKwic));$('fileA').addEventListener('change',()=>loadFiles($('fileA'),'a','fileMetaA','a'));$('fileB').addEventListener('change',()=>loadFiles($('fileB'),'b','fileMetaB','b'));$('sample').onclick=()=>{$('a').value=SAMPLE_A;$('b').value=SAMPLE_B;sourceFiles.a=[];sourceFiles.b=[];sourceDocs.a=[];sourceDocs.b=[];customRefIds.clear();pendingCorpusConfig=null;docSeq=0;$('fileMetaA').textContent='Sample text loaded';$('fileMetaB').textContent='Sample text loaded';$('cmp').checked=true;run()};$('clear').onclick=()=>{$('a').value=$('b').value='';$('fileA').value=$('fileB').value='';sourceFiles.a=[];sourceFiles.b=[];sourceDocs.a=[];sourceDocs.b=[];customRefIds.clear();pendingCorpusConfig=null;docSeq=0;$('fileMetaA').textContent='.txt, .md, or .csv · files stay in this browser';$('fileMetaB').textContent='.txt, .md, or .csv · files stay in this browser';$('kwic').value='';run();$('a').focus()};$('copy').onclick=copySummary;$('download').onclick=downloadAnalysis;$('downloadcsv').onclick=downloadTables;run();
 </script>
 </body>
 </html>
