@@ -1,1 +1,362 @@
-{"fixture_status":"SYNTHETIC_NOT_PRODUCTION_DATA","options":{"schema_version":"1.0","data_version":"synthetic-contract-1","options":{"states":[{"value":"NY","label":"New York"},{"value":"NJ","label":"New Jersey"}],"credential_levels":[{"value":"Bachelors","label":"Bachelor's"}]},"constraint_capabilities":{"schema_version":"1.0","fields":{"state":{"operators":["in"]},"credential_level":{"operators":["in"]},"online_available":{"operators":["eq"]},"finance__net_price":{"operators":["lte"]}}}},"match":{"schema_version":"1.0","request_id":"synthetic-request-1","data_version":"synthetic-contract-1","model_version":"prototype-contract-1","generated_at_utc":"2026-10-05T00:00:00+00:00","result_count":3,"warnings":["Synthetic fixture data"],"results":[{"candidate_id":"SYN001:P1","institution":{"unitid":"SYN001","name":"North Harbor College","city":"Harbor City","state":"NY"},"program":{"program_id":"P1","name":"Data & Information Systems","cip_code":"11.0101","credential_level":"Bachelors"},"eligibility":{"status":"eligible","reason_codes":[]},"career_pathways":{"pathway_count":2,"soc_codes":["15-2051","15-1211"]},"labor_market":{"selected_work_market":{"evidence_state":"observed","soc_evidence":[{"soc_code":"15-2051","median_wage":94500,"wage_state":"observed"}]},"long_term_outlook":{"evidence_state":"observed","soc_evidence":[{"soc_code":"15-2051","employment_change_pct":18,"projection_year":2035}]}},"evidence_coverage":{"overall_status":"broad","review_flags":[]}},{"candidate_id":"SYN002:P2","institution":{"unitid":"SYN002","name":"Metro Public College","city":"Metro City","state":"NY"},"program":{"program_id":"P2","name":"Information Technology","cip_code":"11.0103","credential_level":"Bachelors"},"eligibility":{"status":"eligible","reason_codes":[]},"career_pathways":{"pathway_count":2,"soc_codes":["15-1211","15-1212"]},"labor_market":{"selected_work_market":{"evidence_state":"observed","soc_evidence":[{"soc_code":"15-1212","median_wage":101000,"wage_state":"observed"}]},"long_term_outlook":{"evidence_state":"observed","soc_evidence":[{"soc_code":"15-1212","employment_change_pct":22,"projection_year":2035}]}},"evidence_coverage":{"overall_status":"broad","review_flags":[]}},{"candidate_id":"SYN003:P3","institution":{"unitid":"SYN003","name":"River State University","city":"River City","state":"NJ"},"program":{"program_id":"P3","name":"Applied Computing","cip_code":"11.0199","credential_level":"Bachelors"},"eligibility":{"status":"eligible_with_unknown","reason_codes":[]},"career_pathways":{"pathway_count":2,"soc_codes":["15-1252","15-2051"]},"labor_market":{"selected_work_market":{"evidence_state":"unavailable","soc_evidence":[]},"long_term_outlook":{"evidence_state":"observed","soc_evidence":[{"soc_code":"15-1252","employment_change_pct":16,"projection_year":2035}]}},"evidence_coverage":{"overall_status":"partial","review_flags":[]}}]},"candidate:SYN001:P1":{"schema_version":"1.0","data_version":"synthetic-contract-1","candidate_id":"SYN001:P1","institution":{"unitid":"SYN001","name":"North Harbor College","state":"NY"},"program":{"program_id":"P1","name":"Data & Information Systems","cip_code":"11.0101","credential_level":"Bachelors"},"affordability":{"net_price":{"value":14800,"evidence_state":"observed"}},"program_outcomes":{"median_earnings":{"value":72000,"evidence_state":"observed"}},"career":{"soc_codes":["15-2051","15-1211"]}},"compare":{"schema_version":"1.0","data_version":"synthetic-contract-1","candidate_ids":["SYN001:P1","SYN002:P2"],"candidates":[{"candidate_id":"SYN001:P1","institution":{"name":"North Harbor College"},"program":{"name":"Data & Information Systems"},"affordability":{"net_price":{"value":14800,"evidence_state":"observed"}},"program_outcomes":{"median_earnings":{"value":72000,"evidence_state":"observed"}}},{"candidate_id":"SYN002:P2","institution":{"name":"Metro Public College"},"program":{"name":"Information Technology"},"affordability":{"net_price":{"value":11200,"evidence_state":"observed"}},"program_outcomes":{"median_earnings":{"value":66500,"evidence_state":"observed"}}}],"semantic_rules":{"no_automatic_winner":true,"missing_is_not_zero":true,"current_market_is_not_long_term_outlook":true}},"metadata":{"schema_version":"1.0","data_version":"synthetic-contract-1","model_version":"prototype-contract-1","serving_state":"data_review_eligible_model_not_evaluated","production_authorized":false,"snapshot":{"generated_at_utc":"2026-10-05T00:00:00+00:00","candidate_grain":"UNITID x program_id","candidate_count":3,"institution_count":3,"output_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","enrichment_registry_version":"synthetic-1"},"source_vintages":{"IPEDS":"SYNTHETIC","OEWS":"SYNTHETIC"},"release":{"product_snapshot_decision":"ELIGIBLE_FOR_ACTIVATION_REVIEW","recommendation_decision":"NOT_EVALUATED","product_checks":[],"blocked_recommendation_checks":null},"semantic_rules":{"review_eligibility_is_not_production_authorization":true,"source_vintage_is_not_inferred_freshness":true,"browser_must_not_select_versions_independently":true}}}
+{
+  "fixture_status": "SYNTHETIC_NOT_PRODUCTION_DATA",
+  "options": {
+    "schema_version": "1.0",
+    "data_version": "synthetic-contract-1",
+    "options": {
+      "states": [
+        {
+          "value": "NY",
+          "label": "New York"
+        },
+        {
+          "value": "NJ",
+          "label": "New Jersey"
+        }
+      ],
+      "credential_levels": [
+        {
+          "value": "Bachelors",
+          "label": "Bachelor's"
+        }
+      ]
+    },
+    "constraint_capabilities": {
+      "schema_version": "1.0",
+      "fields": {
+        "state": {
+          "operators": [
+            "in"
+          ]
+        },
+        "credential_level": {
+          "operators": [
+            "in"
+          ]
+        },
+        "online_available": {
+          "operators": [
+            "eq"
+          ]
+        },
+        "finance__net_price": {
+          "operators": [
+            "lte"
+          ]
+        }
+      }
+    }
+  },
+  "match": {
+    "schema_version": "1.0",
+    "request_id": "synthetic-request-1",
+    "data_version": "synthetic-contract-1",
+    "model_version": "prototype-contract-1",
+    "generated_at_utc": "2026-10-05T00:00:00+00:00",
+    "result_count": 3,
+    "warnings": [
+      "Synthetic fixture data"
+    ],
+    "results": [
+      {
+        "candidate_id": "SYN001:P1",
+        "institution": {
+          "unitid": "SYN001",
+          "name": "North Harbor College",
+          "city": "Harbor City",
+          "state": "NY"
+        },
+        "program": {
+          "program_id": "P1",
+          "name": "Data & Information Systems",
+          "cip_code": "11.0101",
+          "credential_level": "Bachelors"
+        },
+        "eligibility": {
+          "status": "eligible",
+          "reason_codes": []
+        },
+        "career_pathways": {
+          "pathway_count": 2,
+          "soc_codes": [
+            "15-2051",
+            "15-1211"
+          ]
+        },
+        "labor_market": {
+          "selected_work_market": {
+            "evidence_state": "observed",
+            "soc_evidence": [
+              {
+                "soc_code": "15-2051",
+                "median_wage": 94500,
+                "wage_state": "observed"
+              }
+            ]
+          },
+          "long_term_outlook": {
+            "evidence_state": "observed",
+            "soc_evidence": [
+              {
+                "soc_code": "15-2051",
+                "employment_change_pct": 18,
+                "projection_year": 2035
+              }
+            ]
+          }
+        },
+        "evidence_coverage": {
+          "overall_status": "broad",
+          "review_flags": []
+        },
+        "recommendation": {
+          "status": "not_ranked",
+          "rank": null,
+          "baseline_score": null,
+          "review_eligibility": null,
+          "production_authorized": false
+        }
+      },
+      {
+        "candidate_id": "SYN002:P2",
+        "institution": {
+          "unitid": "SYN002",
+          "name": "Metro Public College",
+          "city": "Metro City",
+          "state": "NY"
+        },
+        "program": {
+          "program_id": "P2",
+          "name": "Information Technology",
+          "cip_code": "11.0103",
+          "credential_level": "Bachelors"
+        },
+        "eligibility": {
+          "status": "eligible",
+          "reason_codes": []
+        },
+        "career_pathways": {
+          "pathway_count": 2,
+          "soc_codes": [
+            "15-1211",
+            "15-1212"
+          ]
+        },
+        "labor_market": {
+          "selected_work_market": {
+            "evidence_state": "observed",
+            "soc_evidence": [
+              {
+                "soc_code": "15-1212",
+                "median_wage": 101000,
+                "wage_state": "observed"
+              }
+            ]
+          },
+          "long_term_outlook": {
+            "evidence_state": "observed",
+            "soc_evidence": [
+              {
+                "soc_code": "15-1212",
+                "employment_change_pct": 22,
+                "projection_year": 2035
+              }
+            ]
+          }
+        },
+        "evidence_coverage": {
+          "overall_status": "broad",
+          "review_flags": []
+        },
+        "recommendation": {
+          "status": "not_ranked",
+          "rank": null,
+          "baseline_score": null,
+          "review_eligibility": null,
+          "production_authorized": false
+        }
+      },
+      {
+        "candidate_id": "SYN003:P3",
+        "institution": {
+          "unitid": "SYN003",
+          "name": "River State University",
+          "city": "River City",
+          "state": "NJ"
+        },
+        "program": {
+          "program_id": "P3",
+          "name": "Applied Computing",
+          "cip_code": "11.0199",
+          "credential_level": "Bachelors"
+        },
+        "eligibility": {
+          "status": "eligible_with_unknown",
+          "reason_codes": []
+        },
+        "career_pathways": {
+          "pathway_count": 2,
+          "soc_codes": [
+            "15-1252",
+            "15-2051"
+          ]
+        },
+        "labor_market": {
+          "selected_work_market": {
+            "evidence_state": "unavailable",
+            "soc_evidence": []
+          },
+          "long_term_outlook": {
+            "evidence_state": "observed",
+            "soc_evidence": [
+              {
+                "soc_code": "15-1252",
+                "employment_change_pct": 16,
+                "projection_year": 2035
+              }
+            ]
+          }
+        },
+        "evidence_coverage": {
+          "overall_status": "partial",
+          "review_flags": []
+        },
+        "recommendation": {
+          "status": "not_ranked",
+          "rank": null,
+          "baseline_score": null,
+          "review_eligibility": null,
+          "production_authorized": false
+        }
+      }
+    ],
+    "ordering": {
+      "mode": "deterministic_unranked",
+      "ranking_context_id": null,
+      "review_eligible_ranked_count": 0,
+      "unranked_eligible_count": 3,
+      "production_authorized": false
+    }
+  },
+  "candidate:SYN001:P1": {
+    "schema_version": "1.0",
+    "data_version": "synthetic-contract-1",
+    "candidate_id": "SYN001:P1",
+    "institution": {
+      "unitid": "SYN001",
+      "name": "North Harbor College",
+      "state": "NY"
+    },
+    "program": {
+      "program_id": "P1",
+      "name": "Data & Information Systems",
+      "cip_code": "11.0101",
+      "credential_level": "Bachelors"
+    },
+    "affordability": {
+      "net_price": {
+        "value": 14800,
+        "evidence_state": "observed"
+      }
+    },
+    "program_outcomes": {
+      "median_earnings": {
+        "value": 72000,
+        "evidence_state": "observed"
+      }
+    },
+    "career": {
+      "soc_codes": [
+        "15-2051",
+        "15-1211"
+      ]
+    }
+  },
+  "compare": {
+    "schema_version": "1.0",
+    "data_version": "synthetic-contract-1",
+    "candidate_ids": [
+      "SYN001:P1",
+      "SYN002:P2"
+    ],
+    "candidates": [
+      {
+        "candidate_id": "SYN001:P1",
+        "institution": {
+          "name": "North Harbor College"
+        },
+        "program": {
+          "name": "Data & Information Systems"
+        },
+        "affordability": {
+          "net_price": {
+            "value": 14800,
+            "evidence_state": "observed"
+          }
+        },
+        "program_outcomes": {
+          "median_earnings": {
+            "value": 72000,
+            "evidence_state": "observed"
+          }
+        }
+      },
+      {
+        "candidate_id": "SYN002:P2",
+        "institution": {
+          "name": "Metro Public College"
+        },
+        "program": {
+          "name": "Information Technology"
+        },
+        "affordability": {
+          "net_price": {
+            "value": 11200,
+            "evidence_state": "observed"
+          }
+        },
+        "program_outcomes": {
+          "median_earnings": {
+            "value": 66500,
+            "evidence_state": "observed"
+          }
+        }
+      }
+    ],
+    "semantic_rules": {
+      "no_automatic_winner": true,
+      "missing_is_not_zero": true,
+      "current_market_is_not_long_term_outlook": true
+    }
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "data_version": "synthetic-contract-1",
+    "model_version": "prototype-contract-1",
+    "serving_state": "data_review_eligible_model_not_evaluated",
+    "production_authorized": false,
+    "snapshot": {
+      "generated_at_utc": "2026-10-05T00:00:00+00:00",
+      "candidate_grain": "UNITID x program_id",
+      "candidate_count": 3,
+      "institution_count": 3,
+      "output_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "enrichment_registry_version": "synthetic-1"
+    },
+    "source_vintages": {
+      "IPEDS": "SYNTHETIC",
+      "OEWS": "SYNTHETIC"
+    },
+    "release": {
+      "product_snapshot_decision": "ELIGIBLE_FOR_ACTIVATION_REVIEW",
+      "recommendation_decision": "NOT_EVALUATED",
+      "product_checks": [],
+      "blocked_recommendation_checks": null
+    },
+    "semantic_rules": {
+      "review_eligibility_is_not_production_authorization": true,
+      "source_vintage_is_not_inferred_freshness": true,
+      "browser_must_not_select_versions_independently": true
+    }
+  }
+}
