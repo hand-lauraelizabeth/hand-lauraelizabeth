@@ -228,3 +228,39 @@ python projects/college-career-matching/public_explorer_deployment.py \\
 ```
 
 This deployment step does not create or infer approval. Without a valid production activation record, the generated runtime remains fixture mode.
+
+## Deployable HTTP service host
+
+`service_host.py` exposes the governed adapters through a zero-dependency HTTP boundary:
+
+- `GET /health`
+- `GET /metadata`
+- `GET /options`
+- `GET /candidate/{candidate_id}`
+- `POST /match`
+- `POST /compare`
+
+Startup fails if the product snapshot SHA-256 does not match its manifest, the manifest candidate count does not match, or candidate IDs are blank/duplicated. Without an activation record, the service remains non-production. When a valid production activation record is supplied, its authorization is propagated into metadata and match responses. Production mode rejects wildcard CORS.
+
+Local example:
+
+```bash
+python projects/college-career-matching/service_host.py \\
+  --snapshot /data/institution_program_product_snapshot.csv \\
+  --manifest /data/institution_program_product_snapshot_manifest.json \\
+  --model-version MODEL_VERSION \\
+  --allowed-origins https://www.lauraelizabethhand.com \\
+  --port 8080
+```
+
+Container build:
+
+```bash
+cd projects/college-career-matching
+docker build -f Dockerfile.service -t college-career-service .
+docker run --rm -p 8080:8080 --env-file service-deployment.env \\
+  -v /absolute/data:/data:ro \\
+  college-career-service
+```
+
+Use `service-deployment.example.env` as a template. Do not set `CCX_ACTIVATION_RECORD` until an exact production authorization record exists. The current public portfolio explorer therefore remains fixture mode.
