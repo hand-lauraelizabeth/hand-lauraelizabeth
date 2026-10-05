@@ -1,141 +1,19 @@
 {
-  "schema_version": "1.0",
-  "questionnaire_version": "2026-10-05.1",
-  "principles": {
-    "skippable_preferences": true,
-    "no_default_priority_weights": true,
-    "unknown_is_not_mismatch": true,
-    "school_location_separate_from_work_market": true,
-    "hard_constraints_require_explicit_confirmation": true
-  },
-  "questions": [
-    {
-      "question_id": "decision_mode",
-      "section": "start",
-      "prompt": "What are you trying to figure out?",
-      "control": "single_select",
-      "required": true,
-      "options": [
-        {"value": "broad_exploration", "label": "Explore colleges, programs, and careers together"},
-        {"value": "career_first", "label": "Start with careers that may fit me"},
-        {"value": "college_program_first", "label": "Find colleges for a program or field I already have in mind"},
-        {"value": "compare_known", "label": "Compare colleges or programs I already know"},
-        {"value": "transfer", "label": "Plan a transfer"},
-        {"value": "returning_student", "label": "Return to college or finish a degree"}
-      ],
-      "mapping": {"target": "decision_mode"}
-    },
-    {
-      "question_id": "school_states",
-      "section": "must_haves",
-      "prompt": "Are there states where you need your school to be located?",
-      "help": "Leave this blank if location is a preference rather than a requirement.",
-      "control": "state_multi_select",
-      "required": false,
-      "mapping": {"target": "constraint", "field": "state", "operator": "in", "unknown_policy": "keep_visible"}
-    },
-    {
-      "question_id": "credential_levels",
-      "section": "must_haves",
-      "prompt": "Are you looking for particular credential or degree levels?",
-      "control": "credential_multi_select",
-      "required": false,
-      "mapping": {"target": "constraint", "field": "credential_level", "operator": "in", "unknown_policy": "keep_visible"}
-    },
-    {
-      "question_id": "online_requirement",
-      "section": "must_haves",
-      "prompt": "Do you need a program you can complete online?",
-      "control": "single_select",
-      "required": false,
-      "options": [
-        {"value": "required", "label": "Yes, online availability is required"},
-        {"value": "not_required", "label": "No, it is not required"}
-      ],
-      "mapping": {"target": "conditional_constraint", "when_value": "required", "field": "online_available", "operator": "eq", "value": true, "unknown_policy": "keep_visible"}
-    },
-    {
-      "question_id": "cost_ceiling",
-      "section": "must_haves",
-      "prompt": "Do you have a firm annual cost limit?",
-      "help": "A later interface must label the cost measure being used; sticker price, net price, tuition, and total cost are not interchangeable.",
-      "control": "currency_optional",
-      "required": false,
-      "mapping": {"target": "constraint", "field": "annual_cost_measure", "operator": "lte", "unknown_policy": "keep_visible", "requires_data_definition": true}
-    },
-    {
-      "question_id": "affordability_priority",
-      "section": "priorities",
-      "prompt": "How important is keeping college costs low?",
-      "control": "importance_optional",
-      "required": false,
-      "mapping": {"target": "preference", "dimension": "affordability"}
-    },
-    {
-      "question_id": "academic_program_priority",
-      "section": "priorities",
-      "prompt": "How important is the strength and fit of the specific program?",
-      "control": "importance_optional",
-      "required": false,
-      "mapping": {"target": "preference", "dimension": "academic_program_fit"}
-    },
-    {
-      "question_id": "career_pathway_priority",
-      "section": "priorities",
-      "prompt": "How important is having several plausible career pathways from the program?",
-      "control": "importance_optional",
-      "required": false,
-      "mapping": {"target": "preference", "dimension": "career_pathway_fit"}
-    },
-    {
-      "question_id": "transfer_priority",
-      "section": "priorities",
-      "prompt": "How important is preserving as much of your prior coursework as possible?",
-      "control": "importance_optional",
-      "required": false,
-      "visible_for_modes": ["transfer", "returning_student"],
-      "mapping": {"target": "preference", "dimension": "transfer_pathway_fit"}
-    },
-    {
-      "question_id": "work_market_semantics",
-      "section": "career_and_place",
-      "prompt": "Where would you most want career-market information to describe?",
-      "control": "single_select",
-      "required": false,
-      "options": [
-        {"value": "school_local", "label": "The area around each school"},
-        {"value": "home_local", "label": "The area where I live"},
-        {"value": "selected_market", "label": "Another area I choose"},
-        {"value": "national", "label": "National information"},
-        {"value": "remote_or_flexible", "label": "I am flexible or interested in remote work"},
-        {"value": "unspecified", "label": "I am not sure yet"}
-      ],
-      "mapping": {"target": "geography.intended_work_market"}
-    },
-    {
-      "question_id": "career_analysis",
-      "section": "career_and_place",
-      "prompt": "Would you like work that involves a lot of analysis and problem solving?",
-      "control": "importance_optional",
-      "required": false,
-      "mapping": {"target": "career_preference", "attribute_id": "onet_governed:analysis_problem_solving", "operator": "higher_preferred", "requires_attribute_mapping_review": true}
-    },
-    {
-      "question_id": "career_creativity",
-      "section": "career_and_place",
-      "prompt": "Would you like work where creativity is an important part of the job?",
-      "control": "importance_optional",
-      "required": false,
-      "mapping": {"target": "career_preference", "attribute_id": "onet_governed:creativity", "operator": "higher_preferred", "requires_attribute_mapping_review": true}
-    },
-    {
-      "question_id": "transfer_source",
-      "section": "transfer",
-      "prompt": "Where are you transferring from?",
-      "control": "institution_lookup",
-      "required": false,
-      "visible_for_modes": ["transfer", "returning_student"],
-      "mapping": {"target": "transfer_context.source_institution_id"}
-    }
+  "schema_version":"1.0","questionnaire_version":"2026-10-05.2","principles":{"skippable_preferences":true,"no_default_priority_weights":true,"unknown_is_not_mismatch":true,"school_location_separate_from_work_market":true,"hard_constraints_require_explicit_confirmation":true},
+  "questions":[
+    {"question_id":"decision_mode","section":"start","prompt":"What are you trying to figure out?","control":"single_select","required":true,"options":[{"value":"broad_exploration","label":"Explore colleges, programs, and careers together"},{"value":"career_first","label":"Start with careers that may fit me"},{"value":"college_program_first","label":"Find colleges for a program or field I already have in mind"},{"value":"compare_known","label":"Compare colleges or programs I already know"},{"value":"transfer","label":"Plan a transfer"},{"value":"returning_student","label":"Return to college or finish a degree"}],"mapping":{"target":"decision_mode"}},
+    {"question_id":"school_states","section":"must_haves","prompt":"Are there states where you need your school to be located?","help":"Leave this blank if location is a preference rather than a requirement.","control":"state_multi_select","required":false,"option_source":"options.states","mapping":{"target":"constraint","field":"state","operator":"in","unknown_policy":"keep_visible"}},
+    {"question_id":"credential_levels","section":"must_haves","prompt":"Are you looking for particular credential or degree levels?","control":"credential_multi_select","required":false,"option_source":"options.credential_levels","mapping":{"target":"constraint","field":"credential_level","operator":"in","unknown_policy":"keep_visible"}},
+    {"question_id":"online_requirement","section":"must_haves","prompt":"Do you need a program you can complete online?","control":"single_select","required":false,"options":[{"value":"required","label":"Yes, online availability is required"},{"value":"not_required","label":"No, it is not required"}],"mapping":{"target":"conditional_constraint","when_value":"required","field":"online_available","operator":"eq","value":true,"unknown_policy":"keep_visible"}},
+    {"question_id":"net_price_ceiling","section":"must_haves","prompt":"Do you have a firm maximum annual net price?","help":"Net price is the estimated amount students pay after grant and scholarship aid. It is not tuition, sticker price, or total cost of attendance.","control":"currency_optional","required":false,"mapping":{"target":"constraint","field":"finance__net_price","operator":"lte","unknown_policy":"keep_visible","cost_concept":"net_price"}},
+    {"question_id":"affordability_priority","section":"priorities","prompt":"How important is keeping college costs low?","control":"importance_optional","required":false,"mapping":{"target":"preference","dimension":"affordability"}},
+    {"question_id":"academic_program_priority","section":"priorities","prompt":"How important is the strength and fit of the specific program?","control":"importance_optional","required":false,"mapping":{"target":"preference","dimension":"academic_program_fit"}},
+    {"question_id":"career_pathway_priority","section":"priorities","prompt":"How important is having several plausible career pathways from the program?","control":"importance_optional","required":false,"mapping":{"target":"preference","dimension":"career_pathway_fit"}},
+    {"question_id":"transfer_priority","section":"priorities","prompt":"How important is preserving as much of your prior coursework as possible?","control":"importance_optional","required":false,"visible_for_modes":["transfer","returning_student"],"mapping":{"target":"preference","dimension":"transfer_pathway_fit"}},
+    {"question_id":"work_market_semantics","section":"career_and_place","prompt":"Where would you most want career-market information to describe?","control":"single_select","required":false,"options":[{"value":"school_local","label":"The area around each school"},{"value":"selected_market","label":"Another area I choose"},{"value":"national","label":"National information"},{"value":"remote_or_flexible","label":"I am flexible or interested in remote work"},{"value":"unspecified","label":"I am not sure yet"}],"mapping":{"target":"geography.work_market_semantics"}},
+    {"question_id":"work_market","section":"career_and_place","prompt":"Which labor market should current career information describe?","control":"labor_market_lookup","required":false,"visible_when":{"question_id":"work_market_semantics","value":"selected_market"},"mapping":{"target":"geography.intended_work_market"}},
+    {"question_id":"career_analysis","section":"career_and_place","prompt":"Would you like work that involves a lot of analysis and problem solving?","control":"importance_optional","required":false,"mapping":{"target":"career_preference","attribute_id":"onet_governed:analysis_problem_solving","operator":"higher_preferred","requires_attribute_mapping_review":true}},
+    {"question_id":"career_creativity","section":"career_and_place","prompt":"Would you like work where creativity is an important part of the job?","control":"importance_optional","required":false,"mapping":{"target":"career_preference","attribute_id":"onet_governed:creativity","operator":"higher_preferred","requires_attribute_mapping_review":true}},
+    {"question_id":"transfer_source","section":"transfer","prompt":"Where are you transferring from?","control":"institution_lookup","required":false,"visible_for_modes":["transfer","returning_student"],"mapping":{"target":"transfer_context.source_institution_id"}}
   ]
 }
