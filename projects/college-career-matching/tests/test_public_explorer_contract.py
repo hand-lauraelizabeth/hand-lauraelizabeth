@@ -54,6 +54,13 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_new_result_sets_drop_hidden_compare_selections_and_surface_unknown_evidence(self):
   self.assertIn("visibleIds=new Set(rows.map(x=>x.candidate_id))",HTML);self.assertIn("if(!visibleIds.has(id))selected.delete(id)",HTML)
   self.assertIn("unresolved must-have evidence field",HTML)
+ def test_requests_are_last_writer_wins_and_retry_revalidates_service(self):
+  for token in ['id="ccx-retry"',"requestGeneration=0","activeRequestController","generation!==requestGeneration","client.match(request,{signal})","async function retryService()","assertRuntimeMetadata(runtimeConfig,recoveredMetadata)","Rechecking governed service","getRequestGeneration"]:
+   self.assertIn(token,HTML)
+ def test_request_abort_is_not_the_only_stale_response_guard(self):
+  self.assertIn("if(activeRequestController)activeRequestController.abort()",HTML)
+  self.assertIn("if(generation!==requestGeneration)return",HTML)
+  self.assertIn("generation!==requestGeneration||err&&err.name==='AbortError'",HTML)
  def test_service_versions_are_cross_checked(self):
   self.assertIn("response.data_version!==metadata.data_version",HTML);self.assertIn("response.model_version!==metadata.model_version",HTML)
 
