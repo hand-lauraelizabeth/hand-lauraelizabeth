@@ -513,14 +513,19 @@
     },
     {
       "source_id": "ipeds_cost_2024",
-      "title": "IPEDS 2024 Cost I / Cost II",
+      "title": "IPEDS 2024-25 Cost component",
       "agency": "National Center for Education Statistics",
       "status": "production_core",
-      "access_type": "multi_file_download",
-      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7",
+      "access_type": "download",
+      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7&rtid=1&year=-1",
+      "file_stems": [
+        "COST1_2024",
+        "COST2_2024",
+        "DRVCOST2024"
+      ],
       "release": {
-        "label": "2024-25 Cost collection / current released Cost files",
-        "policy": "Use Cost I/II as the governed source for student charges, housing screening/capacity, cost of attendance, and average net price. Preserve the reporting year for each measure.",
+        "label": "2024-25 Cost component",
+        "policy": "Use the 2024-25 Cost component for cost-of-attendance and average-net-price fields introduced or relocated in the 2024-25 collection redesign. Preserve file stem, component, collection year, and metric vintage at field level.",
         "fixed_version": true
       },
       "license_or_terms": "NCES/IPEDS public data.",
@@ -528,35 +533,28 @@
       "canonical_keys": [
         "UNITID"
       ],
-      "refresh_policy": "Annual; upgrade after file/dictionary validation.",
-      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
-      "files": {
-        "cost_i": "https://nces.ed.gov/ipeds/complete-data-files/COST1_2024.zip",
-        "cost_ii": "https://nces.ed.gov/ipeds/complete-data-files/COST2_2024.zip"
-      },
+      "refresh_policy": "Annual; replace only after mapping and regression checks for the next Cost collection.",
+      "retrieval_mode": "IPEDS Complete Data Files; retain COST1/COST2/derived-cost provenance instead of flattening the component boundary.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
         "collection_year",
-        "release_type",
+        "component",
         "file_stem",
-        "dictionary_version",
-        "sha256"
+        "release_type",
+        "dictionary_version"
       ],
       "required_artifacts": [
-        "cost_i_raw",
-        "cost_ii_raw",
-        "normalized_cost_housing_table",
-        "normalized_net_price_table",
+        "raw_zip_or_csv",
+        "normalized_affordability_table",
         "source_snapshot_metadata"
       ],
       "qa": [
-        "UNITID is non-null and unique after source-specific Cost I/II consolidation.",
-        "Cost of attendance remains distinct from tuition/fees and from average net price.",
-        "Average net price is labeled as an institutional average after grants/scholarships under the source cohort definition.",
-        "Income-band averages remain separate and are never adjusted for household size without a separate authoritative method.",
-        "Institutionally controlled housing availability, housing capacity, and universal full-time first-time residency requirement remain distinct.",
-        "Missing/suppressed values remain missing/suppressed rather than numeric zero."
+        "UNITID is non-null.",
+        "Cost of attendance remains distinct from tuition/fees and average net price.",
+        "Income-band average net prices remain distinct published averages and are never converted into personalized estimates.",
+        "Component and collection-year provenance survive normalization.",
+        "Suppressed, missing, unresolved, and zero values remain distinguishable."
       ]
     },
     {
@@ -606,40 +604,40 @@
       "title": "Bureau of Transportation Statistics National Transit Map",
       "agency": "U.S. Department of Transportation, Bureau of Transportation Statistics",
       "status": "production_enrichment",
-      "access_type": "geospatial_catalog",
+      "access_type": "geospatial_download",
       "official_url": "https://www.bts.gov/national-transit-map",
-      "access_url": "https://ntmcatalog.bts.gov/",
+      "catalog_url": "https://ntmcatalog.bts.gov/",
       "release": {
-        "label": "current quarterly NTM snapshot",
-        "policy": "Pin each product build to a retrieved NTM snapshot/date. Never describe proximity to a stop as proof of accessible vehicles or an accessible path of travel.",
+        "label": "current National Transit Map snapshot",
+        "policy": "Capture a dated snapshot for each production build; derived campus measures must retain snapshot date, radius, and distance method.",
         "fixed_version": false
       },
-      "license_or_terms": "U.S. DOT/BTS public geospatial data; retain source metadata.",
+      "license_or_terms": "U.S. DOT/BTS public data; preserve source attribution and snapshot metadata.",
       "sensitivity": "public",
       "canonical_keys": [
-        "source_feature_id"
+        "source_stop_id",
+        "source_route_id"
       ],
-      "refresh_policy": "Quarterly or each governed product build; retain immutable snapshot metadata.",
-      "retrieval_mode": "BTS NTM/NTAD geospatial downloads or services for stops/routes.",
+      "refresh_policy": "Refresh for production releases when the NTM/NTAD snapshot changes; retain immutable build snapshots.",
+      "retrieval_mode": "Official NTM/NTAD GTFS-derived geospatial resources.",
       "required_metadata": [
         "source_id",
         "retrieved_at",
-        "dataset_vintage",
-        "service_or_download_url",
-        "sha256_or_service_snapshot_id",
-        "coordinate_reference_system"
+        "snapshot_date",
+        "source_resource",
+        "distance_method",
+        "distance_radius_m"
       ],
       "required_artifacts": [
-        "normalized_transit_stops",
-        "normalized_transit_routes",
-        "institution_transit_proximity_enrichment",
+        "raw_or_cached_geospatial_snapshot",
+        "campus_transit_derivation",
         "source_snapshot_metadata"
       ],
       "qa": [
-        "Institution coordinates used for distance calculations retain source/vintage.",
-        "Distance and stop counts use documented radii/CRS.",
-        "No nearby-stop result is converted into a claim about ADA vehicle/station/path accessibility.",
-        "No-transit-data and no-nearby-transit are distinct states."
+        "Campus coordinates and transit features use an explicit coordinate reference system.",
+        "Nearest-stop distance and stop-count radius are documented.",
+        "Transit proximity is not represented as proof of accessible vehicles, stations, sidewalks, or paths.",
+        "Missing transit coverage remains unknown rather than zero unless absence is established by the selected source universe."
       ]
     },
     {
@@ -681,6 +679,89 @@
         "NatWalkInd remains a relative walkability index, not a physical-accessibility score.",
         "The 2021 vintage is visible in product metadata and explanations.",
         "Missing geography or unmatched institutions remain unknown."
+      ]
+    },
+    {
+      "source_id": "ipeds_sfa_2324",
+      "title": "IPEDS Student Financial Aid 2023-24",
+      "agency": "National Center for Education Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7&rtid=1&year=-1",
+      "file_stem": "SFA2324",
+      "release": {
+        "label": "2023-24 Student Financial Aid",
+        "policy": "Use SFA for aid measures that remain in the Student Financial Aid component. Do not assume SFA contains 2024-25 Cost/average-net-price fields after the IPEDS collection redesign.",
+        "fixed_version": true
+      },
+      "license_or_terms": "NCES/IPEDS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "UNITID"
+      ],
+      "refresh_policy": "Annual; track the newest compatible SFA collection separately from Cost.",
+      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "collection_year",
+        "component",
+        "file_stem",
+        "release_type",
+        "dictionary_version"
+      ],
+      "required_artifacts": [
+        "raw_zip_or_csv",
+        "normalized_aid_context_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "UNITID is non-null.",
+        "Institutional grants, state/local aid, Federal Work-Study, federal grants, and loans remain semantically distinct.",
+        "Aid recipient counts/shares are not treated as guarantees of individual eligibility.",
+        "Federal/state aid is not mislabeled as institution-funded aid.",
+        "Component and collection-year provenance survive normalization."
+      ]
+    },
+    {
+      "source_id": "epa_smart_location_database_v3",
+      "title": "EPA Smart Location Database v3 / National Walkability Index",
+      "agency": "U.S. Environmental Protection Agency",
+      "status": "production_enrichment",
+      "access_type": "download",
+      "official_url": "https://www.epa.gov/smartgrowth/smart-location-mapping",
+      "data_url": "https://edg.epa.gov/data/public/OA/EPA_SmartLocationDatabase_V3_Jan_2021_Final.csv",
+      "walkability_archive_url": "https://edg.epa.gov/data/public/OA/WalkabilityIndex.zip",
+      "release": {
+        "label": "Smart Location Database v3 — 2021 vintage",
+        "policy": "Treat as contextual walkability/location-efficiency evidence with the 2021 vintage visible. Do not imply that the measure is current-year ground truth.",
+        "fixed_version": true
+      },
+      "license_or_terms": "EPA public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "GEOID20"
+      ],
+      "refresh_policy": "Version-driven; replace only when EPA publishes and validates a successor dataset.",
+      "retrieval_mode": "Official EPA CSV/ZIP geospatial files joined through documented geography and campus coordinates.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "dataset_version",
+        "source_vintage",
+        "source_file",
+        "geospatial_join_method"
+      ],
+      "required_artifacts": [
+        "raw_csv_or_zip",
+        "campus_walkability_derivation",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "The 2021 source vintage is preserved in every derived campus walkability record.",
+        "Geospatial join method and geography are explicit.",
+        "Walkability remains distinct from transit proximity and physical-accessibility evidence.",
+        "Missing coverage remains unknown and is never converted into inaccessible or unwalkable."
       ]
     }
   ],
