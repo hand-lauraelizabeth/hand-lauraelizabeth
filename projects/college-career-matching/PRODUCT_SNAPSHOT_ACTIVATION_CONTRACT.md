@@ -39,3 +39,9 @@ The bundle always emits `production_authorized: false` and `required_next_action
 ## Public explorer boundary
 
 The portfolio explorer must remain in synthetic fixture mode until a separate, explicit activation decision approves a specific activation-review bundle. A passed release gate or bundle is insufficient by itself.
+
+## Human production activation decision
+
+`service_activation_guard.py` does not create approval. It validates a separately supplied human decision whose status is `APPROVED_FOR_PRODUCTION_SERVICE` and requires that decision to pin the exact activation-review bundle SHA-256, snapshot SHA-256, `data_version`, and `model_version`, plus a nonblank approver and timezone-aware approval timestamp.
+
+Only a matching activation record can cause `metadata_service_adapter.py` to emit `serving_state: production` and `production_authorized: true`. Review eligibility without that record remains non-production. Changing any pinned identity invalidates the authorization and fails closed.
