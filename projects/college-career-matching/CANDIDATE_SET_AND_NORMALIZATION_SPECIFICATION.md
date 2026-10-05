@@ -97,8 +97,12 @@ The normalized comparison layer retains separate dimensions:
 - `career_pathway_fit`
 - `current_labor_market_evidence`
 - `geographic_fit`
+- `transit_access_fit`
+- `walkability_fit`
+- `housing_context_fit`
+- `accessibility_evidence_fit`
 
-Evidence quality/coverage is stored alongside these values; it is **not** a ninth desirability score. Richer data coverage must not make a candidate appear intrinsically better.
+Evidence quality/coverage is stored alongside these values; it is **not** a desirability score. Richer data coverage must not make a candidate appear intrinsically better.
 
 ## 6. Normalization contract
 
