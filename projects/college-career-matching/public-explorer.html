@@ -63,7 +63,7 @@
     <p class="ccx-kicker">Interactive decision-support sample</p>
     <h1>College + Career Explorer</h1>
     <p class="ccx-lead">Start with the things that matter to you. The interface builds the governed matcher request and renders only the response returned by the matching service—no account, download, or technical setup required.</p>
-    <p class="ccx-note" id="ccx-mode-note"><strong>Synthetic fixture mode:</strong> this public portfolio page currently uses a static, fictional service response while the authoritative product snapshot and recommendation release remain gated. The controls build the real governed request shape, but the static fixture records do not change with that request and should not be used as college advice.</p><div class="ccx-service-state" id="ccx-service-state" role="status" aria-live="polite">Loading governed fixture service…</div><div class="ccx-request-state" id="ccx-request-state" aria-live="polite"></div>
+    <p class="ccx-note" id="ccx-mode-note"><strong>Synthetic fixture mode:</strong> this public portfolio page currently uses a static, fictional service response while the authoritative product snapshot and recommendation release remain gated. The controls build the real governed request shape, but the static fixture records do not change with that request and should not be used as college advice.</p><div class="ccx-service-state" id="ccx-service-state" role="status" aria-live="polite">Loading governed fixture service…</div><button class="ccx-reset" id="ccx-retry" type="button" hidden>Retry matcher</button><div class="ccx-request-state" id="ccx-request-state" aria-live="polite"></div>
     <div class="ccx-grid">
       <form class="ccx-controls" id="ccx-form">
         <fieldset>
@@ -180,7 +180,7 @@
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
     const controls=['ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
     const selected=new Set();
-    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null;
+    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null;
     function setInteractive(enabled){
       controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
       q('ccx-reset').disabled=!enabled;q('ccx-form').setAttribute('aria-disabled',String(!enabled));
@@ -189,6 +189,20 @@
     function renderServiceIdentity(){
       if(!metadata)return;
       q('ccx-service-state').innerHTML='<strong>'+esc(modeText())+'</strong> · data '+esc(metadata.data_version)+' · model '+esc(metadata.model_version)+' · production authorized: '+(metadata.production_authorized?'yes':'no');
+      q('ccx-retry').hidden=true;q('ccx-retry').disabled=false;
+    }
+    function transientServiceFailure(err){
+      root.dataset.serviceStatus='request-error';root.dataset.requestStatus='error';
+      clearServiceResults('Service response unavailable.','Previous results were cleared. '+(err&&err.message||err),'No service response');
+      q('ccx-service-state').innerHTML='<strong>Service temporarily unavailable.</strong> Previous results were cleared. Retry when the service is available again.';
+      q('ccx-retry').hidden=false;q('ccx-retry').disabled=false;
+    }
+    function fatalServiceFailure(err){
+      requestGeneration++;if(activeRequestController){activeRequestController.abort();activeRequestController=null}
+      root.dataset.serviceStatus='error';root.dataset.requestStatus='error';setInteractive(false);
+      q('ccx-service-state').textContent='Unable to initialize governed service: '+(err&&err.message||err);
+      q('ccx-retry').hidden=true;
+      clearServiceResults('Matcher unavailable.','The governed service identity could not be validated. Controls are disabled until a valid service identity is available.','Matcher unavailable');
     }
     function clearServiceResults(title,detail,countText){
       lastResponse=null;selected.clear();
@@ -319,18 +333,43 @@
       populateSelect('ccx-income',o.affordability&&o.affordability.income_bands,'Use overall average net price','overall');
     }
     async function refresh(){
-      const request=buildGovernedRequest(state());root.dataset.governedRequest=JSON.stringify(request);renderRequestState(request);
+      const generation=++requestGeneration;
+      if(activeRequestController)activeRequestController.abort();
+      activeRequestController=typeof AbortController!=='undefined'?new AbortController():null;
+      const controller=activeRequestController,signal=controller?controller.signal:null;
+      const request=buildGovernedRequest(state());root.dataset.governedRequest=JSON.stringify(request);root.dataset.requestStatus='loading';renderRequestState(request);
       try{
-        const response=assertContract(await client.match(request),'match',{productionAuthorized:runtimeConfig.production_authorized});
+        const response=assertContract(await client.match(request,{signal}),'match',{productionAuthorized:runtimeConfig.production_authorized});
+        if(generation!==requestGeneration)return;
         if(metadata&&(response.data_version!==metadata.data_version||response.model_version!==metadata.model_version))throw new Error('Service response version does not match loaded metadata');
-        renderResponse(response);root.dataset.serviceStatus='ready';renderServiceIdentity();
+        renderResponse(response);root.dataset.serviceStatus='ready';root.dataset.requestStatus='ready';renderServiceIdentity();
       }catch(err){
-        root.dataset.serviceStatus='request-error';
-        clearServiceResults('Service response unavailable.','Previous results were cleared. '+(err&&err.message||err),'No service response');
-        q('ccx-service-state').innerHTML='<strong>Service temporarily unavailable.</strong> Previous results were cleared; change a control or reset to retry.';
+        if(generation!==requestGeneration||err&&err.name==='AbortError')return;
+        transientServiceFailure(err);
+      }finally{
+        if(generation===requestGeneration&&activeRequestController===controller)activeRequestController=null;
       }
     }
     function scheduleRefresh(){clearTimeout(refreshTimer);refreshTimer=setTimeout(refresh,120)}
+    async function retryService(){
+      q('ccx-retry').disabled=true;root.dataset.serviceStatus='recovering';root.dataset.requestStatus='recovering';
+      q('ccx-service-state').innerHTML='<strong>Rechecking governed service…</strong> Validating service identity before restoring results.';
+      let recoveredMetadata,recoveredOptions;
+      try{
+        recoveredMetadata=assertContract(await client.metadata(),'metadata');
+        recoveredOptions=assertContract(await client.options(),'options');
+      }catch(err){
+        transientServiceFailure(err);return;
+      }
+      try{
+        recoveredMetadata=assertRuntimeMetadata(runtimeConfig,recoveredMetadata);
+        if(recoveredOptions.data_version!==recoveredMetadata.data_version)throw new Error('Options data version does not match recovered metadata');
+      }catch(err){
+        fatalServiceFailure(err);return;
+      }
+      metadata=recoveredMetadata;optionResponse=recoveredOptions;applyServiceOptions(optionResponse);setInteractive(true);renderServiceIdentity();
+      await refresh();
+    }
 
     const client=new MatchingServiceClient({mode:runtimeConfig.mode,baseUrl:runtimeConfig.service_base_url||'',fixtureUrl:runtimeConfig.fixture_url||'./prototype/contract-fixtures.json',runtimeConfig});
     root.dataset.serviceStatus='initializing';setInteractive(false);
@@ -343,16 +382,13 @@
       renderServiceIdentity();root.dataset.serviceStatus='ready';setInteractive(true);
       q('ccx-mode-note').innerHTML=runtimeConfig.mode==='fixture'?'<strong>Synthetic fixture mode:</strong> this public portfolio page currently uses a static, fictional service response while the authoritative product snapshot and recommendation release remain gated. The controls build the real governed request shape, but the static fixture records do not change with that request and should not be used as college advice.':runtimeConfig.mode==='staging'?'<strong>Synthetic staging mode:</strong> this non-public harness is connected to the real HTTP service boundary using invented records. It is explicitly non-production and must not be used as college advice.':'<strong>Production service mode:</strong> the browser accepted an explicitly authorized service only after its metadata matched the activation-pinned data, model, and snapshot identity.';
     }catch(err){
-      root.dataset.serviceStatus='error';setInteractive(false);
-      q('ccx-service-state').textContent='Unable to initialize governed service: '+(err&&err.message||err);
-      clearServiceResults('Matcher unavailable.','The governed service could not be initialized. Controls are disabled until a valid service identity is available.','Matcher unavailable');
-      return;
+      fatalServiceFailure(err);return;
     }
     controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',scheduleRefresh);el.addEventListener('input',scheduleRefresh)}});
     q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();refresh();q('ccx-state').focus()});
-    q('ccx-clear').addEventListener('click',()=>{selected.clear();renderCompare();renderResponse(lastResponse)});
+    q('ccx-clear').addEventListener('click',()=>{selected.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
     root.getGovernedRequest=()=>buildGovernedRequest(state());
-    root.getLastServiceResponse=()=>lastResponse;
+    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;
     await refresh();
   })();
   </script>
