@@ -26,6 +26,11 @@ class TextLensContractTests(unittest.TestCase):
  def test_document_focus_visualization_and_document_kwic_are_present(self):
   for token in ['id="focusDoc"','id="vizMetric"',"function syncCorpusSelectors(","function renderMetricBars(","function kwicTarget()","similarity-meter","focus_document:","document_chart:"]:
    self.assertIn(token,HTML)
+ def test_corpus_document_management_and_reference_keyness_are_present(self):
+  for token in ['id="keyRef"','id="docManager"',"let docSeq=0","function manageDocument(","function renderDocumentManager(","function keynessAgainstReference(","reference_document:reference","keyness_reference:","version:\"3.3\""]:
+   self.assertIn(token,HTML)
+ def test_corpus_refreshes_before_document_scoped_concordance(self):
+  self.assertIn("lastCompare=two;renderCorpus();renderKwic();",HTML)
  def test_exports_do_not_include_source_text(self):
   self.assertIn("Source text itself is not included in the file.",HTML)
   self.assertIn("text-lens-tables.csv",HTML)
