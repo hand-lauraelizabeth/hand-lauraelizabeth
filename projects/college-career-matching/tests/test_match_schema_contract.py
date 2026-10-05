@@ -10,6 +10,8 @@ def c():return {'candidate_id':'1:P1','UNITID':'1','institution_name':'Alpha','p
 class SchemaContractTests(unittest.TestCase):
  def test_request_schema_has_structured_work_market(self):
   g=REQ['properties']['geography']['properties'];self.assertIn('work_market_semantics',g);self.assertEqual(g['intended_work_market']['type'],['object','null']);self.assertEqual(set(g['intended_work_market']['required']),{'market_id','market_type'})
+ def test_request_schema_exposes_campus_context_preference_dimensions(self):
+  dims=set(REQ["properties"]["preferences"]["items"]["properties"]["dimension"]["enum"]);self.assertTrue({"transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit"}.issubset(dims))
  def test_request_page_size_matches_service_limit(self):self.assertEqual(REQ['properties']['page_size']['maximum'],100)
  def test_response_requires_pagination_and_labor(self):
   self.assertIn('pagination',RES['required']);item=RES['properties']['results']['items'];self.assertIn('labor_market',item['required']);self.assertIn('career_pathways',item['required'])
