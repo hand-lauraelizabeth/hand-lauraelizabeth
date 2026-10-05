@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 P=Path(__file__).resolve().parents[1]
 HTML=(P/"public-explorer.html").read_text(encoding="utf-8")
+
 class PublicExplorerContractTests(unittest.TestCase):
  def test_zero_friction_entry(self):
   self.assertIn("Start with the things that matter to you",HTML)
@@ -11,41 +12,35 @@ class PublicExplorerContractTests(unittest.TestCase):
   for phrase in ["Run analysis","Run matcher","Continue","Find matches"]:
    self.assertNotIn(phrase,HTML)
  def test_initial_page_is_useful_without_script(self):
-  self.assertIn("<noscript>",HTML)
-  self.assertIn("Unranked",HTML)
-  self.assertIn("Data & Information Systems",HTML)
-  self.assertIn("Information Technology",HTML)
- def test_demo_is_explicitly_non_authoritative(self):
-  self.assertIn("Demonstration data:",HTML)
-  self.assertIn("fictional",HTML)
-  self.assertIn("should not be used as college advice",HTML)
- def test_controls_update_in_place_and_support_comparison(self):
-  for control in ["ccx-interest","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
+  self.assertIn("<noscript>",HTML);self.assertIn("Unranked",HTML);self.assertIn("Data & Information Systems",HTML);self.assertIn("Information Technology",HTML)
+ def test_fixture_mode_is_explicitly_non_authoritative(self):
+  self.assertIn("Synthetic fixture mode:",HTML);self.assertIn("fictional",HTML);self.assertIn("static fixture records do not change with that request",HTML);self.assertIn("should not be used as college advice",HTML)
+ def test_only_governed_active_controls_remain(self):
+  for control in ["ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
    self.assertIn(f'id="{control}"',HTML)
-  self.assertIn("ccx-compare-toggle",HTML)
-  self.assertIn("renderCompare()",HTML)
-  self.assertIn('aria-live="polite"',HTML)
+  self.assertNotIn('id="ccx-interest"',HTML)
  def test_cost_language_separates_coa_net_price_and_income_context(self):
-  self.assertIn("cost of attendance",HTML.lower())
-  self.assertIn("average net price after grants/scholarships",HTML.lower())
-  self.assertIn("Household income range",HTML)
-  self.assertIn("not a personalized aid estimate",HTML)
-  self.assertIn("does not invent a family-size adjustment",HTML)
+  self.assertIn("cost of attendance",HTML.lower());self.assertIn("average net price after grants/scholarships",HTML.lower());self.assertIn("Household income range",HTML);self.assertIn("not a personalized aid estimate",HTML);self.assertIn("does not invent a family-size adjustment",HTML)
  def test_housing_setting_aid_and_accessibility_are_distinct(self):
   for phrase in ["Campus setting","Housing preference","Institutional grants/scholarships","Federal Work-Study","State/local grant-aid","Better public-transit access","More walkable access to daily needs","Documented disability-services information"]:
    self.assertIn(phrase,HTML)
-  self.assertIn("Roommate versus private-room options require school-specific evidence",HTML)
-  self.assertIn("separate signals",HTML)
+  self.assertIn("Roommate versus private-room options require school-specific evidence",HTML);self.assertIn("separate signals",HTML)
  def test_browser_builds_governed_request_fields(self):
   self.assertIn("function buildGovernedRequest(s)",HTML)
   for token in ["finance__net_price_overall","finance__net_price_income_48_75","campus__housing_available","campus__housing_required_all_ftft","finance__institutional_grant_evidence","campus__locale_category","transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit"]:
    self.assertIn(token,HTML)
   self.assertIn("root.getGovernedRequest",HTML)
- def test_demo_weighting_is_disclosed(self):
-  self.assertIn("checked soft priorities are equally weighted",HTML)
-  self.assertIn("not production scoring",HTML)
- def test_no_undeclared_default_fit_score(self):
-  self.assertIn("value:null",HTML)
-  self.assertIn("'Unranked'",HTML)
-  self.assertNotIn("50 fit",HTML)
+ def test_explorer_consumes_service_response_instead_of_local_scoring(self):
+  self.assertIn("MatchingServiceClient",HTML);self.assertIn("assertContract",HTML);self.assertIn("client.match(request)",HTML);self.assertIn("renderResponse(response)",HTML)
+  self.assertNotIn("var data=[",HTML);self.assertNotIn("function score(",HTML)
+  self.assertIn("no browser-side filtering or ranking is performed",HTML)
+ def test_ranking_is_rendered_only_from_service_recommendation_metadata(self):
+  self.assertIn("review_eligible_ranked",HTML);self.assertIn("rec.baseline_score",HTML);self.assertIn("Production authorized: no",HTML)
+  self.assertIn("browser does not calculate a fit score or rank",HTML)
+ def test_compare_is_display_only_not_browser_winner_logic(self):
+  self.assertIn("renderCompare()",HTML);self.assertIn("no winner is calculated in the browser",HTML);self.assertIn("ccx-compare-toggle",HTML)
+  self.assertNotIn("winner",HTML.lower().replace("no winner",""))
+ def test_service_versions_are_cross_checked(self):
+  self.assertIn("response.data_version!==metadata.data_version",HTML);self.assertIn("response.model_version!==metadata.model_version",HTML)
+
 if __name__=="__main__":unittest.main()
