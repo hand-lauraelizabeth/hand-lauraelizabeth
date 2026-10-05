@@ -41,8 +41,13 @@ def map_answers(defs,answers,options=None):
   if q.get("visible_for_modes") and mode not in q["visible_for_modes"]:raise ValueError(f"{qid} is not applicable to decision mode {mode}")
   vw=q.get("visible_when")
   if vw and answers.get(vw["question_id"])!=vw["value"]:raise ValueError(f"{qid} is not currently visible")
+  vals=val if isinstance(val,list) else [val]
+  if q.get("options"):
+   allowed={str(x.get("value")) for x in q["options"] if isinstance(x,dict)}
+   bad=[x for x in vals if str(x) not in allowed]
+   if bad:raise ValueError(f"{qid} contains unsupported option values: {bad}")
   if options and q.get("option_source"):
-   allowed=option_values(options,q["option_source"]);vals=val if isinstance(val,list) else [val]
+   allowed=option_values(options,q["option_source"])
    bad=[x for x in vals if str(x) not in allowed]
    if bad:raise ValueError(f"{qid} contains values outside active options: {bad}")
   m=q["mapping"];target=m["target"]
