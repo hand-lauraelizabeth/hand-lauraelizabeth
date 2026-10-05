@@ -194,3 +194,37 @@ python projects/college-career-matching/product_snapshot_activation_bundle.py \\
 ```
 
 That bundle still sets `production_authorized: false`; the public explorer remains in fixture mode until a separate human activation decision is recorded.
+
+## Browser runtime and deployment switch
+
+The public explorer is fixture-first. Generate a runtime config with no activation record to make that state explicit:
+
+```bash
+python projects/college-career-matching/service_runtime_config.py \\
+  --fixture-url ./prototype/contract-fixtures.json \\
+  --output /path/to/service-runtime.json
+```
+
+That output is always `mode: fixture` and `production_authorized: false`.
+
+A production runtime can be emitted only from a previously validated production activation record and an explicit HTTPS service base URL:
+
+```bash
+python projects/college-career-matching/service_runtime_config.py \\
+  --activation-record /path/to/service_activation_record.json \\
+  --service-base-url https://service.example.org \\
+  --output /path/to/service-runtime.json
+```
+
+The runtime pins the authorized `data_version`, `model_version`, snapshot SHA-256, and activation-bundle SHA-256. The browser then checks `/metadata` against those identities before accepting production mode.
+
+To inject a governed runtime into a static explorer build:
+
+```bash
+python projects/college-career-matching/public_explorer_deployment.py \\
+  --source projects/college-career-matching/public-explorer.html \\
+  --runtime-config /path/to/service-runtime.json \\
+  --output /path/to/deployed-explorer.html
+```
+
+This deployment step does not create or infer approval. Without a valid production activation record, the generated runtime remains fixture mode.
