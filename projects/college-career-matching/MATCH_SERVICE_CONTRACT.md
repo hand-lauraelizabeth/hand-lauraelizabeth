@@ -1,84 +1,65 @@
 # Interactive Match Service Contract
 
-**Status:** v1 request/response boundary defined; implementation adapter next.
+**Status:** v1 request/response boundary implemented and exercised with synthetic contract fixtures.
 
 ## Purpose
 
-This contract turns the existing data and recommendation components into a stable boundary for a future web interface. The UI collects understandable choices; the service validates and translates them into governed constraints/preferences; domain components calculate evidence and matching; the service returns structured results that the browser renders without reinterpreting model semantics.
+The service is the semantic boundary between the governed College + Career data/model layers and an interactive interface. The browser collects understandable choices and renders service responses; it does not independently calculate recommendation semantics.
 
-## Versioned schemas
+## Versioning and determinism
 
-- `schemas/match_request.schema.json`
-- `schemas/match_response.schema.json`
+`schema_version` versions the API contract. `data_version` and `model_version` identify the evidence/model inputs independently. For the same validated request plus data/model versions, `request_id` is deterministic. `generated_at_utc` records response generation time and is not part of the deterministic identity.
 
-Breaking semantic changes require a schema-version change. Data and model versions are separate from API schema version.
+## Request semantics
 
-## Request principles
+Hard constraints and preferences are separate. Constraint fields/operators must exist in the governed constraint registry. Skipped preferences do not receive invented weights. Unknown evidence follows the constraint's explicit `unknown_policy`.
 
-The request represents what the user actually supplied. Skipped questions are omitted rather than assigned neutral-looking invented values. Hard constraints and preferences are separate. Each hard constraint declares how unknown evidence should behave. Only explicit priorities enter preference weighting. Career preferences retain their declared alignment semantics. Geography distinguishes school location from intended work market. Transfer context is optional and does not imply transferability before authoritative evidence is evaluated.
+School geography and work geography are separate. `geography.work_market_semantics` describes the user's intended interpretation. When a specific labor market is selected, `geography.intended_work_market` carries explicit `market_id` and `market_type`; it is not inferred from school location.
 
-The UI should generate stable `source_question_id` values so usability testing can trace how a plain-language question maps to a governed field without storing unnecessary free-text personal information.
+Affordability constraints identify a governed measure concept. A net-price ceiling is not silently treated as tuition or cost of attendance.
 
-## Response principles
+## `POST /match`
 
-A response is a shortlist/decision-support payload, not a claim that the first item is objectively the best college. Every returned candidate is institution × program identity. Eligibility is separate from fit. Dimension values are accompanied by coverage/evidence state. Explanations carry stable reason codes and evidence identifiers. Career pathways, transfer evidence, current local labor evidence, and long-term outlook remain separate structures. Source freshness is inspectable.
+The response contains institution × program candidates, eligibility, dimensions, explanations, career pathways, transfer evidence, labor evidence, evidence coverage, freshness, and pagination.
 
-The browser must not convert missing evidence to zero, calculate a new score, infer transfer guarantees, infer admission probabilities, or merge current labor-market conditions with long-term projections.
+`result_count` is the total eligible result count before pagination. `pagination` reports page, page size, total pages, and previous/next availability. Page numbers begin at 1; v1 page size is 1–100.
 
-## User-friendly translation layer
+Duplicate candidate IDs fail closed rather than producing ambiguous results.
 
-The eventual questionnaire should not expose schema terminology such as `operator`, `CIP`, `SOC`, `UNITID`, normalization, or evidence-state codes unless the user opens an advanced/source view. Examples:
+## Labor evidence
 
-- “I need an online option” can become a hard modality constraint.
-- “Keep tuition/cost as low as possible” can activate an affordability preference.
-- “I can’t spend more than $X” can become an explicit cost ceiling, with the interface clarifying which cost concept is being constrained.
-- “I want work with a lot of analysis/problem solving” can become an explicit career-attribute preference using a governed O*NET mapping.
-- “I’m transferring from CUNY” can activate transfer context without promising that any specific credit applies.
-- “I want to work near home after graduation” can select home-local intended-work-market semantics independently from school-location constraints.
+`labor_market.selected_work_market` contains current evidence only for the explicitly selected market. If the selected market has no evidence, the state is `unavailable`; the service does not silently substitute school-local, state, or national current evidence.
 
-Question-to-schema mappings should live in a governed UI-definition artifact rather than hard-coded independently in each frontend component.
+`labor_market.long_term_outlook` is a separate evidence family. Long-term projections remain available when appropriate even when current selected-market evidence is unavailable. A projection is not presented as current hiring evidence.
 
-## Service operations
+## Evidence states
 
-### `POST /match`
-Accepts a v1 match request. Validates schema and supported fields, selects the requested or active approved data/model version, builds the candidate universe, assembles governed evidence, evaluates explicit preferences, applies release-approved recommendation logic, builds explanations, and returns a v1 match response.
+Affordability/outcomes evidence uses governed states including `observed`, `missing`, `suppressed`, `unresolved`, and `not_published`. Blank evidence without an authoritative source state is `missing`; suppression is never inferred. Numeric zero may be an observed value and is not equivalent to missing/suppressed evidence.
 
-### `POST /compare`
-Uses stable candidate IDs and the same active data/model versions to return side-by-side semantic comparison rows. Comparison does not require re-ranking.
+Institution-level outcomes are not presented as program outcomes. Tuition, cost of attendance, net price, debt, completion, and earnings remain distinct concepts.
 
-### `GET /candidate/{id}`
-Returns candidate detail, evidence lineage, program/career pathways, transfer evidence where relevant, and source freshness.
+## Other service operations
 
-### `GET /options`
-Returns valid interface choices from the active snapshot: credential levels, institution/program fields, states/regions, modalities where supported, governed preference questions, and other controlled options. The frontend should not maintain a conflicting independent taxonomy.
+`GET /options` returns choices and constraint capabilities from the active product snapshot. `GET /candidate/{id}` returns evidence-oriented candidate detail. `POST /compare` returns 2–5 candidates side by side without declaring an automatic winner. `GET /metadata` remains the planned release/version summary endpoint.
 
-### `GET /metadata`
-Returns active schema/data/model versions, build/release timestamps, and source-vintage summary.
+## Browser boundary
 
-## Determinism
-
-Given the same validated request, data version, model version, and service version, matching should be reproducible. The response should expose enough version information to reproduce or audit a result without exposing internal filesystem paths.
-
-## Validation boundary
-
-Malformed requests fail before domain execution. Unsupported constraint fields/operators fail rather than being ignored. User values are data, never executable command fragments. Service code calls Python/domain functions or controlled adapters; it does not construct shell commands from request values.
+The browser may format, filter display state, collect answers, and request new service results. It must not convert missing evidence to zero, calculate its own recommendation score, infer transfer guarantees/admission probabilities, reinterpret measure concepts, or merge current labor evidence with long-term projections.
 
 ## Privacy
 
-Anonymous matching should be possible. The matching request should contain decision-relevant choices, not identity by default. Free-text collection should be minimized. Demographic/audit data must not silently enter recommendation features.
+Anonymous matching should be possible. Requests should contain decision-relevant choices rather than identity by default. Free text should be minimized. Demographic/audit attributes must not silently become recommendation features.
 
-## Initial UI flow supported by v1
+## Current implementation path
 
-1. Choose decision mode.
-2. Add must-haves.
-3. Add or skip optional priorities.
-4. Add career/work preferences if useful.
-5. Clarify school-location versus intended-work-market geography when relevant.
-6. Add transfer context when relevant.
-7. Receive shortlist with reasons, tradeoffs, unknowns, coverage, career pathways, and freshness.
-8. Pin/compare candidates.
-9. Revise a preference or constraint and rerun deterministically.
+- `schemas/match_request.schema.json`
+- `schemas/match_response.schema.json`
+- `match_service_adapter.py`
+- `constraint_field_registry.py`
+- `measure_metadata_registry.py`
+- `options_service_adapter.py`
+- `candidate_detail_service.py`
+- `compare_service_adapter.py`
+- `prototype/service-client.js`
 
-## Next implementation block
-
-Build a pure-Python service adapter that validates/normalizes a request, maps it into the existing candidate/preference components, and assembles a schema-conformant synthetic response. Add deterministic fixtures for broad exploration, career-first, transfer, college/program-first, and returning-student paths before choosing a web framework.
+Synthetic fixtures remain explicitly non-production until an authoritative current product snapshot passes the release gate.
