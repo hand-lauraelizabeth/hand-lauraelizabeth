@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of_date": "2026-10-04",
+  "as_of_date": "2026-10-05",
   "project": "College + Career Matching Tool",
   "principles": {
     "public_core_only": true,
@@ -468,6 +468,220 @@
         "datatype": "https://download.bls.gov/pub/time.series/oe/oe.datatype",
         "release": "https://download.bls.gov/pub/time.series/oe/oe.release"
       }
+    },
+    {
+      "source_id": "ipeds_ic_2025",
+      "title": "IPEDS 2025 Institutional Characteristics — educational offerings, services, and athletics",
+      "agency": "National Center for Education Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7",
+      "access_url": "https://nces.ed.gov/ipeds/complete-data-files/IC2025.zip",
+      "file_stem": "IC2025",
+      "release": {
+        "label": "Fall 2025 provisional",
+        "policy": "Use the latest provisional IC release for current services/program characteristics; replace deliberately when final data become available.",
+        "fixed_version": true
+      },
+      "license_or_terms": "NCES/IPEDS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "UNITID"
+      ],
+      "refresh_policy": "Annual, provisional-to-final replacement tracked as a new source snapshot.",
+      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "collection_year",
+        "release_type",
+        "file_stem",
+        "dictionary_version",
+        "sha256"
+      ],
+      "required_artifacts": [
+        "raw_zip_or_csv",
+        "normalized_institution_services_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "UNITID is non-null and unique.",
+        "Disability-services registration evidence preserves the source's band/percentage semantics and is never treated as a physical-accessibility score.",
+        "Distance-education/service indicators preserve source missingness and reporting context.",
+        "No missing service field is converted to false."
+      ]
+    },
+    {
+      "source_id": "ipeds_cost_2024",
+      "title": "IPEDS 2024 Cost I / Cost II",
+      "agency": "National Center for Education Statistics",
+      "status": "production_core",
+      "access_type": "multi_file_download",
+      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7",
+      "release": {
+        "label": "2024-25 Cost collection / current released Cost files",
+        "policy": "Use Cost I/II as the governed source for student charges, housing screening/capacity, cost of attendance, and average net price. Preserve the reporting year for each measure.",
+        "fixed_version": true
+      },
+      "license_or_terms": "NCES/IPEDS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "UNITID"
+      ],
+      "refresh_policy": "Annual; upgrade after file/dictionary validation.",
+      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
+      "files": {
+        "cost_i": "https://nces.ed.gov/ipeds/complete-data-files/COST1_2024.zip",
+        "cost_ii": "https://nces.ed.gov/ipeds/complete-data-files/COST2_2024.zip"
+      },
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "collection_year",
+        "release_type",
+        "file_stem",
+        "dictionary_version",
+        "sha256"
+      ],
+      "required_artifacts": [
+        "cost_i_raw",
+        "cost_ii_raw",
+        "normalized_cost_housing_table",
+        "normalized_net_price_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "UNITID is non-null and unique after source-specific Cost I/II consolidation.",
+        "Cost of attendance remains distinct from tuition/fees and from average net price.",
+        "Average net price is labeled as an institutional average after grants/scholarships under the source cohort definition.",
+        "Income-band averages remain separate and are never adjusted for household size without a separate authoritative method.",
+        "Institutionally controlled housing availability, housing capacity, and universal full-time first-time residency requirement remain distinct.",
+        "Missing/suppressed values remain missing/suppressed rather than numeric zero."
+      ]
+    },
+    {
+      "source_id": "ipeds_sfa_2023_24",
+      "title": "IPEDS Student Financial Aid — 2023-24 awards",
+      "agency": "National Center for Education Statistics",
+      "status": "production_core",
+      "access_type": "download",
+      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7",
+      "access_url": "https://nces.ed.gov/ipeds/complete-data-files/SFA2324.zip",
+      "file_stem": "SFA2324",
+      "release": {
+        "label": "2023-24 Student Financial Aid",
+        "policy": "Use SFA for grant/scholarship, loan, Work-Study, and other source-specific aid evidence; Cost/ANP measures belong to the Cost component in the redesigned collection.",
+        "fixed_version": true
+      },
+      "license_or_terms": "NCES/IPEDS public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "UNITID"
+      ],
+      "refresh_policy": "Annual; retain award-period context.",
+      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "award_period",
+        "file_stem",
+        "dictionary_version",
+        "sha256"
+      ],
+      "required_artifacts": [
+        "raw_zip_or_csv",
+        "normalized_aid_table",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "Aid types remain distinct by source and financing type.",
+        "Institutional grants/scholarships are not conflated with federal or state/local aid.",
+        "Loans are not subtracted when displaying average net price.",
+        "Aid recipient shares and average award amounts retain their source cohort definition.",
+        "Observed zero, missing, suppressed, and not-published states remain distinguishable."
+      ]
+    },
+    {
+      "source_id": "bts_national_transit_map",
+      "title": "Bureau of Transportation Statistics National Transit Map",
+      "agency": "U.S. Department of Transportation, Bureau of Transportation Statistics",
+      "status": "production_enrichment",
+      "access_type": "geospatial_catalog",
+      "official_url": "https://www.bts.gov/national-transit-map",
+      "access_url": "https://ntmcatalog.bts.gov/",
+      "release": {
+        "label": "current quarterly NTM snapshot",
+        "policy": "Pin each product build to a retrieved NTM snapshot/date. Never describe proximity to a stop as proof of accessible vehicles or an accessible path of travel.",
+        "fixed_version": false
+      },
+      "license_or_terms": "U.S. DOT/BTS public geospatial data; retain source metadata.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "source_feature_id"
+      ],
+      "refresh_policy": "Quarterly or each governed product build; retain immutable snapshot metadata.",
+      "retrieval_mode": "BTS NTM/NTAD geospatial downloads or services for stops/routes.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "dataset_vintage",
+        "service_or_download_url",
+        "sha256_or_service_snapshot_id",
+        "coordinate_reference_system"
+      ],
+      "required_artifacts": [
+        "normalized_transit_stops",
+        "normalized_transit_routes",
+        "institution_transit_proximity_enrichment",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "Institution coordinates used for distance calculations retain source/vintage.",
+        "Distance and stop counts use documented radii/CRS.",
+        "No nearby-stop result is converted into a claim about ADA vehicle/station/path accessibility.",
+        "No-transit-data and no-nearby-transit are distinct states."
+      ]
+    },
+    {
+      "source_id": "epa_walkability_2021",
+      "title": "EPA National Walkability Index / Smart Location Database v3",
+      "agency": "U.S. Environmental Protection Agency",
+      "status": "production_enrichment",
+      "access_type": "geospatial_download",
+      "official_url": "https://www.epa.gov/smartgrowth/smart-location-mapping",
+      "access_url": "https://edg.epa.gov/data/public/OA/WalkabilityIndex.zip",
+      "release": {
+        "label": "2021 National Walkability Index / Smart Location Database v3",
+        "policy": "Use only as explicitly vintage-labeled built-environment/location-efficiency evidence. Do not present the 2021 index as current conditions.",
+        "fixed_version": true
+      },
+      "license_or_terms": "U.S. EPA public data.",
+      "sensitivity": "public",
+      "canonical_keys": [
+        "census_block_group"
+      ],
+      "refresh_policy": "Version-driven; replace only when EPA publishes an official successor.",
+      "retrieval_mode": "Official EPA nationwide geospatial download.",
+      "required_metadata": [
+        "source_id",
+        "retrieved_at",
+        "dataset_version",
+        "dataset_vintage",
+        "sha256",
+        "coordinate_reference_system"
+      ],
+      "required_artifacts": [
+        "raw_walkability_geography",
+        "normalized_walkability_table",
+        "institution_walkability_enrichment",
+        "source_snapshot_metadata"
+      ],
+      "qa": [
+        "Institution-to-block-group assignment is deterministic and documented.",
+        "NatWalkInd remains a relative walkability index, not a physical-accessibility score.",
+        "The 2021 vintage is visible in product metadata and explanations.",
+        "Missing geography or unmatched institutions remain unknown."
+      ]
     }
   ],
   "join_contracts": [
@@ -540,6 +754,73 @@
       "expected_cardinality": "one_to_many_or_unmatched",
       "rule": "Join only through UNITIDs explicitly supplied in DAPIP IpedsUnitIds; explode the multi-ID field into a many-to-many bridge, retain DAPIP IDs separately, and never fuzzy-name match as a production repair.",
       "right_table": "dapip_ipeds_bridge"
+    },
+    {
+      "join_id": "ipeds_cost_to_directory",
+      "left_source": "ipeds_cost_2024",
+      "right_source": "ipeds_directory_2025",
+      "left_key": [
+        "UNITID"
+      ],
+      "right_key": [
+        "UNITID"
+      ],
+      "expected_cardinality": "one_to_one_or_unmatched",
+      "rule": "Join by UNITID only; preserve Cost reporting years separately from the current directory vintage."
+    },
+    {
+      "join_id": "ipeds_sfa_to_directory",
+      "left_source": "ipeds_sfa_2023_24",
+      "right_source": "ipeds_directory_2025",
+      "left_key": [
+        "UNITID"
+      ],
+      "right_key": [
+        "UNITID"
+      ],
+      "expected_cardinality": "one_to_one_or_unmatched",
+      "rule": "Join by UNITID only; retain aid award-period context and never label older aid data as current-year awards."
+    },
+    {
+      "join_id": "ipeds_ic_to_directory",
+      "left_source": "ipeds_ic_2025",
+      "right_source": "ipeds_directory_2025",
+      "left_key": [
+        "UNITID"
+      ],
+      "right_key": [
+        "UNITID"
+      ],
+      "expected_cardinality": "one_to_one_or_unmatched",
+      "rule": "Join by UNITID only; service evidence remains descriptive context, not a quality score."
+    },
+    {
+      "join_id": "ipeds_geography_to_bts_transit",
+      "left_source": "ipeds_directory_2025",
+      "right_source": "bts_national_transit_map",
+      "left_key": [
+        "LATITUDE",
+        "LONGITUDE"
+      ],
+      "right_key": [
+        "geometry"
+      ],
+      "expected_cardinality": "geospatial_one_to_many",
+      "rule": "Use explicit geospatial distance/radius logic from institution coordinates to NTM stop/route features; preserve no-data separately from no-nearby-service."
+    },
+    {
+      "join_id": "ipeds_geography_to_epa_walkability",
+      "left_source": "ipeds_directory_2025",
+      "right_source": "epa_walkability_2021",
+      "left_key": [
+        "LATITUDE",
+        "LONGITUDE"
+      ],
+      "right_key": [
+        "census_block_group_geometry"
+      ],
+      "expected_cardinality": "geospatial_point_in_polygon_or_unmatched",
+      "rule": "Assign institution coordinates to the EPA block group deterministically; retain 2021 vintage and never interpret walkability as physical accessibility."
     }
   ],
   "prohibited_production_sources": [
