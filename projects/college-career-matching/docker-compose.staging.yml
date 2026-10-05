@@ -1,0 +1,18 @@
+services:
+  matcher-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+    environment:
+      CCX_SNAPSHOT: /staging/institution_program_product_snapshot.csv
+      CCX_MANIFEST: /staging/institution_program_product_snapshot_manifest.json
+      CCX_MODEL_VERSION: synthetic-http-model-1
+      CCX_ALLOWED_ORIGINS: https://staging.example.test
+      PORT: "8080"
+    volumes:
+      - ./staging-data:/staging:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
