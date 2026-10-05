@@ -31,7 +31,7 @@ class ServiceHostTests(unittest.TestCase):
  def test_production_forbids_wildcard_cors(self):
   with tempfile.TemporaryDirectory() as d:
    root=Path(d);snap,mp,h=write_fixture(root)
-   act={"activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"D1","model_version":"M1","snapshot_sha256":h}
+   act={"schema_version":"1.0","activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"D1","model_version":"M1","snapshot_sha256":h,"activation_bundle_sha256":"b"*64,"approved_by":"Human Reviewer","approved_at_utc":"2026-10-05T19:00:00Z","decision_reference":"review-1","recorded_at_utc":"2026-10-05T19:01:00Z","rules":[]}
    ap=root/"activation.json";ap.write_text(json.dumps(act))
    with self.assertRaisesRegex(ValueError,"wildcard"):ServiceState(snap,mp,"M1",activation_record_path=ap,allowed_origins=["*"])
  def test_compare_missing_candidate_fails(self):
