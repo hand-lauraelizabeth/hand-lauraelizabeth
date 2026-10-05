@@ -64,6 +64,8 @@ jobs:
         run: python projects/college-career-matching/staging_browser_scenarios.py
       - name: Run matcher staging browser edge-state scenarios
         run: python projects/college-career-matching/staging_browser_edge_scenarios.py
+      - name: Run matcher latency and recovery browser scenarios
+        run: python projects/college-career-matching/staging_browser_concurrency_scenarios.py
       - name: Run Text Lens browser contract tests
         run: python projects/text-lens/tests/test_text_lens_contract.py
       - name: Run Text Lens browser interaction scenarios
