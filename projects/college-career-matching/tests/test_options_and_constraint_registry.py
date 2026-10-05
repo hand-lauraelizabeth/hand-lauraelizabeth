@@ -11,7 +11,7 @@ class OptionsConstraintTests(unittest.TestCase):
  def test_options_come_from_active_snapshot(self):
   r=options(S,"D1");self.assertEqual(r["data_version"],"D1");self.assertEqual(r["options"]["programs"][0]["value"],"1:P1")
  def test_options_publish_constraint_capabilities(self):
-  r=options(S,"D1");fields=r["constraint_capabilities"]["fields"];self.assertIn("state",fields);self.assertIn("finance__net_price",fields);self.assertIn("finance__net_price_income_0_30",fields);self.assertIn("campus__locale_category",fields);self.assertIn("campus__housing_available",fields)
+  r=options(S,"D1");fields=r["constraint_capabilities"]["fields"];self.assertIn("state",fields);self.assertIn("cip_code",fields);self.assertIn("finance__net_price",fields);self.assertIn("finance__net_price_income_0_30",fields);self.assertIn("campus__locale_category",fields);self.assertIn("campus__housing_available",fields)
  def test_unknown_constraint_field_fails(self):
   with self.assertRaises(ValueError):validate_constraint({"field":"mystery_score","operator":"gte"})
  def test_operator_is_field_specific(self):
@@ -19,6 +19,8 @@ class OptionsConstraintTests(unittest.TestCase):
  def test_match_request_rejects_unregistered_field(self):
   req={"schema_version":"1.0","decision_mode":"broad_exploration","preferences":[],"constraints":[{"constraint_id":"x","field":"mystery_score","operator":"gte","value":1,"unknown_policy":"keep_visible"}]}
   with self.assertRaises(ValueError):validate_request(req)
+ def test_cip_constraint_is_exact_governed_program_classification(self):
+  validate_constraint({"field":"cip_code","operator":"in"});validate_constraint({"field":"cip_code","operator":"eq"})
  def test_net_price_constraint_is_explicit_concept(self):
   validate_constraint({"field":"finance__net_price","operator":"lte"});validate_constraint({"field":"finance__net_price_income_48_75","operator":"lte"})
  def test_setting_housing_and_aid_constraints_are_governed(self):
