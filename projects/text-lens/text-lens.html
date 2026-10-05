@@ -76,6 +76,8 @@ const fmt=(n,d=0)=>Number.isFinite(n)?n.toLocaleString(undefined,{maximumFractio
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const norm=w=>w.toLowerCase().replace(/’/g,"'").replace(/^'+|'+$/g,'');
 const tokenise=t=>(t.match(WORD_RE)||[]).map(norm).filter(Boolean);
+const MAX_CHARS=100000;
+const sourceFiles={a:[],b:[]};
 
 function sentenceSplit(t){if(typeof Intl!=='undefined'&&Intl.Segmenter){try{return [...new Intl.Segmenter('en',{granularity:'sentence'}).segment(t)].map(x=>x.segment.trim()).filter(s=>tokenise(s).length)}catch(e){}}return(t.match(/[^.!?\n]+[.!?]*/g)||[]).map(s=>s.trim()).filter(s=>tokenise(s).length)}
 function median(a){if(!a.length)return 0;const x=[...a].sort((m,n)=>m-n),i=Math.floor(x.length/2);return x.length%2?x[i]:(x[i-1]+x[i])/2}
@@ -84,16 +86,24 @@ function syl(w){w=norm(w).replace(/[^a-z]/g,'');if(!w)return 0;if(w.length<=3)re
 function ngrams(words,n,ignoreStop){const out={};for(let i=0;i<=words.length-n;i++){const g=words.slice(i,i+n);if(ignoreStop&&g.some(w=>STOP.has(w)))continue;const k=g.join(' ');out[k]=(out[k]||0)+1}return out}
 function top(o,n=10){return Object.entries(o).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,n)}
 function negated(words,i){return[words[i-1],words[i-2],words[i-3]].filter(Boolean).some(w=>NOT.has(w)||w.endsWith("n't"))}
+function mattr(words,window=50){if(words.length<window)return NaN;let sum=0,n=0;for(let i=0;i<=words.length-window;i++){sum+=new Set(words.slice(i,i+window)).size/window;n++}return n?sum/n:NaN}
+function herdan(words){const n=words.length,v=new Set(words).size;return n>1&&v>1?Math.log(v)/Math.log(n):NaN}
+function ngramsSentences(sents,n,ignoreStop){const out={};for(const sent of sents){const words=tokenise(sent);for(let i=0;i<=words.length-n;i++){const g=words.slice(i,i+n);if(ignoreStop&&g.some(w=>STOP.has(w)))continue;const k=g.join(' ');out[k]=(out[k]||0)+1}}return out}
+function collocations(sents,ignoreStop,minCount){const uni={},bi={},words=[];for(const sent of sents){const w=tokenise(sent);words.push(...w);w.forEach(x=>uni[x]=(uni[x]||0)+1);for(let i=0;i<w.length-1;i++){if(ignoreStop&&(STOP.has(w[i])||STOP.has(w[i+1])))continue;const k=w[i]+' '+w[i+1];bi[k]=(bi[k]||0)+1}}const W=words.length,B=Object.values(bi).reduce((a,b)=>a+b,0)||1;return Object.entries(bi).filter(([,c])=>c>=minCount).map(([term,count])=>{const [x,y]=term.split(' '),pmi=Math.log2((count/B)/((uni[x]/Math.max(1,W))*(uni[y]/Math.max(1,W))));return{term,count,pmi}}).filter(x=>Number.isFinite(x.pmi)).sort((a,b)=>b.pmi-a.pmi||b.count-a.count||a.term.localeCompare(b.term))}
+function longestSentences(sents,n=3){return sents.map(text=>({text:text.trim(),words:tokenise(text).length})).filter(x=>x.words).sort((a,b)=>b.words-a.words).slice(0,n)}
+function tokenObjects(t){const out=[];for(const m of t.matchAll(WORD_RE))out.push({raw:m[0],norm:norm(m[0])});return out}
+function kwic(t,query,window=8,limit=50){const toks=tokenObjects(t),q=tokenise(query);if(!q.length)return[];const out=[];outer:for(let i=0;i<=toks.length-q.length;i++){for(let j=0;j<q.length;j++)if(toks[i+j].norm!==q[j])continue outer;out.push({left:toks.slice(Math.max(0,i-window),i).map(x=>x.raw).join(' '),match:toks.slice(i,i+q.length).map(x=>x.raw).join(' '),right:toks.slice(i+q.length,i+q.length+window).map(x=>x.raw).join(' ')});if(out.length>=limit)break}return out}
 
 function analyze(t,ignoreStop,nSize){
  const words=tokenise(t),W=words.length,sents=sentenceSplit(t),S=sents.length,sentLens=sents.map(s=>tokenise(s).length).filter(Boolean);
  const paras=t.split(/\n\s*\n/).filter(p=>p.trim()).length,uniq=new Set(words).size,syls=words.reduce((n,w)=>n+syl(w),0),letters=words.reduce((n,w)=>n+[...w].filter(ch=>/\p{L}/u.test(ch)).length,0);
  const freq={},allFreq={};words.forEach(w=>{allFreq[w]=(allFreq[w]||0)+1;if(!(ignoreStop&&STOP.has(w))&&w.length>1)freq[w]=(freq[w]||0)+1});
- const grams=ngrams(words,nSize,ignoreStop);let pos=0,ng=0;words.forEach((w,i)=>{const f=negated(words,i);if(POS.has(w))f?ng++:pos++;else if(NEG.has(w))f?pos++:ng++});
+ const grams=ngramsSentences(sents,nSize,ignoreStop),collocs=collocations(sents,ignoreStop,Number($('collMin')?.value||2));let pos=0,ng=0;words.forEach((w,i)=>{const f=negated(words,i);if(POS.has(w))f?ng++:pos++;else if(NEG.has(w))f?pos++:ng++});
  const wps=S?W/S:0,hapax=Object.values(allFreq).filter(x=>x===1).length,contentWords=words.filter(w=>!STOP.has(w)).length,top10=top(allFreq,10).reduce((n,x)=>n+x[1],0);
- return{t,words,W,S,paras,uniq,chars:t.length,freq,grams,pos,ng,nSize,avgWord:W?letters/W:0,wps,ttr:W?uniq/W:0,hapax,contentShare:W?contentWords/W:0,concentration:W?top10/W:0,mins:W/230,flesch:W&&S?206.835-1.015*wps-84.6*(syls/W):NaN,grade:W&&S?0.39*wps+11.8*(syls/W)-15.59:NaN,senti:(pos+ng)?(pos-ng)/(pos+ng):0,sentMedian:median(sentLens),sentMax:sentLens.length?Math.max(...sentLens):0,sentSD:stdev(sentLens)}
+ return{t,words,W,S,paras,uniq,chars:t.length,freq,grams,collocs,pos,ng,nSize,avgWord:W?letters/W:0,wps,ttr:W?uniq/W:0,mattr50:mattr(words,50),herdan:herdan(words),hapax,contentShare:W?contentWords/W:0,concentration:W?top10/W:0,mins:W/230,flesch:W&&S?206.835-1.015*wps-84.6*(syls/W):NaN,grade:W&&S?0.39*wps+11.8*(syls/W)-15.59:NaN,senti:(pos+ng)?(pos-ng)/(pos+ng):0,sentMedian:median(sentLens),sentMax:sentLens.length?Math.max(...sentLens):0,sentSD:stdev(sentLens),longest:longestSentences(sents,3)}
 }
 function bars(list){if(!list.length)return'<p class="empty">No repeated items yet.</p>';const m=list[0][1]||1;return list.map(([w,c])=>`<div class="row"><span title="${esc(w)}">${esc(w)}</span><i style="width:${Math.max(4,c/m*100)}%"></i><em>${c}</em></div>`).join('')}
+function collocationRows(list){if(!list.length)return'<p class="empty">No collocations meet the selected minimum frequency.</p>';return list.slice(0,10).map(x=>'<div class="colloc-row"><span title="'+esc(x.term)+'">'+esc(x.term)+'</span><em>'+x.count+'×</em><em>PMI '+fmt(x.pmi,1)+'</em></div>').join('')}
 function sentimentLabel(s,n){if(!n)return'No lexicon signal found';return s>.5?'Strong positive signal':s>.15?'Leaning positive':s>=-.15?'Mixed / neutral':s>=-.5?'Leaning negative':'Strong negative signal'}
 function ease(f){if(!Number.isFinite(f))return'–';return f>=90?'Very easy':f>=70?'Easy':f>=60?'Plain English':f>=50?'Fairly difficult':f>=30?'Difficult':'Very difficult'}
 function highlight(t){const prev=[];return t.replace(/[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*|[^\p{L}\p{M}]+/gu,m=>{if(!/\p{L}/u.test(m))return esc(m);const w=norm(m),f=prev.slice(0,3).some(x=>NOT.has(x)||x.endsWith("n't"));prev.unshift(w);prev.length=3;const p=POS.has(w),n=NEG.has(w);if(!p&&!n)return esc(m);return`<mark class="${(p!==f)?'p':'n'}" title="${f?'negated ':''}${p?'positive':'negative'} lexicon term">${esc(m)}</mark>`})}
