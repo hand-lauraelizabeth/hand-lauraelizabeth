@@ -112,6 +112,31 @@ class IntegrationTests(unittest.TestCase):
             run("recommendation_rank_review_gate.py","--ranked",rank/"recommendation_baseline_ranked.csv","--ranking-summary",rank/"recommendation_baseline_summary.json","--release-decision",gate/"passing"/"recommendation_release_decision.json","--out-dir",review/"passing")
             eligible=read_csv(review/"passing"/"review_eligible_ranked_candidates.csv");self.assertEqual(len(eligible),2);self.assertTrue(all(r["review_eligibility"]=="eligible_for_review" for r in eligible))
 
+    def test_review_gated_ranking_bundle_controls_service_pagination_only_for_bound_context(self):
+        with tempfile.TemporaryDirectory() as td:
+            d=Path(td)
+            request={"schema_version":"1.0","decision_mode":"broad_exploration","constraints":[],"preferences":[{"preference_id":"cost","dimension":"affordability","importance":3,"priority_explicit":True}],"career_preferences":[],"geography":{"school_location_semantics":"no_preference","selected_states":[],"work_market_semantics":"unspecified","intended_work_market":None},"page":1,"page_size":1}
+            candidates=[
+                {"candidate_id":"A","UNITID":"1","institution_name":"Zulu College","program_id":"P1","program_name":"Synthetic A","cip_code":"99.0001"},
+                {"candidate_id":"B","UNITID":"2","institution_name":"Alpha College","program_id":"P1","program_name":"Synthetic B","cip_code":"99.0002"},
+                {"candidate_id":"C","UNITID":"3","institution_name":"Middle College","program_id":"P1","program_name":"Synthetic C","cip_code":"99.0003"},
+            ]
+            (d/"request.json").write_text(json.dumps(request));(d/"candidates.json").write_text(json.dumps(candidates))
+            write_csv(d/"ranked.csv",[
+                {"candidate_id":"C","ranking_status":"ranked_pending_validation","baseline_score":"0.9","rank":"1","missing_weighted_dimensions":"","partial_weighted_dimensions":"","weighted_dimension_count":"1","review_eligibility":"eligible_for_review"},
+                {"candidate_id":"A","ranking_status":"ranked_pending_validation","baseline_score":"0.7","rank":"2","missing_weighted_dimensions":"","partial_weighted_dimensions":"","weighted_dimension_count":"1","review_eligibility":"eligible_for_review"},
+            ])
+            (d/"review.json").write_text(json.dumps({"status":"RANKED_RESULTS_ELIGIBLE_FOR_REVIEW","recommendation_release_decision":"ELIGIBLE_FOR_REVIEW","ranking_status":"RANKING_READY_FOR_VALIDATION","ranked_input_count":2,"review_eligible_ranked_count":2,"production_authorized":False}))
+            run("ranked_service_binding.py","--request",d/"request.json","--candidates",d/"candidates.json","--ranked",d/"ranked.csv","--review-summary",d/"review.json","--data-version","D1","--model-version","M1","--output",d/"bundle.json")
+            run("match_service_adapter.py","--request",d/"request.json","--candidates",d/"candidates.json","--ranking-bundle",d/"bundle.json","--data-version","D1","--model-version","M1","--output",d/"page1.json")
+            p1=json.loads((d/"page1.json").read_text());self.assertEqual(p1["results"][0]["candidate_id"],"C");self.assertEqual(p1["ordering"]["mode"],"review_eligible_ranking")
+            request["page"]=2;(d/"request2.json").write_text(json.dumps(request))
+            run("match_service_adapter.py","--request",d/"request2.json","--candidates",d/"candidates.json","--ranking-bundle",d/"bundle.json","--data-version","D1","--model-version","M1","--output",d/"page2.json")
+            p2=json.loads((d/"page2.json").read_text());self.assertEqual(p2["results"][0]["candidate_id"],"A");self.assertEqual(p1["ordering"]["ranking_context_id"],p2["ordering"]["ranking_context_id"])
+            request["preferences"][0]["importance"]=4;(d/"stale.json").write_text(json.dumps(request))
+            p=subprocess.run([sys.executable,str(PROJECT/"match_service_adapter.py"),"--request",str(d/"stale.json"),"--candidates",str(d/"candidates.json"),"--ranking-bundle",str(d/"bundle.json"),"--data-version","D1","--model-version","M1","--output",str(d/"stale-out.json")],text=True,capture_output=True)
+            self.assertNotEqual(p.returncode,0);self.assertIn("context does not match",p.stderr)
+
     def test_feature_registry_keeps_coverage_out_of_comparison_direction(self):
         with tempfile.TemporaryDirectory() as td:
             d=Path(td); out=d/"out"
