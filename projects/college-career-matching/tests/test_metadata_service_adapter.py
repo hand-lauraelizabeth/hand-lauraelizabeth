@@ -11,6 +11,12 @@ class MetadataServiceTests(unittest.TestCase):
  def test_review_eligible_is_not_production_authorized(self):
   r=build_metadata(manifest(),"SYN-MODEL-1",{"decision":"ELIGIBLE_FOR_ACTIVATION_REVIEW","checks":[]},{"release_decision":"ELIGIBLE_FOR_REVIEW","blocked_required_checks":0})
   self.assertEqual(r["serving_state"],"review_eligible");self.assertFalse(r["production_authorized"]);self.assertTrue(r["semantic_rules"]["review_eligibility_is_not_production_authorization"])
+ def test_exact_activation_record_enables_production_state(self):
+  record={"activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"SYN-DATA-1","model_version":"SYN-MODEL-1","snapshot_sha256":"a"*64}
+  r=build_metadata(manifest(),"SYN-MODEL-1",activation_record=record);self.assertEqual(r["serving_state"],"production");self.assertTrue(r["production_authorized"]);self.assertTrue(r["semantic_rules"]["production_requires_exact_activation_record"])
+ def test_mismatched_activation_record_fails_closed(self):
+  record={"activation_state":"PRODUCTION_SERVICE_AUTHORIZED","production_authorized":True,"data_version":"OTHER","model_version":"M","snapshot_sha256":"a"*64}
+  with self.assertRaisesRegex(ValueError,"data_version mismatch"):build_metadata(manifest(),"M",activation_record=record)
  def test_blocked_gate_blocks_serving_state(self):
   r=build_metadata(manifest(),"M",{"decision":"BLOCKED"},{"release_decision":"ELIGIBLE_FOR_REVIEW"})
   self.assertEqual(r["serving_state"],"blocked")
