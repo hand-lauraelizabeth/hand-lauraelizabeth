@@ -31,7 +31,7 @@ def normalize(rows,grain):
    x[m]=clean(r.get(m));x[f"{m}__state"]=evidence_state(m,r,registry);x[f"{m}__source_id"]=clean(r.get(f"{m}__source_id")) or default_source_id;x[f"{m}__source_vintage"]=clean(r.get(f"{m}__source_vintage")) or default_vintage
   if grain=="institution":
    for measure,prefix in [("institutional_grant_share","institutional_grant"),("work_study_share","work_study"),("state_local_grant_share","state_local_grant")]:
-    x[f"{prefix}_evidence"]="true" if x[f"{measure}__state"]=="observed" else "false"
+    x[f"{prefix}_evidence"]="true" if x[f"{measure}__state"]=="observed" else ""
   x["source_vintage"]=clean(r.get("source_vintage"));x["source_record_id"]=clean(r.get("source_record_id"));out.append(x)
  return out
 def attach_field_to_programs(programs,field_rows):
