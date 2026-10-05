@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "fields": {
     "state": {
       "type": "categorical",
@@ -225,6 +225,18 @@
       "hard_constraint_allowed": true,
       "unknown_semantics": "unknown_not_false",
       "note": "Documented disability-services reporting evidence only; not a service-quality or physical-accessibility score."
+    },
+    "cip_code": {
+      "type": "categorical",
+      "operators": [
+        "eq",
+        "neq",
+        "in",
+        "not_in"
+      ],
+      "source": "product_snapshot",
+      "hard_constraint_allowed": true,
+      "note": "Authoritative program CIP classification from the active institution×program snapshot. Exact CIP filtering does not infer program identity from title similarity."
     }
   },
   "rules": [
@@ -233,6 +245,7 @@
     "A cost ceiling must identify its governed cost concept; generic cost fields are not allowed.",
     "Income-band net-price constraints must use the corresponding governed income-band field; household size is not inferred from institution-level aggregates.",
     "Housing availability and universal residency requirements are separate evidence fields; roommate/private-room configuration is not inferred from federal core data.",
-    "Disability-services evidence availability may be filtered, but it must not be interpreted as a service-quality or physical-accessibility score."
+    "Disability-services evidence availability may be filtered, but it must not be interpreted as a service-quality or physical-accessibility score.",
+    "Academic-field hard constraints use authoritative CIP values from the active product snapshot; program titles are not converted to CIP by browser-side similarity or guesswork."
   ]
 }
