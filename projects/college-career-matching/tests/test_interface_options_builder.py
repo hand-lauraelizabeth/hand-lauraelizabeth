@@ -11,6 +11,8 @@ class OptionsTests(unittest.TestCase):
  def test_options_derive_from_snapshot(self):
   x=build([row("U1","P1","Computing",online="true"),row("U2","P1","Computing",state="NJ",cred="Associates")],"SYN-1")
   self.assertEqual(x["counts"]["institutions"],2);self.assertEqual(x["counts"]["institution_programs"],2);self.assertEqual({z["value"] for z in x["states"]},{"NY","NJ"});self.assertEqual(len(x["programs"]),2)
+ def test_cip_fields_derive_from_active_snapshot_titles(self):
+  x=build([row("U1","P1","Computing",cip="11.0101"),row("U2","P2","Biology",cip="26.0101")],"SYN-1");by={z["value"]:z["label"] for z in x["cip_fields"]};self.assertEqual(by["11.0101"],"Synthetic Field 11.0101");self.assertEqual(by["26.0101"],"Synthetic Field 26.0101")
  def test_same_program_id_at_different_institutions_stays_distinct(self):
   x=build([row("U1","P1","Biology"),row("U2","P1","Biology")],"SYN-1");self.assertEqual({p["value"] for p in x["programs"]},{"U1:P1","U2:P1"})
  def test_duplicate_identity_fails(self):
