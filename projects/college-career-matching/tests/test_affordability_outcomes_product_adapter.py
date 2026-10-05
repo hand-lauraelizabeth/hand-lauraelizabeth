@@ -9,6 +9,12 @@ class AffordabilityTests(unittest.TestCase):
   r=normalize([{"UNITID":"1","tuition_in_state":"5000","cost_of_attendance":"20000","net_price":"9000","median_debt":"12000"}],"institution")[0];self.assertEqual(r["tuition_in_state"],"5000");self.assertEqual(r["cost_of_attendance"],"20000");self.assertEqual(r["net_price"],"9000");self.assertEqual(r["median_debt"],"12000")
  def test_missing_is_not_zero(self):
   r=normalize([{"UNITID":"1","net_price":""}],"institution")[0];self.assertEqual(r["net_price"],"");self.assertEqual(r["net_price__state"],"missing")
+ def test_source_suppression_is_preserved(self):
+  r=normalize([{"UNITID":"1","net_price":"","net_price__state":"suppressed"}],"institution")[0];self.assertEqual(r["net_price__state"],"suppressed");self.assertEqual(r["net_price"],"")
+ def test_blank_without_state_is_not_inferred_suppressed(self):self.assertEqual(normalize([{"UNITID":"1","median_debt":""}],"institution")[0]["median_debt__state"],"missing")
+ def test_invalid_evidence_state_fails_closed(self):
+  with self.assertRaises(ValueError):normalize([{"UNITID":"1","net_price":"","net_price__state":"secret"}],"institution")
+ def test_zero_remains_observed(self):self.assertEqual(normalize([{"UNITID":"1","net_price":"0"}],"institution")[0]["net_price__state"],"observed")
  def test_field_outcomes_require_exact_identity(self):
   fields=normalize([{"UNITID":"1","cip_code":"11.0101","credential_level":"Bachelors","median_earnings":"80000"}],"field_of_study");programs=[{"UNITID":"1","program_id":"P1","cip_code":"11.0101","credential_level":"Bachelors"},{"UNITID":"1","program_id":"P2","cip_code":"11.0101","credential_level":"Associates"}];r=attach_field_to_programs(programs,fields);self.assertEqual(r[0]["field_outcomes_coverage"],"observed");self.assertEqual(r[1]["field_outcomes_coverage"],"unknown")
  def test_same_title_cannot_override_cip_identity(self):
@@ -16,4 +22,7 @@ class AffordabilityTests(unittest.TestCase):
  def test_duplicate_field_identity_fails(self):
   rows=[{"UNITID":"1","cip_code":"11.0101","credential_level":"Bachelors"},{"UNITID":"1","cip_code":"11.0101","credential_level":"Bachelors"}]
   with self.assertRaises(ValueError):normalize(rows,"field_of_study")
+ def test_blank_program_id_fails_attachment(self):
+  fields=normalize([{"UNITID":"1","cip_code":"11.0101","credential_level":"Bachelors"}],"field_of_study")
+  with self.assertRaises(ValueError):attach_field_to_programs([{"UNITID":"1","program_id":"","cip_code":"11.0101","credential_level":"Bachelors"}],fields)
 if __name__=="__main__":unittest.main()
