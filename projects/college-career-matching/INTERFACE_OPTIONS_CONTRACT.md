@@ -22,6 +22,12 @@ Program option values are namespaced by institution (`UNITID:program_id`) so ide
 
 A choice is offered only when supported by the active snapshot. Absence from an optional option family does not imply a negative fact about an institution or program. For example, lack of online/modality evidence must not be rendered as “in-person only.”
 
+## Academic-field choices
+
+Academic-field choices are emitted as `cip_fields` from the active institution×program snapshot. The submitted value is the authoritative `cip_code`; the human-readable label is the snapshot's CIP title when available.
+
+The browser must not infer CIP from program-title similarity. Broad interest clusters such as “technology” or “health” require their own governed taxonomy/crosswalk before they can be offered as matcher semantics. Until then, exact CIP choices are preferable to a friendly-looking but undocumented browser mapping.
+
 ## Search and accessibility
 
 Large collections such as institutions and programs should be searchable/autocomplete controls rather than enormous select menus. Labels must remain human-readable while stable IDs are submitted. Keyboard navigation, visible focus, descriptive labels, and screen-reader semantics are product requirements, not post-launch enhancements.
