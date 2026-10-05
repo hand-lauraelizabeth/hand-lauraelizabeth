@@ -42,6 +42,12 @@ Institution-level outcomes are not presented as program outcomes. Tuition, cost 
 
 `GET /metadata` returns governed data/model version information, snapshot identity, source-vintage labels, and machine-readable release readiness. It does not convert review eligibility into production authorization and does not infer freshness from a vintage label. `GET /options` returns choices and constraint capabilities from the same product data version. `GET /candidate/{id}` returns evidence-oriented candidate detail. `POST /compare` returns 2–5 candidates side by side without declaring an automatic winner.
 
+## Recommendation ranking boundary
+
+The base match service remains an eligibility/evidence service and does not manufacture a ranking from available numeric fields. Baseline recommendation scores are created only by the explicit-priority materializer, sent through sensitivity/validation, and then passed through the recommendation release gate.
+
+A browser or service response must not treat a calculated `ranked_pending_validation` row as review-eligible. Ranked metadata may be surfaced only from the gated `review_eligible_ranked_candidates.csv` artifact (or an equivalent service representation with the same gate decision). `ELIGIBLE_FOR_REVIEW` remains distinct from production authorization.
+
 ## Browser boundary
 
 The browser may format, filter display state, collect answers, and request new service results. It must not convert missing evidence to zero, calculate its own recommendation score, infer transfer guarantees/admission probabilities, reinterpret measure concepts, or merge current labor evidence with long-term projections.
