@@ -8,8 +8,9 @@ F=json.loads((P/'prototype/contract-fixtures.json').read_text())
 class PrototypeContractTests(unittest.TestCase):
  def test_fixture_is_explicitly_synthetic(self):self.assertEqual(F['fixture_status'],'SYNTHETIC_NOT_PRODUCTION_DATA')
  def test_core_responses_are_v1(self):
-  for k in ['options','match','compare']:self.assertEqual(F[k]['schema_version'],'1.0')
- def test_options_and_match_share_data_version(self):self.assertEqual(F['options']['data_version'],F['match']['data_version'])
+  for k in ['metadata','options','match','compare']:self.assertEqual(F[k]['schema_version'],'1.0')
+ def test_metadata_options_and_match_share_data_version(self):self.assertEqual(F['metadata']['data_version'],F['options']['data_version']);self.assertEqual(F['options']['data_version'],F['match']['data_version'])
+ def test_metadata_does_not_claim_production_authorization(self):self.assertFalse(F['metadata']['production_authorized']);self.assertTrue(F['metadata']['semantic_rules']['review_eligibility_is_not_production_authorization'])
  def test_match_results_have_unique_candidate_ids(self):
   ids=[x['candidate_id'] for x in F['match']['results']];self.assertEqual(len(ids),len(set(ids)))
  def test_current_and_long_term_labor_are_separate(self):
