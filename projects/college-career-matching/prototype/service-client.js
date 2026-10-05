@@ -6,6 +6,7 @@ export class MatchingServiceClient {
     if(this.mode==='fixture'){const v=this.fixtures?.[name];if(v===undefined)throw new Error(`Missing fixture response: ${name}`);return structuredClone(v)}
     const r=await fetch(`${this.baseUrl}${path}`,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):null});if(!r.ok)throw new Error(`${name} failed: ${r.status}`);return r.json()
   }
+  metadata(){return this.call('metadata',{path:'/metadata'})}
   options(){return this.call('options',{path:'/options'})}
   match(request){return this.call('match',{method:'POST',path:'/match',body:request})}
   candidate(id){return this.call(`candidate:${id}`,{path:`/candidate/${encodeURIComponent(id)}`})}
@@ -13,6 +14,7 @@ export class MatchingServiceClient {
 }
 export function assertContract(response,kind){
  if(!response||response.schema_version!=='1.0')throw new Error(`${kind}: unsupported schema_version`)
+ if(kind==='metadata'&&(!response.data_version||!response.model_version||!response.snapshot))throw new Error('metadata: missing governed version/readiness fields')
  if(kind==='options'&&(!response.options||!response.constraint_capabilities))throw new Error('options: missing governed capabilities')
  if(kind==='match'&&!Array.isArray(response.results))throw new Error('match: results must be an array')
  if(kind==='compare'&&!Array.isArray(response.candidates))throw new Error('compare: candidates must be an array')
