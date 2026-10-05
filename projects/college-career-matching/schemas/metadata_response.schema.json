@@ -29,6 +29,7 @@
     },
     "serving_state": {
       "enum": [
+        "production",
         "blocked",
         "review_eligible",
         "data_review_eligible_model_not_evaluated",
@@ -36,7 +37,7 @@
       ]
     },
     "production_authorized": {
-      "const": false
+      "type": "boolean"
     },
     "snapshot": {
       "type": "object",
@@ -132,7 +133,8 @@
       "required": [
         "review_eligibility_is_not_production_authorization",
         "source_vintage_is_not_inferred_freshness",
-        "browser_must_not_select_versions_independently"
+        "browser_must_not_select_versions_independently",
+        "production_requires_exact_activation_record"
       ],
       "properties": {
         "review_eligibility_is_not_production_authorization": {
@@ -142,6 +144,9 @@
           "const": true
         },
         "browser_must_not_select_versions_independently": {
+          "const": true
+        },
+        "production_requires_exact_activation_record": {
           "const": true
         }
       }
