@@ -168,3 +168,29 @@ Shared DAPIP or exact OPEID relationships are review signals, not automatic merg
 The BLS adapters use the official 2025–2035 Employment Projections and May 2025 OEWS bulk sources. In October 2026 validation, GitHub-hosted Actions runners received HTTP 403 responses from both `www.bls.gov` bulk-file URLs and BLS's `download.bls.gov` programmatic-download host, while the same releases remained publicly documented on BLS web pages. This is treated as a source/network access limitation, not as a successful live-data test and not as a parser failure.
 
 The `[live-bls-smoke]` path is therefore intended for an environment from which BLS permits bulk downloads (for example a local or self-hosted runner). Unit tests, source-contract validation, release metadata, and join logic remain active in ordinary CI; recommendation scoring stays gated until a real BLS snapshot and O*NET↔BLS coverage report have been produced.
+
+## Product snapshot release-readiness path
+
+Before replacing the public explorer's synthetic fixture with an authoritative product snapshot, generate an observation-only profile:
+
+```bash
+python projects/college-career-matching/product_snapshot_release_profile.py \\
+  --snapshot /path/to/product_snapshot.csv \\
+  --manifest /path/to/product_snapshot_manifest.json \\
+  --output /path/to/release_profile.json
+```
+
+The profile reports counts, completeness, coverage, source vintages, hashes, and interface-option buildability but does not invent release thresholds.
+
+After an explicit policy is configured and `product_snapshot_release_gate.py` returns `ELIGIBLE_FOR_ACTIVATION_REVIEW`, build the hash-pinned review bundle:
+
+```bash
+python projects/college-career-matching/product_snapshot_activation_bundle.py \\
+  --snapshot /path/to/product_snapshot.csv \\
+  --manifest /path/to/product_snapshot_manifest.json \\
+  --release-decision /path/to/release_decision.json \\
+  --model-version MODEL_VERSION \\
+  --output /path/to/activation_review_bundle.json
+```
+
+That bundle still sets `production_authorized: false`; the public explorer remains in fixture mode until a separate human activation decision is recorded.
