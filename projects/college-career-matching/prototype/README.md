@@ -1,0 +1,36 @@
+# College + Career Matching — Interactive Prototype
+
+This is a **synthetic-data interaction prototype**, not a production matcher and not an authoritative college-data release. It exists to exercise the intended decision flow while the governed current-data snapshot continues through release gates.
+
+## Run locally
+
+From `projects/college-career-matching/prototype`:
+
+```bash
+python app.py
+```
+
+Open the local address printed by the server.
+
+## Flow
+
+1. Choose a decision starting point.
+2. Enter explicit must-haves.
+3. Set only priorities the user actually cares about.
+4. Review a shortlist with evidence and unknowns.
+5. Select 2–5 programs for side-by-side comparison.
+6. Return to answers and revise priorities/constraints.
+
+## Guardrails represented in the prototype
+
+- institution × program is the candidate grain;
+- no universal or automatic winner;
+- missing evidence is displayed as unavailable, never zero;
+- net price is labeled as net price, not generic cost;
+- current labor-market evidence is separate from long-term outlook;
+- comparison is evidence-oriented rather than a rank table;
+- synthetic fixtures are explicitly labeled and must not be presented as current college facts.
+
+## Production boundary
+
+The browser prototype currently uses `fixtures.json` only. Production activation should replace fixture access with the governed `/options`, `/match`, candidate-detail, and `/compare` service contracts after a current product snapshot passes its release gate. The browser should remain a renderer/interactor and must not independently reinterpret model semantics.
