@@ -539,7 +539,8 @@
     "semantic_rules": {
       "review_eligibility_is_not_production_authorization": true,
       "source_vintage_is_not_inferred_freshness": true,
-      "browser_must_not_select_versions_independently": true
+      "browser_must_not_select_versions_independently": true,
+      "production_requires_exact_activation_record": true
     }
   }
 }
