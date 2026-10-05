@@ -1,5 +1,7 @@
 # Text Lens
 
+**Current standalone version:** 3.0
+
 Text Lens is a browser-only text-analysis tool for research, writing, and digital-humanities workflows.
 
 ## What it does
