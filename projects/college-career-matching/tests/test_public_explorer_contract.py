@@ -36,6 +36,14 @@ class PublicExplorerContractTests(unittest.TestCase):
    self.assertIn(phrase,HTML)
   self.assertIn("Roommate versus private-room options require school-specific evidence",HTML)
   self.assertIn("separate signals",HTML)
+ def test_browser_builds_governed_request_fields(self):
+  self.assertIn("function buildGovernedRequest(s)",HTML)
+  for token in ["finance__net_price_overall","finance__net_price_income_48_75","campus__housing_available","campus__housing_required_all_ftft","finance__institutional_grant_evidence","campus__locale_category","transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit"]:
+   self.assertIn(token,HTML)
+  self.assertIn("root.getGovernedRequest",HTML)
+ def test_demo_weighting_is_disclosed(self):
+  self.assertIn("checked soft priorities are equally weighted",HTML)
+  self.assertIn("not production scoring",HTML)
  def test_no_undeclared_default_fit_score(self):
   self.assertIn("value:null",HTML)
   self.assertIn("'Unranked'",HTML)
