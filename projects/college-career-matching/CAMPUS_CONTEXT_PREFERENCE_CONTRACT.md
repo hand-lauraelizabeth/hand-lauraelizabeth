@@ -1,6 +1,6 @@
 # Campus Context Preference Contract
 
-**Status:** governed request semantics implemented; candidate-level calibration/normalization remains a separate release-gated step.
+**Status:** governed request semantics and candidate-level normalization implemented; production reference snapshots and release authorization remain gated.
 
 ## Purpose
 
@@ -45,9 +45,9 @@ Missing evidence remains unknown. It must never be converted into a zero-quality
 
 ## Relationship to recommendation scoring
 
-The request layer is now able to preserve the visitor's explicit priorities. Candidate-level normalization for these dimensions must be implemented through governed feature policies before they can participate in production recommendation scoring.
+The request layer preserves the visitor's explicit priorities. Candidate-level normalization is implemented through a versioned campus-context feature registry and a pinned institution-level reference population. Numeric transit/walkability evidence uses empirical midrank percentiles against that reference; housing and disability-services evidence use exact categorical semantics.
 
-Any normalization policy must:
+The implemented normalization policy follows these rules:
 
 1. name the source field;
 2. define direction/operator semantics;
