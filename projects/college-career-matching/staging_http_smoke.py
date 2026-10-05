@@ -35,11 +35,11 @@ def run(port=18765):
   base=f"http://127.0.0.1:{port}"
   try:
    health=wait(base)
-   assert health["production_authorized"] is False and health["candidate_count"]==3
+   assert health["production_authorized"] is False and health["candidate_count"]==4
    status,_,metadata=request(base,"/metadata");assert status==200 and metadata["production_authorized"] is False and metadata["data_version"]=="synthetic-http-staging-1"
-   status,_,options=request(base,"/options");assert status==200 and options["options"]["counts"]["institution_programs"]==3
+   status,_,options=request(base,"/options");assert status==200 and options["options"]["counts"]["institution_programs"]==4
    match_body={"schema_version":"1.0","decision_mode":"broad_exploration","constraints":[],"preferences":[],"career_preferences":[],"page":1,"page_size":20}
-   status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==3 and matched["ordering"]["production_authorized"] is False
+   status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==4 and matched["ordering"]["production_authorized"] is False
    status,_,candidate=request(base,"/candidate/SYN001%3AP1");assert status==200 and candidate["candidate_id"]=="SYN001:P1"
    status,_,comparison=request(base,"/compare","POST",{"candidate_ids":["SYN001:P1","SYN002:P2"]});assert status==200 and comparison["candidate_ids"]==["SYN001:P1","SYN002:P2"]
    status,headers,_=request(base,"/metadata",origin="https://staging.example.test");assert headers.get("Access-Control-Allow-Origin")=="https://staging.example.test"
