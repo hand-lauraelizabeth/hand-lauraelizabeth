@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "questionnaire_version": "2026-10-05.4",
+  "questionnaire_version": "2026-10-05.5",
   "principles": {
     "skippable_preferences": true,
     "no_default_priority_weights": true,
@@ -43,6 +43,21 @@
       ],
       "mapping": {
         "target": "decision_mode"
+      }
+    },
+    {
+      "question_id": "academic_fields",
+      "section": "must_haves",
+      "prompt": "Are there academic fields you specifically want the program to be classified in?",
+      "help": "Choices come from the active program snapshot's authoritative CIP classifications. Leave blank to explore across fields.",
+      "control": "searchable_multi_select",
+      "required": false,
+      "option_source": "options.cip_fields",
+      "mapping": {
+        "target": "constraint",
+        "field": "cip_code",
+        "operator": "in",
+        "unknown_policy": "keep_visible"
       }
     },
     {
