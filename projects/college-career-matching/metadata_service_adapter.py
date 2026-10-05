@@ -7,6 +7,7 @@ eligibility into production authorization and does not invent source freshness.
 from __future__ import annotations
 import argparse,json
 from pathlib import Path
+from service_activation_guard import validate_activation_record
 
 PRODUCT_ELIGIBLE={"ELIGIBLE_FOR_ACTIVATION_REVIEW"}
 RECOMMENDATION_ELIGIBLE={"ELIGIBLE_FOR_REVIEW"}
@@ -29,11 +30,7 @@ def build_metadata(snapshot_manifest,model_version,product_release=None,recommen
  recommendation_decision=clean((recommendation_release or {}).get("release_decision")) or "NOT_EVALUATED"
  production_authorized=False
  if activation_record is not None:
-  if activation_record.get("production_authorized") is not True or clean(activation_record.get("activation_state"))!="PRODUCTION_SERVICE_AUTHORIZED":
-   raise ValueError("activation_record is not a valid production authorization")
-  if clean(activation_record.get("data_version"))!=data_version: raise ValueError("activation_record data_version mismatch")
-  if clean(activation_record.get("model_version"))!=model_version: raise ValueError("activation_record model_version mismatch")
-  if clean(activation_record.get("snapshot_sha256")).lower()!=output_hash.lower(): raise ValueError("activation_record snapshot_sha256 mismatch")
+  validate_activation_record(activation_record,data_version,model_version,output_hash)
   production_authorized=True
  if production_authorized:
   serving_state="production"
