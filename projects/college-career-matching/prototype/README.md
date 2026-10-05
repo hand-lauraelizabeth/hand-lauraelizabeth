@@ -1,6 +1,6 @@
-# College + Career Matching — Interactive Prototype
+# College + Career Matching — Service Contract Prototype
 
-This is a **synthetic-data interaction prototype**, not a production matcher and not an authoritative college-data release. It exists to exercise the intended decision flow while the governed current-data snapshot continues through release gates.
+This is a **synthetic service-contract harness**, not the primary public interaction design, not a production matcher, and not an authoritative college-data release. It exists to exercise governed service boundaries while the current-data snapshot continues through release gates. The zero-friction visitor-facing interaction is maintained separately in `../public-explorer.html` and on the portfolio site.
 
 ## Run locally
 
