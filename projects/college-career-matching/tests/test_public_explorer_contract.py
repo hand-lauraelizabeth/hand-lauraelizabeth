@@ -48,6 +48,12 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_compare_is_display_only_not_browser_winner_logic(self):
   self.assertIn("renderCompare()",HTML);self.assertIn("no winner is calculated in the browser",HTML);self.assertIn("ccx-compare-toggle",HTML)
   self.assertNotIn("winner",HTML.lower().replace("no winner",""))
+ def test_service_failures_clear_stale_results_and_identity_errors_disable_controls(self):
+  for token in ["function setInteractive(enabled)","function clearServiceResults(","serviceStatus='request-error'","Previous results were cleared","serviceStatus='error'","Controls are disabled until a valid service identity is available."]:
+   self.assertIn(token,HTML)
+ def test_new_result_sets_drop_hidden_compare_selections_and_surface_unknown_evidence(self):
+  self.assertIn("visibleIds=new Set(rows.map(x=>x.candidate_id))",HTML);self.assertIn("if(!visibleIds.has(id))selected.delete(id)",HTML)
+  self.assertIn("unresolved must-have evidence field",HTML)
  def test_service_versions_are_cross_checked(self):
   self.assertIn("response.data_version!==metadata.data_version",HTML);self.assertIn("response.model_version!==metadata.model_version",HTML)
 
