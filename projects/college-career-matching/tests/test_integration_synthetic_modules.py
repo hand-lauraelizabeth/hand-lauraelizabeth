@@ -75,6 +75,43 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual({r["dimension"] for r in baseline},{"transit_access_fit","accessibility_evidence_fit"})
             weights={r["dimension"]:float(r["weight"]) for r in baseline};self.assertAlmostEqual(weights["transit_access_fit"],2/3);self.assertAlmostEqual(weights["accessibility_evidence_fit"],1/3)
 
+    def test_baseline_ranking_sensitivity_and_release_gate_share_explicit_dimensions(self):
+        with tempfile.TemporaryDirectory() as td:
+            d=Path(td); comp=d/"comp"; rank=d/"rank"; sens=d/"sens"; gate=d/"gate"; review=d/"review"
+            write_csv(d/"normalized.csv",[
+                {"candidate_id":"A","feature_id":"t","dimension":"transit_access_fit","normalized_value":"0.8","evidence_state":"observed"},
+                {"candidate_id":"A","feature_id":"w","dimension":"walkability_fit","normalized_value":"0.4","evidence_state":"observed"},
+                {"candidate_id":"B","feature_id":"t","dimension":"transit_access_fit","normalized_value":"0.5","evidence_state":"observed"},
+                {"candidate_id":"B","feature_id":"w","dimension":"walkability_fit","normalized_value":"0.9","evidence_state":"observed"},
+            ])
+            write_csv(d/"policy.csv",[
+                {"feature_id":"t","within_dimension_weight":"1","partial_policy":"block"},
+                {"feature_id":"w","within_dimension_weight":"1","partial_policy":"block"},
+            ])
+            write_csv(d/"prefs.csv",[
+                {"dimension":"transit_access_fit","importance":"3","priority_explicit":"true"},
+                {"dimension":"walkability_fit","importance":"1","priority_explicit":"true"},
+            ])
+            run("dimension_composer_weight_scenarios.py","--normalized-features",d/"normalized.csv","--composition-policy",d/"policy.csv","--preferences",d/"prefs.csv","--out-dir",comp)
+            run("recommendation_baseline_materializer.py","--dimensions",comp/"composed_candidate_dimensions.csv","--weights",comp/"explicit_preference_weight_scenarios.csv","--out-dir",rank)
+            ranked=read_csv(rank/"recommendation_baseline_ranked.csv");self.assertEqual(ranked[0]["candidate_id"],"A");self.assertEqual(ranked[0]["ranking_status"],"ranked_pending_validation")
+            run("recommendation_sensitivity_harness.py","--candidates",rank/"recommendation_sensitivity_candidate_dimensions.csv","--weights",comp/"explicit_preference_weight_scenarios.csv","--top-k","1","--out-dir",sens)
+            sensitivity=read_csv(sens/"recommendation_sensitivity.csv");self.assertEqual({r["candidate_id"] for r in sensitivity},{"A","B"})
+            # First prove a blocked gate cannot expose the ranking.
+            write_csv(d/"blocked_gate.csv",[{"stage_id":"ranking","artifact_path":str(rank/"recommendation_baseline_summary.json"),"required":"true","check_path":"status","operator":"eq","expected":"DOES_NOT_MATCH"}])
+            run("recommendation_release_gate.py","--gate-manifest",d/"blocked_gate.csv","--out-dir",gate/"blocked")
+            run("recommendation_rank_review_gate.py","--ranked",rank/"recommendation_baseline_ranked.csv","--ranking-summary",rank/"recommendation_baseline_summary.json","--release-decision",gate/"blocked"/"recommendation_release_decision.json","--out-dir",review/"blocked")
+            blocked=json.loads((review/"blocked"/"ranked_result_review_eligibility.json").read_text());self.assertEqual(blocked["review_eligible_ranked_count"],0)
+            # Then require ranking + sensitivity artifacts without inventing an instability threshold.
+            write_csv(d/"passing_gate.csv",[
+                {"stage_id":"ranking","artifact_path":str(rank/"recommendation_baseline_summary.json"),"required":"true","check_path":"status","operator":"eq","expected":"RANKING_READY_FOR_VALIDATION"},
+                {"stage_id":"sensitivity","artifact_path":str(sens/"recommendation_sensitivity_summary.json"),"required":"true","check_path":"scenario_count","operator":"exists","expected":""},
+            ])
+            run("recommendation_release_gate.py","--gate-manifest",d/"passing_gate.csv","--out-dir",gate/"passing")
+            decision=json.loads((gate/"passing"/"recommendation_release_decision.json").read_text());self.assertEqual(decision["release_decision"],"ELIGIBLE_FOR_REVIEW")
+            run("recommendation_rank_review_gate.py","--ranked",rank/"recommendation_baseline_ranked.csv","--ranking-summary",rank/"recommendation_baseline_summary.json","--release-decision",gate/"passing"/"recommendation_release_decision.json","--out-dir",review/"passing")
+            eligible=read_csv(review/"passing"/"review_eligible_ranked_candidates.csv");self.assertEqual(len(eligible),2);self.assertTrue(all(r["review_eligibility"]=="eligible_for_review" for r in eligible))
+
     def test_feature_registry_keeps_coverage_out_of_comparison_direction(self):
         with tempfile.TemporaryDirectory() as td:
             d=Path(td); out=d/"out"
