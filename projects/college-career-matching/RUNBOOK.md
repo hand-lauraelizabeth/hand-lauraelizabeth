@@ -285,3 +285,21 @@ python projects/college-career-matching/staging_http_smoke.py
 ```
 
 CI runs this smoke test after the synthetic regression suite. Passing staging smoke tests do not authorize production or imply that the public explorer should leave fixture mode.
+
+## Non-public browser staging harness
+
+The real explorer UI can be exercised against the fictional HTTP staging service without publishing a staging endpoint or weakening the fixture/production boundary.
+
+```bash
+python projects/college-career-matching/staging_browser_harness.py
+```
+
+This generates a local `staging-browser.html`, starts the synthetic API on `127.0.0.1:18765`, and serves the explorer on `127.0.0.1:18766`. Both listeners are loopback-only. The generated page is marked `noindex,nofollow` and uses runtime mode `staging`, which requires `production_authorized: false` plus exact synthetic data/model/snapshot identity matching.
+
+To generate the HTML without starting servers:
+
+```bash
+python projects/college-career-matching/staging_browser_harness.py --build-only
+```
+
+Staging mode is intentionally distinct from production. Loopback HTTP is permitted for local staging; a non-loopback staging service must use HTTPS. No staging result can satisfy the production runtime contract or substitute for a production activation record.
