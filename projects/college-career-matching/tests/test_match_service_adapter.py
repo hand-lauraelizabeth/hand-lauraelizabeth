@@ -33,6 +33,10 @@ class MatchServiceTests(unittest.TestCase):
    with self.assertRaises(ValueError):validate_request(q)
  def test_pagination_metadata(self):
   q=request();q["page_size"]=1;r=match(q,[candidate("A"),candidate("B")],"D","M");self.assertEqual(r["pagination"]["total_pages"],2);self.assertTrue(r["pagination"]["has_next"]);self.assertEqual(len(r["results"]),1)
+ def test_production_authorization_is_explicit_and_defaults_false(self):
+  a=match(request(),[candidate("A")],"D","M");b=match(request(),[candidate("A")],"D","M",production_authorized=True)
+  self.assertFalse(a["ordering"]["production_authorized"]);self.assertFalse(a["results"][0]["recommendation"]["production_authorized"])
+  self.assertTrue(b["ordering"]["production_authorized"]);self.assertTrue(b["results"][0]["recommendation"]["production_authorized"])
  def test_request_id_is_deterministic_for_same_request_and_versions(self):
   q=request();a=match(q,[candidate("A")],"D","M",generated_at_utc="2026-01-01T00:00:00Z");b=match(q,[candidate("A")],"D","M",generated_at_utc="2026-02-01T00:00:00Z");self.assertEqual(a["request_id"],b["request_id"]);self.assertNotEqual(a["generated_at_utc"],b["generated_at_utc"])
 if __name__=="__main__":unittest.main()
