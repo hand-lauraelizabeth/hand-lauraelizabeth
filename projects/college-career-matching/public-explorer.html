@@ -4,62 +4,261 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>College + Career Explorer — Public Interaction Sample</title>
-<style>
-:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1f2a25;background:#f7f8f6;--muted:#5c6762;--green:#2f5d50;--green2:#1f493e;--soft:#e7efea;--line:#d8e2dc;--paper:#fff}
-*{box-sizing:border-box}body{margin:0}main{max-width:1120px;margin:auto;padding:48px 20px 64px}.kicker{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--green);margin:0 0 10px}h1{font-family:Georgia,serif;font-size:clamp(40px,6vw,66px);line-height:1.02;margin:0 0 14px;color:#17352d}.lead{font-size:19px;line-height:1.65;max-width:820px;color:var(--muted);margin:0 0 14px}.note{font-size:14px;line-height:1.55;color:var(--muted);max-width:850px;margin:0 0 26px}.layout{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:24px;align-items:start}.controls{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;position:sticky;top:24px}fieldset{border:0;padding:0;margin:0 0 18px}legend,label.control-label{display:block;font-weight:700;font-size:15px;margin:0 0 7px}select{width:100%;min-height:44px;border:1px solid #bccbc2;border-radius:8px;background:#fff;color:#1f2a25;font:inherit;font-size:16px;padding:9px 11px}input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #8bb5a6;outline-offset:2px}.checks{display:grid;gap:8px}.check{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.35}.check input{margin-top:3px;min-width:18px;min-height:18px}.reset{border:1px solid var(--green);color:var(--green);background:#fff;border-radius:999px;min-height:44px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer}.results-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:12px}.results-head h2{font-family:Georgia,serif;font-size:34px;color:#17352d;margin:0}.count{font-size:14px;color:var(--muted)}.results{display:grid;gap:14px}.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px}.card-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.rank{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);font-weight:700}.card h3{font-family:Georgia,serif;font-size:26px;line-height:1.15;margin:3px 0 4px;color:#17352d}.school{color:var(--muted);font-size:15px;margin:0}.score{white-space:nowrap;background:var(--soft);color:var(--green2);border-radius:999px;padding:7px 10px;font-size:13px;font-weight:700}.meta{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}.pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:#fbfcfb}.reasons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 0}.reason{background:#f7faf8;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4}details{margin-top:12px;border-top:1px solid #e9eeeb;padding-top:10px}summary{cursor:pointer;color:var(--green2);font-weight:700}.detail{font-size:14px;line-height:1.55;color:var(--muted);padding-top:7px}.empty{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px}.compare-toggle{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;font-weight:700;color:var(--green2)}.compare-toggle input{min-width:18px;min-height:18px}.compare-panel{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}.compare-panel h3{font-family:Georgia,serif;font-size:25px;line-height:1.15;margin:0 0 5px;color:#17352d}.compare-note{font-size:13px;color:var(--muted);margin:0 0 12px}.compare-table{overflow-x:auto}.compare-table table{width:100%;border-collapse:collapse;min-width:560px;font-size:14px}.compare-table th,.compare-table td{padding:9px 10px;border-bottom:1px solid #e7ece9;text-align:left;vertical-align:top}.compare-table th:first-child{width:145px;color:var(--muted)}.clear{border:0;background:transparent;color:var(--green);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:8px 0}.safety{margin-top:22px;border-left:4px solid var(--green);padding:12px 14px;background:var(--soft);font-size:14px;line-height:1.55}@media(max-width:780px){.layout{grid-template-columns:1fr}.controls{position:static}.reasons{grid-template-columns:1fr}}
-</style>
 </head>
 <body>
-<main id="explorer">
-<p class="kicker">Interactive decision-support sample</p>
-<h1>College + Career Explorer</h1>
-<p class="lead">Start with the things that matter to you. The list responds as you change your preferences—no account, setup, download, or technical steps required.</p>
-<p class="note"><strong>Demonstration data:</strong> the colleges and values on this page are fictional while the current public-data release is still being validated. The interaction model is real; the records are intentionally illustrative and should not be used as college advice.</p>
-<div class="layout">
-<form class="controls" id="explorer-form">
-<fieldset><label class="control-label" for="interest">Area of interest</label><select id="interest"><option value="">Show all fields</option><option value="data">Data & technology</option><option value="business">Business</option><option value="health">Health & human services</option><option value="education">Education</option><option value="creative">Creative & communication</option></select></fieldset>
-<fieldset><label class="control-label" for="state">School location</label><select id="state"><option value="">Anywhere in this sample</option><option value="NY">New York</option><option value="NJ">New Jersey</option><option value="PA">Pennsylvania</option></select></fieldset>
-<fieldset><label class="control-label" for="credential">Credential</label><select id="credential"><option value="">Any credential</option><option value="Associate">Associate degree</option><option value="Bachelor">Bachelor's degree</option></select></fieldset>
-<fieldset><label class="control-label" for="price">Maximum annual net price</label><select id="price"><option value="">No ceiling</option><option value="15000">$15,000</option><option value="25000">$25,000</option><option value="40000">$40,000</option></select></fieldset>
-<fieldset><legend>Prioritize</legend><div class="checks"><label class="check"><input type="checkbox" id="afford"><span>Lower net price</span></label><label class="check"><input type="checkbox" id="career"><span>Broader career pathways</span></label><label class="check"><input type="checkbox" id="transfer"><span>Transfer-friendly pathways</span></label><label class="check"><input type="checkbox" id="small"><span>Smaller learning environment</span></label><label class="check"><input type="checkbox" id="online"><span>Online option required</span></label></div></fieldset>
-<button type="button" class="reset" id="reset">Reset preferences</button>
-</form>
-<section aria-labelledby="results-title">
-<div class="results-head"><h2 id="results-title">Explore matches</h2><div class="count" id="count" aria-live="polite">8 fictional programs in this demonstration</div></div>
-<div class="results" id="results" aria-live="polite">
-<article class="card"><div class="card-top"><div><div class="rank">Sample</div><h3>Data & Information Systems</h3><p class="school">North Harbor College · NY</p></div><div class="score">Unranked</div></div><div class="meta"><span class="pill">Bachelor</span><span class="pill">$14,800 net price</span><span class="pill">Online option</span></div><div class="reasons"><div class="reason">No priorities selected — showing the full sample</div></div></article>
-<article class="card"><div class="card-top"><div><div class="rank">Sample</div><h3>Information Technology</h3><p class="school">Metro Public College · NY</p></div><div class="score">Unranked</div></div><div class="meta"><span class="pill">Associate</span><span class="pill">$11,200 net price</span><span class="pill">Online option</span></div><div class="reasons"><div class="reason">No priorities selected — showing the full sample</div></div></article>
+<div id="leh-ccx">
+  <style>
+    #leh-ccx{--ink:#1f2a25;--muted:#5c6762;--green:#2f5d50;--green2:#1f493e;--soft:#e7efea;--line:#d8e2dc;--paper:#fff;--cream:#f7f8f6;color:var(--ink);font-family:inherit}
+    #leh-ccx *{box-sizing:border-box}
+    #leh-ccx .ccx-wrap{max-width:1120px;margin:0 auto}
+    #leh-ccx .ccx-kicker{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--green);margin:0 0 10px}
+    #leh-ccx h1{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(40px,6vw,66px);line-height:1.02;margin:0 0 14px;color:#17352d}
+    #leh-ccx .ccx-lead{font-size:19px;line-height:1.65;max-width:820px;color:var(--muted);margin:0 0 14px}
+    #leh-ccx .ccx-note{font-size:14px;line-height:1.55;color:var(--muted);max-width:850px;margin:0 0 26px}
+    #leh-ccx .ccx-grid{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:24px;align-items:start}
+    #leh-ccx .ccx-controls{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;position:sticky;top:24px}
+    #leh-ccx fieldset{border:0;padding:0;margin:0 0 18px}
+    #leh-ccx legend,#leh-ccx label.ccx-label{display:block;font-weight:700;font-size:15px;margin:0 0 7px}
+    #leh-ccx select,#leh-ccx input[type="number"]{width:100%;min-height:44px;border:1px solid #bccbc2;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:16px;padding:9px 11px}
+    #leh-ccx input:focus-visible,#leh-ccx select:focus-visible,#leh-ccx button:focus-visible{outline:3px solid #8bb5a6;outline-offset:2px}
+    #leh-ccx .ccx-checks{display:grid;gap:8px}
+    #leh-ccx .ccx-check{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.35}
+    #leh-ccx .ccx-check input{margin-top:3px;min-width:18px;min-height:18px}
+    #leh-ccx .ccx-reset{border:1px solid var(--green);color:var(--green);background:#fff;border-radius:999px;min-height:44px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer}
+    #leh-ccx .ccx-results-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    #leh-ccx .ccx-results-head h2{font-family:"Cormorant Garamond",Georgia,serif;font-size:34px;color:#17352d;margin:0}
+    #leh-ccx .ccx-count{font-size:14px;color:var(--muted)}
+    #leh-ccx .ccx-results{display:grid;gap:14px}
+    #leh-ccx .ccx-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px}
+    #leh-ccx .ccx-card-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+    #leh-ccx .ccx-rank{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);font-weight:700}
+    #leh-ccx .ccx-card h3{font-family:"Cormorant Garamond",Georgia,serif;font-size:26px;line-height:1.15;margin:3px 0 4px;color:#17352d}
+    #leh-ccx .ccx-school{color:var(--muted);font-size:15px;margin:0}
+    #leh-ccx .ccx-score{white-space:nowrap;background:var(--soft);color:var(--green2);border-radius:999px;padding:7px 10px;font-size:13px;font-weight:700}
+    #leh-ccx .ccx-meta{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
+    #leh-ccx .ccx-pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:#fbfcfb}
+    #leh-ccx .ccx-reasons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 0}
+    #leh-ccx .ccx-reason{background:#f7faf8;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4}
+    #leh-ccx details{margin-top:12px;border-top:1px solid #e9eeeb;padding-top:10px}
+    #leh-ccx summary{cursor:pointer;color:var(--green2);font-weight:700}
+    #leh-ccx .ccx-detail{font-size:14px;line-height:1.55;color:var(--muted);padding-top:7px}
+    #leh-ccx .ccx-empty{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px}
+    #leh-ccx .ccx-compare-toggle{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;font-weight:700;color:var(--green2)}
+    #leh-ccx .ccx-compare-toggle input{min-width:18px;min-height:18px}
+    #leh-ccx .ccx-compare-panel{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+    #leh-ccx .ccx-compare-panel h3{font-family:"Cormorant Garamond",Georgia,serif;font-size:25px;line-height:1.15;margin:0 0 5px;color:#17352d}
+    #leh-ccx .ccx-compare-note{font-size:13px;color:var(--muted);margin:0 0 12px}
+    #leh-ccx .ccx-compare-table{overflow-x:auto}
+    #leh-ccx .ccx-compare-table table{width:100%;border-collapse:collapse;min-width:560px;font-size:14px}
+    #leh-ccx .ccx-compare-table th,#leh-ccx .ccx-compare-table td{padding:9px 10px;border-bottom:1px solid #e7ece9;text-align:left;vertical-align:top}
+    #leh-ccx .ccx-compare-table th:first-child{width:145px;color:var(--muted)}
+    #leh-ccx .ccx-clear{border:0;background:transparent;color:var(--green);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:8px 0}
+    #leh-ccx .ccx-safety{margin-top:22px;border-left:4px solid var(--green);padding:12px 14px;background:var(--soft);font-size:14px;line-height:1.55}
+    @media(max-width:780px){#leh-ccx .ccx-grid{grid-template-columns:1fr}#leh-ccx .ccx-controls{position:static}#leh-ccx .ccx-reasons{grid-template-columns:1fr}}
+  </style>
+  <div class="ccx-wrap">
+    <p class="ccx-kicker">Interactive decision-support sample</p>
+    <h1>College + Career Explorer</h1>
+    <p class="ccx-lead">Start with the things that matter to you. The list responds as you change your preferences—no account, setup, download, or technical steps required.</p>
+    <p class="ccx-note"><strong>Demonstration data:</strong> the colleges and values on this page are fictional while the current public-data release is still being validated. The interaction model is real; the records are intentionally illustrative and should not be used as college advice.</p>
+    <div class="ccx-grid">
+      <form class="ccx-controls" id="ccx-form">
+        <fieldset>
+          <label class="ccx-label" for="ccx-interest">Area of interest</label>
+          <select id="ccx-interest">
+            <option value="">Show all fields</option>
+            <option value="data">Data & technology</option>
+            <option value="business">Business</option>
+            <option value="health">Health & human services</option>
+            <option value="education">Education</option>
+            <option value="creative">Creative & communication</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-state">School location</label>
+          <select id="ccx-state">
+            <option value="">Anywhere in this sample</option>
+            <option value="NY">New York</option>
+            <option value="NJ">New Jersey</option>
+            <option value="PA">Pennsylvania</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-setting">Campus setting</label>
+          <select id="ccx-setting">
+            <option value="">Any setting</option>
+            <option value="city">City</option>
+            <option value="suburban">Suburban</option>
+            <option value="town">Town</option>
+            <option value="rural">Rural</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-credential">Credential</label>
+          <select id="ccx-credential">
+            <option value="">Any credential</option>
+            <option value="Associate">Associate degree</option>
+            <option value="Bachelor">Bachelor's degree</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-income">Household income range</label>
+          <select id="ccx-income">
+            <option value="">Use overall average net price</option>
+            <option value="0-30">$0–30,000</option>
+            <option value="30-48">$30,001–48,000</option>
+            <option value="48-75">$48,001–75,000</option>
+            <option value="75-110">$75,001–110,000</option>
+            <option value="110+">$110,001+</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-price">Maximum average net price after grants/scholarships</label>
+          <select id="ccx-price">
+            <option value="">No ceiling</option>
+            <option value="15000">$15,000</option>
+            <option value="25000">$25,000</option>
+            <option value="40000">$40,000</option>
+          </select>
+          <details><summary>What does this mean?</summary><div class="ccx-detail">Net price is cost of attendance minus grants and scholarships—not loans. Choosing an income range uses that historical income-band average. It is not a personalized aid estimate, and this tool does not invent a family-size adjustment from data that do not support one.</div></details>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-housing">Housing preference</label>
+          <select id="ccx-housing">
+            <option value="">No housing requirement</option>
+            <option value="available">Institutionally controlled housing available</option>
+            <option value="choice">Housing available, but not universally required</option>
+            <option value="commuter">No institutionally controlled housing / commuter-oriented</option>
+          </select>
+          <div class="ccx-detail">Federal data support housing availability and broad residency requirements. Roommate versus private-room options require school-specific evidence and are not inferred here.</div>
+        </fieldset>
+        <fieldset>
+          <legend>Format & aid needs</legend>
+          <div class="ccx-checks">
+            <label class="ccx-check"><input type="checkbox" id="ccx-online"> <span>Online option required</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-inst-aid"> <span>Institutional grants/scholarships available in the sample</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-workstudy"> <span>Federal Work-Study evidence available</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-state-aid"> <span>State/local grant-aid evidence available</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Prioritize</legend>
+          <div class="ccx-checks">
+            <label class="ccx-check"><input type="checkbox" id="ccx-afford"> <span>Lower average net price after grants/scholarships</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-career"> <span>Broader career pathways</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-transfer"> <span>Transfer-friendly pathways</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-small"> <span>Smaller learning environment</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-transit"> <span>Better public-transit access</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-walk"> <span>More walkable access to daily needs</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-housing-choice"> <span>More housing choice</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-disability-info"> <span>Documented disability-services information</span></label>
+          </div>
+        </fieldset>
+        <button type="button" class="ccx-reset" id="ccx-reset">Reset preferences</button>
+      </form>
+      <section aria-labelledby="ccx-results-title">
+        <div class="ccx-results-head">
+          <h2 id="ccx-results-title">Explore matches</h2>
+          <div class="ccx-count" id="ccx-count" aria-live="polite">8 fictional programs in this demonstration</div>
+        </div>
+        <div class="ccx-results" id="ccx-results" aria-live="polite">
+          <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Sample</div><h3>Data & Information Systems</h3><p class="ccx-school">North Harbor College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-meta"><span class="ccx-pill">Bachelor</span><span class="ccx-pill">city setting</span><span class="ccx-pill">$32,000 cost of attendance</span><span class="ccx-pill">$14,800 overall avg net price</span><span class="ccx-pill">Housing available by choice</span></div><div class="ccx-reasons"><div class="ccx-reason">No soft priorities selected — showing programs that pass the filters</div></div></article>
+          <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Sample</div><h3>Information Technology</h3><p class="ccx-school">Metro Public College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-meta"><span class="ccx-pill">Associate</span><span class="ccx-pill">city setting</span><span class="ccx-pill">$22,000 cost of attendance</span><span class="ccx-pill">$11,200 overall avg net price</span><span class="ccx-pill">No institutional housing</span></div><div class="ccx-reasons"><div class="ccx-reason">No soft priorities selected — showing programs that pass the filters</div></div></article>
+          <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Sample</div><h3>Early Childhood Education</h3><p class="ccx-school">Garden State College · NJ</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-meta"><span class="ccx-pill">Bachelor</span><span class="ccx-pill">suburban setting</span><span class="ccx-pill">$33,000 cost of attendance</span><span class="ccx-pill">$17,600 overall avg net price</span><span class="ccx-pill">Housing available by choice</span></div><div class="ccx-reasons"><div class="ccx-reason">No soft priorities selected — showing programs that pass the filters</div></div></article>
+        </div><noscript><p class="ccx-note">These example results remain readable without JavaScript. Interactive filtering and reordering require JavaScript in your browser.</p></noscript>
+        <div class="ccx-compare-panel" id="ccx-compare-panel"><h3>Compare programs</h3><p class="ccx-compare-note" id="ccx-compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="ccx-compare-table" id="ccx-compare-table"></div><button type="button" class="ccx-clear" id="ccx-clear" hidden>Clear comparison</button></div><div class="ccx-safety"><strong>How to read this:</strong> cost of attendance and average net price are shown separately. Income-band net price is a historical institutional average after grants/scholarships, not a personalized aid quote. Hard filters narrow the sample immediately; numeric fit appears only after you select a soft priority. Transit, walkability, housing, and disability-services evidence remain separate signals rather than being collapsed into a single claim that a campus is “accessible.”</div>
+      </section>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var root=document.getElementById('leh-ccx'); if(!root||root.dataset.ready)return; root.dataset.ready='1';
+    var data=[
+      {school:'North Harbor College',program:'Data & Information Systems',interest:'data',state:'NY',credential:'Bachelor',cost:32000,netOverall:14800,netByIncome:{'0-30':9000,'30-48':11000,'48-75':14000,'75-110':18000,'110+':22000},setting:'city',online:true,housingAvailable:true,housingRequired:false,instAid:true,workStudy:true,stateAid:true,transfer:4,career:5,size:'medium',transit:5,walk:5,disabilityInfo:true,detail:'Strong demonstration fit for a user who values applied technology pathways, transit access, and moderate cost.'},
+      {school:'Metro Public College',program:'Information Technology',interest:'data',state:'NY',credential:'Associate',cost:22000,netOverall:11200,netByIncome:{'0-30':6500,'30-48':8000,'48-75':10000,'75-110':13000,'110+':16000},setting:'city',online:true,housingAvailable:false,housingRequired:false,instAid:true,workStudy:true,stateAid:true,transfer:5,career:4,size:'large',transit:5,walk:4,disabilityInfo:true,detail:'Illustrates a lower-cost associate pathway with strong transfer evidence, commuter orientation, and several related occupations.'},
+      {school:'River State University',program:'Applied Computing',interest:'data',state:'NJ',credential:'Bachelor',cost:38000,netOverall:22100,netByIncome:{'0-30':13000,'30-48':16500,'48-75':21000,'75-110':26000,'110+':30000},setting:'suburban',online:false,housingAvailable:true,housingRequired:true,instAid:true,workStudy:true,stateAid:true,transfer:3,career:5,size:'large',transit:4,walk:3,disabilityInfo:true,detail:'Illustrates a broader computing program with several career pathways, institutionally controlled housing, and a higher average net price.'},
+      {school:'Greenbridge College',program:'Business Analytics',interest:'business',state:'NY',credential:'Bachelor',cost:54000,netOverall:26800,netByIncome:{'0-30':15000,'30-48':19000,'48-75':25000,'75-110':31000,'110+':35000},setting:'suburban',online:true,housingAvailable:true,housingRequired:false,instAid:true,workStudy:true,stateAid:false,transfer:3,career:5,size:'small',transit:3,walk:4,disabilityInfo:true,detail:'Illustrates a smaller setting combining business study with quantitative and analytics pathways and optional campus housing.'},
+      {school:'Hudson Community College',program:'Community Health',interest:'health',state:'NY',credential:'Associate',cost:19000,netOverall:9800,netByIncome:{'0-30':5000,'30-48':7000,'48-75':9000,'75-110':11500,'110+':14000},setting:'suburban',online:false,housingAvailable:false,housingRequired:false,instAid:false,workStudy:true,stateAid:true,transfer:5,career:3,size:'medium',transit:4,walk:4,disabilityInfo:true,detail:'Illustrates a low-cost commuter pathway with strong transfer support and a narrower immediate occupation set.'},
+      {school:'Pine Arts College',program:'Digital Communication',interest:'creative',state:'PA',credential:'Bachelor',cost:58000,netOverall:33400,netByIncome:{'0-30':18000,'30-48':24000,'48-75':31000,'75-110':37000,'110+':42000},setting:'town',online:true,housingAvailable:true,housingRequired:true,instAid:true,workStudy:true,stateAid:true,transfer:2,career:4,size:'small',transit:2,walk:4,disabilityInfo:false,detail:'Illustrates a small-campus creative program with digital communication pathways, on-campus housing, and limited documented disability-services evidence in this sample.'},
+      {school:'Garden State College',program:'Early Childhood Education',interest:'education',state:'NJ',credential:'Bachelor',cost:33000,netOverall:17600,netByIncome:{'0-30':9000,'30-48':12000,'48-75':16000,'75-110':20000,'110+':25000},setting:'suburban',online:true,housingAvailable:true,housingRequired:false,instAid:true,workStudy:false,stateAid:true,transfer:4,career:3,size:'small',transit:4,walk:4,disabilityInfo:true,detail:'Illustrates an education pathway with online availability, optional housing, and a smaller learning environment.'},
+      {school:'Keystone Applied College',program:'Health Information Systems',interest:'health',state:'PA',credential:'Associate',cost:25000,netOverall:13900,netByIncome:{'0-30':7200,'30-48':9500,'48-75':12500,'75-110':16000,'110+':19000},setting:'rural',online:true,housingAvailable:false,housingRequired:false,instAid:true,workStudy:false,stateAid:true,transfer:4,career:4,size:'medium',transit:2,walk:2,disabilityInfo:true,detail:'Illustrates a hybrid health-and-technology pathway with moderate career breadth in a rural, commuter-oriented setting.'}
+    ];
+    var q=function(id){return root.querySelector('#'+id)};
+    var controls=['ccx-interest','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
+    var selected=new Set();
+    var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+    function state(){return {interest:q('ccx-interest').value,state:q('ccx-state').value,setting:q('ccx-setting').value,credential:q('ccx-credential').value,income:q('ccx-income').value,price:Number(q('ccx-price').value||0),housing:q('ccx-housing').value,online:q('ccx-online').checked,instAid:q('ccx-inst-aid').checked,workStudy:q('ccx-workstudy').checked,stateAid:q('ccx-state-aid').checked,afford:q('ccx-afford').checked,career:q('ccx-career').checked,transfer:q('ccx-transfer').checked,small:q('ccx-small').checked,transit:q('ccx-transit').checked,walk:q('ccx-walk').checked,housingChoice:q('ccx-housing-choice').checked,disabilityInfo:q('ccx-disability-info').checked}}
+    function netPrice(x,s){return s.income&&x.netByIncome[s.income]!=null?x.netByIncome[s.income]:x.netOverall}
+    function incomeLabel(v){return {'0-30':'$0–30k income','30-48':'$30–48k income','48-75':'$48–75k income','75-110':'$75–110k income','110+':'$110k+ income'}[v]||'overall average'}
+    function housingLabel(x){if(!x.housingAvailable)return 'No institutional housing';return x.housingRequired?'Housing required for all FTFT in sample':'Housing available by choice'}
+    function aidLabel(x){var a=[];if(x.instAid)a.push('institutional grants');if(x.workStudy)a.push('Federal Work-Study');if(x.stateAid)a.push('state/local grants');return a.length?a.join(', '):'no selected aid evidence'}
+    function score(x,s){
+      var parts=[],reasons=[],np=netPrice(x,s);
+      if(s.afford){parts.push(Math.max(0,Math.min(100,100-((np-5000)/40000)*100)));reasons.push('Avg net price: $'+np.toLocaleString()+' ('+incomeLabel(s.income)+')')}
+      if(s.career){parts.push(x.career*20);reasons.push(x.career>=4?'Broader career pathways':'More focused career set')}
+      if(s.transfer){parts.push(x.transfer*20);reasons.push(x.transfer>=4?'Stronger transfer pathway':'Some transfer evidence')}
+      if(s.small){parts.push(x.size==='small'?100:(x.size==='medium'?60:20));reasons.push(x.size==='small'?'Smaller learning environment':(x.size==='medium'?'Mid-sized learning environment':'Larger learning environment'))}
+      if(s.transit){parts.push(x.transit*20);reasons.push(x.transit>=4?'Stronger transit access':'More limited transit access')}
+      if(s.walk){parts.push(x.walk*20);reasons.push(x.walk>=4?'More walkable daily-needs access':'More limited walkable access')}
+      if(s.housingChoice){parts.push(x.housingAvailable&&!x.housingRequired?100:(x.housingAvailable?30:20));reasons.push(x.housingAvailable&&!x.housingRequired?'Housing available without universal requirement':housingLabel(x))}
+      if(s.disabilityInfo){parts.push(x.disabilityInfo?100:0);reasons.push(x.disabilityInfo?'Disability-services information documented':'Disability-services evidence missing in sample')}
+      if(!parts.length)return {value:null,reasons:[]};
+      return {value:Math.round(parts.reduce(function(a,b){return a+b},0)/parts.length),reasons:reasons}
+    }
+    function keyFor(x){return x.school+'|'+x.program}
+    function renderCompare(){
+      var s=state(),chosen=data.filter(function(x){return selected.has(keyFor(x))}).slice(0,3),note=q('ccx-compare-note'),box=q('ccx-compare-table'),clear=q('ccx-clear');
+      clear.hidden=chosen.length===0;
+      if(chosen.length===0){note.textContent='Select up to three programs from the cards above. Comparison appears here automatically.';box.innerHTML='';return}
+      if(chosen.length===1){note.textContent='1 program selected. Select one more to compare side by side.';box.innerHTML='';return}
+      note.textContent=chosen.length+' programs selected. Net price uses '+incomeLabel(s.income)+'.';
+      box.innerHTML='<table><thead><tr><th scope="col">Evidence</th>'+chosen.map(function(x){return '<th scope="col">'+esc(x.program)+'<br><small>'+esc(x.school)+'</small></th>'}).join('')+'</tr></thead><tbody>'+
+        '<tr><th scope="row">Credential</th>'+chosen.map(function(x){return '<td>'+esc(x.credential)+'</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Setting</th>'+chosen.map(function(x){return '<td>'+esc(x.setting)+'</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Cost of attendance</th>'+chosen.map(function(x){return '<td>$'+x.cost.toLocaleString()+'</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Avg net price</th>'+chosen.map(function(x){return '<td>$'+netPrice(x,s).toLocaleString()+'</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Housing</th>'+chosen.map(function(x){return '<td>'+esc(housingLabel(x))+'</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Aid context</th>'+chosen.map(function(x){return '<td>'+esc(aidLabel(x))+'</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Transit access</th>'+chosen.map(function(x){return '<td>'+x.transit+' / 5</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Walkable daily needs</th>'+chosen.map(function(x){return '<td>'+x.walk+' / 5</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Disability-services info</th>'+chosen.map(function(x){return '<td>'+(x.disabilityInfo?'Documented':'Not documented in sample')+'</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Career breadth</th>'+chosen.map(function(x){return '<td>'+x.career+' / 5</td>'}).join('')+'</tr>'+
+        '<tr><th scope="row">Transfer evidence</th>'+chosen.map(function(x){return '<td>'+x.transfer+' / 5</td>'}).join('')+'</tr>'+
+        '</tbody></table>';
+    }
+    function render(){
+      var s=state();
+      var rows=data.filter(function(x){
+        var np=netPrice(x,s);
+        if(s.interest&&x.interest!==s.interest)return false;
+        if(s.state&&x.state!==s.state)return false;
+        if(s.setting&&x.setting!==s.setting)return false;
+        if(s.credential&&x.credential!==s.credential)return false;
+        if(s.price&&np>s.price)return false;
+        if(s.housing==='available'&&!x.housingAvailable)return false;
+        if(s.housing==='choice'&&(!x.housingAvailable||x.housingRequired))return false;
+        if(s.housing==='commuter'&&x.housingAvailable)return false;
+        if(s.online&&!x.online)return false;
+        if(s.instAid&&!x.instAid)return false;
+        if(s.workStudy&&!x.workStudy)return false;
+        if(s.stateAid&&!x.stateAid)return false;
+        return true
+      }).map(function(x){var sc=score(x,s);return {x:x,score:sc.value,reasons:sc.reasons}}).sort(function(a,b){if(a.score!=null||b.score!=null)return (b.score||0)-(a.score||0)||a.x.school.localeCompare(b.x.school);return a.x.school.localeCompare(b.x.school)||a.x.program.localeCompare(b.x.program)});
+      q('ccx-count').textContent=rows.length+' fictional '+(rows.length===1?'program':'programs')+' match these choices · net price: '+incomeLabel(s.income);
+      if(!rows.length){q('ccx-results').innerHTML='<div class="ccx-empty"><h3>No sample results match every filter.</h3><p>Try removing one hard filter or raising the average-net-price ceiling. Unknown evidence will remain visible rather than silently becoming a failed match in the production system.</p></div>';renderCompare();return}
+      q('ccx-results').innerHTML=rows.map(function(r,i){
+        var x=r.x,np=netPrice(x,s),reasons=r.reasons.length?r.reasons:['No soft priorities selected — showing programs that pass the filters'];
+        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+(r.score==null?'Explore':'Match '+(i+1))+'</div><h3>'+esc(x.program)+'</h3><p class="ccx-school">'+esc(x.school)+' · '+esc(x.state)+'</p></div><div class="ccx-score">'+(r.score==null?'Unranked':r.score+' fit')+'</div></div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.credential)+'</span><span class="ccx-pill">'+esc(x.setting)+' setting</span><span class="ccx-pill">$'+x.cost.toLocaleString()+' cost of attendance</span><span class="ccx-pill">$'+np.toLocaleString()+' avg net price</span><span class="ccx-pill">'+esc(housingLabel(x))+'</span></div><div class="ccx-reasons">'+reasons.slice(0,4).map(function(z){return '<div class="ccx-reason">'+esc(z)+'</div>'}).join('')+'</div><details><summary>Why this result appears</summary><div class="ccx-detail">'+esc(x.detail)+' Aid evidence in this fictional record: '+esc(aidLabel(x))+'. Transit access: '+x.transit+'/5; walkable daily-needs access: '+x.walk+'/5. Disability-services information is '+(x.disabilityInfo?'documented':'not documented')+' in this sample. These are separate signals, not proof of physical accessibility.</div></details><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(keyFor(x))+'"'+(selected.has(keyFor(x))?' checked':'')+'> <span>Compare</span></label></article>'
+      }).join('');
+      root.querySelectorAll('.ccx-compare-toggle input').forEach(function(el){el.addEventListener('change',function(){if(el.checked&&selected.size>=3){el.checked=false;q('ccx-compare-note').textContent='Compare up to three programs at a time.';return}if(el.checked)selected.add(el.dataset.key);else selected.delete(el.dataset.key);renderCompare()})});
+      renderCompare();
+    }
+    controls.forEach(function(id){var el=q(id);el.addEventListener('change',render);el.addEventListener('input',render)});
+    q('ccx-reset').addEventListener('click',function(){q('ccx-form').reset();selected.clear();render();q('ccx-interest').focus()});
+    q('ccx-clear').addEventListener('click',function(){selected.clear();render()});
+    render();
+  })();
+  </script>
 </div>
-<noscript><p class="note">Example results remain readable without JavaScript. Interactive filtering, reordering, and comparison require JavaScript in your browser.</p></noscript>
-<div class="compare-panel"><h3>Compare programs</h3><p class="compare-note" id="compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="compare-table" id="compare-table"></div><button type="button" class="clear" id="clear" hidden>Clear comparison</button></div>
-<div class="safety"><strong>How to read this:</strong> hard filters narrow the sample immediately. Numeric fit appears only after you select at least one soft priority; it means “closer to the preferences above,” not “better college.” Missing or unverified evidence should remain visible rather than being treated as zero in the production system.</div>
-</section>
-</div>
-</main>
-<script>
-(function(){
-const root=document.getElementById('explorer');
-const data=[
-{school:'North Harbor College',program:'Data & Information Systems',interest:'data',state:'NY',credential:'Bachelor',price:14800,online:true,transfer:4,career:5,size:'medium',detail:'Strong demonstration fit for a user who values applied technology pathways and moderate cost.'},
-{school:'Metro Public College',program:'Information Technology',interest:'data',state:'NY',credential:'Associate',price:11200,online:true,transfer:5,career:4,size:'large',detail:'Illustrates a lower-cost associate pathway with strong transfer evidence and several related occupations.'},
-{school:'River State University',program:'Applied Computing',interest:'data',state:'NJ',credential:'Bachelor',price:22100,online:false,transfer:3,career:5,size:'large',detail:'Illustrates a broader computing program with several career pathways but a higher net price.'},
-{school:'Greenbridge College',program:'Business Analytics',interest:'business',state:'NY',credential:'Bachelor',price:26800,online:true,transfer:3,career:5,size:'small',detail:'Illustrates a smaller setting combining business study with quantitative and analytics pathways.'},
-{school:'Hudson Community College',program:'Community Health',interest:'health',state:'NY',credential:'Associate',price:9800,online:false,transfer:5,career:3,size:'medium',detail:'Illustrates a low-cost public pathway with strong transfer support and a narrower immediate occupation set.'},
-{school:'Pine Arts College',program:'Digital Communication',interest:'creative',state:'PA',credential:'Bachelor',price:33400,online:true,transfer:2,career:4,size:'small',detail:'Illustrates a small-campus creative program with digital communication and adjacent career pathways.'},
-{school:'Garden State College',program:'Early Childhood Education',interest:'education',state:'NJ',credential:'Bachelor',price:17600,online:true,transfer:4,career:3,size:'small',detail:'Illustrates an education pathway with online availability and a smaller learning environment.'},
-{school:'Keystone Applied College',program:'Health Information Systems',interest:'health',state:'PA',credential:'Associate',price:13900,online:true,transfer:4,career:4,size:'medium',detail:'Illustrates a hybrid health-and-technology pathway with moderate career breadth and transfer support.'}
-];
-const q=id=>root.querySelector('#'+id),selected=new Set(),escapeHtml=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function getState(){return {interest:q('interest').value,state:q('state').value,credential:q('credential').value,price:Number(q('price').value||0),afford:q('afford').checked,career:q('career').checked,transfer:q('transfer').checked,small:q('small').checked,online:q('online').checked}}
-function score(x,s){const parts=[],reasons=[];if(s.afford){parts.push(Math.max(0,Math.min(100,100-((x.price-8000)/32000)*100)));reasons.push('Net price: $'+x.price.toLocaleString())}if(s.career){parts.push(x.career*20);reasons.push(x.career>=4?'Broader career pathways':'More focused career set')}if(s.transfer){parts.push(x.transfer*20);reasons.push(x.transfer>=4?'Stronger transfer pathway':'Some transfer evidence')}if(s.small){parts.push(x.size==='small'?100:(x.size==='medium'?60:20));reasons.push(x.size==='small'?'Smaller learning environment':(x.size==='medium'?'Mid-sized learning environment':'Larger learning environment'))}return parts.length?{value:Math.round(parts.reduce((a,b)=>a+b,0)/parts.length),reasons}:{value:null,reasons:[]}}
-const keyFor=x=>x.school+'|'+x.program;
-function renderCompare(){const chosen=data.filter(x=>selected.has(keyFor(x))).slice(0,3),note=q('compare-note'),box=q('compare-table'),clear=q('clear');clear.hidden=chosen.length===0;if(chosen.length===0){note.textContent='Select up to three programs from the cards above. Comparison appears here automatically.';box.innerHTML='';return}if(chosen.length===1){note.textContent='1 program selected. Select one more to compare side by side.';box.innerHTML='';return}note.textContent=chosen.length+' programs selected.';box.innerHTML='<table><thead><tr><th scope="col">Evidence</th>'+chosen.map(x=>'<th scope="col">'+escapeHtml(x.program)+'<br><small>'+escapeHtml(x.school)+'</small></th>').join('')+'</tr></thead><tbody><tr><th scope="row">Credential</th>'+chosen.map(x=>'<td>'+escapeHtml(x.credential)+'</td>').join('')+'</tr><tr><th scope="row">State</th>'+chosen.map(x=>'<td>'+escapeHtml(x.state)+'</td>').join('')+'</tr><tr><th scope="row">Net price</th>'+chosen.map(x=>'<td>$'+x.price.toLocaleString()+'</td>').join('')+'</tr><tr><th scope="row">Online option</th>'+chosen.map(x=>'<td>'+(x.online?'Available':'Not in sample')+'</td>').join('')+'</tr><tr><th scope="row">Career breadth</th>'+chosen.map(x=>'<td>'+x.career+' / 5</td>').join('')+'</tr><tr><th scope="row">Transfer evidence</th>'+chosen.map(x=>'<td>'+x.transfer+' / 5</td>').join('')+'</tr><tr><th scope="row">Environment</th>'+chosen.map(x=>'<td>'+escapeHtml(x.size)+'</td>').join('')+'</tr></tbody></table>'}
-function render(){const s=getState(),rows=data.filter(x=>(!s.interest||x.interest===s.interest)&&(!s.state||x.state===s.state)&&(!s.credential||x.credential===s.credential)&&(!s.price||x.price<=s.price)&&(!s.online||x.online)).map(x=>{const sc=score(x,s);return {x,score:sc.value,reasons:sc.reasons}}).sort((a,b)=>(a.score!=null||b.score!=null)?((b.score||0)-(a.score||0)||a.x.school.localeCompare(b.x.school)):(a.x.school.localeCompare(b.x.school)||a.x.program.localeCompare(b.x.program)));q('count').textContent=rows.length+' fictional '+(rows.length===1?'program':'programs')+' match these choices';if(!rows.length){q('results').innerHTML='<div class="empty"><h3>No sample results match every filter.</h3><p>Try removing one hard filter or raising the price ceiling.</p></div>';return}q('results').innerHTML=rows.map((r,i)=>{const x=r.x,reasons=r.reasons.length?r.reasons:['No priorities selected — showing the full sample'];return '<article class="card"><div class="card-top"><div><div class="rank">'+(r.score==null?'Explore':'Match '+(i+1))+'</div><h3>'+escapeHtml(x.program)+'</h3><p class="school">'+escapeHtml(x.school)+' · '+escapeHtml(x.state)+'</p></div><div class="score">'+(r.score==null?'Unranked':r.score+' fit')+'</div></div><div class="meta"><span class="pill">'+escapeHtml(x.credential)+'</span><span class="pill">$'+x.price.toLocaleString()+' net price</span><span class="pill">'+(x.online?'Online option':'Campus-based')+'</span><span class="pill">'+escapeHtml(x.size)+' environment</span></div><div class="reasons">'+reasons.slice(0,4).map(z=>'<div class="reason">'+escapeHtml(z)+'</div>').join('')+'</div><details><summary>Why this result appears</summary><div class="detail">'+escapeHtml(x.detail)+' This explanation is illustrative; a released version will cite the underlying evidence and source vintage.</div></details><label class="compare-toggle"><input type="checkbox" data-key="'+escapeHtml(keyFor(x))+'"'+(selected.has(keyFor(x))?' checked':'')+'><span>Compare</span></label></article>'}).join('');root.querySelectorAll('.compare-toggle input').forEach(el=>el.addEventListener('change',()=>{if(el.checked&&selected.size>=3){el.checked=false;q('compare-note').textContent='Compare up to three programs at a time.';return}el.checked?selected.add(el.dataset.key):selected.delete(el.dataset.key);renderCompare()}));renderCompare()}
-['interest','state','credential','price','afford','career','transfer','small','online'].forEach(id=>{const el=q(id);el.addEventListener('change',render);el.addEventListener('input',render)});
-q('reset').addEventListener('click',()=>{q('explorer-form').reset();selected.clear();render();q('interest').focus()});
-q('clear').addEventListener('click',()=>{selected.clear();render()});
-render();
-})();
-</script>
 </body>
 </html>
