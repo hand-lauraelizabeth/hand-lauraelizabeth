@@ -22,7 +22,7 @@ def click_id(driver,wait,id_):
  el=wait.until(lambda d:d.find_element(By.ID,id_))
  driver.execute_script("arguments[0].scrollIntoView({block:'center'});",el)
  wait.until(lambda d:d.find_element(By.ID,id_).is_enabled())
- el.click()
+ driver.execute_script("arguments[0].click();",el)
  return el
 
 def run():
