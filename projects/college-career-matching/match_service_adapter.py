@@ -35,7 +35,19 @@ def validate_request(r):
   if imp is None or imp<0:raise ValueError("preference importance must be nonnegative numeric")
  for p in r.get("career_preferences",[]):
   if p.get("priority_explicit") is not True or p.get("operator") not in CAREER_OPS:raise ValueError("invalid career preference")
+def boolean_value(v):
+ if isinstance(v,bool):return v
+ if isinstance(v,str):
+  x=v.strip().lower()
+  if x in {"1","true","yes","y"}:return True
+  if x in {"0","false","no","n"}:return False
+ return None
 def compare(actual,op,expected):
+ if isinstance(expected,bool):
+  a=boolean_value(actual)
+  if a is not None:
+   if op=="eq":return a is expected
+   if op=="neq":return a is not expected
  if op in {"in","not_in"}:
   vals=expected if isinstance(expected,list) else [expected];hit=actual in vals;return hit if op=="in" else not hit
  if op=="eq":return actual==expected
