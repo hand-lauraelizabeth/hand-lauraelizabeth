@@ -352,7 +352,7 @@
                 ]
               },
               "production_authorized": {
-                "const": false
+                "type": "boolean"
               }
             }
           }
@@ -392,7 +392,7 @@
           "minimum": 0
         },
         "production_authorized": {
-          "const": false
+          "type": "boolean"
         }
       }
     }
