@@ -79,7 +79,7 @@ def result(c,status,codes,labor=None):
  return {"candidate_id":str(c["candidate_id"]),"institution":{"unitid":str(c["UNITID"]),"name":str(c["institution_name"]),"city":c.get("city") or None,"state":c.get("state") or None},"program":{"program_id":str(c["program_id"]),"name":str(c["program_name"]),"cip_code":str(c["cip_code"]),"credential_level":c.get("credential_level") or None},"eligibility":{"status":status,"reason_codes":codes},"dimensions":dims,"explanation":{"why_it_matches":[reason("eligible_constraints","Meets the evaluated must-have constraints.")] if status=="eligible" else [],"tradeoffs":[],"unknowns":[reason(x,"Evidence needed to evaluate one must-have constraint is currently unavailable.") for x in unknown]},"career_pathways":{"pathway_count":int(num(c.get("career__soc_count",c.get("pathway_count"))) or 0),"soc_codes":[x.strip() for x in str(c.get("career__soc_codes","")).split("|") if x.strip()],"representative_pathways":c.get("representative_pathways",[])},"transfer":c.get("transfer"),"labor_market":labor or {"selected_work_market":{"evidence_state":"not_loaded"},"long_term_outlook":{"evidence_state":"not_loaded"}},"evidence_coverage":{"overall_status":"broad" if avg>=.8 else ("partial" if avg>=.4 else "limited"),"review_flags":c.get("review_flags",[])},"source_freshness":c.get("source_freshness",[])}
 def request_id(request,data_version,model_version):
  payload=json.dumps({"request":request,"data_version":data_version,"model_version":model_version},sort_keys=True,separators=(",",":"));return "req_"+hashlib.sha256(payload.encode()).hexdigest()[:20]
-def match(request,candidates,data_version,model_version,current_labor=None,projections=None,generated_at_utc=None,ranking_bundle=None):
+def match(request,candidates,data_version,model_version,current_labor=None,projections=None,generated_at_utc=None,ranking_bundle=None,production_authorized=False):
  validate_request(request);eligible=[];required={"candidate_id","UNITID","institution_name","program_id","program_name","cip_code"};current_labor=current_labor or [];projections=projections or [];work=request.get("geography",{}).get("intended_work_market") or None;seen=set()
  for c in candidates:
   miss=required-set(c)
@@ -95,15 +95,15 @@ def match(request,candidates,data_version,model_version,current_labor=None,proje
   for x in eligible:
    r=ranked.get(x["candidate_id"])
    if r:
-    x["recommendation"]={"status":"review_eligible_ranked","rank":r["rank"],"baseline_score":r["baseline_score"],"review_eligibility":"eligible_for_review","production_authorized":False}
+    x["recommendation"]={"status":"review_eligible_ranked","rank":r["rank"],"baseline_score":r["baseline_score"],"review_eligibility":"eligible_for_review","production_authorized":bool(production_authorized)}
    else:
-    x["recommendation"]={"status":"eligible_unranked","rank":None,"baseline_score":None,"review_eligibility":None,"production_authorized":False}
+    x["recommendation"]={"status":"eligible_unranked","rank":None,"baseline_score":None,"review_eligibility":None,"production_authorized":bool(production_authorized)}
   eligible.sort(key=lambda x:(0,ranked[x["candidate_id"]]["rank"],x["candidate_id"]) if x["candidate_id"] in ranked else (1,x["institution"]["name"].casefold(),x["program"]["name"].casefold(),x["candidate_id"]))
-  ordering={"mode":"review_eligible_ranking","ranking_context_id":ranking_context_id(request,data_version,model_version),"review_eligible_ranked_count":len(ranked),"unranked_eligible_count":len(eligible)-len(ranked),"production_authorized":False}
+  ordering={"mode":"review_eligible_ranking","ranking_context_id":ranking_context_id(request,data_version,model_version),"review_eligible_ranked_count":len(ranked),"unranked_eligible_count":len(eligible)-len(ranked),"production_authorized":bool(production_authorized)}
  else:
-  for x in eligible:x["recommendation"]={"status":"not_ranked","rank":None,"baseline_score":None,"review_eligibility":None,"production_authorized":False}
+  for x in eligible:x["recommendation"]={"status":"not_ranked","rank":None,"baseline_score":None,"review_eligibility":None,"production_authorized":bool(production_authorized)}
   eligible.sort(key=lambda x:(x["institution"]["name"].casefold(),x["program"]["name"].casefold(),x["candidate_id"]))
-  ordering={"mode":"deterministic_unranked","ranking_context_id":None,"review_eligible_ranked_count":0,"unranked_eligible_count":len(eligible),"production_authorized":False}
+  ordering={"mode":"deterministic_unranked","ranking_context_id":None,"review_eligible_ranked_count":0,"unranked_eligible_count":len(eligible),"production_authorized":bool(production_authorized)}
  page=int(request.get("page",1));size=int(request.get("page_size",20));start=(page-1)*size;total=len(eligible);pages=(total+size-1)//size if total else 0;stamp=generated_at_utc or datetime.now(timezone.utc).isoformat()
  return {"schema_version":"1.0","request_id":request_id(request,data_version,model_version),"data_version":data_version,"model_version":model_version,"generated_at_utc":stamp,"result_count":total,"pagination":{"page":page,"page_size":size,"total_pages":pages,"has_next":page<pages,"has_previous":page>1 and pages>0},"ordering":ordering,"warnings":[],"results":eligible[start:start+size]}
 def main():
