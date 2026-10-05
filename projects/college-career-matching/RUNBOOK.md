@@ -264,3 +264,24 @@ docker run --rm -p 8080:8080 --env-file service-deployment.env \\
 ```
 
 Use `service-deployment.example.env` as a template. Do not set `CCX_ACTIVATION_RECORD` until an exact production authorization record exists. The current public portfolio explorer therefore remains fixture mode.
+
+## Synthetic HTTP staging
+
+Before pointing the public explorer at any hosted service, exercise the deployment boundary with fictional data.
+
+Build a deterministic fictional snapshot and manifest:
+
+```bash
+python projects/college-career-matching/synthetic_staging_bundle.py \\
+  --out-dir projects/college-career-matching/staging-data
+```
+
+Then either run the service directly or use `docker-compose.staging.yml`. The staging bundle contains invented institutions/programs and is not college data.
+
+The repository's HTTP smoke test launches the real `service_host.py` on localhost and probes `/health`, `/metadata`, `/options`, `/match`, `/candidate/{id}`, and `/compare`. It also checks allowed/disallowed CORS origins, invalid compare requests, and the 256 KiB request-body limit:
+
+```bash
+python projects/college-career-matching/staging_http_smoke.py
+```
+
+CI runs this smoke test after the synthetic regression suite. Passing staging smoke tests do not authorize production or imply that the public explorer should leave fixture mode.
