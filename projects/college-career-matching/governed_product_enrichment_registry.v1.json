@@ -1,11 +1,65 @@
 {
-  "schema_version": "1.0",
-  "candidate_grain": ["UNITID", "program_id"],
+  "schema_version": "1.1",
+  "candidate_grain": [
+    "UNITID",
+    "program_id"
+  ],
   "families": {
-    "accreditation": {"join_grain": ["UNITID"], "namespace": "accreditation__", "coverage_field": "coverage__accreditation", "absence_semantics": "unknown_coverage"},
-    "finance_outcomes": {"join_grain": ["UNITID"], "namespace": "finance__", "coverage_field": "coverage__finance_outcomes", "absence_semantics": "unknown_coverage", "note": "Institution-grain affordability/outcomes only."},
-    "program_outcomes": {"join_grain": ["UNITID", "program_id"], "namespace": "program_outcomes__", "coverage_field": "coverage__program_outcomes", "absence_semantics": "unknown_coverage", "note": "Field/program-grain evidence already resolved through governed UNITID+CIP+credential identity."},
-    "transfer": {"join_grain": ["UNITID", "program_id"], "namespace": "transfer__", "coverage_field": "coverage__transfer", "absence_semantics": "unknown_coverage", "note": "Coverage is not a transfer guarantee or denial."},
-    "career_pathways": {"join_grain": ["UNITID", "program_id"], "namespace": "career__", "coverage_field": "coverage__career_pathways", "absence_semantics": "unknown_coverage", "note": "CIP-to-career evidence; current labor and long-term outlook remain semantically distinct downstream."}
+    "accreditation": {
+      "join_grain": [
+        "UNITID"
+      ],
+      "namespace": "accreditation__",
+      "coverage_field": "coverage__accreditation",
+      "absence_semantics": "unknown_coverage"
+    },
+    "finance_outcomes": {
+      "join_grain": [
+        "UNITID"
+      ],
+      "namespace": "finance__",
+      "coverage_field": "coverage__finance_outcomes",
+      "absence_semantics": "unknown_coverage",
+      "note": "Institution-grain affordability/outcomes only."
+    },
+    "program_outcomes": {
+      "join_grain": [
+        "UNITID",
+        "program_id"
+      ],
+      "namespace": "program_outcomes__",
+      "coverage_field": "coverage__program_outcomes",
+      "absence_semantics": "unknown_coverage",
+      "note": "Field/program-grain evidence already resolved through governed UNITID+CIP+credential identity."
+    },
+    "transfer": {
+      "join_grain": [
+        "UNITID",
+        "program_id"
+      ],
+      "namespace": "transfer__",
+      "coverage_field": "coverage__transfer",
+      "absence_semantics": "unknown_coverage",
+      "note": "Coverage is not a transfer guarantee or denial."
+    },
+    "career_pathways": {
+      "join_grain": [
+        "UNITID",
+        "program_id"
+      ],
+      "namespace": "career__",
+      "coverage_field": "coverage__career_pathways",
+      "absence_semantics": "unknown_coverage",
+      "note": "CIP-to-career evidence; current labor and long-term outlook remain semantically distinct downstream."
+    },
+    "campus_context": {
+      "join_grain": [
+        "UNITID"
+      ],
+      "namespace": "campus__",
+      "coverage_field": "coverage__campus_context",
+      "absence_semantics": "unknown_coverage",
+      "note": "Institution-grain NCES locale, housing/residency, disability-services, transit and walkability evidence. Missing fields are unknown, not negative."
+    }
   }
 }
