@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "service_activation_record.schema.json",
+  "title": "College + Career Production Service Activation Record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "activation_state",
+    "production_authorized",
+    "data_version",
+    "model_version",
+    "snapshot_sha256",
+    "activation_bundle_sha256",
+    "approved_by",
+    "approved_at_utc",
+    "decision_reference",
+    "recorded_at_utc",
+    "rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "activation_state": {
+      "const": "PRODUCTION_SERVICE_AUTHORIZED"
+    },
+    "production_authorized": {
+      "const": true
+    },
+    "data_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "activation_bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "approved_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approved_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "recorded_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
