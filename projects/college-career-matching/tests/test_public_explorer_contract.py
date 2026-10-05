@@ -38,8 +38,11 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertNotIn("var data=[",HTML);self.assertNotIn("function score(",HTML)
   self.assertIn("no browser-side filtering or ranking is performed",HTML)
  def test_ranking_is_rendered_only_from_service_recommendation_metadata(self):
-  self.assertIn("review_eligible_ranked",HTML);self.assertIn("rec.baseline_score",HTML);self.assertIn("Production authorized: no",HTML)
+  self.assertIn("review_eligible_ranked",HTML);self.assertIn("rec.baseline_score",HTML);self.assertIn("rec.production_authorized",HTML)
   self.assertIn("browser does not calculate a fit score or rank",HTML)
+ def test_runtime_defaults_to_fixture_and_requires_activation_aware_validation(self):
+  self.assertIn('id="ccx-runtime-config"',HTML);self.assertIn('"mode":"fixture"',HTML);self.assertIn('"production_authorized":false',HTML)
+  for token in ["validateRuntimeConfig","assertRuntimeMetadata","productionAuthorized:runtimeConfig.production_authorized","Authorized production matching service"]:self.assertIn(token,HTML)
  def test_compare_is_display_only_not_browser_winner_logic(self):
   self.assertIn("renderCompare()",HTML);self.assertIn("no winner is calculated in the browser",HTML);self.assertIn("ccx-compare-toggle",HTML)
   self.assertNotIn("winner",HTML.lower().replace("no winner",""))
