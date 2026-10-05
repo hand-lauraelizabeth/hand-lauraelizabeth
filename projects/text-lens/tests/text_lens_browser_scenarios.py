@@ -18,6 +18,13 @@ class Quiet(SimpleHTTPRequestHandler):
 def free_port():
  with socket.socket() as s:s.bind(("127.0.0.1",0));return s.getsockname()[1]
 
+def click_id(driver,wait,id_):
+ el=wait.until(lambda d:d.find_element(By.ID,id_))
+ driver.execute_script("arguments[0].scrollIntoView({block:'center'});",el)
+ wait.until(lambda d:d.find_element(By.ID,id_).is_enabled())
+ el.click()
+ return el
+
 def run():
  port=free_port();httpd=ThreadingHTTPServer(("127.0.0.1",port),partial(Quiet,directory=str(P)))
  thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start()
@@ -47,7 +54,7 @@ def run():
    assert "Text A" in manager and "2 documents" in manager
    assert len(driver.find_elements(By.CSS_SELECTOR,"input[data-refcheck]"))==2
 
-   driver.find_element(By.ID,"refAll").click()
+   click_id(driver,wait,"refAll")
    wait.until(lambda d:"Custom reference set: 2 of 2" in d.find_element(By.ID,"refSummary").text)
    assert Select(driver.find_element(By.ID,"keyRef")).first_selected_option.get_attribute("value")=="custom"
    wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,".keyness-table tbody tr"))==2)
@@ -66,7 +73,7 @@ def run():
    serialized=json.dumps(setup).lower()
    assert "alpha evidence" not in serialized and "beta archive" not in serialized
 
-   driver.find_element(By.ID,"refClear").click()
+   click_id(driver,wait,"refClear")
    wait.until(lambda d:"Reference mode: remainder" in d.find_element(By.ID,"refSummary").text)
    assert Select(driver.find_element(By.ID,"keyRef")).first_selected_option.get_attribute("value")=="remainder"
 
