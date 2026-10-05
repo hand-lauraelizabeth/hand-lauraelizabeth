@@ -5,7 +5,7 @@ import argparse,csv,json
 from pathlib import Path
 from measure_metadata_registry import load_registry,evidence_state
 INST_REQUIRED={"UNITID"};FIELD_REQUIRED={"UNITID","cip_code","credential_level"}
-INST_MEASURES=("tuition_in_state","tuition_out_of_state","cost_of_attendance","net_price","median_debt","completion_rate");FIELD_MEASURES=("median_earnings","median_debt","completion_rate")
+INST_MEASURES=("tuition_in_state","tuition_out_of_state","cost_of_attendance","net_price","net_price_overall","net_price_income_0_30","net_price_income_30_48","net_price_income_48_75","net_price_income_75_110","net_price_income_110_plus","institutional_grant_share","work_study_share","state_local_grant_share","median_debt","completion_rate");FIELD_MEASURES=("median_earnings","median_debt","completion_rate")
 def clean(v):return str(v).strip() if v is not None else ""
 def read(p):
  with Path(p).open(newline="",encoding="utf-8-sig") as f:return list(csv.DictReader(f))
@@ -28,6 +28,9 @@ def normalize(rows,grain):
   x={k:clean(r.get(k)) for k in keys};x["evidence_grain"]=grain
   for m in measures:
    x[m]=clean(r.get(m));x[f"{m}__state"]=evidence_state(m,r,registry)
+  if grain=="institution":
+   for measure,prefix in [("institutional_grant_share","institutional_grant"),("work_study_share","work_study"),("state_local_grant_share","state_local_grant")]:
+    x[f"{prefix}_evidence"]="true" if x[f"{measure}__state"]=="observed" else "false"
   x["source_vintage"]=clean(r.get("source_vintage"));x["source_record_id"]=clean(r.get("source_record_id"));out.append(x)
  return out
 def attach_field_to_programs(programs,field_rows):
