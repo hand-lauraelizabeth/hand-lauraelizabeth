@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse,json
 from pathlib import Path
 from urllib.parse import urlparse
+from service_activation_guard import validate_activation_record
 
 def clean(v): return str(v).strip() if v is not None else ""
 
@@ -30,12 +31,7 @@ def build(activation_record=None,service_base_url=None,fixture_url="contract-fix
     "browser_must_verify_metadata_identity":True
    }
   }
- if activation_record.get("production_authorized") is not True or clean(activation_record.get("activation_state"))!="PRODUCTION_SERVICE_AUTHORIZED":
-  raise ValueError("activation record does not authorize production service")
- for k in ("data_version","model_version"):
-  if not clean(activation_record.get(k)): raise ValueError(f"activation record {k} must be nonblank")
- for k in ("snapshot_sha256","activation_bundle_sha256"):
-  if not valid_sha(activation_record.get(k)): raise ValueError(f"activation record {k} must be a valid SHA-256")
+ validate_activation_record(activation_record)
  base=clean(service_base_url).rstrip("/")
  parsed=urlparse(base)
  if parsed.scheme!="https" or not parsed.netloc:
