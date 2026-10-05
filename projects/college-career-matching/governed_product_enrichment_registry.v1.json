@@ -59,7 +59,7 @@
       "namespace": "campus__",
       "coverage_field": "coverage__campus_context",
       "absence_semantics": "unknown_coverage",
-      "note": "Institution-grain NCES locale, housing/residency, disability-services, transit and walkability evidence. Missing fields are unknown, not negative."
+      "note": "Institution-grain setting, housing, income-band affordability, aid-context, transit, walkability, and disability-services evidence. Components remain separate."
     }
   }
 }
