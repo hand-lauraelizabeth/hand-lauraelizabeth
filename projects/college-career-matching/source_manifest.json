@@ -568,7 +568,7 @@
       "file_stem": "SFA2324",
       "release": {
         "label": "2023-24 Student Financial Aid",
-        "policy": "Use SFA for grant/scholarship, loan, Work-Study, and other source-specific aid evidence; Cost/ANP measures belong to the Cost component in the redesigned collection.",
+        "policy": "Use SFA for grant/scholarship, loan, Federal Work-Study, and other source-specific aid evidence. Cost-of-attendance and average-net-price measures belong to the Cost component in the redesigned 2024-25 collection; preserve component and award-period provenance at field level.",
         "fixed_version": true
       },
       "license_or_terms": "NCES/IPEDS public data.",
@@ -584,7 +584,10 @@
         "award_period",
         "file_stem",
         "dictionary_version",
-        "sha256"
+        "sha256",
+        "component",
+        "collection_year",
+        "release_type"
       ],
       "required_artifacts": [
         "raw_zip_or_csv",
@@ -596,7 +599,10 @@
         "Institutional grants/scholarships are not conflated with federal or state/local aid.",
         "Loans are not subtracted when displaying average net price.",
         "Aid recipient shares and average award amounts retain their source cohort definition.",
-        "Observed zero, missing, suppressed, and not-published states remain distinguishable."
+        "Observed zero, missing, suppressed, and not-published states remain distinguishable.",
+        "Aid recipient counts/shares are not treated as guarantees of individual eligibility.",
+        "Federal/state aid is not mislabeled as institution-funded aid.",
+        "Component and collection-year provenance survive normalization."
       ]
     },
     {
@@ -650,7 +656,7 @@
       "access_url": "https://edg.epa.gov/data/public/OA/WalkabilityIndex.zip",
       "release": {
         "label": "2021 National Walkability Index / Smart Location Database v3",
-        "policy": "Use only as explicitly vintage-labeled built-environment/location-efficiency evidence. Do not present the 2021 index as current conditions.",
+        "policy": "Use only as explicitly vintage-labeled 2021 built-environment/location-efficiency evidence. Do not present the 2021 index as current conditions, transit access, or physical accessibility.",
         "fixed_version": true
       },
       "license_or_terms": "U.S. EPA public data.",
@@ -666,7 +672,8 @@
         "dataset_version",
         "dataset_vintage",
         "sha256",
-        "coordinate_reference_system"
+        "coordinate_reference_system",
+        "geospatial_join_method"
       ],
       "required_artifacts": [
         "raw_walkability_geography",
@@ -678,91 +685,12 @@
         "Institution-to-block-group assignment is deterministic and documented.",
         "NatWalkInd remains a relative walkability index, not a physical-accessibility score.",
         "The 2021 vintage is visible in product metadata and explanations.",
-        "Missing geography or unmatched institutions remain unknown."
-      ]
-    },
-    {
-      "source_id": "ipeds_sfa_2324",
-      "title": "IPEDS Student Financial Aid 2023-24",
-      "agency": "National Center for Education Statistics",
-      "status": "production_core",
-      "access_type": "download",
-      "official_url": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7&rtid=1&year=-1",
-      "file_stem": "SFA2324",
-      "release": {
-        "label": "2023-24 Student Financial Aid",
-        "policy": "Use SFA for aid measures that remain in the Student Financial Aid component. Do not assume SFA contains 2024-25 Cost/average-net-price fields after the IPEDS collection redesign.",
-        "fixed_version": true
-      },
-      "license_or_terms": "NCES/IPEDS public data.",
-      "sensitivity": "public",
-      "canonical_keys": [
-        "UNITID"
-      ],
-      "refresh_policy": "Annual; track the newest compatible SFA collection separately from Cost.",
-      "retrieval_mode": "IPEDS Complete Data Files ZIP/CSV.",
-      "required_metadata": [
-        "source_id",
-        "retrieved_at",
-        "collection_year",
-        "component",
-        "file_stem",
-        "release_type",
-        "dictionary_version"
-      ],
-      "required_artifacts": [
-        "raw_zip_or_csv",
-        "normalized_aid_context_table",
-        "source_snapshot_metadata"
-      ],
-      "qa": [
-        "UNITID is non-null.",
-        "Institutional grants, state/local aid, Federal Work-Study, federal grants, and loans remain semantically distinct.",
-        "Aid recipient counts/shares are not treated as guarantees of individual eligibility.",
-        "Federal/state aid is not mislabeled as institution-funded aid.",
-        "Component and collection-year provenance survive normalization."
-      ]
-    },
-    {
-      "source_id": "epa_smart_location_database_v3",
-      "title": "EPA Smart Location Database v3 / National Walkability Index",
-      "agency": "U.S. Environmental Protection Agency",
-      "status": "production_enrichment",
-      "access_type": "download",
-      "official_url": "https://www.epa.gov/smartgrowth/smart-location-mapping",
-      "data_url": "https://edg.epa.gov/data/public/OA/EPA_SmartLocationDatabase_V3_Jan_2021_Final.csv",
-      "walkability_archive_url": "https://edg.epa.gov/data/public/OA/WalkabilityIndex.zip",
-      "release": {
-        "label": "Smart Location Database v3 — 2021 vintage",
-        "policy": "Treat as contextual walkability/location-efficiency evidence with the 2021 vintage visible. Do not imply that the measure is current-year ground truth.",
-        "fixed_version": true
-      },
-      "license_or_terms": "EPA public data.",
-      "sensitivity": "public",
-      "canonical_keys": [
-        "GEOID20"
-      ],
-      "refresh_policy": "Version-driven; replace only when EPA publishes and validates a successor dataset.",
-      "retrieval_mode": "Official EPA CSV/ZIP geospatial files joined through documented geography and campus coordinates.",
-      "required_metadata": [
-        "source_id",
-        "retrieved_at",
-        "dataset_version",
-        "source_vintage",
-        "source_file",
-        "geospatial_join_method"
-      ],
-      "required_artifacts": [
-        "raw_csv_or_zip",
-        "campus_walkability_derivation",
-        "source_snapshot_metadata"
-      ],
-      "qa": [
-        "The 2021 source vintage is preserved in every derived campus walkability record.",
-        "Geospatial join method and geography are explicit.",
+        "Missing geography or unmatched institutions remain unknown.",
         "Walkability remains distinct from transit proximity and physical-accessibility evidence.",
         "Missing coverage remains unknown and is never converted into inaccessible or unwalkable."
-      ]
+      ],
+      "data_url": "https://edg.epa.gov/data/public/OA/EPA_SmartLocationDatabase_V3_Jan_2021_Final.csv",
+      "walkability_archive_url": "https://edg.epa.gov/data/public/OA/WalkabilityIndex.zip"
     }
   ],
   "join_contracts": [
