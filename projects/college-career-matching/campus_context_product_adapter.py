@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
-"""Normalize campus-context evidence at UNITID grain with field-level provenance.
+"""Normalize setting, housing, and accessibility evidence at UNITID grain.
 
-This module expects source-specific ingestion to have already mapped raw IPEDS,
-BTS, EPA, or other governed fields into the canonical names below. It preserves
-unknown states and never turns missing accessibility or affordability evidence
-into a negative fact.
+Source-specific ingestion should map raw IPEDS/BTS/EPA fields into these
+canonical names first. Missing accessibility evidence remains unknown rather
+than becoming a negative fact.
 """
 from __future__ import annotations
-
-import argparse
-import csv
-import json
+import argparse,csv,json
 from pathlib import Path
 
 EVIDENCE_STATES={"observed","missing","suppressed","unresolved","not_published"}
@@ -31,12 +27,11 @@ CANONICAL_FIELDS=(
  "transit_stop_count_800m",
  "walkability_index",
 )
-def clean(value):
- return str(value).strip() if value is not None else ""
+
+def clean(value):return str(value).strip() if value is not None else ""
 
 def read(path):
- with Path(path).open(newline="",encoding="utf-8-sig") as handle:
-  return list(csv.DictReader(handle))
+ with Path(path).open(newline="",encoding="utf-8-sig") as handle:return list(csv.DictReader(handle))
 
 def canonical_bool(value,field):
  raw=clean(value).lower()
@@ -61,24 +56,23 @@ def normalize(rows):
   if uid in seen:raise ValueError(f"duplicate UNITID: {uid}")
   seen.add(uid);record={"UNITID":uid}
   for field in CANONICAL_FIELDS:
-   value=canonical_bool(row.get(field),field) if field in BOOLEAN_FIELDS else clean(row.get(field))
-   state=field_state(row,field)
-   record[field]=value
-   record[f"{field}__state"]=state
+   record[field]=canonical_bool(row.get(field),field) if field in BOOLEAN_FIELDS else clean(row.get(field))
+   record[f"{field}__state"]=field_state(row,field)
    record[f"{field}__source_id"]=clean(row.get(f"{field}__source_id"))
    record[f"{field}__source_vintage"]=clean(row.get(f"{field}__source_vintage"))
   locale=record["locale_code"]
   if locale and locale not in LOCALE_GROUPS:raise ValueError(f"locale_code: unsupported NCES locale {locale}")
-  record["setting_group"]=LOCALE_GROUPS.get(locale,"")
-  record["setting_group__state"]=record["locale_code__state"] if locale else "missing"
-  record["setting_group__source_id"]=record["locale_code__source_id"]
-  record["setting_group__source_vintage"]=record["locale_code__source_vintage"]
+  category=LOCALE_GROUPS.get(locale,"")
+  for alias in ("locale_category","setting_group"):
+   record[alias]=category
+   record[f"{alias}__state"]=record["locale_code__state"] if locale else "missing"
+   record[f"{alias}__source_id"]=record["locale_code__source_id"]
+   record[f"{alias}__source_vintage"]=record["locale_code__source_vintage"]
   housing=record["housing_available"];required=record["housing_required_all_ftft"]
-  if housing=="false":choice="no_institutional_housing"
-  elif housing=="true" and required=="false":choice="choice_available"
-  elif housing=="true" and required=="true":choice="required_for_all_ftft"
-  else:choice="unknown"
-  record["housing_choice_state"]=choice
+  if housing=="false":record["housing_choice_state"]="no_institutional_housing"
+  elif housing=="true" and required=="false":record["housing_choice_state"]="choice_available"
+  elif housing=="true" and required=="true":record["housing_choice_state"]="required_for_all_ftft"
+  else:record["housing_choice_state"]="unknown"
   record["disability_services_evidence_available"]="true" if record["disability_services_registered_share__state"]=="observed" else "false"
   out.append(record)
  return out
@@ -93,24 +87,8 @@ def write_csv(path,rows):
   writer=csv.DictWriter(handle,fieldnames=columns);writer.writeheader();writer.writerows(rows)
 
 def main():
- parser=argparse.ArgumentParser()
- parser.add_argument("--input",type=Path,required=True)
- parser.add_argument("--out-dir",type=Path,required=True)
- args=parser.parse_args()
- rows=normalize(read(args.input));args.out_dir.mkdir(parents=True,exist_ok=True)
- write_csv(args.out_dir/"campus_context.csv",rows)
- qa={
-  "records":len(rows),
-  "setting_groups":{group:sum(r["setting_group"]==group for r in rows) for group in sorted(set(LOCALE_GROUPS.values()))},
-  "observed_fields":{field:sum(r[f"{field}__state"]=="observed" for r in rows) for field in CANONICAL_FIELDS},
-  "rules":[
-   "Missing evidence is not zero or false.",
-   "NCES locale detail is retained while a four-category setting is derived.",
-   "Housing availability and universal FTFT residency requirements remain distinct.",
-   "Transit, walkability, and disability-services evidence remain separate accessibility signals.",
-   "Every canonical field can retain source_id and source_vintage independently."
-  ]
- }
+ parser=argparse.ArgumentParser();parser.add_argument("--input",type=Path,required=True);parser.add_argument("--out-dir",type=Path,required=True);args=parser.parse_args()
+ rows=normalize(read(args.input));args.out_dir.mkdir(parents=True,exist_ok=True);write_csv(args.out_dir/"campus_context.csv",rows)
+ qa={"records":len(rows),"setting_groups":{g:sum(r["locale_category"]==g for r in rows) for g in sorted(set(LOCALE_GROUPS.values()))},"observed_fields":{field:sum(r[f"{field}__state"]=="observed" for r in rows) for field in CANONICAL_FIELDS},"rules":["Missing evidence is not zero or false.","NCES locale detail is retained while City/Suburban/Town/Rural is derived.","Housing availability and universal FTFT residency requirements remain distinct.","Transit, walkability, and disability-services evidence remain separate accessibility signals.","Every canonical field retains source_id and source_vintage independently."]}
  (args.out_dir/"campus_context_qa.json").write_text(json.dumps(qa,indent=2),encoding="utf-8")
-
 if __name__=="__main__":main()
