@@ -1,19 +1,470 @@
 {
-  "schema_version":"1.0","questionnaire_version":"2026-10-05.2","principles":{"skippable_preferences":true,"no_default_priority_weights":true,"unknown_is_not_mismatch":true,"school_location_separate_from_work_market":true,"hard_constraints_require_explicit_confirmation":true},
-  "questions":[
-    {"question_id":"decision_mode","section":"start","prompt":"What are you trying to figure out?","control":"single_select","required":true,"options":[{"value":"broad_exploration","label":"Explore colleges, programs, and careers together"},{"value":"career_first","label":"Start with careers that may fit me"},{"value":"college_program_first","label":"Find colleges for a program or field I already have in mind"},{"value":"compare_known","label":"Compare colleges or programs I already know"},{"value":"transfer","label":"Plan a transfer"},{"value":"returning_student","label":"Return to college or finish a degree"}],"mapping":{"target":"decision_mode"}},
-    {"question_id":"school_states","section":"must_haves","prompt":"Are there states where you need your school to be located?","help":"Leave this blank if location is a preference rather than a requirement.","control":"state_multi_select","required":false,"option_source":"options.states","mapping":{"target":"constraint","field":"state","operator":"in","unknown_policy":"keep_visible"}},
-    {"question_id":"credential_levels","section":"must_haves","prompt":"Are you looking for particular credential or degree levels?","control":"credential_multi_select","required":false,"option_source":"options.credential_levels","mapping":{"target":"constraint","field":"credential_level","operator":"in","unknown_policy":"keep_visible"}},
-    {"question_id":"online_requirement","section":"must_haves","prompt":"Do you need a program you can complete online?","control":"single_select","required":false,"options":[{"value":"required","label":"Yes, online availability is required"},{"value":"not_required","label":"No, it is not required"}],"mapping":{"target":"conditional_constraint","when_value":"required","field":"online_available","operator":"eq","value":true,"unknown_policy":"keep_visible"}},
-    {"question_id":"net_price_ceiling","section":"must_haves","prompt":"Do you have a firm maximum annual net price?","help":"Net price is the estimated amount students pay after grant and scholarship aid. It is not tuition, sticker price, or total cost of attendance.","control":"currency_optional","required":false,"mapping":{"target":"constraint","field":"finance__net_price","operator":"lte","unknown_policy":"keep_visible","cost_concept":"net_price"}},
-    {"question_id":"affordability_priority","section":"priorities","prompt":"How important is keeping college costs low?","control":"importance_optional","required":false,"mapping":{"target":"preference","dimension":"affordability"}},
-    {"question_id":"academic_program_priority","section":"priorities","prompt":"How important is the strength and fit of the specific program?","control":"importance_optional","required":false,"mapping":{"target":"preference","dimension":"academic_program_fit"}},
-    {"question_id":"career_pathway_priority","section":"priorities","prompt":"How important is having several plausible career pathways from the program?","control":"importance_optional","required":false,"mapping":{"target":"preference","dimension":"career_pathway_fit"}},
-    {"question_id":"transfer_priority","section":"priorities","prompt":"How important is preserving as much of your prior coursework as possible?","control":"importance_optional","required":false,"visible_for_modes":["transfer","returning_student"],"mapping":{"target":"preference","dimension":"transfer_pathway_fit"}},
-    {"question_id":"work_market_semantics","section":"career_and_place","prompt":"Where would you most want career-market information to describe?","control":"single_select","required":false,"options":[{"value":"school_local","label":"The area around each school"},{"value":"selected_market","label":"Another area I choose"},{"value":"national","label":"National information"},{"value":"remote_or_flexible","label":"I am flexible or interested in remote work"},{"value":"unspecified","label":"I am not sure yet"}],"mapping":{"target":"geography.work_market_semantics"}},
-    {"question_id":"work_market","section":"career_and_place","prompt":"Which labor market should current career information describe?","control":"labor_market_lookup","required":false,"visible_when":{"question_id":"work_market_semantics","value":"selected_market"},"mapping":{"target":"geography.intended_work_market"}},
-    {"question_id":"career_analysis","section":"career_and_place","prompt":"Would you like work that involves a lot of analysis and problem solving?","control":"importance_optional","required":false,"mapping":{"target":"career_preference","attribute_id":"onet_governed:analysis_problem_solving","operator":"higher_preferred","requires_attribute_mapping_review":true}},
-    {"question_id":"career_creativity","section":"career_and_place","prompt":"Would you like work where creativity is an important part of the job?","control":"importance_optional","required":false,"mapping":{"target":"career_preference","attribute_id":"onet_governed:creativity","operator":"higher_preferred","requires_attribute_mapping_review":true}},
-    {"question_id":"transfer_source","section":"transfer","prompt":"Where are you transferring from?","control":"institution_lookup","required":false,"visible_for_modes":["transfer","returning_student"],"mapping":{"target":"transfer_context.source_institution_id"}}
+  "schema_version": "1.0",
+  "questionnaire_version": "2026-10-05.3",
+  "principles": {
+    "skippable_preferences": true,
+    "no_default_priority_weights": true,
+    "unknown_is_not_mismatch": true,
+    "school_location_separate_from_work_market": true,
+    "hard_constraints_require_explicit_confirmation": true
+  },
+  "questions": [
+    {
+      "question_id": "decision_mode",
+      "section": "start",
+      "prompt": "What are you trying to figure out?",
+      "control": "single_select",
+      "required": true,
+      "options": [
+        {
+          "value": "broad_exploration",
+          "label": "Explore colleges, programs, and careers together"
+        },
+        {
+          "value": "career_first",
+          "label": "Start with careers that may fit me"
+        },
+        {
+          "value": "college_program_first",
+          "label": "Find colleges for a program or field I already have in mind"
+        },
+        {
+          "value": "compare_known",
+          "label": "Compare colleges or programs I already know"
+        },
+        {
+          "value": "transfer",
+          "label": "Plan a transfer"
+        },
+        {
+          "value": "returning_student",
+          "label": "Return to college or finish a degree"
+        }
+      ],
+      "mapping": {
+        "target": "decision_mode"
+      }
+    },
+    {
+      "question_id": "school_states",
+      "section": "must_haves",
+      "prompt": "Are there states where you need your school to be located?",
+      "help": "Leave this blank if location is a preference rather than a requirement.",
+      "control": "state_multi_select",
+      "required": false,
+      "option_source": "options.states",
+      "mapping": {
+        "target": "constraint",
+        "field": "state",
+        "operator": "in",
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "credential_levels",
+      "section": "must_haves",
+      "prompt": "Are you looking for particular credential or degree levels?",
+      "control": "credential_multi_select",
+      "required": false,
+      "option_source": "options.credential_levels",
+      "mapping": {
+        "target": "constraint",
+        "field": "credential_level",
+        "operator": "in",
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "online_requirement",
+      "section": "must_haves",
+      "prompt": "Do you need a program you can complete online?",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "required",
+          "label": "Yes, online availability is required"
+        },
+        {
+          "value": "not_required",
+          "label": "No, it is not required"
+        }
+      ],
+      "mapping": {
+        "target": "conditional_constraint",
+        "when_value": "required",
+        "field": "online_available",
+        "operator": "eq",
+        "value": true,
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "campus_settings",
+      "section": "must_haves",
+      "prompt": "Do you need a particular campus setting?",
+      "help": "Uses the NCES locale classification: City, Suburban, Town, or Rural. Leave blank if setting is only a preference.",
+      "control": "multi_select",
+      "required": false,
+      "option_source": "options.campus_settings",
+      "mapping": {
+        "target": "constraint",
+        "field": "campus__locale_category",
+        "operator": "in",
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "housing_requirement",
+      "section": "must_haves",
+      "prompt": "Do you have a firm housing requirement?",
+      "help": "Housing availability and universal first-year/full-time residency requirements are evaluated separately. Roommate versus private-room availability requires school-specific evidence and is not inferred here.",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "available",
+          "label": "Institutionally controlled housing must be available"
+        },
+        {
+          "value": "choice",
+          "label": "Housing must be available, but not universally required for full-time first-time students"
+        },
+        {
+          "value": "commuter",
+          "label": "I need a school without institutionally controlled housing"
+        }
+      ],
+      "mapping": {
+        "target": "housing_constraint_bundle",
+        "rules": {
+          "available": [
+            {
+              "field": "campus__housing_available",
+              "operator": "eq",
+              "value": true,
+              "unknown_policy": "keep_visible"
+            }
+          ],
+          "choice": [
+            {
+              "field": "campus__housing_available",
+              "operator": "eq",
+              "value": true,
+              "unknown_policy": "keep_visible"
+            },
+            {
+              "field": "campus__housing_required_all_ftft",
+              "operator": "eq",
+              "value": false,
+              "unknown_policy": "keep_visible"
+            }
+          ],
+          "commuter": [
+            {
+              "field": "campus__housing_available",
+              "operator": "eq",
+              "value": false,
+              "unknown_policy": "keep_visible"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question_id": "net_price_income_band",
+      "section": "must_haves",
+      "prompt": "Which published household-income band should the net-price comparison use?",
+      "help": "These are institutional average net prices after grants/scholarships, not personalized aid estimates. Household size is not used to invent a more specific estimate.",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "overall",
+          "label": "Overall average"
+        },
+        {
+          "value": "0_30",
+          "label": "$0–30,000"
+        },
+        {
+          "value": "30_48",
+          "label": "$30,001–48,000"
+        },
+        {
+          "value": "48_75",
+          "label": "$48,001–75,000"
+        },
+        {
+          "value": "75_110",
+          "label": "$75,001–110,000"
+        },
+        {
+          "value": "110_plus",
+          "label": "$110,001+"
+        }
+      ],
+      "mapping": {
+        "target": "selector_only"
+      }
+    },
+    {
+      "question_id": "net_price_ceiling",
+      "section": "must_haves",
+      "prompt": "Do you have a firm maximum annual average net price?",
+      "help": "Average net price is cost of attendance after grant and scholarship aid under the published source definition. It is not tuition, sticker price, or a personalized aid estimate.",
+      "control": "currency_optional",
+      "required": false,
+      "mapping": {
+        "target": "income_band_net_price_constraint",
+        "selector_question_id": "net_price_income_band",
+        "default_selector": "overall",
+        "field_by_selector": {
+          "overall": "finance__net_price_overall",
+          "0_30": "finance__net_price_income_0_30",
+          "30_48": "finance__net_price_income_30_48",
+          "48_75": "finance__net_price_income_48_75",
+          "75_110": "finance__net_price_income_75_110",
+          "110_plus": "finance__net_price_income_110_plus"
+        },
+        "operator": "lte",
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "institutional_aid_required",
+      "section": "must_haves",
+      "prompt": "Do you require published evidence of institutional grant or scholarship aid?",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "required",
+          "label": "Yes, require published institutional-aid evidence"
+        },
+        {
+          "value": "not_required",
+          "label": "No"
+        }
+      ],
+      "mapping": {
+        "target": "conditional_constraint",
+        "when_value": "required",
+        "field": "finance__institutional_grant_evidence",
+        "operator": "eq",
+        "value": true,
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "work_study_required",
+      "section": "must_haves",
+      "prompt": "Do you require published Federal Work-Study participation evidence?",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "required",
+          "label": "Yes, require published Work-Study evidence"
+        },
+        {
+          "value": "not_required",
+          "label": "No"
+        }
+      ],
+      "mapping": {
+        "target": "conditional_constraint",
+        "when_value": "required",
+        "field": "finance__work_study_evidence",
+        "operator": "eq",
+        "value": true,
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "state_local_aid_required",
+      "section": "must_haves",
+      "prompt": "Do you require published state/local grant-aid evidence?",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "required",
+          "label": "Yes, require published state/local aid evidence"
+        },
+        {
+          "value": "not_required",
+          "label": "No"
+        }
+      ],
+      "mapping": {
+        "target": "conditional_constraint",
+        "when_value": "required",
+        "field": "finance__state_local_grant_evidence",
+        "operator": "eq",
+        "value": true,
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "disability_services_evidence_required",
+      "section": "must_haves",
+      "prompt": "Do you require documented disability-services reporting evidence?",
+      "help": "This indicates documented disability-services evidence only. It is not a rating of service quality or physical campus accessibility.",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "required",
+          "label": "Yes, require documented disability-services evidence"
+        },
+        {
+          "value": "not_required",
+          "label": "No"
+        }
+      ],
+      "mapping": {
+        "target": "conditional_constraint",
+        "when_value": "required",
+        "field": "campus__disability_services_evidence_available",
+        "operator": "eq",
+        "value": true,
+        "unknown_policy": "keep_visible"
+      }
+    },
+    {
+      "question_id": "affordability_priority",
+      "section": "priorities",
+      "prompt": "How important is keeping college costs low?",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "preference",
+        "dimension": "affordability"
+      }
+    },
+    {
+      "question_id": "academic_program_priority",
+      "section": "priorities",
+      "prompt": "How important is the strength and fit of the specific program?",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "preference",
+        "dimension": "academic_program_fit"
+      }
+    },
+    {
+      "question_id": "career_pathway_priority",
+      "section": "priorities",
+      "prompt": "How important is having several plausible career pathways from the program?",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "preference",
+        "dimension": "career_pathway_fit"
+      }
+    },
+    {
+      "question_id": "transfer_priority",
+      "section": "priorities",
+      "prompt": "How important is preserving as much of your prior coursework as possible?",
+      "control": "importance_optional",
+      "required": false,
+      "visible_for_modes": [
+        "transfer",
+        "returning_student"
+      ],
+      "mapping": {
+        "target": "preference",
+        "dimension": "transfer_pathway_fit"
+      }
+    },
+    {
+      "question_id": "work_market_semantics",
+      "section": "career_and_place",
+      "prompt": "Where would you most want career-market information to describe?",
+      "control": "single_select",
+      "required": false,
+      "options": [
+        {
+          "value": "school_local",
+          "label": "The area around each school"
+        },
+        {
+          "value": "selected_market",
+          "label": "Another area I choose"
+        },
+        {
+          "value": "national",
+          "label": "National information"
+        },
+        {
+          "value": "remote_or_flexible",
+          "label": "I am flexible or interested in remote work"
+        },
+        {
+          "value": "unspecified",
+          "label": "I am not sure yet"
+        }
+      ],
+      "mapping": {
+        "target": "geography.work_market_semantics"
+      }
+    },
+    {
+      "question_id": "work_market",
+      "section": "career_and_place",
+      "prompt": "Which labor market should current career information describe?",
+      "control": "labor_market_lookup",
+      "required": false,
+      "visible_when": {
+        "question_id": "work_market_semantics",
+        "value": "selected_market"
+      },
+      "mapping": {
+        "target": "geography.intended_work_market"
+      }
+    },
+    {
+      "question_id": "career_analysis",
+      "section": "career_and_place",
+      "prompt": "Would you like work that involves a lot of analysis and problem solving?",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "career_preference",
+        "attribute_id": "onet_governed:analysis_problem_solving",
+        "operator": "higher_preferred",
+        "requires_attribute_mapping_review": true
+      }
+    },
+    {
+      "question_id": "career_creativity",
+      "section": "career_and_place",
+      "prompt": "Would you like work where creativity is an important part of the job?",
+      "control": "importance_optional",
+      "required": false,
+      "mapping": {
+        "target": "career_preference",
+        "attribute_id": "onet_governed:creativity",
+        "operator": "higher_preferred",
+        "requires_attribute_mapping_review": true
+      }
+    },
+    {
+      "question_id": "transfer_source",
+      "section": "transfer",
+      "prompt": "Where are you transferring from?",
+      "control": "institution_lookup",
+      "required": false,
+      "visible_for_modes": [
+        "transfer",
+        "returning_student"
+      ],
+      "mapping": {
+        "target": "transfer_context.source_institution_id"
+      }
+    }
   ]
 }
