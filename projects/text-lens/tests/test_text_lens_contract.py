@@ -23,6 +23,9 @@ class TextLensContractTests(unittest.TestCase):
  def test_cross_document_keyness_and_similarity_are_explicit(self):
   for token in ['id="keyMin"',"function signedLogLikelihood(","function keynessAgainstRemainder(","Document-to-document lexical similarity","Distinctive terms by document","signed log-likelihood G²","document_similarity","document_keyness","corpus_analysis:publicCorpusComparison()"]:
    self.assertIn(token,HTML)
+ def test_document_focus_visualization_and_document_kwic_are_present(self):
+  for token in ['id="focusDoc"','id="vizMetric"',"function syncCorpusSelectors(","function renderMetricBars(","function kwicTarget()","similarity-meter","focus_document:","document_chart:"]:
+   self.assertIn(token,HTML)
  def test_exports_do_not_include_source_text(self):
   self.assertIn("Source text itself is not included in the file.",HTML)
   self.assertIn("text-lens-tables.csv",HTML)
