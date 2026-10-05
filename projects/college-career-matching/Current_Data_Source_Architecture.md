@@ -7,7 +7,9 @@ This document defines the preferred production data sources for the modern Colle
 | Layer | Preferred source | Role in model | Refresh approach |
 | --- | --- | --- | --- |
 | Institution + outcomes | U.S. Department of Education College Scorecard | Costs, admissions, completion, debt, earnings, institution and field-of-study outcomes | Refresh on Scorecard release |
-| Institution + programs | NCES IPEDS | Institutional characteristics, enrollment, completions, awards, program inventory | Annual |
+| Institution + programs | NCES IPEDS | Institutional characteristics, enrollment, completions, awards, program inventory, NCES locale, housing/services | Annual |
+| Affordability + aid detail | College Scorecard + IPEDS Cost/SFA | Cost of attendance, overall and income-band net price, grant/aid type prevalence and amounts | Release-specific; preserve survey/metric vintages |
+| Community access | BTS National Transit Map + EPA Smart Location / Walkability | Transit-stop proximity and community walkability/location-efficiency evidence | BTS current snapshots; EPA vintage must remain explicit |
 | Transfer + articulation | Authoritative state/system repositories; initial adapters: SUNY STEP and CUNY Transfer Explorer | Program pathways, agreements, course equivalencies, degree applicability, published transfer guarantees/conditions | Source-specific snapshots; preserve effective dates and conditions |
 | Program taxonomy | NCES CIP | Standard program codes | Version-controlled taxonomy |
 | Program ↔ occupation | NCES/BLS CIP–SOC Crosswalk | Many-to-many education-to-occupation bridge | Version-controlled crosswalk |
@@ -49,6 +51,27 @@ Use IPEDS for the institutional and program backbone:
 - finance and institutional characteristics as needed.
 
 IPEDS is preferable to hand-entered institution descriptors because it is structured, downloadable, and maintained as the national postsecondary reporting system.
+
+## 2A. Affordability, housing, setting, and accessibility
+
+Use `AFFORDABILITY_HOUSING_ACCESSIBILITY_CONTRACT.md` as the semantic contract for the public explorer.
+
+**Affordability:** show cost of attendance separately from average net price. Average net price is after federal, state/local, and institutional grants/scholarships and must not be confused with loans. Use the published income-band averages when a visitor supplies an income range; do not manufacture a family-size-specific estimate from institution-level aggregates.
+
+**IPEDS survey structure:** account for the 2024–25 collection redesign. Cost-of-attendance and average-net-price items moved from the Student Financial Aid component into the Cost component; other financial-aid items remain in SFA. Adapters should therefore carry component/year provenance at field level rather than assuming one SFA file contains the whole affordability layer.
+
+**Campus setting:** retain the full NCES locale code and derive the four-category City / Suburban / Town / Rural presentation without destroying the 12-category detail.
+
+**Housing:** keep institutionally controlled housing availability, capacity, and the all-FTFT residency requirement distinct. A school with housing is not necessarily a school that requires housing. Roommate/private-room configuration is not a core federal field and should enter only as separately sourced school-level enrichment.
+
+**Accessibility:** do not create one undocumented campus-accessibility score. Preserve at least these components separately:
+
+- disability-services evidence reported through IPEDS, without treating registered-student share as a quality score;
+- transit access derived from BTS National Transit Map stops/routes, with distance/mode evidence and vintage;
+- walkability/location-efficiency evidence from EPA data with the dataset's older vintage made visible;
+- optional OpenStreetMap physical-accessibility evidence only where tags are present, with missing tags treated as unknown rather than inaccessible.
+
+Visitors may explicitly prioritize these components; no hidden default weights should be assigned.
 
 ## 3. Transfer and articulation
 
@@ -173,14 +196,15 @@ Every production field should carry, directly or through its dataset:
 The modern matcher should not produce one opaque universal score. It should expose separate layers:
 
 1. **College fit** — preferences and constraints.
-2. **Affordability** — cost/net price/debt/outcomes.
+2. **Affordability** — cost of attendance, overall/income-band average net price, grants/scholarships, loans, and outcomes kept semantically distinct.
 3. **Academic/program fit** — program availability and structure.
 4. **Transfer/pathway fit** — agreements, course equivalencies, major applicability, path guarantees, and explicit conditions.
 5. **Admissions context** — descriptive selectivity and profile context, not a false certainty of admission.
 6. **Career pathway fit** — CIP↔SOC pathways, skills/interests, outlook, wages.
 7. **Current demand** — job-posting signals.
-8. **Geographic fit** — institution and labor-market geography.
-9. **Explanation** — why each recommendation appears and what data influenced it.
+8. **Geographic & community fit** — institution/labor-market geography, NCES campus setting, transit access, walkability/location efficiency, and housing context.
+9. **Accessibility evidence** — disability-services, transit, walkability, and physical-accessibility evidence shown separately with unknown states preserved.
+10. **Explanation** — why each recommendation appears and what data influenced it.
 
 ## Current reference versions — October 2026
 
