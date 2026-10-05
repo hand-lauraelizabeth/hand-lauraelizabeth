@@ -43,6 +43,8 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_runtime_defaults_to_fixture_and_requires_activation_aware_validation(self):
   self.assertIn('id="ccx-runtime-config"',HTML);self.assertIn('"mode":"fixture"',HTML);self.assertIn('"production_authorized":false',HTML)
   for token in ["validateRuntimeConfig","assertRuntimeMetadata","productionAuthorized:runtimeConfig.production_authorized","Authorized production matching service"]:self.assertIn(token,HTML)
+ def test_staging_mode_is_visibly_nonproduction(self):
+  self.assertIn("Synthetic staging HTTP service",HTML);self.assertIn("Synthetic staging mode:",HTML);self.assertIn("explicitly non-production",HTML)
  def test_compare_is_display_only_not_browser_winner_logic(self):
   self.assertIn("renderCompare()",HTML);self.assertIn("no winner is calculated in the browser",HTML);self.assertIn("ccx-compare-toggle",HTML)
   self.assertNotIn("winner",HTML.lower().replace("no winner",""))
