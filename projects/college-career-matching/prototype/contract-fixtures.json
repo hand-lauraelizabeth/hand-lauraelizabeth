@@ -4,6 +4,15 @@
     "schema_version": "1.0",
     "data_version": "synthetic-contract-1",
     "options": {
+      "schema_version": "1.0",
+      "data_version": "synthetic-contract-1",
+      "generated_at_utc": "2026-10-05T00:00:00+00:00",
+      "counts": {
+        "institutions": 3,
+        "institution_programs": 3,
+        "states": 2,
+        "cip_codes": 3
+      },
       "states": [
         {
           "value": "NY",
@@ -14,10 +23,128 @@
           "label": "New Jersey"
         }
       ],
+      "campus_settings": [
+        {
+          "value": "City",
+          "label": "City"
+        },
+        {
+          "value": "Suburban",
+          "label": "Suburban"
+        }
+      ],
+      "housing": [
+        {
+          "value": "available",
+          "label": "Institutionally controlled housing available",
+          "available": true
+        },
+        {
+          "value": "choice",
+          "label": "Housing available without universal FTFT residency requirement",
+          "available": true
+        }
+      ],
+      "affordability": {
+        "income_bands": [
+          {
+            "value": "overall",
+            "label": "Overall average"
+          },
+          {
+            "value": "0_30",
+            "label": "$0–30,000"
+          },
+          {
+            "value": "30_48",
+            "label": "$30,001–48,000"
+          },
+          {
+            "value": "48_75",
+            "label": "$48,001–75,000"
+          },
+          {
+            "value": "75_110",
+            "label": "$75,001–110,000"
+          },
+          {
+            "value": "110_plus",
+            "label": "$110,001+"
+          }
+        ],
+        "semantics": "Average net price after grants/scholarships; not a personalized estimate."
+      },
       "credential_levels": [
         {
           "value": "Bachelors",
           "label": "Bachelor's"
+        }
+      ],
+      "institutions": [
+        {
+          "value": "SYN001",
+          "label": "North Harbor College",
+          "state": "NY",
+          "city": "Harbor City"
+        },
+        {
+          "value": "SYN002",
+          "label": "Metro Public College",
+          "state": "NY",
+          "city": "Metro City"
+        },
+        {
+          "value": "SYN003",
+          "label": "River State University",
+          "state": "NJ",
+          "city": "River City"
+        }
+      ],
+      "programs": [
+        {
+          "value": "SYN001:P1",
+          "label": "Data & Information Systems",
+          "unitid": "SYN001",
+          "program_id": "P1",
+          "cip_code": "11.0101",
+          "credential_level": "Bachelors"
+        },
+        {
+          "value": "SYN002:P2",
+          "label": "Information Technology",
+          "unitid": "SYN002",
+          "program_id": "P2",
+          "cip_code": "11.0103",
+          "credential_level": "Bachelors"
+        },
+        {
+          "value": "SYN003:P3",
+          "label": "Applied Computing",
+          "unitid": "SYN003",
+          "program_id": "P3",
+          "cip_code": "11.0199",
+          "credential_level": "Bachelors"
+        }
+      ],
+      "cip_fields": [
+        {
+          "value": "11.0101",
+          "label": "Computer and Information Sciences, General"
+        },
+        {
+          "value": "11.0103",
+          "label": "Information Technology"
+        },
+        {
+          "value": "11.0199",
+          "label": "Computer and Information Sciences, Other"
+        }
+      ],
+      "modalities": [
+        {
+          "value": "online_available",
+          "label": "Online availability reported",
+          "available": true
         }
       ]
     },
@@ -42,6 +169,12 @@
         "finance__net_price": {
           "operators": [
             "lte"
+          ]
+        },
+        "cip_code": {
+          "operators": [
+            "eq",
+            "in"
           ]
         }
       }
