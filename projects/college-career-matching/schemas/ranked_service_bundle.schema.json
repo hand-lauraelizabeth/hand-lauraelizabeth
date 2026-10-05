@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ranked_service_bundle.schema.json",
+  "title": "Review-Eligible Ranked Service Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "review_eligible",
+    "production_authorized",
+    "binding",
+    "rankings",
+    "semantic_rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "review_eligible": {
+      "const": true
+    },
+    "production_authorized": {
+      "const": false
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ranking_context_id",
+        "data_version",
+        "model_version",
+        "eligible_candidate_universe_sha256",
+        "eligible_candidate_count",
+        "ranked_candidate_count"
+      ],
+      "properties": {
+        "ranking_context_id": {
+          "type": "string",
+          "pattern": "^rankctx_[0-9a-f]{24}$"
+        },
+        "data_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "eligible_candidate_universe_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "eligible_candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ranked_candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "rankings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "rank",
+          "baseline_score",
+          "review_eligibility"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "baseline_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "review_eligibility": {
+            "const": "eligible_for_review"
+          }
+        }
+      }
+    },
+    "semantic_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
