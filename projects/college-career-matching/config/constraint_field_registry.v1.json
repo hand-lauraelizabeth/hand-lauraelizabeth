@@ -1,16 +1,227 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "fields": {
-    "state": {"type": "categorical", "operators": ["eq", "neq", "in", "not_in"], "source": "product_snapshot", "hard_constraint_allowed": true},
-    "credential_level": {"type": "categorical", "operators": ["eq", "neq", "in", "not_in"], "source": "product_snapshot", "hard_constraint_allowed": true},
-    "UNITID": {"type": "identifier", "operators": ["eq", "neq", "in", "not_in"], "source": "product_snapshot", "hard_constraint_allowed": true},
-    "candidate_id": {"type": "identifier", "operators": ["eq", "neq", "in", "not_in"], "source": "product_snapshot", "hard_constraint_allowed": true},
-    "online_available": {"type": "boolean_evidence", "operators": ["eq"], "source": "product_snapshot", "hard_constraint_allowed": true, "unknown_semantics": "unknown_not_false"},
-    "finance__net_price": {"type": "numeric", "operators": ["lte", "lt", "gte", "gt"], "source": "institution_affordability_outcomes", "hard_constraint_allowed": true, "unit": "USD", "note": "Net price only; not tuition or cost of attendance."}
+    "state": {
+      "type": "categorical",
+      "operators": [
+        "eq",
+        "neq",
+        "in",
+        "not_in"
+      ],
+      "source": "product_snapshot",
+      "hard_constraint_allowed": true
+    },
+    "credential_level": {
+      "type": "categorical",
+      "operators": [
+        "eq",
+        "neq",
+        "in",
+        "not_in"
+      ],
+      "source": "product_snapshot",
+      "hard_constraint_allowed": true
+    },
+    "UNITID": {
+      "type": "identifier",
+      "operators": [
+        "eq",
+        "neq",
+        "in",
+        "not_in"
+      ],
+      "source": "product_snapshot",
+      "hard_constraint_allowed": true
+    },
+    "candidate_id": {
+      "type": "identifier",
+      "operators": [
+        "eq",
+        "neq",
+        "in",
+        "not_in"
+      ],
+      "source": "product_snapshot",
+      "hard_constraint_allowed": true
+    },
+    "online_available": {
+      "type": "boolean_evidence",
+      "operators": [
+        "eq"
+      ],
+      "source": "product_snapshot",
+      "hard_constraint_allowed": true,
+      "unknown_semantics": "unknown_not_false"
+    },
+    "finance__net_price": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Compatibility alias for overall net price only; new clients should identify the specific overall or income-band field."
+    },
+    "campus__locale_category": {
+      "type": "categorical",
+      "operators": [
+        "eq",
+        "neq",
+        "in",
+        "not_in"
+      ],
+      "source": "campus_context",
+      "hard_constraint_allowed": true,
+      "note": "Derived from NCES locale; preserves detailed locale separately."
+    },
+    "campus__housing_available": {
+      "type": "boolean_evidence",
+      "operators": [
+        "eq"
+      ],
+      "source": "campus_context",
+      "hard_constraint_allowed": true,
+      "unknown_semantics": "unknown_not_false"
+    },
+    "campus__housing_required_all_ftft": {
+      "type": "boolean_evidence",
+      "operators": [
+        "eq"
+      ],
+      "source": "campus_context",
+      "hard_constraint_allowed": true,
+      "unknown_semantics": "unknown_not_false",
+      "note": "Whether all full-time first-time degree/certificate-seeking undergraduates are required to live in institutionally controlled housing."
+    },
+    "finance__cost_of_attendance": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Cost of attendance; distinct from net price."
+    },
+    "finance__net_price_overall": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Overall institutional average net price after grants/scholarships; not a personalized estimate."
+    },
+    "finance__net_price_income_0_30": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Average net price for published $0-$30,000 family-income band."
+    },
+    "finance__net_price_income_30_48": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Average net price for published $30,001-$48,000 family-income band."
+    },
+    "finance__net_price_income_48_75": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Average net price for published $48,001-$75,000 family-income band."
+    },
+    "finance__net_price_income_75_110": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Average net price for published $75,001-$110,000 family-income band."
+    },
+    "finance__net_price_income_110_plus": {
+      "type": "numeric",
+      "operators": [
+        "lte",
+        "lt",
+        "gte",
+        "gt"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unit": "USD",
+      "note": "Average net price for published $110,001+ family-income band."
+    },
+    "finance__institutional_grant_evidence": {
+      "type": "boolean_evidence",
+      "operators": [
+        "eq"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unknown_semantics": "unknown_not_false"
+    },
+    "finance__work_study_evidence": {
+      "type": "boolean_evidence",
+      "operators": [
+        "eq"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unknown_semantics": "unknown_not_false"
+    },
+    "finance__state_local_grant_evidence": {
+      "type": "boolean_evidence",
+      "operators": [
+        "eq"
+      ],
+      "source": "institution_affordability_outcomes",
+      "hard_constraint_allowed": true,
+      "unknown_semantics": "unknown_not_false"
+    }
   },
   "rules": [
     "Fields not listed here cannot be submitted as hard constraints.",
     "Missing evidence follows the request's explicit unknown_policy and is never silently converted to a failing value.",
-    "A cost ceiling must identify its governed cost concept; generic cost fields are not allowed."
+    "A cost ceiling must identify its governed cost concept; generic cost fields are not allowed.",
+    "Income-band net-price constraints must use the corresponding governed income-band field; household size is not inferred from institution-level aggregates.",
+    "Housing availability and universal residency requirements are separate evidence fields; roommate/private-room configuration is not inferred from federal core data."
   ]
 }
