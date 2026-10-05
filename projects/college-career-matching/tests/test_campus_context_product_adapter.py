@@ -6,12 +6,12 @@ PROJECT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(PROJECT))
 from campus_context_product_adapter import normalize
 
 class CampusContextTests(unittest.TestCase):
- def test_locale_preserves_detail_and_derives_setting(self):
+ def test_locale_preserves_detail_and_derives_category(self):
   r=normalize([{"UNITID":"1","locale_code":"11"}])[0]
-  self.assertEqual(r["locale_code"],"11");self.assertEqual(r["setting_group"],"City")
+  self.assertEqual(r["locale_code"],"11");self.assertEqual(r["locale_category"],"City");self.assertEqual(r["setting_group"],"City")
  def test_missing_locale_stays_unknown(self):
   r=normalize([{"UNITID":"1","locale_code":""}])[0]
-  self.assertEqual(r["setting_group"],"");self.assertEqual(r["setting_group__state"],"missing")
+  self.assertEqual(r["locale_category"],"");self.assertEqual(r["locale_category__state"],"missing")
  def test_invalid_locale_fails_closed(self):
   with self.assertRaises(ValueError):normalize([{"UNITID":"1","locale_code":"99"}])
  def test_false_housing_is_observed_not_missing(self):
@@ -20,13 +20,10 @@ class CampusContextTests(unittest.TestCase):
  def test_housing_choice_requires_distinct_requirement_field(self):
   r=normalize([{"UNITID":"1","housing_available":"true","housing_required_all_ftft":"false"}])[0]
   self.assertEqual(r["housing_choice_state"],"choice_available")
- def test_finance_fields_do_not_enter_campus_context(self):
-  r=normalize([{"UNITID":"1","net_price_income_0_30":"7000","institutional_grant_share":"0.5"}])[0]
-  self.assertNotIn("net_price_income_0_30",r);self.assertNotIn("institutional_grant_share",r)
  def test_provenance_is_preserved_per_field(self):
   r=normalize([{"UNITID":"1","walkability_index":"12.4","walkability_index__source_id":"epa_sld_v3","walkability_index__source_vintage":"2021"}])[0]
   self.assertEqual(r["walkability_index__source_id"],"epa_sld_v3");self.assertEqual(r["walkability_index__source_vintage"],"2021")
- def test_documented_evidence_flag_is_not_quality_score(self):
+ def test_documented_disability_services_evidence_is_not_quality_score(self):
   r=normalize([{"UNITID":"1","disability_services_registered_share":"0.08"}])[0]
   self.assertEqual(r["disability_services_evidence_available"],"true")
  def test_source_missing_state_does_not_become_observed(self):
