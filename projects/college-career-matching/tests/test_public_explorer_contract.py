@@ -20,11 +20,22 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("fictional",HTML)
   self.assertIn("should not be used as college advice",HTML)
  def test_controls_update_in_place_and_support_comparison(self):
-  for control in ["interest","state","credential","price","afford","career","transfer","small","online"]:
+  for control in ["ccx-interest","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
    self.assertIn(f'id="{control}"',HTML)
-  self.assertIn("compare-toggle",HTML)
+  self.assertIn("ccx-compare-toggle",HTML)
   self.assertIn("renderCompare()",HTML)
   self.assertIn('aria-live="polite"',HTML)
+ def test_cost_language_separates_coa_net_price_and_income_context(self):
+  self.assertIn("cost of attendance",HTML.lower())
+  self.assertIn("average net price after grants/scholarships",HTML.lower())
+  self.assertIn("Household income range",HTML)
+  self.assertIn("not a personalized aid estimate",HTML)
+  self.assertIn("does not invent a family-size adjustment",HTML)
+ def test_housing_setting_aid_and_accessibility_are_distinct(self):
+  for phrase in ["Campus setting","Housing preference","Institutional grants/scholarships","Federal Work-Study","State/local grant-aid","Better public-transit access","More walkable access to daily needs","Documented disability-services information"]:
+   self.assertIn(phrase,HTML)
+  self.assertIn("Roommate versus private-room options require school-specific evidence",HTML)
+  self.assertIn("separate signals",HTML)
  def test_no_undeclared_default_fit_score(self):
   self.assertIn("value:null",HTML)
   self.assertIn("'Unranked'",HTML)
