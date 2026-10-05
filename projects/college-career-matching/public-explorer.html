@@ -17,7 +17,7 @@
     #leh-ccx .ccx-lead{font-size:19px;line-height:1.65;max-width:820px;color:var(--muted);margin:0 0 14px}
     #leh-ccx .ccx-note{font-size:14px;line-height:1.55;color:var(--muted);max-width:850px;margin:0 0 26px}
     #leh-ccx .ccx-grid{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:24px;align-items:start}
-    #leh-ccx .ccx-controls{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;position:sticky;top:24px}
+    #leh-ccx .ccx-controls{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;position:sticky;top:24px}#leh-ccx .ccx-controls[aria-disabled="true"]{opacity:.68}
     #leh-ccx fieldset{border:0;padding:0;margin:0 0 18px}
     #leh-ccx legend,#leh-ccx label.ccx-label{display:block;font-weight:700;font-size:15px;margin:0 0 7px}
     #leh-ccx select,#leh-ccx input[type="number"]{width:100%;min-height:44px;border:1px solid #bccbc2;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:16px;padding:9px 11px}
@@ -181,6 +181,21 @@
     const controls=['ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
     const selected=new Set();
     let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null;
+    function setInteractive(enabled){
+      controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
+      q('ccx-reset').disabled=!enabled;q('ccx-form').setAttribute('aria-disabled',String(!enabled));
+    }
+    function modeText(){return runtimeConfig.mode==='fixture'?'Synthetic fixture service':runtimeConfig.mode==='staging'?'Synthetic staging HTTP service':'Authorized production matching service'}
+    function renderServiceIdentity(){
+      if(!metadata)return;
+      q('ccx-service-state').innerHTML='<strong>'+esc(modeText())+'</strong> · data '+esc(metadata.data_version)+' · model '+esc(metadata.model_version)+' · production authorized: '+(metadata.production_authorized?'yes':'no');
+    }
+    function clearServiceResults(title,detail,countText){
+      lastResponse=null;selected.clear();
+      q('ccx-results').innerHTML='<div class="ccx-empty"><strong>'+esc(title)+'</strong><p>'+esc(detail)+'</p></div>';
+      q('ccx-count').textContent=countText;
+      q('ccx-compare-table').innerHTML='';q('ccx-compare-note').textContent='Select two or three programs from the current service results.';q('ccx-clear').hidden=true;
+    }
 
     function state(){
       return {
@@ -251,7 +266,7 @@
     }
     function renderCompare(){
       const host=q('ccx-compare-table'),note=q('ccx-compare-note'),clear=q('ccx-clear');
-      if(!lastResponse){host.innerHTML='';clear.hidden=true;return}
+      if(!lastResponse){host.innerHTML='';note.textContent='Select two or three programs from the current service results.';clear.hidden=true;return}
       const chosen=lastResponse.results.filter(x=>selected.has(x.candidate_id));
       if(chosen.length<2){host.innerHTML='';note.textContent='Select two or three programs from the service results.';clear.hidden=selected.size===0;return}
       clear.hidden=false;
@@ -265,7 +280,8 @@
     }
     function renderResponse(response){
       lastResponse=response;
-      const rows=response.results||[];
+      const rows=response.results||[],visibleIds=new Set(rows.map(x=>x.candidate_id));
+      for(const id of [...selected])if(!visibleIds.has(id))selected.delete(id);
       const mode=response.ordering&&response.ordering.mode==='review_eligible_ranking'?(response.ordering.production_authorized?'authorized ranking':'gated review ranking'):'service order · unranked';
       q('ccx-count').textContent=response.result_count+' service-returned program'+(response.result_count===1?'':'s')+' · '+mode;
       q('ccx-results').innerHTML=rows.length?rows.map(x=>{
@@ -273,8 +289,10 @@
         const score=rec.status==='review_eligible_ranked'&&rec.baseline_score!=null?'<div class="ccx-score">'+esc(rankLabel(rec))+' · '+Math.round(rec.baseline_score*100)+'/100 index</div>':'<div class="ccx-score">'+esc(rankLabel(rec))+'</div>';
         const career=x.career_pathways&&x.career_pathways.pathway_count!=null?'<span class="ccx-pill">'+esc(x.career_pathways.pathway_count)+' career pathway'+(x.career_pathways.pathway_count===1?'':'s')+'</span>':'';
         const coverage=x.evidence_coverage?'<span class="ccx-pill">'+esc(x.evidence_coverage.overall_status)+' evidence coverage</span>':'';
+        const unknownCount=x.explanation&&Array.isArray(x.explanation.unknowns)?x.explanation.unknowns.length:0;
+        const unknown=unknownCount?'<span class="ccx-pill">'+unknownCount+' unresolved must-have evidence field'+(unknownCount===1?'':'s')+'</span>':'';
         const selectedAttr=selected.has(x.candidate_id)?' checked':'';
-        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+'</div><div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></article>';
+        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div><div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></article>';
       }).join(''):'<div class="ccx-empty"><strong>No service results returned.</strong><p>Try relaxing one or more must-have constraints.</p></div>';
       root.querySelectorAll('.ccx-compare-toggle input').forEach(el=>el.addEventListener('change',()=>{
         if(el.checked&&selected.size>=3){el.checked=false;q('ccx-compare-note').textContent='Compare up to three programs at a time.';return}
@@ -305,26 +323,29 @@
       try{
         const response=assertContract(await client.match(request),'match',{productionAuthorized:runtimeConfig.production_authorized});
         if(metadata&&(response.data_version!==metadata.data_version||response.model_version!==metadata.model_version))throw new Error('Service response version does not match loaded metadata');
-        renderResponse(response);
+        renderResponse(response);root.dataset.serviceStatus='ready';renderServiceIdentity();
       }catch(err){
-        q('ccx-results').innerHTML='<div class="ccx-empty"><strong>Service response unavailable.</strong><p>'+esc(err&&err.message||err)+'</p></div>';
-        q('ccx-count').textContent='No service response';
+        root.dataset.serviceStatus='request-error';
+        clearServiceResults('Service response unavailable.','Previous results were cleared. '+(err&&err.message||err),'No service response');
+        q('ccx-service-state').innerHTML='<strong>Service temporarily unavailable.</strong> Previous results were cleared; change a control or reset to retry.';
       }
     }
     function scheduleRefresh(){clearTimeout(refreshTimer);refreshTimer=setTimeout(refresh,120)}
 
     const client=new MatchingServiceClient({mode:runtimeConfig.mode,baseUrl:runtimeConfig.service_base_url||'',fixtureUrl:runtimeConfig.fixture_url||'./prototype/contract-fixtures.json',runtimeConfig});
+    root.dataset.serviceStatus='initializing';setInteractive(false);
     try{
       await client.load();
       metadata=assertRuntimeMetadata(runtimeConfig,assertContract(await client.metadata(),'metadata'));
       optionResponse=assertContract(await client.options(),'options');
       if(optionResponse.data_version!==metadata.data_version)throw new Error('Options data version does not match loaded metadata');
       applyServiceOptions(optionResponse);
-      const modeText=runtimeConfig.mode==='fixture'?'Synthetic fixture service':runtimeConfig.mode==='staging'?'Synthetic staging HTTP service':'Authorized production matching service';
-      q('ccx-service-state').innerHTML='<strong>'+esc(modeText)+'</strong> · data '+esc(metadata.data_version)+' · model '+esc(metadata.model_version)+' · production authorized: '+(metadata.production_authorized?'yes':'no');
+      renderServiceIdentity();root.dataset.serviceStatus='ready';setInteractive(true);
       q('ccx-mode-note').innerHTML=runtimeConfig.mode==='fixture'?'<strong>Synthetic fixture mode:</strong> this public portfolio page currently uses a static, fictional service response while the authoritative product snapshot and recommendation release remain gated. The controls build the real governed request shape, but the static fixture records do not change with that request and should not be used as college advice.':runtimeConfig.mode==='staging'?'<strong>Synthetic staging mode:</strong> this non-public harness is connected to the real HTTP service boundary using invented records. It is explicitly non-production and must not be used as college advice.':'<strong>Production service mode:</strong> the browser accepted an explicitly authorized service only after its metadata matched the activation-pinned data, model, and snapshot identity.';
     }catch(err){
+      root.dataset.serviceStatus='error';setInteractive(false);
       q('ccx-service-state').textContent='Unable to initialize governed service: '+(err&&err.message||err);
+      clearServiceResults('Matcher unavailable.','The governed service could not be initialized. Controls are disabled until a valid service identity is available.','Matcher unavailable');
       return;
     }
     controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',scheduleRefresh);el.addEventListener('input',scheduleRefresh)}});
