@@ -49,13 +49,17 @@
   },
   "match": {
     "schema_version": "1.0",
-    "request_id": "synthetic-request-1",
+    "request_id": "req_aaaaaaaaaaaaaaaaaaaa",
     "data_version": "synthetic-contract-1",
     "model_version": "prototype-contract-1",
     "generated_at_utc": "2026-10-05T00:00:00+00:00",
     "result_count": 3,
     "warnings": [
-      "Synthetic fixture data"
+      {
+        "code": "synthetic_fixture",
+        "message": "Synthetic fixture data; not college advice.",
+        "candidate_id": null
+      }
     ],
     "results": [
       {
@@ -115,7 +119,20 @@
           "baseline_score": null,
           "review_eligibility": null,
           "production_authorized": false
-        }
+        },
+        "dimensions": [],
+        "explanation": {
+          "why_it_matches": [],
+          "tradeoffs": [],
+          "unknowns": []
+        },
+        "transfer": null,
+        "source_freshness": [
+          {
+            "source_family": "synthetic_fixture",
+            "vintage": "SYNTHETIC"
+          }
+        ]
       },
       {
         "candidate_id": "SYN002:P2",
@@ -174,7 +191,20 @@
           "baseline_score": null,
           "review_eligibility": null,
           "production_authorized": false
-        }
+        },
+        "dimensions": [],
+        "explanation": {
+          "why_it_matches": [],
+          "tradeoffs": [],
+          "unknowns": []
+        },
+        "transfer": null,
+        "source_freshness": [
+          {
+            "source_family": "synthetic_fixture",
+            "vintage": "SYNTHETIC"
+          }
+        ]
       },
       {
         "candidate_id": "SYN003:P3",
@@ -227,7 +257,20 @@
           "baseline_score": null,
           "review_eligibility": null,
           "production_authorized": false
-        }
+        },
+        "dimensions": [],
+        "explanation": {
+          "why_it_matches": [],
+          "tradeoffs": [],
+          "unknowns": []
+        },
+        "transfer": null,
+        "source_freshness": [
+          {
+            "source_family": "synthetic_fixture",
+            "vintage": "SYNTHETIC"
+          }
+        ]
       }
     ],
     "ordering": {
@@ -236,6 +279,13 @@
       "review_eligible_ranked_count": 0,
       "unranked_eligible_count": 3,
       "production_authorized": false
+    },
+    "pagination": {
+      "page": 1,
+      "page_size": 100,
+      "total_pages": 1,
+      "has_next": false,
+      "has_previous": false
     }
   },
   "candidate:SYN001:P1": {
