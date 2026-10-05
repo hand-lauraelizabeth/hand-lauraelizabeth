@@ -46,7 +46,9 @@ Institution-level outcomes are not presented as program outcomes. Tuition, cost 
 
 The base match service remains an eligibility/evidence service and does not manufacture a ranking from available numeric fields. Baseline recommendation scores are created only by the explicit-priority materializer, sent through sensitivity/validation, and then passed through the recommendation release gate.
 
-A browser or service response must not treat a calculated `ranked_pending_validation` row as review-eligible. Ranked metadata may be surfaced only from the gated `review_eligible_ranked_candidates.csv` artifact (or an equivalent service representation with the same gate decision). `ELIGIBLE_FOR_REVIEW` remains distinct from production authorization.
+A browser or service response must not treat a calculated `ranked_pending_validation` row as review-eligible. Ranked metadata may be surfaced only from a gated, identity-bound ranking bundle derived from `review_eligible_ranked_candidates.csv` (or an equivalent artifact with the same gate decision). `ELIGIBLE_FOR_REVIEW` remains distinct from production authorization.
+
+The ranking bundle binds the ordering to the decision semantics, `data_version`, `model_version`, and the complete eligible candidate universe. `page` and `page_size` are excluded from the ranking-context hash so the same validated ordering can be paginated; changing a constraint, priority, career preference, geography, data/model version, or eligible universe invalidates the bundle and fails closed. Pagination is applied only after the validated ranking order.
 
 ## Browser boundary
 
