@@ -10,9 +10,11 @@ class AffordabilityTests(unittest.TestCase):
  def test_income_band_net_prices_remain_distinct(self):
   r=normalize([{"UNITID":"1","net_price_overall":"12000","net_price_income_0_30":"7000","net_price_income_110_plus":"21000"}],"institution")[0];self.assertEqual(r["net_price_overall"],"12000");self.assertEqual(r["net_price_income_0_30"],"7000");self.assertEqual(r["net_price_income_110_plus"],"21000")
  def test_aid_evidence_is_not_collapsed_into_cost(self):
-  r=normalize([{"UNITID":"1","institutional_grant_share":"0.45","work_study_share":"","state_local_grant_share":"0.20"}],"institution")[0];self.assertEqual(r["institutional_grant_evidence"],"true");self.assertEqual(r["work_study_evidence"],"false");self.assertEqual(r["state_local_grant_evidence"],"true")
+  r=normalize([{"UNITID":"1","institutional_grant_share":"0.45","work_study_share":"","state_local_grant_share":"0.20"}],"institution")[0];self.assertEqual(r["institutional_grant_evidence"],"true");self.assertEqual(r["work_study_evidence"],"");self.assertEqual(r["state_local_grant_evidence"],"true")
  def test_measure_level_provenance_is_preserved(self):
   r=normalize([{"UNITID":"1","net_price_overall":"12000","net_price_overall__source_id":"ipeds_cost_2024","net_price_overall__source_vintage":"2024-25","institutional_grant_share":"0.4","institutional_grant_share__source_id":"ipeds_sfa_2023_24","institutional_grant_share__source_vintage":"2023-24"}],"institution")[0];self.assertEqual(r["net_price_overall__source_id"],"ipeds_cost_2024");self.assertEqual(r["institutional_grant_share__source_id"],"ipeds_sfa_2023_24");self.assertNotEqual(r["net_price_overall__source_vintage"],r["institutional_grant_share__source_vintage"])
+ def test_missing_aid_evidence_flag_stays_unknown(self):
+  r=normalize([{"UNITID":"1","institutional_grant_share":"","institutional_grant_share__state":"not_published"}],"institution")[0];self.assertEqual(r["institutional_grant_evidence"],"")
  def test_missing_is_not_zero(self):
   r=normalize([{"UNITID":"1","net_price":""}],"institution")[0];self.assertEqual(r["net_price"],"");self.assertEqual(r["net_price__state"],"missing")
  def test_source_suppression_is_preserved(self):
