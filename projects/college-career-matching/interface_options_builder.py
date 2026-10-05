@@ -50,7 +50,7 @@ def build(rows,data_version):
  for r in rows:
   code=clean(r["cip_code"]);title=clean(r.get("cip_title")) or code
   if code:cips[code]=title
- return {"schema_version":"1.1","data_version":data_version,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"counts":{"institutions":len(institutions),"institution_programs":len(programs),"states":len(states),"cip_codes":len(cips)},"states":[{"value":x,"label":x} for x in states],"campus_settings":campus_settings,"housing":housing,"affordability":affordability,"credential_levels":unique(rows,"credential_level"),"institutions":sorted(institutions.values(),key=lambda x:(x["label"].casefold(),x["value"])),"programs":programs,"cip_fields":[{"value":k,"label":cips[k]} for k in sorted(cips,key=lambda x:(cips[x].casefold(),x))],"modalities":modalities}
+ return {"schema_version":"1.0","data_version":data_version,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"counts":{"institutions":len(institutions),"institution_programs":len(programs),"states":len(states),"cip_codes":len(cips)},"states":[{"value":x,"label":x} for x in states],"campus_settings":campus_settings,"housing":housing,"affordability":affordability,"credential_levels":unique(rows,"credential_level"),"institutions":sorted(institutions.values(),key=lambda x:(x["label"].casefold(),x["value"])),"programs":programs,"cip_fields":[{"value":k,"label":cips[k]} for k in sorted(cips,key=lambda x:(cips[x].casefold(),x))],"modalities":modalities}
 def main():
  ap=argparse.ArgumentParser();ap.add_argument("--snapshot",type=Path,required=True);ap.add_argument("--data-version",required=True);ap.add_argument("--output",type=Path,required=True);a=ap.parse_args()
  with a.snapshot.open(newline="",encoding="utf-8-sig") as f:rows=list(csv.DictReader(f))
