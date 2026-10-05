@@ -66,6 +66,13 @@
     <div class="ccx-grid">
       <form class="ccx-controls" id="ccx-form">
         <fieldset>
+          <label class="ccx-label" for="ccx-cip">Academic field</label>
+          <select id="ccx-cip">
+            <option value="">Any academic field in the active snapshot</option>
+          </select>
+          <div class="ccx-detail">Field choices come from authoritative CIP classifications in the active program snapshot; the browser does not infer a field from program-title similarity.</div>
+        </fieldset>
+        <fieldset>
           <label class="ccx-label" for="ccx-state">School location</label>
           <select id="ccx-state">
             <option value="">Anywhere in this sample</option>
@@ -169,12 +176,13 @@
     const q=id=>root.querySelector('#'+id);
     const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
-    const controls=['ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
+    const controls=['ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
     const selected=new Set();
-    let lastResponse=null,metadata=null,refreshTimer=null;
+    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null;
 
     function state(){
       return {
+        cip:q('ccx-cip').value,
         state:q('ccx-state').value,
         setting:q('ccx-setting').value,
         credential:q('ccx-credential').value,
@@ -195,12 +203,13 @@
         disabilityInfo:q('ccx-disability-info').checked
       };
     }
-    function governedIncomeSelector(v){return {'0-30':'0_30','30-48':'30_48','48-75':'48_75','75-110':'75_110','110+':'110_plus'}[v]||'overall'}
+    function governedIncomeSelector(v){const map={'0-30':'0_30','30-48':'30_48','48-75':'48_75','75-110':'75_110','110+':'110_plus'};const allowed=['overall','0_30','30_48','48_75','75_110','110_plus'];return map[v]||(allowed.includes(v)?v:'overall')}
     function governedSetting(v){return {'city':'City','suburban':'Suburban','town':'Town','rural':'Rural'}[v]||v}
     function buildGovernedRequest(s){
       const constraints=[],preferences=[];
       const hard=(id,field,operator,value)=>constraints.push({constraint_id:id,field,operator,value,unknown_policy:'keep_visible',source_question_id:id});
       const soft=(id,dimension,enabled)=>{if(enabled)preferences.push({preference_id:id,dimension,importance:1,priority_explicit:true,source_question_id:id})};
+      if(s.cip)hard('academic_fields','cip_code','eq',s.cip);
       if(s.state)hard('school_states','state','eq',s.state);
       if(s.setting)hard('campus_settings','campus__locale_category','eq',governedSetting(s.setting));
       if(s.credential)hard('credential_levels','credential_level','eq',s.credential);
@@ -275,6 +284,20 @@
       const suffix=root.dataset.serviceMode==='fixture'?' Static fixture records remain fixed; no browser-side filtering or ranking is performed.':' Results are requested from the configured service.';
       q('ccx-request-state').textContent='Governed request: '+request.constraints.length+' must-have constraint'+(request.constraints.length===1?'':'s')+' · '+request.preferences.length+' explicit priorit'+(request.preferences.length===1?'y':'ies')+'.'+suffix;
     }
+    function populateSelect(id,items,placeholder,skipValue){
+      const el=q(id),current=el.value;
+      const usable=(items||[]).filter(x=>!skipValue||x.value!==skipValue);
+      el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+usable.map(x=>'<option value="'+esc(x.value)+'">'+esc(x.label||x.value)+'</option>').join('');
+      if(usable.some(x=>String(x.value)===String(current)))el.value=current;
+    }
+    function applyServiceOptions(response){
+      const o=response.options||{};
+      populateSelect('ccx-cip',o.cip_fields,'Any academic field in the active snapshot');
+      populateSelect('ccx-state',o.states,'Anywhere in the active snapshot');
+      populateSelect('ccx-setting',o.campus_settings,'Any setting');
+      populateSelect('ccx-credential',o.credential_levels,'Any credential');
+      populateSelect('ccx-income',o.affordability&&o.affordability.income_bands,'Use overall average net price','overall');
+    }
     async function refresh(){
       const request=buildGovernedRequest(state());root.dataset.governedRequest=JSON.stringify(request);renderRequestState(request);
       try{
@@ -292,6 +315,9 @@
     try{
       await client.load();
       metadata=assertContract(await client.metadata(),'metadata');
+      optionResponse=assertContract(await client.options(),'options');
+      if(optionResponse.data_version!==metadata.data_version)throw new Error('Options data version does not match loaded metadata');
+      applyServiceOptions(optionResponse);
       const modeText=root.dataset.serviceMode==='fixture'?'Synthetic fixture service':'Configured matching service';
       q('ccx-service-state').innerHTML='<strong>'+esc(modeText)+'</strong> · data '+esc(metadata.data_version)+' · model '+esc(metadata.model_version)+' · production authorized: no';
     }catch(err){
