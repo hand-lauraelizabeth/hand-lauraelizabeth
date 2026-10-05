@@ -17,7 +17,7 @@ class SchemaContractTests(unittest.TestCase):
   self.assertIn("ordering",RES["properties"]);ordering=RES["properties"]["ordering"];self.assertEqual(ordering["properties"]["production_authorized"]["type"],"boolean")
   item=RES["properties"]["results"]["items"];self.assertIn("recommendation",item["properties"]);self.assertEqual(item["properties"]["recommendation"]["properties"]["production_authorized"]["type"],"boolean")
  def test_response_requires_pagination_and_labor(self):
-  self.assertIn('pagination',RES['required']);item=RES['properties']['results']['items'];self.assertIn('labor_market',item['required']);self.assertIn('career_pathways',item['required'])
+  self.assertIn('pagination',RES['required']);self.assertIn('ordering',RES['required']);item=RES['properties']['results']['items'];self.assertIn('labor_market',item['required']);self.assertIn('career_pathways',item['required']);self.assertIn('recommendation',item['required'])
  def test_service_emits_explicit_unranked_ordering_by_default(self):
   r=match(q(),[c()],"D","M",generated_at_utc="2026-10-05T00:00:00Z");self.assertEqual(r["ordering"]["mode"],"deterministic_unranked");self.assertEqual(r["results"][0]["recommendation"]["status"],"not_ranked");self.assertFalse(r["results"][0]["recommendation"]["production_authorized"])
  def test_service_can_propagate_explicit_authorization_without_changing_default(self):
