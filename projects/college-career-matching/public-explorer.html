@@ -54,26 +54,17 @@
     #leh-ccx .ccx-compare-table th:first-child{width:145px;color:var(--muted)}
     #leh-ccx .ccx-clear{border:0;background:transparent;color:var(--green);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:8px 0}
     #leh-ccx .ccx-safety{margin-top:22px;border-left:4px solid var(--green);padding:12px 14px;background:var(--soft);font-size:14px;line-height:1.55}
+    #leh-ccx .ccx-service-state,#leh-ccx .ccx-request-state{font-size:13px;line-height:1.45;color:var(--muted);margin:8px 0 14px}
+    #leh-ccx .ccx-service-state strong{color:var(--green2)}
     @media(max-width:780px){#leh-ccx .ccx-grid{grid-template-columns:1fr}#leh-ccx .ccx-controls{position:static}#leh-ccx .ccx-reasons{grid-template-columns:1fr}}
   </style>
   <div class="ccx-wrap">
     <p class="ccx-kicker">Interactive decision-support sample</p>
     <h1>College + Career Explorer</h1>
-    <p class="ccx-lead">Start with the things that matter to you. The list responds as you change your preferences—no account, setup, download, or technical steps required.</p>
-    <p class="ccx-note"><strong>Demonstration data:</strong> the colleges and values on this page are fictional while the current public-data release is still being validated. The interaction model is real; the records are intentionally illustrative and should not be used as college advice.</p>
+    <p class="ccx-lead">Start with the things that matter to you. The interface builds the governed matcher request and renders only the response returned by the matching service—no account, download, or technical setup required.</p>
+    <p class="ccx-note"><strong>Synthetic fixture mode:</strong> this public portfolio page currently uses a static, fictional service response while the authoritative product snapshot and recommendation release remain gated. The controls build the real governed request shape, but the static fixture records do not change with that request and should not be used as college advice.</p><div class="ccx-service-state" id="ccx-service-state" role="status" aria-live="polite">Loading governed fixture service…</div><div class="ccx-request-state" id="ccx-request-state" aria-live="polite"></div>
     <div class="ccx-grid">
       <form class="ccx-controls" id="ccx-form">
-        <fieldset>
-          <label class="ccx-label" for="ccx-interest">Area of interest</label>
-          <select id="ccx-interest">
-            <option value="">Show all fields</option>
-            <option value="data">Data & technology</option>
-            <option value="business">Business</option>
-            <option value="health">Health & human services</option>
-            <option value="education">Education</option>
-            <option value="creative">Creative & communication</option>
-          </select>
-        </fieldset>
         <fieldset>
           <label class="ccx-label" for="ccx-state">School location</label>
           <select id="ccx-state">
@@ -166,44 +157,57 @@
           <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Sample</div><h3>Information Technology</h3><p class="ccx-school">Metro Public College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-meta"><span class="ccx-pill">Associate</span><span class="ccx-pill">city setting</span><span class="ccx-pill">$22,000 cost of attendance</span><span class="ccx-pill">$11,200 overall avg net price</span><span class="ccx-pill">No institutional housing</span></div><div class="ccx-reasons"><div class="ccx-reason">No soft priorities selected — showing programs that pass the filters</div></div></article>
           <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Sample</div><h3>Early Childhood Education</h3><p class="ccx-school">Garden State College · NJ</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-meta"><span class="ccx-pill">Bachelor</span><span class="ccx-pill">suburban setting</span><span class="ccx-pill">$33,000 cost of attendance</span><span class="ccx-pill">$17,600 overall avg net price</span><span class="ccx-pill">Housing available by choice</span></div><div class="ccx-reasons"><div class="ccx-reason">No soft priorities selected — showing programs that pass the filters</div></div></article>
         </div><noscript><p class="ccx-note">These example results remain readable without JavaScript. Interactive filtering and reordering require JavaScript in your browser.</p></noscript>
-        <div class="ccx-compare-panel" id="ccx-compare-panel"><h3>Compare programs</h3><p class="ccx-compare-note" id="ccx-compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="ccx-compare-table" id="ccx-compare-table"></div><button type="button" class="ccx-clear" id="ccx-clear" hidden>Clear comparison</button></div><div class="ccx-safety"><strong>How to read this:</strong> cost of attendance and average net price are shown separately. Income-band net price is a historical institutional average after grants/scholarships, not a personalized aid quote. Hard filters narrow the sample immediately. In this fictional demonstration, checked soft priorities are equally weighted and the illustrative cost/1–5 scales are not production scoring. Transit, walkability, housing, and disability-services evidence remain separate signals rather than being collapsed into a single claim that a campus is “accessible.”</div>
+        <div class="ccx-compare-panel" id="ccx-compare-panel"><h3>Compare programs</h3><p class="ccx-compare-note" id="ccx-compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="ccx-compare-table" id="ccx-compare-table"></div><button type="button" class="ccx-clear" id="ccx-clear" hidden>Clear comparison</button></div><div class="ccx-safety"><strong>How to read this:</strong> the browser does not calculate a fit score or rank. It builds a governed request and renders the service response. Any displayed rank must already be marked review-eligible by the recommendation gate, and even then it is not production authorization. Cost, transit, walkability, housing, and disability-services evidence remain separate signals.</div>
       </section>
     </div>
   </div>
-  <script>
-  (function(){
-    var root=document.getElementById('leh-ccx'); if(!root||root.dataset.ready)return; root.dataset.ready='1';
-    var data=[
-      {school:'North Harbor College',program:'Data & Information Systems',interest:'data',state:'NY',credential:'Bachelor',cost:32000,netOverall:14800,netByIncome:{'0-30':9000,'30-48':11000,'48-75':14000,'75-110':18000,'110+':22000},setting:'city',online:true,housingAvailable:true,housingRequired:false,instAid:true,workStudy:true,stateAid:true,transfer:4,career:5,size:'medium',transit:5,walk:5,disabilityInfo:true,detail:'Strong demonstration fit for a user who values applied technology pathways, transit access, and moderate cost.'},
-      {school:'Metro Public College',program:'Information Technology',interest:'data',state:'NY',credential:'Associate',cost:22000,netOverall:11200,netByIncome:{'0-30':6500,'30-48':8000,'48-75':10000,'75-110':13000,'110+':16000},setting:'city',online:true,housingAvailable:false,housingRequired:false,instAid:true,workStudy:true,stateAid:true,transfer:5,career:4,size:'large',transit:5,walk:4,disabilityInfo:true,detail:'Illustrates a lower-cost associate pathway with strong transfer evidence, commuter orientation, and several related occupations.'},
-      {school:'River State University',program:'Applied Computing',interest:'data',state:'NJ',credential:'Bachelor',cost:38000,netOverall:22100,netByIncome:{'0-30':13000,'30-48':16500,'48-75':21000,'75-110':26000,'110+':30000},setting:'suburban',online:false,housingAvailable:true,housingRequired:true,instAid:true,workStudy:true,stateAid:true,transfer:3,career:5,size:'large',transit:4,walk:3,disabilityInfo:true,detail:'Illustrates a broader computing program with several career pathways, institutionally controlled housing, and a higher average net price.'},
-      {school:'Greenbridge College',program:'Business Analytics',interest:'business',state:'NY',credential:'Bachelor',cost:54000,netOverall:26800,netByIncome:{'0-30':15000,'30-48':19000,'48-75':25000,'75-110':31000,'110+':35000},setting:'suburban',online:true,housingAvailable:true,housingRequired:false,instAid:true,workStudy:true,stateAid:false,transfer:3,career:5,size:'small',transit:3,walk:4,disabilityInfo:true,detail:'Illustrates a smaller setting combining business study with quantitative and analytics pathways and optional campus housing.'},
-      {school:'Hudson Community College',program:'Community Health',interest:'health',state:'NY',credential:'Associate',cost:19000,netOverall:9800,netByIncome:{'0-30':5000,'30-48':7000,'48-75':9000,'75-110':11500,'110+':14000},setting:'suburban',online:false,housingAvailable:false,housingRequired:false,instAid:false,workStudy:true,stateAid:true,transfer:5,career:3,size:'medium',transit:4,walk:4,disabilityInfo:true,detail:'Illustrates a low-cost commuter pathway with strong transfer support and a narrower immediate occupation set.'},
-      {school:'Pine Arts College',program:'Digital Communication',interest:'creative',state:'PA',credential:'Bachelor',cost:58000,netOverall:33400,netByIncome:{'0-30':18000,'30-48':24000,'48-75':31000,'75-110':37000,'110+':42000},setting:'town',online:true,housingAvailable:true,housingRequired:true,instAid:true,workStudy:true,stateAid:true,transfer:2,career:4,size:'small',transit:2,walk:4,disabilityInfo:false,detail:'Illustrates a small-campus creative program with digital communication pathways, on-campus housing, and limited documented disability-services evidence in this sample.'},
-      {school:'Garden State College',program:'Early Childhood Education',interest:'education',state:'NJ',credential:'Bachelor',cost:33000,netOverall:17600,netByIncome:{'0-30':9000,'30-48':12000,'48-75':16000,'75-110':20000,'110+':25000},setting:'suburban',online:true,housingAvailable:true,housingRequired:false,instAid:true,workStudy:false,stateAid:true,transfer:4,career:3,size:'small',transit:4,walk:4,disabilityInfo:true,detail:'Illustrates an education pathway with online availability, optional housing, and a smaller learning environment.'},
-      {school:'Keystone Applied College',program:'Health Information Systems',interest:'health',state:'PA',credential:'Associate',cost:25000,netOverall:13900,netByIncome:{'0-30':7200,'30-48':9500,'48-75':12500,'75-110':16000,'110+':19000},setting:'rural',online:true,housingAvailable:false,housingRequired:false,instAid:true,workStudy:false,stateAid:true,transfer:4,career:4,size:'medium',transit:2,walk:2,disabilityInfo:true,detail:'Illustrates a hybrid health-and-technology pathway with moderate career breadth in a rural, commuter-oriented setting.'}
-    ];
-    var q=function(id){return root.querySelector('#'+id)};
-    var controls=['ccx-interest','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
-    var selected=new Set();
-    var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
-    function state(){return {interest:q('ccx-interest').value,state:q('ccx-state').value,setting:q('ccx-setting').value,credential:q('ccx-credential').value,income:q('ccx-income').value,price:Number(q('ccx-price').value||0),housing:q('ccx-housing').value,online:q('ccx-online').checked,instAid:q('ccx-inst-aid').checked,workStudy:q('ccx-workstudy').checked,stateAid:q('ccx-state-aid').checked,afford:q('ccx-afford').checked,career:q('ccx-career').checked,transfer:q('ccx-transfer').checked,small:q('ccx-small').checked,transit:q('ccx-transit').checked,walk:q('ccx-walk').checked,housingChoice:q('ccx-housing-choice').checked,disabilityInfo:q('ccx-disability-info').checked}}
-    function netPrice(x,s){return s.income&&x.netByIncome[s.income]!=null?x.netByIncome[s.income]:x.netOverall}
-    function incomeLabel(v){return {'0-30':'$0–30k income','30-48':'$30–48k income','48-75':'$48–75k income','75-110':'$75–110k income','110+':'$110k+ income'}[v]||'overall average'}
-    function housingLabel(x){if(!x.housingAvailable)return 'No institutional housing';return x.housingRequired?'Housing required for all FTFT in sample':'Housing available by choice'}
-    function aidLabel(x){var a=[];if(x.instAid)a.push('institutional grants');if(x.workStudy)a.push('Federal Work-Study');if(x.stateAid)a.push('state/local grants');return a.length?a.join(', '):'no selected aid evidence'}
+  <script type="module">
+  import {MatchingServiceClient,assertContract} from './prototype/service-client.js';
+  (async function(){
+    const root=document.getElementById('leh-ccx'); if(!root||root.dataset.ready)return; root.dataset.ready='1';
+    root.dataset.serviceMode=root.dataset.serviceMode||'fixture';
+    const q=id=>root.querySelector('#'+id);
+    const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
+    const controls=['ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
+    const selected=new Set();
+    let lastResponse=null,metadata=null,refreshTimer=null;
+
+    function state(){
+      return {
+        state:q('ccx-state').value,
+        setting:q('ccx-setting').value,
+        credential:q('ccx-credential').value,
+        income:q('ccx-income').value,
+        price:q('ccx-price').value?Number(q('ccx-price').value):null,
+        housing:q('ccx-housing').value,
+        online:q('ccx-online').checked,
+        instAid:q('ccx-inst-aid').checked,
+        workStudy:q('ccx-workstudy').checked,
+        stateAid:q('ccx-state-aid').checked,
+        afford:q('ccx-afford').checked,
+        career:q('ccx-career').checked,
+        transfer:q('ccx-transfer').checked,
+        small:q('ccx-small').checked,
+        transit:q('ccx-transit').checked,
+        walk:q('ccx-walk').checked,
+        housingChoice:q('ccx-housing-choice').checked,
+        disabilityInfo:q('ccx-disability-info').checked
+      };
+    }
     function governedIncomeSelector(v){return {'0-30':'0_30','30-48':'30_48','48-75':'48_75','75-110':'75_110','110+':'110_plus'}[v]||'overall'}
     function governedSetting(v){return {'city':'City','suburban':'Suburban','town':'Town','rural':'Rural'}[v]||v}
     function buildGovernedRequest(s){
-      var constraints=[],preferences=[];
-      function hard(id,field,operator,value){constraints.push({constraint_id:id,field:field,operator:operator,value:value,unknown_policy:'keep_visible',source_question_id:id})}
-      function soft(id,dimension,enabled){if(enabled)preferences.push({preference_id:id,dimension:dimension,importance:1,priority_explicit:true,source_question_id:id})}
+      const constraints=[],preferences=[];
+      const hard=(id,field,operator,value)=>constraints.push({constraint_id:id,field,operator,value,unknown_policy:'keep_visible',source_question_id:id});
+      const soft=(id,dimension,enabled)=>{if(enabled)preferences.push({preference_id:id,dimension,importance:1,priority_explicit:true,source_question_id:id})};
       if(s.state)hard('school_states','state','eq',s.state);
       if(s.setting)hard('campus_settings','campus__locale_category','eq',governedSetting(s.setting));
       if(s.credential)hard('credential_levels','credential_level','eq',s.credential);
       if(s.price){
-        var band=governedIncomeSelector(s.income),priceFields={overall:'finance__net_price_overall','0_30':'finance__net_price_income_0_30','30_48':'finance__net_price_income_30_48','48_75':'finance__net_price_income_48_75','75_110':'finance__net_price_income_75_110','110_plus':'finance__net_price_income_110_plus'};
-        hard('net_price_ceiling',priceFields[band],'lte',s.price);
+        const band=governedIncomeSelector(s.income);
+        const fields={overall:'finance__net_price_overall','0_30':'finance__net_price_income_0_30','30_48':'finance__net_price_income_30_48','48_75':'finance__net_price_income_48_75','75_110':'finance__net_price_income_75_110','110_plus':'finance__net_price_income_110_plus'};
+        hard('net_price_ceiling',fields[band],'lte',s.price);
       }
       if(s.housing==='available')hard('housing_requirement:1','campus__housing_available','eq',true);
       if(s.housing==='choice'){hard('housing_requirement:1','campus__housing_available','eq',true);hard('housing_requirement:2','campus__housing_required_all_ftft','eq',false)}
@@ -220,75 +224,86 @@
       soft('walkability_priority','walkability_fit',s.walk);
       soft('housing_choice_priority','housing_context_fit',s.housingChoice);
       soft('disability_services_priority','accessibility_evidence_fit',s.disabilityInfo);
-      return {schema_version:'1.0',decision_mode:'broad_exploration',constraints:constraints,preferences:preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:1,page_size:20,data_version:null,model_version:null}
+      return {schema_version:'1.0',decision_mode:'broad_exploration',constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:1,page_size:100,data_version:null,model_version:null};
     }
-    function score(x,s){
-      var parts=[],reasons=[],np=netPrice(x,s);
-      if(s.afford){parts.push(Math.max(0,Math.min(100,100-((np-5000)/40000)*100)));reasons.push('Avg net price: $'+np.toLocaleString()+' ('+incomeLabel(s.income)+')')}
-      if(s.career){parts.push(x.career*20);reasons.push(x.career>=4?'Broader career pathways':'More focused career set')}
-      if(s.transfer){parts.push(x.transfer*20);reasons.push(x.transfer>=4?'Stronger transfer pathway':'Some transfer evidence')}
-      if(s.small){parts.push(x.size==='small'?100:(x.size==='medium'?60:20));reasons.push(x.size==='small'?'Smaller learning environment':(x.size==='medium'?'Mid-sized learning environment':'Larger learning environment'))}
-      if(s.transit){parts.push(x.transit*20);reasons.push(x.transit>=4?'Stronger transit access':'More limited transit access')}
-      if(s.walk){parts.push(x.walk*20);reasons.push(x.walk>=4?'More walkable daily-needs access':'More limited walkable access')}
-      if(s.housingChoice){parts.push(x.housingAvailable&&!x.housingRequired?100:(x.housingAvailable?30:20));reasons.push(x.housingAvailable&&!x.housingRequired?'Housing available without universal requirement':housingLabel(x))}
-      if(s.disabilityInfo){parts.push(x.disabilityInfo?100:0);reasons.push(x.disabilityInfo?'Disability-services information documented':'Disability-services evidence missing in sample')}
-      if(!parts.length)return {value:null,reasons:[]};
-      return {value:Math.round(parts.reduce(function(a,b){return a+b},0)/parts.length),reasons:reasons}
+
+    function rankLabel(rec){
+      if(!rec||rec.status==='not_ranked')return 'Unranked';
+      if(rec.status==='eligible_unranked')return 'Eligible · unranked';
+      if(rec.status==='review_eligible_ranked')return 'Review rank '+rec.rank;
+      return 'Unranked';
     }
-    function keyFor(x){return x.school+'|'+x.program}
+    function resultReason(x){
+      if(x.recommendation&&x.recommendation.status==='review_eligible_ranked')return 'Rank supplied by the gated recommendation service; not production authorization.';
+      if(x.eligibility&&x.eligibility.status==='eligible_with_unknown')return 'Eligible with one or more unresolved must-have evidence fields.';
+      return 'Service returned this program as eligible for the current request.';
+    }
     function renderCompare(){
-      var s=state(),chosen=data.filter(function(x){return selected.has(keyFor(x))}).slice(0,3),note=q('ccx-compare-note'),box=q('ccx-compare-table'),clear=q('ccx-clear');
-      clear.hidden=chosen.length===0;
-      if(chosen.length===0){note.textContent='Select up to three programs from the cards above. Comparison appears here automatically.';box.innerHTML='';return}
-      if(chosen.length===1){note.textContent='1 program selected. Select one more to compare side by side.';box.innerHTML='';return}
-      note.textContent=chosen.length+' programs selected. Net price uses '+incomeLabel(s.income)+'.';
-      box.innerHTML='<table><thead><tr><th scope="col">Evidence</th>'+chosen.map(function(x){return '<th scope="col">'+esc(x.program)+'<br><small>'+esc(x.school)+'</small></th>'}).join('')+'</tr></thead><tbody>'+
-        '<tr><th scope="row">Credential</th>'+chosen.map(function(x){return '<td>'+esc(x.credential)+'</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Setting</th>'+chosen.map(function(x){return '<td>'+esc(x.setting)+'</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Cost of attendance</th>'+chosen.map(function(x){return '<td>$'+x.cost.toLocaleString()+'</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Avg net price</th>'+chosen.map(function(x){return '<td>$'+netPrice(x,s).toLocaleString()+'</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Housing</th>'+chosen.map(function(x){return '<td>'+esc(housingLabel(x))+'</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Aid context</th>'+chosen.map(function(x){return '<td>'+esc(aidLabel(x))+'</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Transit access</th>'+chosen.map(function(x){return '<td>'+x.transit+' / 5</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Walkable daily needs</th>'+chosen.map(function(x){return '<td>'+x.walk+' / 5</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Disability-services info</th>'+chosen.map(function(x){return '<td>'+(x.disabilityInfo?'Documented':'Not documented in sample')+'</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Career breadth</th>'+chosen.map(function(x){return '<td>'+x.career+' / 5</td>'}).join('')+'</tr>'+
-        '<tr><th scope="row">Transfer evidence</th>'+chosen.map(function(x){return '<td>'+x.transfer+' / 5</td>'}).join('')+'</tr>'+
-        '</tbody></table>';
+      const host=q('ccx-compare-table'),note=q('ccx-compare-note'),clear=q('ccx-clear');
+      if(!lastResponse){host.innerHTML='';clear.hidden=true;return}
+      const chosen=lastResponse.results.filter(x=>selected.has(x.candidate_id));
+      if(chosen.length<2){host.innerHTML='';note.textContent='Select two or three programs from the service results.';clear.hidden=selected.size===0;return}
+      clear.hidden=false;
+      note.textContent='Side-by-side display of fields already returned by the match service; no winner is calculated in the browser.';
+      host.innerHTML='<table><tr><th>Field</th>'+chosen.map(x=>'<th>'+esc(x.program.name)+'</th>').join('')+'</tr>'+
+        '<tr><th>Institution</th>'+chosen.map(x=>'<td>'+esc(x.institution.name)+'</td>').join('')+'</tr>'+
+        '<tr><th>Eligibility</th>'+chosen.map(x=>'<td>'+esc(x.eligibility.status)+'</td>').join('')+'</tr>'+
+        '<tr><th>Recommendation</th>'+chosen.map(x=>'<td>'+esc(rankLabel(x.recommendation))+'</td>').join('')+'</tr>'+
+        '<tr><th>Evidence coverage</th>'+chosen.map(x=>'<td>'+esc(x.evidence_coverage&&x.evidence_coverage.overall_status||'not reported')+'</td>').join('')+'</tr>'+
+        '<tr><th>Career pathways</th>'+chosen.map(x=>'<td>'+esc(x.career_pathways&&x.career_pathways.pathway_count||0)+'</td>').join('')+'</tr></table>';
     }
-    function render(){
-      var s=state();
-      root.dataset.governedRequest=JSON.stringify(buildGovernedRequest(s));
-      var rows=data.filter(function(x){
-        var np=netPrice(x,s);
-        if(s.interest&&x.interest!==s.interest)return false;
-        if(s.state&&x.state!==s.state)return false;
-        if(s.setting&&x.setting!==s.setting)return false;
-        if(s.credential&&x.credential!==s.credential)return false;
-        if(s.price&&np>s.price)return false;
-        if(s.housing==='available'&&!x.housingAvailable)return false;
-        if(s.housing==='choice'&&(!x.housingAvailable||x.housingRequired))return false;
-        if(s.housing==='commuter'&&x.housingAvailable)return false;
-        if(s.online&&!x.online)return false;
-        if(s.instAid&&!x.instAid)return false;
-        if(s.workStudy&&!x.workStudy)return false;
-        if(s.stateAid&&!x.stateAid)return false;
-        return true
-      }).map(function(x){var sc=score(x,s);return {x:x,score:sc.value,reasons:sc.reasons}}).sort(function(a,b){if(a.score!=null||b.score!=null)return (b.score||0)-(a.score||0)||a.x.school.localeCompare(b.x.school);return a.x.school.localeCompare(b.x.school)||a.x.program.localeCompare(b.x.program)});
-      q('ccx-count').textContent=rows.length+' fictional '+(rows.length===1?'program':'programs')+' match these choices · net price: '+incomeLabel(s.income);
-      if(!rows.length){q('ccx-results').innerHTML='<div class="ccx-empty"><h3>No sample results match every filter.</h3><p>Try removing one hard filter or raising the average-net-price ceiling. Unknown evidence will remain visible rather than silently becoming a failed match in the production system.</p></div>';renderCompare();return}
-      q('ccx-results').innerHTML=rows.map(function(r,i){
-        var x=r.x,np=netPrice(x,s),reasons=r.reasons.length?r.reasons:['No soft priorities selected — showing programs that pass the filters'];
-        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+(r.score==null?'Explore':'Match '+(i+1))+'</div><h3>'+esc(x.program)+'</h3><p class="ccx-school">'+esc(x.school)+' · '+esc(x.state)+'</p></div><div class="ccx-score">'+(r.score==null?'Unranked':r.score+' fit')+'</div></div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.credential)+'</span><span class="ccx-pill">'+esc(x.setting)+' setting</span><span class="ccx-pill">$'+x.cost.toLocaleString()+' cost of attendance</span><span class="ccx-pill">$'+np.toLocaleString()+' avg net price</span><span class="ccx-pill">'+esc(housingLabel(x))+'</span></div><div class="ccx-reasons">'+reasons.slice(0,4).map(function(z){return '<div class="ccx-reason">'+esc(z)+'</div>'}).join('')+'</div><details><summary>Why this result appears</summary><div class="ccx-detail">'+esc(x.detail)+' Aid evidence in this fictional record: '+esc(aidLabel(x))+'. Transit access: '+x.transit+'/5; walkable daily-needs access: '+x.walk+'/5. Disability-services information is '+(x.disabilityInfo?'documented':'not documented')+' in this sample. These are separate signals, not proof of physical accessibility.</div></details><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(keyFor(x))+'"'+(selected.has(keyFor(x))?' checked':'')+'> <span>Compare</span></label></article>'
-      }).join('');
-      root.querySelectorAll('.ccx-compare-toggle input').forEach(function(el){el.addEventListener('change',function(){if(el.checked&&selected.size>=3){el.checked=false;q('ccx-compare-note').textContent='Compare up to three programs at a time.';return}if(el.checked)selected.add(el.dataset.key);else selected.delete(el.dataset.key);renderCompare()})});
+    function renderResponse(response){
+      lastResponse=response;
+      const rows=response.results||[];
+      const mode=response.ordering&&response.ordering.mode==='review_eligible_ranking'?'gated review ranking':'service order · unranked';
+      q('ccx-count').textContent=response.result_count+' service-returned program'+(response.result_count===1?'':'s')+' · '+mode;
+      q('ccx-results').innerHTML=rows.length?rows.map(x=>{
+        const rec=x.recommendation||{};
+        const score=rec.status==='review_eligible_ranked'&&rec.baseline_score!=null?'<div class="ccx-score">'+esc(rankLabel(rec))+' · '+Math.round(rec.baseline_score*100)+'/100 index</div>':'<div class="ccx-score">'+esc(rankLabel(rec))+'</div>';
+        const career=x.career_pathways&&x.career_pathways.pathway_count!=null?'<span class="ccx-pill">'+esc(x.career_pathways.pathway_count)+' career pathway'+(x.career_pathways.pathway_count===1?'':'s')+'</span>':'';
+        const coverage=x.evidence_coverage?'<span class="ccx-pill">'+esc(x.evidence_coverage.overall_status)+' evidence coverage</span>':'';
+        const selectedAttr=selected.has(x.candidate_id)?' checked':'';
+        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?'Review-eligible ranking':'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+'</div><div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: no. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></article>';
+      }).join(''):'<div class="ccx-empty"><strong>No service results returned.</strong><p>Try relaxing one or more must-have constraints.</p></div>';
+      root.querySelectorAll('.ccx-compare-toggle input').forEach(el=>el.addEventListener('change',()=>{
+        if(el.checked&&selected.size>=3){el.checked=false;q('ccx-compare-note').textContent='Compare up to three programs at a time.';return}
+        if(el.checked)selected.add(el.dataset.key);else selected.delete(el.dataset.key);renderCompare();
+      }));
       renderCompare();
     }
-    controls.forEach(function(id){var el=q(id);el.addEventListener('change',render);el.addEventListener('input',render)});
-    q('ccx-reset').addEventListener('click',function(){q('ccx-form').reset();selected.clear();render();q('ccx-interest').focus()});
-    q('ccx-clear').addEventListener('click',function(){selected.clear();render()});
-    root.getGovernedRequest=function(){return buildGovernedRequest(state())};
-    render();
+    function renderRequestState(request){
+      const suffix=root.dataset.serviceMode==='fixture'?' Static fixture records remain fixed; no browser-side filtering or ranking is performed.':' Results are requested from the configured service.';
+      q('ccx-request-state').textContent='Governed request: '+request.constraints.length+' must-have constraint'+(request.constraints.length===1?'':'s')+' · '+request.preferences.length+' explicit priorit'+(request.preferences.length===1?'y':'ies')+'.'+suffix;
+    }
+    async function refresh(){
+      const request=buildGovernedRequest(state());root.dataset.governedRequest=JSON.stringify(request);renderRequestState(request);
+      try{
+        const response=assertContract(await client.match(request),'match');
+        if(metadata&&(response.data_version!==metadata.data_version||response.model_version!==metadata.model_version))throw new Error('Service response version does not match loaded metadata');
+        renderResponse(response);
+      }catch(err){
+        q('ccx-results').innerHTML='<div class="ccx-empty"><strong>Service response unavailable.</strong><p>'+esc(err&&err.message||err)+'</p></div>';
+        q('ccx-count').textContent='No service response';
+      }
+    }
+    function scheduleRefresh(){clearTimeout(refreshTimer);refreshTimer=setTimeout(refresh,120)}
+
+    const client=new MatchingServiceClient({mode:root.dataset.serviceMode,baseUrl:root.dataset.serviceBaseUrl||'',fixtureUrl:'./prototype/contract-fixtures.json'});
+    try{
+      await client.load();
+      metadata=assertContract(await client.metadata(),'metadata');
+      const modeText=root.dataset.serviceMode==='fixture'?'Synthetic fixture service':'Configured matching service';
+      q('ccx-service-state').innerHTML='<strong>'+esc(modeText)+'</strong> · data '+esc(metadata.data_version)+' · model '+esc(metadata.model_version)+' · production authorized: no';
+    }catch(err){
+      q('ccx-service-state').textContent='Unable to initialize governed service: '+(err&&err.message||err);
+      return;
+    }
+    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',scheduleRefresh);el.addEventListener('input',scheduleRefresh)}});
+    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();refresh();q('ccx-state').focus()});
+    q('ccx-clear').addEventListener('click',()=>{selected.clear();renderCompare();renderResponse(lastResponse)});
+    root.getGovernedRequest=()=>buildGovernedRequest(state());
+    root.getLastServiceResponse=()=>lastResponse;
+    await refresh();
   })();
   </script>
 </div>
