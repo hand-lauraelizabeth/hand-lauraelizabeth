@@ -215,6 +215,16 @@
       "source": "institution_affordability_outcomes",
       "hard_constraint_allowed": true,
       "unknown_semantics": "unknown_not_false"
+    },
+    "campus__disability_services_evidence_available": {
+      "type": "boolean_evidence",
+      "operators": [
+        "eq"
+      ],
+      "source": "campus_context",
+      "hard_constraint_allowed": true,
+      "unknown_semantics": "unknown_not_false",
+      "note": "Documented disability-services reporting evidence only; not a service-quality or physical-accessibility score."
     }
   },
   "rules": [
@@ -222,6 +232,7 @@
     "Missing evidence follows the request's explicit unknown_policy and is never silently converted to a failing value.",
     "A cost ceiling must identify its governed cost concept; generic cost fields are not allowed.",
     "Income-band net-price constraints must use the corresponding governed income-band field; household size is not inferred from institution-level aggregates.",
-    "Housing availability and universal residency requirements are separate evidence fields; roommate/private-room configuration is not inferred from federal core data."
+    "Housing availability and universal residency requirements are separate evidence fields; roommate/private-room configuration is not inferred from federal core data.",
+    "Disability-services evidence availability may be filtered, but it must not be interpreted as a service-quality or physical-accessibility score."
   ]
 }
