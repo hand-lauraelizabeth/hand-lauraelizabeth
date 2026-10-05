@@ -15,6 +15,10 @@ class MatchServiceTests(unittest.TestCase):
   c=candidate("A");c["state"]="";r=match(request(),[c],"D","M");self.assertEqual(r["results"][0]["eligibility"]["status"],"eligible_with_unknown")
  def test_exclude_unknown_removes_candidate(self):
   q=request();q["constraints"][0]["unknown_policy"]="exclude_unknown";c=candidate("A");c["state"]="";self.assertEqual(match(q,[c],"D","M")["result_count"],0)
+ def test_boolean_constraint_matches_normalized_csv_text(self):
+  q=request();q["constraints"]=[{"constraint_id":"housing","field":"campus__housing_available","operator":"eq","value":True,"unknown_policy":"keep_visible"}];c=candidate("A");c["campus__housing_available"]="true";self.assertEqual(match(q,[c],"D","M")["result_count"],1);c["campus__housing_available"]="false";self.assertEqual(match(q,[c],"D","M")["result_count"],0)
+ def test_boolean_false_constraint_matches_normalized_csv_text(self):
+  q=request();q["constraints"]=[{"constraint_id":"housing_req","field":"campus__housing_required_all_ftft","operator":"eq","value":False,"unknown_policy":"keep_visible"}];c=candidate("A");c["campus__housing_required_all_ftft"]="false";self.assertEqual(match(q,[c],"D","M")["result_count"],1)
  def test_skipped_preferences_need_no_placeholder(self):q=request();q["preferences"]=[];validate_request(q);self.assertEqual(match(q,[candidate("A")],"D","M")["result_count"],1)
  def test_transfer_mode_does_not_create_transfer_claim(self):
   q=request("transfer");q["transfer_context"]={"source_institution_id":"FIC-SOURCE","source_system":"synthetic","completed_course_ids":[],"target_program_required":False};self.assertIsNone(match(q,[candidate("A")],"D","M")["results"][0]["transfer"])
