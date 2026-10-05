@@ -22,4 +22,10 @@ class GateTests(unittest.TestCase):
   m=manifest();m["source_vintages"]={};c=evaluate([row()],m,{"required_source_vintages":["IPEDS"]});self.assertEqual(status(c,"vintage_IPEDS"),"FAIL")
  def test_manifest_count_mismatch_blocks(self):
   self.assertEqual(status(evaluate([row()],manifest(99),{}),"manifest_candidate_count"),"FAIL")
+ def test_output_hash_match_passes(self):
+  h="b"*64;m=manifest();m["output_sha256"]=h;c=evaluate([row()],m,{},snapshot_sha256=h);self.assertEqual(status(c,"output_hash_present"),"PASS");self.assertEqual(status(c,"output_hash_matches_snapshot"),"PASS")
+ def test_output_hash_mismatch_blocks(self):
+  m=manifest();m["output_sha256"]="b"*64;c=evaluate([row()],m,{},snapshot_sha256="c"*64);self.assertEqual(status(c,"output_hash_matches_snapshot"),"FAIL")
+ def test_missing_output_hash_blocks_when_snapshot_hash_available(self):
+  c=evaluate([row()],manifest(),{},snapshot_sha256="c"*64);self.assertEqual(status(c,"output_hash_present"),"FAIL");self.assertEqual(status(c,"output_hash_matches_snapshot"),"FAIL")
 if __name__=="__main__":unittest.main()
