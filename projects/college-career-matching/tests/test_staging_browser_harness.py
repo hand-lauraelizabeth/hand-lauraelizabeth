@@ -11,7 +11,7 @@ class StagingBrowserHarnessTests(unittest.TestCase):
    out=Path(d)/"staging-browser.html";r=build_harness(out,18865);html=out.read_text(encoding="utf-8")
    self.assertEqual(r["runtime"]["mode"],"staging");self.assertFalse(r["runtime"]["production_authorized"])
    self.assertIn("Synthetic Staging Harness",html);self.assertIn('name="robots" content="noindex,nofollow"',html)
-   self.assertIn('"mode":"staging"',html);self.assertIn("MatchingServiceClient",html);self.assertIn("client.match(request)",html)
+   self.assertIn('"mode":"staging"',html);self.assertIn("MatchingServiceClient",html);self.assertIn("client.match(request,{signal})",html)
    self.assertIn("Synthetic staging mode:",html);self.assertIn("production authorized",html.lower())
  def test_harness_pins_generated_snapshot_hash(self):
   with tempfile.TemporaryDirectory() as d:
