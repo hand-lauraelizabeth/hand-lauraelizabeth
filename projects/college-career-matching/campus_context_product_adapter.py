@@ -73,7 +73,7 @@ def normalize(rows):
   elif housing=="true" and required=="false":record["housing_choice_state"]="choice_available"
   elif housing=="true" and required=="true":record["housing_choice_state"]="required_for_all_ftft"
   else:record["housing_choice_state"]="unknown"
-  record["disability_services_evidence_available"]="true" if record["disability_services_registered_share__state"]=="observed" else "false"
+  record["disability_services_evidence_available"]="true" if record["disability_services_registered_share__state"]=="observed" else ""
   out.append(record)
  return out
 
