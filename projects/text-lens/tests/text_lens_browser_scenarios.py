@@ -30,8 +30,19 @@ def run():
    a=Path(td)/"alpha.txt";b=Path(td)/"beta.txt"
    a.write_text("alpha evidence alpha method corpus reference evidence method "*12,encoding="utf-8")
    b.write_text("beta archive beta document corpus comparison archive document "*12,encoding="utf-8")
-   driver.find_element(By.ID,"fileA").send_keys(str(a)+"\n"+str(b))
-   wait.until(lambda d:"alpha.txt" in d.find_element(By.ID,"docManagerRows").text and "beta.txt" in d.find_element(By.ID,"docManagerRows").text)
+   upload=driver.find_element(By.ID,"fileA")
+   # Chrome accepts newline-separated absolute paths for a multiple file input.
+   upload.send_keys(str(a.resolve())+"\n"+str(b.resolve()))
+   try:
+    wait.until(lambda d:"alpha.txt" in d.find_element(By.ID,"docManagerRows").text and "beta.txt" in d.find_element(By.ID,"docManagerRows").text)
+   except Exception as e:
+    status=driver.find_element(By.ID,"status").text
+    meta=driver.find_element(By.ID,"fileMetaA").text
+    manager=driver.find_element(By.ID,"docManagerRows").text
+    logs=[]
+    try:logs=driver.get_log("browser")
+    except Exception:pass
+    raise AssertionError(f"local file load did not render documents; status={status!r}; meta={meta!r}; manager={manager!r}; browser_logs={logs!r}") from e
    manager=driver.find_element(By.ID,"docManagerRows").text
    assert "Text A" in manager and "2 documents" in manager
    assert len(driver.find_elements(By.CSS_SELECTOR,"input[data-refcheck]"))==2
