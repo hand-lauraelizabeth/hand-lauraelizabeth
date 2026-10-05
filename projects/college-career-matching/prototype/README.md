@@ -21,6 +21,10 @@ Open the local address printed by the server.
 5. Select 2–5 programs for side-by-side comparison.
 6. Return to answers and revise priorities/constraints.
 
+## Service metadata
+
+The prototype now loads the governed `/metadata` contract before `/options`. It verifies that both responses describe the same data version and displays the data/model versions plus the explicit non-production authorization state. Review eligibility is therefore not silently rendered as deployment approval.
+
 ## Guardrails represented in the prototype
 
 - institution × program is the candidate grain;
@@ -33,4 +37,4 @@ Open the local address printed by the server.
 
 ## Production boundary
 
-The browser prototype currently uses `fixtures.json` only. Production activation should replace fixture access with the governed `/options`, `/match`, candidate-detail, and `/compare` service contracts after a current product snapshot passes its release gate. The browser should remain a renderer/interactor and must not independently reinterpret model semantics.
+The browser prototype currently uses synthetic contract fixtures only. Production activation should replace fixture access with the governed `/metadata`, `/options`, `/match`, candidate-detail, and `/compare` service contracts after a current product snapshot passes its release gate. The browser should remain a renderer/interactor and must not independently reinterpret model semantics.
