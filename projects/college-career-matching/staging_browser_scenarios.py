@@ -98,11 +98,12 @@ def run():
 
    # Compare two displayed programs; browser must present service fields without winner logic.
    boxes=wait.until(lambda d:d.find_elements(By.CSS_SELECTOR,".ccx-compare-toggle input"))
-   assert len(boxes)>=2
+   names=[x.text for x in driver.find_elements(By.CSS_SELECTOR,".ccx-card h3")]
+   assert len(boxes)>=2 and len(names)==len(boxes)
    boxes[0].click();boxes[1].click()
    text_has(driver,"#ccx-compare-note","no winner is calculated in the browser")
    table=driver.find_element(By.ID,"ccx-compare-table").text
-   assert "Data & Information Systems" in table and "Information Technology" in table
+   assert names[0] in table and names[1] in table
    assert "Institution" in table and "Recommendation" in table
 
    # Clear comparison leaves results intact.
