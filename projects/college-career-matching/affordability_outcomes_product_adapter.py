@@ -26,8 +26,9 @@ def normalize(rows,grain):
  measures=INST_MEASURES if grain=="institution" else FIELD_MEASURES;keys=["UNITID"] if grain=="institution" else ["UNITID","cip_code","credential_level"];unique(rows,keys,grain);registry=load_registry();out=[]
  for r in rows:
   x={k:clean(r.get(k)) for k in keys};x["evidence_grain"]=grain
+  default_source_id=clean(r.get("source_id"));default_vintage=clean(r.get("source_vintage"))
   for m in measures:
-   x[m]=clean(r.get(m));x[f"{m}__state"]=evidence_state(m,r,registry)
+   x[m]=clean(r.get(m));x[f"{m}__state"]=evidence_state(m,r,registry);x[f"{m}__source_id"]=clean(r.get(f"{m}__source_id")) or default_source_id;x[f"{m}__source_vintage"]=clean(r.get(f"{m}__source_vintage")) or default_vintage
   if grain=="institution":
    for measure,prefix in [("institutional_grant_share","institutional_grant"),("work_study_share","work_study"),("state_local_grant_share","state_local_grant")]:
     x[f"{prefix}_evidence"]="true" if x[f"{measure}__state"]=="observed" else "false"
