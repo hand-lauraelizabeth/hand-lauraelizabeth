@@ -32,7 +32,7 @@ def build(base,accreditation=None,finance=None,campus_context=None,program_outco
  for i,r in enumerate(base):
   miss=BASE_REQUIRED-set(r)
   if miss:raise ValueError(f"base row {i} missing columns: {sorted(miss)}")
- baseidx=index(base,["UNITID","program_id"],"base");base_units={k[0] for k in baseidx};registry=registry or load_registry();enrich={"accreditation":accreditation or [],"finance_outcomes":finance or [],"program_outcomes":program_outcomes or [],"transfer":transfer or [],"career_pathways":career or []};validate_all(enrich,registry)
+ baseidx=index(base,["UNITID","program_id"],"base");base_units={k[0] for k in baseidx};registry=registry or load_registry();enrich={"accreditation":accreditation or [],"finance_outcomes":finance or [],"campus_context":campus_context or [],"program_outcomes":program_outcomes or [],"transfer":transfer or [],"career_pathways":career or []};validate_all(enrich,registry)
  indexes={name:index(rows,spec["join_grain"],name) for name,rows in enrich.items() for spec in [registry["families"][name]]}
  for name,spec in registry["families"].items():
   valid=base_units if spec["join_grain"]==["UNITID"] else set(baseidx);orphans=sorted(k for k in indexes[name] if k[0] not in base_units or (spec["join_grain"]!=["UNITID"] and k not in valid))
