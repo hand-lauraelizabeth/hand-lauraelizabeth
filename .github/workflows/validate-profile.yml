@@ -56,6 +56,8 @@ jobs:
         run: python scripts/test_college_career_ingestion.py
       - name: Run College Career synthetic regression suite
         run: python projects/college-career-matching/tests/run_synthetic_regression_suite.py
+      - name: Run synthetic staging HTTP smoke test
+        run: python projects/college-career-matching/staging_http_smoke.py
       - name: Live CIP-SOC ingestion smoke test
         if: contains(github.event.head_commit.message, '[live-source-smoke]')
         run: python scripts/college_career_ingest.py --source cip_soc_crosswalk_2020_2018 --output-dir "${{ runner.temp }}/college-career-smoke"
