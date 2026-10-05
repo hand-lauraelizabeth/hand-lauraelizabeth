@@ -8,6 +8,18 @@ The eventual tool should let a person move from goals and constraints to a manag
 
 The interactive product is therefore not a dashboard placed on top of a ranking table. It is a stateful decision-support workflow built around the existing candidate, evidence, constraint, preference, validation, and explanation contracts.
 
+## Public interaction principle
+
+The primary public experience must be a normal browser page that is useful immediately on arrival. It must not require a local environment, notebook, terminal, download, account, sign-in, or a separate "run" action before a visitor can begin.
+
+- Show meaningful results or examples on first render.
+- Expose a small set of understandable preference controls immediately; update results in place as choices change.
+- Treat longer questionnaires, advanced weighting, comparison, and source inspection as optional progressive disclosure rather than prerequisites.
+- Prefer progressive enhancement: the page should retain readable explanatory/example content if JavaScript is unavailable, while JavaScript adds filtering, reordering, comparison, and richer explanations.
+- Keep hard constraints visually distinct from softer priorities, but do not force visitors through a multi-step wizard to reach results.
+- Preserve anonymous basic use. Persistence/accounts remain optional future capabilities.
+- A public demonstration must use clearly fictional or validated public data and must not imply that review-eligible model artifacts are production-authorized.
+
 ## End-to-end product flow
 
 ### 1. Start with the user's decision
