@@ -22,6 +22,23 @@ def valid_iso(v):
   return x.tzinfo is not None
  except Exception:return False
 
+def valid_sha256(v):
+ s=clean(v)
+ return len(s)==64 and all(ch in "0123456789abcdefABCDEF" for ch in s)
+
+def validate_activation_record(record,data_version=None,model_version=None,snapshot_sha256=None):
+ if record.get("schema_version")!="1.0":raise ValueError("activation record schema_version must be 1.0")
+ if record.get("production_authorized") is not True or clean(record.get("activation_state"))!="PRODUCTION_SERVICE_AUTHORIZED":raise ValueError("activation record does not authorize production service")
+ for key in ("snapshot_sha256","activation_bundle_sha256"):
+  if not valid_sha256(record.get(key)):raise ValueError(f"activation record {key} must be a valid SHA-256")
+ if not clean(record.get("approved_by")):raise ValueError("activation record approved_by must be nonblank")
+ if not valid_iso(record.get("approved_at_utc")):raise ValueError("activation record approved_at_utc must be timezone-aware ISO 8601")
+ if not valid_iso(record.get("recorded_at_utc")):raise ValueError("activation record recorded_at_utc must be timezone-aware ISO 8601")
+ if data_version is not None and clean(record.get("data_version"))!=clean(data_version):raise ValueError("activation record data_version mismatch")
+ if model_version is not None and clean(record.get("model_version"))!=clean(model_version):raise ValueError("activation record model_version mismatch")
+ if snapshot_sha256 is not None and clean(record.get("snapshot_sha256")).lower()!=clean(snapshot_sha256).lower():raise ValueError("activation record snapshot_sha256 mismatch")
+ return record
+
 def authorize(bundle,decision):
  if bundle.get("production_authorized") is not False:
   raise ValueError("activation-review bundle must not already claim production authorization")
