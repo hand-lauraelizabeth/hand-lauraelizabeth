@@ -38,7 +38,7 @@ def run(port=18765):
    assert health["production_authorized"] is False and health["candidate_count"]==3
    status,_,metadata=request(base,"/metadata");assert status==200 and metadata["production_authorized"] is False and metadata["data_version"]=="synthetic-http-staging-1"
    status,_,options=request(base,"/options");assert status==200 and options["options"]["counts"]["institution_programs"]==3
-   match_body={"schema_version":"1.0","hard_constraints":[],"soft_priorities":[],"context":{"intended_work_market":None}}
+   match_body={"schema_version":"1.0","decision_mode":"broad_exploration","constraints":[],"preferences":[],"career_preferences":[],"page":1,"page_size":20}
    status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==3 and matched["ordering"]["production_authorized"] is False
    status,_,candidate=request(base,"/candidate/SYN001%3AP1");assert status==200 and candidate["candidate_id"]=="SYN001:P1"
    status,_,comparison=request(base,"/compare","POST",{"candidate_ids":["SYN001:P1","SYN002:P2"]});assert status==200 and comparison["candidate_ids"]==["SYN001:P1","SYN002:P2"]
