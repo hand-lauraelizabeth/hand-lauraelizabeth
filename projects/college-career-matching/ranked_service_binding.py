@@ -41,7 +41,7 @@ def build(request,candidates,ranked,review_summary,data_version,model_version):
    "eligible_candidate_count":len(eligible),
    "ranked_candidate_count":len(parsed),
   },
-  "rankings":[parsed[cid] for cid in sorted(parsed,key=lambda x:(parsed[x]["rank"],x))],
+  "rankings":sorted(parsed,key=lambda r:(r["rank"],r["candidate_id"])),
   "semantic_rules":[
    "page and page_size are transport controls and are excluded from ranking_context_id; all decision semantics remain bound.",
    "A change to constraints, preferences, career preferences, geography, data_version, model_version, or eligible candidate universe invalidates this bundle.",
