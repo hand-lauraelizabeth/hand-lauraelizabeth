@@ -29,10 +29,14 @@ def prefixed_merge(base,enrichment,prefix,skip):
  return out
 def build(base,accreditation=None,finance=None,program_outcomes=None,transfer=None,career=None,registry=None):
  if not base:raise ValueError("base snapshot is empty")
- miss=BASE_REQUIRED-set(base[0])
- if miss:raise ValueError(f"base missing columns: {sorted(miss)}")
- baseidx=index(base,["UNITID","program_id"],"base");registry=registry or load_registry();enrich={"accreditation":accreditation or [],"finance_outcomes":finance or [],"program_outcomes":program_outcomes or [],"transfer":transfer or [],"career_pathways":career or []};validate_all(enrich,registry)
+ for i,r in enumerate(base):
+  miss=BASE_REQUIRED-set(r)
+  if miss:raise ValueError(f"base row {i} missing columns: {sorted(miss)}")
+ baseidx=index(base,["UNITID","program_id"],"base");base_units={k[0] for k in baseidx};registry=registry or load_registry();enrich={"accreditation":accreditation or [],"finance_outcomes":finance or [],"program_outcomes":program_outcomes or [],"transfer":transfer or [],"career_pathways":career or []};validate_all(enrich,registry)
  indexes={name:index(rows,spec["join_grain"],name) for name,rows in enrich.items() for spec in [registry["families"][name]]}
+ for name,spec in registry["families"].items():
+  valid=base_units if spec["join_grain"]==["UNITID"] else set(baseidx);orphans=sorted(k for k in indexes[name] if k[0] not in base_units or (spec["join_grain"]!=["UNITID"] and k not in valid))
+  if orphans:raise ValueError(f"{name}: orphan enrichment identities: {orphans[:10]}"+(" ..." if len(orphans)>10 else ""))
  rows=[]
  for key,b in baseidx.items():
   uid,pid=key;r=dict(b);r["candidate_id"]=f"{uid}:{pid}"
@@ -42,11 +46,11 @@ def build(base,accreditation=None,finance=None,program_outcomes=None,transfer=No
   rows.append(r)
  rows.sort(key=lambda r:(clean(r["institution_name"]).casefold(),clean(r["program_name"]).casefold(),r["candidate_id"]));return rows
 def main():
- ap=argparse.ArgumentParser();ap.add_argument("--base",type=Path,required=True);ap.add_argument("--accreditation",type=Path);ap.add_argument("--finance",type=Path);ap.add_argument("--program-outcomes",type=Path);ap.add_argument("--transfer",type=Path);ap.add_argument("--career",type=Path);ap.add_argument("--data-version",required=True);ap.add_argument("--out-dir",type=Path,required=True);a=ap.parse_args();inputs={"base":a.base,"accreditation":a.accreditation,"finance_outcomes":a.finance,"program_outcomes":a.program_outcomes,"transfer":a.transfer,"career_pathways":a.career};loaded={k:(read_csv(v) if v else []) for k,v in inputs.items()};registry=load_registry();rows=build(loaded["base"],loaded["accreditation"],loaded["finance_outcomes"],loaded["program_outcomes"],loaded["transfer"],loaded["career_pathways"],registry);a.out_dir.mkdir(parents=True,exist_ok=True)
+ ap=argparse.ArgumentParser();ap.add_argument("--base",type=Path,required=True);ap.add_argument("--accreditation",type=Path);ap.add_argument("--finance",type=Path);ap.add_argument("--program-outcomes",type=Path);ap.add_argument("--transfer",type=Path);ap.add_argument("--career",type=Path);ap.add_argument("--data-version",required=True);ap.add_argument("--out-dir",type=Path,required=True);a=ap.parse_args();inputs={"base":a.base,"accreditation":a.accreditation,"finance_outcomes":a.finance,"program_outcomes":a.program_outcomes,"transfer":a.transfer,"career_pathways":a.career};loaded={k:(read_csv(v) if v else []) for k,v in inputs.items()};registry=load_registry();rows=build(loaded["base"],loaded["accreditation"],loaded["finance_outcomes"],loaded["program_outcomes"],loaded["transfer"],loaded["career_pathways"],registry);a.out_dir.mkdir(parents=True,exist_ok=True);snapshot_path=a.out_dir/"institution_program_product_snapshot.csv"
  cols=[]
  for r in rows:
   for k in r:
    if k not in cols:cols.append(k)
- with (a.out_dir/"institution_program_product_snapshot.csv").open("w",newline="",encoding="utf-8") as f:w=csv.DictWriter(f,fieldnames=cols);w.writeheader();w.writerows(rows)
- manifest={"schema_version":"1.2","data_version":a.data_version,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"candidate_grain":"UNITID x program_id","candidate_count":len(rows),"institution_count":len({r['UNITID'] for r in rows}),"enrichment_registry_version":registry["schema_version"],"input_sha256":{k:sha(v) for k,v in inputs.items() if v},"coverage":{name:sum(r[spec['coverage_field']]=='1' for r in rows) for name,spec in registry["families"].items()},"rule":"All enrichments are registry-governed. Missing optional evidence is coverage state, not negative evidence."};(a.out_dir/"institution_program_product_snapshot_manifest.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
+ with snapshot_path.open("w",newline="",encoding="utf-8") as f:w=csv.DictWriter(f,fieldnames=cols);w.writeheader();w.writerows(rows)
+ manifest={"schema_version":"1.3","data_version":a.data_version,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"candidate_grain":"UNITID x program_id","candidate_count":len(rows),"institution_count":len({r['UNITID'] for r in rows}),"enrichment_registry_version":registry["schema_version"],"input_sha256":{k:sha(v) for k,v in inputs.items() if v},"output_sha256":sha(snapshot_path),"coverage":{name:sum(r[spec['coverage_field']]=='1' for r in rows) for name,spec in registry["families"].items()},"rule":"All enrichments are registry-governed; orphan identities fail closed; missing optional evidence is coverage state, not negative evidence."};(a.out_dir/"institution_program_product_snapshot_manifest.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
 if __name__=="__main__":main()
