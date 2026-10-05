@@ -89,7 +89,7 @@ def run():
    boxes=wait.until(lambda d:d.find_elements(By.CSS_SELECTOR,".ccx-compare-toggle input"));assert len(boxes)==4
    for box in boxes[:3]:js_click(driver,box)
    text_has(driver,"#ccx-compare-note","no winner is calculated in the browser")
-   assert len(driver.find_elements(By.CSS_SELECTOR,"#ccx-compare-table th"))==4  # Field + 3 programs
+   assert len(driver.find_elements(By.CSS_SELECTOR,"#ccx-compare-table tr:first-child th"))==4  # Field + 3 programs
    js_click(driver,boxes[3])
    text_has(driver,"#ccx-compare-note","Compare up to three programs at a time.")
    assert not boxes[3].is_selected()
