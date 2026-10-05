@@ -27,7 +27,7 @@ def prefixed_merge(base,enrichment,prefix,skip):
  for k,v in enrichment.items():
   if k not in skip:out[f"{prefix}{k}"]=v
  return out
-def build(base,accreditation=None,finance=None,program_outcomes=None,transfer=None,career=None,registry=None):
+def build(base,accreditation=None,finance=None,campus_context=None,program_outcomes=None,transfer=None,career=None,registry=None):
  if not base:raise ValueError("base snapshot is empty")
  for i,r in enumerate(base):
   miss=BASE_REQUIRED-set(r)
@@ -46,7 +46,7 @@ def build(base,accreditation=None,finance=None,program_outcomes=None,transfer=No
   rows.append(r)
  rows.sort(key=lambda r:(clean(r["institution_name"]).casefold(),clean(r["program_name"]).casefold(),r["candidate_id"]));return rows
 def main():
- ap=argparse.ArgumentParser();ap.add_argument("--base",type=Path,required=True);ap.add_argument("--accreditation",type=Path);ap.add_argument("--finance",type=Path);ap.add_argument("--program-outcomes",type=Path);ap.add_argument("--transfer",type=Path);ap.add_argument("--career",type=Path);ap.add_argument("--data-version",required=True);ap.add_argument("--out-dir",type=Path,required=True);a=ap.parse_args();inputs={"base":a.base,"accreditation":a.accreditation,"finance_outcomes":a.finance,"program_outcomes":a.program_outcomes,"transfer":a.transfer,"career_pathways":a.career};loaded={k:(read_csv(v) if v else []) for k,v in inputs.items()};registry=load_registry();rows=build(loaded["base"],loaded["accreditation"],loaded["finance_outcomes"],loaded["program_outcomes"],loaded["transfer"],loaded["career_pathways"],registry);a.out_dir.mkdir(parents=True,exist_ok=True);snapshot_path=a.out_dir/"institution_program_product_snapshot.csv"
+ ap=argparse.ArgumentParser();ap.add_argument("--base",type=Path,required=True);ap.add_argument("--accreditation",type=Path);ap.add_argument("--finance",type=Path);ap.add_argument("--campus-context",type=Path);ap.add_argument("--program-outcomes",type=Path);ap.add_argument("--transfer",type=Path);ap.add_argument("--career",type=Path);ap.add_argument("--data-version",required=True);ap.add_argument("--out-dir",type=Path,required=True);a=ap.parse_args();inputs={"base":a.base,"accreditation":a.accreditation,"finance_outcomes":a.finance,"campus_context":a.campus_context,"program_outcomes":a.program_outcomes,"transfer":a.transfer,"career_pathways":a.career};loaded={k:(read_csv(v) if v else []) for k,v in inputs.items()};registry=load_registry();rows=build(loaded["base"],loaded["accreditation"],loaded["finance_outcomes"],loaded["campus_context"],loaded["program_outcomes"],loaded["transfer"],loaded["career_pathways"],registry);a.out_dir.mkdir(parents=True,exist_ok=True);snapshot_path=a.out_dir/"institution_program_product_snapshot.csv"
  cols=[]
  for r in rows:
   for k in r:
