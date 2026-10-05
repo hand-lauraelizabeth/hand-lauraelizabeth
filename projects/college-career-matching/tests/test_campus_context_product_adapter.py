@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys,unittest
 from pathlib import Path
 PROJECT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(PROJECT))
-from campus_context_product_adapter import normalize,income_band_field
+from campus_context_product_adapter import normalize
 
 class CampusContextTests(unittest.TestCase):
  def test_locale_preserves_detail_and_derives_setting(self):
@@ -20,9 +20,9 @@ class CampusContextTests(unittest.TestCase):
  def test_housing_choice_requires_distinct_requirement_field(self):
   r=normalize([{"UNITID":"1","housing_available":"true","housing_required_all_ftft":"false"}])[0]
   self.assertEqual(r["housing_choice_state"],"choice_available")
- def test_income_band_net_prices_remain_distinct(self):
-  r=normalize([{"UNITID":"1","net_price_income_0_30k":"7000","net_price_income_110k_plus":"21000"}])[0]
-  self.assertEqual(r[income_band_field("0_30k")],"7000");self.assertEqual(r[income_band_field("110k_plus")],"21000")
+ def test_finance_fields_do_not_enter_campus_context(self):
+  r=normalize([{"UNITID":"1","net_price_income_0_30":"7000","institutional_grant_share":"0.5"}])[0]
+  self.assertNotIn("net_price_income_0_30",r);self.assertNotIn("institutional_grant_share",r)
  def test_provenance_is_preserved_per_field(self):
   r=normalize([{"UNITID":"1","walkability_index":"12.4","walkability_index__source_id":"epa_sld_v3","walkability_index__source_vintage":"2021"}])[0]
   self.assertEqual(r["walkability_index__source_id"],"epa_sld_v3");self.assertEqual(r["walkability_index__source_vintage"],"2021")
