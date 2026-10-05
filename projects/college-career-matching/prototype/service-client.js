@@ -2,13 +2,13 @@
 export class MatchingServiceClient {
   constructor({mode='fixture',baseUrl='',fixtureUrl='contract-fixtures.json',runtimeConfig=null}={}){this.mode=mode;this.baseUrl=baseUrl;this.fixtureUrl=fixtureUrl;this.runtimeConfig=runtimeConfig;this.fixtures=null}
   async load(){if(this.mode==='fixture')this.fixtures=await fetch(this.fixtureUrl).then(r=>{if(!r.ok)throw new Error('Unable to load contract fixtures');return r.json()});return this}
-  async call(name,{method='GET',body=null,path='' }={}){
+  async call(name,{method='GET',body=null,path='',signal=null}={}){
     if(this.mode==='fixture'){const v=this.fixtures?.[name];if(v===undefined)throw new Error(`Missing fixture response: ${name}`);return structuredClone(v)}
-    const r=await fetch(`${this.baseUrl}${path}`,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):null});if(!r.ok)throw new Error(`${name} failed: ${r.status}`);return r.json()
+    const r=await fetch(`${this.baseUrl}${path}`,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):null,signal});if(!r.ok)throw new Error(`${name} failed: ${r.status}`);return r.json()
   }
   metadata(){return this.call('metadata',{path:'/metadata'})}
   options(){return this.call('options',{path:'/options'})}
-  match(request){return this.call('match',{method:'POST',path:'/match',body:request})}
+  match(request,{signal=null}={}){return this.call('match',{method:'POST',path:'/match',body:request,signal})}
   candidate(id){return this.call(`candidate:${id}`,{path:`/candidate/${encodeURIComponent(id)}`})}
   compare(candidateIds,context={}){return this.call('compare',{method:'POST',path:'/compare',body:{schema_version:'1.0',candidate_ids:candidateIds,...context}})}
 }
