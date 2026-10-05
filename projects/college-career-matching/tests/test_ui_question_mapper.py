@@ -34,6 +34,8 @@ class MapperTests(unittest.TestCase):
   r=map_answers(DEFS,{"decision_mode":"broad_exploration","housing_requirement":"choice"});self.assertEqual(len(r["constraints"]),2);self.assertEqual({x["field"] for x in r["constraints"]},{"campus__housing_available","campus__housing_required_all_ftft"});self.assertEqual({x["value"] for x in r["constraints"]},{True,False})
  def test_aid_and_disability_requirements_are_evidence_filters(self):
   r=map_answers(DEFS,{"decision_mode":"broad_exploration","institutional_aid_required":"required","work_study_required":"required","state_local_aid_required":"required","disability_services_evidence_required":"required"});self.assertEqual({x["field"] for x in r["constraints"]},{"finance__institutional_grant_evidence","finance__work_study_evidence","finance__state_local_grant_evidence","campus__disability_services_evidence_available"})
+ def test_campus_context_soft_priorities_remain_independent(self):
+  r=map_answers(DEFS,{"decision_mode":"broad_exploration","transit_access_priority":4,"walkability_priority":3,"housing_choice_priority":2,"disability_services_priority":5});dims={x["dimension"] for x in r["preferences"]};self.assertEqual(dims,{"transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit"});self.assertTrue(all(x["priority_explicit"] for x in r["preferences"]));validate_request(r)
  def test_active_options_reject_stale_state(self):
   with self.assertRaises(ValueError):map_answers(DEFS,{"decision_mode":"broad_exploration","school_states":["ZZ"]},OPTIONS)
  def test_options_version_propagates(self):self.assertEqual(map_answers(DEFS,{"decision_mode":"broad_exploration"},OPTIONS)["data_version"],"D1")
