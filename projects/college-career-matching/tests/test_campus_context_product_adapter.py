@@ -26,6 +26,8 @@ class CampusContextTests(unittest.TestCase):
  def test_documented_disability_services_evidence_is_not_quality_score(self):
   r=normalize([{"UNITID":"1","disability_services_registered_share":"0.08"}])[0]
   self.assertEqual(r["disability_services_evidence_available"],"true")
+ def test_missing_disability_services_evidence_stays_unknown(self):
+  r=normalize([{"UNITID":"1","disability_services_registered_share":""}])[0];self.assertEqual(r["disability_services_evidence_available"],"")
  def test_source_missing_state_does_not_become_observed(self):
   r=normalize([{"UNITID":"1","transit_stop_distance_m":"","transit_stop_distance_m__state":"not_published"}])[0]
   self.assertEqual(r["transit_stop_distance_m__state"],"not_published")
