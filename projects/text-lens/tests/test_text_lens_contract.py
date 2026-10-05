@@ -46,6 +46,8 @@ class TextLensContractTests(unittest.TestCase):
   m=re.search(r"function docDescriptor\(doc,source,order\)\{return\{([^}]*)\}\}",HTML)
   self.assertIsNotNone(m);self.assertNotIn("text",m.group(1).lower());self.assertIn("name:doc.name",m.group(1));self.assertIn("size:Number(doc.size||0)",m.group(1))
   self.assertIn("contains_source_text:false",HTML);self.assertIn("Corpus setup must not contain source text or content fields",HTML)
+ def test_browser_global_names_are_not_shadowed(self):
+  self.assertNotIn("function top(",HTML);self.assertIn("function topEntries(",HTML)
  def test_javascript_syntax(self):
   node=shutil.which("node");self.assertIsNotNone(node,"Node.js is required for Text Lens syntax validation")
   parts=re.findall(r"<script>(.*?)</script>",HTML,re.S);self.assertEqual(len(parts),1)
