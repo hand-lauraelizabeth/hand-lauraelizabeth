@@ -303,3 +303,7 @@ python projects/college-career-matching/staging_browser_harness.py --build-only
 ```
 
 Staging mode is intentionally distinct from production. Loopback HTTP is permitted for local staging; a non-loopback staging service must use HTTPS. No staging result can satisfy the production runtime contract or substitute for a production activation record.
+
+### Browser edge-state gate
+
+CI also runs `staging_browser_edge_scenarios.py` against the loopback staging service. This deliberately exercises zero-result requests, unresolved must-have evidence, the three-program comparison cap, runtime service loss, and mismatched pinned metadata. The expected behavior is fail-closed: stale results/comparisons are cleared after a request failure, unresolved evidence remains visibly unknown rather than false, and an invalid service identity disables the matcher rather than allowing interaction.
