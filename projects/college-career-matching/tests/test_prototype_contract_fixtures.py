@@ -10,6 +10,9 @@ class PrototypeContractTests(unittest.TestCase):
  def test_core_responses_are_v1(self):
   for k in ['metadata','options','match','compare']:self.assertEqual(F[k]['schema_version'],'1.0')
  def test_metadata_options_and_match_share_data_version(self):self.assertEqual(F['metadata']['data_version'],F['options']['data_version']);self.assertEqual(F['options']['data_version'],F['match']['data_version'])
+ def test_fixture_options_use_active_snapshot_contract_shape(self):
+  o=F["options"]["options"];self.assertEqual(o["data_version"],F["options"]["data_version"]);self.assertEqual(o["counts"]["cip_codes"],3)
+  self.assertEqual({x["value"] for x in o["cip_fields"]},{"11.0101","11.0103","11.0199"});self.assertIn("cip_code",F["options"]["constraint_capabilities"]["fields"])
  def test_metadata_does_not_claim_production_authorization(self):self.assertFalse(F['metadata']['production_authorized']);self.assertTrue(F['metadata']['semantic_rules']['review_eligibility_is_not_production_authorization'])
  def test_match_results_have_unique_candidate_ids(self):
   ids=[x['candidate_id'] for x in F['match']['results']];self.assertEqual(len(ids),len(set(ids)))
