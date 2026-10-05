@@ -24,7 +24,7 @@ class CampusSourceBridgeTests(unittest.TestCase):
   rows,qa=build([{"UNITID":"1","locale_code":"21"}],cost=[{"UNITID":"999","housing_available":"true"}],directory_vintage="2025",cost_vintage="2024")
   self.assertEqual([r["UNITID"] for r in rows],["1"])
   self.assertEqual(qa["orphan_source_unitids"]["cost"],["999"])
-  self.assertNotIn("housing_available",rows[0] if False else {})
+  self.assertEqual(rows[0]["housing_available"],"");self.assertEqual(rows[0]["housing_available__state"],"missing")
  def test_missing_source_evidence_stays_missing(self):
   rows,_=build([{"UNITID":"1","locale_code":"41"}],directory_vintage="2025")
   r=rows[0]
