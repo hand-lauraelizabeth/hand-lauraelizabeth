@@ -31,7 +31,7 @@ class AffordabilitySourceBridgeTests(unittest.TestCase):
   self.assertEqual(rows,[]);self.assertEqual(qa["orphan_source_unitids"]["aid"],["999"])
  def test_missing_aid_is_not_false_or_zero(self):
   rows,_=build([{"UNITID":"1"}],cost=[{"UNITID":"1","net_price_overall":"10000"}],directory_vintage="2025",cost_vintage="2024-25")
-  r=rows[0];self.assertEqual(r["institutional_grant_share"],"");self.assertEqual(r["institutional_grant_share__state"],"missing");self.assertEqual(r["institutional_grant_evidence"],"false")
+  r=rows[0];self.assertEqual(r["institutional_grant_share"],"");self.assertEqual(r["institutional_grant_share__state"],"missing");self.assertEqual(r["institutional_grant_evidence"],"")
  def test_duplicate_identity_fails(self):
   with self.assertRaisesRegex(ValueError,"duplicate UNITID"):
    build([{"UNITID":"1"}],scorecard=[{"UNITID":"1"},{"UNITID":"1"}],directory_vintage="2025")
