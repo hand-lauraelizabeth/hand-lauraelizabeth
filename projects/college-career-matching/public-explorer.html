@@ -489,7 +489,7 @@
     function careerCardSnapshot(x){
       if(q('ccx-decision-mode').value!=='career_first')return '';
       const labor=x&&x.labor_market||{};
-      return '<div class="ccx-career-snapshot">'+compactLaborFamily(labor.selected_work_market,'current')+compactLaborFamily(labor.long_term_outlook,'future')+'<p class="ccx-career-snapshot-note">Descriptive evidence only. Current wages/employment and long-term projections remain separate; higher values are not converted into a browser-side career score.</p></div>';
+      return '<div class="ccx-career-snapshot">'+compactLaborFamily(labor.selected_work_market,'current')+compactLaborFamily(labor.long_term_outlook,'future')+'<p class="ccx-career-snapshot-note">Descriptive occupation-level evidence only—not graduate earnings or placement rates. Current wages/employment and long-term projections remain separate; higher values are not converted into a browser-side career score.</p></div>';
     }
     function laborSummary(family,type){
       const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
