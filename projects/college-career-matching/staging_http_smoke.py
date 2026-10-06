@@ -46,6 +46,7 @@ def run(port=18765):
    status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==4 and matched["ordering"]["production_authorized"] is False;assert matched["results"][0]["career_pathways"]["pathways"][0]["occupation_title"] is not None;assert matched["results"][0]["career_pathways"]["representative_pathways"]==[]
    career_body={"schema_version":"1.0","decision_mode":"career_first","constraints":[],"preferences":[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":1,"priority_explicit":True}],"career_preferences":[],"geography":{"work_market_semantics":"selected_market","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}},"page":1,"page_size":20}
    status,_,career=request(base,"/match","POST",career_body);assert status==200;career_by_id={x["candidate_id"]:x for x in career["results"]};syn1=career_by_id["SYN001:P1"];assert syn1["labor_market"]["selected_work_market"]["market_id"]=="35620";assert syn1["labor_market"]["selected_work_market"]["soc_evidence"][0]["occupation_title"]=="Data Scientists"
+   ctx=syn1["explanation"]["context"];assert len(ctx)==1 and ctx[0]["code"]=="CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE";trace=ctx[0]["supporting_evidence"][0];assert trace["soc_code"]=="15-2051" and trace["occupation_title"]=="Data Scientists";assert trace["geography"]["market_label"]=="Harbor–Metro Labor Market (fictional)" and trace["source_vintage"]=="SYNTHETIC";assert trace["evidence_state"]=="observed" and trace["measure_states"]["median_wage"]=="observed";assert trace["evidence_id"] in ctx[0]["evidence_ids"]
    try:
     bad=json.loads(json.dumps(career_body));bad["geography"]["intended_work_market"]["market_id"]="99999";request(base,"/match","POST",bad);raise AssertionError("unavailable labor market unexpectedly succeeded")
    except HTTPError as e:
@@ -64,7 +65,7 @@ def run(port=18765):
     urlopen(oversized,timeout=5);raise AssertionError("oversized request unexpectedly succeeded")
    except HTTPError as e:
     assert e.code==413
-   return {"status":"PASS","base_url":base,"checks":["health","metadata","options","match","career_market_match","invalid_market","candidate","compare","cors_allowed","cors_denied","invalid_compare","payload_limit"]}
+   return {"status":"PASS","base_url":base,"checks":["health","metadata","options","match","career_market_match","career_explanation_trace","invalid_market","candidate","compare","cors_allowed","cors_denied","invalid_compare","payload_limit"]}
   finally:
    proc.terminate()
    try:proc.wait(timeout=3)
