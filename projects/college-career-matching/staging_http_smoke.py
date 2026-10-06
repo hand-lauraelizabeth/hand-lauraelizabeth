@@ -41,7 +41,7 @@ def run(port=18765):
    match_body={"schema_version":"1.0","decision_mode":"broad_exploration","constraints":[],"preferences":[],"career_preferences":[],"page":1,"page_size":20}
    status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==4 and matched["ordering"]["production_authorized"] is False
    status,_,candidate=request(base,"/candidate/SYN001%3AP1");assert status==200 and candidate["candidate_id"]=="SYN001:P1";assert {"affordability","aid_context","program_outcomes","transfer","career","labor_market","freshness","unknowns"}.issubset(candidate);assert isinstance(candidate["freshness"]["source_freshness"],list)
-   status,_,comparison=request(base,"/compare","POST",{"candidate_ids":["SYN001:P1","SYN002:P2"]});assert status==200 and comparison["candidate_ids"]==["SYN001:P1","SYN002:P2"]
+   status,_,comparison=request(base,"/compare","POST",{"candidate_ids":["SYN001:P1","SYN002:P2"]});assert status==200 and comparison["candidate_ids"]==["SYN001:P1","SYN002:P2"];assert comparison["semantic_rules"]["no_automatic_winner"] is True and comparison["semantic_rules"]["missing_is_not_zero"] is True;assert comparison["semantic_rules"]["aid_reporting_is_not_individual_award"] is True;assert {"affordability","aid_context","program_outcomes","transfer","career","current_labor","long_term_outlook","accreditation","freshness","unknowns"}.issubset({x["id"] for x in comparison["comparison_dimensions"]})
    status,headers,_=request(base,"/metadata",origin="https://staging.example.test");assert headers.get("Access-Control-Allow-Origin")=="https://staging.example.test"
    status,headers,_=request(base,"/metadata",origin="https://not-allowed.example");assert "Access-Control-Allow-Origin" not in headers
    try:
