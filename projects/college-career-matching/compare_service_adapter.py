@@ -14,7 +14,7 @@ def compare(candidates,current_labor=None,projections=None,work_market=None,data
         {"id":"aid_context","label":"Aid context","fields":["institutional_grant_share","work_study_share","state_local_grant_share"]},
         {"id":"program_outcomes","label":"Program / field outcomes","fields":["median_earnings","median_debt","completion_rate"]},
         {"id":"transfer","label":"Transfer evidence","fields":["evidence_record_count","evidence_levels","source_systems"]},
-        {"id":"career","label":"Career pathways","fields":["soc_count","soc_codes"]},
+        {"id":"career","label":"Career pathways","fields":["pathway_count","pathways","representative_pathways"]},
         {"id":"current_labor","label":"Current selected-market evidence","fields":["employment","median_wage","evidence_state"]},
         {"id":"long_term_outlook","label":"Long-term outlook","fields":["employment_change_pct","annual_openings","projection_year","evidence_state"]},
         {"id":"accreditation","label":"Accreditation evidence","fields":["covered","statuses","agency_names"]},
