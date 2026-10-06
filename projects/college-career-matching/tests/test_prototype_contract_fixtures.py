@@ -29,6 +29,14 @@ class PrototypeContractTests(unittest.TestCase):
  def test_current_and_long_term_labor_are_separate(self):
   for x in F['match']['results']:
    self.assertIn('selected_work_market',x['labor_market']);self.assertIn('long_term_outlook',x['labor_market'])
+ def test_every_visible_match_has_full_candidate_detail_fixture(self):
+  required={"schema_version","data_version","candidate_id","institution","program","affordability","aid_context","program_outcomes","transfer","career","labor_market","freshness","unknowns"}
+  for result in F["match"]["results"]:
+   key="candidate:"+result["candidate_id"];self.assertIn(key,F);detail=F[key]
+   self.assertTrue(required.issubset(detail));self.assertEqual(detail["candidate_id"],result["candidate_id"]);self.assertEqual(detail["data_version"],F["metadata"]["data_version"])
+   self.assertIsInstance(detail["freshness"]["source_freshness"],list)
+ def test_missing_fixture_net_price_is_not_zero(self):
+  d=F["candidate:SYN003:P3"]["affordability"]["net_price"];self.assertIsNone(d["value"]);self.assertEqual(d["evidence_state"],"missing")
  def test_compare_has_no_winner_semantics(self):self.assertTrue(F['compare']['semantic_rules']['no_automatic_winner']);self.assertNotIn('winner',F['compare'])
  def test_prototype_request_shape_is_service_valid(self):
   r={'schema_version':'1.0','decision_mode':'broad_exploration','constraints':[{'constraint_id':'school_states','field':'state','operator':'in','value':['NY'],'unknown_policy':'keep_visible'}],'preferences':[{'preference_id':'affordability_priority','dimension':'affordability','importance':3,'priority_explicit':True}],'career_preferences':[],'geography':{'school_location_semantics':'selected_places','selected_states':['NY'],'work_market_semantics':'unspecified','intended_work_market':None},'page':1,'page_size':20};validate_request(r)
