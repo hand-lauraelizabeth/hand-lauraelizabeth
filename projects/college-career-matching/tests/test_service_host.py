@@ -26,6 +26,20 @@ class ServiceHostTests(unittest.TestCase):
    self.assertEqual(s.match(q)["results"][0]["labor_market"]["selected_work_market"]["market_id"],"35620")
    q["geography"]["intended_work_market"]["market_id"]="99999"
    with self.assertRaisesRegex(ValueError,"not available"):s.match(q)
+ def test_reviewed_career_attributes_are_service_gated_and_alignment_is_descriptive(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);snap,mp,_=write_fixture(root)
+   rows=[{"occ_code":"15-1252","attribute_id":"onet31:work_activity:4.A.2.a.4:IM","attribute_value":"5","evidence_state":"observed","onet_soc_code":"15-1252.00","element_id":"4.A.2.a.4","element_name":"Analyzing Data or Information","scale_id":"IM","scale_name":"Importance","scale_min":"1","scale_max":"5","source_release":"31.0","source_vintage":"SYNTHETIC","domain_source":"Analyst"}]
+   cp=root/"career.csv"
+   with cp.open("w",newline="",encoding="utf-8") as f:w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+   snapshot_rows=list(csv.DictReader(snap.open()));snapshot_rows[0]["career__soc_count"]="1";snapshot_rows[0]["career__soc_codes"]="15-1252"
+   with snap.open("w",newline="",encoding="utf-8") as f:w=csv.DictWriter(f,fieldnames=list(snapshot_rows[0]));w.writeheader();w.writerows(snapshot_rows)
+   m=json.loads(mp.read_text());m["output_sha256"]=hashlib.sha256(snap.read_bytes()).hexdigest();mp.write_text(json.dumps(m))
+   state=ServiceState(snap,mp,"M1",career_attributes_path=cp);opts=state.options()["options"]["career_preference_attributes"];self.assertEqual([x["question_id"] for x in opts],["career_analysis"])
+   q={"schema_version":"1.0","decision_mode":"career_first","constraints":[],"preferences":[],"career_preferences":[{"preference_id":"career_analysis","attribute_id":"onet31:work_activity:4.A.2.a.4:IM","operator":"higher_preferred","importance":1,"priority_explicit":True,"target_value":None,"target_min":None,"target_max":None,"scale_min":1,"scale_max":5}],"geography":{"work_market_semantics":"national","intended_work_market":None}}
+   r=state.match(q);self.assertEqual(r["results"][0]["career_preference_alignment"]["status"],"observed");self.assertEqual(r["results"][0]["career_preference_alignment"]["score_summary"]["median"],1.0);self.assertEqual(r["ordering"]["mode"],"deterministic_unranked")
+   q["career_preferences"][0]["attribute_id"]="onet31:work_activity:4.A.2.b.2:IM"
+   with self.assertRaisesRegex(ValueError,"not loaded"):state.match(q)
  def test_snapshot_hash_mismatch_fails_startup(self):
   with tempfile.TemporaryDirectory() as d:
    snap,mp,_=write_fixture(Path(d));m=json.loads(mp.read_text());m["output_sha256"]="a"*64;mp.write_text(json.dumps(m))
