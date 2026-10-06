@@ -38,6 +38,7 @@ I also build reusable public tools that apply the same design principles to rese
 | [Survey Research](resources/survey-needs-assessment/) | Instrument QA, response analysis, segmentation, findings |
 | [Research Ethics](resources/research-ethics-irb/) | Ethics, consent, privacy, recruitment, IRB-readiness planning |
 | [Quantitative Analysis](resources/quantitative-analysis/) | SPSS-ready planning, hypotheses, QA, assumptions, reporting |
+| [Responsible AI Teaching](resources/responsible-ai-teaching/) | Evidence-safe prompting, source-to-claim checks, ethical-AI scenarios, red-teaming, capstone rubric |
 
 [Browse the full public Tools & Templates index](resources/README.md).
 
