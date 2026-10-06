@@ -98,8 +98,14 @@ class PublicExplorerContractTests(unittest.TestCase):
   for token in ["candidateDetailCache=new Map()","client.candidate(id)","assertContract(await promise,'candidate')","Candidate detail identity mismatch","Candidate detail data version does not match loaded metadata","data-detail-key","getCandidateDetailState"]:
    self.assertIn(token,HTML)
  def test_candidate_drilldown_keeps_evidence_families_separate(self):
-  for phrase in ["Cost & debt evidence","Aid context","Program / field outcomes","Transfer & pathway evidence","Labor-market evidence","Source status & provenance","Net price is not the same as tuition","Current-market evidence and long-term projections are separate","Absence of accreditation evidence is unknown coverage"]:
+  for phrase in ["Cost & debt evidence","Aid context","Program / field outcomes","Transfer & career-pathway evidence","Labor-market evidence","Source status & provenance","Net price is not the same as tuition","Current-market evidence and long-term projections are separate","Absence of accreditation evidence is unknown coverage"]:
    self.assertIn(phrase,HTML)
+ def test_career_pathway_presentation_is_descriptive_not_breadth_scoring(self):
+  for phrase in ["Related career pathways","CIP→SOC pathways describe related occupations","Pathway count is descriptive and is not treated here as a quality score.","Career-pathway fit and evidence","Mapped career pathways"]:
+   self.assertIn(phrase,HTML)
+  for token in ["function pathwayLabel(x)","function pathwayPreview(career)","pathwayText(x.career.pathways)","careerPreview=pathwayPreview(x.career_pathways)"]:
+   self.assertIn(token,HTML)
+  self.assertNotIn("Broader career pathways",HTML)
  def test_program_compare_uses_governed_compare_service_not_match_card_fields(self):
   for token in ["async function renderCompare()","client.compare(ids,context,{signal})","assertContract(await client.compare","Compare response candidate identity/order mismatch","renderCompareResponse(response)","compareCache=new Map()","getCompareState"]:
    self.assertIn(token,HTML)
