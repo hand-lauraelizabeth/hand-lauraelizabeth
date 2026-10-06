@@ -51,6 +51,15 @@
     #leh-ccx .ccx-pathway-preview{margin:10px 0 0;padding:10px 11px;border-left:3px solid var(--line);background:#fbfcfb;font-size:13px;line-height:1.45}
     #leh-ccx .ccx-pathway-preview strong{color:var(--green2)}
     #leh-ccx .ccx-pathway-note{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+    #leh-ccx .ccx-career-snapshot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+    #leh-ccx .ccx-career-family{border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:#fff;font-size:12px;line-height:1.4}
+    #leh-ccx .ccx-career-family h4{font-size:12px;margin:0 0 5px;color:var(--green2);text-transform:uppercase;letter-spacing:.04em}
+    #leh-ccx .ccx-career-item{padding-top:5px;margin-top:5px;border-top:1px solid #edf1ee}
+    #leh-ccx .ccx-career-item:first-of-type{padding-top:0;margin-top:0;border-top:0}
+    #leh-ccx .ccx-career-measure{display:block;color:var(--ink)}
+    #leh-ccx .ccx-career-state{display:block;color:var(--muted);font-size:11px}
+    #leh-ccx .ccx-career-snapshot-note{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.4;margin:0}
+    @media(max-width:640px){#leh-ccx .ccx-career-snapshot{grid-template-columns:1fr}}
     #leh-ccx .ccx-reasons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 0}
     #leh-ccx .ccx-reason{background:#f7faf8;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4}
     #leh-ccx details{margin-top:12px;border-top:1px solid #e9eeeb;padding-top:10px}
@@ -463,6 +472,25 @@
       const shown=paths.slice(0,3),extra=Math.max(count-shown.length,0);
       return '<div class="ccx-pathway-preview"><strong>Related career pathways:</strong> '+esc(shown.map(pathwayLabel).filter(Boolean).join('; '))+(extra?' · +'+extra+' more mapped pathway'+(extra===1?'':'s'):'')+'<span class="ccx-pathway-note">CIP→SOC pathways describe related occupations; they are not placement probabilities or promised outcomes.</span></div>';
     }
+    function compactLaborFamily(family,type){
+      const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[],heading=type==='current'?'Current selected market':'Long-term outlook';
+      if(!rows.length)return '<section class="ccx-career-family"><h4>'+heading+'</h4><span class="ccx-career-state">'+esc(evidenceStateText(state))+'.</span></section>';
+      const shown=rows.slice(0,2);
+      return '<section class="ccx-career-family"><h4>'+heading+'</h4>'+shown.map(x=>{
+        const label=pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified';
+        if(type==='current'){
+          const wage=x.median_wage!==null&&x.median_wage!==undefined?money(x.median_wage):'wage —',employment=x.employment!==null&&x.employment!==undefined?'employment '+x.employment:'employment —';
+          return '<div class="ccx-career-item"><strong>'+esc(label)+'</strong><span class="ccx-career-measure">'+wage+' · '+esc(employment)+'</span><span class="ccx-career-state">wage '+esc(evidenceStateText(x.wage_state||'missing'))+' · employment '+esc(evidenceStateText(x.employment_state||'missing'))+'</span></div>';
+        }
+        const change=x.employment_change_pct!==null&&x.employment_change_pct!==undefined?x.employment_change_pct+'% projected change':'projected change —',openings=x.annual_openings!==null&&x.annual_openings!==undefined?x.annual_openings+' annual openings':'annual openings —',horizon=x.projection_year?' · through '+x.projection_year:'';
+        return '<div class="ccx-career-item"><strong>'+esc(label)+'</strong><span class="ccx-career-measure">'+esc(change+' · '+openings+horizon)+'</span><span class="ccx-career-state">'+esc(x.projection_geography||'projection geography not reported')+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
+      }).join('')+(rows.length>shown.length?'<span class="ccx-career-state">+'+(rows.length-shown.length)+' additional occupation evidence row'+(rows.length-shown.length===1?'':'s')+' in details.</span>':'')+'</section>';
+    }
+    function careerCardSnapshot(x){
+      if(q('ccx-decision-mode').value!=='career_first')return '';
+      const labor=x&&x.labor_market||{};
+      return '<div class="ccx-career-snapshot">'+compactLaborFamily(labor.selected_work_market,'current')+compactLaborFamily(labor.long_term_outlook,'future')+'<p class="ccx-career-snapshot-note">Descriptive evidence only. Current wages/employment and long-term projections remain separate; higher values are not converted into a browser-side career score.</p></div>';
+    }
     function laborSummary(family,type){
       const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
       if(!rows.length)return '<div class="ccx-detail-note">'+esc(evidenceStateText(state))+'.</div>';
@@ -638,11 +666,12 @@
         const score=rec.status==='review_eligible_ranked'&&rec.baseline_score!=null?'<div class="ccx-score">'+esc(rankLabel(rec))+' · '+Math.round(rec.baseline_score*100)+'/100 index</div>':'<div class="ccx-score">'+esc(rankLabel(rec))+'</div>';
         const career=x.career_pathways&&x.career_pathways.pathway_count!=null?'<span class="ccx-pill">'+esc(x.career_pathways.pathway_count)+' mapped career pathway'+(x.career_pathways.pathway_count===1?'':'s')+'</span>':'';
         const careerPreview=pathwayPreview(x.career_pathways);
+        const careerSnapshot=careerCardSnapshot(x);
         const coverage=x.evidence_coverage?'<span class="ccx-pill">'+esc(x.evidence_coverage.overall_status)+' evidence coverage</span>':'';
         const unknownCount=x.explanation&&Array.isArray(x.explanation.unknowns)?x.explanation.unknowns.length:0;
         const unknown=unknownCount?'<span class="ccx-pill">'+unknownCount+' unresolved must-have evidence field'+(unknownCount===1?'':'s')+'</span>':'';
         const selectedAttr=selected.has(x.candidate_id)?' checked':'';
-        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div>'+careerPreview+'<div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><div class="ccx-card-actions"><button type="button" class="ccx-detail-button" data-detail-key="'+esc(x.candidate_id)+'" aria-expanded="false">Evidence details</button><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></div><div class="ccx-detail-region" data-detail-region="'+esc(x.candidate_id)+'" hidden></div></article>';
+        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div>'+careerPreview+careerSnapshot+'<div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><div class="ccx-card-actions"><button type="button" class="ccx-detail-button" data-detail-key="'+esc(x.candidate_id)+'" aria-expanded="false">Evidence details</button><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></div><div class="ccx-detail-region" data-detail-region="'+esc(x.candidate_id)+'" hidden></div></article>';
       }).join(''):'<div class="ccx-empty"><strong>No service results returned.</strong><p>Try relaxing one or more must-have constraints.</p></div>';
       root.querySelectorAll('.ccx-detail-button').forEach(button=>button.addEventListener('click',()=>{const region=button.closest('.ccx-card').querySelector('.ccx-detail-region');toggleCandidateDetail(button,region)}));
       root.querySelectorAll('.ccx-compare-toggle input').forEach(el=>el.addEventListener('change',()=>{
