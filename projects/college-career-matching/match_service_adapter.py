@@ -85,10 +85,36 @@ def dimension_rows(c):
   if vk in c or ck in c or sk in c:
    v=num(c.get(vk));cov=num(c.get(ck));cov=0 if cov is None else max(0,min(1,cov));out.append({"dimension":d,"value":v,"coverage_rate":cov,"evidence_state":c.get(sk) or ("observed" if v is not None else "insufficient")})
  return out
-def reason(code,text):return {"code":code,"text":text,"evidence_ids":[]}
-def result(c,status,codes,labor=None):
- dims=dimension_rows(c);unknown=[x for x in codes if x.startswith("constraint_unknown")];coverage=[d["coverage_rate"] for d in dims];avg=sum(coverage)/len(coverage) if coverage else 0
- return {"candidate_id":str(c["candidate_id"]),"institution":{"unitid":str(c["UNITID"]),"name":str(c["institution_name"]),"city":c.get("city") or None,"state":c.get("state") or None},"program":{"program_id":str(c["program_id"]),"name":str(c["program_name"]),"cip_code":str(c["cip_code"]),"credential_level":c.get("credential_level") or None},"eligibility":{"status":status,"reason_codes":codes},"dimensions":dims,"explanation":{"why_it_matches":[reason("eligible_constraints","Meets the evaluated must-have constraints.")] if status=="eligible" else [],"tradeoffs":[],"unknowns":[reason(x,"Evidence needed to evaluate one must-have constraint is currently unavailable.") for x in unknown]},"career_pathways":career_summary(c),"transfer":c.get("transfer"),"labor_market":labor or {"selected_work_market":{"evidence_state":"not_loaded"},"long_term_outlook":{"evidence_state":"not_loaded"}},"evidence_coverage":{"overall_status":"broad" if avg>=.8 else ("partial" if avg>=.4 else "limited"),"review_flags":c.get("review_flags",[])},"source_freshness":c.get("source_freshness",[])}
+def reason(code,text,evidence_ids=None):return {"code":code,"text":text,"evidence_ids":list(evidence_ids or [])}
+def explicit_priority(request,dimension):
+ for p in request.get("preferences",[]):
+  if p.get("priority_explicit") is True and p.get("dimension")==dimension and (num(p.get("importance")) or 0)>0:return p
+ return None
+def labor_priority_explanations(request,labor):
+ context=[];unknowns=[];geography=request.get("geography") or {}
+ current=explicit_priority(request,"current_labor_market")
+ if current:
+  family=(labor or {}).get("selected_work_market") or {};state=family.get("evidence_state")
+  ids=[f"preference:{current.get('preference_id') or 'current_labor_market'}","labor:selected_work_market"]
+  if state=="observed" and family.get("soc_evidence"):
+   label=clean(family.get("market_label")) or "the selected work market"
+   context.append(reason("CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE",f"Current occupation-level labor-market evidence is available for {label}, which you marked as a priority. Wage and employment values remain descriptive here and are not treated as inherently positive or converted into a browser-side score.",ids))
+  elif state=="unavailable":
+   unknowns.append(reason("CURRENT_LABOR_PRIORITY_EVIDENCE_UNAVAILABLE","You marked current labor-market context as a priority, but governed current-market evidence is unavailable for this candidate in the selected market. Missing evidence is not treated as weak demand or a negative score.",ids))
+  else:
+   semantics=clean(geography.get("work_market_semantics")) or "unspecified"
+   unknowns.append(reason("CURRENT_LABOR_PRIORITY_MARKET_NOT_EVALUATED",f"You marked current labor-market context as a priority, but no candidate-specific current-market evidence was evaluated under the '{semantics}' work-market setting. No current-market value is assumed.",ids))
+ future=explicit_priority(request,"long_term_outlook")
+ if future:
+  family=(labor or {}).get("long_term_outlook") or {};state=family.get("evidence_state");ids=[f"preference:{future.get('preference_id') or 'long_term_outlook'}","labor:long_term_outlook"]
+  if state=="observed" and family.get("soc_evidence"):
+   context.append(reason("LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_AVAILABLE","Long-term occupational projection evidence is available for related pathways, which you marked as a priority. Projected change and openings remain descriptive and are not treated as current hiring evidence or an automatic positive signal.",ids))
+  else:
+   unknowns.append(reason("LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_UNAVAILABLE","You marked long-term occupational outlook as a priority, but governed projection evidence is unavailable for this candidate's related pathways. Missing projections are not converted to zero or treated as a negative score.",ids))
+ return context,unknowns
+def result(c,status,codes,labor=None,request=None):
+ dims=dimension_rows(c);unknown=[x for x in codes if x.startswith("constraint_unknown")];coverage=[d["coverage_rate"] for d in dims];avg=sum(coverage)/len(coverage) if coverage else 0;labor=labor or {"selected_work_market":{"evidence_state":"not_loaded"},"long_term_outlook":{"evidence_state":"not_loaded"}};priority_context,priority_unknowns=labor_priority_explanations(request or {},labor)
+ return {"candidate_id":str(c["candidate_id"]),"institution":{"unitid":str(c["UNITID"]),"name":str(c["institution_name"]),"city":c.get("city") or None,"state":c.get("state") or None},"program":{"program_id":str(c["program_id"]),"name":str(c["program_name"]),"cip_code":str(c["cip_code"]),"credential_level":c.get("credential_level") or None},"eligibility":{"status":status,"reason_codes":codes},"dimensions":dims,"explanation":{"why_it_matches":[reason("eligible_constraints","Meets the evaluated must-have constraints.",["constraints:evaluated"])] if status=="eligible" else [],"tradeoffs":[],"context":priority_context,"unknowns":[reason(x,"Evidence needed to evaluate one must-have constraint is currently unavailable.",[x]) for x in unknown]+priority_unknowns},"career_pathways":career_summary(c),"transfer":c.get("transfer"),"labor_market":labor,"evidence_coverage":{"overall_status":"broad" if avg>=.8 else ("partial" if avg>=.4 else "limited"),"review_flags":c.get("review_flags",[])},"source_freshness":c.get("source_freshness",[])}
 def request_id(request,data_version,model_version):
  payload=json.dumps({"request":request,"data_version":data_version,"model_version":model_version},sort_keys=True,separators=(",",":"));return "req_"+hashlib.sha256(payload.encode()).hexdigest()[:20]
 def match(request,candidates,data_version,model_version,current_labor=None,projections=None,generated_at_utc=None,ranking_bundle=None,production_authorized=False):
@@ -100,7 +126,7 @@ def match(request,candidates,data_version,model_version,current_labor=None,proje
   if not cid:raise ValueError("candidate_id must be nonblank")
   if cid in seen:raise ValueError(f"duplicate candidate_id: {cid}")
   seen.add(cid);status,codes=disposition(c,request["constraints"])
-  if status!="excluded":eligible.append(result(c,status,codes,build_for_candidate(c,current_labor,projections,work)))
+  if status!="excluded":eligible.append(result(c,status,codes,build_for_candidate(c,current_labor,projections,work),request))
  eligible_ids=[x["candidate_id"] for x in eligible]
  if ranking_bundle is not None:
   ranked=validate_bundle(ranking_bundle,request,data_version,model_version,eligible_ids)
