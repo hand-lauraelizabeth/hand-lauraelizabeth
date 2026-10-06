@@ -36,6 +36,16 @@ def validate_request(r):
   if imp is None or imp<0:raise ValueError("preference importance must be nonnegative numeric")
  for p in r.get("career_preferences",[]):
   if p.get("priority_explicit") is not True or p.get("operator") not in CAREER_OPS:raise ValueError("invalid career preference")
+ geography=r.get("geography") or {}
+ if not isinstance(geography,dict):raise ValueError("geography must be an object")
+ market=geography.get("intended_work_market")
+ semantics=geography.get("work_market_semantics")
+ if semantics is None:semantics="selected_market" if market else "unspecified"
+ if semantics not in {"school_local","selected_market","national","remote_or_flexible","unspecified"}:raise ValueError("unsupported work_market_semantics")
+ if semantics=="selected_market":
+  if not isinstance(market,dict) or not clean(market.get("market_id")) or not clean(market.get("market_type")):raise ValueError("selected_market requires intended_work_market market_id and market_type")
+ elif market not in (None,{}):
+  raise ValueError("intended_work_market is only valid with selected_market semantics")
 def boolean_value(v):
  if isinstance(v,bool):return v
  if isinstance(v,str):
