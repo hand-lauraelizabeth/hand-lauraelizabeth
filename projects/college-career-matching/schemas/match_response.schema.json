@@ -482,6 +482,12 @@
               "items": {
                 "type": "object"
               }
+            },
+            "market_label": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         },
