@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 from labor_evidence_service_adapter import build_for_candidate
 from career_pathway_service import career_summary
+from career_preference_service import build as build_career_preference_alignment
 from constraint_field_registry import load_registry,validate_constraint
 from ranking_binding_contract import validate_bundle,ranking_context_id
 MODES={"broad_exploration","career_first","college_program_first","compare_known","transfer","returning_student"};UNKNOWN={"keep_visible","exclude_unknown"};DIMS={"college_fit","affordability","academic_program_fit","transfer_pathway_fit","admissions_context","career_pathway_fit","current_labor_market","long_term_outlook","geographic_fit","transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit"};CAREER_OPS={"target_distance","higher_preferred","lower_preferred","range","categorical_match"};MISSING={None,"","NA","N/A","NULL","NONE"}
@@ -137,12 +138,12 @@ def labor_priority_explanations(request,labor):
   else:
    unknowns.append(reason("LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_UNAVAILABLE","You marked long-term occupational outlook as a priority, but governed projection evidence is unavailable for this candidate's related pathways. Missing projections are not converted to zero or treated as a negative score.",ids,trace))
  return context,unknowns
-def result(c,status,codes,labor=None,request=None):
+def result(c,status,codes,labor=None,request=None,career_attributes=None):
  dims=dimension_rows(c);unknown=[x for x in codes if x.startswith("constraint_unknown")];coverage=[d["coverage_rate"] for d in dims];avg=sum(coverage)/len(coverage) if coverage else 0;labor=labor or {"selected_work_market":{"evidence_state":"not_loaded"},"long_term_outlook":{"evidence_state":"not_loaded"}};priority_context,priority_unknowns=labor_priority_explanations(request or {},labor)
- return {"candidate_id":str(c["candidate_id"]),"institution":{"unitid":str(c["UNITID"]),"name":str(c["institution_name"]),"city":c.get("city") or None,"state":c.get("state") or None},"program":{"program_id":str(c["program_id"]),"name":str(c["program_name"]),"cip_code":str(c["cip_code"]),"credential_level":c.get("credential_level") or None},"eligibility":{"status":status,"reason_codes":codes},"dimensions":dims,"explanation":{"why_it_matches":[reason("eligible_constraints","Meets the evaluated must-have constraints.",["constraints:evaluated"])] if status=="eligible" else [],"tradeoffs":[],"context":priority_context,"unknowns":[reason(x,"Evidence needed to evaluate one must-have constraint is currently unavailable.",[x]) for x in unknown]+priority_unknowns},"career_pathways":career_summary(c),"transfer":c.get("transfer"),"labor_market":labor,"evidence_coverage":{"overall_status":"broad" if avg>=.8 else ("partial" if avg>=.4 else "limited"),"review_flags":c.get("review_flags",[])},"source_freshness":c.get("source_freshness",[])}
+ return {"candidate_id":str(c["candidate_id"]),"institution":{"unitid":str(c["UNITID"]),"name":str(c["institution_name"]),"city":c.get("city") or None,"state":c.get("state") or None},"program":{"program_id":str(c["program_id"]),"name":str(c["program_name"]),"cip_code":str(c["cip_code"]),"credential_level":c.get("credential_level") or None},"eligibility":{"status":status,"reason_codes":codes},"dimensions":dims,"explanation":{"why_it_matches":[reason("eligible_constraints","Meets the evaluated must-have constraints.",["constraints:evaluated"])] if status=="eligible" else [],"tradeoffs":[],"context":priority_context,"unknowns":[reason(x,"Evidence needed to evaluate one must-have constraint is currently unavailable.",[x]) for x in unknown]+priority_unknowns},"career_pathways":career_summary(c),"career_preference_alignment":build_career_preference_alignment(c,(request or {}).get("career_preferences",[]),career_attributes or []),"transfer":c.get("transfer"),"labor_market":labor,"evidence_coverage":{"overall_status":"broad" if avg>=.8 else ("partial" if avg>=.4 else "limited"),"review_flags":c.get("review_flags",[])},"source_freshness":c.get("source_freshness",[])}
 def request_id(request,data_version,model_version):
  payload=json.dumps({"request":request,"data_version":data_version,"model_version":model_version},sort_keys=True,separators=(",",":"));return "req_"+hashlib.sha256(payload.encode()).hexdigest()[:20]
-def match(request,candidates,data_version,model_version,current_labor=None,projections=None,generated_at_utc=None,ranking_bundle=None,production_authorized=False):
+def match(request,candidates,data_version,model_version,current_labor=None,projections=None,generated_at_utc=None,ranking_bundle=None,production_authorized=False,career_attributes=None):
  validate_request(request);eligible=[];required={"candidate_id","UNITID","institution_name","program_id","program_name","cip_code"};current_labor=current_labor or [];projections=projections or [];work=request.get("geography",{}).get("intended_work_market") or None;seen=set()
  for c in candidates:
   miss=required-set(c)
@@ -151,7 +152,7 @@ def match(request,candidates,data_version,model_version,current_labor=None,proje
   if not cid:raise ValueError("candidate_id must be nonblank")
   if cid in seen:raise ValueError(f"duplicate candidate_id: {cid}")
   seen.add(cid);status,codes=disposition(c,request["constraints"])
-  if status!="excluded":eligible.append(result(c,status,codes,build_for_candidate(c,current_labor,projections,work),request))
+  if status!="excluded":eligible.append(result(c,status,codes,build_for_candidate(c,current_labor,projections,work),request,career_attributes))
  eligible_ids=[x["candidate_id"] for x in eligible]
  if ranking_bundle is not None:
   ranked=validate_bundle(ranking_bundle,request,data_version,model_version,eligible_ids)
