@@ -19,6 +19,12 @@ The canonical layer distinguishes:
 - `context`: useful evidence that should not be framed as inherently positive or negative
 - `review`: a human-review state that prevents stronger claims
 
+## Inline supporting-evidence payload
+
+The interactive match-service subset now carries source-aware `supporting_evidence` directly on each reason record rather than requiring the browser to reconstruct lineage from adjacent response fields. For labor-priority explanations this includes occupation identity, selected/projection geography, source vintage, evidence state, measures, measure states, and a deterministic evidence ID.
+
+The concise explanation remains readable without opening the trace. An inline expander may reveal the exact supporting rows for audit or closer review without forcing the user into the complete candidate-detail panel. Missing/unavailable evidence receives its own trace record so absence remains inspectable rather than silently omitted.
+
 ## Required traceability
 
 Each reason code should retain or point to:
