@@ -299,7 +299,8 @@
         "explanation": {
           "why_it_matches": [],
           "tradeoffs": [],
-          "unknowns": []
+          "unknowns": [],
+          "context": []
         },
         "transfer": null,
         "source_freshness": [
@@ -384,7 +385,8 @@
         "explanation": {
           "why_it_matches": [],
           "tradeoffs": [],
-          "unknowns": []
+          "unknowns": [],
+          "context": []
         },
         "transfer": null,
         "source_freshness": [
@@ -462,7 +464,8 @@
         "explanation": {
           "why_it_matches": [],
           "tradeoffs": [],
-          "unknowns": []
+          "unknowns": [],
+          "context": []
         },
         "transfer": null,
         "source_freshness": [
