@@ -53,6 +53,35 @@ def main() -> None:
     assert_equal(module.bls_value_status("*"), "suppressed", "BLS suppression marker")
     assert_equal(module.parse_number("$12,345"), 12345.0, "BLS numeric parsing")
 
+    # O*NET ingestion emits the reviewed work-activity preference artifact from the same pinned source snapshot.
+    onet_fixture_root = ROOT / "tmp" / "onet-career-ingest-fixture"
+    shutil.rmtree(onet_fixture_root, ignore_errors=True)
+    onet_source = {
+        "source_id": "onet_31_0", "official_url": "https://www.onetcenter.org/database.html",
+        "release": {"label": "31.0"},
+        "files": {"occupation_data": "https://fixture/occupation_data.csv", "work_activities": "https://fixture/work_activities.csv"},
+    }
+    onet_payloads = {
+        "https://fixture/occupation_data.csv": b"O*NET-SOC Code,Title\\n15-2051.00,Data Scientists\\n15-2051.01,Bioinformatics Scientists\\n",
+        "https://fixture/work_activities.csv": (
+            "O*NET-SOC Code,Title,Element ID,Element Name,Scale ID,Scale Name,Data Value,N,Standard Error,Lower CI Bound,Upper CI Bound,Recommend Suppress,Not Relevant,Date,Domain Source\\n"
+            "15-2051.00,Data Scientists,4.A.2.a.4,Analyzing Data or Information,IM,Importance,4.50,10,0.1,4.3,4.7,N,N,2026-08,Analyst\\n"
+            "15-2051.00,Data Scientists,4.A.2.b.1,Making Decisions and Solving Problems,IM,Importance,4.25,10,0.1,4.0,4.5,N,N,2026-08,Analyst\\n"
+            "15-2051.00,Data Scientists,4.A.2.b.2,Thinking Creatively,IM,Importance,3.75,10,0.1,3.5,4.0,N,N,2026-08,Analyst\\n"
+            "15-2051.01,Bioinformatics Scientists,4.A.2.a.4,Analyzing Data or Information,IM,Importance,5.00,10,0.1,4.8,5.0,N,N,2026-08,Analyst\\n"
+        ).encode("utf-8"),
+    }
+    original_http_get = module.http_get
+    module.http_get = lambda url, **kwargs: onet_payloads[url]
+    try:
+        onet_result = module.ingest_onet(onet_source, onet_fixture_root)
+    finally:
+        module.http_get = original_http_get
+    career_attrs = module.read_csv_path(onet_fixture_root / "normalized" / "career_preference_attributes.csv")
+    assert_equal(len(career_attrs), 3, "O*NET ingestion reviewed career preference rows")
+    assert_equal({row["occ_code"] for row in career_attrs}, {"15-2051"}, "O*NET specialty rows not averaged")
+    assert_equal(onet_result["coverage"]["career_preference_attributes"]["unique_base_soc6"], 1, "O*NET reviewed preference base-SOC coverage")
+
     community, reasons = module.community_college_pathway_flags({"CONTROL": "1", "SECTOR": "1", "INSTCAT": "4"})
     assert_equal(community, True, "community-college proxy recovers associate-focused public four-year")
     if "public_associates_certificates_instcat" not in reasons:
@@ -260,6 +289,37 @@ def main() -> None:
         2,
         "institutions with specific program completions",
     )
+
+
+    preference_coverage_root = ROOT / "tmp" / "onet-preference-coverage-fixture"
+    shutil.rmtree(preference_coverage_root, ignore_errors=True)
+    (preference_coverage_root / "onet_31_0" / "20261006T000000Z" / "normalized").mkdir(parents=True, exist_ok=True)
+    (preference_coverage_root / "cip_soc_crosswalk_2020_2018" / "20261006T000000Z" / "normalized").mkdir(parents=True, exist_ok=True)
+    module.write_csv(
+        preference_coverage_root / "cip_soc_crosswalk_2020_2018" / "20261006T000000Z" / "normalized" / "cip_soc_bridge.csv",
+        ["CIP6", "SOC6"],
+        [{"CIP6": "010101", "SOC6": "15-2051"}, {"CIP6": "010102", "SOC6": "15-2051"}, {"CIP6": "020202", "SOC6": "15-1252"}],
+    )
+    module.write_csv(
+        preference_coverage_root / "onet_31_0" / "20261006T000000Z" / "normalized" / "career_preference_attributes.csv",
+        ["occ_code", "attribute_id", "attribute_value", "evidence_state"],
+        [
+            {"occ_code": "15-2051", "attribute_id": "onet31:work_activity:4.A.2.a.4:IM", "attribute_value": "5", "evidence_state": "observed"},
+            {"occ_code": "15-2051", "attribute_id": "onet31:work_activity:4.A.2.b.1:IM", "attribute_value": "4", "evidence_state": "observed"},
+            {"occ_code": "15-2051", "attribute_id": "onet31:work_activity:4.A.2.b.2:IM", "attribute_value": "3", "evidence_state": "observed"},
+            {"occ_code": "15-1252", "attribute_id": "onet31:work_activity:4.A.2.a.4:IM", "attribute_value": "4", "evidence_state": "observed"},
+            {"occ_code": "15-1252", "attribute_id": "onet31:work_activity:4.A.2.b.1:IM", "attribute_value": "", "evidence_state": "suppressed"},
+            {"occ_code": "15-1252", "attribute_id": "onet31:work_activity:4.A.2.b.2:IM", "attribute_value": "5", "evidence_state": "observed"},
+        ],
+    )
+    pref_cov = module.build_onet_preference_coverage_report(preference_coverage_root)["report"]
+    assert_equal(pref_cov["cip_soc_relationship_rows"], 3, "career-preference CIP-SOC relationship rows")
+    assert_equal(pref_cov["unique_soc6"], 2, "career-preference distinct SOC6")
+    assert_equal(pref_cov["soc6_with_all_reviewed_attributes_observed"], 1, "career-preference all-reviewed SOC6")
+    assert_equal(pref_cov["cip_soc_relationship_rows_with_all_reviewed_attributes_observed"], 2, "career-preference relationship coverage preserves repeated SOC mappings")
+    assert_equal(pref_cov["cip_soc_relationship_all_reviewed_coverage_rate"], 0.666667, "career-preference relationship coverage rate")
+    assert_equal(pref_cov["per_attribute"]["career_problem_solving"]["cip_soc_relationship_rows_covered"], 2, "suppressed problem-solving evidence is not counted observed")
+
 
 
     model_root = ROOT / "tmp" / "model-ready-fixture"
