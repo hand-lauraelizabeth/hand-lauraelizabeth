@@ -84,7 +84,10 @@ export function assertContract(response,kind,{productionAuthorized=false}={}){
    if(!explanation||!Array.isArray(explanation.why_it_matches)||!Array.isArray(explanation.tradeoffs)||!Array.isArray(explanation.context)||!Array.isArray(explanation.unknowns))throw new Error('match: invalid explanation shape')
    for(const group of ['why_it_matches','tradeoffs','context','unknowns'])for(const item of explanation[group]){
     if(!item||!item.code||!item.text||!Array.isArray(item.evidence_ids)||!Array.isArray(item.supporting_evidence))throw new Error('match: invalid explanation record')
-    for(const trace of item.supporting_evidence)if(!trace||!trace.evidence_id||!trace.evidence_family||!trace.geography||!trace.evidence_state||!trace.measures||!trace.measure_states)throw new Error('match: invalid explanation evidence trace')
+    for(const trace of item.supporting_evidence){
+     if(!trace||!trace.evidence_id||!trace.evidence_family||!trace.geography||!trace.evidence_state||!trace.measures||!trace.measure_states)throw new Error('match: invalid explanation evidence trace')
+     if(!item.evidence_ids.includes(trace.evidence_id))throw new Error('match: explanation trace is not linked by evidence_ids')
+    }
    }
    const cp=result.career_pathways
    if(!cp||!Number.isInteger(Number(cp.pathway_count)))throw new Error('match: missing career pathway count')
