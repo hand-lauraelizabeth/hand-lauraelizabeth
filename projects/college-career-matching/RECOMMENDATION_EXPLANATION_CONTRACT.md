@@ -46,6 +46,12 @@ The explanation builder emits machine-readable evidence records. It deliberately
 7. Do not imply the institution-local labor market is the user's intended work market unless the user selected it.
 8. Separate current labor-market evidence from long-run projections.
 
+## Interactive labor-priority explanation boundary
+
+The interactive match service now implements a narrow deterministic subset of this contract for explicit `current_labor_market` and `long_term_outlook` priorities. These records use the `context` type when relevant governed evidence is available and `uncertainty`/unknown presentation when it is unavailable or not evaluated under the chosen geography semantics.
+
+This does **not** establish empirical thresholds for good wages, strong employment, or favorable projected growth. Those numeric values cannot generate a reason or tradeoff merely because they are high or low. The current implementation explains evidence availability and knowledge limits; full calibrated recommendation explanation QA remains separately gated.
+
 ## User-facing explanation structure
 
 A mature recommendation card/detail view should be able to show, in this order:
