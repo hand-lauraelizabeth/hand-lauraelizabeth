@@ -51,9 +51,13 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_service_failures_clear_stale_results_and_identity_errors_disable_controls(self):
   for token in ["function setInteractive(enabled)","function clearServiceResults(","serviceStatus='request-error'","Previous results were cleared","serviceStatus='error'","Controls are disabled until a valid service identity is available."]:
    self.assertIn(token,HTML)
- def test_new_result_sets_drop_hidden_compare_selections_and_surface_unknown_evidence(self):
-  self.assertIn("visibleIds=new Set(rows.map(x=>x.candidate_id))",HTML);self.assertIn("if(!visibleIds.has(id))selected.delete(id)",HTML)
+ def test_criteria_changes_clear_cross_page_comparisons_and_unknown_evidence_remains_visible(self):
+  self.assertIn("selectedRecords=new Map()",HTML);self.assertIn("function criteriaChanged()",HTML);self.assertIn("selected.clear();selectedRecords.clear();renderCompare();scheduleRefresh()",HTML)
   self.assertIn("unresolved must-have evidence field",HTML)
+ def test_pagination_is_service_driven_and_comparisons_can_span_pages(self):
+  for token in ['id="ccx-page-size"','id="ccx-pagination"','id="ccx-prev"','id="ccx-next"',"page:currentPage,page_size:pageSize","function renderPagination(response)","async function goToPage(page)","selectedRecords.get(id)","Service pagination does not match the governed request","getPaginationState"]:
+   self.assertIn(token,HTML)
+  self.assertNotIn("results.slice(",HTML)
  def test_requests_are_last_writer_wins_and_retry_revalidates_service(self):
   for token in ['id="ccx-retry"',"requestGeneration=0","activeRequestController","generation!==requestGeneration","client.match(request,{signal})","async function retryService()","assertRuntimeMetadata(runtimeConfig,recoveredMetadata)","Rechecking governed service","getRequestGeneration"]:
    self.assertIn(token,HTML)
