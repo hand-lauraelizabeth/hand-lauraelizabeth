@@ -100,6 +100,8 @@ Use the pinned 31.0 CSV release. Minimum normalized tables: occupation data, ess
 
 Retain O*NET element IDs and scale IDs wherever the table supplies them. Essential skills, transferable skills, and software skills remain separate dimensions during ingestion rather than being collapsed into one generic skills score.
 
+The reviewed career-preference derivative is built from the same pinned `work_activities.csv` snapshot. It retains only approved Work Activity `IM` mappings and eligible `.00` base occupation profiles; specialty profiles are not averaged to SOC6. The derivative carries its O*NET element, scale, release, source-vintage, and evidence-state fields into the service layer.
+
 ### BLS Employment Projections
 
 Use 2025–2035 Table 1.2.
@@ -129,6 +131,7 @@ Use the May 2025 all-data release.
 | cip_soc_bridge | CIP6 + SOC6 + crosswalk_version | Education-to-occupation possibilities |
 | occupation | ONET_SOC_CODE + onet_version | Occupation identity/content |
 | occupation_skill | ONET_SOC_CODE + element_id + scale_id + onet_version | Skill/knowledge/ability dimensions |
+| occupation_career_preference | SOC6 + attribute_id + onet_version | Reviewed O*NET Work Activity Importance evidence for service-gated career preferences; only eligible .00 base profiles, with missing/suppressed states preserved |
 | occupation_outlook | SOC6 + projection_cycle | Growth/openings/preparation |
 | occupation_wage | AREA + OCC_CODE + reference_period | Current geographic employment/wages |
 | source_snapshot | source_id + retrieved_at + sha256 | Reproducibility and source lineage |
