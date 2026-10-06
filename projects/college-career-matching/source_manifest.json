@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of_date": "2026-10-05",
+  "as_of_date": "2026-10-06",
   "project": "College + Career Matching Tool",
   "principles": {
     "public_core_only": true,
