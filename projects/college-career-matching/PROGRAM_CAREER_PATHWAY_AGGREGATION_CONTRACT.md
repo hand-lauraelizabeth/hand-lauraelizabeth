@@ -75,6 +75,12 @@ They measure different things and should not be blended into an unexplained labo
 - `program_career_pathway_summary.csv`: descriptive program/candidate summaries
 - `program_career_pathway_qa.json`: counts, summarized measures, aggregation rule
 
+## Product-facing pathway identity
+
+The product enrichment may carry a structured pathway list containing `soc_code` and, when supplied by governed occupation evidence, `occupation_title`. SOC remains the canonical identity. Missing titles remain null/code-only rather than being guessed, and conflicting nonblank titles for the same SOC fail the enrichment bridge.
+
+The browser may preview related pathway titles/codes, but it must label them as related occupations rather than outcomes. The complete mapped set is separate from any later representative/high-alignment subset.
+
 ## Recommendation use
 
 The descriptive summary can feed the feature assembler and normalizer, but the pathway-level file remains the source for user-facing statements such as the occupations connected to a program and the breadth/uncertainty of labor-market evidence.
