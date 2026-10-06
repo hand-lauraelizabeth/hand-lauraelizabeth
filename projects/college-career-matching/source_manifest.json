@@ -264,7 +264,8 @@
         "work_context",
         "related_occupations",
         "job_zones",
-        "source_snapshot_metadata"
+        "source_snapshot_metadata",
+        "reviewed_career_preference_attributes"
       ],
       "qa": [
         "ONET_SOC_CODE is non-null and valid.",
@@ -272,7 +273,10 @@
         "Element IDs and scale IDs are retained where supplied.",
         "Essential, transferable, and software skills remain separate tables.",
         "Occupation table has one row per ONET_SOC_CODE.",
-        "All configured O*NET 31.0 file URLs are recorded with individual SHA-256 hashes."
+        "All configured O*NET 31.0 file URLs are recorded with individual SHA-256 hashes.",
+        "Reviewed career-preference Work Activity rows are normalized from the same pinned work_activities source snapshot and retain element/scale/source provenance.",
+        "Only approved Work Activity Importance mappings enter career_preference_attributes; .01/.02 specialty rows are not averaged into parent SOC6 profiles.",
+        "Suppressed, not-relevant, missing, and absent reviewed values remain explicit coverage states rather than numeric zero."
       ],
       "files": {
         "occupation_data": "https://www.onetcenter.org/dl_files/database/db_31_0_csv/occupation_data.csv",
