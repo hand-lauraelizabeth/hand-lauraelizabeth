@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "registry_version": "2026-10-06.1",
+  "source": {
+    "source_id": "onet_31_0",
+    "release": "31.0",
+    "domain": "work_activities",
+    "source_file": "work_activities.csv",
+    "scale_id": "IM",
+    "scale_name": "Importance",
+    "scale_min": 1,
+    "scale_max": 5,
+    "soc_policy": "Use only O*NET-SOC .00 base occupation rows; strip terminal .00 to SOC6. Do not average specialty profiles into a parent SOC."
+  },
+  "semantic_rules": {
+    "user_preference_meaning": "The user explicitly prefers work in which the named activity is more important to occupational performance.",
+    "operator": "higher_preferred",
+    "missing_is_not_mismatch": true,
+    "no_hidden_default_weight": true,
+    "no_ability_or_work_style_substitution": true,
+    "no_specialty_aggregation": true
+  },
+  "attributes": [
+    {
+      "question_id": "career_analysis",
+      "attribute_id": "onet31:work_activity:4.A.2.a.4:IM",
+      "element_id": "4.A.2.a.4",
+      "element_name": "Analyzing Data or Information",
+      "prompt": "Would you like analyzing data or information to be an important part of your work?",
+      "operator": "higher_preferred",
+      "scale_id": "IM",
+      "scale_min": 1,
+      "scale_max": 5,
+      "review_status": "approved",
+      "rationale": "Direct O*NET Work Activity match; kept separate from problem solving rather than blending two constructs."
+    },
+    {
+      "question_id": "career_problem_solving",
+      "attribute_id": "onet31:work_activity:4.A.2.b.1:IM",
+      "element_id": "4.A.2.b.1",
+      "element_name": "Making Decisions and Solving Problems",
+      "prompt": "Would you like making decisions and solving problems to be an important part of your work?",
+      "operator": "higher_preferred",
+      "scale_id": "IM",
+      "scale_min": 1,
+      "scale_max": 5,
+      "review_status": "approved",
+      "rationale": "Direct O*NET Work Activity match on the Importance scale."
+    },
+    {
+      "question_id": "career_creativity",
+      "attribute_id": "onet31:work_activity:4.A.2.b.2:IM",
+      "element_id": "4.A.2.b.2",
+      "element_name": "Thinking Creatively",
+      "prompt": "Would you like thinking creatively to be an important part of your work?",
+      "operator": "higher_preferred",
+      "scale_id": "IM",
+      "scale_min": 1,
+      "scale_max": 5,
+      "review_status": "approved",
+      "rationale": "Uses the work activity rather than Originality ability or Innovation work style because the question is about creative activity being part of the job."
+    }
+  ]
+}
