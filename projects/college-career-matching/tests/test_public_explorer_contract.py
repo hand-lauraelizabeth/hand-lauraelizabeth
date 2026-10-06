@@ -55,6 +55,7 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("client.options()",HTML);self.assertIn("applyServiceOptions(optionResponse)",HTML);self.assertIn("optionResponse.data_version!==metadata.data_version",HTML)
   for token in ["o.cip_fields","o.states","o.campus_settings","o.credential_levels","o.affordability&&o.affordability.income_bands","o.institutions","o.programs"]:self.assertIn(token,HTML)
   self.assertIn("populateGovernedLookups(o)",HTML);self.assertIn("ccx-institution-options",HTML);self.assertIn("ccx-program-options",HTML)
+  self.assertIn("const candidateId=String(x.candidate_id||x.value)",HTML)
  def test_explorer_consumes_service_response_instead_of_local_scoring(self):
   self.assertIn("MatchingServiceClient",HTML);self.assertIn("assertContract",HTML);self.assertIn("client.match(request,{signal})",HTML);self.assertIn("renderResponse(response)",HTML)
   self.assertNotIn("var data=[",HTML);self.assertNotIn("function score(",HTML)
