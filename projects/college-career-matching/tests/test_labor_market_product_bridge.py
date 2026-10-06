@@ -7,7 +7,7 @@ from labor_market_product_bridge import current_local,long_term
 P=[{"UNITID":"1","program_id":"P1","soc_code":"15-1252"}]
 class LaborBridgeTests(unittest.TestCase):
  def test_current_market_identity_is_preserved(self):
-  r=current_local(P,[{"soc_code":"15-1252","market_id":"35620","market_type":"OEWS_MSA","employment":"1000","median_wage":"90000"}])[0];self.assertEqual(r["market_id"],"35620");self.assertEqual(r["market_type"],"OEWS_MSA")
+  r=current_local(P,[{"soc_code":"15-1252","market_id":"35620","market_type":"OEWS_MSA","market_label":"Metro Example","employment":"1000","median_wage":"90000"}])[0];self.assertEqual(r["market_id"],"35620");self.assertEqual(r["market_type"],"OEWS_MSA");self.assertEqual(r["market_label"],"Metro Example")
  def test_missing_current_measure_is_not_zero(self):
   r=current_local(P,[{"soc_code":"15-1252","market_id":"35620","market_type":"OEWS_MSA","employment":"","median_wage":""}])[0];self.assertEqual(r["employment"],"");self.assertEqual(r["employment_state"],"missing");self.assertEqual(r["wage_state"],"missing")
  def test_projection_horizon_stays_distinct(self):
