@@ -278,7 +278,10 @@
       "required": [
         "covered",
         "soc_count",
-        "soc_codes"
+        "soc_codes",
+        "pathway_count",
+        "pathways",
+        "representative_pathways"
       ],
       "properties": {
         "covered": {
@@ -296,6 +299,54 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "pathway_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pathways": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "soc_code",
+              "occupation_title"
+            ],
+            "properties": {
+              "soc_code": {
+                "type": "string"
+              },
+              "occupation_title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "representative_pathways": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "soc_code",
+              "occupation_title"
+            ],
+            "properties": {
+              "soc_code": {
+                "type": "string"
+              },
+              "occupation_title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
           }
         }
       }
