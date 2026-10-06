@@ -620,8 +620,8 @@
         return '<option value="'+esc(display)+'"></option>';
       });
       const programOptions=programs.map(x=>{
-        const school=institutionLabels.get(String(x.unitid))||String(x.unitid||''),display=(x.label||x.value)+(school?' — '+school:'')+' ['+x.value+']';
-        governedLookups.program.set(display,String(x.value));governedLookups.program.set(String(x.value),String(x.value));
+        const candidateId=String(x.candidate_id||x.value),school=institutionLabels.get(String(x.unitid))||String(x.unitid||''),display=(x.label||candidateId)+(school?' — '+school:'')+' ['+candidateId+']';
+        governedLookups.program.set(display,candidateId);governedLookups.program.set(candidateId,candidateId);
         return '<option value="'+esc(display)+'"></option>';
       });
       q('ccx-institution-options').innerHTML=institutionOptions.join('');
