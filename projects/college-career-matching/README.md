@@ -178,6 +178,7 @@ The visitor-facing interaction model is now represented in [public-explorer.html
 - when a visitor explicitly prioritizes current labor-market context or long-term outlook, the service emits traceable priority-context or evidence-gap explanations; raw wage/growth values do not manufacture positive reasons or negative tradeoffs;
 - those priority explanations can be expanded inline to inspect the exact supporting SOC/occupation rows, geography, source vintage, evidence states, measures, and stable evidence IDs without opening the full candidate-detail panel;
 - career-first mode can also expose service-gated, reviewed O*NET 31.0 Work Activity preferences for analyzing data/information, making decisions/solving problems, and thinking creatively; the service returns pathway-level alignment and coverage separately, and this descriptive index does not change ordering or rank;
+- the 2026-10-06 live O*NET/CIP-SOC audit normalized 2,286 reviewed rows across 762 base SOC6 profiles, covering 87.788% of crosswalk SOC6 codes and 82.221% of CIP-SOC relationship rows; the remaining 106 SOC6 are explicit evidence gaps rather than low-fit occupations;
 - full mapped pathways remain separate from future reviewed preference-aligned representative pathways;
 - readable example content remains available without JavaScript;
 - all current records are explicitly fictional demonstration data until the governed current-data release is production-ready.
