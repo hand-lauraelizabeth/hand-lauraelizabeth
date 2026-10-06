@@ -24,11 +24,13 @@ def validate_definitions(defs,registry=None):
    for specs in rules.values():
     for spec in specs:validate_constraint({"field":spec.get("field"),"operator":spec.get("operator")},registry)
  return True
-def option_values(options,path):
+def option_items(options,path):
  cur=options
  for part in path.split("."):
   cur=cur.get(part,{}) if isinstance(cur,dict) else {}
- return {str(x.get("value")) for x in cur if isinstance(x,dict)} if isinstance(cur,list) else set()
+ return [x for x in cur if isinstance(x,dict)] if isinstance(cur,list) else []
+def option_values(options,path):return {str(x.get("value")) for x in option_items(options,path)}
+def market_option_pairs(options,path):return {(str(x.get("market_id")),str(x.get("market_type"))) for x in option_items(options,path) if x.get("market_id") is not None and x.get("market_type") is not None}
 def map_answers(defs,answers,options=None):
  validate_definitions(defs);qs={q["question_id"]:q for q in defs["questions"]};unknown=set(answers)-set(qs)
  if unknown:raise ValueError(f"unknown question ids: {sorted(unknown)}")
@@ -41,16 +43,18 @@ def map_answers(defs,answers,options=None):
   if q.get("visible_for_modes") and mode not in q["visible_for_modes"]:raise ValueError(f"{qid} is not applicable to decision mode {mode}")
   vw=q.get("visible_when")
   if vw and answers.get(vw["question_id"])!=vw["value"]:raise ValueError(f"{qid} is not currently visible")
-  vals=val if isinstance(val,list) else [val]
+  m=q["mapping"];target=m["target"];vals=val if isinstance(val,list) else [val]
   if q.get("options"):
    allowed={str(x.get("value")) for x in q["options"] if isinstance(x,dict)}
    bad=[x for x in vals if str(x) not in allowed]
    if bad:raise ValueError(f"{qid} contains unsupported option values: {bad}")
   if options and q.get("option_source"):
-   allowed=option_values(options,q["option_source"])
-   bad=[x for x in vals if str(x) not in allowed]
-   if bad:raise ValueError(f"{qid} contains values outside active options: {bad}")
-  m=q["mapping"];target=m["target"]
+   if target=="geography.intended_work_market":
+    if not isinstance(val,dict) or (str(val.get("market_id")),str(val.get("market_type"))) not in market_option_pairs(options,q["option_source"]):raise ValueError(f"{qid} contains a labor market outside active options")
+   else:
+    allowed=option_values(options,q["option_source"])
+    bad=[x for x in vals if str(x) not in allowed]
+    if bad:raise ValueError(f"{qid} contains values outside active options: {bad}")
   def add_constraint(cid,field,operator,value,unknown_policy):
    c={"constraint_id":cid,"field":field,"operator":operator,"value":value,"unknown_policy":unknown_policy,"source_question_id":qid};validate_constraint(c);out["constraints"].append(c)
   if target=="constraint":
