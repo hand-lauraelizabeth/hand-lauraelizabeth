@@ -163,7 +163,8 @@
           "market_id": "00002",
           "market_type": "OEWS_MSA"
         }
-      ]
+      ],
+      "career_preference_attributes": []
     },
     "constraint_capabilities": {
       "schema_version": "1.0",
@@ -308,7 +309,21 @@
             "source_family": "synthetic_fixture",
             "vintage": "SYNTHETIC"
           }
-        ]
+        ],
+        "career_preference_alignment": {
+          "status": "no_explicit_preferences",
+          "explicit_preference_count": 0,
+          "pathway_count": 2,
+          "observed_pathway_count": 0,
+          "pathway_coverage_rate": null,
+          "score_summary": {
+            "median": null,
+            "min": null,
+            "max": null
+          },
+          "pathways": [],
+          "semantic_note": "No work-characteristic preference was explicitly selected."
+        }
       },
       {
         "candidate_id": "SYN002:P2",
@@ -394,7 +409,21 @@
             "source_family": "synthetic_fixture",
             "vintage": "SYNTHETIC"
           }
-        ]
+        ],
+        "career_preference_alignment": {
+          "status": "no_explicit_preferences",
+          "explicit_preference_count": 0,
+          "pathway_count": 2,
+          "observed_pathway_count": 0,
+          "pathway_coverage_rate": null,
+          "score_summary": {
+            "median": null,
+            "min": null,
+            "max": null
+          },
+          "pathways": [],
+          "semantic_note": "No work-characteristic preference was explicitly selected."
+        }
       },
       {
         "candidate_id": "SYN003:P3",
@@ -473,7 +502,21 @@
             "source_family": "synthetic_fixture",
             "vintage": "SYNTHETIC"
           }
-        ]
+        ],
+        "career_preference_alignment": {
+          "status": "no_explicit_preferences",
+          "explicit_preference_count": 0,
+          "pathway_count": 2,
+          "observed_pathway_count": 0,
+          "pathway_coverage_rate": null,
+          "score_summary": {
+            "median": null,
+            "min": null,
+            "max": null
+          },
+          "pathways": [],
+          "semantic_note": "No work-characteristic preference was explicitly selected."
+        }
       }
     ],
     "ordering": {
