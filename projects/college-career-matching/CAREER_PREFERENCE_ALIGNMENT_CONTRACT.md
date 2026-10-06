@@ -98,6 +98,14 @@ Program/candidate summaries retain multiple pathway perspectives: pathway breadt
 
 A plain-language career question is not automatically eligible for the public matcher merely because an O*NET-like attribute ID has been drafted. Questionnaire mappings marked `requires_attribute_mapping_review=true` must fail closed in the questionnaire mapper and remain absent from the public browser request. Activation requires explicit review of the source attribute, scale, operator semantics, and user-facing wording; skipping a pending question must never block career-first exploration.
 
+The initial reviewed public mappings are documented in `ONET_CAREER_PREFERENCE_GOVERNANCE.md` and use O*NET 31.0 Work Activity **Importance** ratings on the 1–5 scale:
+
+- `4.A.2.a.4` Analyzing Data or Information;
+- `4.A.2.b.1` Making Decisions and Solving Problems;
+- `4.A.2.b.2` Thinking Creatively.
+
+Each is `higher_preferred` only because the visitor explicitly states that having more of that activity in the work is preferred. These approved questions remain service-gated: the browser exposes them only when `/options` confirms that the exact reviewed attribute is loaded in the active career evidence. The current alignment output is descriptive and does not alter service ordering or constitute production ranking calibration.
+
 ## Validation requirements
 
 Before production scoring, operator semantics must be regression-tested against synthetic fixtures and reviewed against the source domain's documented scale meaning. In particular, O*NET attributes must not be assigned `higher_preferred` or `lower_preferred` merely because their values are numerically ordered; the operator must correspond to an explicit user preference and a defensible interpretation of the source scale.
