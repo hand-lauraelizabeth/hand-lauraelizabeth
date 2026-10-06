@@ -16,7 +16,7 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_fixture_mode_is_explicitly_non_authoritative(self):
   self.assertIn("Synthetic fixture mode:",HTML);self.assertIn("fictional",HTML);self.assertIn("static fixture records do not change with that request",HTML);self.assertIn("should not be used as college advice",HTML)
  def test_only_governed_active_controls_remain(self):
-  for control in ["ccx-decision-mode","ccx-cip","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
+  for control in ["ccx-decision-mode","ccx-known-institution","ccx-known-program","ccx-compare-program-1","ccx-compare-program-2","ccx-compare-program-3","ccx-transfer-source","ccx-cip","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
    self.assertIn(f'id="{control}"',HTML)
   self.assertNotIn('id="ccx-interest"',HTML);self.assertIn("Field choices come from authoritative CIP classifications",HTML)
  def test_decision_orientation_is_sent_through_governed_request(self):
@@ -24,8 +24,12 @@ class PublicExplorerContractTests(unittest.TestCase):
   for mode in ["broad_exploration","career_first","college_program_first","transfer","returning_student","compare_known"]:
    self.assertIn(f'value="{mode}"',HTML)
   self.assertIn("decisionMode:q('ccx-decision-mode').value",HTML)
-  self.assertIn("decision_mode:s.decisionMode||'broad_exploration'",HTML)
+  self.assertIn("const mode=s.decisionMode||'broad_exploration'",HTML)
+  self.assertIn("decision_mode:mode",HTML)
   self.assertNotIn("decision_mode:'broad_exploration',constraints",HTML)
+  for region in ["ccx-mode-context","ccx-known-college-tools","ccx-compare-known-tools","ccx-transfer-tools"]:
+   self.assertIn(f'id="{region}"',HTML)
+  self.assertIn("function updateModeContext()",HTML)
  def test_cost_language_separates_coa_net_price_and_income_context(self):
   self.assertIn("cost of attendance",HTML.lower());self.assertIn("average net price after grants/scholarships",HTML.lower());self.assertIn("Household income range",HTML);self.assertIn("not a personalized aid estimate",HTML);self.assertIn("does not invent a family-size adjustment",HTML)
  def test_housing_setting_aid_and_accessibility_are_distinct(self):
@@ -34,12 +38,23 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("Roommate versus private-room options require school-specific evidence",HTML);self.assertIn("separate signals",HTML)
  def test_browser_builds_governed_request_fields(self):
   self.assertIn("function buildGovernedRequest(s)",HTML)
-  for token in ["cip_code","finance__net_price_overall","finance__net_price_income_48_75","campus__housing_available","campus__housing_required_all_ftft","finance__institutional_grant_evidence","campus__locale_category","transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit"]:
+  for token in ["cip_code","finance__net_price_overall","finance__net_price_income_48_75","campus__housing_available","campus__housing_required_all_ftft","finance__institutional_grant_evidence","campus__locale_category","transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit","candidate_id","UNITID"]:
    self.assertIn(token,HTML)
   self.assertIn("root.getGovernedRequest",HTML)
+ def test_mode_specific_lookups_submit_only_governed_ids(self):
+  self.assertIn("function resolveGovernedLookup(kind,value)",HTML)
+  self.assertIn("Free text is never converted to an institution or program ID by name similarity.",HTML)
+  self.assertIn("if(mode==='college_program_first')",HTML)
+  self.assertIn("hard('known_program','candidate_id','eq',knownProgram)",HTML)
+  self.assertIn("hard('known_institution','UNITID','eq',knownInstitution)",HTML)
+  self.assertIn("hard('known_programs','candidate_id','in',comparePrograms)",HTML)
+  self.assertIn("pinned_candidate_ids:mode==='compare_known'?comparePrograms:[]",HTML)
+  self.assertIn("source_institution_id:transferSource",HTML)
+  self.assertIn("target_program_required:false",HTML)
  def test_filter_choices_are_loaded_from_versioned_options_service(self):
   self.assertIn("client.options()",HTML);self.assertIn("applyServiceOptions(optionResponse)",HTML);self.assertIn("optionResponse.data_version!==metadata.data_version",HTML)
-  for token in ["o.cip_fields","o.states","o.campus_settings","o.credential_levels","o.affordability&&o.affordability.income_bands"]:self.assertIn(token,HTML)
+  for token in ["o.cip_fields","o.states","o.campus_settings","o.credential_levels","o.affordability&&o.affordability.income_bands","o.institutions","o.programs"]:self.assertIn(token,HTML)
+  self.assertIn("populateGovernedLookups(o)",HTML);self.assertIn("ccx-institution-options",HTML);self.assertIn("ccx-program-options",HTML)
  def test_explorer_consumes_service_response_instead_of_local_scoring(self):
   self.assertIn("MatchingServiceClient",HTML);self.assertIn("assertContract",HTML);self.assertIn("client.match(request,{signal})",HTML);self.assertIn("renderResponse(response)",HTML)
   self.assertNotIn("var data=[",HTML);self.assertNotIn("function score(",HTML)
