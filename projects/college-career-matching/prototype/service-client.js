@@ -65,6 +65,10 @@ export function assertContract(response,kind,{productionAuthorized=false}={}){
    if(rec.status==='review_eligible_ranked'&&(!Number.isInteger(rec.rank)||rec.rank<1))throw new Error('match: invalid ranked result')
   }
  }
+ if(kind==='candidate'){
+  for(const key of ['candidate_id','institution','program','affordability','program_outcomes','transfer','career','labor_market','freshness','unknowns'])if(!(key in response))throw new Error(`candidate: missing ${key}`)
+  if(!Array.isArray(response.unknowns)||!response.freshness||!Array.isArray(response.freshness.source_freshness))throw new Error('candidate: invalid evidence/freshness shape')
+ }
  if(kind==='compare'&&!Array.isArray(response.candidates))throw new Error('compare: candidates must be an array')
  return response
 }
