@@ -112,13 +112,23 @@ def run():
    assert len(boxes)>=2 and len(names)==len(boxes)
    boxes[0].click();boxes[1].click()
    text_has(driver,"#ccx-compare-note","no winner is calculated in the browser")
+   text_has(driver,"#ccx-compare-table","Cost & debt evidence")
+   text_has(driver,"#ccx-compare-table","Aid context")
+   text_has(driver,"#ccx-compare-table","Program / field outcomes")
+   text_has(driver,"#ccx-compare-table","Labor-market evidence")
    table=driver.find_element(By.ID,"ccx-compare-table").text
    assert names[0] in table and names[1] in table
-   assert "Institution" in table and "Recommendation" in table
+   compare_state=driver.execute_script("return document.getElementById('leh-ccx').getCompareState();")
+   assert len(compare_state["cached_keys"])==1 and compare_state["loading"] is False
 
-   # Clear comparison leaves results intact.
+   # Clear and reselect the same pair; governed comparison cache should be reused.
    driver.find_element(By.ID,"ccx-clear").click()
    text_has(driver,"#ccx-compare-note","Select two or three programs")
+   boxes=driver.find_elements(By.CSS_SELECTOR,".ccx-compare-toggle input");boxes[0].click();boxes[1].click()
+   text_has(driver,"#ccx-compare-table","Cost & debt evidence")
+   compare_state2=driver.execute_script("return document.getElementById('leh-ccx').getCompareState();")
+   assert len(compare_state2["cached_keys"])==1
+   driver.find_element(By.ID,"ccx-clear").click()
    assert "4 service-returned programs" in driver.find_element(By.ID,"ccx-count").text
 
    print("PASS staging browser scenarios: state, online, request feedback, compare, reset, service-state language")
