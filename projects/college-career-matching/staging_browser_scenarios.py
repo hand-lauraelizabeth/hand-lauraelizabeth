@@ -73,6 +73,16 @@ def run():
    assert "River State University" in driver.find_element(By.ID,"ccx-results").text
    assert "Cedar Valley College" in driver.find_element(By.ID,"ccx-results").text
 
+   # Candidate evidence is lazy-loaded from /candidate and then cached.
+   detail_buttons=driver.find_elements(By.CSS_SELECTOR,".ccx-detail-button");assert len(detail_buttons)==4
+   before=driver.execute_script("return document.getElementById('leh-ccx').getCandidateDetailState();");assert before["cached_ids"]==[]
+   first_id=detail_buttons[0].get_attribute("data-detail-key");driver.execute_script("arguments[0].click();",detail_buttons[0])
+   text_has(driver,".ccx-detail-region:not([hidden])","Cost & debt evidence")
+   text_has(driver,".ccx-detail-region:not([hidden])","Aid context")
+   text_has(driver,".ccx-detail-region:not([hidden])","Labor-market evidence")
+   after=driver.execute_script("return document.getElementById('leh-ccx').getCandidateDetailState();");assert first_id in after["cached_ids"] and after["loading_ids"]==[]
+   driver.execute_script("arguments[0].click();",detail_buttons[0]);assert detail_buttons[0].get_attribute("aria-expanded")=="false"
+
    # Governed hard constraint: NJ should return only the fictional NJ candidate.
    Select(driver.find_element(By.ID,"ccx-state")).select_by_value("NJ")
    text_has(driver,"#ccx-request-state","1 must-have constraint")
