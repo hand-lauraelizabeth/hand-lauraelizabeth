@@ -49,7 +49,7 @@ class ServiceState:
   self.allowed_origins={x.strip() for x in (allowed_origins or []) if x.strip()}
   if self.production_authorized and "*" in self.allowed_origins:raise ValueError("production service cannot use wildcard CORS origin")
  def metadata(self):return self.metadata_response
- def options(self):return build_options(self.snapshot,self.data_version)
+ def options(self):return build_options(self.snapshot,self.data_version,self.current_labor)
  def candidate(self,candidate_id,work_market=None):
   c=self.by_id.get(candidate_id)
   if c is None:raise KeyError(candidate_id)
