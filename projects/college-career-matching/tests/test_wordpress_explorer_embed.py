@@ -10,7 +10,7 @@ CLIENT=(P/"prototype/service-client.js").read_text(encoding="utf-8")
 FIXTURES=json.loads((P/"prototype/contract-fixtures.json").read_text(encoding="utf-8"))
 
 def decoded_app(out):
- m=re.search(r"atob\\('([A-Za-z0-9+/=]+)'\\)",out)
+ m=re.search(r"atob\('([A-Za-z0-9+/=]+)'\)",out)
  if not m:raise AssertionError("WordPress embed base64 application payload missing")
  return base64.b64decode(m.group(1)).decode("utf-8")
 
@@ -30,7 +30,7 @@ class WordPressExplorerEmbedTests(unittest.TestCase):
   root=root_fragment(build(SOURCE,CLIENT,FIXTURES));app=decoded_app(root)
   self.assertTrue(root.startswith('<div id="leh-ccx">'));self.assertIn('data-ccx-bootstrap="1"',root)
   self.assertNotIn("structuredClone(INLINE_FIXTURES)",root);self.assertIn("structuredClone(INLINE_FIXTURES)",app);self.assertEqual(app.count("(async function(){"),1)
-  bootstrap=re.search(r'<script data-ccx-bootstrap="1">([\\s\\S]*?)</script>',root).group(1)
-  self.assertNotIn("\\n",bootstrap);self.assertIn("TextDecoder",bootstrap);self.assertIn("document.currentScript.after(s);",bootstrap)
+  bootstrap=re.search(r'<script data-ccx-bootstrap="1">([\s\S]*?)</script>',root).group(1)
+  self.assertNotIn("\n",bootstrap);self.assertIn("TextDecoder",bootstrap);self.assertIn("document.currentScript.after(s);",bootstrap)
 
 if __name__=="__main__":unittest.main()
