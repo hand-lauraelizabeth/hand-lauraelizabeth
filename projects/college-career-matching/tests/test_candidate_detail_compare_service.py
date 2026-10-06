@@ -29,6 +29,11 @@ class DetailCompareTests(unittest.TestCase):
   with self.assertRaises(ValueError):compare([c("1","P1","Alpha"),c("1","P1","Alpha")])
  def test_compare_does_not_declare_winner(self):
   r=compare([c("1","P1","Alpha"),c("2","P2","Beta")],data_version="D1");self.assertTrue(r["semantic_rules"]["no_automatic_winner"]);self.assertNotIn("winner",r)
+ def test_compare_exposes_all_governed_evidence_families(self):
+  r=compare([c("1","P1","Alpha"),c("2","P2","Beta")],data_version="D1")
+  ids={x["id"] for x in r["comparison_dimensions"]}
+  self.assertTrue({"affordability","aid_context","program_outcomes","transfer","career","current_labor","long_term_outlook","accreditation","freshness","unknowns"}.issubset(ids))
+  self.assertTrue(r["semantic_rules"]["aid_reporting_is_not_individual_award"]);self.assertTrue(r["semantic_rules"]["accreditation_absence_is_unknown_not_unaccredited"])
  def test_compare_preserves_candidate_order(self):
   r=compare([c("2","P2","Beta"),c("1","P1","Alpha")]);self.assertEqual(r["candidate_ids"],["2:P2","1:P1"])
 if __name__=="__main__":unittest.main()
