@@ -15,10 +15,10 @@ from synthetic_staging_bundle import build as build_staging_bundle
 
 PROJECT=Path(__file__).resolve().parent
 
-def build_harness(output,api_port=18765):
+def build_harness(output,api_port=18765,candidate_count=None):
  output=Path(output)
  staging_dir=output.parent/"staging-data"
- snapshot,manifest_path=build_staging_bundle(staging_dir)
+ snapshot,manifest_path=build_staging_bundle(staging_dir,candidate_count=candidate_count)
  manifest=json.loads(manifest_path.read_text(encoding="utf-8"))
  runtime=build_staging(f"http://127.0.0.1:{api_port}",manifest["data_version"],"synthetic-http-model-1",manifest["output_sha256"])
  source=(PROJECT/"public-explorer.html").read_text(encoding="utf-8")
