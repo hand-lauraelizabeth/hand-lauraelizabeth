@@ -74,7 +74,12 @@
     #leh-ccx .ccx-compare-table{overflow-x:auto}
     #leh-ccx .ccx-compare-table table{width:100%;border-collapse:collapse;min-width:560px;font-size:14px}
     #leh-ccx .ccx-compare-table th,#leh-ccx .ccx-compare-table td{padding:9px 10px;border-bottom:1px solid #e7ece9;text-align:left;vertical-align:top}
-    #leh-ccx .ccx-compare-table th:first-child{width:145px;color:var(--muted)}
+    #leh-ccx .ccx-compare-table th:first-child{width:175px;color:var(--muted)}
+    #leh-ccx .ccx-compare-table .ccx-compare-section th{background:var(--soft);color:var(--green2);font-weight:800;border-top:1px solid var(--line)}
+    #leh-ccx .ccx-compare-table .ccx-compare-program{display:block;color:var(--green2);font-weight:800}
+    #leh-ccx .ccx-compare-table .ccx-compare-school{display:block;color:var(--muted);font-size:12px;font-weight:500;margin-top:2px}
+    #leh-ccx .ccx-compare-table .ccx-cell-state{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+    #leh-ccx .ccx-compare-table .ccx-cell-source{display:block;color:var(--muted);font-size:10px;margin-top:2px}
     #leh-ccx .ccx-clear{border:0;background:transparent;color:var(--green);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:8px 0}
     #leh-ccx .ccx-safety{margin-top:22px;border-left:4px solid var(--green);padding:12px 14px;background:var(--soft);font-size:14px;line-height:1.55}
     #leh-ccx .ccx-service-state,#leh-ccx .ccx-request-state{font-size:13px;line-height:1.45;color:var(--muted);margin:8px 0 14px}
@@ -201,8 +206,8 @@
     const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
     const controls=['ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
-    const selected=new Set(),selectedRecords=new Map(),candidateDetailCache=new Map(),candidateDetailLoads=new Map();
-    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,currentPage=1,pageSize=20;
+    const selected=new Set(),selectedRecords=new Map(),candidateDetailCache=new Map(),candidateDetailLoads=new Map(),compareCache=new Map();
+    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,compareGeneration=0,activeCompareController=null,currentPage=1,pageSize=20;
     function setInteractive(enabled){
       controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
       q('ccx-reset').disabled=!enabled;q('ccx-page-size').disabled=!enabled;q('ccx-form').setAttribute('aria-disabled',String(!enabled));
@@ -392,19 +397,107 @@
       prev.disabled=!p.has_previous;next.disabled=!p.has_next;nav.hidden=Number(p.total_pages||0)<=1;
       root.dataset.currentPage=String(currentPage);root.dataset.totalPages=String(p.total_pages||0);
     }
-    function renderCompare(){
-      const host=q('ccx-compare-table'),note=q('ccx-compare-note'),clear=q('ccx-clear');
-      if(!lastResponse){host.innerHTML='';note.textContent='Select two or three programs from the current service results.';clear.hidden=true;return}
-      const chosen=[...selected].map(id=>selectedRecords.get(id)).filter(Boolean);
-      if(chosen.length<2){host.innerHTML='';note.textContent='Select two or three programs from the service results.';clear.hidden=selected.size===0;return}
+    function compareEvidenceCell(item,formatter){
+      if(!item)return '—<span class="ccx-cell-state">not reported</span>';
+      const value=evidenceValue(item,formatter),state=evidenceStateText(item.evidence_state),bits=[];
+      if(item.source_id)bits.push(item.source_id);if(item.source_vintage)bits.push(item.source_vintage);
+      return value+'<span class="ccx-cell-state">'+esc(state)+'</span>'+(bits.length?'<span class="ccx-cell-source">'+esc(bits.join(' · '))+'</span>':'');
+    }
+    function compareTextCell(value,state){
+      return (value===null||value===undefined||value===''?'—':esc(value))+(state?'<span class="ccx-cell-state">'+esc(state)+'</span>':'');
+    }
+    function compareLaborCell(family,type){
+      const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
+      if(!rows.length)return '—<span class="ccx-cell-state">'+esc(evidenceStateText(state))+'</span>';
+      return rows.map(x=>{
+        if(type==='current'){
+          const parts=['SOC '+(x.soc_code||'—')];
+          if(x.median_wage!==null&&x.median_wage!==undefined)parts.push(money(x.median_wage));
+          if(x.employment!==null&&x.employment!==undefined)parts.push('employment '+x.employment);
+          return '<div>'+esc(parts.join(' · '))+'<span class="ccx-cell-state">'+esc(evidenceStateText(x.wage_state||state))+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
+        }
+        const parts=['SOC '+(x.soc_code||'—')];
+        if(x.employment_change_pct!==null&&x.employment_change_pct!==undefined)parts.push(x.employment_change_pct+'% change');
+        if(x.annual_openings!==null&&x.annual_openings!==undefined)parts.push(x.annual_openings+' annual openings');
+        if(x.projection_year)parts.push('through '+x.projection_year);
+        return '<div>'+esc(parts.join(' · '))+(x.source_vintage?'<span class="ccx-cell-state">'+esc(x.source_vintage)+'</span>':'')+'</div>';
+      }).join('');
+    }
+    function renderCompareResponse(response){
+      const host=q('ccx-compare-table'),candidates=response.candidates||[],n=candidates.length;
+      const cells=fn=>candidates.map(x=>'<td>'+fn(x)+'</td>').join('');
+      const row=(label,fn)=>'<tr><th>'+esc(label)+'</th>'+cells(fn)+'</tr>';
+      const section=label=>'<tr class="ccx-compare-section"><th colspan="'+(n+1)+'">'+esc(label)+'</th></tr>';
+      host.innerHTML='<table><tr><th>Evidence field</th>'+candidates.map(x=>'<th><span class="ccx-compare-program">'+esc(x.program.name)+'</span><span class="ccx-compare-school">'+esc(x.institution.name)+'</span></th>').join('')+'</tr>'+
+        section('Program identity')+
+        row('Location',x=>compareTextCell([x.institution.city,x.institution.state].filter(Boolean).join(', ')))+
+        row('Credential',x=>compareTextCell(x.program.credential_level))+
+        row('CIP',x=>compareTextCell([x.program.cip_code,x.program.cip_title].filter(Boolean).join(' · ')))+
+        row('Online availability',x=>compareEvidenceCell(x.program.online_available,v=>String(v)))+
+        section('Cost & debt evidence')+
+        row('Average net price',x=>compareEvidenceCell(x.affordability.net_price,money))+
+        row('In-state tuition',x=>compareEvidenceCell(x.affordability.tuition_in_state,money))+
+        row('Out-of-state tuition',x=>compareEvidenceCell(x.affordability.tuition_out_of_state,money))+
+        row('Cost of attendance',x=>compareEvidenceCell(x.affordability.cost_of_attendance,money))+
+        row('Institution median debt',x=>compareEvidenceCell(x.affordability.institution_median_debt,money))+
+        section('Aid context')+
+        row('Institutional grant share',x=>compareEvidenceCell(x.aid_context.institutional_grant_share,percent))+
+        row('Work-Study share',x=>compareEvidenceCell(x.aid_context.work_study_share,percent))+
+        row('State/local grant share',x=>compareEvidenceCell(x.aid_context.state_local_grant_share,percent))+
+        section('Program / field outcomes')+
+        row('Outcome coverage',x=>compareTextCell(x.program_outcomes.covered?'Evidence present':'No covered record'))+
+        row('Median earnings',x=>compareEvidenceCell(x.program_outcomes.median_earnings,money))+
+        row('Median debt',x=>compareEvidenceCell(x.program_outcomes.median_debt,money))+
+        row('Completion rate',x=>compareEvidenceCell(x.program_outcomes.completion_rate,percent))+
+        section('Transfer & career evidence')+
+        row('Transfer coverage',x=>compareTextCell(x.transfer.covered?'Evidence present':'No covered record'))+
+        row('Transfer evidence records',x=>compareTextCell(x.transfer.evidence_record_count))+
+        row('Transfer evidence levels',x=>compareTextCell(listText(x.transfer.evidence_levels)))+
+        row('Transfer source systems',x=>compareTextCell(listText(x.transfer.source_systems)))+
+        row('Career SOC pathways',x=>compareTextCell(listText(x.career.soc_codes),x.career.covered?'covered':'coverage not present'))+
+        section('Labor-market evidence')+
+        row('Current selected market',x=>compareLaborCell(x.labor_market.selected_work_market,'current'))+
+        row('Long-term outlook',x=>compareLaborCell(x.labor_market.long_term_outlook,'future'))+
+        section('Source status & unresolved evidence')+
+        row('Accreditation coverage',x=>compareTextCell(x.institution.accreditation.covered?'Evidence present':'No covered record'))+
+        row('Accreditation statuses',x=>compareTextCell(listText(x.institution.accreditation.statuses)))+
+        row('Accrediting agencies',x=>compareTextCell(listText(x.institution.accreditation.agency_names)))+
+        row('Source freshness',x=>compareTextCell(listText(x.freshness.source_freshness),'data '+(x.freshness.data_version||'not reported')))+
+        row('Unresolved fields',x=>compareTextCell(x.unknowns.length?x.unknowns.join('; '):'None reported'))+
+      '</table>';
+    }
+    function compareContext(){
+      const request=buildGovernedRequest(state());
+      return {intended_work_market:request.geography&&request.geography.intended_work_market||null};
+    }
+    function compareKey(ids,context){return JSON.stringify({data_version:metadata&&metadata.data_version||null,candidate_ids:ids,context})}
+    async function renderCompare(){
+      const host=q('ccx-compare-table'),note=q('ccx-compare-note'),clear=q('ccx-clear'),ids=[...selected];
+      if(ids.length<2||!lastResponse){
+        compareGeneration++;if(activeCompareController){activeCompareController.abort();activeCompareController=null}
+        host.innerHTML='';note.textContent='Select two or three programs from the service results.';clear.hidden=ids.length===0;return
+      }
       clear.hidden=false;
-      note.textContent='Side-by-side display of fields already returned by the match service; no winner is calculated in the browser.';
-      host.innerHTML='<table><tr><th>Field</th>'+chosen.map(x=>'<th>'+esc(x.program.name)+'</th>').join('')+'</tr>'+
-        '<tr><th>Institution</th>'+chosen.map(x=>'<td>'+esc(x.institution.name)+'</td>').join('')+'</tr>'+
-        '<tr><th>Eligibility</th>'+chosen.map(x=>'<td>'+esc(x.eligibility.status)+'</td>').join('')+'</tr>'+
-        '<tr><th>Recommendation</th>'+chosen.map(x=>'<td>'+esc(rankLabel(x.recommendation))+'</td>').join('')+'</tr>'+
-        '<tr><th>Evidence coverage</th>'+chosen.map(x=>'<td>'+esc(x.evidence_coverage&&x.evidence_coverage.overall_status||'not reported')+'</td>').join('')+'</tr>'+
-        '<tr><th>Career pathways</th>'+chosen.map(x=>'<td>'+esc(x.career_pathways&&x.career_pathways.pathway_count||0)+'</td>').join('')+'</tr></table>';
+      const context=compareContext(),key=compareKey(ids,context),cached=compareCache.get(key);
+      note.textContent='Governed side-by-side evidence comparison; no winner is calculated in the browser.';
+      if(cached){renderCompareResponse(cached);return}
+      const generation=++compareGeneration;
+      if(activeCompareController)activeCompareController.abort();
+      activeCompareController=typeof AbortController!=='undefined'?new AbortController():null;
+      const controller=activeCompareController,signal=controller?controller.signal:null;
+      host.innerHTML='<div class="ccx-detail-note">Loading governed comparison evidence…</div>';
+      try{
+        const response=assertContract(await client.compare(ids,context,{signal}),'compare');
+        if(generation!==compareGeneration)return;
+        if(metadata&&response.data_version!==metadata.data_version)throw new Error('Compare data version does not match loaded metadata');
+        if(JSON.stringify(response.candidate_ids)!==JSON.stringify(ids))throw new Error('Compare response candidate identity/order mismatch');
+        compareCache.set(key,response);renderCompareResponse(response);
+      }catch(err){
+        if(generation!==compareGeneration||err&&err.name==='AbortError')return;
+        host.innerHTML='<div class="ccx-empty"><strong>Comparison evidence unavailable.</strong><p>'+esc(err&&err.message||err)+'</p></div>';
+      }finally{
+        if(generation===compareGeneration&&activeCompareController===controller)activeCompareController=null;
+      }
     }
     function renderResponse(response){
       lastResponse=response;
@@ -514,7 +607,7 @@
     q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;refresh();q('ccx-state').focus()});
     q('ccx-clear').addEventListener('click',()=>{selected.clear();selectedRecords.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
     root.getGovernedRequest=()=>buildGovernedRequest(state());
-    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});root.getCandidateDetailState=()=>({cached_ids:[...candidateDetailCache.keys()],loading_ids:[...candidateDetailLoads.keys()]});
+    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});root.getCandidateDetailState=()=>({cached_ids:[...candidateDetailCache.keys()],loading_ids:[...candidateDetailLoads.keys()]});root.getCompareState=()=>({generation:compareGeneration,cached_keys:[...compareCache.keys()],selected_ids:[...selected],loading:!!activeCompareController});
     await refresh();
   })();
   </script>
