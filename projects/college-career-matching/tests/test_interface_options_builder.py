@@ -15,6 +15,11 @@ class OptionsTests(unittest.TestCase):
   x=build([row("U1","P1","Computing",cip="11.0101"),row("U2","P2","Biology",cip="26.0101")],"SYN-1");by={z["value"]:z["label"] for z in x["cip_fields"]};self.assertEqual(by["11.0101"],"Synthetic Field 11.0101");self.assertEqual(by["26.0101"],"Synthetic Field 26.0101")
  def test_same_program_id_at_different_institutions_stays_distinct(self):
   x=build([row("U1","P1","Biology"),row("U2","P1","Biology")],"SYN-1");self.assertEqual({p["value"] for p in x["programs"]},{"U1:P1","U2:P1"})
+ def test_explicit_candidate_id_is_the_program_option_identity(self):
+  r=row("U1","P1","Biology");r["candidate_id"]="CANONICAL-1";x=build([r],"SYN-1");self.assertEqual(x["programs"][0]["value"],"CANONICAL-1");self.assertEqual(x["programs"][0]["candidate_id"],"CANONICAL-1")
+ def test_duplicate_explicit_candidate_id_fails(self):
+  a=row("U1","P1","A");b=row("U2","P2","B");a["candidate_id"]=b["candidate_id"]="DUP"
+  with self.assertRaises(ValueError):build([a,b],"SYN-1")
  def test_duplicate_identity_fails(self):
   with self.assertRaises(ValueError):build([row("U1","P1","A"),row("U1","P1","B")],"SYN-1")
  def test_missing_optional_online_evidence_not_negative(self):
