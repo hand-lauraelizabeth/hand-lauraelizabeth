@@ -35,7 +35,7 @@ def current_local(pathways,rows):
  for key,socs in pathway_index(pathways).items():
   for soc in sorted(socs):
    for r in idx.get(soc,[]):
-    out.append({"UNITID":key[0],"program_id":key[1],"soc_code":soc,"market_id":clean(r["market_id"]),"market_type":clean(r["market_type"]),"employment":clean(r.get("employment")),"median_wage":clean(r.get("median_wage")),"employment_state":clean(r.get("employment_state")) or ("observed" if clean(r.get("employment")) else "missing"),"wage_state":clean(r.get("wage_state")) or ("observed" if clean(r.get("median_wage")) else "missing"),"source_vintage":clean(r.get("source_vintage"))})
+    out.append({"UNITID":key[0],"program_id":key[1],"soc_code":soc,"market_id":clean(r["market_id"]),"market_type":clean(r["market_type"]),"market_label":clean(r.get("market_label") or r.get("market_title") or r.get("area_title") or r.get("AREA_TITLE")),"employment":clean(r.get("employment")),"median_wage":clean(r.get("median_wage")),"employment_state":clean(r.get("employment_state")) or ("observed" if clean(r.get("employment")) else "missing"),"wage_state":clean(r.get("wage_state")) or ("observed" if clean(r.get("median_wage")) else "missing"),"source_vintage":clean(r.get("source_vintage"))})
  return out
 def long_term(pathways,rows):
  idx={}
