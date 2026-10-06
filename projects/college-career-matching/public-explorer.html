@@ -474,13 +474,14 @@
     }
     function compactLaborFamily(family,type){
       const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[],heading=type==='current'?'Current selected market':'Long-term outlook';
-      if(!rows.length)return '<section class="ccx-career-family"><h4>'+heading+'</h4><span class="ccx-career-state">'+esc(evidenceStateText(state))+'.</span></section>';
+      const marketLabel=type==='current'&&family&&family.market_label?'<span class="ccx-career-state">'+esc(family.market_label)+'</span>':'';
+      if(!rows.length)return '<section class="ccx-career-family"><h4>'+heading+'</h4>'+marketLabel+'<span class="ccx-career-state">'+esc(evidenceStateText(state))+'.</span></section>';
       const shown=rows.slice(0,2);
-      return '<section class="ccx-career-family"><h4>'+heading+'</h4>'+shown.map(x=>{
+      return '<section class="ccx-career-family"><h4>'+heading+'</h4>'+marketLabel+shown.map(x=>{
         const label=pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified';
         if(type==='current'){
           const wage=x.median_wage!==null&&x.median_wage!==undefined?money(x.median_wage):'wage —',employment=x.employment!==null&&x.employment!==undefined?'employment '+x.employment:'employment —';
-          return '<div class="ccx-career-item"><strong>'+esc(label)+'</strong><span class="ccx-career-measure">'+wage+' · '+esc(employment)+'</span><span class="ccx-career-state">wage '+esc(evidenceStateText(x.wage_state||'missing'))+' · employment '+esc(evidenceStateText(x.employment_state||'missing'))+'</span></div>';
+          return '<div class="ccx-career-item"><strong>'+esc(label)+'</strong><span class="ccx-career-measure">'+wage+' · '+esc(employment)+'</span><span class="ccx-career-state">wage '+esc(evidenceStateText(x.wage_state||'missing'))+' · employment '+esc(evidenceStateText(x.employment_state||'missing'))+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
         }
         const change=x.employment_change_pct!==null&&x.employment_change_pct!==undefined?x.employment_change_pct+'% projected change':'projected change —',openings=x.annual_openings!==null&&x.annual_openings!==undefined?x.annual_openings+' annual openings':'annual openings —',horizon=x.projection_year?' · through '+x.projection_year:'';
         return '<div class="ccx-career-item"><strong>'+esc(label)+'</strong><span class="ccx-career-measure">'+esc(change+' · '+openings+horizon)+'</span><span class="ccx-career-state">'+esc(x.projection_geography||'projection geography not reported')+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
