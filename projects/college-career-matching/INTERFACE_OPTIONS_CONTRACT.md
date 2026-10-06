@@ -10,7 +10,7 @@ Each row represents one authoritative candidate program identity and requires `U
 
 ## Output
 
-The artifact contains `data_version`, generation timestamp, coverage counts, and controlled collections for states, credential levels, institutions, institution-program choices, CIP fields, and supported modality evidence.
+The artifact contains `data_version`, generation timestamp, coverage counts, and controlled collections for states, credential levels, institutions, institution-program choices, CIP fields, and supported modality evidence. The service may additionally attach `labor_markets` derived from the governed current-labor evidence loaded by the same service instance; those choices carry explicit `market_id` and `market_type` rather than browser-inferred geography.
 
 Program options carry the canonical `candidate_id` from the active product snapshot and use it as the submitted option value. Current product snapshots encode that identity as `UNITID:program_id`; older test/fixture rows without an explicit `candidate_id` may use that deterministic form as a compatibility fallback. The frontend must not reconstruct, fuzzy-match, or rename candidate identity independently of the active snapshot.
 
