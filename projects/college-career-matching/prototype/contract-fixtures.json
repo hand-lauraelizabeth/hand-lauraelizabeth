@@ -432,7 +432,16 @@
       "state": "NY",
       "accreditation": {
         "covered": true,
-        "status": "Synthetic accreditation evidence present"
+        "statuses": [
+          "Synthetic accreditation evidence present"
+        ],
+        "agency_names": [
+          "Synthetic Accrediting Agency"
+        ],
+        "record_count": 1,
+        "source_record_ids": [
+          "SYNTHETIC-ACCREDITATION-SYN001"
+        ]
       }
     },
     "program": {
@@ -551,7 +560,30 @@
       ],
       "data_version": "synthetic-contract-1"
     },
-    "unknowns": []
+    "unknowns": [],
+    "aid_context": {
+      "institutional_grant_share": {
+        "value": 0.44,
+        "evidence_state": "observed",
+        "source_id": "synthetic_aid_fixture",
+        "source_vintage": "SYNTHETIC"
+      },
+      "work_study_share": {
+        "value": 0.08,
+        "evidence_state": "observed",
+        "source_id": "synthetic_aid_fixture",
+        "source_vintage": "SYNTHETIC"
+      },
+      "state_local_grant_share": {
+        "value": 0.19,
+        "evidence_state": "observed",
+        "source_id": "synthetic_aid_fixture",
+        "source_vintage": "SYNTHETIC"
+      },
+      "institutional_grant_evidence": "true",
+      "work_study_evidence": "true",
+      "state_local_grant_evidence": "true"
+    }
   },
   "compare": {
     "schema_version": "1.0",
@@ -652,7 +684,16 @@
       "state": "NY",
       "accreditation": {
         "covered": true,
-        "status": "Synthetic accreditation evidence present"
+        "statuses": [
+          "Synthetic accreditation evidence present"
+        ],
+        "agency_names": [
+          "Synthetic Accrediting Agency"
+        ],
+        "record_count": 1,
+        "source_record_ids": [
+          "SYNTHETIC-ACCREDITATION-SYN002"
+        ]
       }
     },
     "program": {
@@ -770,7 +811,30 @@
       ],
       "data_version": "synthetic-contract-1"
     },
-    "unknowns": []
+    "unknowns": [],
+    "aid_context": {
+      "institutional_grant_share": {
+        "value": 0.51,
+        "evidence_state": "observed",
+        "source_id": "synthetic_aid_fixture",
+        "source_vintage": "SYNTHETIC"
+      },
+      "work_study_share": {
+        "value": 0.12,
+        "evidence_state": "observed",
+        "source_id": "synthetic_aid_fixture",
+        "source_vintage": "SYNTHETIC"
+      },
+      "state_local_grant_share": {
+        "value": 0.24,
+        "evidence_state": "observed",
+        "source_id": "synthetic_aid_fixture",
+        "source_vintage": "SYNTHETIC"
+      },
+      "institutional_grant_evidence": "true",
+      "work_study_evidence": "true",
+      "state_local_grant_evidence": "true"
+    }
   },
   "candidate:SYN003:P3": {
     "schema_version": "1.0",
@@ -783,7 +847,10 @@
       "state": "NJ",
       "accreditation": {
         "covered": false,
-        "status": null
+        "statuses": [],
+        "agency_names": [],
+        "record_count": null,
+        "source_record_ids": []
       }
     },
     "program": {
@@ -893,6 +960,29 @@
     },
     "unknowns": [
       "finance__net_price__state"
-    ]
+    ],
+    "aid_context": {
+      "institutional_grant_share": {
+        "value": null,
+        "evidence_state": "missing",
+        "source_id": null,
+        "source_vintage": null
+      },
+      "work_study_share": {
+        "value": null,
+        "evidence_state": "missing",
+        "source_id": null,
+        "source_vintage": null
+      },
+      "state_local_grant_share": {
+        "value": null,
+        "evidence_state": "missing",
+        "source_id": null,
+        "source_vintage": null
+      },
+      "institutional_grant_evidence": null,
+      "work_study_evidence": null,
+      "state_local_grant_evidence": null
+    }
   }
 }
