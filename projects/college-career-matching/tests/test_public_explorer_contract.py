@@ -36,8 +36,9 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("Choose a labor market from the governed service suggestions.",HTML)
   for phrase in ["Analyzing data or information is an important part of the work","Making decisions and solving problems is an important part of the work","Thinking creatively is an important part of the work","reviewed O*NET 31.0 Work Activity Importance ratings"]:
    self.assertIn(phrase,HTML)
-  for token in ["o.career_preference_attributes","governedLookups.career","careerPreferences.push","onet31:work_activity"]:
+  for token in ["o.career_preference_attributes","governedLookups.career","careerPreferences.push"]:
    self.assertIn(token,HTML)
+  self.assertNotIn("onet31:work_activity:4.A.2",HTML)
   self.assertIn("A selected work-characteristic preference is not available in the active governed O*NET evidence.",HTML)
  def test_cost_language_separates_coa_net_price_and_income_context(self):
   self.assertIn("cost of attendance",HTML.lower());self.assertIn("average net price after grants/scholarships",HTML.lower());self.assertIn("Household income range",HTML);self.assertIn("not a personalized aid estimate",HTML);self.assertIn("does not invent a family-size adjustment",HTML)
