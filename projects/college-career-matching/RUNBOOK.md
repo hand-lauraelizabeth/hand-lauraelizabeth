@@ -319,3 +319,11 @@ The explorer uses last-writer-wins request generations. A newly scheduled match 
 After a transient request failure, stale results and comparison selections are cleared and the UI exposes **Retry matcher**. Retry does not blindly resend the previous request. It first reloads `/metadata` and `/options`, revalidates the runtime-pinned data/model/snapshot identity, and only then issues a fresh governed match request. A recovered service with invalid identity fails closed and disables the matcher.
 
 CI runs `staging_browser_concurrency_scenarios.py` through a loopback latency proxy. The scenario deliberately makes older state-filter requests finish after the newest request and verifies that only the newest response remains visible. It then takes the staging backend offline, verifies fail-closed clearing, restarts the same pinned service, and verifies governed recovery through the explicit retry control.
+
+### Large-result pagination
+
+The browser must use the match service's pagination contract rather than loading the full candidate universe and slicing locally. The explorer sends explicit `page` and `page_size` values, validates returned pagination against the governed request outside static fixture mode, and displays the service's total result count with the current visible range.
+
+Page navigation preserves up to three comparison selections across pages by retaining only the service-returned records the user explicitly selected. A change to actual matching criteria resets to page 1 and clears those selections so comparison state from an obsolete query cannot leak into a new result universe. Changing results-per-page resets to page 1 but does not change the matching criteria.
+
+CI runs `staging_browser_pagination_scenarios.py` with a deterministic 27-candidate fictional staging snapshot. The scenario verifies 20-result default pagination, a 10-result page-size selection, pages 1–3, the partial final-page range, previous/next disabled states, cross-page comparison persistence, and criteria-change reset behavior. No browser-side result slicing or ranking is permitted.
