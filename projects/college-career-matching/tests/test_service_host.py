@@ -18,6 +18,14 @@ class ServiceHostTests(unittest.TestCase):
    snap,mp,h=write_fixture(Path(d));s=ServiceState(snap,mp,"M1",allowed_origins=["https://example.org"])
    self.assertFalse(s.production_authorized);self.assertEqual(s.health()["candidate_count"],1);self.assertEqual(s.metadata()["snapshot"]["output_sha256"],h)
    self.assertEqual(s.options()["options"]["counts"]["institution_programs"],1);self.assertEqual(s.candidate("1:P1")["candidate_id"],"1:P1")
+ def test_selected_labor_market_options_and_match_share_one_governed_universe(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);snap,mp,_=write_fixture(root);lp=root/"labor.json";lp.write_text(json.dumps([{"UNITID":"1","program_id":"P1","soc_code":"15-1252","market_id":"35620","market_type":"OEWS_MSA","market_label":"Metro Example","median_wage":"90000","wage_state":"observed"}]))
+   s=ServiceState(snap,mp,"M1",current_labor_path=lp);markets=s.options()["options"]["labor_markets"];self.assertEqual(markets[0]["value"],"OEWS_MSA:35620")
+   q={"schema_version":"1.0","decision_mode":"career_first","constraints":[],"preferences":[],"career_preferences":[],"geography":{"work_market_semantics":"selected_market","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}}}
+   self.assertEqual(s.match(q)["results"][0]["labor_market"]["selected_work_market"]["market_id"],"35620")
+   q["geography"]["intended_work_market"]["market_id"]="99999"
+   with self.assertRaisesRegex(ValueError,"not available"):s.match(q)
  def test_snapshot_hash_mismatch_fails_startup(self):
   with tempfile.TemporaryDirectory() as d:
    snap,mp,_=write_fixture(Path(d));m=json.loads(mp.read_text());m["output_sha256"]="a"*64;mp.write_text(json.dumps(m))
