@@ -107,7 +107,8 @@
           "unitid": "SYN001",
           "program_id": "P1",
           "cip_code": "11.0101",
-          "credential_level": "Bachelors"
+          "credential_level": "Bachelors",
+          "candidate_id": "SYN001:P1"
         },
         {
           "value": "SYN002:P2",
@@ -115,7 +116,8 @@
           "unitid": "SYN002",
           "program_id": "P2",
           "cip_code": "11.0103",
-          "credential_level": "Bachelors"
+          "credential_level": "Bachelors",
+          "candidate_id": "SYN002:P2"
         },
         {
           "value": "SYN003:P3",
@@ -123,7 +125,8 @@
           "unitid": "SYN003",
           "program_id": "P3",
           "cip_code": "11.0199",
-          "credential_level": "Bachelors"
+          "credential_level": "Bachelors",
+          "candidate_id": "SYN003:P3"
         }
       ],
       "cip_fields": [
@@ -145,6 +148,20 @@
           "value": "online_available",
           "label": "Online availability reported",
           "available": true
+        }
+      ],
+      "labor_markets": [
+        {
+          "value": "OEWS_MSA:35620",
+          "label": "Harbor–Metro Labor Market (fictional)",
+          "market_id": "35620",
+          "market_type": "OEWS_MSA"
+        },
+        {
+          "value": "OEWS_MSA:00002",
+          "label": "River–Cedar Labor Market (fictional)",
+          "market_id": "00002",
+          "market_type": "OEWS_MSA"
         }
       ]
     },
@@ -172,6 +189,18 @@
           ]
         },
         "cip_code": {
+          "operators": [
+            "eq",
+            "in"
+          ]
+        },
+        "UNITID": {
+          "operators": [
+            "eq",
+            "in"
+          ]
+        },
+        "candidate_id": {
           "operators": [
             "eq",
             "in"
