@@ -80,6 +80,9 @@ export function assertContract(response,kind,{productionAuthorized=false}={}){
   if(!['deterministic_unranked','review_eligible_ranking'].includes(response.ordering.mode))throw new Error('match: unsupported ordering mode')
   if(response.ordering.mode==='review_eligible_ranking'&&!/^rankctx_[0-9a-f]{24}$/.test(response.ordering.ranking_context_id||''))throw new Error('match: invalid ranking context')
   for(const result of response.results){
+   const explanation=result.explanation
+   if(!explanation||!Array.isArray(explanation.why_it_matches)||!Array.isArray(explanation.tradeoffs)||!Array.isArray(explanation.context)||!Array.isArray(explanation.unknowns))throw new Error('match: invalid explanation shape')
+   for(const group of ['why_it_matches','tradeoffs','context','unknowns'])for(const item of explanation[group])if(!item||!item.code||!item.text||!Array.isArray(item.evidence_ids))throw new Error('match: invalid explanation record')
    const cp=result.career_pathways
    if(!cp||!Number.isInteger(Number(cp.pathway_count)))throw new Error('match: missing career pathway count')
    assertPathways(cp.pathways,'match career');assertPathways(cp.representative_pathways,'match representative career')
