@@ -247,7 +247,18 @@
           "soc_codes": [
             "15-2051",
             "15-1211"
-          ]
+          ],
+          "pathways": [
+            {
+              "soc_code": "15-2051",
+              "occupation_title": "Data Scientists"
+            },
+            {
+              "soc_code": "15-1211",
+              "occupation_title": "Computer Systems Analysts"
+            }
+          ],
+          "representative_pathways": []
         },
         "labor_market": {
           "selected_work_market": {
@@ -256,7 +267,8 @@
               {
                 "soc_code": "15-2051",
                 "median_wage": 94500,
-                "wage_state": "observed"
+                "wage_state": "observed",
+                "occupation_title": "Data Scientists"
               }
             ]
           },
@@ -266,7 +278,8 @@
               {
                 "soc_code": "15-2051",
                 "employment_change_pct": 18,
-                "projection_year": 2035
+                "projection_year": 2035,
+                "occupation_title": "Data Scientists"
               }
             ]
           }
@@ -319,7 +332,18 @@
           "soc_codes": [
             "15-1211",
             "15-1212"
-          ]
+          ],
+          "pathways": [
+            {
+              "soc_code": "15-1211",
+              "occupation_title": "Computer Systems Analysts"
+            },
+            {
+              "soc_code": "15-1212",
+              "occupation_title": "Information Security Analysts"
+            }
+          ],
+          "representative_pathways": []
         },
         "labor_market": {
           "selected_work_market": {
@@ -328,7 +352,8 @@
               {
                 "soc_code": "15-1212",
                 "median_wage": 101000,
-                "wage_state": "observed"
+                "wage_state": "observed",
+                "occupation_title": "Information Security Analysts"
               }
             ]
           },
@@ -338,7 +363,8 @@
               {
                 "soc_code": "15-1212",
                 "employment_change_pct": 22,
-                "projection_year": 2035
+                "projection_year": 2035,
+                "occupation_title": "Information Security Analysts"
               }
             ]
           }
@@ -391,7 +417,18 @@
           "soc_codes": [
             "15-1252",
             "15-2051"
-          ]
+          ],
+          "pathways": [
+            {
+              "soc_code": "15-1252",
+              "occupation_title": "Software Developers"
+            },
+            {
+              "soc_code": "15-2051",
+              "occupation_title": "Data Scientists"
+            }
+          ],
+          "representative_pathways": []
         },
         "labor_market": {
           "selected_work_market": {
@@ -404,7 +441,8 @@
               {
                 "soc_code": "15-1252",
                 "employment_change_pct": 16,
-                "projection_year": 2035
+                "projection_year": 2035,
+                "occupation_title": "Software Developers"
               }
             ]
           }
@@ -556,7 +594,19 @@
       "soc_codes": [
         "15-2051",
         "15-1211"
-      ]
+      ],
+      "pathway_count": 2,
+      "pathways": [
+        {
+          "soc_code": "15-2051",
+          "occupation_title": "Data Scientists"
+        },
+        {
+          "soc_code": "15-1211",
+          "occupation_title": "Computer Systems Analysts"
+        }
+      ],
+      "representative_pathways": []
     },
     "labor_market": {
       "selected_work_market": {
@@ -565,7 +615,8 @@
           {
             "soc_code": "15-2051",
             "median_wage": 94500,
-            "wage_state": "observed"
+            "wage_state": "observed",
+            "occupation_title": "Data Scientists"
           }
         ]
       },
@@ -575,7 +626,8 @@
           {
             "soc_code": "15-2051",
             "employment_change_pct": 18,
-            "projection_year": 2035
+            "projection_year": 2035,
+            "occupation_title": "Data Scientists"
           }
         ]
       }
@@ -1186,7 +1238,19 @@
       "soc_codes": [
         "15-1211",
         "15-1212"
-      ]
+      ],
+      "pathway_count": 2,
+      "pathways": [
+        {
+          "soc_code": "15-1211",
+          "occupation_title": "Computer Systems Analysts"
+        },
+        {
+          "soc_code": "15-1212",
+          "occupation_title": "Information Security Analysts"
+        }
+      ],
+      "representative_pathways": []
     },
     "labor_market": {
       "selected_work_market": {
@@ -1195,7 +1259,8 @@
           {
             "soc_code": "15-1212",
             "median_wage": 101000,
-            "wage_state": "observed"
+            "wage_state": "observed",
+            "occupation_title": "Information Security Analysts"
           }
         ]
       },
@@ -1205,7 +1270,8 @@
           {
             "soc_code": "15-1212",
             "employment_change_pct": 22,
-            "projection_year": 2035
+            "projection_year": 2035,
+            "occupation_title": "Information Security Analysts"
           }
         ]
       }
@@ -1339,7 +1405,19 @@
       "soc_codes": [
         "15-1252",
         "15-2051"
-      ]
+      ],
+      "pathway_count": 2,
+      "pathways": [
+        {
+          "soc_code": "15-1252",
+          "occupation_title": "Software Developers"
+        },
+        {
+          "soc_code": "15-2051",
+          "occupation_title": "Data Scientists"
+        }
+      ],
+      "representative_pathways": []
     },
     "labor_market": {
       "selected_work_market": {
@@ -1352,7 +1430,8 @@
           {
             "soc_code": "15-1252",
             "employment_change_pct": 16,
-            "projection_year": 2035
+            "projection_year": 2035,
+            "occupation_title": "Software Developers"
           }
         ]
       }
