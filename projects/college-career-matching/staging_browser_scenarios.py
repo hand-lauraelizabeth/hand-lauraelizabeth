@@ -93,8 +93,10 @@ def run():
    driver.execute_script("arguments[0].click();",detail_buttons[0]);assert detail_buttons[0].get_attribute("aria-expanded")=="false"
 
    # Career-first cards expose current-market and long-term evidence descriptively.
+   before_generation=driver.execute_script("return document.getElementById('leh-ccx').getRequestGeneration();")
    mode_select=driver.find_element(By.ID,"ccx-decision-mode");Select(mode_select).select_by_value("career_first");driver.execute_script("arguments[0].dispatchEvent(new Event('change',{bubbles:true}));",mode_select)
    text_has(driver,"#ccx-mode-context","Career-first exploration")
+   wait.until(lambda d:d.execute_script("return document.getElementById('leh-ccx').getRequestGeneration();")>before_generation)
    wait.until(lambda d:d.find_element(By.ID,"leh-ccx").get_attribute("data-request-status") in {"ready","error"})
    if driver.find_element(By.ID,"leh-ccx").get_attribute("data-request-status")!="ready":
     raise AssertionError("career-first refresh failed: "+driver.find_element(By.ID,"ccx-service-state").text+" | "+driver.find_element(By.ID,"ccx-results").text)
