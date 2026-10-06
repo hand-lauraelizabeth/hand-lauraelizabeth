@@ -44,7 +44,9 @@ class ServiceState:
   self.activation_record=load_json(activation_record_path) if activation_record_path else None
   self.current_labor=load_json(current_labor_path) if current_labor_path else []
   self.projections=load_json(projections_path) if projections_path else []
-  self.career_attributes=read_csv(career_attributes_path) if career_attributes_path else []
+  self.career_attributes_path=Path(career_attributes_path) if career_attributes_path else None
+  self.career_attributes=read_csv(self.career_attributes_path) if self.career_attributes_path else []
+  self.career_attributes_sha256=sha256(self.career_attributes_path) if self.career_attributes_path else None
   self.metadata_response=build_metadata(self.manifest,self.model_version,activation_record=self.activation_record)
   self.production_authorized=self.metadata_response["production_authorized"] is True
   self.data_version=self.metadata_response["data_version"]
@@ -72,7 +74,7 @@ class ServiceState:
   work_market=request.get("intended_work_market")
   return compare_candidates([self.by_id[x] for x in ids],self.current_labor,self.projections,work_market,self.data_version)
  def health(self):
-  return {"schema_version":"1.0","status":"ok","data_version":self.data_version,"model_version":self.model_version,"production_authorized":self.production_authorized,"candidate_count":len(self.snapshot)}
+  return {"schema_version":"1.0","status":"ok","data_version":self.data_version,"model_version":self.model_version,"production_authorized":self.production_authorized,"candidate_count":len(self.snapshot),"career_attribute_evidence":{"loaded":bool(self.career_attributes_path),"row_count":len(self.career_attributes),"sha256":self.career_attributes_sha256}}
 
 class Handler(BaseHTTPRequestHandler):
  server_version="CollegeCareerService/1.0"
