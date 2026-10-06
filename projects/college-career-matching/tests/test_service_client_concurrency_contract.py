@@ -12,4 +12,7 @@ class ServiceClientConcurrencyContractTests(unittest.TestCase):
   self.assertIn("match(request,{signal=null}={})",JS)
   self.assertIn("body:request,signal",JS)
 
+ def test_match_explanation_traces_must_be_linked_to_reason_evidence_ids(self):
+  self.assertIn("item.supporting_evidence",JS);self.assertIn("item.evidence_ids.includes(trace.evidence_id)",JS);self.assertIn("explanation trace is not linked by evidence_ids",JS)
+
 if __name__=="__main__":unittest.main()
