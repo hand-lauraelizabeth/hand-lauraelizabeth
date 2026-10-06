@@ -10,7 +10,11 @@ export class MatchingServiceClient {
   options(){return this.call('options',{path:'/options'})}
   match(request,{signal=null}={}){return this.call('match',{method:'POST',path:'/match',body:request,signal})}
   candidate(id){return this.call(`candidate:${id}`,{path:`/candidate/${encodeURIComponent(id)}`})}
-  compare(candidateIds,context={}){return this.call('compare',{method:'POST',path:'/compare',body:{schema_version:'1.0',candidate_ids:candidateIds,...context}})}
+  compare(candidateIds,context={}, {signal=null}={}){
+    const body={schema_version:'1.0',candidate_ids:candidateIds,...context}
+    const name=this.mode==='fixture'?`compare:${candidateIds.join('|')}`:'compare'
+    return this.call(name,{method:'POST',path:'/compare',body,signal})
+  }
 }
 export function validateRuntimeConfig(config){
  if(!config||config.schema_version!=='1.0')throw new Error('runtime: unsupported schema_version')
@@ -49,6 +53,11 @@ export function assertRuntimeMetadata(config,metadata){
  if((metadata.snapshot?.output_sha256||'').toLowerCase()!==x.snapshot_sha256.toLowerCase())throw new Error('runtime: snapshot identity mismatch')
  return metadata
 }
+function assertCandidateShape(response,label='candidate'){
+ for(const key of ['candidate_id','institution','program','affordability','aid_context','program_outcomes','transfer','career','labor_market','freshness','unknowns'])if(!(key in response))throw new Error(`${label}: missing ${key}`)
+ if(!Array.isArray(response.unknowns)||!response.freshness||!Array.isArray(response.freshness.source_freshness))throw new Error(`${label}: invalid evidence/freshness shape`)
+ return response
+}
 export function assertContract(response,kind,{productionAuthorized=false}={}){
  if(!response||response.schema_version!=='1.0')throw new Error(`${kind}: unsupported schema_version`)
  if(kind==='metadata'&&(!response.data_version||!response.model_version||!response.snapshot))throw new Error('metadata: missing governed version/readiness fields')
@@ -65,10 +74,14 @@ export function assertContract(response,kind,{productionAuthorized=false}={}){
    if(rec.status==='review_eligible_ranked'&&(!Number.isInteger(rec.rank)||rec.rank<1))throw new Error('match: invalid ranked result')
   }
  }
- if(kind==='candidate'){
-  for(const key of ['candidate_id','institution','program','affordability','aid_context','program_outcomes','transfer','career','labor_market','freshness','unknowns'])if(!(key in response))throw new Error(`candidate: missing ${key}`)
-  if(!Array.isArray(response.unknowns)||!response.freshness||!Array.isArray(response.freshness.source_freshness))throw new Error('candidate: invalid evidence/freshness shape')
+ if(kind==='candidate')assertCandidateShape(response,'candidate')
+ if(kind==='compare'){
+  if(!Array.isArray(response.candidates)||!Array.isArray(response.candidate_ids)||response.candidates.length!==response.candidate_ids.length)throw new Error('compare: candidate arrays are invalid')
+  if(response.candidates.length<2||response.candidates.length>5)throw new Error('compare: expected 2 to 5 candidates')
+  response.candidates.forEach((x,i)=>{assertCandidateShape(x,`compare candidate ${i+1}`);if(x.candidate_id!==response.candidate_ids[i])throw new Error('compare: candidate identity/order mismatch')})
+  const rules=response.semantic_rules||{}
+  for(const key of ['no_automatic_winner','missing_is_not_zero','current_market_is_not_long_term_outlook','institution_outcomes_are_not_program_outcomes','aid_reporting_is_not_individual_award','accreditation_absence_is_unknown_not_unaccredited'])if(rules[key]!==true)throw new Error(`compare: required semantic rule false or missing: ${key}`)
+  if(!Array.isArray(response.comparison_dimensions))throw new Error('compare: comparison_dimensions must be an array')
  }
- if(kind==='compare'&&!Array.isArray(response.candidates))throw new Error('compare: candidates must be an array')
  return response
 }
