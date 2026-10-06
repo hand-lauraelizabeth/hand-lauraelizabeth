@@ -106,6 +106,7 @@
           "dimensions",
           "explanation",
           "career_pathways",
+          "career_preference_alignment",
           "transfer",
           "labor_market",
           "evidence_coverage",
@@ -387,6 +388,9 @@
                 "type": "boolean"
               }
             }
+          },
+          "career_preference_alignment": {
+            "$ref": "#/$defs/careerPreferenceAlignment"
           }
         }
       }
@@ -624,6 +628,216 @@
         },
         "measure_states": {
           "type": "object"
+        }
+      }
+    },
+    "careerPreferenceAlignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "explicit_preference_count",
+        "pathway_count",
+        "observed_pathway_count",
+        "pathway_coverage_rate",
+        "score_summary",
+        "pathways",
+        "semantic_note"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "no_explicit_preferences",
+            "observed",
+            "insufficient_attribute_evidence"
+          ]
+        },
+        "explicit_preference_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pathway_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observed_pathway_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pathway_coverage_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "score_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "median",
+            "min",
+            "max"
+          ],
+          "properties": {
+            "median": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "min": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "max": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "pathways": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "soc_code",
+              "alignment_score",
+              "observed_preference_count",
+              "explicit_preference_count",
+              "coverage_rate",
+              "preferences"
+            ],
+            "properties": {
+              "soc_code": {
+                "type": "string"
+              },
+              "alignment_score": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "observed_preference_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "explicit_preference_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "coverage_rate": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "preferences": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "preference_id",
+                    "attribute_id",
+                    "attribute_value",
+                    "alignment",
+                    "importance",
+                    "evidence_state",
+                    "element_id",
+                    "element_name",
+                    "scale_id",
+                    "source_release",
+                    "source_vintage"
+                  ],
+                  "properties": {
+                    "preference_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "attribute_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "attribute_value": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "alignment": {
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "importance": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "evidence_state": {
+                      "type": "string"
+                    },
+                    "element_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "element_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "scale_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "source_release": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "source_vintage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semantic_note": {
+          "type": "string"
         }
       }
     }
