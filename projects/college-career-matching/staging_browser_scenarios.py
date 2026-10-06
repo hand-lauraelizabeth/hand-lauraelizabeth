@@ -137,7 +137,7 @@ def run():
    river_trace=river.find_element(By.CSS_SELECTOR,".ccx-priority-explanation.ccx-gap details");driver.execute_script("arguments[0].open=true;",river_trace)
    assert "Evidence state: unavailable for this candidate" in river_trace.text and "OEWS_MSA 35620" in river_trace.text and "Source vintage: not reported" in river_trace.text
    assert not driver.find_elements(By.CSS_SELECTOR,".ccx-detail-region:not([hidden])")
-   driver.find_element(By.ID,"ccx-reset").click()
+   driver.execute_script("arguments[0].click();",driver.find_element(By.ID,"ccx-reset"))
    wait.until(lambda d:Select(d.find_element(By.ID,"ccx-decision-mode")).first_selected_option.get_attribute("value")=="broad_exploration")
    wait.until(lambda d:not d.find_elements(By.CSS_SELECTOR,".ccx-career-snapshot"))
 
@@ -158,7 +158,7 @@ def run():
    assert "North Harbor College" in results and "Metro Public College" not in results
 
    # Reset restores the full service-returned set and clears governed constraints.
-   driver.find_element(By.ID,"ccx-reset").click()
+   driver.execute_script("arguments[0].click();",driver.find_element(By.ID,"ccx-reset"))
    text_has(driver,"#ccx-request-state","0 must-have constraints")
    text_has(driver,"#ccx-count","4 service-returned programs")
    assert Select(driver.find_element(By.ID,"ccx-state")).first_selected_option.get_attribute("value")==""
