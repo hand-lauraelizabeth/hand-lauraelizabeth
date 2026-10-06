@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "candidate_detail_response.schema.json",
+  "title": "College + Career Candidate Detail Response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "data_version",
+    "candidate_id",
+    "institution",
+    "program",
+    "affordability",
+    "aid_context",
+    "program_outcomes",
+    "transfer",
+    "career",
+    "labor_market",
+    "freshness",
+    "unknowns"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "data_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "institution": {
+      "type": "object",
+      "required": [
+        "unitid",
+        "name",
+        "city",
+        "state",
+        "accreditation"
+      ],
+      "properties": {
+        "unitid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "city": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "accreditation": {
+          "type": "object",
+          "required": [
+            "covered",
+            "statuses",
+            "agency_names",
+            "record_count",
+            "source_record_ids"
+          ],
+          "properties": {
+            "covered": {
+              "type": "boolean"
+            },
+            "statuses": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "agency_names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "record_count": {
+              "type": [
+                "string",
+                "number",
+                "integer",
+                "null"
+              ]
+            },
+            "source_record_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "program": {
+      "type": "object",
+      "required": [
+        "program_id",
+        "name",
+        "cip_code",
+        "cip_title",
+        "credential_level",
+        "online_available"
+      ],
+      "properties": {
+        "program_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "cip_code": {
+          "type": "string"
+        },
+        "cip_title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "credential_level": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "online_available": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "affordability": {
+      "type": "object",
+      "required": [
+        "net_price",
+        "tuition_in_state",
+        "tuition_out_of_state",
+        "cost_of_attendance",
+        "institution_median_debt"
+      ],
+      "properties": {
+        "net_price": {
+          "$ref": "#/$defs/evidence"
+        },
+        "tuition_in_state": {
+          "$ref": "#/$defs/evidence"
+        },
+        "tuition_out_of_state": {
+          "$ref": "#/$defs/evidence"
+        },
+        "cost_of_attendance": {
+          "$ref": "#/$defs/evidence"
+        },
+        "institution_median_debt": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "aid_context": {
+      "type": "object",
+      "required": [
+        "institutional_grant_share",
+        "work_study_share",
+        "state_local_grant_share",
+        "institutional_grant_evidence",
+        "work_study_evidence",
+        "state_local_grant_evidence"
+      ],
+      "properties": {
+        "institutional_grant_share": {
+          "$ref": "#/$defs/evidence"
+        },
+        "work_study_share": {
+          "$ref": "#/$defs/evidence"
+        },
+        "state_local_grant_share": {
+          "$ref": "#/$defs/evidence"
+        },
+        "institutional_grant_evidence": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "work_study_evidence": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state_local_grant_evidence": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "program_outcomes": {
+      "type": "object",
+      "required": [
+        "covered",
+        "median_earnings",
+        "median_debt",
+        "completion_rate"
+      ],
+      "properties": {
+        "covered": {
+          "type": "boolean"
+        },
+        "median_earnings": {
+          "$ref": "#/$defs/evidence"
+        },
+        "median_debt": {
+          "$ref": "#/$defs/evidence"
+        },
+        "completion_rate": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "transfer": {
+      "type": "object",
+      "required": [
+        "covered",
+        "evidence_record_count",
+        "evidence_levels",
+        "source_systems"
+      ],
+      "properties": {
+        "covered": {
+          "type": "boolean"
+        },
+        "evidence_record_count": {
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "null"
+          ]
+        },
+        "evidence_levels": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "object"
+            ]
+          }
+        },
+        "source_systems": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "object"
+            ]
+          }
+        }
+      }
+    },
+    "career": {
+      "type": "object",
+      "required": [
+        "covered",
+        "soc_count",
+        "soc_codes"
+      ],
+      "properties": {
+        "covered": {
+          "type": "boolean"
+        },
+        "soc_count": {
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "null"
+          ]
+        },
+        "soc_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "labor_market": {
+      "type": "object",
+      "required": [
+        "selected_work_market",
+        "long_term_outlook",
+        "semantic_note"
+      ]
+    },
+    "freshness": {
+      "type": "object",
+      "required": [
+        "source_freshness",
+        "data_version"
+      ],
+      "properties": {
+        "source_freshness": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "object"
+            ]
+          }
+        },
+        "data_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "evidence_state",
+        "source_id",
+        "source_vintage"
+      ],
+      "properties": {
+        "value": {},
+        "evidence_state": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_vintage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
