@@ -66,7 +66,7 @@ export function assertContract(response,kind,{productionAuthorized=false}={}){
   }
  }
  if(kind==='candidate'){
-  for(const key of ['candidate_id','institution','program','affordability','program_outcomes','transfer','career','labor_market','freshness','unknowns'])if(!(key in response))throw new Error(`candidate: missing ${key}`)
+  for(const key of ['candidate_id','institution','program','affordability','aid_context','program_outcomes','transfer','career','labor_market','freshness','unknowns'])if(!(key in response))throw new Error(`candidate: missing ${key}`)
   if(!Array.isArray(response.unknowns)||!response.freshness||!Array.isArray(response.freshness.source_freshness))throw new Error('candidate: invalid evidence/freshness shape')
  }
  if(kind==='compare'&&!Array.isArray(response.candidates))throw new Error('compare: candidates must be an array')
