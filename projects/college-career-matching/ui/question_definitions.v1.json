@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "questionnaire_version": "2026-10-05.5",
+  "questionnaire_version": "2026-10-06.1",
   "principles": {
     "skippable_preferences": true,
     "no_default_priority_weights": true,
@@ -429,6 +429,36 @@
       }
     },
     {
+      "question_id": "current_labor_market_priority",
+      "section": "priorities",
+      "prompt": "How important is current labor-market context in the market you selected?",
+      "help": "Current employment and wage evidence is kept separate from long-term occupational projections. Missing or suppressed local evidence is not treated as zero.",
+      "control": "importance_optional",
+      "required": false,
+      "visible_for_modes": [
+        "career_first"
+      ],
+      "mapping": {
+        "target": "preference",
+        "dimension": "current_labor_market"
+      }
+    },
+    {
+      "question_id": "long_term_outlook_priority",
+      "section": "priorities",
+      "prompt": "How important is long-term occupational outlook?",
+      "help": "Long-term BLS projection evidence is a separate horizon from current local employment and wage evidence.",
+      "control": "importance_optional",
+      "required": false,
+      "visible_for_modes": [
+        "career_first"
+      ],
+      "mapping": {
+        "target": "preference",
+        "dimension": "long_term_outlook"
+      }
+    },
+    {
       "question_id": "transfer_priority",
       "section": "priorities",
       "prompt": "How important is preserving as much of your prior coursework as possible?",
@@ -487,7 +517,8 @@
       },
       "mapping": {
         "target": "geography.intended_work_market"
-      }
+      },
+      "option_source": "options.labor_markets"
     },
     {
       "question_id": "career_analysis",
