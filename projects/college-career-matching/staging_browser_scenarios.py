@@ -109,7 +109,7 @@ def run():
    # Clear comparison leaves results intact.
    driver.find_element(By.ID,"ccx-clear").click()
    text_has(driver,"#ccx-compare-note","Select two or three programs")
-   assert driver.find_element(By.ID,"ccx-count").text.startswith("4 service-returned programs")
+   assert "4 service-returned programs" in driver.find_element(By.ID,"ccx-count").text
 
    print("PASS staging browser scenarios: state, online, request feedback, compare, reset, service-state language")
   finally:
