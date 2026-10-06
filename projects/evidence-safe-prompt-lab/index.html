@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence-Safe Prompt Lab | Laura Elizabeth Hand</title>
+<style>
+:root{--ink:#17221d;--muted:#53635b;--paper:#fbfcfa;--panel:#f2f6f2;--line:#cbd7cf;--accent:#285c4b;--accent2:#dfece5}
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
+main{max-width:1080px;margin:auto;padding:32px 20px 56px}.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(2rem,5vw,3.7rem);line-height:1.02;margin:.35rem 0 1rem;max-width:850px}h2{margin-top:0}.lede{font-size:1.08rem;color:var(--muted);max-width:78ch}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:start;margin-top:28px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 28px rgba(24,44,35,.06)}
+label{display:block;font-weight:700;margin:15px 0 6px}select,textarea,input[type=text]{width:100%;border:1px solid #aebeb4;border-radius:10px;padding:11px 12px;font:inherit;background:#fff;color:inherit}textarea{min-height:112px;resize:vertical}
+fieldset{border:0;padding:0;margin:18px 0}.check{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-weight:500}.check input{margin-top:.3rem}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+button{border:0;border-radius:999px;padding:11px 16px;font:inherit;font-weight:750;cursor:pointer}button.primary{background:var(--accent);color:#fff}button.secondary{background:var(--accent2);color:var(--ink)}
+button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #90b8a7;outline-offset:2px}
+pre{white-space:pre-wrap;word-break:break-word;background:#14211c;color:#f7fbf8;border-radius:14px;padding:18px;min-height:300px;overflow:auto}.note{font-size:.91rem;color:var(--muted)}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 9px;margin:4px 5px 0 0;font-size:.82rem;background:var(--panel)}.why{border-left:4px solid var(--accent);padding-left:14px;margin-top:18px}.status{min-height:1.4em;color:var(--accent);font-weight:700}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+</style></head>
+<body><main>
+<div class="eyebrow">Applied technical demonstration · responsible AI</div>
+<h1>Evidence-Safe Prompt Lab</h1>
+<p class="lede">Build prompts that make evidence, uncertainty, and verification part of the task—not an afterthought. Adapted from source-checking and revision workflows used in research on AI, healthcare, cybersecurity, and textual scholarship.</p>
+<div><span class="tag">client-side</span><span class="tag">no API key</span><span class="tag">no data leaves this page</span><span class="tag">teaching tool</span></div>
+<div class="grid">
+<section class="card"><h2>1. Define the task</h2>
+<label for="mode">Prompt mode</label><select id="mode"><option value="draft">Evidence-grounded drafting</option><option value="support">Claim-to-source support check</option><option value="audit">Citation and overclaim audit</option><option value="counter">Counterevidence / red-team review</option><option value="teach">Teaching feedback on an AI-assisted draft</option></select>
+<label for="goal">Goal or claim</label><textarea id="goal" placeholder="Example: Assess whether the source supports the claim that blockchain can improve provenance and integrity in healthcare data."></textarea>
+<label for="context">Context</label><textarea id="context" placeholder="Audience, assignment, domain, stakes, prior decisions, or what the model must understand before responding."></textarea>
+<label for="evidence">Source material or evidence boundary</label><textarea id="evidence" placeholder="Paste source notes, citations, excerpts, or describe the approved evidence set."></textarea>
+<label for="output">Required output</label><input id="output" type="text" value="Concise analysis with a support classification, reasoning, revision, and verification notes">
+<fieldset><legend><strong>2. Add guardrails</strong></legend>
+<label class="check"><input type="checkbox" id="only" checked>Use only the evidence provided for factual claims</label>
+<label class="check"><input type="checkbox" id="levels" checked>Classify support as direct, partial, contradicted, or not established</label>
+<label class="check"><input type="checkbox" id="uncertainty" checked>Mark uncertainty and distinguish fact from inference</label>
+<label class="check"><input type="checkbox" id="counterevidence" checked>Identify missing or counterevidence that could change the conclusion</label>
+<label class="check"><input type="checkbox" id="citations" checked>Do not invent citations, quotations, page numbers, or source details</label>
+<label class="check"><input type="checkbox" id="privacy">Avoid reproducing sensitive or identifying information unless necessary</label></fieldset>
+<div class="actions"><button class="primary" id="generate">Generate prompt</button><button class="secondary" id="example">Load example</button><button class="secondary" id="clear">Clear</button></div></section>
+<section class="card"><h2>3. Inspect the prompt</h2><pre id="prompt" tabindex="0">Choose a mode and enter a goal to generate a prompt.</pre>
+<div class="actions"><button class="primary" id="copy">Copy prompt</button></div><div class="status" id="status" aria-live="polite"></div>
+<div class="why"><strong>Why this structure matters</strong><p class="note">A polished answer can still be poorly grounded. This workflow makes the relationship between claim and evidence visible, identifies what a source does not establish, and revises language to match the strength of support.</p></div></section></div>
+<section class="card" style="margin-top:22px"><h2>Instructional extension</h2><p>Ask learners to run the same claim through two versions: one with no evidence constraints and one generated here. Compare unsupported specificity, citation behavior, uncertainty language, and what the model treats as fact. The learning objective is not “write a better prompt”; it is to make the evidence contract visible.</p>
+<p class="note"><strong>Scope:</strong> This demonstration composes prompts; it does not send content to an AI model and does not determine whether a source is authoritative.</p></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const modeText={draft:"Draft the requested material while keeping every factual claim inside the evidence boundary.",support:"Evaluate whether the source material supports the stated claim.",audit:"Audit the draft or claim for unsupported specificity, citation problems, and overclaiming.",counter:"Act as a skeptical reviewer. Look for counterevidence, alternative explanations, and missing evidence.",teach:"Give teaching feedback that helps a learner improve evidence use without silently rewriting away the reasoning problem."};
+function build(){const goal=$("goal").value.trim();if(!goal){$("prompt").textContent="Enter a goal or claim first.";return}
+const rules=[];if($("only").checked)rules.push("Use only the provided evidence for factual claims. If outside knowledge would be useful, label it as a research need rather than inserting it.");
+if($("levels").checked)rules.push("For each material claim, classify support as DIRECT, PARTIAL, CONTRADICTED, or NOT ESTABLISHED.");
+if($("uncertainty").checked)rules.push("Separate source facts, reasonable inference, and speculation. State uncertainty explicitly.");
+if($("counterevidence").checked)rules.push("Identify missing evidence, counterevidence, or conditions that could change the conclusion.");
+if($("citations").checked)rules.push("Never fabricate a citation, quotation, author, date, page number, DOI, URL, or source detail. If unavailable, say so.");
+if($("privacy").checked)rules.push("Minimize sensitive or identifying information; reproduce it only when necessary to the task.");
+const source=$("evidence").value.trim()||"[No source text supplied yet — request it before making source-dependent factual claims.]";
+const context=$("context").value.trim()||"[No additional context supplied.]";const out=$("output").value.trim()||"Structured analysis.";
+const lines=["ROLE","You are an evidence-conscious research and writing assistant.","","TASK",modeText[$("mode").value],"","GOAL OR CLAIM",goal,"","CONTEXT",context,"","APPROVED EVIDENCE",source,"","EVIDENCE CONTRACT"].concat(rules.map(x=>"- "+x)).concat(["","OUTPUT",out,"","REQUIRED REVIEW SEQUENCE","1. Restate the claim or task in precise terms.","2. Identify the specific evidence that bears on it.","3. Explain what that evidence establishes and what it does not establish.","4. Apply the support classification where relevant.","5. Revise wording so confidence matches the evidence.","6. Flag verification steps, missing sources, or counterevidence before finalizing.","","Do not reward fluency over accuracy. If the evidence is insufficient, say that the claim is not established and specify what would be needed to establish it."]);
+$("prompt").textContent=lines.join("\n");}
+$("generate").addEventListener("click",build);
+$("example").addEventListener("click",()=>{$("mode").value="support";$("goal").value="Assess whether a supplied source supports the claim that a technology improves provenance and integrity of healthcare data.";$("context").value="Graduate-level research writing. Revise the sentence so it is no stronger than the evidence.";$("evidence").value="Source notes: the paper describes a decentralized architecture for secure healthcare data management and discusses privacy, integrity, and cyberattack resistance. It does not test every downstream AI use case.";$("output").value="Support classification; 3–5 sentence rationale; revised claim; missing evidence; citation caution";build();});
+$("clear").addEventListener("click",()=>{["goal","context","evidence"].forEach(x=>$(x).value="");$("prompt").textContent="Choose a mode and enter a goal to generate a prompt.";$("status").textContent=""});
+$("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("prompt").textContent);$("status").textContent="Prompt copied."}catch(e){$("status").textContent="Copy was blocked by the browser; select the prompt text manually."}});
+</script></body></html>
