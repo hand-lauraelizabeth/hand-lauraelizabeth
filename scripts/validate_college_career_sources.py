@@ -181,7 +181,7 @@ else:
         coverage_baselines = {}
 
 baseline_layers = coverage_baselines.get("layers", {})
-for layer in ("institution", "program", "career", "model_ready"):
+for layer in ("institution", "program", "career", "career_preferences", "model_ready"):
     config = baseline_layers.get(layer)
     if not isinstance(config, dict):
         fail(f"coverage baselines missing layer: {layer}")
@@ -264,5 +264,5 @@ if issues:
 
 print(
     "College + Career source contract validation passed: "
-    f"{len(source_ids)} sources, {len(join_ids)} joins, {len(rows)} matrix fields, and 4 coverage baseline layers."
+    f"{len(source_ids)} sources, {len(join_ids)} joins, {len(rows)} matrix fields, and 5 coverage baseline layers."
 )
