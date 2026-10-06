@@ -63,6 +63,13 @@
     #leh-ccx .ccx-priority-explanation{border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:#f9fbfa;font-size:12px;line-height:1.45}
     #leh-ccx .ccx-priority-explanation strong{display:block;color:var(--green2);margin-bottom:2px}
     #leh-ccx .ccx-priority-explanation.ccx-gap{background:#fffdf8}
+    #leh-ccx .ccx-priority-explanation details{margin:7px 0 0;border-top:1px solid #e5ebe7;padding-top:6px}
+    #leh-ccx .ccx-priority-explanation summary{font-size:11px;font-weight:700;color:var(--green2)}
+    #leh-ccx .ccx-trace-list{display:grid;gap:7px;margin-top:7px}
+    #leh-ccx .ccx-trace-row{border:1px solid #e6ece8;border-radius:7px;padding:7px 8px;background:#fff;font-size:11px;line-height:1.4}
+    #leh-ccx .ccx-trace-row strong{display:block;margin-bottom:2px;color:var(--ink)}
+    #leh-ccx .ccx-trace-meta{display:block;color:var(--muted)}
+    #leh-ccx .ccx-trace-id{display:block;margin-top:3px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:var(--muted);overflow-wrap:anywhere}
     @media(max-width:640px){#leh-ccx .ccx-career-snapshot{grid-template-columns:1fr}}
     #leh-ccx .ccx-reasons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 0}
     #leh-ccx .ccx-reason{background:#f7faf8;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4}
@@ -496,11 +503,37 @@
       const labor=x&&x.labor_market||{};
       return '<div class="ccx-career-snapshot">'+compactLaborFamily(labor.selected_work_market,'current')+compactLaborFamily(labor.long_term_outlook,'future')+'<p class="ccx-career-snapshot-note">Descriptive occupation-level evidence only—not graduate earnings or placement rates. Current wages/employment and long-term projections remain separate; higher values are not converted into a browser-side career score.</p></div>';
     }
+    function traceGeographyText(trace){
+      const g=trace&&trace.geography||{},bits=[];
+      if(g.market_label)bits.push(g.market_label);
+      else if(g.market_id)bits.push((g.market_type?g.market_type+' ':'')+g.market_id);
+      if(g.projection_geography)bits.push(g.projection_geography);
+      if(g.work_market_semantics&&!g.market_id)bits.push('work-market setting: '+g.work_market_semantics);
+      return bits.length?bits.join(' · '):'Geography not specified';
+    }
+    function traceMeasuresText(trace){
+      const m=trace&&trace.measures||{},states=trace&&trace.measure_states||{},parts=[];
+      if(m.median_wage!==null&&m.median_wage!==undefined)parts.push('Median wage '+money(m.median_wage)+(states.median_wage?' ('+evidenceStateText(states.median_wage)+')':''));
+      if(m.employment!==null&&m.employment!==undefined)parts.push('Employment '+m.employment+(states.employment?' ('+evidenceStateText(states.employment)+')':''));
+      if(m.employment_change_pct!==null&&m.employment_change_pct!==undefined)parts.push('Projected change '+m.employment_change_pct+'%');
+      if(m.annual_openings!==null&&m.annual_openings!==undefined)parts.push('Annual openings '+m.annual_openings);
+      if(m.base_year||m.projection_year)parts.push('Projection period '+(m.base_year||'—')+'–'+(m.projection_year||'—'));
+      return parts.join(' · ');
+    }
+    function explanationTraceDetails(reason){
+      const traces=reason&&Array.isArray(reason.supporting_evidence)?reason.supporting_evidence:[];
+      if(!traces.length)return '';
+      return '<details class="ccx-explanation-trace"><summary>Supporting evidence ('+traces.length+')</summary><div class="ccx-trace-list">'+traces.map(trace=>{
+        const label=trace.soc_code?pathwayLabel({soc_code:trace.soc_code,occupation_title:trace.occupation_title}):(trace.evidence_family==='current_labor_market'?'Current labor-market evidence':'Long-term outlook evidence');
+        const measures=traceMeasuresText(trace);
+        return '<div class="ccx-trace-row"><strong>'+esc(label)+'</strong><span class="ccx-trace-meta">'+esc(traceGeographyText(trace))+'</span><span class="ccx-trace-meta">Evidence state: '+esc(evidenceStateText(trace.evidence_state))+'</span>'+(trace.source_vintage?'<span class="ccx-trace-meta">Source vintage: '+esc(trace.source_vintage)+'</span>':'<span class="ccx-trace-meta">Source vintage: not reported</span>')+(measures?'<span class="ccx-trace-meta">'+esc(measures)+'</span>':'')+'<span class="ccx-trace-id">Evidence ID: '+esc(trace.evidence_id)+'</span></div>';
+      }).join('')+'</div></details>';
+    }
     function careerPriorityExplanations(x){
       if(q('ccx-decision-mode').value!=='career_first')return '';
       const explanation=x&&x.explanation||{},context=Array.isArray(explanation.context)?explanation.context:[],unknowns=Array.isArray(explanation.unknowns)?explanation.unknowns:[];
       const priorityUnknowns=unknowns.filter(r=>r&&/^(CURRENT_LABOR_PRIORITY|LONG_TERM_OUTLOOK_PRIORITY)/.test(r.code||''));
-      const rows=context.map(r=>'<div class="ccx-priority-explanation"><strong>Priority context</strong>'+esc(r.text)+'</div>').concat(priorityUnknowns.map(r=>'<div class="ccx-priority-explanation ccx-gap"><strong>Evidence gap</strong>'+esc(r.text)+'</div>'));
+      const rows=context.map(r=>'<div class="ccx-priority-explanation"><strong>Priority context</strong>'+esc(r.text)+explanationTraceDetails(r)+'</div>').concat(priorityUnknowns.map(r=>'<div class="ccx-priority-explanation ccx-gap"><strong>Evidence gap</strong>'+esc(r.text)+explanationTraceDetails(r)+'</div>'));
       return rows.length?'<div class="ccx-priority-explanations">'+rows.join('')+'</div>':'';
     }
     function laborSummary(family,type){
