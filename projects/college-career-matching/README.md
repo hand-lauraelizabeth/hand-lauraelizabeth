@@ -174,6 +174,7 @@ The visitor-facing interaction model is now represented in [public-explorer.html
 - the entry mode can be broad, career-first, college/program-first, compare-known, transfer, or returning-student without forcing a wizard;
 - career-first mode can use a governed selected labor market and keeps current labor-market evidence separate from long-term occupational outlook;
 - result cards, candidate detail, and comparison can show structured related career pathways with governed occupation titles when available, while treating pathway count as descriptive rather than a quality score;
+- career-first result cards can also preview current selected-market employment/wage evidence beside long-term projection evidence, including unavailable states, governed market labels, and source vintage; those occupation-level measures are not converted into browser-side scores and are not presented as graduate earnings or placement rates;
 - full mapped pathways remain separate from future reviewed preference-aligned representative pathways;
 - readable example content remains available without JavaScript;
 - all current records are explicitly fictional demonstration data until the governed current-data release is production-ready.
