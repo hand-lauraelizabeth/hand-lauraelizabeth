@@ -335,3 +335,11 @@ Result cards remain intentionally compact. **Evidence details** calls `GET /cand
 The detail response keeps evidence families separate: affordability (net price, tuition, cost of attendance, institution debt), aid context (institutional grants, Work-Study, state/local grants), program/field outcomes, transfer evidence, career pathways, current selected-market labor evidence, long-term outlook, accreditation coverage, source freshness, and unresolved fields. Field-level affordability/outcome records preserve `source_id` and `source_vintage` when supplied. Missing, suppressed, unresolved, not-published, unavailable, and not-requested states remain visible states rather than numeric zeros.
 
 Accreditation absence is coverage unknown, not an unaccredited determination. Aid evidence/reporting does not imply an individual award. Institution outcomes and program/field outcomes remain distinct. Current labor-market evidence and long-term projections remain separate evidence families.
+
+### Governed program comparison
+
+Selecting 2–3 programs triggers the governed `POST /compare` service endpoint. The browser does not build a comparison from match-card fields and does not calculate a winner. It validates exact candidate identity/order, active data version, full candidate-detail evidence shape, and the service semantic rules before rendering the table.
+
+The comparison preserves separate evidence families for affordability, institutional aid context, program/field outcomes, transfer, career pathways, current selected-market labor evidence, long-term outlook, accreditation coverage, source freshness/provenance, and unresolved fields. Missing evidence remains missing rather than zero. Aid reporting does not imply an individual award. Absence of accreditation evidence remains unknown coverage rather than an unaccredited determination.
+
+Comparison requests have their own last-writer-wins generation and `AbortController`; rapid selection changes cannot allow an older comparison to overwrite a newer one. Validated comparison responses are cached by data version, candidate order, and work-market context. Clearing match results cancels any in-flight comparison. Fixture mode contains explicit static compare responses for every 2- and 3-program selection order rather than calculating service semantics in the browser.
