@@ -31,8 +31,8 @@ def run(port=18765):
  with tempfile.TemporaryDirectory() as d:
   root=Path(d);snapshot,manifest=build(root)
   labor=root/"current_labor.json";labor.write_text(json.dumps([
-   {"UNITID":"SYN001","program_id":"P1","soc_code":"15-2051","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"1200","employment_state":"observed","median_wage":"94500","wage_state":"observed","source_vintage":"SYNTHETIC"},
-   {"UNITID":"SYN002","program_id":"P2","soc_code":"15-1212","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"900","employment_state":"observed","median_wage":"101000","wage_state":"observed","source_vintage":"SYNTHETIC"}
+   {"UNITID":"SYN001","program_id":"P1","soc_code":"15-2051","occupation_title":"Data Scientists","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"1200","employment_state":"observed","median_wage":"94500","wage_state":"observed","source_vintage":"SYNTHETIC"},
+   {"UNITID":"SYN002","program_id":"P2","soc_code":"15-1212","occupation_title":"Information Security Analysts","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"900","employment_state":"observed","median_wage":"101000","wage_state":"observed","source_vintage":"SYNTHETIC"}
   ]),encoding="utf-8")
   cmd=[sys.executable,str(PROJECT/"service_host.py"),"--snapshot",str(snapshot),"--manifest",str(manifest),"--model-version","synthetic-http-model-1","--current-labor",str(labor),"--allowed-origins","https://staging.example.test","--bind","127.0.0.1","--port",str(port),"--quiet"]
   proc=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
@@ -43,9 +43,9 @@ def run(port=18765):
    status,_,metadata=request(base,"/metadata");assert status==200 and metadata["production_authorized"] is False and metadata["data_version"]=="synthetic-http-staging-1"
    status,_,options=request(base,"/options");assert status==200 and options["options"]["counts"]["institution_programs"]==4;assert options["options"]["labor_markets"][0]["value"]=="OEWS_MSA:35620"
    match_body={"schema_version":"1.0","decision_mode":"broad_exploration","constraints":[],"preferences":[],"career_preferences":[],"page":1,"page_size":20}
-   status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==4 and matched["ordering"]["production_authorized"] is False
+   status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==4 and matched["ordering"]["production_authorized"] is False;assert matched["results"][0]["career_pathways"]["pathways"][0]["occupation_title"] is not None;assert matched["results"][0]["career_pathways"]["representative_pathways"]==[]
    career_body={"schema_version":"1.0","decision_mode":"career_first","constraints":[],"preferences":[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":1,"priority_explicit":True}],"career_preferences":[],"geography":{"work_market_semantics":"selected_market","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}},"page":1,"page_size":20}
-   status,_,career=request(base,"/match","POST",career_body);assert status==200 and career["results"][0]["labor_market"]["selected_work_market"]["market_id"]=="35620"
+   status,_,career=request(base,"/match","POST",career_body);assert status==200 and career["results"][0]["labor_market"]["selected_work_market"]["market_id"]=="35620";assert career["results"][0]["labor_market"]["selected_work_market"]["soc_evidence"][0]["occupation_title"]=="Data Scientists"
    try:
     bad=json.loads(json.dumps(career_body));bad["geography"]["intended_work_market"]["market_id"]="99999";request(base,"/match","POST",bad);raise AssertionError("unavailable labor market unexpectedly succeeded")
    except HTTPError as e:
