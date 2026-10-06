@@ -100,6 +100,12 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_candidate_drilldown_keeps_evidence_families_separate(self):
   for phrase in ["Cost & debt evidence","Aid context","Program / field outcomes","Transfer & career-pathway evidence","Labor-market evidence","Source status & provenance","Net price is not the same as tuition","Current-market evidence and long-term projections are separate","Absence of accreditation evidence is unknown coverage"]:
    self.assertIn(phrase,HTML)
+ def test_career_first_cards_show_separate_descriptive_labor_evidence(self):
+  for token in ["function compactLaborFamily(family,type)","function careerCardSnapshot(x)","q('ccx-decision-mode').value!=='career_first'","careerSnapshot=careerCardSnapshot(x)","Current selected market","Long-term outlook"]:
+   self.assertIn(token,HTML)
+  for phrase in ["Descriptive occupation-level evidence only—not graduate earnings or placement rates.","higher values are not converted into a browser-side career score."]:
+   self.assertIn(phrase,HTML)
+  self.assertIn("employment_state",HTML);self.assertIn("wage_state",HTML);self.assertIn("projection_geography",HTML)
  def test_career_pathway_presentation_is_descriptive_not_breadth_scoring(self):
   for phrase in ["Related career pathways","CIP→SOC pathways describe related occupations","Pathway count is descriptive and is not treated here as a quality score.","Career-pathway fit and evidence","Mapped career pathways"]:
    self.assertIn(phrase,HTML)
