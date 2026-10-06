@@ -113,7 +113,7 @@ class PublicExplorerContractTests(unittest.TestCase):
    self.assertIn(phrase,HTML)
   self.assertNotIn("baseline_score>=",HTML);self.assertNotIn("median_wage>=",HTML);self.assertNotIn("employment_change_pct>=",HTML)
  def test_priority_explanations_have_expandable_source_traces(self):
-  for token in ["function explanationTraceDetails(reason)","function traceGeographyText(trace)","function traceMeasuresText(trace)","reason.supporting_evidence","Evidence ID:","Supporting evidence (","Source vintage:","Evidence state:"]:
+  for token in ["function explanationTraceDetails(reason)","function traceGeographyText(trace)","function traceMeasuresText(trace)","reason.supporting_evidence","Evidence ID:","Supporting evidence (","Source vintage:","Evidence state:",'<details class="ccx-explanation-trace"><summary>']:
    self.assertIn(token,HTML)
   for token in ["market_label","market_id","projection_geography","work_market_semantics","measure_states","median_wage","employment_change_pct","annual_openings"]:
    self.assertIn(token,HTML)
