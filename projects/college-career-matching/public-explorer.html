@@ -94,6 +94,18 @@
     <div class="ccx-grid">
       <form class="ccx-controls" id="ccx-form">
         <fieldset>
+          <label class="ccx-label" for="ccx-decision-mode">How are you exploring?</label>
+          <select id="ccx-decision-mode">
+            <option value="broad_exploration">I'm exploring broadly</option>
+            <option value="career_first">Start with careers and work backward</option>
+            <option value="college_program_first">Start with colleges or programs</option>
+            <option value="transfer">Plan a transfer pathway</option>
+            <option value="returning_student">Return to school with prior experience or credits</option>
+            <option value="compare_known">Compare options I already know</option>
+          </select>
+          <div class="ccx-detail">This changes the governed decision context sent to the service; it does not force you through a separate workflow or hide the filters below.</div>
+        </fieldset>
+        <fieldset>
           <label class="ccx-label" for="ccx-cip">Academic field</label>
           <select id="ccx-cip">
             <option value="">Any academic field in the active snapshot</option>
@@ -205,7 +217,7 @@
     root.dataset.serviceMode=runtimeConfig.mode;
     const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
-    const controls=['ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
+    const controls=['ccx-decision-mode','ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
     const selected=new Set(),selectedRecords=new Map(),candidateDetailCache=new Map(),candidateDetailLoads=new Map(),compareCache=new Map();
     let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,compareGeneration=0,activeCompareController=null,currentPage=1,pageSize=20;
     function setInteractive(enabled){
@@ -243,6 +255,7 @@
 
     function state(){
       return {
+        decisionMode:q('ccx-decision-mode').value,
         cip:q('ccx-cip').value,
         state:q('ccx-state').value,
         setting:q('ccx-setting').value,
@@ -294,7 +307,7 @@
       soft('walkability_priority','walkability_fit',s.walk);
       soft('housing_choice_priority','housing_context_fit',s.housingChoice);
       soft('disability_services_priority','accessibility_evidence_fit',s.disabilityInfo);
-      return {schema_version:'1.0',decision_mode:'broad_exploration',constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
+      return {schema_version:'1.0',decision_mode:s.decisionMode||'broad_exploration',constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
     }
 
     function rankLabel(rec){
@@ -605,7 +618,7 @@
     controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',criteriaChanged);el.addEventListener('input',criteriaChanged)}});
     q('ccx-page-size').addEventListener('change',()=>{pageSize=Number(q('ccx-page-size').value)||20;currentPage=1;refresh()});
     q('ccx-prev').addEventListener('click',()=>goToPage(currentPage-1));q('ccx-next').addEventListener('click',()=>goToPage(currentPage+1));
-    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;refresh();q('ccx-state').focus()});
+    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;refresh();q('ccx-decision-mode').focus()});
     q('ccx-clear').addEventListener('click',()=>{selected.clear();selectedRecords.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
     root.getGovernedRequest=()=>buildGovernedRequest(state());
     root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});root.getCandidateDetailState=()=>({cached_ids:[...candidateDetailCache.keys()],loading_ids:[...candidateDetailLoads.keys()]});root.getCompareState=()=>({generation:compareGeneration,cached_keys:[...compareCache.keys()],selected_ids:[...selected],loading:!!activeCompareController});
