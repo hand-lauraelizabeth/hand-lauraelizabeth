@@ -54,6 +54,10 @@ No threshold is hard-coded. If a validated/configured threshold is supplied, the
 
 Without a threshold, those fields remain empty. The code does not invent a definition of “strong.”
 
+## Full mapped pathways versus representatives
+
+The interactive product may display the full governed CIP→SOC pathway set independently of preference alignment. Those rows are descriptive related occupations and should not be called representative, preferred, or high-alignment pathways. `representative_pathways` remains empty until reviewed alignment evidence actually selects explanatory examples.
+
 ## Representative pathways
 
 The tool may output a small deterministic set of high-alignment occupations, ordered by alignment, evidence coverage, and SOC code as a stable tie-break.
