@@ -43,7 +43,7 @@ def representative_rows(candidate):
 
 def career_summary(candidate):
  paths=pathway_rows(candidate);reported=candidate.get("career__soc_count")
- try:count=int(float(reported)) if reported not in (None,"") else len(paths)
- except (TypeError,ValueError):count=len(paths)
- count=max(count,len(paths))
+ try:reported_count=int(float(reported)) if reported not in (None,"") else 0
+ except (TypeError,ValueError):reported_count=0
+ count=len(paths) if paths else max(reported_count,0)
  return {"pathway_count":count,"soc_codes":[x["soc_code"] for x in paths],"pathways":paths,"representative_pathways":representative_rows(candidate)}
