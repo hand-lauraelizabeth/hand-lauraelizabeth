@@ -10,6 +10,12 @@ A user's intended work market is independent of the school's location. The produ
 
 No state or national fallback should silently replace missing local evidence. A fallback, if ever offered, must be explicit and labeled as a different geography.
 
+## Interactive market selection
+
+When the service exposes user-selectable labor markets, the choices must be derived from the governed current-labor evidence actually loaded by that service. A submitted `selected_market` request requires both `market_id` and `market_type`, and the service must reject an identity outside its active market universe rather than fuzzy-matching a place name or silently falling back to another geography.
+
+The public career-first interface may collect current-market and long-term-outlook priorities separately. O*NET work-characteristic preferences remain a distinct alignment layer and must not be activated until their attribute/operator mappings have completed the review required by the career-preference contract.
+
 ## Long-term outlook
 
 Long-term projection evidence is keyed by SOC and preserves its projection geography, base year, projection year, employment change, annual openings, and source vintage. National BLS projections are not evidence about current hiring in a selected local market.
