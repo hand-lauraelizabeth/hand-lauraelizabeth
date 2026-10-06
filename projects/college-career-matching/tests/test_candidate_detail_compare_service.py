@@ -12,6 +12,18 @@ class DetailCompareTests(unittest.TestCase):
   x=candidate_detail(c("1","P1","Alpha"),data_version="D1");self.assertEqual(x["affordability"]["net_price"]["value"],"12000");self.assertEqual(x["program_outcomes"]["median_earnings"]["value"],"70000")
  def test_missing_is_explicit_not_zero(self):
   x=candidate_detail(c("1","P1","Alpha"));self.assertEqual(x["affordability"]["cost_of_attendance"]["evidence_state"],"missing");self.assertIsNone(x["affordability"]["cost_of_attendance"]["value"])
+ def test_detail_preserves_field_source_and_vintage(self):
+  row=c("1","P1","Alpha");row.update({"finance__net_price__source_id":"ipeds_cost_2024","finance__net_price__source_vintage":"2024","finance__institutional_grant_share":"0.4","finance__institutional_grant_share__state":"observed","finance__institutional_grant_share__source_id":"ipeds_sfa_2023_24","finance__institutional_grant_share__source_vintage":"2023-24"})
+  x=candidate_detail(row,data_version="D1")
+  self.assertEqual(x["affordability"]["net_price"]["source_id"],"ipeds_cost_2024");self.assertEqual(x["affordability"]["net_price"]["source_vintage"],"2024")
+  self.assertEqual(x["aid_context"]["institutional_grant_share"]["source_id"],"ipeds_sfa_2023_24")
+ def test_detail_normalizes_csv_list_evidence(self):
+  row=c("1","P1","Alpha");row.update({"coverage__transfer":"1","transfer__evidence_levels":"course_equivalency | program_articulation","transfer__source_systems":"system_a | system_b","source_freshness":"[{\"source_family\":\"synthetic\",\"vintage\":\"TEST\"}]"})
+  x=candidate_detail(row,data_version="D1")
+  self.assertEqual(x["transfer"]["evidence_levels"],["course_equivalency","program_articulation"]);self.assertEqual(x["transfer"]["source_systems"],["system_a","system_b"])
+  self.assertEqual(x["freshness"]["source_freshness"][0]["source_family"],"synthetic")
+ def test_accreditation_absence_remains_coverage_unknown_not_negative(self):
+  x=candidate_detail(c("1","P1","Alpha"));self.assertFalse(x["institution"]["accreditation"]["covered"]);self.assertEqual(x["institution"]["accreditation"]["statuses"],[])
  def test_compare_requires_multiple_unique_candidates(self):
   with self.assertRaises(ValueError):compare([c("1","P1","Alpha")])
   with self.assertRaises(ValueError):compare([c("1","P1","Alpha"),c("1","P1","Alpha")])
