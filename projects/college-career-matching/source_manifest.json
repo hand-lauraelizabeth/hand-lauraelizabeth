@@ -331,6 +331,22 @@
             "4.A.2.b.2": "Thinking Creatively"
           },
           "soc_policy": "Use only .00 base O*NET-SOC rows for SOC6 alignment; do not average specialty profiles."
+        },
+        "career_preference_coverage": {
+          "verified_at": "2026-10-06T13:29:16Z",
+          "workflow_run_id": 37471003189,
+          "work_activities_sha256": "6c266205b2926c0c854a7a577aae29fe492c71bb0df7e197adca830b58fe4ea1",
+          "reviewed_attribute_count": 3,
+          "normalized_rows": 2286,
+          "unique_base_soc6": 762,
+          "cip_soc_relationship_rows": 6097,
+          "cip_soc_unique_soc6": 868,
+          "cip_soc_soc6_all_reviewed_observed": 762,
+          "cip_soc_soc6_all_reviewed_coverage_rate": 0.87788,
+          "cip_soc_relationship_rows_all_reviewed_observed": 5013,
+          "cip_soc_relationship_all_reviewed_coverage_rate": 0.822208,
+          "cip_soc_soc6_without_reviewed_base_profile": 106,
+          "partial_or_nonobserved_reviewed_base_profiles": 0
         }
       }
     },
