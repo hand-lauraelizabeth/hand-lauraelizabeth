@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import sys,unittest
+import sys,unittest,json
 from pathlib import Path
 PROJECT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(PROJECT))
 from candidate_detail_service import candidate_detail
@@ -22,6 +22,8 @@ class DetailCompareTests(unittest.TestCase):
   x=candidate_detail(row,data_version="D1")
   self.assertEqual(x["transfer"]["evidence_levels"],["course_equivalency","program_articulation"]);self.assertEqual(x["transfer"]["source_systems"],["system_a","system_b"])
   self.assertEqual(x["freshness"]["source_freshness"][0]["source_family"],"synthetic")
+ def test_detail_exposes_structured_related_pathways_without_inventing_representatives(self):
+  row=c("1","P1","Alpha");row["career__pathways_json"]=json.dumps([{"soc_code":"15-1252","occupation_title":"Software Developers"}]);x=candidate_detail(row,data_version="D1");self.assertEqual(x["career"]["pathway_count"],1);self.assertEqual(x["career"]["pathways"][0]["occupation_title"],"Software Developers");self.assertEqual(x["career"]["representative_pathways"],[])
  def test_accreditation_absence_remains_coverage_unknown_not_negative(self):
   x=candidate_detail(c("1","P1","Alpha"));self.assertFalse(x["institution"]["accreditation"]["covered"]);self.assertEqual(x["institution"]["accreditation"]["statuses"],[])
  def test_compare_requires_multiple_unique_candidates(self):
@@ -32,7 +34,7 @@ class DetailCompareTests(unittest.TestCase):
  def test_compare_exposes_all_governed_evidence_families(self):
   r=compare([c("1","P1","Alpha"),c("2","P2","Beta")],data_version="D1")
   ids={x["id"] for x in r["comparison_dimensions"]}
-  self.assertTrue({"affordability","aid_context","program_outcomes","transfer","career","current_labor","long_term_outlook","accreditation","freshness","unknowns"}.issubset(ids))
+  self.assertTrue({"affordability","aid_context","program_outcomes","transfer","career","current_labor","long_term_outlook","accreditation","freshness","unknowns"}.issubset(ids));career=next(x for x in r["comparison_dimensions"] if x["id"]=="career");self.assertEqual(career["fields"],["pathway_count","pathways","representative_pathways"])
   self.assertTrue(r["semantic_rules"]["aid_reporting_is_not_individual_award"]);self.assertTrue(r["semantic_rules"]["accreditation_absence_is_unknown_not_unaccredited"])
  def test_compare_preserves_candidate_order(self):
   r=compare([c("2","P2","Beta"),c("1","P1","Alpha")]);self.assertEqual(r["candidate_ids"],["2:P2","1:P1"])
