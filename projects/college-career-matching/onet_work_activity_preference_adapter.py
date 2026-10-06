@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """Normalize reviewed O*NET 31.0 Work Activity Importance rows for career-preference alignment."""
 from __future__ import annotations
-import argparse,csv,json
+import argparse,csv,json,re
 from pathlib import Path
 from onet_career_attribute_registry import load_registry
 
 MISSING={"","NA","N/A","NULL","NONE"}
 def clean(v):return str(v).strip() if v is not None else ""
+def header_key(v):return re.sub(r"[^a-z0-9]+","_",clean(v).casefold()).strip("_")
 def key(row,*names):
+ normalized={header_key(k):v for k,v in row.items() if k is not None}
  for n in names:
-  if n in row:return row[n]
+  if n in row and row[n] not in (None,""):return row[n]
+  nk=header_key(n)
+  if nk in normalized:return normalized[nk]
  return None
 def base_soc(code):
  c=clean(code)
