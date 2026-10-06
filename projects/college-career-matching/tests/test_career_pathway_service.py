@@ -14,6 +14,8 @@ class CareerPathwayServiceTests(unittest.TestCase):
  def test_structured_and_code_fallback_dedupe_by_soc(self):
   c={"career__pathways_json":json.dumps([{"soc_code":"15-1252","occupation_title":"Software Developers"}]),"career__soc_codes":"15-1252 | 15-2051"}
   r=pathway_rows(c);self.assertEqual([x["soc_code"] for x in r],["15-1252","15-2051"])
+ def test_structured_pathway_list_wins_over_stale_reported_count(self):
+  c={"career__soc_count":"9","career__soc_codes":"15-1252","career__pathways_json":json.dumps([{"soc_code":"15-1252","occupation_title":"Software Developers"}])};self.assertEqual(career_summary(c)["pathway_count"],1)
  def test_representative_pathways_are_separate(self):
   c={"career__soc_codes":"15-1252 | 15-2051","career__representative_pathways_json":json.dumps([{"soc_code":"15-2051","occupation_title":"Data Scientists"}])}
   self.assertEqual(representative_rows(c),[{"soc_code":"15-2051","occupation_title":"Data Scientists"}])
