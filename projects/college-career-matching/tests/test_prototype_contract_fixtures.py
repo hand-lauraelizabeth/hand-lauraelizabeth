@@ -37,6 +37,14 @@ class PrototypeContractTests(unittest.TestCase):
    self.assertIsInstance(detail["freshness"]["source_freshness"],list)
  def test_missing_fixture_net_price_is_not_zero(self):
   d=F["candidate:SYN003:P3"]["affordability"]["net_price"];self.assertIsNone(d["value"]);self.assertEqual(d["evidence_state"],"missing")
+ def test_compare_fixtures_cover_all_two_and_three_program_selection_orders(self):
+  import itertools
+  ids=[x["candidate_id"] for x in F["match"]["results"]]
+  for n in (2,3):
+   for seq in itertools.permutations(ids,n):
+    key="compare:"+"|".join(seq);self.assertIn(key,F);r=F[key]
+    self.assertEqual(r["candidate_ids"],list(seq));self.assertEqual([x["candidate_id"] for x in r["candidates"]],list(seq))
+    self.assertTrue(r["semantic_rules"]["no_automatic_winner"]);self.assertTrue(r["semantic_rules"]["missing_is_not_zero"])
  def test_compare_has_no_winner_semantics(self):self.assertTrue(F['compare']['semantic_rules']['no_automatic_winner']);self.assertNotIn('winner',F['compare'])
  def test_prototype_request_shape_is_service_valid(self):
   r={'schema_version':'1.0','decision_mode':'broad_exploration','constraints':[{'constraint_id':'school_states','field':'state','operator':'in','value':['NY'],'unknown_policy':'keep_visible'}],'preferences':[{'preference_id':'affordability_priority','dimension':'affordability','importance':3,'priority_explicit':True}],'career_preferences':[],'geography':{'school_location_semantics':'selected_places','selected_states':['NY'],'work_market_semantics':'unspecified','intended_work_market':None},'page':1,'page_size':20};validate_request(r)
