@@ -74,6 +74,7 @@ def map_answers(defs,answers,options=None):
    if imp<0:raise ValueError(f"negative importance for {qid}")
    out["preferences"].append({"preference_id":qid,"dimension":m["dimension"],"importance":imp,"priority_explicit":True,"source_question_id":qid})
   elif target=="career_preference":
+   if m.get("requires_attribute_mapping_review") is True:raise ValueError(f"{qid}: career attribute mapping review is still required")
    imp=float(val)
    if imp<0:raise ValueError(f"negative importance for {qid}")
    out["career_preferences"].append({"preference_id":qid,"attribute_id":m["attribute_id"],"operator":m["operator"],"importance":imp,"priority_explicit":True,"target_value":None,"target_min":None,"target_max":None,"scale_min":None,"scale_max":None,"source_question_id":qid})
