@@ -106,6 +106,12 @@ class PublicExplorerContractTests(unittest.TestCase):
   for phrase in ["Descriptive occupation-level evidence only—not graduate earnings or placement rates.","higher values are not converted into a browser-side career score."]:
    self.assertIn(phrase,HTML)
   self.assertIn("employment_state",HTML);self.assertIn("wage_state",HTML);self.assertIn("projection_geography",HTML);self.assertIn("family.market_label",HTML);self.assertIn("source_vintage",HTML)
+ def test_career_first_renders_only_service_supplied_priority_explanations(self):
+  for token in ["function careerPriorityExplanations(x)","explanation.context","explanation.unknowns","CURRENT_LABOR_PRIORITY","LONG_TERM_OUTLOOK_PRIORITY","priorityExplanations=careerPriorityExplanations(x)"]:
+   self.assertIn(token,HTML)
+  for phrase in ["Priority context","Evidence gap"]:
+   self.assertIn(phrase,HTML)
+  self.assertNotIn("baseline_score>=",HTML);self.assertNotIn("median_wage>=",HTML);self.assertNotIn("employment_change_pct>=",HTML)
  def test_career_pathway_presentation_is_descriptive_not_breadth_scoring(self):
   for phrase in ["Related career pathways","CIP→SOC pathways describe related occupations","Pathway count is descriptive and is not treated here as a quality score.","Career-pathway fit and evidence","Mapped career pathways"]:
    self.assertIn(phrase,HTML)
