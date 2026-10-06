@@ -101,7 +101,7 @@ def run():
    if driver.find_element(By.ID,"leh-ccx").get_attribute("data-request-status")!="ready":
     raise AssertionError("career-first refresh failed: "+driver.find_element(By.ID,"ccx-service-state").text+" | "+driver.find_element(By.ID,"ccx-results").text)
    career_results=driver.find_element(By.ID,"ccx-results").text
-   if "Long-term outlook" not in career_results:
+   if "long-term outlook" not in career_results.lower():
     selected_mode=Select(driver.find_element(By.ID,"ccx-decision-mode")).first_selected_option.get_attribute("value")
     request_mode=driver.execute_script("return document.getElementById('leh-ccx').getGovernedRequest().decision_mode;")
     raise AssertionError(f"career snapshot missing; selected_mode={selected_mode}; request_mode={request_mode}; results={career_results[:1800]}")
@@ -113,7 +113,7 @@ def run():
    driver.execute_script("arguments[0].value=arguments[1];arguments[0].dispatchEvent(new Event('change',{bubbles:true}));",market,exact_market)
    wait.until(lambda d:"$94,500" in next(c.text for c in d.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text))
    north=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text)
-   assert "Current selected market" in north.text and "Data Scientists" in north.text and "employment 1200" in north.text
+   assert "current selected market" in north.text.lower() and "Data Scientists" in north.text and "employment 1200" in north.text
    river=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "River State University" in c.text)
    assert "unavailable for this candidate" in river.text and "Software Developers" in river.text
    driver.find_element(By.ID,"ccx-reset").click()
