@@ -71,6 +71,11 @@ def main() -> None:
             "15-2051.01,Bioinformatics Scientists,4.A.2.a.4,Analyzing Data or Information,IM,Importance,5.00,10,0.1,4.8,5.0,N,N,2026-08,Analyst\\n"
         ).encode("utf-8"),
     }
+    parsed_work_activities = module.read_delimited_bytes(onet_payloads["https://fixture/work_activities.csv"])
+    assert_equal(parsed_work_activities[0].get("O*NET-SOC Code"), "15-2051.00", "O*NET fixture SOC parse")
+    assert_equal(parsed_work_activities[0].get("Element ID"), "4.A.2.a.4", "O*NET fixture element parse")
+    direct_career_attrs = module.normalize_onet_career_attributes(parsed_work_activities)
+    assert_equal(len(direct_career_attrs), 3, "direct reviewed O*NET normalization")
     original_http_get = module.http_get
     module.http_get = lambda url, **kwargs: onet_payloads[url]
     try:
