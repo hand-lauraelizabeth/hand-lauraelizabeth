@@ -65,6 +65,12 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("if(activeRequestController)activeRequestController.abort()",HTML)
   self.assertIn("if(generation!==requestGeneration)return",HTML)
   self.assertIn("generation!==requestGeneration||err&&err.name==='AbortError'",HTML)
+ def test_candidate_details_are_on_demand_version_checked_and_cached(self):
+  for token in ["candidateDetailCache=new Map()","client.candidate(id)","assertContract(await promise,'candidate')","Candidate detail identity mismatch","Candidate detail data version does not match loaded metadata","data-detail-key","getCandidateDetailState"]:
+   self.assertIn(token,HTML)
+ def test_candidate_drilldown_keeps_evidence_families_separate(self):
+  for phrase in ["Cost & debt evidence","Aid context","Program / field outcomes","Transfer & pathway evidence","Labor-market evidence","Source status & provenance","Net price is not the same as tuition","Current-market evidence and long-term projections are separate","Absence of accreditation evidence is unknown coverage"]:
+   self.assertIn(phrase,HTML)
  def test_service_versions_are_cross_checked(self):
   self.assertIn("response.data_version!==metadata.data_version",HTML);self.assertIn("response.model_version!==metadata.model_version",HTML)
 
