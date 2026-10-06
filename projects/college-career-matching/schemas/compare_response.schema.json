@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "compare_response.schema.json",
+  "title": "College + Career Compare Response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "data_version",
+    "candidate_ids",
+    "candidates",
+    "comparison_dimensions",
+    "semantic_rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "data_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "candidate_ids": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5
+    },
+    "comparison_dimensions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "fields"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "semantic_rules": {
+      "type": "object",
+      "required": [
+        "no_automatic_winner",
+        "missing_is_not_zero",
+        "current_market_is_not_long_term_outlook",
+        "institution_outcomes_are_not_program_outcomes",
+        "aid_reporting_is_not_individual_award",
+        "accreditation_absence_is_unknown_not_unaccredited"
+      ],
+      "properties": {
+        "no_automatic_winner": {
+          "const": true
+        },
+        "missing_is_not_zero": {
+          "const": true
+        },
+        "current_market_is_not_long_term_outlook": {
+          "const": true
+        },
+        "institution_outcomes_are_not_program_outcomes": {
+          "const": true
+        },
+        "aid_reporting_is_not_individual_award": {
+          "const": true
+        },
+        "accreditation_absence_is_unknown_not_unaccredited": {
+          "const": true
+        }
+      }
+    }
+  }
+}
