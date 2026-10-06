@@ -26,6 +26,10 @@ class PrototypeContractTests(unittest.TestCase):
   for x in m["results"]:
    for key in ["dimensions","explanation","transfer","source_freshness","recommendation"]:self.assertIn(key,x)
    self.assertEqual(set(x["explanation"]),{"why_it_matches","tradeoffs","context","unknowns"})
+ def test_fixture_explanation_records_include_trace_arrays(self):
+  for x in F["match"]["results"]:
+   for group in ["why_it_matches","tradeoffs","context","unknowns"]:
+    for reason in x["explanation"][group]:self.assertIn("supporting_evidence",reason);self.assertIsInstance(reason["supporting_evidence"],list)
  def test_match_fixture_is_explicitly_unranked_and_not_production_authorized(self):
   self.assertEqual(F["match"]["ordering"]["mode"],"deterministic_unranked");self.assertFalse(F["match"]["ordering"]["production_authorized"])
   for x in F["match"]["results"]:self.assertEqual(x["recommendation"]["status"],"not_ranked");self.assertFalse(x["recommendation"]["production_authorized"])
