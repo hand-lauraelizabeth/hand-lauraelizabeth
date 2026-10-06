@@ -4,7 +4,7 @@ import json,sys,unittest
 from pathlib import Path
 P=Path(__file__).resolve().parents[1];sys.path.insert(0,str(P))
 from match_service_adapter import match
-REQ=json.loads((P/'schemas/match_request.schema.json').read_text());RES=json.loads((P/'schemas/match_response.schema.json').read_text())
+REQ=json.loads((P/'schemas/match_request.schema.json').read_text());RES=json.loads((P/'schemas/match_response.schema.json').read_text());DETAIL=json.loads((P/'schemas/candidate_detail_response.schema.json').read_text())
 def q():return {'schema_version':'1.0','decision_mode':'broad_exploration','constraints':[],'preferences':[],'career_preferences':[],'geography':{'school_location_semantics':'no_preference','selected_states':[],'work_market_semantics':'selected_market','intended_work_market':{'market_id':'35620','market_type':'OEWS_MSA'}},'page':1,'page_size':20}
 def c():return {'candidate_id':'1:P1','UNITID':'1','institution_name':'Alpha','program_id':'P1','program_name':'CS','cip_code':'11.0101','credential_level':'Bachelors','state':'NY','career__soc_count':'1','career__soc_codes':'15-1252'}
 class SchemaContractTests(unittest.TestCase):
@@ -18,6 +18,10 @@ class SchemaContractTests(unittest.TestCase):
   item=RES["properties"]["results"]["items"];self.assertIn("recommendation",item["properties"]);self.assertEqual(item["properties"]["recommendation"]["properties"]["production_authorized"]["type"],"boolean")
  def test_response_requires_pagination_and_labor(self):
   self.assertIn('pagination',RES['required']);self.assertIn('ordering',RES['required']);item=RES['properties']['results']['items'];self.assertIn('labor_market',item['required']);self.assertIn('career_pathways',item['required']);self.assertIn('recommendation',item['required'])
+ def test_candidate_detail_schema_keeps_evidence_families_and_provenance_explicit(self):
+  self.assertTrue({"affordability","aid_context","program_outcomes","transfer","career","labor_market","freshness","unknowns"}.issubset(DETAIL["required"]))
+  evidence=DETAIL["$defs"]["evidence"];self.assertTrue({"value","evidence_state","source_id","source_vintage"}.issubset(evidence["required"]))
+  self.assertIn("accreditation",DETAIL["properties"]["institution"]["required"])
  def test_service_emits_explicit_unranked_ordering_by_default(self):
   r=match(q(),[c()],"D","M",generated_at_utc="2026-10-05T00:00:00Z");self.assertEqual(r["ordering"]["mode"],"deterministic_unranked");self.assertEqual(r["results"][0]["recommendation"]["status"],"not_ranked");self.assertFalse(r["results"][0]["recommendation"]["production_authorized"])
  def test_service_can_propagate_explicit_authorization_without_changing_default(self):
