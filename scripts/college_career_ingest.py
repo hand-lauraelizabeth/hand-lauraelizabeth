@@ -8,6 +8,7 @@ import json
 import math
 import os
 import re
+import sys
 import tempfile
 import urllib.parse
 import urllib.request
@@ -22,6 +23,10 @@ PROJECT = ROOT / "projects" / "college-career-matching"
 MANIFEST_PATH = PROJECT / "source_manifest.json"
 COVERAGE_BASELINES_PATH = PROJECT / "coverage_baselines.json"
 DEFAULT_DATA_DIR = PROJECT / "data"
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
+from onet_work_activity_preference_adapter import normalize as normalize_onet_career_attributes
+from onet_career_attribute_registry import load_registry as load_onet_career_registry
 
 USER_AGENT = "LauraElizabethHand-CollegeCareerMatcher/0.2 (contact: https://github.com/hand-lauraelizabeth/hand-lauraelizabeth; public research data ingestion)"
 SCORECARD_FIELDS = [
@@ -822,6 +827,7 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
     extracted: dict[str, int] = {}
     table_occupation_coverage: dict[str, int] = {}
     occupation_rows: list[dict[str, object]] = []
+    reviewed_career_attribute_rows: list[dict[str, object]] = []
 
     for table_name, url in file_urls.items():
         payload = http_get(str(url))
@@ -860,6 +866,15 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
         })
         if table_name == "occupation_data":
             occupation_rows = normalized_rows
+        elif table_name == "work_activities":
+            reviewed_career_attribute_rows = normalize_onet_career_attributes(rows)
+            if not reviewed_career_attribute_rows:
+                raise IngestionError("O*NET work_activities produced no reviewed career-preference rows")
+            write_csv(
+                normalized_dir / "career_preference_attributes.csv",
+                list(reviewed_career_attribute_rows[0].keys()),
+                reviewed_career_attribute_rows,
+            )
 
     if not occupation_rows:
         raise IngestionError("O*NET occupation_data produced no rows")
@@ -880,6 +895,8 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
         "row_count_raw": sum(extracted.values()),
         "files": file_metadata,
         "tables_extracted": extracted,
+        "reviewed_career_preference_rows": len(reviewed_career_attribute_rows),
+        "reviewed_career_preference_registry_version": load_onet_career_registry().get("registry_version"),
     }
     snapshot_dir.mkdir(parents=True, exist_ok=True)
     (snapshot_dir / "source_snapshot.json").write_text(
@@ -895,6 +912,16 @@ def ingest_onet(source: dict, snapshot_dir: Path) -> dict:
         "occupations_with_base_soc6": sum(1 for row in occupation_rows if row.get("SOC6")),
         "table_row_counts": extracted,
         "occupations_represented_by_table": table_occupation_coverage,
+        "career_preference_attributes": {
+            "reviewed_attribute_count": len(load_onet_career_registry().get("attributes", [])),
+            "normalized_rows": len(reviewed_career_attribute_rows),
+            "unique_base_soc6": len({str(row.get("occ_code")) for row in reviewed_career_attribute_rows if row.get("occ_code")}),
+            "observed_rows": sum(1 for row in reviewed_career_attribute_rows if row.get("evidence_state") == "observed"),
+            "suppressed_rows": sum(1 for row in reviewed_career_attribute_rows if row.get("evidence_state") == "suppressed"),
+            "not_relevant_rows": sum(1 for row in reviewed_career_attribute_rows if row.get("evidence_state") == "not_relevant"),
+            "missing_rows": sum(1 for row in reviewed_career_attribute_rows if row.get("evidence_state") == "missing"),
+            "soc_policy": "Only O*NET-SOC .00 base occupation rows are emitted; specialty rows are not averaged.",
+        },
         "coverage_notes": [
             "The baseline retains the full O*NET occupation table rather than filtering by wage, growth, prestige, or posting volume.",
             "Missing content in a secondary O*NET table is treated as a coverage gap, not a reason to remove an occupation from the universe.",
