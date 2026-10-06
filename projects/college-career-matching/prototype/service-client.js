@@ -59,9 +59,15 @@ export function assertRuntimeMetadata(config,metadata){
  if((metadata.snapshot?.output_sha256||'').toLowerCase()!==x.snapshot_sha256.toLowerCase())throw new Error('runtime: snapshot identity mismatch')
  return metadata
 }
+function assertPathways(value,label){
+ if(!Array.isArray(value))throw new Error(label+': pathways must be an array')
+ for(const x of value)if(!x||typeof x!=='object'||!x.soc_code||!('occupation_title' in x))throw new Error(label+': invalid pathway shape')
+}
 function assertCandidateShape(response,label='candidate'){
- for(const key of ['candidate_id','institution','program','affordability','aid_context','program_outcomes','transfer','career','labor_market','freshness','unknowns'])if(!(key in response))throw new Error(`${label}: missing ${key}`)
- if(!Array.isArray(response.unknowns)||!response.freshness||!Array.isArray(response.freshness.source_freshness))throw new Error(`${label}: invalid evidence/freshness shape`)
+ for(const key of ['candidate_id','institution','program','affordability','aid_context','program_outcomes','transfer','career','labor_market','freshness','unknowns'])if(!(key in response))throw new Error(label+': missing '+key)
+ if(!Array.isArray(response.unknowns)||!response.freshness||!Array.isArray(response.freshness.source_freshness))throw new Error(label+': invalid evidence/freshness shape')
+ if(!response.career||!Number.isInteger(Number(response.career.pathway_count)))throw new Error(label+': missing career pathway count')
+ assertPathways(response.career.pathways,label+' career');assertPathways(response.career.representative_pathways,label+' representative career')
  return response
 }
 export function assertContract(response,kind,{productionAuthorized=false}={}){
@@ -74,6 +80,9 @@ export function assertContract(response,kind,{productionAuthorized=false}={}){
   if(!['deterministic_unranked','review_eligible_ranking'].includes(response.ordering.mode))throw new Error('match: unsupported ordering mode')
   if(response.ordering.mode==='review_eligible_ranking'&&!/^rankctx_[0-9a-f]{24}$/.test(response.ordering.ranking_context_id||''))throw new Error('match: invalid ranking context')
   for(const result of response.results){
+   const cp=result.career_pathways
+   if(!cp||!Number.isInteger(Number(cp.pathway_count)))throw new Error('match: missing career pathway count')
+   assertPathways(cp.pathways,'match career');assertPathways(cp.representative_pathways,'match representative career')
    const rec=result.recommendation
    if(!rec||rec.production_authorized!==productionAuthorized)throw new Error('match: recommendation production authorization mismatch')
    if(rec.status==='review_eligible_ranked'&&rec.review_eligibility!=='eligible_for_review')throw new Error('match: ranked result is not review-eligible')
