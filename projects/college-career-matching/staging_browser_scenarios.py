@@ -116,6 +116,20 @@ def run():
    assert "current selected market" in north.text.lower() and "Harbor–Metro Labor Market (fictional)" in north.text and "Data Scientists" in north.text and "employment 1200" in north.text and "SYNTHETIC" in north.text
    river=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "River State University" in c.text)
    assert "unavailable for this candidate" in river.text and "Software Developers" in river.text
+   before_priority=driver.execute_script("return document.getElementById('leh-ccx').getRequestGeneration();")
+   current_priority=driver.find_element(By.ID,"ccx-current-labor");long_priority=driver.find_element(By.ID,"ccx-long-term")
+   if not current_priority.is_selected():current_priority.click()
+   if not long_priority.is_selected():long_priority.click()
+   wait.until(lambda d:d.execute_script("return document.getElementById('leh-ccx').getRequestGeneration();")>before_priority)
+   wait.until(lambda d:d.find_element(By.ID,"leh-ccx").get_attribute("data-request-status")=="ready")
+   north=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text)
+   river=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "River State University" in c.text)
+   assert north.text.count("Priority context")>=2 and "Wage and employment values remain descriptive" in north.text and "Projected change and openings remain descriptive" in north.text
+   assert "Evidence gap" in river.text and "Missing evidence is not treated as weak demand" in river.text and "Priority context" in river.text
+   response=driver.execute_script("return document.getElementById('leh-ccx').getLastServiceResponse();")
+   north_response=next(x for x in response["results"] if x["candidate_id"]=="SYN001:P1")
+   assert {x["code"] for x in north_response["explanation"]["context"]}=={"CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE","LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_AVAILABLE"}
+   assert north_response["explanation"]["tradeoffs"]==[]
    driver.find_element(By.ID,"ccx-reset").click()
    wait.until(lambda d:Select(d.find_element(By.ID,"ccx-decision-mode")).first_selected_option.get_attribute("value")=="broad_exploration")
    wait.until(lambda d:not d.find_elements(By.CSS_SELECTOR,".ccx-career-snapshot"))
