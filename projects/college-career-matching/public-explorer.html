@@ -29,6 +29,13 @@
     #leh-ccx .ccx-results-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
     #leh-ccx .ccx-results-head h2{font-family:"Cormorant Garamond",Georgia,serif;font-size:34px;color:#17352d;margin:0}
     #leh-ccx .ccx-count{font-size:14px;color:var(--muted)}
+    #leh-ccx .ccx-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 0 4px}
+    #leh-ccx .ccx-page-actions{display:flex;align-items:center;gap:8px}
+    #leh-ccx .ccx-page-button{border:1px solid var(--green);color:var(--green);background:#fff;border-radius:999px;min-height:40px;padding:7px 13px;font:inherit;font-weight:700;cursor:pointer}
+    #leh-ccx .ccx-page-button:disabled{opacity:.45;cursor:not-allowed}
+    #leh-ccx .ccx-page-status{font-size:14px;color:var(--muted)}
+    #leh-ccx .ccx-page-size{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted)}
+    #leh-ccx .ccx-page-size select{width:auto;min-height:40px;padding:6px 30px 6px 9px}
     #leh-ccx .ccx-results{display:grid;gap:14px}
     #leh-ccx .ccx-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px}
     #leh-ccx .ccx-card-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
@@ -157,14 +164,14 @@
       </form>
       <section aria-labelledby="ccx-results-title">
         <div class="ccx-results-head">
-          <h2 id="ccx-results-title">Explore matches</h2>
-          <div class="ccx-count" id="ccx-count" aria-live="polite">3 fictional service-fixture programs</div>
+          <div><h2 id="ccx-results-title">Explore matches</h2><div class="ccx-count" id="ccx-count" aria-live="polite">3 fictional service-fixture programs</div></div>
+          <label class="ccx-page-size" for="ccx-page-size">Results per page <select id="ccx-page-size"><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option></select></label>
         </div>
         <div class="ccx-results" id="ccx-results" aria-live="polite">
           <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Synthetic service fixture</div><h3>Data & Information Systems</h3><p class="ccx-school">North Harbor College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-reasons"><div class="ccx-reason">JavaScript loads the governed fixture response and its evidence metadata.</div></div></article>
           <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Synthetic service fixture</div><h3>Information Technology</h3><p class="ccx-school">Metro Public College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-reasons"><div class="ccx-reason">JavaScript loads the governed fixture response and its evidence metadata.</div></div></article>
           <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Synthetic service fixture</div><h3>Applied Computing</h3><p class="ccx-school">River State University · NJ</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-reasons"><div class="ccx-reason">JavaScript loads the governed fixture response and its evidence metadata.</div></div></article>
-        </div><noscript><p class="ccx-note">These synthetic fixture names remain readable without JavaScript. Evidence details, governed requests, filtering, and any gated ordering require the matching service through JavaScript.</p></noscript>
+        </div><nav class="ccx-pagination" id="ccx-pagination" aria-label="Match results pages" hidden><div class="ccx-page-actions"><button type="button" class="ccx-page-button" id="ccx-prev">Previous</button><span class="ccx-page-status" id="ccx-page-status" aria-live="polite"></span><button type="button" class="ccx-page-button" id="ccx-next">Next</button></div></nav><noscript><p class="ccx-note">These synthetic fixture names remain readable without JavaScript. Evidence details, governed requests, filtering, and any gated ordering require the matching service through JavaScript.</p></noscript>
         <div class="ccx-compare-panel" id="ccx-compare-panel"><h3>Compare programs</h3><p class="ccx-compare-note" id="ccx-compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="ccx-compare-table" id="ccx-compare-table"></div><button type="button" class="ccx-clear" id="ccx-clear" hidden>Clear comparison</button></div><div class="ccx-safety"><strong>How to read this:</strong> the browser does not calculate a fit score or rank. It builds a governed request and renders the service response. Any displayed rank must come through the recommendation review gate. Fixture/review eligibility alone is not production authorization; production mode additionally requires the exact activation-pinned data, model, and snapshot identity. Cost, transit, walkability, housing, and disability-services evidence remain separate signals.</div>
       </section>
     </div>
@@ -179,11 +186,12 @@
     const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
     const controls=['ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
-    const selected=new Set();
-    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null;
+    const selected=new Set(),selectedRecords=new Map();
+    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,currentPage=1,pageSize=20;
     function setInteractive(enabled){
       controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
-      q('ccx-reset').disabled=!enabled;q('ccx-form').setAttribute('aria-disabled',String(!enabled));
+      q('ccx-reset').disabled=!enabled;q('ccx-page-size').disabled=!enabled;q('ccx-form').setAttribute('aria-disabled',String(!enabled));
+      if(!enabled){q('ccx-prev').disabled=true;q('ccx-next').disabled=true}
     }
     function modeText(){return runtimeConfig.mode==='fixture'?'Synthetic fixture service':runtimeConfig.mode==='staging'?'Synthetic staging HTTP service':'Authorized production matching service'}
     function renderServiceIdentity(){
@@ -205,7 +213,8 @@
       clearServiceResults('Matcher unavailable.','The governed service identity could not be validated. Controls are disabled until a valid service identity is available.','Matcher unavailable');
     }
     function clearServiceResults(title,detail,countText){
-      lastResponse=null;selected.clear();
+      lastResponse=null;selected.clear();selectedRecords.clear();
+      q('ccx-pagination').hidden=true;q('ccx-page-status').textContent='';
       q('ccx-results').innerHTML='<div class="ccx-empty"><strong>'+esc(title)+'</strong><p>'+esc(detail)+'</p></div>';
       q('ccx-count').textContent=countText;
       q('ccx-compare-table').innerHTML='';q('ccx-compare-note').textContent='Select two or three programs from the current service results.';q('ccx-clear').hidden=true;
@@ -264,7 +273,7 @@
       soft('walkability_priority','walkability_fit',s.walk);
       soft('housing_choice_priority','housing_context_fit',s.housingChoice);
       soft('disability_services_priority','accessibility_evidence_fit',s.disabilityInfo);
-      return {schema_version:'1.0',decision_mode:'broad_exploration',constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:1,page_size:100,data_version:null,model_version:null};
+      return {schema_version:'1.0',decision_mode:'broad_exploration',constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
     }
 
     function rankLabel(rec){
