@@ -10,6 +10,9 @@ S=[{"UNITID":"1","institution_name":"Alpha","program_id":"P1","program_name":"CS
 class OptionsConstraintTests(unittest.TestCase):
  def test_options_come_from_active_snapshot(self):
   r=options(S,"D1");self.assertEqual(r["data_version"],"D1");self.assertEqual(r["options"]["programs"][0]["value"],"1:P1")
+ def test_labor_market_options_derive_only_from_loaded_governed_evidence(self):
+  labor=[{"market_id":"35620","market_type":"OEWS_MSA","market_label":"Metro Example"},{"market_id":"35620","market_type":"OEWS_MSA","market_label":"Metro Example"},{"market_id":"12","market_type":"OEWS_STATE","area_title":"State Example"}]
+  markets=options(S,"D1",labor)["options"]["labor_markets"];self.assertEqual(len(markets),2);by={x["value"]:x for x in markets};self.assertEqual(by["OEWS_MSA:35620"]["label"],"Metro Example");self.assertEqual(by["OEWS_STATE:12"]["market_id"],"12")
  def test_options_publish_constraint_capabilities(self):
   r=options(S,"D1");fields=r["constraint_capabilities"]["fields"];self.assertIn("state",fields);self.assertIn("cip_code",fields);self.assertIn("finance__net_price",fields);self.assertIn("finance__net_price_income_0_30",fields);self.assertIn("campus__locale_category",fields);self.assertIn("campus__housing_available",fields)
  def test_unknown_constraint_field_fails(self):
