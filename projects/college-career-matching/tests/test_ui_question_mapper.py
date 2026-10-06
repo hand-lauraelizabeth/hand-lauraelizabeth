@@ -42,6 +42,10 @@ class MapperTests(unittest.TestCase):
  def test_active_options_reject_stale_state(self):
   with self.assertRaises(ValueError):map_answers(DEFS,{"decision_mode":"broad_exploration","school_states":["ZZ"]},OPTIONS)
  def test_options_version_propagates(self):self.assertEqual(map_answers(DEFS,{"decision_mode":"broad_exploration"},OPTIONS)["data_version"],"D1")
+ def test_unreviewed_career_attribute_mapping_fails_closed(self):
+  with self.assertRaisesRegex(ValueError,"career attribute mapping review is still required"):map_answers(DEFS,{"decision_mode":"career_first","career_analysis":4})
+ def test_skipped_unreviewed_career_questions_do_not_block_career_first(self):
+  r=map_answers(DEFS,{"decision_mode":"career_first","work_market_semantics":"national"});self.assertEqual(r["career_preferences"],[]);self.assertEqual(r["geography"]["work_market_semantics"],"national")
  def test_transfer_question_rejected_outside_transfer_modes(self):
   with self.assertRaises(ValueError):map_answers(DEFS,{"decision_mode":"career_first","transfer_source":"FIC-1"})
  def test_transfer_source_creates_context_not_guarantee(self):
