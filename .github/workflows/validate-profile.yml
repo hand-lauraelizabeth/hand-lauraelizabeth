@@ -95,7 +95,7 @@ jobs:
         run: |
           python scripts/college_career_ingest.py --source cip_soc_crosswalk_2020_2018 --output-dir "${{ runner.temp }}/college-career-smoke"
           python scripts/college_career_ingest.py --source onet_31_0 --output-dir "${{ runner.temp }}/college-career-smoke"
-          python scripts/college_career_ingest.py --build-onet-preference-coverage --output-dir "${{ runner.temp }}/college-career-smoke"
+          python scripts/college_career_ingest.py --build-onet-preference-coverage --enforce-coverage-baseline --output-dir "${{ runner.temp }}/college-career-smoke"
       - name: Live BLS ingestion and O*NET coverage joins
         if: contains(github.event.head_commit.message, '[live-bls-smoke]')
         run: |
