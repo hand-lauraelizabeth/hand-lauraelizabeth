@@ -16,6 +16,7 @@ from compare_service_adapter import compare as compare_candidates
 from match_service_adapter import match as match_candidates
 from metadata_service_adapter import build_metadata
 from options_service_adapter import options as build_options,labor_market_options
+from career_preference_service import validate_preferences as validate_career_preferences
 
 MAX_BODY_BYTES=262144
 
@@ -31,7 +32,7 @@ def sha256(path):
 def truth(v): return clean(v).lower() in {"1","true","yes","y"}
 
 class ServiceState:
- def __init__(self,snapshot_path,manifest_path,model_version,activation_record_path=None,current_labor_path=None,projections_path=None,allowed_origins=None):
+ def __init__(self,snapshot_path,manifest_path,model_version,activation_record_path=None,current_labor_path=None,projections_path=None,allowed_origins=None,career_attributes_path=None):
   self.snapshot_path=Path(snapshot_path);self.manifest=load_json(manifest_path);self.snapshot=read_csv(snapshot_path);self.model_version=clean(model_version)
   if not self.snapshot:raise ValueError("snapshot is empty")
   actual=sha256(snapshot_path);expected=clean(self.manifest.get("output_sha256")).lower()
@@ -43,24 +44,26 @@ class ServiceState:
   self.activation_record=load_json(activation_record_path) if activation_record_path else None
   self.current_labor=load_json(current_labor_path) if current_labor_path else []
   self.projections=load_json(projections_path) if projections_path else []
+  self.career_attributes=read_csv(career_attributes_path) if career_attributes_path else []
   self.metadata_response=build_metadata(self.manifest,self.model_version,activation_record=self.activation_record)
   self.production_authorized=self.metadata_response["production_authorized"] is True
   self.data_version=self.metadata_response["data_version"]
   self.allowed_origins={x.strip() for x in (allowed_origins or []) if x.strip()}
   if self.production_authorized and "*" in self.allowed_origins:raise ValueError("production service cannot use wildcard CORS origin")
  def metadata(self):return self.metadata_response
- def options(self):return build_options(self.snapshot,self.data_version,self.current_labor)
+ def options(self):return build_options(self.snapshot,self.data_version,self.current_labor,self.career_attributes)
  def candidate(self,candidate_id,work_market=None):
   c=self.by_id.get(candidate_id)
   if c is None:raise KeyError(candidate_id)
   return candidate_detail(c,self.current_labor,self.projections,work_market,self.data_version)
  def match(self,request):
   geography=request.get("geography") or {};market=geography.get("intended_work_market");semantics=geography.get("work_market_semantics")
+  if request.get("career_preferences"):validate_career_preferences(request["career_preferences"],self.career_attributes)
   if semantics=="selected_market":
    available={(x["market_type"],x["market_id"]) for x in labor_market_options(self.current_labor)}
    key=(clean((market or {}).get("market_type")),clean((market or {}).get("market_id")))
    if key not in available:raise ValueError("selected labor market is not available in the active governed labor evidence")
-  return match_candidates(request,self.snapshot,self.data_version,self.model_version,self.current_labor,self.projections,production_authorized=self.production_authorized)
+  return match_candidates(request,self.snapshot,self.data_version,self.model_version,self.current_labor,self.projections,production_authorized=self.production_authorized,career_attributes=self.career_attributes)
  def compare(self,request):
   ids=request.get("candidate_ids")
   if not isinstance(ids,list):raise ValueError("candidate_ids must be an array")
@@ -135,12 +138,13 @@ def main():
  ap.add_argument("--activation-record",default=os.environ.get("CCX_ACTIVATION_RECORD"))
  ap.add_argument("--current-labor",default=os.environ.get("CCX_CURRENT_LABOR"))
  ap.add_argument("--projections",default=os.environ.get("CCX_PROJECTIONS"))
+ ap.add_argument("--career-attributes",default=os.environ.get("CCX_CAREER_ATTRIBUTES"))
  ap.add_argument("--allowed-origins",default=os.environ.get("CCX_ALLOWED_ORIGINS",""))
  ap.add_argument("--bind",default=os.environ.get("CCX_BIND","0.0.0.0"));ap.add_argument("--port",type=int,default=int(os.environ.get("PORT","8080")));ap.add_argument("--quiet",action="store_true")
  a=ap.parse_args()
  for name,value in [("snapshot",a.snapshot),("manifest",a.manifest),("model-version",a.model_version)]:
   if not value:ap.error(f"--{name} or its environment variable is required")
- state=ServiceState(a.snapshot,a.manifest,a.model_version,a.activation_record,a.current_labor,a.projections,parse_origins(a.allowed_origins))
+ state=ServiceState(a.snapshot,a.manifest,a.model_version,a.activation_record,a.current_labor,a.projections,parse_origins(a.allowed_origins),a.career_attributes)
  httpd=ThreadingHTTPServer((a.bind,a.port),Handler);httpd.state=state;httpd.quiet=a.quiet
  print(f"College + Career service listening on http://{a.bind}:{a.port} · data={state.data_version} · model={state.model_version} · production_authorized={str(state.production_authorized).lower()}")
  httpd.serve_forever()
