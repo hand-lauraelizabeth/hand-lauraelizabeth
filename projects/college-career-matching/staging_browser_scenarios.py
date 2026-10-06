@@ -100,7 +100,11 @@ def run():
    wait.until(lambda d:d.find_element(By.ID,"leh-ccx").get_attribute("data-request-status") in {"ready","error"})
    if driver.find_element(By.ID,"leh-ccx").get_attribute("data-request-status")!="ready":
     raise AssertionError("career-first refresh failed: "+driver.find_element(By.ID,"ccx-service-state").text+" | "+driver.find_element(By.ID,"ccx-results").text)
-   text_has(driver,"#ccx-results","Long-term outlook")
+   career_results=driver.find_element(By.ID,"ccx-results").text
+   if "Long-term outlook" not in career_results:
+    selected_mode=Select(driver.find_element(By.ID,"ccx-decision-mode")).first_selected_option.get_attribute("value")
+    request_mode=driver.execute_script("return document.getElementById('leh-ccx').getGovernedRequest().decision_mode;")
+    raise AssertionError(f"career snapshot missing; selected_mode={selected_mode}; request_mode={request_mode}; results={career_results[:1800]}")
    text_has(driver,"#ccx-results","Descriptive occupation-level evidence only")
    assert "browser-side career score" in driver.find_element(By.ID,"ccx-results").text
    Select(driver.find_element(By.ID,"ccx-work-market-semantics")).select_by_value("selected_market")
