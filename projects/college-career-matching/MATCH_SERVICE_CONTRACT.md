@@ -32,6 +32,14 @@ Each match result carries a descriptive `career_pathways` block with a mapped pa
 
 The full mapped pathway set is distinct from `representative_pathways`. The latter is reserved for reviewed career-preference alignment/explanation logic and may be empty. Pathway count is descriptive and is not, by itself, a quality score, placement probability, or graduate-outcome distribution.
 
+## Priority-linked explanation context
+
+The match response explanation object includes `why_it_matches`, `tradeoffs`, `context`, and `unknowns`. Career-first labor priorities use deterministic service-generated reason codes tied to the explicit preference and the relevant labor evidence family.
+
+If governed evidence exists for an explicitly selected current-market or long-term-outlook priority, the service emits contextual evidence explaining that the requested evidence is available while preserving its descriptive meaning. If the evidence is unavailable or the selected work-market semantics do not support candidate-specific current-market evidence, the service emits an uncertainty/limitation record instead.
+
+Raw wage, employment, projected-change, and opening values do not create positive or negative explanation claims on their own. In particular, missing labor evidence is not converted into a tradeoff, weak-demand claim, or score penalty; `tradeoffs` remains empty unless a separately reviewed rule supports a countervailing claim.
+
 ## Labor evidence
 
 `labor_market.selected_work_market` contains current evidence only for the explicitly selected market. If the selected market has no evidence, the state is `unavailable`; the service does not silently substitute school-local, state, or national current evidence.
