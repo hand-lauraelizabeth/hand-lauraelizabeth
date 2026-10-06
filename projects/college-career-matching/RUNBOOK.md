@@ -103,6 +103,31 @@ A commit message containing `[live-onet-smoke]` downloads the configured O*NET 3
 A successful O*NET run also writes `reports/career_coverage.json`, including the total detailed occupation universe and occupation coverage by each O*NET content table.
 
 
+## Reviewed O*NET career-preference live path
+
+A commit message containing `[live-onet-preference-smoke]` downloads the official CIP 2020 ↔ SOC 2018 crosswalk and the pinned O*NET 31.0 source tables, including `work_activities.csv`. The O*NET ingestion writes:
+
+- `normalized/career_preference_attributes.csv` — only the three reviewed Work Activity Importance attributes from eligible `.00` base O*NET-SOC profiles;
+- `reports/career_coverage.json` — O*NET source/table coverage plus reviewed-preference row and base-SOC coverage;
+- source metadata/hashes for the same O*NET snapshot used by the broader occupational-content layer.
+
+Then run:
+
+```bash
+python scripts/college_career_ingest.py --build-onet-preference-coverage \
+  --output-dir projects/college-career-matching/data/snapshots
+```
+
+This writes `onet_career_preference_coverage.json` and `onet_career_preference_pathway_coverage_flags.csv`. The report evaluates the reviewed O*NET evidence against every SOC6 in the official CIP↔SOC bridge, both by distinct SOC and by CIP↔SOC relationship row. A missing `.00` base profile, suppressed/not-relevant reviewed value, or absent reviewed attribute is reported as a coverage gap; specialty O*NET profiles are never averaged upward.
+
+To expose these reviewed work-characteristic questions through a current-data service, point the service at the normalized artifact:
+
+```bash
+export CCX_CAREER_ATTRIBUTES=/absolute/path/to/onet_31_0/<snapshot>/normalized/career_preference_attributes.csv
+```
+
+or pass `--career-attributes` directly to `service_host.py`. The service advertises only reviewed attributes present in this file. If the file is omitted, the career-characteristic controls remain unavailable rather than falling back to browser-defined mappings.
+
 ## BLS live smoke path
 
 A commit message containing `[live-bls-smoke]` downloads O*NET 31.0, BLS Employment Projections 2025–2035, and May 2025 OEWS, then runs:
