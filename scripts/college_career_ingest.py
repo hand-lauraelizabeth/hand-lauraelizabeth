@@ -1753,6 +1753,112 @@ def ingest_dapip(source: dict, raw: bytes, snapshot_dir: Path, source_url: str) 
     }}
 
 
+def build_onet_preference_coverage_report(output_dir: Path, *, enforce_baseline: bool = False) -> dict:
+    onet_dir = latest_snapshot_dir(output_dir, "onet_31_0")
+    cip_dir = latest_snapshot_dir(output_dir, "cip_soc_crosswalk_2020_2018")
+    attrs = read_csv_path(onet_dir / "normalized" / "career_preference_attributes.csv")
+    bridge = read_csv_path(cip_dir / "normalized" / "cip_soc_bridge.csv")
+    registry = load_onet_career_registry()
+    specs = registry.get("attributes", [])
+    attr_ids = [str(x["attribute_id"]) for x in specs]
+    by_soc: dict[str, dict[str, str]] = {}
+    for row in attrs:
+        soc = str(row.get("occ_code") or "").strip()
+        aid = str(row.get("attribute_id") or "").strip()
+        if soc and aid:
+            by_soc.setdefault(soc, {})[aid] = str(row.get("evidence_state") or "missing")
+
+    relation_count_by_soc: dict[str, int] = {}
+    cips: set[str] = set()
+    for row in bridge:
+        soc = str(row.get("SOC6") or "").strip()
+        cip = str(row.get("CIP6") or "").strip()
+        if soc:
+            relation_count_by_soc[soc] = relation_count_by_soc.get(soc, 0) + 1
+        if cip:
+            cips.add(cip)
+
+    def rate(n: int, d: int) -> float | None:
+        return round(n / d, 6) if d else None
+
+    flags: list[dict[str, object]] = []
+    for soc in sorted(relation_count_by_soc):
+        states = by_soc.get(soc, {})
+        observed = sum(1 for aid in attr_ids if states.get(aid) == "observed")
+        row: dict[str, object] = {
+            "SOC6": soc,
+            "CIP_SOC_RELATIONSHIP_COUNT": relation_count_by_soc[soc],
+            "HAS_REVIEWED_BASE_PROFILE": "1" if states else "0",
+            "OBSERVED_REVIEWED_ATTRIBUTE_COUNT": observed,
+            "REVIEWED_ATTRIBUTE_COUNT": len(attr_ids),
+            "ALL_REVIEWED_ATTRIBUTES_OBSERVED": "1" if attr_ids and observed == len(attr_ids) else "0",
+        }
+        for spec in specs:
+            row[f"{spec['question_id']}__state"] = states.get(str(spec["attribute_id"]), "absent")
+        flags.append(row)
+
+    total_rel = sum(relation_count_by_soc.values())
+    all_observed_socs = {str(x["SOC6"]) for x in flags if x["ALL_REVIEWED_ATTRIBUTES_OBSERVED"] == "1"}
+    profile_socs = set(by_soc) & set(relation_count_by_soc)
+    all_observed_rel = sum(relation_count_by_soc[soc] for soc in all_observed_socs)
+    per_attribute: dict[str, dict[str, object]] = {}
+    for spec in specs:
+        aid = str(spec["attribute_id"])
+        observed_socs = {soc for soc, states in by_soc.items() if states.get(aid) == "observed"}
+        overlap = observed_socs & set(relation_count_by_soc)
+        covered_rel = sum(relation_count_by_soc[soc] for soc in overlap)
+        per_attribute[str(spec["question_id"])] = {
+            "attribute_id": aid,
+            "element_id": spec["element_id"],
+            "element_name": spec["element_name"],
+            "observed_base_soc6": len(observed_socs),
+            "cip_soc_soc6_observed_overlap": len(overlap),
+            "cip_soc_soc6_coverage_rate": rate(len(overlap), len(relation_count_by_soc)),
+            "cip_soc_relationship_rows_covered": covered_rel,
+            "cip_soc_relationship_coverage_rate": rate(covered_rel, total_rel),
+        }
+
+    report = {
+        "generated_at": utc_now(),
+        "sources": {"onet_snapshot": str(onet_dir), "cip_soc_snapshot": str(cip_dir)},
+        "registry_version": registry.get("registry_version"),
+        "source_release": registry.get("source", {}).get("release"),
+        "reviewed_attribute_count": len(attr_ids),
+        "cip_soc_relationship_rows": total_rel,
+        "unique_cip6": len(cips),
+        "unique_soc6": len(relation_count_by_soc),
+        "soc6_with_reviewed_base_profile": len(profile_socs),
+        "soc6_with_all_reviewed_attributes_observed": len(all_observed_socs),
+        "soc6_all_reviewed_coverage_rate": rate(len(all_observed_socs), len(relation_count_by_soc)),
+        "cip_soc_relationship_rows_with_all_reviewed_attributes_observed": all_observed_rel,
+        "cip_soc_relationship_all_reviewed_coverage_rate": rate(all_observed_rel, total_rel),
+        "soc6_without_reviewed_base_profile": len(set(relation_count_by_soc) - profile_socs),
+        "soc6_with_partial_or_nonobserved_reviewed_evidence": len(profile_socs - all_observed_socs),
+        "per_attribute": per_attribute,
+        "semantic_rules": [
+            "Coverage is evaluated against every distinct SOC6 appearing in the official CIP-SOC bridge.",
+            "Only reviewed O*NET 31.0 Work Activity Importance rows from .00 base occupation profiles count as governed preference evidence.",
+            "A missing .00 profile or non-observed reviewed attribute remains a coverage gap; specialty rows are not averaged upward.",
+            "Coverage does not change program eligibility, ordering, or rank.",
+        ],
+    }
+    baseline = None
+    if "career_preferences" in load_coverage_baselines().get("layers", {}):
+        baseline = evaluate_coverage_baseline("career_preferences", report)
+        report["baseline_validation"] = baseline
+    out_dir = output_dir / "_joins" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    report_path = out_dir / "onet_career_preference_coverage.json"
+    flags_path = out_dir / "onet_career_preference_pathway_coverage_flags.csv"
+    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    fieldnames = list(flags[0].keys()) if flags else ["SOC6"]
+    write_csv(flags_path, fieldnames, flags)
+    if enforce_baseline and (baseline is None or baseline.get("status") != "pass"):
+        detail = "coverage baseline is not configured" if baseline is None else "; ".join(baseline["failures"])
+        raise IngestionError("O*NET career-preference coverage regression gate failed: " + detail)
+    return {"report": report, "report_output": str(report_path), "flags_output": str(flags_path)}
+
+
 def build_career_join_report(output_dir: Path, *, enforce_baseline: bool = False) -> dict:
     onet_dir = latest_snapshot_dir(output_dir, "onet_31_0")
     ep_dir = latest_snapshot_dir(output_dir, "bls_employment_projections_2025_2035")
@@ -2915,6 +3021,7 @@ def cli() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--list-sources", action="store_true")
     parser.add_argument("--build-career-joins", action="store_true")
+    parser.add_argument("--build-onet-preference-coverage", action="store_true")
     parser.add_argument("--build-institution-coverage", action="store_true")
     parser.add_argument("--build-program-coverage", action="store_true")
     parser.add_argument("--build-model-ready", action="store_true")
@@ -2923,6 +3030,10 @@ def cli() -> int:
 
     if args.build_career_joins:
         print(json.dumps(build_career_join_report(args.output_dir, enforce_baseline=args.enforce_coverage_baseline), indent=2, default=str))
+        return 0
+
+    if args.build_onet_preference_coverage:
+        print(json.dumps(build_onet_preference_coverage_report(args.output_dir, enforce_baseline=args.enforce_coverage_baseline), indent=2, default=str))
         return 0
 
     if args.build_institution_coverage:
