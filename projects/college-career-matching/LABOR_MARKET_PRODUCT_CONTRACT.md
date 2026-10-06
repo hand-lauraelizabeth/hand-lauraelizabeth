@@ -10,6 +10,12 @@ A user's intended work market is independent of the school's location. The produ
 
 No state or national fallback should silently replace missing local evidence. A fallback, if ever offered, must be explicit and labeled as a different geography.
 
+## Result-card presentation boundary
+
+Career-first result cards may preview current selected-market evidence beside long-term outlook, but only as separate descriptive occupation-level evidence families. The browser must not convert median wages, employment counts, projected change, or annual openings into a local score, rank, badge, or automatic recommendation signal.
+
+Unavailable, missing, or not-requested states remain visible rather than disappearing. Current occupation wages/employment are not graduate earnings or placement rates, and long-term occupational projections are not current hiring evidence. Full evidence/provenance remains available in candidate detail.
+
 ## Interactive market selection
 
 When the service exposes user-selectable labor markets, the choices must be derived from the governed current-labor evidence actually loaded by that service. A submitted `selected_market` request requires both `market_id` and `market_type`, and the service must reject an identity outside its active market universe rather than fuzzy-matching a place name or silently falling back to another geography.
