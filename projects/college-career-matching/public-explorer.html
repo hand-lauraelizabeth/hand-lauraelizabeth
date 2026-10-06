@@ -20,7 +20,10 @@
     #leh-ccx .ccx-controls{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;position:sticky;top:24px}#leh-ccx .ccx-controls[aria-disabled="true"]{opacity:.68}
     #leh-ccx fieldset{border:0;padding:0;margin:0 0 18px}
     #leh-ccx legend,#leh-ccx label.ccx-label{display:block;font-weight:700;font-size:15px;margin:0 0 7px}
-    #leh-ccx select,#leh-ccx input[type="number"]{width:100%;min-height:44px;border:1px solid #bccbc2;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:16px;padding:9px 11px}
+    #leh-ccx select,#leh-ccx input[type="number"],#leh-ccx input[type="search"]{width:100%;min-height:44px;border:1px solid #bccbc2;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:16px;padding:9px 11px}
+    #leh-ccx .ccx-mode-context{margin:-4px 0 18px;padding:11px 12px;border-left:3px solid var(--green);background:var(--soft);font-size:13px;line-height:1.5;color:var(--green2)}
+    #leh-ccx .ccx-mode-tools{border-top:1px solid var(--line);padding-top:16px;margin-top:0}
+    #leh-ccx .ccx-mode-tools .ccx-detail{padding-top:4px}
     #leh-ccx input:focus-visible,#leh-ccx select:focus-visible,#leh-ccx button:focus-visible{outline:3px solid #8bb5a6;outline-offset:2px}
     #leh-ccx .ccx-checks{display:grid;gap:8px}
     #leh-ccx .ccx-check{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.35}
@@ -105,6 +108,33 @@
           </select>
           <div class="ccx-detail">This changes the governed decision context sent to the service; it does not force you through a separate workflow or hide the filters below.</div>
         </fieldset>
+        <div class="ccx-mode-context" id="ccx-mode-context">Broad exploration keeps every control optional so you can start with whatever you know.</div>
+        <fieldset class="ccx-mode-tools" id="ccx-known-college-tools" hidden>
+          <legend>Start from something you already know</legend>
+          <label class="ccx-label" for="ccx-known-institution">Known college or university <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-known-institution" list="ccx-institution-options" autocomplete="off" placeholder="Search the active institution list">
+          <label class="ccx-label" for="ccx-known-program" style="margin-top:12px">Known program <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-known-program" list="ccx-program-options" autocomplete="off" placeholder="Search the active program list">
+          <div class="ccx-detail">Choose an exact suggestion from the active snapshot. Free text is never converted to an institution or program ID by name similarity.</div>
+        </fieldset>
+        <fieldset class="ccx-mode-tools" id="ccx-compare-known-tools" hidden>
+          <legend>Programs you want to compare</legend>
+          <label class="ccx-label" for="ccx-compare-program-1">Program 1</label>
+          <input type="search" id="ccx-compare-program-1" list="ccx-program-options" autocomplete="off" placeholder="Search the active program list">
+          <label class="ccx-label" for="ccx-compare-program-2" style="margin-top:12px">Program 2 <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-compare-program-2" list="ccx-program-options" autocomplete="off" placeholder="Search another program">
+          <label class="ccx-label" for="ccx-compare-program-3" style="margin-top:12px">Program 3 <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-compare-program-3" list="ccx-program-options" autocomplete="off" placeholder="Search another program">
+          <div class="ccx-detail">Exact governed candidate IDs are sent to the service as the comparison universe. The browser does not decide which option wins.</div>
+        </fieldset>
+        <fieldset class="ccx-mode-tools" id="ccx-transfer-tools" hidden>
+          <legend>Your starting institution</legend>
+          <label class="ccx-label" for="ccx-transfer-source">Where are you transferring from?</label>
+          <input type="search" id="ccx-transfer-source" list="ccx-institution-options" autocomplete="off" placeholder="Search the active institution list">
+          <div class="ccx-detail">An exact selection populates transfer context only; it does not imply that credits transfer or that an articulation agreement exists.</div>
+        </fieldset>
+        <datalist id="ccx-institution-options"></datalist>
+        <datalist id="ccx-program-options"></datalist>
         <fieldset>
           <label class="ccx-label" for="ccx-cip">Academic field</label>
           <select id="ccx-cip">
@@ -217,8 +247,9 @@
     root.dataset.serviceMode=runtimeConfig.mode;
     const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
-    const controls=['ccx-decision-mode','ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
+    const controls=['ccx-decision-mode','ccx-known-institution','ccx-known-program','ccx-compare-program-1','ccx-compare-program-2','ccx-compare-program-3','ccx-transfer-source','ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
     const selected=new Set(),selectedRecords=new Map(),candidateDetailCache=new Map(),candidateDetailLoads=new Map(),compareCache=new Map();
+    const governedLookups={institution:new Map(),program:new Map()};
     let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,compareGeneration=0,activeCompareController=null,currentPage=1,pageSize=20;
     function setInteractive(enabled){
       controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
@@ -253,9 +284,32 @@
       q('ccx-compare-table').innerHTML='';q('ccx-compare-note').textContent='Select two or three programs from the current service results.';q('ccx-clear').hidden=true;
     }
 
+    function resolveGovernedLookup(kind,value){
+      const v=String(value||'').trim();
+      return v?(governedLookups[kind].get(v)||null):null;
+    }
+    function updateModeContext(){
+      const mode=q('ccx-decision-mode').value;
+      const copy={
+        broad_exploration:'Broad exploration keeps every control optional so you can start with whatever you know.',
+        career_first:'Career-first exploration keeps college filters available while emphasizing program-to-career pathways and labor-market evidence; no occupation is inferred from a job-title guess.',
+        college_program_first:'Start with an exact institution or program if you know one, then use the same affordability, setting, aid, and pathway controls to refine the result.',
+        compare_known:'Choose up to three exact programs from the active snapshot. The service narrows the candidate universe; the comparison view remains evidence-based and calculates no automatic winner.',
+        transfer:'Add your starting institution as transfer context, then use the existing program, cost, location, and transfer-pathway controls. Transferability is never assumed.',
+        returning_student:'Add a prior institution when relevant and keep the rest of the page available for degree-completion, affordability, format, and pathway constraints.'
+      };
+      q('ccx-mode-context').textContent=copy[mode]||copy.broad_exploration;
+      q('ccx-known-college-tools').hidden=mode!=='college_program_first';
+      q('ccx-compare-known-tools').hidden=mode!=='compare_known';
+      q('ccx-transfer-tools').hidden=!['transfer','returning_student'].includes(mode);
+    }
     function state(){
       return {
         decisionMode:q('ccx-decision-mode').value,
+        knownInstitution:q('ccx-known-institution').value,
+        knownProgram:q('ccx-known-program').value,
+        comparePrograms:[q('ccx-compare-program-1').value,q('ccx-compare-program-2').value,q('ccx-compare-program-3').value],
+        transferSource:q('ccx-transfer-source').value,
         cip:q('ccx-cip').value,
         state:q('ccx-state').value,
         setting:q('ccx-setting').value,
@@ -307,7 +361,18 @@
       soft('walkability_priority','walkability_fit',s.walk);
       soft('housing_choice_priority','housing_context_fit',s.housingChoice);
       soft('disability_services_priority','accessibility_evidence_fit',s.disabilityInfo);
-      return {schema_version:'1.0',decision_mode:s.decisionMode||'broad_exploration',constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:null,pinned_candidate_ids:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
+      const mode=s.decisionMode||'broad_exploration';
+      const knownInstitution=resolveGovernedLookup('institution',s.knownInstitution);
+      const knownProgram=resolveGovernedLookup('program',s.knownProgram);
+      const comparePrograms=[...new Set((s.comparePrograms||[]).map(v=>resolveGovernedLookup('program',v)).filter(Boolean))];
+      const transferSource=resolveGovernedLookup('institution',s.transferSource);
+      if(mode==='college_program_first'){
+        if(knownProgram)hard('known_program','candidate_id','eq',knownProgram);
+        else if(knownInstitution)hard('known_institution','UNITID','eq',knownInstitution);
+      }
+      if(mode==='compare_known'&&comparePrograms.length)hard('known_programs','candidate_id','in',comparePrograms);
+      const transferContext=['transfer','returning_student'].includes(mode)&&transferSource?{source_institution_id:transferSource,source_system:null,completed_course_ids:[],target_program_required:false}:null;
+      return {schema_version:'1.0',decision_mode:mode,constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:transferContext,pinned_candidate_ids:mode==='compare_known'?comparePrograms:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
     }
 
     function rankLabel(rec){
@@ -546,6 +611,22 @@
       el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+usable.map(x=>'<option value="'+esc(x.value)+'">'+esc(x.label||x.value)+'</option>').join('');
       if(usable.some(x=>String(x.value)===String(current)))el.value=current;
     }
+    function populateGovernedLookups(o){
+      governedLookups.institution.clear();governedLookups.program.clear();
+      const institutions=o.institutions||[],programs=o.programs||[],institutionLabels=new Map(institutions.map(x=>[String(x.value),x.label||x.value]));
+      const institutionOptions=institutions.map(x=>{
+        const place=[x.city,x.state].filter(Boolean).join(', '),display=(x.label||x.value)+(place?' — '+place:'')+' ['+x.value+']';
+        governedLookups.institution.set(display,String(x.value));governedLookups.institution.set(String(x.value),String(x.value));
+        return '<option value="'+esc(display)+'"></option>';
+      });
+      const programOptions=programs.map(x=>{
+        const school=institutionLabels.get(String(x.unitid))||String(x.unitid||''),display=(x.label||x.value)+(school?' — '+school:'')+' ['+x.value+']';
+        governedLookups.program.set(display,String(x.value));governedLookups.program.set(String(x.value),String(x.value));
+        return '<option value="'+esc(display)+'"></option>';
+      });
+      q('ccx-institution-options').innerHTML=institutionOptions.join('');
+      q('ccx-program-options').innerHTML=programOptions.join('');
+    }
     function applyServiceOptions(response){
       const o=response.options||{};
       populateSelect('ccx-cip',o.cip_fields,'Any academic field in the active snapshot');
@@ -553,6 +634,7 @@
       populateSelect('ccx-setting',o.campus_settings,'Any setting');
       populateSelect('ccx-credential',o.credential_levels,'Any credential');
       populateSelect('ccx-income',o.affordability&&o.affordability.income_bands,'Use overall average net price','overall');
+      populateGovernedLookups(o);
     }
     async function refresh(){
       const generation=++requestGeneration;
@@ -615,11 +697,12 @@
     }catch(err){
       fatalServiceFailure(err);return;
     }
-    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',criteriaChanged);el.addEventListener('input',criteriaChanged)}});
+    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',()=>{if(id==='ccx-decision-mode')updateModeContext();criteriaChanged()});if(el.type!=='search')el.addEventListener('input',criteriaChanged)}});
     q('ccx-page-size').addEventListener('change',()=>{pageSize=Number(q('ccx-page-size').value)||20;currentPage=1;refresh()});
     q('ccx-prev').addEventListener('click',()=>goToPage(currentPage-1));q('ccx-next').addEventListener('click',()=>goToPage(currentPage+1));
-    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;refresh();q('ccx-decision-mode').focus()});
+    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;updateModeContext();refresh();q('ccx-decision-mode').focus()});
     q('ccx-clear').addEventListener('click',()=>{selected.clear();selectedRecords.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
+    updateModeContext();
     root.getGovernedRequest=()=>buildGovernedRequest(state());
     root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});root.getCandidateDetailState=()=>({cached_ids:[...candidateDetailCache.keys()],loading_ids:[...candidateDetailLoads.keys()]});root.getCompareState=()=>({generation:compareGeneration,cached_keys:[...compareCache.keys()],selected_ids:[...selected],loading:!!activeCompareController});
     await refresh();
