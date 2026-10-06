@@ -325,7 +325,13 @@
     function simpleRow(label,value,state){
       return '<div class="ccx-evidence-row"><dt>'+esc(label)+'</dt><dd>'+(value===null||value===undefined||value===''?'—':esc(value))+(state?'<span class="ccx-evidence-state">'+esc(state)+'</span>':'')+'</dd></div>';
     }
-    function listText(value){return Array.isArray(value)&&value.length?value.map(x=>typeof x==='object'?JSON.stringify(x):String(x)).join('; '):'—'}
+    function listItemText(x){
+      if(!x||typeof x!=='object')return String(x);
+      if(x.source_family||x.vintage)return [x.source_family,x.vintage].filter(Boolean).join(' · ');
+      if(x.source_id||x.source_vintage)return [x.source_id,x.source_vintage].filter(Boolean).join(' · ');
+      return Object.entries(x).filter(([,v])=>v!==null&&v!==undefined&&v!=='').map(([k,v])=>k+': '+v).join(', ');
+    }
+    function listText(value){return Array.isArray(value)&&value.length?value.map(listItemText).join('; '):'—'}
     function laborSummary(family,type){
       const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
       if(!rows.length)return '<div class="ccx-detail-note">'+esc(evidenceStateText(state))+'.</div>';
