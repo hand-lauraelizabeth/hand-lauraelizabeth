@@ -53,6 +53,21 @@
     #leh-ccx .ccx-empty{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px}
     #leh-ccx .ccx-compare-toggle{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;font-weight:700;color:var(--green2)}
     #leh-ccx .ccx-compare-toggle input{min-width:18px;min-height:18px}
+    #leh-ccx .ccx-card-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+    #leh-ccx .ccx-detail-button{border:1px solid var(--green);background:#fff;color:var(--green);border-radius:999px;min-height:38px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+    #leh-ccx .ccx-detail-button[aria-expanded="true"]{background:var(--soft)}
+    #leh-ccx .ccx-detail-region{margin-top:12px;border-top:1px solid #e7ece9;padding-top:12px}
+    #leh-ccx .ccx-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    #leh-ccx .ccx-evidence-group{border:1px solid var(--line);border-radius:10px;padding:11px;background:#fbfcfb}
+    #leh-ccx .ccx-evidence-group h4{margin:0 0 7px;color:#17352d;font-size:15px}
+    #leh-ccx .ccx-evidence-list{display:grid;gap:6px;margin:0}
+    #leh-ccx .ccx-evidence-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,1.25fr);gap:10px;font-size:13px;line-height:1.4}
+    #leh-ccx .ccx-evidence-row dt{font-weight:700;color:var(--muted)}
+    #leh-ccx .ccx-evidence-row dd{margin:0}
+    #leh-ccx .ccx-evidence-state{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+    #leh-ccx .ccx-provenance{font-size:11px;color:var(--muted);margin-top:2px}
+    #leh-ccx .ccx-detail-note{font-size:12px;line-height:1.45;color:var(--muted);margin:8px 0 0}
+    @media(max-width:640px){#leh-ccx .ccx-detail-grid{grid-template-columns:1fr}#leh-ccx .ccx-evidence-row{grid-template-columns:1fr;gap:2px}}
     #leh-ccx .ccx-compare-panel{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
     #leh-ccx .ccx-compare-panel h3{font-family:"Cormorant Garamond",Georgia,serif;font-size:25px;line-height:1.15;margin:0 0 5px;color:#17352d}
     #leh-ccx .ccx-compare-note{font-size:13px;color:var(--muted);margin:0 0 12px}
@@ -186,7 +201,7 @@
     const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
     const controls=['ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
-    const selected=new Set(),selectedRecords=new Map();
+    const selected=new Set(),selectedRecords=new Map(),candidateDetailCache=new Map(),candidateDetailLoads=new Map();
     let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,currentPage=1,pageSize=20;
     function setInteractive(enabled){
       controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
@@ -287,6 +302,79 @@
       if(x.eligibility&&x.eligibility.status==='eligible_with_unknown')return 'Eligible with one or more unresolved must-have evidence fields.';
       return 'Service returned this program as eligible for the current request.';
     }
+    function evidenceStateText(state){
+      const map={observed:'observed',missing:'missing / not reported',suppressed:'suppressed by source',unresolved:'unresolved',not_published:'not published',unavailable:'unavailable for this candidate',not_requested:'not requested'};
+      return map[state]||state||'state not reported';
+    }
+    function evidenceValue(item,formatter){
+      if(!item||item.value===null||item.value===undefined||item.value==='')return '—';
+      return formatter?formatter(item.value):esc(item.value);
+    }
+    function percent(v){
+      if(v===null||v===undefined||v==='')return '—';
+      const n=Number(v);return Number.isFinite(n)?Math.round(n*1000)/10+'%':esc(v);
+    }
+    function provenance(item){
+      if(!item)return '';
+      const bits=[];if(item.source_id)bits.push(item.source_id);if(item.source_vintage)bits.push(item.source_vintage);
+      return bits.length?'<div class="ccx-provenance">Source: '+esc(bits.join(' · '))+'</div>':'';
+    }
+    function evidenceRow(label,item,formatter){
+      return '<div class="ccx-evidence-row"><dt>'+esc(label)+'</dt><dd>'+evidenceValue(item,formatter)+'<span class="ccx-evidence-state">'+esc(evidenceStateText(item&&item.evidence_state))+'</span>'+provenance(item)+'</dd></div>';
+    }
+    function simpleRow(label,value,state){
+      return '<div class="ccx-evidence-row"><dt>'+esc(label)+'</dt><dd>'+(value===null||value===undefined||value===''?'—':esc(value))+(state?'<span class="ccx-evidence-state">'+esc(state)+'</span>':'')+'</dd></div>';
+    }
+    function listText(value){return Array.isArray(value)&&value.length?value.map(x=>typeof x==='object'?JSON.stringify(x):String(x)).join('; '):'—'}
+    function laborSummary(family,type){
+      const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
+      if(!rows.length)return '<div class="ccx-detail-note">'+esc(evidenceStateText(state))+'.</div>';
+      return '<dl class="ccx-evidence-list">'+rows.map(x=>{
+        if(type==='current')return simpleRow('SOC '+(x.soc_code||'—'),(x.median_wage!==null&&x.median_wage!==undefined?money(x.median_wage):'Wage —')+(x.employment!==null&&x.employment!==undefined?' · employment '+x.employment:''),'wage '+evidenceStateText(x.wage_state||'missing')+(x.source_vintage?' · '+x.source_vintage:''));
+        return simpleRow('SOC '+(x.soc_code||'—'),(x.employment_change_pct!==null&&x.employment_change_pct!==undefined?x.employment_change_pct+'% change':'change —')+(x.annual_openings!==null&&x.annual_openings!==undefined?' · '+x.annual_openings+' annual openings':'')+(x.projection_year?' · through '+x.projection_year:''),x.source_vintage||'');
+      }).join('')+'</dl>';
+    }
+    function renderCandidateDetail(detail){
+      const a=detail.affordability||{},aid=detail.aid_context||{},out=detail.program_outcomes||{},tr=detail.transfer||{},career=detail.career||{},labor=detail.labor_market||{},acc=detail.institution&&detail.institution.accreditation||{},fresh=detail.freshness||{};
+      const unknowns=Array.isArray(detail.unknowns)?detail.unknowns:[];
+      return '<div class="ccx-detail-grid">'+
+        '<section class="ccx-evidence-group"><h4>Cost & debt evidence</h4><dl class="ccx-evidence-list">'+
+          evidenceRow('Average net price',a.net_price,money)+evidenceRow('In-state tuition',a.tuition_in_state,money)+evidenceRow('Out-of-state tuition',a.tuition_out_of_state,money)+evidenceRow('Cost of attendance',a.cost_of_attendance,money)+evidenceRow('Institution median debt',a.institution_median_debt,money)+
+        '</dl><p class="ccx-detail-note">Net price is not the same as tuition or cost of attendance and is not a personalized aid estimate.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Aid context</h4><dl class="ccx-evidence-list">'+
+          evidenceRow('Institutional grant share',aid.institutional_grant_share,percent)+evidenceRow('Work-Study share',aid.work_study_share,percent)+evidenceRow('State/local grant share',aid.state_local_grant_share,percent)+
+        '</dl><p class="ccx-detail-note">These are separate evidence families; availability or reporting does not guarantee an individual award.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Program / field outcomes</h4><dl class="ccx-evidence-list">'+
+          simpleRow('Coverage',out.covered?'Evidence present':'No covered record')+evidenceRow('Median earnings',out.median_earnings,money)+evidenceRow('Median debt',out.median_debt,money)+evidenceRow('Completion rate',out.completion_rate,percent)+
+        '</dl><p class="ccx-detail-note">Program/field outcomes remain separate from institution-level outcomes.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Transfer & pathway evidence</h4><dl class="ccx-evidence-list">'+
+          simpleRow('Transfer coverage',tr.covered?'Evidence present':'No covered record')+simpleRow('Transfer evidence records',tr.evidence_record_count)+simpleRow('Evidence levels',listText(tr.evidence_levels))+simpleRow('Source systems',listText(tr.source_systems))+simpleRow('Career SOC pathways',listText(career.soc_codes),career.covered?'covered':'coverage not present')+
+        '</dl></section>'+
+        '<section class="ccx-evidence-group"><h4>Labor-market evidence</h4><strong class="ccx-detail-note">Current selected-market evidence</strong>'+laborSummary(labor.selected_work_market,'current')+'<strong class="ccx-detail-note">Long-term outlook</strong>'+laborSummary(labor.long_term_outlook,'future')+'<p class="ccx-detail-note">Current-market evidence and long-term projections are separate and do not substitute for one another.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Source status & provenance</h4><dl class="ccx-evidence-list">'+
+          simpleRow('Accreditation coverage',acc.covered?'Evidence present':'No covered record')+simpleRow('Accreditation statuses',listText(acc.statuses))+simpleRow('Accrediting agencies',listText(acc.agency_names))+simpleRow('Data version',fresh.data_version)+simpleRow('Source freshness',listText(fresh.source_freshness))+simpleRow('Unresolved fields',unknowns.length?unknowns.join('; '):'None reported')+
+        '</dl><p class="ccx-detail-note">Absence of accreditation evidence is unknown coverage, not a determination that an institution is unaccredited.</p></section>'+
+      '</div>';
+    }
+    async function toggleCandidateDetail(button,region){
+      const id=button.dataset.detailKey;
+      if(!region.hidden){region.hidden=true;button.setAttribute('aria-expanded','false');button.textContent='Evidence details';return}
+      region.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Hide evidence details';
+      if(candidateDetailCache.has(id)){region.innerHTML=renderCandidateDetail(candidateDetailCache.get(id));return}
+      region.innerHTML='<div class="ccx-detail-note">Loading governed candidate evidence…</div>';button.disabled=true;
+      let promise=candidateDetailLoads.get(id);
+      if(!promise){promise=client.candidate(id);candidateDetailLoads.set(id,promise)}
+      try{
+        const detail=assertContract(await promise,'candidate');
+        if(detail.candidate_id!==id)throw new Error('Candidate detail identity mismatch');
+        if(metadata&&detail.data_version!==metadata.data_version)throw new Error('Candidate detail data version does not match loaded metadata');
+        candidateDetailCache.set(id,detail);region.innerHTML=renderCandidateDetail(detail);
+      }catch(err){
+        region.innerHTML='<div class="ccx-empty"><strong>Evidence details unavailable.</strong><p>'+esc(err&&err.message||err)+'</p></div>';
+      }finally{
+        candidateDetailLoads.delete(id);button.disabled=false;
+      }
+    }
     function renderPagination(response){
       const nav=q('ccx-pagination'),status=q('ccx-page-status'),prev=q('ccx-prev'),next=q('ccx-next');
       if(!response||!response.pagination){nav.hidden=true;status.textContent='';prev.disabled=true;next.disabled=true;return}
@@ -326,8 +414,9 @@
         const unknownCount=x.explanation&&Array.isArray(x.explanation.unknowns)?x.explanation.unknowns.length:0;
         const unknown=unknownCount?'<span class="ccx-pill">'+unknownCount+' unresolved must-have evidence field'+(unknownCount===1?'':'s')+'</span>':'';
         const selectedAttr=selected.has(x.candidate_id)?' checked':'';
-        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div><div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></article>';
+        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div><div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><div class="ccx-card-actions"><button type="button" class="ccx-detail-button" data-detail-key="'+esc(x.candidate_id)+'" aria-expanded="false">Evidence details</button><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></div><div class="ccx-detail-region" data-detail-region="'+esc(x.candidate_id)+'" hidden></div></article>';
       }).join(''):'<div class="ccx-empty"><strong>No service results returned.</strong><p>Try relaxing one or more must-have constraints.</p></div>';
+      root.querySelectorAll('.ccx-detail-button').forEach(button=>button.addEventListener('click',()=>{const region=button.closest('.ccx-card').querySelector('.ccx-detail-region');toggleCandidateDetail(button,region)}));
       root.querySelectorAll('.ccx-compare-toggle input').forEach(el=>el.addEventListener('change',()=>{
         if(el.checked&&selected.size>=3){el.checked=false;q('ccx-compare-note').textContent='Compare up to three programs at a time.';return}
         if(el.checked){selected.add(el.dataset.key);const row=rows.find(x=>x.candidate_id===el.dataset.key);if(row)selectedRecords.set(el.dataset.key,row)}else{selected.delete(el.dataset.key);selectedRecords.delete(el.dataset.key)}renderCompare();
@@ -419,7 +508,7 @@
     q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;refresh();q('ccx-state').focus()});
     q('ccx-clear').addEventListener('click',()=>{selected.clear();selectedRecords.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
     root.getGovernedRequest=()=>buildGovernedRequest(state());
-    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});
+    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});root.getCandidateDetailState=()=>({cached_ids:[...candidateDetailCache.keys()],loading_ids:[...candidateDetailLoads.keys()]});
     await refresh();
   })();
   </script>
