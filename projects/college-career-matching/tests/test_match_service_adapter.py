@@ -33,6 +33,12 @@ class MatchServiceTests(unittest.TestCase):
    with self.assertRaises(ValueError):validate_request(q)
  def test_pagination_metadata(self):
   q=request();q["page_size"]=1;r=match(q,[candidate("A"),candidate("B")],"D","M");self.assertEqual(r["pagination"]["total_pages"],2);self.assertTrue(r["pagination"]["has_next"]);self.assertEqual(len(r["results"]),1)
+ def test_pagination_slices_stable_service_order_and_preserves_total_count(self):
+  q=request();q["page_size"]=2;q["page"]=2
+  rows=[candidate(x) for x in ["E","A","D","B","C"]]
+  r=match(q,rows,"D","M")
+  self.assertEqual(r["result_count"],5);self.assertEqual(r["pagination"],{"page":2,"page_size":2,"total_pages":3,"has_next":True,"has_previous":True})
+  self.assertEqual([x["candidate_id"] for x in r["results"]],["C","D"])
  def test_production_authorization_is_explicit_and_defaults_false(self):
   a=match(request(),[candidate("A")],"D","M");b=match(request(),[candidate("A")],"D","M",production_authorized=True)
   self.assertFalse(a["ordering"]["production_authorized"]);self.assertFalse(a["results"][0]["recommendation"]["production_authorized"])
