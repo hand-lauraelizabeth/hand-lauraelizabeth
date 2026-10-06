@@ -62,14 +62,16 @@ def main() -> None:
         "files": {"occupation_data": "https://fixture/occupation_data.csv", "work_activities": "https://fixture/work_activities.csv"},
     }
     onet_payloads = {
-        "https://fixture/occupation_data.csv": b"O*NET-SOC Code,Title\\n15-2051.00,Data Scientists\\n15-2051.01,Bioinformatics Scientists\\n",
-        "https://fixture/work_activities.csv": (
-            "O*NET-SOC Code,Title,Element ID,Element Name,Scale ID,Scale Name,Data Value,N,Standard Error,Lower CI Bound,Upper CI Bound,Recommend Suppress,Not Relevant,Date,Domain Source\\n"
-            "15-2051.00,Data Scientists,4.A.2.a.4,Analyzing Data or Information,IM,Importance,4.50,10,0.1,4.3,4.7,N,N,2026-08,Analyst\\n"
-            "15-2051.00,Data Scientists,4.A.2.b.1,Making Decisions and Solving Problems,IM,Importance,4.25,10,0.1,4.0,4.5,N,N,2026-08,Analyst\\n"
-            "15-2051.00,Data Scientists,4.A.2.b.2,Thinking Creatively,IM,Importance,3.75,10,0.1,3.5,4.0,N,N,2026-08,Analyst\\n"
-            "15-2051.01,Bioinformatics Scientists,4.A.2.a.4,Analyzing Data or Information,IM,Importance,5.00,10,0.1,4.8,5.0,N,N,2026-08,Analyst\\n"
-        ).encode("utf-8"),
+        "https://fixture/occupation_data.csv": b"""O*NET-SOC Code,Title
+15-2051.00,Data Scientists
+15-2051.01,Bioinformatics Scientists
+""",
+        "https://fixture/work_activities.csv": """O*NET-SOC Code,Title,Element ID,Element Name,Scale ID,Scale Name,Data Value,N,Standard Error,Lower CI Bound,Upper CI Bound,Recommend Suppress,Not Relevant,Date,Domain Source
+15-2051.00,Data Scientists,4.A.2.a.4,Analyzing Data or Information,IM,Importance,4.50,10,0.1,4.3,4.7,N,N,2026-08,Analyst
+15-2051.00,Data Scientists,4.A.2.b.1,Making Decisions and Solving Problems,IM,Importance,4.25,10,0.1,4.0,4.5,N,N,2026-08,Analyst
+15-2051.00,Data Scientists,4.A.2.b.2,Thinking Creatively,IM,Importance,3.75,10,0.1,3.5,4.0,N,N,2026-08,Analyst
+15-2051.01,Bioinformatics Scientists,4.A.2.a.4,Analyzing Data or Information,IM,Importance,5.00,10,0.1,4.8,5.0,N,N,2026-08,Analyst
+""".encode("utf-8"),
     }
     parsed_work_activities = module.read_delimited_bytes(onet_payloads["https://fixture/work_activities.csv"])
     assert_equal(parsed_work_activities[0].get("O*NET-SOC Code"), "15-2051.00", "O*NET fixture SOC parse")
