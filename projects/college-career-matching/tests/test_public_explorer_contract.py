@@ -16,7 +16,7 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_fixture_mode_is_explicitly_non_authoritative(self):
   self.assertIn("Synthetic fixture mode:",HTML);self.assertIn("fictional",HTML);self.assertIn("static fixture records do not change with that request",HTML);self.assertIn("should not be used as college advice",HTML)
  def test_only_governed_active_controls_remain(self):
-  for control in ["ccx-decision-mode","ccx-known-institution","ccx-known-program","ccx-compare-program-1","ccx-compare-program-2","ccx-compare-program-3","ccx-transfer-source","ccx-cip","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
+  for control in ["ccx-decision-mode","ccx-work-market-semantics","ccx-work-market","ccx-current-labor","ccx-long-term","ccx-known-institution","ccx-known-program","ccx-compare-program-1","ccx-compare-program-2","ccx-compare-program-3","ccx-transfer-source","ccx-cip","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
    self.assertIn(f'id="{control}"',HTML)
   self.assertNotIn('id="ccx-interest"',HTML);self.assertIn("Field choices come from authoritative CIP classifications",HTML)
  def test_decision_orientation_is_sent_through_governed_request(self):
@@ -27,9 +27,15 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("const mode=s.decisionMode||'broad_exploration'",HTML)
   self.assertIn("decision_mode:mode",HTML)
   self.assertNotIn("decision_mode:'broad_exploration',constraints",HTML)
-  for region in ["ccx-mode-context","ccx-known-college-tools","ccx-compare-known-tools","ccx-transfer-tools"]:
+  for region in ["ccx-mode-context","ccx-career-tools","ccx-known-college-tools","ccx-compare-known-tools","ccx-transfer-tools"]:
    self.assertIn(f'id="{region}"',HTML)
   self.assertIn("function updateModeContext()",HTML)
+ def test_career_first_uses_governed_market_context_and_separate_labor_priorities(self):
+  for token in ["ccx-work-market-semantics","ccx-labor-market-options","o.labor_markets","governedLookups.market","work_market_semantics:workSemantics","intended_work_market:workMarket","current_labor_market_priority","long_term_outlook_priority"]:
+   self.assertIn(token,HTML)
+  self.assertIn("Choose a labor market from the governed service suggestions.",HTML)
+  self.assertIn("Work-characteristic questions remain withheld until their O*NET attribute mappings complete review.",HTML)
+  self.assertNotIn("onet_governed:",HTML)
  def test_cost_language_separates_coa_net_price_and_income_context(self):
   self.assertIn("cost of attendance",HTML.lower());self.assertIn("average net price after grants/scholarships",HTML.lower());self.assertIn("Household income range",HTML);self.assertIn("not a personalized aid estimate",HTML);self.assertIn("does not invent a family-size adjustment",HTML)
  def test_housing_setting_aid_and_accessibility_are_distinct(self):
@@ -53,8 +59,8 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("target_program_required:false",HTML)
  def test_filter_choices_are_loaded_from_versioned_options_service(self):
   self.assertIn("client.options()",HTML);self.assertIn("applyServiceOptions(optionResponse)",HTML);self.assertIn("optionResponse.data_version!==metadata.data_version",HTML)
-  for token in ["o.cip_fields","o.states","o.campus_settings","o.credential_levels","o.affordability&&o.affordability.income_bands","o.institutions","o.programs"]:self.assertIn(token,HTML)
-  self.assertIn("populateGovernedLookups(o)",HTML);self.assertIn("ccx-institution-options",HTML);self.assertIn("ccx-program-options",HTML)
+  for token in ["o.cip_fields","o.states","o.campus_settings","o.credential_levels","o.affordability&&o.affordability.income_bands","o.institutions","o.programs","o.labor_markets"]:self.assertIn(token,HTML)
+  self.assertIn("populateGovernedLookups(o)",HTML);self.assertIn("ccx-institution-options",HTML);self.assertIn("ccx-program-options",HTML);self.assertIn("ccx-labor-market-options",HTML)
   self.assertIn("const candidateId=String(x.candidate_id||x.value)",HTML)
  def test_explorer_consumes_service_response_instead_of_local_scoring(self):
   self.assertIn("MatchingServiceClient",HTML);self.assertIn("assertContract",HTML);self.assertIn("client.match(request,{signal})",HTML);self.assertIn("renderResponse(response)",HTML)
