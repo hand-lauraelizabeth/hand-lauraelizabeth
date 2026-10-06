@@ -13,6 +13,9 @@ class PrototypeContractTests(unittest.TestCase):
  def test_fixture_options_use_active_snapshot_contract_shape(self):
   o=F["options"]["options"];self.assertEqual(o["data_version"],F["options"]["data_version"]);self.assertEqual(o["counts"]["cip_codes"],3)
   self.assertEqual({x["value"] for x in o["cip_fields"]},{"11.0101","11.0103","11.0199"});self.assertIn("cip_code",F["options"]["constraint_capabilities"]["fields"])
+ def test_fixture_exposes_synthetic_governed_labor_markets(self):
+  markets=F["options"]["options"]["labor_markets"];self.assertGreaterEqual(len(markets),1);self.assertTrue(all("fictional" in x["label"].lower() for x in markets));self.assertTrue(all({"value","market_id","market_type"}.issubset(x) for x in markets))
+  self.assertTrue(all(x.get("candidate_id")==x["value"] for x in F["options"]["options"]["programs"]))
  def test_metadata_does_not_claim_production_authorization(self):self.assertFalse(F['metadata']['production_authorized']);self.assertTrue(F['metadata']['semantic_rules']['review_eligibility_is_not_production_authorization'])
  def test_match_results_have_unique_candidate_ids(self):
   ids=[x['candidate_id'] for x in F['match']['results']];self.assertEqual(len(ids),len(set(ids)))
