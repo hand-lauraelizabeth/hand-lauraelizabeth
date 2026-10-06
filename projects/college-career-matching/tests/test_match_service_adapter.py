@@ -27,6 +27,14 @@ class MatchServiceTests(unittest.TestCase):
   with self.assertRaises(ValueError):validate_request(q)
  def test_duplicate_candidate_id_fails(self):
   with self.assertRaises(ValueError):match(request(),[candidate("A"),candidate("A")],"D","M")
+ def test_selected_work_market_requires_structured_identity(self):
+  q=request("career_first");q["geography"]={"work_market_semantics":"selected_market","intended_work_market":None}
+  with self.assertRaisesRegex(ValueError,"selected_market requires"):validate_request(q)
+ def test_nonselected_work_market_cannot_carry_selected_market_identity(self):
+  q=request("career_first");q["geography"]={"work_market_semantics":"national","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}}
+  with self.assertRaisesRegex(ValueError,"only valid with selected_market"):validate_request(q)
+ def test_legacy_structured_market_without_semantics_remains_valid(self):
+  q=request("career_first");q["geography"]={"intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}};validate_request(q)
  def test_pagination_is_validated(self):
   for page,size in [(0,20),(1,0),(1,101)]:
    q=request();q["page"]=page;q["page_size"]=size
