@@ -16,7 +16,7 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_fixture_mode_is_explicitly_non_authoritative(self):
   self.assertIn("Synthetic fixture mode:",HTML);self.assertIn("fictional",HTML);self.assertIn("static fixture records do not change with that request",HTML);self.assertIn("should not be used as college advice",HTML)
  def test_only_governed_active_controls_remain(self):
-  for control in ["ccx-decision-mode","ccx-work-market-semantics","ccx-work-market","ccx-current-labor","ccx-long-term","ccx-known-institution","ccx-known-program","ccx-compare-program-1","ccx-compare-program-2","ccx-compare-program-3","ccx-transfer-source","ccx-cip","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
+  for control in ["ccx-decision-mode","ccx-work-market-semantics","ccx-work-market","ccx-current-labor","ccx-long-term","ccx-career-analysis","ccx-career-problem-solving","ccx-career-creativity","ccx-known-institution","ccx-known-program","ccx-compare-program-1","ccx-compare-program-2","ccx-compare-program-3","ccx-transfer-source","ccx-cip","ccx-state","ccx-setting","ccx-credential","ccx-income","ccx-price","ccx-housing","ccx-online","ccx-inst-aid","ccx-workstudy","ccx-state-aid","ccx-afford","ccx-career","ccx-transfer","ccx-small","ccx-transit","ccx-walk","ccx-housing-choice","ccx-disability-info"]:
    self.assertIn(f'id="{control}"',HTML)
   self.assertNotIn('id="ccx-interest"',HTML);self.assertIn("Field choices come from authoritative CIP classifications",HTML)
  def test_decision_orientation_is_sent_through_governed_request(self):
@@ -34,8 +34,11 @@ class PublicExplorerContractTests(unittest.TestCase):
   for token in ["ccx-work-market-semantics","ccx-labor-market-options","o.labor_markets","governedLookups.market","work_market_semantics:workSemantics","intended_work_market:workMarket","current_labor_market_priority","long_term_outlook_priority"]:
    self.assertIn(token,HTML)
   self.assertIn("Choose a labor market from the governed service suggestions.",HTML)
-  self.assertIn("Work-characteristic questions remain withheld until their O*NET attribute mappings complete review.",HTML)
-  self.assertNotIn("onet_governed:",HTML)
+  for phrase in ["Analyzing data or information is an important part of the work","Making decisions and solving problems is an important part of the work","Thinking creatively is an important part of the work","reviewed O*NET 31.0 Work Activity Importance ratings"]:
+   self.assertIn(phrase,HTML)
+  for token in ["o.career_preference_attributes","governedLookups.career","careerPreferences.push","onet31:work_activity"]:
+   self.assertIn(token,HTML)
+  self.assertIn("A selected work-characteristic preference is not available in the active governed O*NET evidence.",HTML)
  def test_cost_language_separates_coa_net_price_and_income_context(self):
   self.assertIn("cost of attendance",HTML.lower());self.assertIn("average net price after grants/scholarships",HTML.lower());self.assertIn("Household income range",HTML);self.assertIn("not a personalized aid estimate",HTML);self.assertIn("does not invent a family-size adjustment",HTML)
  def test_housing_setting_aid_and_accessibility_are_distinct(self):
@@ -100,6 +103,12 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_candidate_drilldown_keeps_evidence_families_separate(self):
   for phrase in ["Cost & debt evidence","Aid context","Program / field outcomes","Transfer & career-pathway evidence","Labor-market evidence","Source status & provenance","Net price is not the same as tuition","Current-market evidence and long-term projections are separate","Absence of accreditation evidence is unknown coverage"]:
    self.assertIn(phrase,HTML)
+ def test_reviewed_onet_preferences_render_descriptive_alignment_not_ranking(self):
+  for token in ["function careerAlignmentPreview(x)","career_preference_alignment","Median pathway alignment index","Pathway alignment evidence","Missing O*NET evidence reduces coverage rather than becoming a mismatch."]:
+   self.assertIn(token,HTML)
+  for phrase in ["It is not a probability, placement outcome, or service rank.","pathways with observed alignment"]:
+   self.assertIn(phrase,HTML)
+  self.assertIn("career_preferences:careerPreferences",HTML)
  def test_career_first_cards_show_separate_descriptive_labor_evidence(self):
   for token in ["function compactLaborFamily(family,type)","function careerCardSnapshot(x)","q('ccx-decision-mode').value!=='career_first'","careerSnapshot=careerCardSnapshot(x)","Current selected market","Long-term outlook"]:
    self.assertIn(token,HTML)
