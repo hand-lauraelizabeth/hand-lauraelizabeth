@@ -5,7 +5,7 @@ Uses the real browser UI, ES-module client, and loopback HTTP service. All data
 are fictional and the runtime remains explicitly non-production.
 """
 from __future__ import annotations
-import socket,subprocess,sys,tempfile,threading,time
+import json,socket,subprocess,sys,tempfile,threading,time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
 from pathlib import Path
@@ -52,7 +52,16 @@ def run():
   output=root/"staging-browser.html"
   built=build_harness(output,api_port)
   origin=f"http://127.0.0.1:{ui_port}"
-  cmd=[sys.executable,str(P/"service_host.py"),"--snapshot",str(built["snapshot"]),"--manifest",str(built["manifest"]),"--model-version","synthetic-http-model-1","--allowed-origins",origin,"--bind","127.0.0.1","--port",str(api_port),"--quiet"]
+  current_labor=root/"current_labor.json";current_labor.write_text(json.dumps([
+   {"UNITID":"SYN001","program_id":"P1","soc_code":"15-2051","occupation_title":"Data Scientists","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"1200","employment_state":"observed","median_wage":"94500","wage_state":"observed","source_vintage":"SYNTHETIC"},
+   {"UNITID":"SYN002","program_id":"P2","soc_code":"15-1212","occupation_title":"Information Security Analysts","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"900","employment_state":"observed","median_wage":"101000","wage_state":"observed","source_vintage":"SYNTHETIC"}
+  ]),encoding="utf-8")
+  projections=root/"projections.json";projections.write_text(json.dumps([
+   {"UNITID":"SYN001","program_id":"P1","soc_code":"15-2051","occupation_title":"Data Scientists","projection_geography":"national","base_year":"2025","projection_year":"2035","employment_change_pct":"18","annual_openings":"23000","source_vintage":"SYNTHETIC"},
+   {"UNITID":"SYN002","program_id":"P2","soc_code":"15-1212","occupation_title":"Information Security Analysts","projection_geography":"national","base_year":"2025","projection_year":"2035","employment_change_pct":"22","annual_openings":"16000","source_vintage":"SYNTHETIC"},
+   {"UNITID":"SYN003","program_id":"P3","soc_code":"15-1252","occupation_title":"Software Developers","projection_geography":"national","base_year":"2025","projection_year":"2035","employment_change_pct":"16","annual_openings":"120000","source_vintage":"SYNTHETIC"}
+  ]),encoding="utf-8")
+  cmd=[sys.executable,str(P/"service_host.py"),"--snapshot",str(built["snapshot"]),"--manifest",str(built["manifest"]),"--model-version","synthetic-http-model-1","--current-labor",str(current_labor),"--projections",str(projections),"--allowed-origins",origin,"--bind","127.0.0.1","--port",str(api_port),"--quiet"]
   proc=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
   httpd=ThreadingHTTPServer(("127.0.0.1",ui_port),partial(Quiet,directory=str(root)))
   thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start()
@@ -82,6 +91,24 @@ def run():
    text_has(driver,".ccx-detail-region:not([hidden])","Labor-market evidence")
    after=driver.execute_script("return document.getElementById('leh-ccx').getCandidateDetailState();");assert first_id in after["cached_ids"] and after["loading_ids"]==[]
    driver.execute_script("arguments[0].click();",detail_buttons[0]);assert detail_buttons[0].get_attribute("aria-expanded")=="false"
+
+   # Career-first cards expose current-market and long-term evidence descriptively.
+   Select(driver.find_element(By.ID,"ccx-decision-mode")).select_by_value("career_first")
+   text_has(driver,"#ccx-results","Long-term outlook")
+   text_has(driver,"#ccx-results","Descriptive occupation-level evidence only")
+   assert "browser-side career score" in driver.find_element(By.ID,"ccx-results").text
+   Select(driver.find_element(By.ID,"ccx-work-market-semantics")).select_by_value("selected_market")
+   market=driver.find_element(By.ID,"ccx-work-market")
+   exact_market="Harbor–Metro Labor Market (fictional) [OEWS_MSA:35620]"
+   driver.execute_script("arguments[0].value=arguments[1];arguments[0].dispatchEvent(new Event('change',{bubbles:true}));",market,exact_market)
+   wait.until(lambda d:"$94,500" in next(c.text for c in d.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text))
+   north=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text)
+   assert "Current selected market" in north.text and "Data Scientists" in north.text and "employment 1200" in north.text
+   river=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "River State University" in c.text)
+   assert "unavailable for this candidate" in river.text and "Software Developers" in river.text
+   driver.find_element(By.ID,"ccx-reset").click()
+   wait.until(lambda d:Select(d.find_element(By.ID,"ccx-decision-mode")).first_selected_option.get_attribute("value")=="broad_exploration")
+   assert not driver.find_elements(By.CSS_SELECTOR,".ccx-career-snapshot")
 
    # Governed hard constraint: NJ should return only the fictional NJ candidate.
    Select(driver.find_element(By.ID,"ccx-state")).select_by_value("NJ")
@@ -131,7 +158,7 @@ def run():
    driver.find_element(By.ID,"ccx-clear").click()
    assert "4 service-returned programs" in driver.find_element(By.ID,"ccx-count").text
 
-   print("PASS staging browser scenarios: state, online, request feedback, compare, reset, service-state language")
+   print("PASS staging browser scenarios: state, online, career evidence, request feedback, compare, reset, service-state language")
   finally:
    if driver:
     driver.quit()
