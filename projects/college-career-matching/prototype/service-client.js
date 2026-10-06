@@ -89,6 +89,9 @@ export function assertContract(response,kind,{productionAuthorized=false}={}){
      if(!item.evidence_ids.includes(trace.evidence_id))throw new Error('match: explanation trace is not linked by evidence_ids')
     }
    }
+   const ca=result.career_preference_alignment
+   if(!ca||!['no_explicit_preferences','observed','insufficient_attribute_evidence'].includes(ca.status)||!Array.isArray(ca.pathways)||!ca.score_summary)throw new Error('match: invalid career preference alignment')
+   for(const pathway of ca.pathways)if(!pathway||!pathway.soc_code||!Array.isArray(pathway.preferences))throw new Error('match: invalid career preference pathway')
    const cp=result.career_pathways
    if(!cp||!Number.isInteger(Number(cp.pathway_count)))throw new Error('match: missing career pathway count')
    assertPathways(cp.pathways,'match career');assertPathways(cp.representative_pathways,'match representative career')
