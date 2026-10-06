@@ -71,6 +71,13 @@ class PublicExplorerContractTests(unittest.TestCase):
  def test_candidate_drilldown_keeps_evidence_families_separate(self):
   for phrase in ["Cost & debt evidence","Aid context","Program / field outcomes","Transfer & pathway evidence","Labor-market evidence","Source status & provenance","Net price is not the same as tuition","Current-market evidence and long-term projections are separate","Absence of accreditation evidence is unknown coverage"]:
    self.assertIn(phrase,HTML)
+ def test_program_compare_uses_governed_compare_service_not_match_card_fields(self):
+  for token in ["async function renderCompare()","client.compare(ids,context,{signal})","assertContract(await client.compare","Compare response candidate identity/order mismatch","renderCompareResponse(response)","compareCache=new Map()","getCompareState"]:
+   self.assertIn(token,HTML)
+  self.assertNotIn("Side-by-side display of fields already returned by the match service",HTML)
+ def test_governed_compare_renders_evidence_families_without_winner_logic(self):
+  for phrase in ["Cost & debt evidence","Aid context","Program / field outcomes","Transfer & career evidence","Labor-market evidence","Source status & unresolved evidence","no winner is calculated in the browser"]:
+   self.assertIn(phrase,HTML)
  def test_service_versions_are_cross_checked(self):
   self.assertIn("response.data_version!==metadata.data_version",HTML);self.assertIn("response.model_version!==metadata.model_version",HTML)
 
