@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse,json
 from pathlib import Path
 from constraint_field_registry import load_registry,validate_constraint
+from onet_career_attribute_registry import by_question as career_registry_by_question
 def load(p):return json.loads(Path(p).read_text(encoding="utf-8"))
 def answered(v):return v is not None and v!="" and v!=[] and v!={}
 def validate_definitions(defs,registry=None):
@@ -23,6 +24,11 @@ def validate_definitions(defs,registry=None):
    if not rules:raise ValueError(f"{qid}: housing constraint rules are empty")
    for specs in rules.values():
     for spec in specs:validate_constraint({"field":spec.get("field"),"operator":spec.get("operator")},registry)
+  elif target=="career_preference" and m.get("requires_attribute_mapping_review") is not True:
+   spec=career_registry_by_question().get(qid)
+   if not spec:raise ValueError(f"{qid}: approved career attribute registry entry is missing")
+   for field in ["attribute_id","operator","scale_min","scale_max"]:
+    if m.get(field)!=spec.get(field):raise ValueError(f"{qid}: career mapping differs from approved registry field {field}")
  return True
 def option_items(options,path):
  cur=options
@@ -81,7 +87,7 @@ def map_answers(defs,answers,options=None):
    if m.get("requires_attribute_mapping_review") is True:raise ValueError(f"{qid}: career attribute mapping review is still required")
    imp=float(val)
    if imp<0:raise ValueError(f"negative importance for {qid}")
-   out["career_preferences"].append({"preference_id":qid,"attribute_id":m["attribute_id"],"operator":m["operator"],"importance":imp,"priority_explicit":True,"target_value":None,"target_min":None,"target_max":None,"scale_min":None,"scale_max":None,"source_question_id":qid})
+   out["career_preferences"].append({"preference_id":qid,"attribute_id":m["attribute_id"],"operator":m["operator"],"importance":imp,"priority_explicit":True,"target_value":None,"target_min":None,"target_max":None,"scale_min":m.get("scale_min"),"scale_max":m.get("scale_max"),"source_question_id":qid})
   elif target=="geography.work_market_semantics":out["geography"]["work_market_semantics"]=val
   elif target=="geography.intended_work_market":
    if not isinstance(val,dict) or not val.get("market_id") or not val.get("market_type"):raise ValueError("work_market requires market_id and market_type")
