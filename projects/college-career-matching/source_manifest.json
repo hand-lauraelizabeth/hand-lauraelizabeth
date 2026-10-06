@@ -301,14 +301,32 @@
           "transferable_skills": 45500,
           "software_skills": 31821,
           "career_interest_types": 8307,
-          "related_occupations": 18460
+          "related_occupations": 18460,
+          "work_activities": 74702
         },
         "occupation_coverage": {
           "essential_skills": 910,
           "transferable_skills": 910,
           "software_skills": 923,
           "career_interest_types": 923,
-          "related_occupations": 923
+          "related_occupations": 923,
+          "work_activities": 911
+        },
+        "career_preference_governance": {
+          "verified_at": "2026-10-06",
+          "domain": "Work Activities",
+          "scale_id": "IM",
+          "scale_name": "Importance",
+          "scale_range": [
+            1,
+            5
+          ],
+          "approved_elements": {
+            "4.A.2.a.4": "Analyzing Data or Information",
+            "4.A.2.b.1": "Making Decisions and Solving Problems",
+            "4.A.2.b.2": "Thinking Creatively"
+          },
+          "soc_policy": "Use only .00 base O*NET-SOC rows for SOC6 alignment; do not average specialty profiles."
         }
       }
     },
