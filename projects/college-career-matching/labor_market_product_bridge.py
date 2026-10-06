@@ -35,7 +35,7 @@ def current_local(pathways,rows):
  for key,socs in pathway_index(pathways).items():
   for soc in sorted(socs):
    for r in idx.get(soc,[]):
-    out.append({"UNITID":key[0],"program_id":key[1],"soc_code":soc,"market_id":clean(r["market_id"]),"market_type":clean(r["market_type"]),"market_label":clean(r.get("market_label") or r.get("market_title") or r.get("area_title") or r.get("AREA_TITLE")),"employment":clean(r.get("employment")),"median_wage":clean(r.get("median_wage")),"employment_state":clean(r.get("employment_state")) or ("observed" if clean(r.get("employment")) else "missing"),"wage_state":clean(r.get("wage_state")) or ("observed" if clean(r.get("median_wage")) else "missing"),"source_vintage":clean(r.get("source_vintage"))})
+    out.append({"UNITID":key[0],"program_id":key[1],"soc_code":soc,"occupation_title":clean(r.get("occupation_title") or r.get("occ_title") or r.get("soc_title")),"market_id":clean(r["market_id"]),"market_type":clean(r["market_type"]),"market_label":clean(r.get("market_label") or r.get("market_title") or r.get("area_title") or r.get("AREA_TITLE")),"employment":clean(r.get("employment")),"median_wage":clean(r.get("median_wage")),"employment_state":clean(r.get("employment_state")) or ("observed" if clean(r.get("employment")) else "missing"),"wage_state":clean(r.get("wage_state")) or ("observed" if clean(r.get("median_wage")) else "missing"),"source_vintage":clean(r.get("source_vintage"))})
  return out
 def long_term(pathways,rows):
  idx={}
@@ -48,7 +48,7 @@ def long_term(pathways,rows):
  for key,socs in pathway_index(pathways).items():
   for soc in sorted(socs):
    r=idx.get(soc)
-   if r:out.append({"UNITID":key[0],"program_id":key[1],"soc_code":soc,"projection_geography":clean(r.get("projection_geography")) or "national","base_year":clean(r.get("base_year")),"projection_year":clean(r.get("projection_year")),"employment_change_pct":clean(r.get("employment_change_pct")),"annual_openings":clean(r.get("annual_openings")),"source_vintage":clean(r.get("source_vintage"))})
+   if r:out.append({"UNITID":key[0],"program_id":key[1],"soc_code":soc,"occupation_title":clean(r.get("occupation_title") or r.get("occ_title") or r.get("soc_title")),"projection_geography":clean(r.get("projection_geography")) or "national","base_year":clean(r.get("base_year")),"projection_year":clean(r.get("projection_year")),"employment_change_pct":clean(r.get("employment_change_pct")),"annual_openings":clean(r.get("annual_openings")),"source_vintage":clean(r.get("source_vintage"))})
  return out
 def main():
  ap=argparse.ArgumentParser();ap.add_argument("--pathways",type=Path,required=True);ap.add_argument("--current-local",type=Path);ap.add_argument("--projections",type=Path);ap.add_argument("--out-dir",type=Path,required=True);a=ap.parse_args();a.out_dir.mkdir(parents=True,exist_ok=True);p=read(a.pathways)
