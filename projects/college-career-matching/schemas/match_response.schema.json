@@ -258,6 +258,7 @@
             "required": [
               "pathway_count",
               "soc_codes",
+              "pathways",
               "representative_pathways"
             ],
             "properties": {
@@ -273,6 +274,28 @@
               },
               "representative_pathways": {
                 "type": "array"
+              },
+              "pathways": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "soc_code",
+                    "occupation_title"
+                  ],
+                  "properties": {
+                    "soc_code": {
+                      "type": "string"
+                    },
+                    "occupation_title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
               }
             }
           },
