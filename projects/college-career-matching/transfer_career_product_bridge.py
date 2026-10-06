@@ -5,7 +5,7 @@ This bridge summarizes evidence; it does not infer transfer guarantees, career
 probabilities, or missing negative evidence.
 """
 from __future__ import annotations
-import csv,argparse
+import csv,argparse,json
 from collections import defaultdict
 from pathlib import Path
 def clean(v):return str(v).strip() if v is not None else ""
@@ -23,7 +23,14 @@ def summarize(rows,family):
   if family=="transfer":
    x["evidence_levels"]=" | ".join(sorted({clean(r.get("evidence_level")) for r in rs if clean(r.get("evidence_level"))}));x["source_systems"]=" | ".join(sorted({clean(r.get("source_system")) for r in rs if clean(r.get("source_system"))}));x["transfer_evidence_present"]="1"
   elif family=="career":
-   socs=sorted({clean(r.get("soc_code")) for r in rs if clean(r.get("soc_code"))});x["soc_count"]=str(len(socs));x["soc_codes"]=" | ".join(socs);x["career_pathway_evidence_present"]="1"
+   by_soc={}
+   for r in rs:
+    soc=clean(r.get("soc_code"))
+    if not soc:continue
+    title=clean(r.get("occupation_title") or r.get("occ_title") or r.get("soc_title")) or None
+    if soc in by_soc and title and by_soc[soc] and by_soc[soc]!=title:raise ValueError(f"career: conflicting occupation titles for {soc}")
+    if soc not in by_soc or (not by_soc[soc] and title):by_soc[soc]=title
+   socs=sorted(by_soc);x["soc_count"]=str(len(socs));x["soc_codes"]=" | ".join(socs);x["pathways_json"]=json.dumps([{"soc_code":soc,"occupation_title":by_soc[soc]} for soc in socs],separators=(",",":"));x["career_pathway_evidence_present"]="1"
   else:raise ValueError(f"unsupported family {family}")
   out.append(x)
  return sorted(out,key=lambda r:(r["UNITID"],r["program_id"]))
