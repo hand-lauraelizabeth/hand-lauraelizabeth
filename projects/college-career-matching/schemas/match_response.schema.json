@@ -435,7 +435,8 @@
       "required": [
         "code",
         "text",
-        "evidence_ids"
+        "evidence_ids",
+        "supporting_evidence"
       ],
       "properties": {
         "code": {
@@ -448,6 +449,12 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "supporting_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/explanationEvidence"
           }
         }
       }
@@ -520,6 +527,103 @@
         },
         "semantic_note": {
           "type": "string"
+        }
+      }
+    },
+    "explanationEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "evidence_family",
+        "soc_code",
+        "occupation_title",
+        "geography",
+        "source_vintage",
+        "evidence_state",
+        "measures",
+        "measure_states"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_family": {
+          "enum": [
+            "current_labor_market",
+            "long_term_outlook"
+          ]
+        },
+        "soc_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "occupation_title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "geography": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "market_id",
+            "market_type",
+            "market_label",
+            "projection_geography",
+            "work_market_semantics"
+          ],
+          "properties": {
+            "market_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "market_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "market_label": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "projection_geography": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "work_market_semantics": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "source_vintage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence_state": {
+          "type": "string"
+        },
+        "measures": {
+          "type": "object"
+        },
+        "measure_states": {
+          "type": "object"
         }
       }
     }
