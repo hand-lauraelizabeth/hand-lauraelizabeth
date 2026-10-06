@@ -113,7 +113,7 @@ def run():
    driver.execute_script("arguments[0].value=arguments[1];arguments[0].dispatchEvent(new Event('change',{bubbles:true}));",market,exact_market)
    wait.until(lambda d:"$94,500" in next(c.text for c in d.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text))
    north=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text)
-   assert "current selected market" in north.text.lower() and "Data Scientists" in north.text and "employment 1200" in north.text
+   assert "current selected market" in north.text.lower() and "Harbor–Metro Labor Market (fictional)" in north.text and "Data Scientists" in north.text and "employment 1200" in north.text and "SYNTHETIC" in north.text
    river=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "River State University" in c.text)
    assert "unavailable for this candidate" in river.text and "Software Developers" in river.text
    driver.find_element(By.ID,"ccx-reset").click()
