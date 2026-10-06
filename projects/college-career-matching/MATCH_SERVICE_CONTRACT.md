@@ -32,6 +32,12 @@ Each match result carries a descriptive `career_pathways` block with a mapped pa
 
 The full mapped pathway set is distinct from `representative_pathways`. The latter is reserved for reviewed career-preference alignment/explanation logic and may be empty. Pathway count is descriptive and is not, by itself, a quality score, placement probability, or graduate-outcome distribution.
 
+## Explanation evidence traces
+
+Every match-service reason record includes a `supporting_evidence` array. For the implemented labor-priority explanations, each trace row carries a stable evidence ID, evidence family, SOC/occupation identity when present, geography context, source vintage, family evidence state, observed/projected measures, and measure-specific states where the source provides them.
+
+Observed labor rows are sorted deterministically before trace IDs are assigned, so the same governed evidence produces the same row-level IDs even if upstream file order changes. Family-level unavailable or not-requested conditions emit an explicit summary trace rather than an empty array. The browser may expose these traces inline, but it must not reinterpret the numeric values or invent missing lineage.
+
 ## Priority-linked explanation context
 
 The match response explanation object includes `why_it_matches`, `tradeoffs`, `context`, and `unknowns`. Career-first labor priorities use deterministic service-generated reason codes tied to the explicit preference and the relevant labor evidence family.
