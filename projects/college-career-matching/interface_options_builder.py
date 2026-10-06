@@ -31,7 +31,11 @@ def build(rows,data_version):
  institutions={}
  for r in rows:
   uid=clean(r["UNITID"]);institutions[uid]={"value":uid,"label":clean(r["institution_name"]),"state":clean(r.get("state")) or None,"city":clean(r.get("city")) or None}
- programs=[{"value":f"{clean(r['UNITID'])}:{clean(r['program_id'])}","label":clean(r["program_name"]),"unitid":clean(r["UNITID"]),"program_id":clean(r["program_id"]),"cip_code":clean(r["cip_code"]),"credential_level":clean(r["credential_level"])} for r in rows]
+ programs=[];candidate_ids=set()
+ for r in rows:
+  uid,pid=clean(r["UNITID"]),clean(r["program_id"]);candidate_id=clean(r.get("candidate_id")) or f"{uid}:{pid}"
+  if candidate_id in candidate_ids:raise ValueError(f"duplicate candidate_id in interface options: {candidate_id}")
+  candidate_ids.add(candidate_id);programs.append({"value":candidate_id,"candidate_id":candidate_id,"label":clean(r["program_name"]),"unitid":uid,"program_id":pid,"cip_code":clean(r["cip_code"]),"credential_level":clean(r["credential_level"])})
  programs.sort(key=lambda x:(x["label"].casefold(),x["unitid"],x["program_id"]))
  states=sorted({clean(r["state"]) for r in rows if clean(r["state"])})
  campus_settings=unique(rows,"campus__locale_category") if "campus__locale_category" in rows[0] else []
