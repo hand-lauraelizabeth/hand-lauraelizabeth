@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of": "2026-10-04",
+  "as_of": "2026-10-06",
   "purpose": "Conservative regression floors derived from successful live federal-source coverage builds. A new source release may require deliberate baseline review; silently shrinking below these floors fails the opt-in coverage gate.",
   "layers": {
     "institution": {
@@ -53,6 +53,27 @@
       "equals": {
         "auto_collapsed_institutions": 0,
         "recommendation_scoring_enabled": false
+      }
+    },
+    "career_preferences": {
+      "reference": "O*NET 31.0 reviewed Work Activity Importance attributes + CIP 2020 ↔ SOC 2018",
+      "minimums": {
+        "cip_soc_relationship_rows": 6000,
+        "unique_soc6": 850,
+        "soc6_with_reviewed_base_profile": 750,
+        "soc6_with_all_reviewed_attributes_observed": 750,
+        "soc6_all_reviewed_coverage_rate": 0.87,
+        "cip_soc_relationship_rows_with_all_reviewed_attributes_observed": 4900,
+        "cip_soc_relationship_all_reviewed_coverage_rate": 0.81,
+        "per_attribute.career_analysis.cip_soc_soc6_coverage_rate": 0.87,
+        "per_attribute.career_problem_solving.cip_soc_soc6_coverage_rate": 0.87,
+        "per_attribute.career_creativity.cip_soc_soc6_coverage_rate": 0.87
+      },
+      "maximums": {
+        "soc6_without_reviewed_base_profile": 120
+      },
+      "equals": {
+        "reviewed_attribute_count": 3
       }
     }
   }
