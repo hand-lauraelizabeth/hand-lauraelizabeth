@@ -108,7 +108,7 @@ def run():
    assert "unavailable for this candidate" in river.text and "Software Developers" in river.text
    driver.find_element(By.ID,"ccx-reset").click()
    wait.until(lambda d:Select(d.find_element(By.ID,"ccx-decision-mode")).first_selected_option.get_attribute("value")=="broad_exploration")
-   assert not driver.find_elements(By.CSS_SELECTOR,".ccx-career-snapshot")
+   wait.until(lambda d:not d.find_elements(By.CSS_SELECTOR,".ccx-career-snapshot"))
 
    # Governed hard constraint: NJ should return only the fictional NJ candidate.
    Select(driver.find_element(By.ID,"ccx-state")).select_by_value("NJ")
