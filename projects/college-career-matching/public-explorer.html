@@ -109,6 +109,25 @@
           <div class="ccx-detail">This changes the governed decision context sent to the service; it does not force you through a separate workflow or hide the filters below.</div>
         </fieldset>
         <div class="ccx-mode-context" id="ccx-mode-context">Broad exploration keeps every control optional so you can start with whatever you know.</div>
+        <fieldset class="ccx-mode-tools" id="ccx-career-tools" hidden>
+          <legend>Career & labor-market context</legend>
+          <label class="ccx-label" for="ccx-work-market-semantics">Where should career-market evidence focus?</label>
+          <select id="ccx-work-market-semantics">
+            <option value="unspecified">I'm not sure yet</option>
+            <option value="selected_market" id="ccx-selected-market-option">A specific labor market I choose</option>
+            <option value="national">National context</option>
+            <option value="remote_or_flexible">I'm flexible or interested in remote work</option>
+          </select>
+          <div id="ccx-selected-market-row" hidden>
+            <label class="ccx-label" for="ccx-work-market" style="margin-top:12px">Specific labor market</label>
+            <input type="search" id="ccx-work-market" list="ccx-labor-market-options" autocomplete="off" placeholder="Search governed labor markets">
+          </div>
+          <div class="ccx-checks" style="margin-top:12px">
+            <label class="ccx-check"><input type="checkbox" id="ccx-current-labor"> <span>Make current labor-market context an explicit priority</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-long-term"> <span>Make long-term occupational outlook an explicit priority</span></label>
+          </div>
+          <div class="ccx-detail">Current market evidence and long-term projections remain separate. Specific markets come only from the service's governed labor evidence. Work-characteristic questions remain withheld until their O*NET attribute mappings complete review.</div>
+        </fieldset>
         <fieldset class="ccx-mode-tools" id="ccx-known-college-tools" hidden>
           <legend>Start from something you already know</legend>
           <label class="ccx-label" for="ccx-known-institution">Known college or university <span aria-hidden="true">(optional)</span></label>
@@ -135,6 +154,7 @@
         </fieldset>
         <datalist id="ccx-institution-options"></datalist>
         <datalist id="ccx-program-options"></datalist>
+        <datalist id="ccx-labor-market-options"></datalist>
         <fieldset>
           <label class="ccx-label" for="ccx-cip">Academic field</label>
           <select id="ccx-cip">
@@ -247,9 +267,9 @@
     root.dataset.serviceMode=runtimeConfig.mode;
     const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
-    const controls=['ccx-decision-mode','ccx-known-institution','ccx-known-program','ccx-compare-program-1','ccx-compare-program-2','ccx-compare-program-3','ccx-transfer-source','ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
+    const controls=['ccx-decision-mode','ccx-work-market-semantics','ccx-work-market','ccx-current-labor','ccx-long-term','ccx-known-institution','ccx-known-program','ccx-compare-program-1','ccx-compare-program-2','ccx-compare-program-3','ccx-transfer-source','ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
     const selected=new Set(),selectedRecords=new Map(),candidateDetailCache=new Map(),candidateDetailLoads=new Map(),compareCache=new Map();
-    const governedLookups={institution:new Map(),program:new Map()};
+    const governedLookups={institution:new Map(),program:new Map(),market:new Map()};
     let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,compareGeneration=0,activeCompareController=null,currentPage=1,pageSize=20;
     function setInteractive(enabled){
       controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
@@ -299,6 +319,8 @@
         returning_student:'Add a prior institution when relevant and keep the rest of the page available for degree-completion, affordability, format, and pathway constraints.'
       };
       q('ccx-mode-context').textContent=copy[mode]||copy.broad_exploration;
+      q('ccx-career-tools').hidden=mode!=='career_first';
+      q('ccx-selected-market-row').hidden=mode!=='career_first'||q('ccx-work-market-semantics').value!=='selected_market';
       q('ccx-known-college-tools').hidden=mode!=='college_program_first';
       q('ccx-compare-known-tools').hidden=mode!=='compare_known';
       q('ccx-transfer-tools').hidden=!['transfer','returning_student'].includes(mode);
@@ -306,6 +328,10 @@
     function state(){
       return {
         decisionMode:q('ccx-decision-mode').value,
+        workMarketSemantics:q('ccx-work-market-semantics').value,
+        workMarket:q('ccx-work-market').value,
+        currentLabor:q('ccx-current-labor').checked,
+        longTerm:q('ccx-long-term').checked,
         knownInstitution:q('ccx-known-institution').value,
         knownProgram:q('ccx-known-program').value,
         comparePrograms:[q('ccx-compare-program-1').value,q('ccx-compare-program-2').value,q('ccx-compare-program-3').value],
@@ -355,13 +381,15 @@
       if(s.stateAid)hard('state_local_aid_required','finance__state_local_grant_evidence','eq',true);
       soft('affordability_priority','affordability',s.afford);
       soft('career_pathway_priority','career_pathway_fit',s.career);
+      const mode=s.decisionMode||'broad_exploration',careerMode=mode==='career_first';
+      soft('current_labor_market_priority','current_labor_market',careerMode&&s.currentLabor);
+      soft('long_term_outlook_priority','long_term_outlook',careerMode&&s.longTerm);
       soft('transfer_priority','transfer_pathway_fit',s.transfer);
       soft('smaller_environment_priority','college_fit',s.small);
       soft('transit_access_priority','transit_access_fit',s.transit);
       soft('walkability_priority','walkability_fit',s.walk);
       soft('housing_choice_priority','housing_context_fit',s.housingChoice);
       soft('disability_services_priority','accessibility_evidence_fit',s.disabilityInfo);
-      const mode=s.decisionMode||'broad_exploration';
       const knownInstitution=resolveGovernedLookup('institution',s.knownInstitution);
       const knownProgram=resolveGovernedLookup('program',s.knownProgram);
       const comparePrograms=[...new Set((s.comparePrograms||[]).map(v=>resolveGovernedLookup('program',v)).filter(Boolean))];
@@ -372,7 +400,10 @@
       }
       if(mode==='compare_known'&&comparePrograms.length)hard('known_programs','candidate_id','in',comparePrograms);
       const transferContext=['transfer','returning_student'].includes(mode)&&transferSource?{source_institution_id:transferSource,source_system:null,completed_course_ids:[],target_program_required:false}:null;
-      return {schema_version:'1.0',decision_mode:mode,constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:'unspecified',intended_work_market:null},transfer_context:transferContext,pinned_candidate_ids:mode==='compare_known'?comparePrograms:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
+      const workSemantics=careerMode?(s.workMarketSemantics||'unspecified'):'unspecified';
+      const workMarket=workSemantics==='selected_market'?resolveGovernedLookup('market',s.workMarket):null;
+      if(workSemantics==='selected_market'&&!workMarket)throw new Error('Choose a labor market from the governed service suggestions.');
+      return {schema_version:'1.0',decision_mode:mode,constraints,preferences,career_preferences:[],geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:workSemantics,intended_work_market:workMarket},transfer_context:transferContext,pinned_candidate_ids:mode==='compare_known'?comparePrograms:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
     }
 
     function rankLabel(rec){
@@ -624,8 +655,17 @@
         governedLookups.program.set(display,candidateId);governedLookups.program.set(candidateId,candidateId);
         return '<option value="'+esc(display)+'"></option>';
       });
+      governedLookups.market.clear();
+      const marketOptions=(o.labor_markets||[]).map(x=>{
+        const market={market_id:String(x.market_id),market_type:String(x.market_type)},display=(x.label||x.value)+' ['+market.market_type+':'+market.market_id+']';
+        governedLookups.market.set(display,market);governedLookups.market.set(String(x.value),market);
+        return '<option value="'+esc(display)+'"></option>';
+      });
       q('ccx-institution-options').innerHTML=institutionOptions.join('');
       q('ccx-program-options').innerHTML=programOptions.join('');
+      q('ccx-labor-market-options').innerHTML=marketOptions.join('');
+      q('ccx-selected-market-option').disabled=marketOptions.length===0;
+      if(marketOptions.length===0&&q('ccx-work-market-semantics').value==='selected_market')q('ccx-work-market-semantics').value='unspecified';
     }
     function applyServiceOptions(response){
       const o=response.options||{};
@@ -641,8 +681,9 @@
       if(activeRequestController)activeRequestController.abort();
       activeRequestController=typeof AbortController!=='undefined'?new AbortController():null;
       const controller=activeRequestController,signal=controller?controller.signal:null;
-      const request=buildGovernedRequest(state());root.dataset.governedRequest=JSON.stringify(request);root.dataset.requestStatus='loading';renderRequestState(request);
+      let request;
       try{
+        request=buildGovernedRequest(state());root.dataset.governedRequest=JSON.stringify(request);root.dataset.requestStatus='loading';renderRequestState(request);
         const response=assertContract(await client.match(request,{signal}),'match',{productionAuthorized:runtimeConfig.production_authorized});
         if(generation!==requestGeneration)return;
         if(metadata&&(response.data_version!==metadata.data_version||response.model_version!==metadata.model_version))throw new Error('Service response version does not match loaded metadata');
@@ -697,7 +738,7 @@
     }catch(err){
       fatalServiceFailure(err);return;
     }
-    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',()=>{if(id==='ccx-decision-mode')updateModeContext();criteriaChanged()});if(el.type!=='search')el.addEventListener('input',criteriaChanged)}});
+    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',()=>{if(id==='ccx-decision-mode'||id==='ccx-work-market-semantics')updateModeContext();criteriaChanged()});if(el.type!=='search')el.addEventListener('input',criteriaChanged)}});
     q('ccx-page-size').addEventListener('change',()=>{pageSize=Number(q('ccx-page-size').value)||20;currentPage=1;refresh()});
     q('ccx-prev').addEventListener('click',()=>goToPage(currentPage-1));q('ccx-next').addEventListener('click',()=>goToPage(currentPage+1));
     q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;updateModeContext();refresh();q('ccx-decision-mode').focus()});
