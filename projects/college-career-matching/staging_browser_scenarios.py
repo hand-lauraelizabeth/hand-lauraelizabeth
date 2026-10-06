@@ -5,7 +5,7 @@ Uses the real browser UI, ES-module client, and loopback HTTP service. All data
 are fictional and the runtime remains explicitly non-production.
 """
 from __future__ import annotations
-import json,socket,subprocess,sys,tempfile,threading,time
+import csv,json,socket,subprocess,sys,tempfile,threading,time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
 from pathlib import Path
@@ -61,7 +61,26 @@ def run():
    {"UNITID":"SYN002","program_id":"P2","soc_code":"15-1212","occupation_title":"Information Security Analysts","projection_geography":"national","base_year":"2025","projection_year":"2035","employment_change_pct":"22","annual_openings":"16000","source_vintage":"SYNTHETIC"},
    {"UNITID":"SYN003","program_id":"P3","soc_code":"15-1252","occupation_title":"Software Developers","projection_geography":"national","base_year":"2025","projection_year":"2035","employment_change_pct":"16","annual_openings":"120000","source_vintage":"SYNTHETIC"}
   ]),encoding="utf-8")
-  cmd=[sys.executable,str(P/"service_host.py"),"--snapshot",str(built["snapshot"]),"--manifest",str(built["manifest"]),"--model-version","synthetic-http-model-1","--current-labor",str(current_labor),"--projections",str(projections),"--allowed-origins",origin,"--bind","127.0.0.1","--port",str(api_port),"--quiet"]
+  career_attributes=root/"career_attributes.csv"
+  specs=[
+   ("onet31:work_activity:4.A.2.a.4:IM","4.A.2.a.4","Analyzing Data or Information"),
+   ("onet31:work_activity:4.A.2.b.1:IM","4.A.2.b.1","Making Decisions and Solving Problems"),
+   ("onet31:work_activity:4.A.2.b.2:IM","4.A.2.b.2","Thinking Creatively")
+  ]
+  values={
+   "15-2051":[5,4,4],
+   "15-1211":[4,5,2],
+   "15-1212":[4,5,3],
+   "15-1252":[4,5,5],
+   "15-1299":[3,4,4]
+  }
+  attr_rows=[]
+  for soc,vals in values.items():
+   for (attribute_id,element_id,element_name),value in zip(specs,vals):
+    attr_rows.append({"occ_code":soc,"attribute_id":attribute_id,"attribute_value":str(value),"evidence_state":"observed","onet_soc_code":soc+".00","element_id":element_id,"element_name":element_name,"scale_id":"IM","scale_name":"Importance","scale_min":"1","scale_max":"5","source_release":"31.0","source_vintage":"SYNTHETIC","domain_source":"Analyst"})
+  with career_attributes.open("w",newline="",encoding="utf-8") as f:
+   w=csv.DictWriter(f,fieldnames=list(attr_rows[0]));w.writeheader();w.writerows(attr_rows)
+  cmd=[sys.executable,str(P/"service_host.py"),"--snapshot",str(built["snapshot"]),"--manifest",str(built["manifest"]),"--model-version","synthetic-http-model-1","--current-labor",str(current_labor),"--projections",str(projections),"--career-attributes",str(career_attributes),"--allowed-origins",origin,"--bind","127.0.0.1","--port",str(api_port),"--quiet"]
   proc=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
   httpd=ThreadingHTTPServer(("127.0.0.1",ui_port),partial(Quiet,directory=str(root)))
   thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start()
@@ -107,6 +126,26 @@ def run():
     raise AssertionError(f"career snapshot missing; selected_mode={selected_mode}; request_mode={request_mode}; results={career_results[:1800]}")
    text_has(driver,"#ccx-results","Descriptive occupation-level evidence only")
    assert "browser-side career score" in driver.find_element(By.ID,"ccx-results").text
+   assert not driver.find_element(By.ID,"ccx-career-characteristics").get_attribute("hidden")
+   assert all(not driver.find_element(By.ID,x).get_attribute("hidden") for x in ["ccx-career-analysis-row","ccx-career-problem-solving-row","ccx-career-creativity-row"])
+   before_characteristics=driver.execute_script("return document.getElementById('leh-ccx').getRequestGeneration();")
+   analysis=driver.find_element(By.ID,"ccx-career-analysis");creativity=driver.find_element(By.ID,"ccx-career-creativity")
+   if not analysis.is_selected():analysis.click()
+   if not creativity.is_selected():creativity.click()
+   wait.until(lambda d:d.execute_script("return document.getElementById('leh-ccx').getRequestGeneration();")>before_characteristics)
+   wait.until(lambda d:d.find_element(By.ID,"leh-ccx").get_attribute("data-request-status")=="ready")
+   governed=driver.execute_script("return document.getElementById('leh-ccx').getGovernedRequest();")
+   self_prefs={x["preference_id"]:x for x in governed["career_preferences"]}
+   assert set(self_prefs)=={"career_analysis","career_creativity"}
+   assert self_prefs["career_analysis"]["attribute_id"]=="onet31:work_activity:4.A.2.a.4:IM" and self_prefs["career_analysis"]["scale_min"]==1 and self_prefs["career_analysis"]["scale_max"]==5
+   assert self_prefs["career_creativity"]["attribute_id"]=="onet31:work_activity:4.A.2.b.2:IM"
+   north=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text)
+   assert "Work-characteristic alignment" in north.text and "Median pathway alignment index: 69/100" in north.text
+   response=driver.execute_script("return document.getElementById('leh-ccx').getLastServiceResponse();")
+   north_response=next(x for x in response["results"] if x["candidate_id"]=="SYN001:P1")
+   assert north_response["career_preference_alignment"]["status"]=="observed"
+   assert round(north_response["career_preference_alignment"]["score_summary"]["median"],4)==0.6875
+   assert north_response["recommendation"]["status"]=="not_ranked"
    Select(driver.find_element(By.ID,"ccx-work-market-semantics")).select_by_value("selected_market")
    market=driver.find_element(By.ID,"ccx-work-market")
    exact_market="Harbor–Metro Labor Market (fictional) [OEWS_MSA:35620]"
