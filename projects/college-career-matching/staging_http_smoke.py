@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """HTTP smoke test for the fictional College + Career staging service."""
 from __future__ import annotations
-import argparse,json,subprocess,sys,tempfile,time
+import argparse,csv,json,subprocess,sys,tempfile,time
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request,urlopen
@@ -34,19 +34,27 @@ def run(port=18765):
    {"UNITID":"SYN001","program_id":"P1","soc_code":"15-2051","occupation_title":"Data Scientists","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"1200","employment_state":"observed","median_wage":"94500","wage_state":"observed","source_vintage":"SYNTHETIC"},
    {"UNITID":"SYN002","program_id":"P2","soc_code":"15-1212","occupation_title":"Information Security Analysts","market_id":"35620","market_type":"OEWS_MSA","market_label":"Harbor–Metro Labor Market (fictional)","employment":"900","employment_state":"observed","median_wage":"101000","wage_state":"observed","source_vintage":"SYNTHETIC"}
   ]),encoding="utf-8")
-  cmd=[sys.executable,str(PROJECT/"service_host.py"),"--snapshot",str(snapshot),"--manifest",str(manifest),"--model-version","synthetic-http-model-1","--current-labor",str(labor),"--allowed-origins","https://staging.example.test","--bind","127.0.0.1","--port",str(port),"--quiet"]
+  career_attributes=root/"career_attributes.csv";attr_rows=[
+   {"occ_code":"15-2051","attribute_id":"onet31:work_activity:4.A.2.a.4:IM","attribute_value":"5","evidence_state":"observed","onet_soc_code":"15-2051.00","element_id":"4.A.2.a.4","element_name":"Analyzing Data or Information","scale_id":"IM","scale_name":"Importance","scale_min":"1","scale_max":"5","source_release":"31.0","source_vintage":"SYNTHETIC","domain_source":"Analyst"},
+   {"occ_code":"15-2051","attribute_id":"onet31:work_activity:4.A.2.b.1:IM","attribute_value":"4","evidence_state":"observed","onet_soc_code":"15-2051.00","element_id":"4.A.2.b.1","element_name":"Making Decisions and Solving Problems","scale_id":"IM","scale_name":"Importance","scale_min":"1","scale_max":"5","source_release":"31.0","source_vintage":"SYNTHETIC","domain_source":"Analyst"},
+   {"occ_code":"15-2051","attribute_id":"onet31:work_activity:4.A.2.b.2:IM","attribute_value":"4","evidence_state":"observed","onet_soc_code":"15-2051.00","element_id":"4.A.2.b.2","element_name":"Thinking Creatively","scale_id":"IM","scale_name":"Importance","scale_min":"1","scale_max":"5","source_release":"31.0","source_vintage":"SYNTHETIC","domain_source":"Analyst"}
+  ]
+  with career_attributes.open("w",newline="",encoding="utf-8") as f:
+   w=csv.DictWriter(f,fieldnames=list(attr_rows[0]));w.writeheader();w.writerows(attr_rows)
+  cmd=[sys.executable,str(PROJECT/"service_host.py"),"--snapshot",str(snapshot),"--manifest",str(manifest),"--model-version","synthetic-http-model-1","--current-labor",str(labor),"--career-attributes",str(career_attributes),"--allowed-origins","https://staging.example.test","--bind","127.0.0.1","--port",str(port),"--quiet"]
   proc=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
   base=f"http://127.0.0.1:{port}"
   try:
    health=wait(base)
    assert health["production_authorized"] is False and health["candidate_count"]==4
    status,_,metadata=request(base,"/metadata");assert status==200 and metadata["production_authorized"] is False and metadata["data_version"]=="synthetic-http-staging-1"
-   status,_,options=request(base,"/options");assert status==200 and options["options"]["counts"]["institution_programs"]==4;assert options["options"]["labor_markets"][0]["value"]=="OEWS_MSA:35620"
+   status,_,options=request(base,"/options");assert status==200 and options["options"]["counts"]["institution_programs"]==4;assert options["options"]["labor_markets"][0]["value"]=="OEWS_MSA:35620";assert {x["question_id"] for x in options["options"]["career_preference_attributes"]}=={"career_analysis","career_problem_solving","career_creativity"}
    match_body={"schema_version":"1.0","decision_mode":"broad_exploration","constraints":[],"preferences":[],"career_preferences":[],"page":1,"page_size":20}
    status,_,matched=request(base,"/match","POST",match_body);assert status==200 and matched["result_count"]==4 and matched["ordering"]["production_authorized"] is False;assert matched["results"][0]["career_pathways"]["pathways"][0]["occupation_title"] is not None;assert matched["results"][0]["career_pathways"]["representative_pathways"]==[]
-   career_body={"schema_version":"1.0","decision_mode":"career_first","constraints":[],"preferences":[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":1,"priority_explicit":True}],"career_preferences":[],"geography":{"work_market_semantics":"selected_market","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}},"page":1,"page_size":20}
+   career_body={"schema_version":"1.0","decision_mode":"career_first","constraints":[],"preferences":[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":1,"priority_explicit":True}],"career_preferences":[{"preference_id":"career_analysis","attribute_id":"onet31:work_activity:4.A.2.a.4:IM","operator":"higher_preferred","importance":1,"priority_explicit":True,"target_value":None,"target_min":None,"target_max":None,"scale_min":1,"scale_max":5}],"geography":{"work_market_semantics":"selected_market","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}},"page":1,"page_size":20}
    status,_,career=request(base,"/match","POST",career_body);assert status==200;career_by_id={x["candidate_id"]:x for x in career["results"]};syn1=career_by_id["SYN001:P1"];assert syn1["labor_market"]["selected_work_market"]["market_id"]=="35620";assert syn1["labor_market"]["selected_work_market"]["soc_evidence"][0]["occupation_title"]=="Data Scientists"
    ctx=syn1["explanation"]["context"];assert len(ctx)==1 and ctx[0]["code"]=="CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE";trace=ctx[0]["supporting_evidence"][0];assert trace["soc_code"]=="15-2051" and trace["occupation_title"]=="Data Scientists";assert trace["geography"]["market_label"]=="Harbor–Metro Labor Market (fictional)" and trace["source_vintage"]=="SYNTHETIC";assert trace["evidence_state"]=="observed" and trace["measure_states"]["median_wage"]=="observed";assert trace["evidence_id"] in ctx[0]["evidence_ids"]
+   alignment=syn1["career_preference_alignment"];assert alignment["status"]=="observed" and alignment["explicit_preference_count"]==1;assert alignment["score_summary"]["median"]==1.0 and alignment["pathway_coverage_rate"]==0.5;assert syn1["recommendation"]["status"]=="not_ranked"
    try:
     bad=json.loads(json.dumps(career_body));bad["geography"]["intended_work_market"]["market_id"]="99999";request(base,"/match","POST",bad);raise AssertionError("unavailable labor market unexpectedly succeeded")
    except HTTPError as e:
@@ -65,7 +73,7 @@ def run(port=18765):
     urlopen(oversized,timeout=5);raise AssertionError("oversized request unexpectedly succeeded")
    except HTTPError as e:
     assert e.code==413
-   return {"status":"PASS","base_url":base,"checks":["health","metadata","options","match","career_market_match","career_explanation_trace","invalid_market","candidate","compare","cors_allowed","cors_denied","invalid_compare","payload_limit"]}
+   return {"status":"PASS","base_url":base,"checks":["health","metadata","options","match","career_market_match","career_explanation_trace","career_preference_alignment","invalid_market","candidate","compare","cors_allowed","cors_denied","invalid_compare","payload_limit"]}
   finally:
    proc.terminate()
    try:proc.wait(timeout=3)
