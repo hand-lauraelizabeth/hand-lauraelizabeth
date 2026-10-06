@@ -120,6 +120,8 @@ python scripts/college_career_ingest.py --build-onet-preference-coverage \
 
 This writes `onet_career_preference_coverage.json` and `onet_career_preference_pathway_coverage_flags.csv`. The report evaluates the reviewed O*NET evidence against every SOC6 in the official CIP↔SOC bridge, both by distinct SOC and by CIP↔SOC relationship row. A missing `.00` base profile, suppressed/not-relevant reviewed value, or absent reviewed attribute is reported as a coverage gap; specialty O*NET profiles are never averaged upward.
 
+The live 2026-10-06 baseline and conservative regression floors are documented in `ONET_CAREER_PREFERENCE_COVERAGE_BASELINE_2026-10-06.md`. Add `--enforce-coverage-baseline` to fail the build if a later source snapshot drops below those reviewed floors.
+
 To expose these reviewed work-characteristic questions through a current-data service, point the service at the normalized artifact:
 
 ```bash
