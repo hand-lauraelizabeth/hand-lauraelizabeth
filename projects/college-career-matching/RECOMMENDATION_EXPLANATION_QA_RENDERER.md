@@ -91,6 +91,10 @@ The renderer inherits the upstream explanation contract. In particular:
 
 The design follows a useful separation between **evidence/reasons**, **meaningful presentation**, **accuracy to the actual recommendation process**, and **knowledge limits**. The renderer therefore cannot substitute rhetorical confidence for missing evidence.
 
+## Current interactive trace integration
+
+The public matcher now implements the source-detail interaction pattern for the narrow career/labor-priority explanation subset: each service-supplied context or uncertainty record can expose its structured supporting evidence through a keyboard-native `details/summary` disclosure. This integration does not replace the broader QA renderer or claim-validation gate; it demonstrates the intended source/vintage drilldown behavior on a bounded, deterministic explanation family.
+
 ## Accessibility requirements for UI integration
 
 The eventual interface should render the payload so that:
