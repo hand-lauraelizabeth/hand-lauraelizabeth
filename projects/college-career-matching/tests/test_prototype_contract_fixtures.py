@@ -25,7 +25,7 @@ class PrototypeContractTests(unittest.TestCase):
   self.assertTrue(all(isinstance(w,dict) and {"code","message"}.issubset(w) for w in m["warnings"]))
   for x in m["results"]:
    for key in ["dimensions","explanation","transfer","source_freshness","recommendation"]:self.assertIn(key,x)
-   self.assertEqual(set(x["explanation"]),{"why_it_matches","tradeoffs","unknowns"})
+   self.assertEqual(set(x["explanation"]),{"why_it_matches","tradeoffs","context","unknowns"})
  def test_match_fixture_is_explicitly_unranked_and_not_production_authorized(self):
   self.assertEqual(F["match"]["ordering"]["mode"],"deterministic_unranked");self.assertFalse(F["match"]["ordering"]["production_authorized"])
   for x in F["match"]["results"]:self.assertEqual(x["recommendation"]["status"],"not_ranked");self.assertFalse(x["recommendation"]["production_authorized"])
