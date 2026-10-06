@@ -176,6 +176,7 @@ The visitor-facing interaction model is now represented in [public-explorer.html
 - result cards, candidate detail, and comparison can show structured related career pathways with governed occupation titles when available, while treating pathway count as descriptive rather than a quality score;
 - career-first result cards can also preview current selected-market employment/wage evidence beside long-term projection evidence, including unavailable states, governed market labels, and source vintage; those occupation-level measures are not converted into browser-side scores and are not presented as graduate earnings or placement rates;
 - when a visitor explicitly prioritizes current labor-market context or long-term outlook, the service emits traceable priority-context or evidence-gap explanations; raw wage/growth values do not manufacture positive reasons or negative tradeoffs;
+- those priority explanations can be expanded inline to inspect the exact supporting SOC/occupation rows, geography, source vintage, evidence states, measures, and stable evidence IDs without opening the full candidate-detail panel;
 - full mapped pathways remain separate from future reviewed preference-aligned representative pathways;
 - readable example content remains available without JavaScript;
 - all current records are explicitly fictional demonstration data until the governed current-data release is production-ready.
