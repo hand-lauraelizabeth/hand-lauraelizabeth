@@ -85,7 +85,28 @@ def dimension_rows(c):
   if vk in c or ck in c or sk in c:
    v=num(c.get(vk));cov=num(c.get(ck));cov=0 if cov is None else max(0,min(1,cov));out.append({"dimension":d,"value":v,"coverage_rate":cov,"evidence_state":c.get(sk) or ("observed" if v is not None else "insufficient")})
  return out
-def reason(code,text,evidence_ids=None):return {"code":code,"text":text,"evidence_ids":list(evidence_ids or [])}
+def reason(code,text,evidence_ids=None,supporting_evidence=None):return {"code":code,"text":text,"evidence_ids":list(evidence_ids or []),"supporting_evidence":list(supporting_evidence or [])}
+def trace_row(evidence_id,family,state,row=None,geography=None):
+ row=row or {};geography=geography or {}
+ measures={};measure_states={}
+ if family=="current_labor_market":
+  measures={"employment":row.get("employment"),"median_wage":row.get("median_wage")}
+  measure_states={"employment":row.get("employment_state","missing"),"median_wage":row.get("wage_state","missing")}
+ elif family=="long_term_outlook":
+  measures={"employment_change_pct":row.get("employment_change_pct"),"annual_openings":row.get("annual_openings"),"base_year":row.get("base_year"),"projection_year":row.get("projection_year")}
+ return {"evidence_id":evidence_id,"evidence_family":family,"soc_code":clean(row.get("soc_code")) or None,"occupation_title":clean(row.get("occupation_title")) or None,"geography":{"market_id":clean(geography.get("market_id")) or None,"market_type":clean(geography.get("market_type")) or None,"market_label":clean(geography.get("market_label")) or None,"projection_geography":clean(row.get("projection_geography")) or clean(geography.get("projection_geography")) or None,"work_market_semantics":clean(geography.get("work_market_semantics")) or None},"source_vintage":clean(row.get("source_vintage")) or None,"evidence_state":clean(state) or "unknown","measures":measures,"measure_states":measure_states}
+def labor_trace(family_name,family,geography=None):
+ rows=sorted((family or {}).get("soc_evidence") or [],key=lambda r:(clean(r.get("soc_code")),clean(r.get("occupation_title")),clean(r.get("source_vintage"))))
+ state=(family or {}).get("evidence_state") or "unknown"
+ geo=dict(geography or {})
+ if family_name=="current_labor_market":
+  for k in ["market_id","market_type","market_label"]:
+   if (family or {}).get(k) not in (None,""):geo[k]=(family or {}).get(k)
+ if not rows:return [trace_row(f"labor:{family_name}:summary",family_name,state,geography=geo)]
+ out=[]
+ for i,row in enumerate(rows,1):
+  soc=clean(row.get("soc_code")) or "unknown";out.append(trace_row(f"labor:{family_name}:soc:{soc}:{i}",family_name,state,row,geo))
+ return out
 def explicit_priority(request,dimension):
  for p in request.get("preferences",[]):
   if p.get("priority_explicit") is True and p.get("dimension")==dimension and (num(p.get("importance")) or 0)>0:return p
@@ -96,21 +117,25 @@ def labor_priority_explanations(request,labor):
  if current:
   family=(labor or {}).get("selected_work_market") or {};state=family.get("evidence_state")
   ids=[f"preference:{current.get('preference_id') or 'current_labor_market'}","labor:selected_work_market"]
+  trace=labor_trace("current_labor_market",family,{"work_market_semantics":geography.get("work_market_semantics")})
+  ids+= [x["evidence_id"] for x in trace]
   if state=="observed" and family.get("soc_evidence"):
    label=clean(family.get("market_label")) or "the selected work market"
-   context.append(reason("CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE",f"Current occupation-level labor-market evidence is available for {label}, which you marked as a priority. Wage and employment values remain descriptive here and are not treated as inherently positive or converted into a browser-side score.",ids))
+   context.append(reason("CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE",f"Current occupation-level labor-market evidence is available for {label}, which you marked as a priority. Wage and employment values remain descriptive here and are not treated as inherently positive or converted into a browser-side score.",ids,trace))
   elif state=="unavailable":
-   unknowns.append(reason("CURRENT_LABOR_PRIORITY_EVIDENCE_UNAVAILABLE","You marked current labor-market context as a priority, but governed current-market evidence is unavailable for this candidate in the selected market. Missing evidence is not treated as weak demand or a negative score.",ids))
+   unknowns.append(reason("CURRENT_LABOR_PRIORITY_EVIDENCE_UNAVAILABLE","You marked current labor-market context as a priority, but governed current-market evidence is unavailable for this candidate in the selected market. Missing evidence is not treated as weak demand or a negative score.",ids,trace))
   else:
    semantics=clean(geography.get("work_market_semantics")) or "unspecified"
-   unknowns.append(reason("CURRENT_LABOR_PRIORITY_MARKET_NOT_EVALUATED",f"You marked current labor-market context as a priority, but no candidate-specific current-market evidence was evaluated under the '{semantics}' work-market setting. No current-market value is assumed.",ids))
+   unknowns.append(reason("CURRENT_LABOR_PRIORITY_MARKET_NOT_EVALUATED",f"You marked current labor-market context as a priority, but no candidate-specific current-market evidence was evaluated under the '{semantics}' work-market setting. No current-market value is assumed.",ids,trace))
  future=explicit_priority(request,"long_term_outlook")
  if future:
   family=(labor or {}).get("long_term_outlook") or {};state=family.get("evidence_state");ids=[f"preference:{future.get('preference_id') or 'long_term_outlook'}","labor:long_term_outlook"]
+  trace=labor_trace("long_term_outlook",family)
+  ids+= [x["evidence_id"] for x in trace]
   if state=="observed" and family.get("soc_evidence"):
-   context.append(reason("LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_AVAILABLE","Long-term occupational projection evidence is available for related pathways, which you marked as a priority. Projected change and openings remain descriptive and are not treated as current hiring evidence or an automatic positive signal.",ids))
+   context.append(reason("LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_AVAILABLE","Long-term occupational projection evidence is available for related pathways, which you marked as a priority. Projected change and openings remain descriptive and are not treated as current hiring evidence or an automatic positive signal.",ids,trace))
   else:
-   unknowns.append(reason("LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_UNAVAILABLE","You marked long-term occupational outlook as a priority, but governed projection evidence is unavailable for this candidate's related pathways. Missing projections are not converted to zero or treated as a negative score.",ids))
+   unknowns.append(reason("LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_UNAVAILABLE","You marked long-term occupational outlook as a priority, but governed projection evidence is unavailable for this candidate's related pathways. Missing projections are not converted to zero or treated as a negative score.",ids,trace))
  return context,unknowns
 def result(c,status,codes,labor=None,request=None):
  dims=dimension_rows(c);unknown=[x for x in codes if x.startswith("constraint_unknown")];coverage=[d["coverage_rate"] for d in dims];avg=sum(coverage)/len(coverage) if coverage else 0;labor=labor or {"selected_work_market":{"evidence_state":"not_loaded"},"long_term_outlook":{"evidence_state":"not_loaded"}};priority_context,priority_unknowns=labor_priority_explanations(request or {},labor)
