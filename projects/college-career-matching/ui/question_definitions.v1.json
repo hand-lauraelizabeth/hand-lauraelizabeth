@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "questionnaire_version": "2026-10-06.1",
+  "questionnaire_version": "2026-10-06.2",
   "principles": {
     "skippable_preferences": true,
     "no_default_priority_weights": true,
@@ -523,28 +523,56 @@
     {
       "question_id": "career_analysis",
       "section": "career_and_place",
-      "prompt": "Would you like work that involves a lot of analysis and problem solving?",
+      "prompt": "Would you like analyzing data or information to be an important part of your work?",
       "control": "importance_optional",
       "required": false,
       "mapping": {
         "target": "career_preference",
-        "attribute_id": "onet_governed:analysis_problem_solving",
+        "attribute_id": "onet31:work_activity:4.A.2.a.4:IM",
         "operator": "higher_preferred",
-        "requires_attribute_mapping_review": true
+        "scale_min": 1,
+        "scale_max": 5
+      },
+      "help": "Mapped to O*NET 31.0 Work Activity 4.A.2.a.4 (Analyzing Data or Information), Importance scale. This is separate from problem solving.",
+      "visible_for_modes": [
+        "career_first"
+      ]
+    },
+    {
+      "question_id": "career_problem_solving",
+      "section": "career_and_place",
+      "prompt": "Would you like making decisions and solving problems to be an important part of your work?",
+      "help": "Mapped to O*NET 31.0 Work Activity 4.A.2.b.1 (Making Decisions and Solving Problems), Importance scale.",
+      "control": "importance_optional",
+      "required": false,
+      "visible_for_modes": [
+        "career_first"
+      ],
+      "mapping": {
+        "target": "career_preference",
+        "attribute_id": "onet31:work_activity:4.A.2.b.1:IM",
+        "operator": "higher_preferred",
+        "scale_min": 1,
+        "scale_max": 5
       }
     },
     {
       "question_id": "career_creativity",
       "section": "career_and_place",
-      "prompt": "Would you like work where creativity is an important part of the job?",
+      "prompt": "Would you like thinking creatively to be an important part of your work?",
       "control": "importance_optional",
       "required": false,
       "mapping": {
         "target": "career_preference",
-        "attribute_id": "onet_governed:creativity",
+        "attribute_id": "onet31:work_activity:4.A.2.b.2:IM",
         "operator": "higher_preferred",
-        "requires_attribute_mapping_review": true
-      }
+        "scale_min": 1,
+        "scale_max": 5
+      },
+      "help": "Mapped to O*NET 31.0 Work Activity 4.A.2.b.2 (Thinking Creatively), Importance scale. It is not inferred from the Originality ability or Innovation work style.",
+      "visible_for_modes": [
+        "career_first"
+      ]
     },
     {
       "question_id": "transfer_source",
