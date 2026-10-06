@@ -18,6 +18,9 @@ class SchemaContractTests(unittest.TestCase):
   item=RES["properties"]["results"]["items"];self.assertIn("recommendation",item["properties"]);self.assertEqual(item["properties"]["recommendation"]["properties"]["production_authorized"]["type"],"boolean")
  def test_response_requires_pagination_and_labor(self):
   self.assertIn('pagination',RES['required']);self.assertIn('ordering',RES['required']);item=RES['properties']['results']['items'];self.assertIn('labor_market',item['required']);self.assertIn('career_pathways',item['required']);self.assertIn('recommendation',item['required'])
+ def test_match_and_detail_schemas_require_structured_career_pathways(self):
+  cp=RES["properties"]["results"]["items"]["properties"]["career_pathways"];self.assertTrue({"pathway_count","soc_codes","pathways","representative_pathways"}.issubset(cp["required"]));self.assertEqual(cp["properties"]["pathways"]["items"]["required"],["soc_code","occupation_title"])
+  career=DETAIL["properties"]["career"];self.assertTrue({"soc_count","pathway_count","soc_codes","pathways","representative_pathways"}.issubset(career["required"]));self.assertEqual(career["properties"]["pathways"]["items"]["required"],["soc_code","occupation_title"])
  def test_candidate_detail_schema_keeps_evidence_families_and_provenance_explicit(self):
   self.assertTrue({"affordability","aid_context","program_outcomes","transfer","career","labor_market","freshness","unknowns"}.issubset(DETAIL["required"]))
   evidence=DETAIL["$defs"]["evidence"];self.assertTrue({"value","evidence_state","source_id","source_vintage"}.issubset(evidence["required"]))
