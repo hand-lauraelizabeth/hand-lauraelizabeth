@@ -327,3 +327,11 @@ The browser must use the match service's pagination contract rather than loading
 Page navigation preserves up to three comparison selections across pages by retaining only the service-returned records the user explicitly selected. A change to actual matching criteria resets to page 1 and clears those selections so comparison state from an obsolete query cannot leak into a new result universe. Changing results-per-page resets to page 1 but does not change the matching criteria.
 
 CI runs `staging_browser_pagination_scenarios.py` with a deterministic 27-candidate fictional staging snapshot. The scenario verifies 20-result default pagination, a 10-result page-size selection, pages 1–3, the partial final-page range, previous/next disabled states, cross-page comparison persistence, and criteria-change reset behavior. No browser-side result slicing or ranking is permitted.
+
+### Candidate evidence drilldowns
+
+Result cards remain intentionally compact. **Evidence details** calls `GET /candidate/{candidate_id}` only when the user opens a drilldown; candidate details are not prefetched with the result page. The browser validates the candidate-detail response, exact candidate identity, and active data version before rendering it, then caches that governed response for subsequent opens during the session.
+
+The detail response keeps evidence families separate: affordability (net price, tuition, cost of attendance, institution debt), aid context (institutional grants, Work-Study, state/local grants), program/field outcomes, transfer evidence, career pathways, current selected-market labor evidence, long-term outlook, accreditation coverage, source freshness, and unresolved fields. Field-level affordability/outcome records preserve `source_id` and `source_vintage` when supplied. Missing, suppressed, unresolved, not-published, unavailable, and not-requested states remain visible states rather than numeric zeros.
+
+Accreditation absence is coverage unknown, not an unaccredited determination. Aid evidence/reporting does not imply an individual award. Institution outcomes and program/field outcomes remain distinct. Current labor-market evidence and long-term projections remain separate evidence families.
