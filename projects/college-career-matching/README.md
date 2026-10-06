@@ -171,6 +171,10 @@ The visitor-facing interaction model is now represented in [public-explorer.html
 - soft priorities create an explainable fit ordering only after the visitor explicitly selects them;
 - no account, installation, notebook, terminal, or local runtime is required;
 - up to three programs can be compared inline;
+- the entry mode can be broad, career-first, college/program-first, compare-known, transfer, or returning-student without forcing a wizard;
+- career-first mode can use a governed selected labor market and keeps current labor-market evidence separate from long-term occupational outlook;
+- result cards, candidate detail, and comparison can show structured related career pathways with governed occupation titles when available, while treating pathway count as descriptive rather than a quality score;
+- full mapped pathways remain separate from future reviewed preference-aligned representative pathways;
 - readable example content remains available without JavaScript;
 - all current records are explicitly fictional demonstration data until the governed current-data release is production-ready.
 
