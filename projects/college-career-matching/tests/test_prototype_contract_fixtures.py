@@ -29,6 +29,10 @@ class PrototypeContractTests(unittest.TestCase):
  def test_match_fixture_is_explicitly_unranked_and_not_production_authorized(self):
   self.assertEqual(F["match"]["ordering"]["mode"],"deterministic_unranked");self.assertFalse(F["match"]["ordering"]["production_authorized"])
   for x in F["match"]["results"]:self.assertEqual(x["recommendation"]["status"],"not_ranked");self.assertFalse(x["recommendation"]["production_authorized"])
+ def test_fixture_career_pathways_are_structured_and_not_claimed_as_representative(self):
+  for x in F["match"]["results"]:
+   cp=x["career_pathways"];self.assertEqual(cp["pathway_count"],len(cp["pathways"]));self.assertTrue(all({"soc_code","occupation_title"}.issubset(p) for p in cp["pathways"]));self.assertEqual(cp["representative_pathways"],[])
+   detail=F["candidate:"+x["candidate_id"]];self.assertEqual(detail["career"]["pathway_count"],len(detail["career"]["pathways"]));self.assertEqual(detail["career"]["representative_pathways"],[])
  def test_current_and_long_term_labor_are_separate(self):
   for x in F['match']['results']:
    self.assertIn('selected_work_market',x['labor_market']);self.assertIn('long_term_outlook',x['labor_market'])
