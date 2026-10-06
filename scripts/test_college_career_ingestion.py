@@ -162,7 +162,10 @@ def main() -> None:
     assert_equal(scorecard_local_result["normalized_rows"], 2, "Scorecard local official ZIP rows")
 
     baseline_config = module.load_coverage_baselines()
-    assert_equal(set(baseline_config["layers"]), {"institution", "program", "career", "model_ready"}, "coverage baseline layers")
+    assert_equal(set(baseline_config["layers"]), {"institution", "program", "career", "career_preferences", "model_ready"}, "coverage baseline layers")
+    pref_floor = baseline_config["layers"]["career_preferences"]["minimums"]
+    assert_equal(pref_floor["soc6_all_reviewed_coverage_rate"], 0.87, "career preference SOC coverage floor")
+    assert_equal(pref_floor["cip_soc_relationship_all_reviewed_coverage_rate"], 0.81, "career preference relationship coverage floor")
 
     program_floor_report = {}
     for metric_path, minimum in baseline_config["layers"]["program"]["minimums"].items():
