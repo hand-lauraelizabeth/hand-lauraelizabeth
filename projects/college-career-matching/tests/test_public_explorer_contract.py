@@ -55,7 +55,7 @@ class PublicExplorerContractTests(unittest.TestCase):
   self.assertIn("selectedRecords=new Map()",HTML);self.assertIn("function criteriaChanged()",HTML);self.assertIn("selected.clear();selectedRecords.clear();renderCompare();scheduleRefresh()",HTML)
   self.assertIn("unresolved must-have evidence field",HTML)
  def test_pagination_is_service_driven_and_comparisons_can_span_pages(self):
-  for token in ['id="ccx-page-size"','id="ccx-pagination"','id="ccx-prev"','id="ccx-next"',"page:currentPage,page_size:pageSize","function renderPagination(response)","async function goToPage(page)","selectedRecords.get(id)","Service pagination does not match the governed request","getPaginationState"]:
+  for token in ['id="ccx-page-size"','id="ccx-pagination"','id="ccx-prev"','id="ccx-next"',"page:currentPage,page_size:pageSize","function renderPagination(response)","async function goToPage(page)","const host=q('ccx-compare-table'),note=q('ccx-compare-note'),clear=q('ccx-clear'),ids=[...selected]","client.compare(ids,context,{signal})","Service pagination does not match the governed request","getPaginationState"]:
    self.assertIn(token,HTML)
   self.assertNotIn("results.slice(",HTML)
  def test_requests_are_last_writer_wins_and_retry_revalidates_service(self):
