@@ -287,10 +287,21 @@
       if(x.eligibility&&x.eligibility.status==='eligible_with_unknown')return 'Eligible with one or more unresolved must-have evidence fields.';
       return 'Service returned this program as eligible for the current request.';
     }
+    function renderPagination(response){
+      const nav=q('ccx-pagination'),status=q('ccx-page-status'),prev=q('ccx-prev'),next=q('ccx-next');
+      if(!response||!response.pagination){nav.hidden=true;status.textContent='';prev.disabled=true;next.disabled=true;return}
+      const p=response.pagination,total=Number(response.result_count||0),rows=response.results||[];
+      currentPage=Number(p.page||1);
+      const start=total&&rows.length?((currentPage-1)*Number(p.page_size||pageSize)+1):0;
+      const end=total&&rows.length?Math.min(start+rows.length-1,total):0;
+      status.textContent=total?('Page '+currentPage+' of '+p.total_pages+' · showing '+start+'–'+end+' of '+total):'No result pages';
+      prev.disabled=!p.has_previous;next.disabled=!p.has_next;nav.hidden=Number(p.total_pages||0)<=1;
+      root.dataset.currentPage=String(currentPage);root.dataset.totalPages=String(p.total_pages||0);
+    }
     function renderCompare(){
       const host=q('ccx-compare-table'),note=q('ccx-compare-note'),clear=q('ccx-clear');
       if(!lastResponse){host.innerHTML='';note.textContent='Select two or three programs from the current service results.';clear.hidden=true;return}
-      const chosen=lastResponse.results.filter(x=>selected.has(x.candidate_id));
+      const chosen=[...selected].map(id=>selectedRecords.get(id)).filter(Boolean);
       if(chosen.length<2){host.innerHTML='';note.textContent='Select two or three programs from the service results.';clear.hidden=selected.size===0;return}
       clear.hidden=false;
       note.textContent='Side-by-side display of fields already returned by the match service; no winner is calculated in the browser.';
@@ -303,10 +314,10 @@
     }
     function renderResponse(response){
       lastResponse=response;
-      const rows=response.results||[],visibleIds=new Set(rows.map(x=>x.candidate_id));
-      for(const id of [...selected])if(!visibleIds.has(id))selected.delete(id);
+      const rows=response.results||[],p=response.pagination||{page:1,page_size:pageSize,total_pages:1,has_next:false,has_previous:false};
       const mode=response.ordering&&response.ordering.mode==='review_eligible_ranking'?(response.ordering.production_authorized?'authorized ranking':'gated review ranking'):'service order · unranked';
-      q('ccx-count').textContent=response.result_count+' service-returned program'+(response.result_count===1?'':'s')+' · '+mode;
+      const total=Number(response.result_count||0),start=total&&rows.length?((Number(p.page)-1)*Number(p.page_size)+1):0,end=total&&rows.length?Math.min(start+rows.length-1,total):0;
+      q('ccx-count').textContent=total?('Showing '+start+'–'+end+' of '+total+' service-returned program'+(total===1?'':'s')+' · '+mode):('0 service-returned programs · '+mode);
       q('ccx-results').innerHTML=rows.length?rows.map(x=>{
         const rec=x.recommendation||{};
         const score=rec.status==='review_eligible_ranked'&&rec.baseline_score!=null?'<div class="ccx-score">'+esc(rankLabel(rec))+' · '+Math.round(rec.baseline_score*100)+'/100 index</div>':'<div class="ccx-score">'+esc(rankLabel(rec))+'</div>';
@@ -319,9 +330,9 @@
       }).join(''):'<div class="ccx-empty"><strong>No service results returned.</strong><p>Try relaxing one or more must-have constraints.</p></div>';
       root.querySelectorAll('.ccx-compare-toggle input').forEach(el=>el.addEventListener('change',()=>{
         if(el.checked&&selected.size>=3){el.checked=false;q('ccx-compare-note').textContent='Compare up to three programs at a time.';return}
-        if(el.checked)selected.add(el.dataset.key);else selected.delete(el.dataset.key);renderCompare();
+        if(el.checked){selected.add(el.dataset.key);const row=rows.find(x=>x.candidate_id===el.dataset.key);if(row)selectedRecords.set(el.dataset.key,row)}else{selected.delete(el.dataset.key);selectedRecords.delete(el.dataset.key)}renderCompare();
       }));
-      renderCompare();
+      renderCompare();renderPagination(response);
     }
     function renderRequestState(request){
       const suffix=root.dataset.serviceMode==='fixture'?' Static fixture records remain fixed; no browser-side filtering or ranking is performed.':' Results are requested from the configured service.';
@@ -351,6 +362,7 @@
         const response=assertContract(await client.match(request,{signal}),'match',{productionAuthorized:runtimeConfig.production_authorized});
         if(generation!==requestGeneration)return;
         if(metadata&&(response.data_version!==metadata.data_version||response.model_version!==metadata.model_version))throw new Error('Service response version does not match loaded metadata');
+        if(runtimeConfig.mode!=='fixture'&&response.pagination&&(Number(response.pagination.page)!==Number(request.page)||Number(response.pagination.page_size)!==Number(request.page_size)))throw new Error('Service pagination does not match the governed request');
         renderResponse(response);root.dataset.serviceStatus='ready';root.dataset.requestStatus='ready';renderServiceIdentity();
       }catch(err){
         if(generation!==requestGeneration||err&&err.name==='AbortError')return;
@@ -360,6 +372,14 @@
       }
     }
     function scheduleRefresh(){clearTimeout(refreshTimer);refreshTimer=setTimeout(refresh,120)}
+    function criteriaChanged(){currentPage=1;selected.clear();selectedRecords.clear();renderCompare();scheduleRefresh()}
+    async function goToPage(page){
+      const totalPages=lastResponse&&lastResponse.pagination?Number(lastResponse.pagination.total_pages||0):0;
+      const target=Math.max(1,Math.min(Number(page)||1,totalPages||1));
+      if(target===currentPage)return;
+      currentPage=target;await refresh();
+      q('ccx-results-title').scrollIntoView({block:'start',behavior:'auto'});
+    }
     async function retryService(){
       q('ccx-retry').disabled=true;root.dataset.serviceStatus='recovering';root.dataset.requestStatus='recovering';
       q('ccx-service-state').innerHTML='<strong>Rechecking governed service…</strong> Validating service identity before restoring results.';
@@ -393,11 +413,13 @@
     }catch(err){
       fatalServiceFailure(err);return;
     }
-    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',scheduleRefresh);el.addEventListener('input',scheduleRefresh)}});
-    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();refresh();q('ccx-state').focus()});
-    q('ccx-clear').addEventListener('click',()=>{selected.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
+    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',criteriaChanged);el.addEventListener('input',criteriaChanged)}});
+    q('ccx-page-size').addEventListener('change',()=>{pageSize=Number(q('ccx-page-size').value)||20;currentPage=1;refresh()});
+    q('ccx-prev').addEventListener('click',()=>goToPage(currentPage-1));q('ccx-next').addEventListener('click',()=>goToPage(currentPage+1));
+    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;refresh();q('ccx-state').focus()});
+    q('ccx-clear').addEventListener('click',()=>{selected.clear();selectedRecords.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
     root.getGovernedRequest=()=>buildGovernedRequest(state());
-    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;
+    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});
     await refresh();
   })();
   </script>
