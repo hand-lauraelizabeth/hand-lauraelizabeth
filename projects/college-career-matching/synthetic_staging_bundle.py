@@ -16,23 +16,33 @@ ROWS=[
  {"candidate_id":"SYN004:P4","UNITID":"SYN004","institution_name":"Cedar Valley College","city":"Cedar City","state":"PA","program_id":"P4","program_name":"Cybersecurity Systems","cip_code":"11.1003","cip_title":"Computer and Information Systems Security/Auditing/Information Assurance","credential_level":"Bachelors","online_available":"false","finance__net_price":"15950","finance__net_price__state":"observed","career__soc_count":"2","career__soc_codes":"15-1212|15-1299","coverage__career_pathways":"1"}
 ]
 
+def expanded_rows(candidate_count=None):
+ count=len(ROWS) if candidate_count is None else int(candidate_count)
+ if count<len(ROWS):raise ValueError(f"candidate_count must be >= {len(ROWS)}")
+ rows=[dict(x) for x in ROWS]
+ states=["NY","NJ","PA"]
+ for i in range(len(rows)+1,count+1):
+  state=states[(i-1)%len(states)]
+  rows.append({"candidate_id":f"SYN{i:03d}:P{i}","UNITID":f"SYN{i:03d}","institution_name":f"Synthetic Expansion {i:03d} College","city":f"Sample City {i:03d}","state":state,"program_id":f"P{i}","program_name":f"Synthetic Program {i:03d}","cip_code":"11.9999","cip_title":"Computer and Information Sciences, Other","credential_level":"Bachelors","online_available":"true" if i%2 else "false","finance__net_price":str(12000+i*125),"finance__net_price__state":"observed","career__soc_count":"1","career__soc_codes":"15-1299","coverage__career_pathways":"1"})
+ return rows
+
 def sha256(path):
  h=hashlib.sha256()
  with Path(path).open("rb") as f:
   for chunk in iter(lambda:f.read(1024*1024),b""):h.update(chunk)
  return h.hexdigest()
 
-def build(out_dir,data_version="synthetic-http-staging-1"):
- out_dir=Path(out_dir);out_dir.mkdir(parents=True,exist_ok=True)
+def build(out_dir,data_version="synthetic-http-staging-1",candidate_count=None):
+ out_dir=Path(out_dir);out_dir.mkdir(parents=True,exist_ok=True);rows=expanded_rows(candidate_count)
  snapshot=out_dir/"institution_program_product_snapshot.csv"
- fields=list(ROWS[0])
+ fields=list(rows[0])
  with snapshot.open("w",newline="",encoding="utf-8") as f:
-  w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(ROWS)
+  w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
  manifest={
   "schema_version":"1.3","data_version":data_version,
   "generated_at_utc":datetime.now(timezone.utc).isoformat(),
-  "candidate_grain":"UNITID x program_id","candidate_count":len(ROWS),
-  "institution_count":len({r["UNITID"] for r in ROWS}),
+  "candidate_grain":"UNITID x program_id","candidate_count":len(rows),
+  "institution_count":len({r["UNITID"] for r in rows}),
   "enrichment_registry_version":"synthetic-staging-1",
   "input_sha256":{},"output_sha256":sha256(snapshot),
   "coverage":{"career_pathways":len(ROWS)},
@@ -44,7 +54,7 @@ def build(out_dir,data_version="synthetic-http-staging-1"):
  return snapshot,manifest_path
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument("--out-dir",type=Path,required=True);ap.add_argument("--data-version",default="synthetic-http-staging-1");a=ap.parse_args()
- snapshot,manifest=build(a.out_dir,a.data_version)
+ ap=argparse.ArgumentParser();ap.add_argument("--out-dir",type=Path,required=True);ap.add_argument("--data-version",default="synthetic-http-staging-1");ap.add_argument("--candidate-count",type=int);a=ap.parse_args()
+ snapshot,manifest=build(a.out_dir,a.data_version,a.candidate_count)
  print(json.dumps({"snapshot":str(snapshot),"manifest":str(manifest),"data_version":a.data_version}))
 if __name__=="__main__":main()
