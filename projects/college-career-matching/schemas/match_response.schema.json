@@ -230,6 +230,7 @@
             "required": [
               "why_it_matches",
               "tradeoffs",
+              "context",
               "unknowns"
             ],
             "properties": {
@@ -246,6 +247,12 @@
                 }
               },
               "unknowns": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/reason"
+                }
+              },
+              "context": {
                 "type": "array",
                 "items": {
                   "$ref": "#/$defs/reason"
