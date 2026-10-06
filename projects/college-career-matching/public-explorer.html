@@ -48,6 +48,9 @@
     #leh-ccx .ccx-score{white-space:nowrap;background:var(--soft);color:var(--green2);border-radius:999px;padding:7px 10px;font-size:13px;font-weight:700}
     #leh-ccx .ccx-meta{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
     #leh-ccx .ccx-pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:#fbfcfb}
+    #leh-ccx .ccx-pathway-preview{margin:10px 0 0;padding:10px 11px;border-left:3px solid var(--line);background:#fbfcfb;font-size:13px;line-height:1.45}
+    #leh-ccx .ccx-pathway-preview strong{color:var(--green2)}
+    #leh-ccx .ccx-pathway-note{display:block;color:var(--muted);font-size:11px;margin-top:4px}
     #leh-ccx .ccx-reasons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 0}
     #leh-ccx .ccx-reason{background:#f7faf8;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4}
     #leh-ccx details{margin-top:12px;border-top:1px solid #e9eeeb;padding-top:10px}
@@ -233,7 +236,7 @@
           <legend>Prioritize</legend>
           <div class="ccx-checks">
             <label class="ccx-check"><input type="checkbox" id="ccx-afford"> <span>Lower average net price after grants/scholarships</span></label>
-            <label class="ccx-check"><input type="checkbox" id="ccx-career"> <span>Broader career pathways</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-career"> <span>Career-pathway fit and evidence</span></label>
             <label class="ccx-check"><input type="checkbox" id="ccx-transfer"> <span>Transfer-friendly pathways</span></label>
             <label class="ccx-check"><input type="checkbox" id="ccx-small"> <span>Smaller learning environment</span></label>
             <label class="ccx-check"><input type="checkbox" id="ccx-transit"> <span>Better public-transit access</span></label>
@@ -447,12 +450,26 @@
       return Object.entries(x).filter(([,v])=>v!==null&&v!==undefined&&v!=='').map(([k,v])=>k+': '+v).join(', ');
     }
     function listText(value){return Array.isArray(value)&&value.length?value.map(listItemText).join('; '):'—'}
+    function pathwayLabel(x){
+      if(!x)return '';
+      if(typeof x==='string')return 'SOC '+x;
+      const code=x.soc_code||'',title=x.occupation_title||'';
+      return title?(title+(code?' ('+code+')':'')):(code?'SOC '+code:'');
+    }
+    function pathwayText(value){return Array.isArray(value)&&value.length?value.map(pathwayLabel).filter(Boolean).join('; '):'—'}
+    function pathwayPreview(career){
+      const paths=career&&Array.isArray(career.pathways)?career.pathways:[],count=Number(career&&career.pathway_count||paths.length||0);
+      if(!paths.length)return '';
+      const shown=paths.slice(0,3),extra=Math.max(count-shown.length,0);
+      return '<div class="ccx-pathway-preview"><strong>Related career pathways:</strong> '+esc(shown.map(pathwayLabel).filter(Boolean).join('; '))+(extra?' · +'+extra+' more mapped pathway'+(extra===1?'':'s'):'')+'<span class="ccx-pathway-note">CIP→SOC pathways describe related occupations; they are not placement probabilities or promised outcomes.</span></div>';
+    }
     function laborSummary(family,type){
       const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
       if(!rows.length)return '<div class="ccx-detail-note">'+esc(evidenceStateText(state))+'.</div>';
       return '<dl class="ccx-evidence-list">'+rows.map(x=>{
-        if(type==='current')return simpleRow('SOC '+(x.soc_code||'—'),(x.median_wage!==null&&x.median_wage!==undefined?money(x.median_wage):'Wage —')+(x.employment!==null&&x.employment!==undefined?' · employment '+x.employment:''),'wage '+evidenceStateText(x.wage_state||'missing')+(x.source_vintage?' · '+x.source_vintage:''));
-        return simpleRow('SOC '+(x.soc_code||'—'),(x.employment_change_pct!==null&&x.employment_change_pct!==undefined?x.employment_change_pct+'% change':'change —')+(x.annual_openings!==null&&x.annual_openings!==undefined?' · '+x.annual_openings+' annual openings':'')+(x.projection_year?' · through '+x.projection_year:''),x.source_vintage||'');
+        const label=pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified';
+        if(type==='current')return simpleRow(label,(x.median_wage!==null&&x.median_wage!==undefined?money(x.median_wage):'Wage —')+(x.employment!==null&&x.employment!==undefined?' · employment '+x.employment:''),'wage '+evidenceStateText(x.wage_state||'missing')+(x.source_vintage?' · '+x.source_vintage:''));
+        return simpleRow(label,(x.employment_change_pct!==null&&x.employment_change_pct!==undefined?x.employment_change_pct+'% change':'change —')+(x.annual_openings!==null&&x.annual_openings!==undefined?' · '+x.annual_openings+' annual openings':'')+(x.projection_year?' · through '+x.projection_year:''),x.source_vintage||'');
       }).join('')+'</dl>';
     }
     function renderCandidateDetail(detail){
@@ -468,9 +485,9 @@
         '<section class="ccx-evidence-group"><h4>Program / field outcomes</h4><dl class="ccx-evidence-list">'+
           simpleRow('Coverage',out.covered?'Evidence present':'No covered record')+evidenceRow('Median earnings',out.median_earnings,money)+evidenceRow('Median debt',out.median_debt,money)+evidenceRow('Completion rate',out.completion_rate,percent)+
         '</dl><p class="ccx-detail-note">Program/field outcomes remain separate from institution-level outcomes.</p></section>'+
-        '<section class="ccx-evidence-group"><h4>Transfer & pathway evidence</h4><dl class="ccx-evidence-list">'+
-          simpleRow('Transfer coverage',tr.covered?'Evidence present':'No covered record')+simpleRow('Transfer evidence records',tr.evidence_record_count)+simpleRow('Evidence levels',listText(tr.evidence_levels))+simpleRow('Source systems',listText(tr.source_systems))+simpleRow('Career SOC pathways',listText(career.soc_codes),career.covered?'covered':'coverage not present')+
-        '</dl></section>'+
+        '<section class="ccx-evidence-group"><h4>Transfer & career-pathway evidence</h4><dl class="ccx-evidence-list">'+
+          simpleRow('Transfer coverage',tr.covered?'Evidence present':'No covered record')+simpleRow('Transfer evidence records',tr.evidence_record_count)+simpleRow('Evidence levels',listText(tr.evidence_levels))+simpleRow('Source systems',listText(tr.source_systems))+simpleRow('Career pathway coverage',career.covered?'Evidence present':'No covered record')+simpleRow('Mapped pathway count',career.pathway_count)+simpleRow('Related career pathways',pathwayText(career.pathways))+(career.representative_pathways&&career.representative_pathways.length?simpleRow('Representative aligned pathways',pathwayText(career.representative_pathways)):'')+
+        '</dl><p class="ccx-detail-note">CIP→SOC pathways identify related occupations, not observed placement shares. Pathway count is descriptive and is not treated here as a quality score. Representative aligned pathways appear only when reviewed preference-alignment evidence supplies them.</p></section>'+
         '<section class="ccx-evidence-group"><h4>Labor-market evidence</h4><strong class="ccx-detail-note">Current selected-market evidence</strong>'+laborSummary(labor.selected_work_market,'current')+'<strong class="ccx-detail-note">Long-term outlook</strong>'+laborSummary(labor.long_term_outlook,'future')+'<p class="ccx-detail-note">Current-market evidence and long-term projections are separate and do not substitute for one another.</p></section>'+
         '<section class="ccx-evidence-group"><h4>Source status & provenance</h4><dl class="ccx-evidence-list">'+
           simpleRow('Accreditation coverage',acc.covered?'Evidence present':'No covered record')+simpleRow('Accreditation statuses',listText(acc.statuses))+simpleRow('Accrediting agencies',listText(acc.agency_names))+simpleRow('Data version',fresh.data_version)+simpleRow('Source freshness',listText(fresh.source_freshness))+simpleRow('Unresolved fields',unknowns.length?unknowns.join('; '):'None reported')+
@@ -521,12 +538,12 @@
       if(!rows.length)return '—<span class="ccx-cell-state">'+esc(evidenceStateText(state))+'</span>';
       return rows.map(x=>{
         if(type==='current'){
-          const parts=['SOC '+(x.soc_code||'—')];
+          const parts=[pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified'];
           if(x.median_wage!==null&&x.median_wage!==undefined)parts.push(money(x.median_wage));
           if(x.employment!==null&&x.employment!==undefined)parts.push('employment '+x.employment);
           return '<div>'+esc(parts.join(' · '))+'<span class="ccx-cell-state">'+esc(evidenceStateText(x.wage_state||state))+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
         }
-        const parts=['SOC '+(x.soc_code||'—')];
+        const parts=[pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified'];
         if(x.employment_change_pct!==null&&x.employment_change_pct!==undefined)parts.push(x.employment_change_pct+'% change');
         if(x.annual_openings!==null&&x.annual_openings!==undefined)parts.push(x.annual_openings+' annual openings');
         if(x.projection_year)parts.push('through '+x.projection_year);
@@ -564,7 +581,8 @@
         row('Transfer evidence records',x=>compareTextCell(x.transfer.evidence_record_count))+
         row('Transfer evidence levels',x=>compareTextCell(listText(x.transfer.evidence_levels)))+
         row('Transfer source systems',x=>compareTextCell(listText(x.transfer.source_systems)))+
-        row('Career SOC pathways',x=>compareTextCell(listText(x.career.soc_codes),x.career.covered?'covered':'coverage not present'))+
+        row('Mapped career pathways',x=>compareTextCell(pathwayText(x.career.pathways),x.career.covered?'related occupations; not placement probabilities':'coverage not present'))+
+        row('Mapped pathway count',x=>compareTextCell(x.career.pathway_count,'descriptive; not a quality score'))+
         section('Labor-market evidence')+
         row('Current selected market',x=>compareLaborCell(x.labor_market.selected_work_market,'current'))+
         row('Long-term outlook',x=>compareLaborCell(x.labor_market.long_term_outlook,'future'))+
@@ -618,12 +636,13 @@
       q('ccx-results').innerHTML=rows.length?rows.map(x=>{
         const rec=x.recommendation||{};
         const score=rec.status==='review_eligible_ranked'&&rec.baseline_score!=null?'<div class="ccx-score">'+esc(rankLabel(rec))+' · '+Math.round(rec.baseline_score*100)+'/100 index</div>':'<div class="ccx-score">'+esc(rankLabel(rec))+'</div>';
-        const career=x.career_pathways&&x.career_pathways.pathway_count!=null?'<span class="ccx-pill">'+esc(x.career_pathways.pathway_count)+' career pathway'+(x.career_pathways.pathway_count===1?'':'s')+'</span>':'';
+        const career=x.career_pathways&&x.career_pathways.pathway_count!=null?'<span class="ccx-pill">'+esc(x.career_pathways.pathway_count)+' mapped career pathway'+(x.career_pathways.pathway_count===1?'':'s')+'</span>':'';
+        const careerPreview=pathwayPreview(x.career_pathways);
         const coverage=x.evidence_coverage?'<span class="ccx-pill">'+esc(x.evidence_coverage.overall_status)+' evidence coverage</span>':'';
         const unknownCount=x.explanation&&Array.isArray(x.explanation.unknowns)?x.explanation.unknowns.length:0;
         const unknown=unknownCount?'<span class="ccx-pill">'+unknownCount+' unresolved must-have evidence field'+(unknownCount===1?'':'s')+'</span>':'';
         const selectedAttr=selected.has(x.candidate_id)?' checked':'';
-        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div><div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><div class="ccx-card-actions"><button type="button" class="ccx-detail-button" data-detail-key="'+esc(x.candidate_id)+'" aria-expanded="false">Evidence details</button><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></div><div class="ccx-detail-region" data-detail-region="'+esc(x.candidate_id)+'" hidden></div></article>';
+        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div>'+careerPreview+'<div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><div class="ccx-card-actions"><button type="button" class="ccx-detail-button" data-detail-key="'+esc(x.candidate_id)+'" aria-expanded="false">Evidence details</button><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></div><div class="ccx-detail-region" data-detail-region="'+esc(x.candidate_id)+'" hidden></div></article>';
       }).join(''):'<div class="ccx-empty"><strong>No service results returned.</strong><p>Try relaxing one or more must-have constraints.</p></div>';
       root.querySelectorAll('.ccx-detail-button').forEach(button=>button.addEventListener('click',()=>{const region=button.closest('.ccx-card').querySelector('.ccx-detail-region');toggleCandidateDetail(button,region)}));
       root.querySelectorAll('.ccx-compare-toggle input').forEach(el=>el.addEventListener('change',()=>{
