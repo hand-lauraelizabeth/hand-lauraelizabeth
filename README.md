@@ -57,6 +57,10 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 
 ## Applied Technical Demonstrations
 
+- [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
+- [Ethical AI Scenario Auditor](projects/ethical-ai-scenario-auditor/) — browser-based responsible-AI teaching tool for risk discovery, mitigation planning, provenance, oversight, and contestability.
+- [Audience Lifecycle & CRM Migration Planner](projects/audience-lifecycle-crm-migration/) — platform-agnostic lifecycle, data-model, migration-control, workflow, and KPI planning demonstration.
+
 - [Standards Check](projects/standards-check/) — browser-based JavaScript tool that converts standards-level assessment results into targeted reteach groups with adjustable mastery logic.
 - [Tutoring Growth Analysis in R](projects/tutoring-growth-analysis/) — reproducible mixed-effects analysis of pre/post growth with class- and student-level structure, confidence intervals, and explicit interpretation limits.
 
