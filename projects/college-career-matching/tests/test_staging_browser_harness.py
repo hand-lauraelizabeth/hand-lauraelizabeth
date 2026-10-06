@@ -20,4 +20,11 @@ class StagingBrowserHarnessTests(unittest.TestCase):
    self.assertEqual(r["runtime"]["expected_identity"]["snapshot_sha256"],manifest["output_sha256"])
    self.assertEqual(r["runtime"]["expected_identity"]["data_version"],manifest["data_version"])
 
+ def test_harness_can_build_large_pagination_snapshot(self):
+  with tempfile.TemporaryDirectory() as d:
+   out=Path(d)/"staging-browser.html";r=build_harness(out,18865,candidate_count=27)
+   manifest=json.loads(Path(r["manifest"]).read_text(encoding="utf-8"))
+   self.assertEqual(manifest["candidate_count"],27);self.assertEqual(manifest["institution_count"],27)
+   self.assertIn('"mode":"staging"',out.read_text(encoding="utf-8"))
+
 if __name__=="__main__":unittest.main()
