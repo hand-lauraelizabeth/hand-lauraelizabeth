@@ -12,8 +12,14 @@ export class MatchingServiceClient {
   candidate(id){return this.call(`candidate:${id}`,{path:`/candidate/${encodeURIComponent(id)}`})}
   compare(candidateIds,context={}, {signal=null}={}){
     const body={schema_version:'1.0',candidate_ids:candidateIds,...context}
-    const name=this.mode==='fixture'?`compare:${candidateIds.join('|')}`:'compare'
-    return this.call(name,{method:'POST',path:'/compare',body,signal})
+    if(this.mode==='fixture'){
+      const template=this.fixtures?.compare
+      if(!template)throw new Error('Missing fixture response: compare')
+      const candidates=candidateIds.map(id=>this.fixtures?.[`candidate:${id}`])
+      if(candidates.some(x=>!x))throw new Error('Missing fixture candidate detail for comparison')
+      return Promise.resolve({...structuredClone(template),candidate_ids:[...candidateIds],candidates:structuredClone(candidates)})
+    }
+    return this.call('compare',{method:'POST',path:'/compare',body,signal})
   }
 }
 export function validateRuntimeConfig(config){
