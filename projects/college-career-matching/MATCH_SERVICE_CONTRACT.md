@@ -26,6 +26,12 @@ The response contains institution × program candidates, eligibility, dimensions
 
 Duplicate candidate IDs fail closed rather than producing ambiguous results.
 
+## Career pathway evidence
+
+Each match result carries a descriptive `career_pathways` block with a mapped pathway count, SOC codes, and structured related-pathway rows. A pathway row contains the governed SOC code and an occupation title only when that title is present in the upstream governed evidence; the service does not manufacture titles from names or browser lookups.
+
+The full mapped pathway set is distinct from `representative_pathways`. The latter is reserved for reviewed career-preference alignment/explanation logic and may be empty. Pathway count is descriptive and is not, by itself, a quality score, placement probability, or graduate-outcome distribution.
+
 ## Labor evidence
 
 `labor_market.selected_work_market` contains current evidence only for the explicitly selected market. If the selected market has no evidence, the state is `unavailable`; the service does not silently substitute school-local, state, or national current evidence.
