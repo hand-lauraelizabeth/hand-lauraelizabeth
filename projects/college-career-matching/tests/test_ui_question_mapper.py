@@ -46,9 +46,16 @@ class MapperTests(unittest.TestCase):
  def test_active_options_reject_stale_state(self):
   with self.assertRaises(ValueError):map_answers(DEFS,{"decision_mode":"broad_exploration","school_states":["ZZ"]},OPTIONS)
  def test_options_version_propagates(self):self.assertEqual(map_answers(DEFS,{"decision_mode":"broad_exploration"},OPTIONS)["data_version"],"D1")
- def test_unreviewed_career_attribute_mapping_fails_closed(self):
-  with self.assertRaisesRegex(ValueError,"career attribute mapping review is still required"):map_answers(DEFS,{"decision_mode":"career_first","career_analysis":4})
- def test_skipped_unreviewed_career_questions_do_not_block_career_first(self):
+ def test_reviewed_career_questions_emit_exact_governed_attributes_and_scales(self):
+  r=map_answers(DEFS,{"decision_mode":"career_first","career_analysis":4,"career_problem_solving":3,"career_creativity":5});by={x["preference_id"]:x for x in r["career_preferences"]}
+  self.assertEqual(by["career_analysis"]["attribute_id"],"onet31:work_activity:4.A.2.a.4:IM");self.assertEqual(by["career_problem_solving"]["attribute_id"],"onet31:work_activity:4.A.2.b.1:IM");self.assertEqual(by["career_creativity"]["attribute_id"],"onet31:work_activity:4.A.2.b.2:IM")
+  self.assertTrue(all(x["operator"]=="higher_preferred" and x["scale_min"]==1 and x["scale_max"]==5 for x in by.values()));validate_request(r)
+ def test_reviewed_career_question_is_career_first_only(self):
+  with self.assertRaises(ValueError):map_answers(DEFS,{"decision_mode":"broad_exploration","career_analysis":4})
+ def test_career_definition_drift_from_registry_fails_closed(self):
+  bad=json.loads(json.dumps(DEFS));q=next(x for x in bad["questions"] if x["question_id"]=="career_creativity");q["mapping"]["attribute_id"]="invented"
+  with self.assertRaisesRegex(ValueError,"differs from approved registry"):validate_definitions(bad)
+ def test_skipped_career_questions_do_not_block_career_first(self):
   r=map_answers(DEFS,{"decision_mode":"career_first","work_market_semantics":"national"});self.assertEqual(r["career_preferences"],[]);self.assertEqual(r["geography"]["work_market_semantics"],"national")
  def test_transfer_question_rejected_outside_transfer_modes(self):
   with self.assertRaises(ValueError):map_answers(DEFS,{"decision_mode":"career_first","transfer_source":"FIC-1"})
