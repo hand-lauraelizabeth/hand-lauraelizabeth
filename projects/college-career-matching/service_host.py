@@ -15,7 +15,7 @@ from candidate_detail_service import candidate_detail
 from compare_service_adapter import compare as compare_candidates
 from match_service_adapter import match as match_candidates
 from metadata_service_adapter import build_metadata
-from options_service_adapter import options as build_options
+from options_service_adapter import options as build_options,labor_market_options
 
 MAX_BODY_BYTES=262144
 
@@ -55,6 +55,11 @@ class ServiceState:
   if c is None:raise KeyError(candidate_id)
   return candidate_detail(c,self.current_labor,self.projections,work_market,self.data_version)
  def match(self,request):
+  geography=request.get("geography") or {};market=geography.get("intended_work_market");semantics=geography.get("work_market_semantics")
+  if semantics=="selected_market":
+   available={(x["market_type"],x["market_id"]) for x in labor_market_options(self.current_labor)}
+   key=(clean((market or {}).get("market_type")),clean((market or {}).get("market_id")))
+   if key not in available:raise ValueError("selected labor market is not available in the active governed labor evidence")
   return match_candidates(request,self.snapshot,self.data_version,self.model_version,self.current_labor,self.projections,production_authorized=self.production_authorized)
  def compare(self,request):
   ids=request.get("candidate_ids")
