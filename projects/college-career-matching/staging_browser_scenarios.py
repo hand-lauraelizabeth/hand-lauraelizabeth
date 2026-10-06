@@ -169,11 +169,11 @@ def run():
    north_response=next(x for x in response["results"] if x["candidate_id"]=="SYN001:P1")
    assert {x["code"] for x in north_response["explanation"]["context"]}=={"CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE","LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_AVAILABLE"}
    assert north_response["explanation"]["tradeoffs"]==[]
-   north_traces=north.find_elements(By.CSS_SELECTOR,".ccx-priority-explanation details");assert len(north_traces)==2
+   north_traces=north.find_elements(By.CSS_SELECTOR,"details.ccx-explanation-trace");assert len(north_traces)==2
    driver.execute_script("arguments[0].open=true;",north_traces[0]);driver.execute_script("arguments[0].open=true;",north_traces[1])
    trace_text=" ".join(x.text for x in north_traces)
    assert "Evidence ID:" in trace_text and "Data Scientists (15-2051)" in trace_text and "Harbor–Metro Labor Market (fictional)" in trace_text and "Source vintage: SYNTHETIC" in trace_text and "Evidence state: observed" in trace_text and "Median wage $94,500" in trace_text and "Projected change 18%" in trace_text
-   river_trace=river.find_element(By.CSS_SELECTOR,".ccx-priority-explanation.ccx-gap details");driver.execute_script("arguments[0].open=true;",river_trace)
+   river_trace=river.find_element(By.CSS_SELECTOR,".ccx-priority-explanation.ccx-gap details.ccx-explanation-trace");driver.execute_script("arguments[0].open=true;",river_trace)
    assert "Evidence state: unavailable for this candidate" in river_trace.text and "OEWS_MSA 35620" in river_trace.text and "Source vintage: not reported" in river_trace.text
    assert not driver.find_elements(By.CSS_SELECTOR,".ccx-detail-region:not([hidden])")
    driver.execute_script("arguments[0].click();",driver.find_element(By.ID,"ccx-reset"))
