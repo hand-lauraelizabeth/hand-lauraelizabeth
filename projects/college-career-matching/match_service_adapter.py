@@ -9,6 +9,7 @@ from labor_evidence_service_adapter import build_for_candidate
 from constraint_field_registry import load_registry,validate_constraint
 from ranking_binding_contract import validate_bundle,ranking_context_id
 MODES={"broad_exploration","career_first","college_program_first","compare_known","transfer","returning_student"};UNKNOWN={"keep_visible","exclude_unknown"};DIMS={"college_fit","affordability","academic_program_fit","transfer_pathway_fit","admissions_context","career_pathway_fit","current_labor_market","long_term_outlook","geographic_fit","transit_access_fit","walkability_fit","housing_context_fit","accessibility_evidence_fit"};CAREER_OPS={"target_distance","higher_preferred","lower_preferred","range","categorical_match"};MISSING={None,"","NA","N/A","NULL","NONE"}
+def clean(v:Any)->str:return str(v).strip() if v is not None else ""
 def missing(v:Any)->bool:return v is None or (isinstance(v,str) and v.strip().upper() in {str(x).upper() for x in MISSING if x is not None})
 def num(v):
  try:return float(v)
