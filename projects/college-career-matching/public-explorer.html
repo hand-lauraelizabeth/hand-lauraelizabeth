@@ -233,6 +233,7 @@
       clearServiceResults('Matcher unavailable.','The governed service identity could not be validated. Controls are disabled until a valid service identity is available.','Matcher unavailable');
     }
     function clearServiceResults(title,detail,countText){
+      compareGeneration++;if(activeCompareController){activeCompareController.abort();activeCompareController=null}
       lastResponse=null;selected.clear();selectedRecords.clear();
       q('ccx-pagination').hidden=true;q('ccx-page-status').textContent='';
       q('ccx-results').innerHTML='<div class="ccx-empty"><strong>'+esc(title)+'</strong><p>'+esc(detail)+'</p></div>';
