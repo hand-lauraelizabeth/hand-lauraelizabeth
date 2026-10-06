@@ -35,6 +35,18 @@ class MatchServiceTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,"only valid with selected_market"):validate_request(q)
  def test_legacy_structured_market_without_semantics_remains_valid(self):
   q=request("career_first");q["geography"]={"intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}};validate_request(q)
+ def test_explicit_labor_priorities_emit_context_without_numeric_tradeoffs(self):
+  q=request("career_first");q["constraints"]=[];q["preferences"]=[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":1,"priority_explicit":True},{"preference_id":"long_term_outlook_priority","dimension":"long_term_outlook","importance":1,"priority_explicit":True}];q["geography"]={"work_market_semantics":"selected_market","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}}
+  cur=[{"UNITID":"FIC-A","program_id":"P1","soc_code":"15-1252","occupation_title":"Software Developers","market_id":"35620","market_type":"OEWS_MSA","market_label":"Metro Example","employment":"1000","employment_state":"observed","median_wage":"90000","wage_state":"observed"}];proj=[{"UNITID":"FIC-A","program_id":"P1","soc_code":"15-1252","projection_geography":"national","employment_change_pct":"12","annual_openings":"1000"}]
+  ex=match(q,[candidate("A")],"D","M",cur,proj)["results"][0]["explanation"];self.assertEqual({x["code"] for x in ex["context"]},{"CURRENT_LABOR_PRIORITY_EVIDENCE_AVAILABLE","LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_AVAILABLE"});self.assertEqual(ex["tradeoffs"],[]);self.assertEqual(ex["unknowns"],[]);self.assertTrue(all(x["evidence_ids"] for x in ex["context"]))
+ def test_unavailable_priority_evidence_is_unknown_not_negative_tradeoff(self):
+  q=request("career_first");q["constraints"]=[];q["preferences"]=[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":1,"priority_explicit":True},{"preference_id":"long_term_outlook_priority","dimension":"long_term_outlook","importance":1,"priority_explicit":True}];q["geography"]={"work_market_semantics":"selected_market","intended_work_market":{"market_id":"35620","market_type":"OEWS_MSA"}}
+  ex=match(q,[candidate("A")],"D","M",[],[])["results"][0]["explanation"];self.assertEqual({x["code"] for x in ex["unknowns"]},{"CURRENT_LABOR_PRIORITY_EVIDENCE_UNAVAILABLE","LONG_TERM_OUTLOOK_PRIORITY_EVIDENCE_UNAVAILABLE"});self.assertEqual(ex["tradeoffs"],[]);self.assertEqual(ex["context"],[])
+ def test_current_labor_priority_without_selected_market_is_limitation_not_score(self):
+  q=request("career_first");q["constraints"]=[];q["preferences"]=[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":1,"priority_explicit":True}];q["geography"]={"work_market_semantics":"national","intended_work_market":None}
+  ex=match(q,[candidate("A")],"D","M")["results"][0]["explanation"];self.assertEqual(ex["unknowns"][0]["code"],"CURRENT_LABOR_PRIORITY_MARKET_NOT_EVALUATED");self.assertEqual(ex["tradeoffs"],[])
+ def test_nonpositive_labor_priority_does_not_emit_priority_explanation(self):
+  q=request("career_first");q["constraints"]=[];q["preferences"]=[{"preference_id":"current_labor_market_priority","dimension":"current_labor_market","importance":0,"priority_explicit":True}];ex=match(q,[candidate("A")],"D","M")["results"][0]["explanation"];self.assertEqual(ex["context"],[]);self.assertEqual(ex["unknowns"],[])
  def test_pagination_is_validated(self):
   for page,size in [(0,20),(1,0),(1,101)]:
    q=request();q["page"]=page;q["page_size"]=size
