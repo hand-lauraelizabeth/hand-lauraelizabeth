@@ -12,7 +12,7 @@ Each row represents one authoritative candidate program identity and requires `U
 
 The artifact contains `data_version`, generation timestamp, coverage counts, and controlled collections for states, credential levels, institutions, institution-program choices, CIP fields, and supported modality evidence.
 
-Program option values are namespaced by institution (`UNITID:program_id`) so identically named programs at different institutions cannot collapse into one UI choice.
+Program options carry the canonical `candidate_id` from the active product snapshot and use it as the submitted option value. Current product snapshots encode that identity as `UNITID:program_id`; older test/fixture rows without an explicit `candidate_id` may use that deterministic form as a compatibility fallback. The frontend must not reconstruct, fuzzy-match, or rename candidate identity independently of the active snapshot.
 
 ## Freshness and consistency
 
