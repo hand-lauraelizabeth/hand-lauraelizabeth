@@ -37,9 +37,9 @@ def validate(payload):
             errors.append(f"{prefix}: blank or duplicate institution name")
         if isinstance(name, str):
             seen.add(name.strip().casefold())
-        if not isinstance(record["setting"], str) or record["setting"] not in SETTINGS:
+        if record["setting"] is not None and (not isinstance(record["setting"], str) or record["setting"] not in SETTINGS):
             errors.append(f"{prefix}: unrecognized campus setting")
-        if not isinstance(record["housing"], bool):
+        if record["housing"] is not None and not isinstance(record["housing"], bool):
             errors.append(f"{prefix}: housing must be boolean")
         if record["access"] is not None and (type(record["access"]) is not int or not 1 <= record["access"] <= 3):
             errors.append(f"{prefix}: access must be null or an integer from 1 to 3")
