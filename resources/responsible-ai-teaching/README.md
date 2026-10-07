@@ -8,7 +8,7 @@ The kit combines three browser-based demonstrations:
 - [Evidence-Safe Prompt Lab](../../projects/evidence-safe-prompt-lab/) — build source-conscious prompts with support classifications, uncertainty, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) — move from abstract principles to concrete workflow risks, mitigations, owners, oversight, and contestability.
 
-All three tools run client-side and do not call an AI API.
+All three tools run client-side and do not call an AI API.\n\nSupporting teaching resources:\n\n- [Responsible AI Scenario Bank](Scenario_Bank.md) — eight scenarios spanning low-stakes drafting, research, analytics, student support, hiring, education, health, and policy.\n- [AI Literacy & Responsible Use Assessment Rubric](AI_Literacy_Assessment_Rubric.md) — nine-dimension rubric focused on task choice, evidence, verification, privacy, risk, human responsibility, provenance, and redesign.
 
 ## Teaching model
 
