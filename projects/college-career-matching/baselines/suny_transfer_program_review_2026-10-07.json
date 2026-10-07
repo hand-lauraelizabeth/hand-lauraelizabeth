@@ -1,0 +1,33 @@
+{
+  "baseline_id": "suny-step-program-review-queue-2026-10-07",
+  "status": "PASS",
+  "source_snapshot": {
+    "system": "SUNY STEP Transfer Agreement Inventory",
+    "url": "https://step.transfer.suny.edu/agreements/",
+    "retrieved_at": "2026-10-07T14:35:03.228072+00:00",
+    "agreement_count": 528
+  },
+  "institution_identity_precondition": {
+    "unique_step_campus_labels": 58,
+    "accepted_reviewed_labels": 58,
+    "both_sides_matched_agreements": 528
+  },
+  "review_queue": {
+    "rows": 692,
+    "unique_review_ids": 692,
+    "sending_review_rows": 385,
+    "receiving_review_rows": 307,
+    "sending_agreement_rows_missing_program_text": 0,
+    "receiving_agreement_rows_missing_program_text": 117,
+    "rows_with_parsed_degree": 571,
+    "auto_assigned_cip_count": 0
+  },
+  "checks": {
+    "review_ids_unique": true,
+    "unitid_present_for_all_review_rows": true,
+    "source_program_text_preserved": true,
+    "no_title_only_cip_assignment": true
+  },
+  "semantic_guardrail": "Degree parsing is a review convenience only. No CIP is assigned from title similarity. Program/CIP remains unresolved until source-published CIP, authoritative institution-program identity, or a separately reviewed program-name + award-level crosswalk supports it.",
+  "workflow_run": "https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/37637883090"
+}
