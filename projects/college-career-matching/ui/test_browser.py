@@ -61,6 +61,11 @@ async def main():
         await page.locator("#cost").fill("0")
         assert await page.locator(".result").count() == 1, "A zero-cost public record should remain eligible"
         await page.locator("#cost").fill("25000")
+        await page.locator("#income").select_option("30_48k")
+        assert await page.locator(".result").count() == 0, "Unknown net price cannot satisfy a cost ceiling"
+        await page.locator("#cost").fill("")
+        assert await page.locator(".result").count() == 1, "Unknown net price must remain visible without a ceiling"
+        assert "net price unavailable" in await page.locator(".result").inner_text()
         await page.unroute("**/public-data.json")
         invalid = dict(record)
         invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
