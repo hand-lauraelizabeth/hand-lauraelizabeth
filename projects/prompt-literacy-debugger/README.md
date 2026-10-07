@@ -44,7 +44,7 @@ This makes hidden assumptions visible and creates a natural discussion about:
 
 ## Framework alignment
 
-The teaching design is consistent with current AI-literacy and responsible-AI frameworks that emphasize human agency, critical evaluation, risk management, and responsible use rather than treating AI proficiency as prompt技巧 alone:
+The teaching design is consistent with current AI-literacy and responsible-AI frameworks that emphasize human agency, critical evaluation, risk management, and responsible use rather than treating AI proficiency as prompt technique alone:
 
 - NIST, *Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile* (NIST AI 600-1): https://doi.org/10.6028/NIST.AI.600-1
 - UNESCO, *AI Competency Framework for Teachers* (2024): https://www.unesco.org/en/articles/ai-competency-framework-teachers
