@@ -32,6 +32,13 @@ class PreflightTests(unittest.TestCase):
             archive.write(self.path, arcname="institution.csv")
         self.assertEqual(preflight.inspect(archive_path, "PUB")["header_check"], "PASS")
 
+    def test_macos_resource_fork_is_not_second_dataset(self):
+        archive_path = Path(self.tmp.name) / "institution.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            archive.write(self.path, arcname="Most-Recent-Cohorts-Institution.csv")
+            archive.writestr("__MACOSX/._Most-Recent-Cohorts-Institution.csv", b"resource fork")
+        self.assertEqual(preflight.inspect(archive_path, "PUB")["header_check"], "PASS")
+
     def test_multiple_csv_zip_rejected(self):
         archive_path = Path(self.tmp.name) / "institution.zip"
         with zipfile.ZipFile(archive_path, "w") as archive:
