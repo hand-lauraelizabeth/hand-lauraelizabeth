@@ -57,3 +57,6 @@ Run `python build_scorecard_review_queue.py /path/to/Most-Recent-Cohorts-Institu
 
 ## Locale and affordability review flags
 The internal review queue now includes `locale_category` derived from two-digit NCES locale code families: `1x` City, `2x` Suburb, `3x` Town, and `4x` Rural; missing/unrecognized codes remain Unknown. **Town is not interchangeable with Rural**, and the public three-option setting filter requires an explicit design decision before Town records are included. `net_price_status` marks raw first-band samples as `reported` only for signed integer strings; other values are `unavailable_or_suppressed`. This is a triage flag, not a complete affordability audit of all five bands or proof of metric cohort year.
+
+## Explicit import approval gate
+`import_scorecard.py` requires top-level metadata `publication_approved: true` before it will produce a deployment-format bundle. This flag is a deliberate human review checkpoint, **not** cryptographic proof or an independent fact-check: reviewers must first confirm the income-band metric reference year, population/UNITID, source attribution, and campus/housing/access/aid assertions. The internal review queue never sets this flag and remains `DO_NOT_PUBLISH`. Do not enable approval to bypass missing documentation.
