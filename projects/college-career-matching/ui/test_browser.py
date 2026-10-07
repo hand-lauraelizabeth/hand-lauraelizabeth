@@ -41,7 +41,7 @@ async def main():
         record = {
             "name": "<img src=x onerror=alert(1)>",
             "setting": "Urban", "housing": True, "access": None,
-            "cost": {"low": 0, "mid": None, "high": 12000},
+            "cost": {"0_30k": 0, "30_48k": None, "48_75k": 5000, "75_110k": 9000, "110k_plus": 12000},
             "careers": {"data": None, "education": 0, "health": 2, "business": 3},
             "aid": ["<svg onload=alert(1)>"], "note": "<script>alert(1)</script>",
             "source": "Source <test>", "reference_year": 2025
@@ -63,7 +63,7 @@ async def main():
         await page.locator("#cost").fill("25000")
         await page.unroute("**/public-data.json")
         invalid = dict(record)
-        invalid["cost"] = {"low": 0, "high": 12000}
+        invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
         await page.route("**/public-data.json", lambda route: route.fulfill(
             status=200, content_type="application/json",
             body=json.dumps({"schema_version": 1, "records": [invalid]})))
