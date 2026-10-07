@@ -33,6 +33,16 @@ class BundleTests(unittest.TestCase):
         payload["records"][0]["housing"] = None
         self.assertEqual(validator.validate(payload), [])
 
+    def test_unknown_aid_types_allowed(self):
+        payload = copy.deepcopy(GOOD)
+        payload["records"][0]["aid"] = None
+        self.assertEqual(validator.validate(payload), [])
+
+    def test_invalid_aid_types_rejected(self):
+        payload = copy.deepcopy(GOOD)
+        payload["records"][0]["aid"] = ["verified", 42]
+        self.assertTrue(validator.validate(payload))
+
     def test_non_object_bundle(self):
         for payload in (None, [], "string", 4):
             with self.subTest(payload=payload):
