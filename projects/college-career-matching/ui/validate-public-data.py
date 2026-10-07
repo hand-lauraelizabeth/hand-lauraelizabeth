@@ -52,7 +52,7 @@ def validate(payload):
                     errors.append(f"{prefix}: invalid {band} cost; use null for unavailable")
         if not isinstance(record["careers"], dict) or any(k not in record["careers"] or (record["careers"][k] is not None and (type(record["careers"][k]) is not int or not 0 <= record["careers"][k] <= 3)) for k in CAREERS):
             errors.append(f"{prefix}: career signals must be null or integers 0-3")
-        if not isinstance(record["aid"], list) or not all(isinstance(a, str) for a in record["aid"]):
+        if record["aid"] is not None and (not isinstance(record["aid"], list) or not all(isinstance(a, str) for a in record["aid"])):
             errors.append(f"{prefix}: aid must be a string list")
         if not isinstance(record["source"], str) or not record["source"].strip():
             errors.append(f"{prefix}: source required")
