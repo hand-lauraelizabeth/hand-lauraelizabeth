@@ -13,7 +13,7 @@ spec.loader.exec_module(validator)
 
 GOOD = {"schema_version": 1, "records": [{
     "name": "Example Institution", "setting": "Urban", "housing": True,
-    "access": None, "cost": {"low": 0, "mid": None, "high": 12000},
+    "access": None, "cost": {"0_30k": 0, "30_48k": None, "48_75k": 5000, "75_110k": 9000, "110k_plus": 12000},
     "careers": {"data": None, "education": 0, "health": 2, "business": 3},
     "aid": [], "source": "Official dataset, verified separately", "reference_year": 2025,
 }]}
@@ -36,12 +36,12 @@ class BundleTests(unittest.TestCase):
 
     def test_missing_cost_key(self):
         payload = copy.deepcopy(GOOD)
-        del payload["records"][0]["cost"]["mid"]
+        del payload["records"][0]["cost"]["30_48k"]
         self.assertTrue(validator.validate(payload))
 
     def test_boolean_cost_rejected(self):
         payload = copy.deepcopy(GOOD)
-        payload["records"][0]["cost"]["low"] = True
+        payload["records"][0]["cost"]["0_30k"] = True
         self.assertTrue(validator.validate(payload))
 
     def test_missing_career_key(self):
