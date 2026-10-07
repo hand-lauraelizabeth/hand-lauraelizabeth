@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Role Evidence Engine — v2.1</title>
+<style>
+:root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header,main{max-width:1180px;margin:auto;padding:24px}header{padding-bottom:4px}h1,h2,h3{margin:.1em 0 .45em}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.03em}p{margin:.35em 0 1em}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+textarea{width:100%;min-height:240px;border:1px solid var(--line);border-radius:9px;padding:11px;font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fbfcfa;color:var(--ink)}
+button,select,input{font:inherit}.btn{border:0;border-radius:999px;padding:10px 15px;background:var(--green);color:#fff;font-weight:700;cursor:pointer}.btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{font-size:24px;display:block}.stat span{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}th,td{padding:10px;vertical-align:top;border-bottom:1px solid var(--line);text-align:left}th{position:sticky;top:0;background:#f6f8f6;z-index:1}
+.tag{display:inline-block;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700;background:var(--soft);color:var(--green);margin:1px}.tag.pref{background:#fff6e8;color:var(--warn)}.tag.hard{background:#fbeceb;color:var(--bad)}
+.signal{border-left:4px solid var(--green);background:var(--soft);padding:10px 12px;margin:8px 0}.signal.warn{border-left-color:var(--warn);background:#fff8ef}
+details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:auto;max-height:650px;border:1px solid var(--line);border-radius:10px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}header,main{padding:16px}textarea{min-height:190px}}
+</style>
+</head>
+<body>
+<header>
+  <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
+  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.1</span></h1>
+  <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
+</header>
+<main>
+<div class="grid">
+<section class="panel">
+<h2>Target job</h2>
+<textarea id="job" placeholder="Paste the full job description. Include qualifications, responsibilities, preferred requirements, and salary if available."></textarea>
+<div class="row"><button class="btn" id="analyze">Analyze posting</button><button class="btn ghost" id="sampleJob">Load sample</button></div>
+</section>
+<section class="panel">
+<h2>Candidate evidence</h2>
+<textarea id="candidate" placeholder="Paste resume/CV text, portfolio evidence, accomplishment inventory, or a verified evidence summary."></textarea>
+<div class="row"><button class="btn ghost" id="sampleCandidate">Load sample evidence</button><button class="btn ghost" id="export">Export matrix CSV</button></div>
+</section>
+</div>
+
+<div class="stats" id="stats"></div>
+<div class="grid">
+<section class="panel">
+<h2>Posting structure</h2>
+<div id="structure"><p class="muted">Analyze a posting to classify visible hard requirements, preferred signals, responsibilities, seniority/scope, tools, and compensation.</p></div>
+</section>
+<section class="panel">
+<h2>Interpretation</h2>
+<div id="interpret"><div class="signal"><b>Coverage is not truth.</b><br>Text evidence can show visibility, but it cannot prove depth, authority, recency, or performance by itself.</div></div>
+</section>
+</div>
+
+<section class="panel" style="margin-top:16px">
+<h2>Requirement matrix</h2>
+<div class="matrix"><table><thead><tr><th>Type</th><th>Requirement</th><th>Evidence found</th><th>Visibility</th><th>Gap type</th><th>Next action</th></tr></thead><tbody id="rows"><tr><td colspan="6" class="muted">No analysis yet.</td></tr></tbody></table></div>
+</section>
+
+<details class="panel"><summary>How v2.1 classifies text</summary>
+<p>This first implementation is deliberately heuristic and inspectable. It splits the posting into sentences/bullets, classifies each line from visible wording, extracts meaningful terms, and searches candidate evidence for exact or normalized phrase support. It does not infer credentials, direct-report relationships, fiscal authority, or proficiency from ambiguous language.</p>
+</details>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const STOP=new Set(('the a an and or to of in on for with from by as at is are be will this that you your our we they their role position candidate candidates including include such ability required preferred plus minimum must should strong demonstrated experience years year work working skills skill responsible responsibilities qualifications qualification').split(' '));
+const TYPE_RULES=[
+ ['hard',/(required|must have|minimum qualification|minimum of|at least|bachelor|master|degree|years? of experience|certification|license)/i],
+ ['preferred',/(preferred|nice to have|plus\b|ideally|bonus|desired)/i],
+ ['scope',/(lead|manage|supervise|direct reports?|budget|fiscal|portfolio|roadmap|governance|strategy|strategic|executive|enterprise|cross-functional|change management)/i],
+ ['tool',/(salesforce|hubspot|workday|tableau|power bi|sql|python|r\b|excel|adobe|asana|jira|cms|crm|google analytics)/i],
+ ['responsibility',/(responsible for|you will|lead |manage |develop |build |create |oversee |coordinate |design |analyze |deliver |drive |partner with|implement|own )/i]
+];
+function clean(s){return s.replace(/^[-•*\d.)\s]+/,'').replace(/\s+/g,' ').trim()}
+function lines(text){return text.split(/\n+/).flatMap(x=>x.split(/(?<=[.;!?])\s+/)).map(clean).filter(x=>x.length>18)}
+function classify(s){for(const [t,re] of TYPE_RULES)if(re.test(s))return t;return 'context'}
+function terms(s){return [...new Set((s.toLowerCase().match(/[a-z][a-z0-9+#./-]{2,}/g)||[]).map(x=>x.replace(/[.,;:]+$/,'')).filter(x=>!STOP.has(x)&&x.length>3))]}
+function phraseCandidates(s){const out=[]; const patterns=[/\b\d+\+?\s+years?[^,.;]*/ig,/\b(?:bachelor'?s?|master'?s?|phd|doctorate)[^,.;]*/ig,/\b(?:budget|portfolio|roadmap|governance|direct reports?|supervis\w*|manage\w*)[^,.;]*/ig];patterns.forEach(r=>{const m=s.match(r);if(m)out.push(...m)});return out}
+function evidence(req,cand){
+ const c=cand.toLowerCase(), r=req.toLowerCase();
+ const phrases=phraseCandidates(req);
+ const exact=phrases.find(p=>c.includes(p.toLowerCase()));
+ const ts=terms(req), hits=ts.filter(t=>c.includes(t)), ratio=ts.length?hits.length/ts.length:0;
+ if(exact)return{status:'strong',found:exact,hits,ratio:1};
+ if(ratio>=.55)return{status:'visible',found:hits.slice(0,8).join(', '),hits,ratio};
+ if(ratio>=.25)return{status:'partial',found:hits.slice(0,8).join(', '),hits,ratio};
+ return{status:'not visible',found:'',hits,ratio}
+}
+function gap(type,ev,req){
+ if(ev.status==='strong'||ev.status==='visible')return 'No visible gap';
+ if(/years?|degree|certif|license/i.test(req)&&ev.status==='not visible')return 'Verification / chronology gap';
+ if(type==='scope'&&ev.status!=='visible')return 'Authority / scope visibility gap';
+ if(type==='tool'&&ev.status==='partial')return 'Depth / recency gap';
+ if(ev.status==='partial')return 'Evidence visibility gap';
+ return type==='hard'?'Potential material capability gap':'Evidence visibility or context gap'
+}
+function action(type,g){
+ if(g==='No visible gap')return 'Keep source-specific evidence; quantify scope where useful.';
+ if(/Verification|chronology/.test(g))return 'Recover exact dates/credential evidence before strengthening the claim.';
+ if(/Authority|scope/.test(g))return 'Surface people, budget/resource, portfolio, governance, or decision-right evidence explicitly.';
+ if(/Depth|recency/.test(g))return 'Document most recent independent use and depth; refresh or build proof if needed.';
+ if(/material/.test(g))return 'Do not keyword-stuff. Decide whether to build the capability or deprioritize the role.';
+ return 'Add a specific resume bullet, portfolio proof, or interview example if the experience is real.'
+}
+let DATA=[];
+function analyze(){
+ const job=$('#job').value.trim(), cand=$('#candidate').value.trim();
+ if(!job){alert('Paste a job description first.');return}
+ const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,cand),g=gap(type,ev,text);return{id:i+1,type,text,ev,g,action:action(type,g)}});
+ DATA=xs;
+ const counts={};xs.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
+ const hard=xs.filter(x=>x.type==='hard'), hardVisible=hard.filter(x=>['strong','visible'].includes(x.ev.status)).length;
+ const allVisible=xs.filter(x=>['strong','visible'].includes(x.ev.status)).length;
+ const partial=xs.filter(x=>x.ev.status==='partial').length;
+ const risk=xs.filter(x=>/material|Verification|Authority/.test(x.g)).length;
+ $('#stats').innerHTML=[[xs.length,'requirements/signals'],[hard.length?Math.round(hardVisible/hard.length*100)+'%':'–','hard req. visibility'],[Math.round(allVisible/xs.length*100)+'%','overall visibility'],[partial,'partial evidence']].map(x=>'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
+ $('#structure').innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<span class="tag '+k+'">'+k+': '+v+'</span>').join(' ')+'<p class="muted" style="margin-top:12px">'+(job.match(/\$\s?\d{2,3}(?:,\d{3})?/g)||[]).slice(0,4).join(' · ')+'</p>';
+ $('#interpret').innerHTML=(risk?'<div class="signal warn"><b>'+risk+' higher-attention items.</b><br>These include possible hard-requirement, chronology, or authority/scope gaps. Review before rewriting materials.</div>':'<div class="signal"><b>No major heuristic risk flags.</b><br>Still verify depth, recency, authority, and source provenance.</div>')+'<div class="signal"><b>Use the matrix as a diagnostic.</b><br>A visibility gap means “not legible in the supplied evidence,” not automatically “you lack the capability.”</div>';
+ $('#rows').innerHTML=xs.map(x=>'<tr><td><span class="tag '+x.type+'">'+x.type+'</span></td><td>'+esc(x.text)+'</td><td>'+esc(x.ev.found||'None found')+'</td><td>'+x.ev.status+'</td><td>'+esc(x.g)+'</td><td>'+esc(x.action)+'</td></tr>').join('');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+$('#analyze').onclick=analyze;
+$('#sampleJob').onclick=()=>{$('#job').value='Director, Learning Programs\nRequired: 8+ years of experience in learning, curriculum, or program leadership.\nBachelor’s degree required; master’s preferred.\nLead a portfolio of learning programs and own the roadmap.\nManage and develop a team of program managers and facilitators.\nOversee vendor contracts and program budgets.\nPartner with executive stakeholders across product, operations, and marketing.\nExperience with analytics and CRM systems preferred.'};
+$('#sampleCandidate').onclick=()=>{$('#candidate').value='M.A., English & Comparative Literature. Manager, Curriculum Development: lead curriculum development, portfolio strategy, QA, facilitator relationships, contracting, performance reviews, and cross-functional workflows. Portfolio includes 17 titles across 38 variants. Previous workforce leadership included 90+ employer partnerships and 260–270 annual placements. Interviewed, onboarded, trained, scheduled, and supported performance for approximately 85–110 instructors per cycle. Operational oversight across budgets and contracts up to $1.25M. Analytics, CRM, CMS, and data-quality experience.'};
+$('#export').onclick=()=>{if(!DATA.length)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=['Type,Requirement,Evidence,Visibility,Gap type,Next action'].concat(DATA.map(x=>[x.type,x.text,x.ev.found,x.ev.status,x.g,x.action].map(q).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='role-evidence-matrix.csv';a.click()};
+</script>
+</body></html>
