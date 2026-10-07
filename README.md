@@ -38,7 +38,7 @@ I also build reusable public tools that apply the same design principles to rese
 | [Survey Research](resources/survey-needs-assessment/) | Instrument QA, response analysis, segmentation, findings |
 | [Research Ethics](resources/research-ethics-irb/) | Ethics, consent, privacy, recruitment, IRB-readiness planning |
 | [Quantitative Analysis](resources/quantitative-analysis/) | SPSS-ready planning, hypotheses, QA, assumptions, reporting |
-| [Responsible AI Teaching](resources/responsible-ai-teaching/) | Evidence-safe prompting, source-to-claim checks, ethical-AI scenarios, red-teaming, capstone rubric |
+| [Responsible AI Teaching](resources/responsible-ai-teaching/) | Prompt literacy, evidence-safe prompting, source-to-claim checks, ethical-AI scenarios, red-teaming, capstone rubric |
 
 [Browse the full public Tools & Templates index](resources/README.md).
 
@@ -58,7 +58,7 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 
 ## Applied Technical Demonstrations
 
-- [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
+- [Prompt Literacy Debugger](projects/prompt-literacy-debugger/) — client-side teaching tool for diagnosing task clarity, evidence boundaries, authority limits, verification, privacy, and human responsibility before a prompt is used.\n- [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](projects/ethical-ai-scenario-auditor/) — browser-based responsible-AI teaching tool for risk discovery, mitigation planning, provenance, oversight, and contestability.
 - [Audience Lifecycle & CRM Migration Planner](projects/audience-lifecycle-crm-migration/) — platform-agnostic lifecycle, data-model, migration-control, workflow, and KPI planning demonstration.
 
