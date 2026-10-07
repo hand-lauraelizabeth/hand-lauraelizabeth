@@ -15,7 +15,8 @@ Pipeline:
 Program/CIP mapping remains a later reviewed stage.
 """
 from __future__ import annotations
-import argparse,csv,json
+import argparse,csv,json,re,unicodedata
+from difflib import SequenceMatcher
 from pathlib import Path
 from suny_step_live_snapshot import run as snapshot_run
 from suny_transfer_agreement_adapter import run as agreement_run
@@ -39,6 +40,24 @@ def campus_rows(agreements):
    if label and key not in seen:
     seen.add(key);rows.append({"campus_source_id":label,"campus_name":label,"source_url":SOURCE_URL})
  return rows
+
+def _norm(value):
+ value=unicodedata.normalize("NFKD",str(value or ""))
+ value="".join(ch for ch in value if not unicodedata.combining(ch)).lower()
+ return " ".join(re.sub(r"[^a-z0-9]+"," ",value).split())
+
+def diagnostic_candidates(label,ipeds_rows,limit=5):
+ q=_norm(label);qt=set(q.split());scored=[]
+ for row in ipeds_rows:
+  if (row.get("STABBR") or "").strip().upper()!="NY": continue
+  name=(row.get("INSTNM") or "").strip();n=_norm(name);nt=set(n.split())
+  if not n: continue
+  seq=SequenceMatcher(None,q,n).ratio()
+  jac=len(qt&nt)/len(qt|nt) if qt|nt else 0
+  contains=1.0 if q and (q in n or n in q) else 0.0
+  score=.55*seq+.30*jac+.15*contains
+  scored.append((score,row.get("UNITID",""),name))
+ return [{"score":round(s,4),"unitid":u,"ipeds_name":n} for s,u,n in sorted(scored,reverse=True)[:limit]]
 
 def identity_stage(campuses,ipeds_rows,out_dir):
  _,exact,token=build_indexes(ipeds_rows)
@@ -67,6 +86,10 @@ def identity_stage(campuses,ipeds_rows,out_dir):
    for r in results if r["match_status"]=="review"
   ],
   "unresolved_labels":[r["campus_name_source"] for r in results if r["match_status"]=="unresolved"],
+  "diagnostic_candidates":{
+   r["campus_name_source"]:diagnostic_candidates(r["campus_name_source"],ipeds_rows)
+   for r in results if r["match_status"] in {"review","unresolved"}
+  },
  }
  with (out_dir/"suny_institution_identity_coverage.json").open("w",encoding="utf-8") as f:
   json.dump(coverage,f,indent=2,sort_keys=True);f.write("\n")
