@@ -17,14 +17,12 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run matcher validator regression suite
-        run: python -m unittest discover -s projects/college-career-matching/ui -p 'test_*.py' -v
       - name: Validate public data if present
         shell: bash
         run: |
@@ -38,5 +36,7 @@ jobs:
         run: |
           python -m pip install playwright
           python -m playwright install --with-deps chromium
+      - name: Run matcher validator and importer regression suite
+        run: python -m unittest discover -s projects/college-career-matching/ui -p 'test_*.py' -v
       - name: Run matcher browser smoke tests
         run: python projects/college-career-matching/ui/test_browser.py
