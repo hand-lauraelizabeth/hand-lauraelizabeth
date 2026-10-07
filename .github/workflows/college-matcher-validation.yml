@@ -34,3 +34,9 @@ jobs:
           else
             echo 'No reviewed public-data.json published; synthetic prototype only.'
           fi
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Run matcher browser smoke tests
+        run: python projects/college-career-matching/ui/test_browser.py
