@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 FIELDS = ("UNITID", "INSTNM", "CONTROL", "CITY", "STABBR", "LOCALE", "NPT41_PUB", "NPT41_PRIV")
-OUTPUT = ("UNITID", "INSTNM", "CONTROL", "CITY", "STABBR", "LOCALE", "housing_source_review", "net_price_population", "net_price_sample", "setting_review", "housing_review", "access_review", "aid_review", "cohort_year_review", "publication_status")
+OUTPUT = ("UNITID", "INSTNM", "CONTROL", "CITY", "STABBR", "LOCALE", "locale_category", "housing_source_review", "net_price_population", "net_price_sample", "net_price_status", "setting_review", "housing_review", "access_review", "aid_review", "cohort_year_review", "publication_status")
 
 
 @contextmanager
@@ -49,14 +49,17 @@ def build(source, destination, limit=100):
                 continue
             population = "PUB" if control == "1" else "PRIV"
             sample = (row.get("NPT41_" + population) or "").strip()
+            locale = (row.get("LOCALE") or "").strip()
+            locale_category = {"1": "City", "2": "Suburb", "3": "Town", "4": "Rural"}.get(locale[:1], "Unknown") if len(locale) == 2 and locale.isdecimal() else "Unknown"
+            net_price_status = "reported" if sample.lstrip("-").isdigit() else "unavailable_or_suppressed"
             rows.append({
                 "UNITID": unitid, "INSTNM": (row.get("INSTNM") or "").strip(),
                 "CONTROL": control, "CITY": (row.get("CITY") or "").strip(),
                 "STABBR": (row.get("STABBR") or "").strip(),
-                "LOCALE": (row.get("LOCALE") or "").strip(),
+                "LOCALE": locale, "locale_category": locale_category,
                 "housing_source_review": "separate institutional/IPEDS source required",
                 "net_price_population": population,
-                "net_price_sample": sample,
+                "net_price_sample": sample, "net_price_status": net_price_status,
                 "setting_review": "pending", "housing_review": "pending",
                 "access_review": "pending", "aid_review": "pending",
                 "cohort_year_review": "pending", "publication_status": "DO_NOT_PUBLISH",
