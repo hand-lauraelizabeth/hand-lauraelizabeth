@@ -22,6 +22,11 @@ class BundleTests(unittest.TestCase):
     def test_valid_nullable_and_zero_cost(self):
         self.assertEqual(validator.validate(copy.deepcopy(GOOD)), [])
 
+    def test_finite_negative_net_price_is_valid(self):
+        payload = copy.deepcopy(GOOD)
+        payload["records"][0]["cost"]["0_30k"] = -275
+        self.assertEqual(validator.validate(payload), [])
+
     def test_non_object_bundle(self):
         for payload in (None, [], "string", 4):
             with self.subTest(payload=payload):
