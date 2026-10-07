@@ -48,7 +48,7 @@ def validate(payload):
         else:
             for band in BANDS:
                 value = record["cost"].get(band)
-                if band not in record["cost"] or (value is not None and (type(value) not in (float, int) or not math.isfinite(value) or value < 0)):
+                if band not in record["cost"] or (value is not None and (type(value) not in (float, int) or not math.isfinite(value))):
                     errors.append(f"{prefix}: invalid {band} cost; use null for unavailable")
         if not isinstance(record["careers"], dict) or any(k not in record["careers"] or (record["careers"][k] is not None and (type(record["careers"][k]) is not int or not 0 <= record["careers"][k] <= 3)) for k in CAREERS):
             errors.append(f"{prefix}: career signals must be null or integers 0-3")
