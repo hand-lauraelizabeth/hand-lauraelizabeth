@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Headless-browser contract checks for the Role Evidence Engine."""
 from __future__ import annotations
-import socket,threading
+import re,socket,threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
 from pathlib import Path
@@ -30,7 +30,10 @@ def run():
   wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#rows tr"))>=3)
   matrix=driver.find_element(By.ID,"rows").text
   assert "E00" in matrix, matrix
-  node=Select(driver.find_element(By.ID,"nodeSelect"));node.select_by_index(1)
+  matrix=driver.find_element(By.ID,"rows").text
+  matched=re.search(r"\b(E\d{3,})\b",matrix)
+  assert matched, matrix
+  node=Select(driver.find_element(By.ID,"nodeSelect"));node.select_by_value(matched.group(1))
   wait.until(lambda d:"Use only as a lead for review" in d.find_element(By.ID,"guardrail").text)
   driver.find_element(By.ID,"nodeRole").send_keys("Reviewed test role")
   driver.find_element(By.ID,"nodeSource").send_keys("Synthetic regression fixture")
