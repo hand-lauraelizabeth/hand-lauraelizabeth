@@ -1,0 +1,49 @@
+name: Live SUNY transfer baseline
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "projects/college-career-matching/suny_step_live_snapshot.py"
+      - "projects/college-career-matching/suny_transfer_agreement_adapter.py"
+      - "projects/college-career-matching/suny_institution_identity.py"
+      - "projects/college-career-matching/suny_transfer_identity_bridge.py"
+      - "projects/college-career-matching/suny_transfer_live_pipeline.py"
+      - "projects/college-career-matching/suny_step_reviewed_aliases.csv"
+      - "scripts/college_career_ingest.py"
+      - "scripts/college_career_sources.py"
+      - ".github/workflows/live-suny-transfer.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch current IPEDS directory
+        run: |
+          python scripts/college_career_ingest.py --source ipeds_directory_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
+          IPEDS_FILE="$(find "${{ runner.temp }}/college-career-smoke/ipeds_directory_2025" -path '*/normalized/institution.csv' -type f | sort | tail -1)"
+          test -n "$IPEDS_FILE"
+          echo "IPEDS_FILE=$IPEDS_FILE" >> "$GITHUB_ENV"
+      - name: Build live SUNY transfer identity baseline
+        run: |
+          python projects/college-career-matching/suny_transfer_live_pipeline.py --ipeds-hd "$IPEDS_FILE" --output-dir "${{ runner.temp }}/suny-transfer-live"
+          cat "${{ runner.temp }}/suny-transfer-live/suny_transfer_live_baseline.json"
+      - name: Upload baseline and review outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: suny-transfer-live-baseline
+          path: |
+            ${{ runner.temp }}/suny-transfer-live/suny_transfer_live_baseline.json
+            ${{ runner.temp }}/suny-transfer-live/suny_institution_identity.csv
+            ${{ runner.temp }}/suny-transfer-live/suny_institution_identity_review.csv
+            ${{ runner.temp }}/suny-transfer-live/suny_institution_identity_coverage.json
+            ${{ runner.temp }}/suny-transfer-live/transfer_agreement_suny_qa.json
+            ${{ runner.temp }}/suny-transfer-live/transfer_agreement_suny_identity_qa.json
