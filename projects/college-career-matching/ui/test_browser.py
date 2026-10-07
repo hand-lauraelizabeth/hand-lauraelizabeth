@@ -67,6 +67,7 @@ async def main():
             status=200, content_type="application/json",
             body=json.dumps({"schema_version": 1, "records": [record]})))
         await page.reload()
+        await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'source-attributed\')")
         await page.locator(".result").first.wait_for()
         assert "source-attributed" in await page.locator("#data-mode").inner_text()
         assert await page.locator(".result img, .result svg, .result script").count() == 0, "Unescaped HTML inserted"
@@ -92,6 +93,7 @@ async def main():
             body=json.dumps({"schema_version": 1, "records": [invalid]})))
         await page.reload()
         await page.locator(".result").first.wait_for()
+        await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'synthetic\')")
         assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower(), "Incomplete record must not replace synthetic mode"
         assert await page.locator(".result").count() == 4
         assert not errors, f"Browser errors: {errors}"
