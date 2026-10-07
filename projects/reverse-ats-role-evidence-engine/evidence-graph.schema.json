@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.lauraelizabethhand.com/schema/role-evidence-node-v2.2b.json",
+  "$id": "https://www.lauraelizabethhand.com/schema/role-evidence-node-v2.2c.json",
   "title": "Role Evidence Engine Candidate Evidence Graph",
   "type": "object",
   "required": ["schema_version", "evidence_nodes"],
   "properties": {
-    "schema_version": {"const": "2.2b"},
+    "schema_version": {"const": "2.2c"},
     "generated_at": {"type": "string"},
     "evidence_nodes": {
       "type": "array",
@@ -28,7 +28,20 @@
           },
           "depth": {"type": "string"},
           "competencies": {"type": "array", "items": {"type": "string"}},
-          "verification_status": {"type": "string"}
+          "verification_status": {"enum": ["unreviewed","self-attested","source-corroborated","verified"]},
+          "reviewed": {
+            "type": "object",
+            "required": ["role_project","dates","source_reference","confidentiality","authority_scope","reviewer_note"],
+            "properties": {
+              "role_project": {"type": "string"},
+              "dates": {"type": "string"},
+              "source_reference": {"type": "string"},
+              "confidentiality": {"enum": ["unspecified","public","private","anonymize","do-not-use"]},
+              "authority_scope": {"type": "string"},
+              "reviewer_note": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
         },
         "additionalProperties": true
       }
