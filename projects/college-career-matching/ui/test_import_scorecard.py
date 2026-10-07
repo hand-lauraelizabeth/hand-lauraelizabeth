@@ -67,6 +67,17 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "more values"):
             importer.convert(self.path, META)
 
+    def test_official_2026_download_host_accepted(self):
+        meta = copy.deepcopy(META)
+        meta["source_url"] = "https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip"
+        self.assertEqual(len(importer.convert(self.path, meta)["records"]), 1)
+
+    def test_broad_ed_gov_host_rejected(self):
+        meta = copy.deepcopy(META)
+        meta["source_url"] = "https://unrelated.ed.gov/file.csv"
+        with self.assertRaisesRegex(ValueError, "official Department"):
+            importer.convert(self.path, meta)
+
     def test_unofficial_source_host_rejected(self):
         meta = copy.deepcopy(META)
         meta["source_url"] = "https://collegescorecard.ed.gov.evil.example/data.csv"
