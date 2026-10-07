@@ -46,6 +46,25 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(costs["48_75k"], 4500)
         self.assertIsNone(payload["records"][0]["access"])
 
+    def test_privacy_suppressed_marker_is_missing(self):
+        self.row["NPT42_PUB"] = "PrivacySuppressed"
+        self.write_rows([self.row])
+        self.assertIsNone(importer.convert(self.path, META)["records"][0]["cost"]["30_48k"])
+
+    def test_duplicate_csv_header_fails(self):
+        with self.path.open("w", encoding="utf-8") as f:
+            f.write(",".join([*self.row.keys(), "NPT41_PUB"]) + "\n")
+            f.write(",".join([*self.row.values(), "999"]) + "\n")
+        with self.assertRaisesRegex(ValueError, "Duplicate CSV header"):
+            importer.convert(self.path, META)
+
+    def test_extra_csv_cell_fails(self):
+        with self.path.open("w", encoding="utf-8") as f:
+            f.write(",".join(self.row.keys()) + "\n")
+            f.write(",".join([*self.row.values(), "unexpected"]) + "\n")
+        with self.assertRaisesRegex(ValueError, "more values"):
+            importer.convert(self.path, META)
+
     def test_missing_unitid_fails(self):
         meta = copy.deepcopy(META)
         meta["institutions"] = {"999999": meta["institutions"]["123456"]}
