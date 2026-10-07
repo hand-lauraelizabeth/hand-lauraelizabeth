@@ -94,6 +94,8 @@ def convert(csv_path, metadata):
             if population not in POPULATIONS:
                 raise ValueError(f"Reviewed population required for {unitid}")
             control = (row.get("CONTROL") or "").strip()
+            if population in {"PUB", "PRIV"} and not control:
+                raise ValueError(f"Missing CONTROL for reviewed {population} institution {unitid}")
             if control and control not in {"1", "2", "3"}:
                 raise ValueError(f"Unrecognized CONTROL value {control!r} for {unitid}")
             if population in {"PUB", "PRIV"} and control in {"1", "2", "3"}:
