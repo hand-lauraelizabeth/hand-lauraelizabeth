@@ -66,6 +66,8 @@ def convert(csv_path, metadata):
         raise ValueError("Metadata must list explicitly reviewed UNITIDs")
     if any(not isinstance(unitid, str) or not unitid.isascii() or not unitid.isdecimal() or len(unitid) != 6 for unitid in reviewed):
         raise ValueError("Reviewed UNITIDs must be six-digit ASCII identifiers")
+    if metadata.get("publication_approved") is not True:
+        raise ValueError("Publication requires explicit publication_approved=true after independent evidence review")
     records = []
     seen = set()
     names_seen = set()
