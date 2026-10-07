@@ -12,6 +12,7 @@ spec.loader.exec_module(importer)
 
 META = {
     "release_year": 2025,
+    "net_price_reference_year": 2023,
     "source_url": "https://collegescorecard.ed.gov/example.csv",
     "institutions": {"123456": {
         "population": "PUB", "setting": "Urban", "housing": True,
@@ -45,6 +46,7 @@ class ImportTests(unittest.TestCase):
         self.assertIsNone(costs["30_48k"])
         self.assertEqual(costs["48_75k"], 4500)
         self.assertIsNone(payload["records"][0]["access"])
+        self.assertEqual(payload["records"][0]["reference_year"], 2023)
 
     def test_privacy_suppressed_marker_is_missing(self):
         self.row["NPT42_PUB"] = "PrivacySuppressed"
@@ -75,6 +77,18 @@ class ImportTests(unittest.TestCase):
         meta = copy.deepcopy(META)
         meta["source_url"] = "https://someone@collegescorecard.ed.gov/data.csv"
         with self.assertRaisesRegex(ValueError, "official Department"):
+            importer.convert(self.path, meta)
+
+    def test_missing_price_reference_year_fails(self):
+        meta = copy.deepcopy(META)
+        del meta["net_price_reference_year"]
+        with self.assertRaisesRegex(ValueError, "net_price_reference_year"):
+            importer.convert(self.path, meta)
+
+    def test_future_price_reference_year_fails(self):
+        meta = copy.deepcopy(META)
+        meta["net_price_reference_year"] = 2026
+        with self.assertRaisesRegex(ValueError, "net_price_reference_year"):
             importer.convert(self.path, meta)
 
     def test_missing_unitid_fails(self):
