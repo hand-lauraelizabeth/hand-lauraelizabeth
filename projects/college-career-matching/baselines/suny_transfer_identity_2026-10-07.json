@@ -1,0 +1,50 @@
+{
+  "baseline_id": "suny-step-identity-2026-10-07",
+  "status": "PASS",
+  "source": {
+    "system": "SUNY STEP Transfer Agreement Inventory",
+    "url": "https://step.transfer.suny.edu/agreements/",
+    "retrieved_at": "2026-10-07T14:29:04.618505+00:00",
+    "first_source_id": "R283",
+    "last_source_id": "R876",
+    "record_count": 528
+  },
+  "ipeds_reference": {
+    "release": "HD2025 provisional",
+    "institution_count": 5985
+  },
+  "agreement_types": {
+    "articulation": 483,
+    "dual_admission": 19,
+    "dual_enrollment": 1,
+    "other": 25
+  },
+  "program_text_coverage": {
+    "rows_with_receiving_destination_program_text": 411,
+    "program_cip_mapping_status": "not yet reviewed"
+  },
+  "institution_identity": {
+    "unique_step_campus_labels": 58,
+    "accepted_reviewed_labels": 58,
+    "review_candidates": 0,
+    "unresolved_labels": 0,
+    "accepted_match_rate": 1.0,
+    "mapping_method": "version-controlled reviewed STEP label registry validated against active NY IPEDS snapshot"
+  },
+  "agreement_identity_bridge": {
+    "sending_unitid_matches": 528,
+    "receiving_unitid_matches": 528,
+    "both_sides_matched": 528,
+    "sending_match_rate": 1.0,
+    "receiving_match_rate": 1.0,
+    "both_sides_match_rate": 1.0,
+    "neither_side_matched": 0
+  },
+  "relationship_guardrails": {
+    "Cornell CALS": "subunit_parent",
+    "NYS College of Ceramics": "subunit_parent",
+    "Plattsburgh (Queensbury)": "extension_parent"
+  },
+  "semantic_guardrail": "Institution identity coverage is descriptive evidence availability, not transfer quality, program equivalency, admission likelihood, credit applicability, or recommendation fit. Program/CIP mapping remains unresolved until reviewed against source-specific program evidence.",
+  "workflow_run": "https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/37637044456"
+}
