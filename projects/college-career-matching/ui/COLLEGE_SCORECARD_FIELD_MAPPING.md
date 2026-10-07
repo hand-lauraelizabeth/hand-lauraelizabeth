@@ -22,6 +22,9 @@ The five net-price income brackets are for **full-time, first-time undergraduate
 
 Do not substitute overall NPT4_PUB or NPT4_PRIV for an unavailable income-specific cell. Use null. Do not select the first non-null category across different reporting populations without first verifying institution calendar and ownership. CSV and API field names differ; validate against the data dictionary for the exact release before import.
 
+## Local CSV preflight
+After downloading and extracting the official institution-level ZIP, run `python preflight_scorecard.py /path/to/institution.csv PUB` (or `PRIV`, `PROG`, `OTHER` as appropriate) to check the required header family before creating reviewed metadata. This is a read-only schema check, not a verification of source authenticity, reference years, or individual institution records. The preflight uses only Python's standard library.
+
 ## Publication gate
 1. Preserve UNITID, institution name, release year, **net_price_reference_year** (the year assigned to the selected affordability measures), field names, retrieval date and source URL in the ingestion manifest. The importer requires both years and rejects a net-price year later than the release year. Verify the reference year from the exact release dictionary; do not infer it from the download date.
 2. Resolve reporting population (public, private, program-year, other calendar) explicitly. For public records label the in-state restriction.
