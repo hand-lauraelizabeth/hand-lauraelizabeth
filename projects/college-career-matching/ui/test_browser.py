@@ -67,6 +67,7 @@ async def main():
         assert await page.locator(".result").count() == 1, "Unknown net price must remain visible without a ceiling"
         assert "net price unavailable" in await page.locator(".result").inner_text()
         assert "no cost ceiling selected; affordability is not ranked" in await page.locator(".result").inner_text()
+        assert "/ 60 possible preference points" in await page.locator(".result .score").inner_text(), "No ceiling and no setting preference must reduce attainable maximum"
         await page.unroute("**/public-data.json")
         invalid = dict(record)
         invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
