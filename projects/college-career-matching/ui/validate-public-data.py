@@ -15,7 +15,9 @@ REQUIRED = {"name", "setting", "housing", "access", "cost", "careers", "aid", "s
 
 def validate(payload):
     errors = []
-    if payload.get("schema_version") != 1:
+    if not isinstance(payload, dict):
+        return ["bundle must be a JSON object"]
+    if type(payload.get("schema_version")) is not int or payload["schema_version"] != 1:
         errors.append("schema_version must be 1")
     records = payload.get("records")
     if not isinstance(records, list) or not records:
@@ -31,10 +33,11 @@ def validate(payload):
             errors.append(f"{prefix}: missing {sorted(missing)}")
             continue
         name = record["name"]
-        if not isinstance(name, str) or not name.strip() or name in seen:
+        if not isinstance(name, str) or not name.strip() or name.strip().casefold() in seen:
             errors.append(f"{prefix}: blank or duplicate institution name")
-        seen.add(name)
-        if record["setting"] not in SETTINGS:
+        if isinstance(name, str):
+            seen.add(name.strip().casefold())
+        if not isinstance(record["setting"], str) or record["setting"] not in SETTINGS:
             errors.append(f"{prefix}: unrecognized campus setting")
         if not isinstance(record["housing"], bool):
             errors.append(f"{prefix}: housing must be boolean")
@@ -44,10 +47,10 @@ def validate(payload):
             errors.append(f"{prefix}: cost must be an object")
         else:
             for band in BANDS:
-                value = record["cost"].get(band, "MISSING")
-                if value == "MISSING" or (value is not None and (type(value) not in (float, int) or not math.isfinite(value) or value < 0)):
+                value = record["cost"].get(band)
+                if band not in record["cost"] or (value is not None and (type(value) not in (float, int) or not math.isfinite(value) or value < 0)):
                     errors.append(f"{prefix}: invalid {band} cost; use null for unavailable")
-        if not isinstance(record["careers"], dict) or any(record["careers"].get(k, "MISSING") == "MISSING" or (record["careers"][k] is not None and (type(record["careers"][k]) is not int or not 0 <= record["careers"][k] <= 3)) for k in CAREERS):
+        if not isinstance(record["careers"], dict) or any(k not in record["careers"] or (record["careers"][k] is not None and (type(record["careers"][k]) is not int or not 0 <= record["careers"][k] <= 3)) for k in CAREERS):
             errors.append(f"{prefix}: career signals must be null or integers 0-3")
         if not isinstance(record["aid"], list) or not all(isinstance(a, str) for a in record["aid"]):
             errors.append(f"{prefix}: aid must be a string list")
