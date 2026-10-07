@@ -18,7 +18,7 @@ This is not an emulator for Workday, Greenhouse, iCIMS, Taleo, Ashby, or any emp
 
 ## Roadmap
 
-v2.2: source-weighted candidate evidence graph + provenance  
+v2.2a: source-aware provenance scaffold implemented in the browser prototype ([resume] / [portfolio] / [public] / [document] / [user])\nv2.2b: expand that scaffold into a structured candidate evidence graph with dates, depth, authority, metrics, verification status, and source links  
 v2.3: stronger gap taxonomy + ATS-visibility layer  
 v2.4: executive-scope / compensation-tier model  
 v2.5: claim guardrails + resume/interview/portfolio actions  
