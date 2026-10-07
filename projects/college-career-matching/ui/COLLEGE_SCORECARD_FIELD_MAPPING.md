@@ -8,6 +8,9 @@ The official College Scorecard data-download page reports a June 10, 2026 update
 
 The five net-price income brackets are for **full-time, first-time undergraduate Title IV aid recipients**. For public institutions, net price is restricted to **in-state tuition-paying** students. Net price is cost of attendance less federal, state, and institutional grants/scholarships, not an individual aid offer. Income groups are nominal dollars, not inflation-adjusted. Program-year and other-calendar measures may refer to the largest program rather than the entire institution. Do not label these figures as prices for all students.
 
+
+**Verified official 2026 download link:** https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip (linked from https://collegescorecard.ed.gov/data/). The download is a ZIP archive; extract its institution-level CSV before calling `import_scorecard.py`. The importer accepts this official source URL in metadata but does not download, unpack, authenticate, or verify the file checksum. The dictionary is https://collegescorecard.ed.gov/files/CollegeScorecardDataDictionary.xlsx; its cohort-map worksheet must be consulted to assign `net_price_reference_year` correctly. The official download URL alone does not establish the metric reference year.
+
 ## Normalized UI cost keys
 | UI key | Reported family income | Public CSV | Private CSV | Program-year CSV | Other-calendar CSV |
 | --- | --- | --- | --- | --- | --- |
