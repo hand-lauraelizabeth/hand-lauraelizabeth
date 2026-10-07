@@ -65,6 +65,18 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "more values"):
             importer.convert(self.path, META)
 
+    def test_unofficial_source_host_rejected(self):
+        meta = copy.deepcopy(META)
+        meta["source_url"] = "https://collegescorecard.ed.gov.evil.example/data.csv"
+        with self.assertRaisesRegex(ValueError, "official Department"):
+            importer.convert(self.path, meta)
+
+    def test_unofficial_source_credentials_rejected(self):
+        meta = copy.deepcopy(META)
+        meta["source_url"] = "https://someone@collegescorecard.ed.gov/data.csv"
+        with self.assertRaisesRegex(ValueError, "official Department"):
+            importer.convert(self.path, meta)
+
     def test_missing_unitid_fails(self):
         meta = copy.deepcopy(META)
         meta["institutions"] = {"999999": meta["institutions"]["123456"]}
