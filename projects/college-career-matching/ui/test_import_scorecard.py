@@ -1,0 +1,74 @@
+"""Importer tests using synthetic CSV and reviewed metadata fixtures."""
+import copy
+import csv
+import importlib.util
+import tempfile
+import unittest
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location("scorecard_importer", Path(__file__).with_name("import_scorecard.py"))
+importer = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(importer)
+
+META = {
+    "release_year": 2025,
+    "source_url": "https://collegescorecard.ed.gov/example.csv",
+    "institutions": {"123456": {
+        "population": "PUB", "setting": "Urban", "housing": True,
+        "access": None, "aid": [],
+        "careers": {"data": None, "education": None, "health": None, "business": None}
+    }}
+}
+
+
+class ImportTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "sample.csv"
+        self.row = {"UNITID": "123456", "INSTNM": "Example University",
+                    **{f"NPT4{i}_PUB": v for i, v in enumerate(("0", "PS", "4500", "7000", "10000"), 1)}}
+        self.write_rows([self.row])
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write_rows(self, rows):
+        with self.path.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=self.row.keys())
+            writer.writeheader()
+            writer.writerows(rows)
+
+    def test_import_preserves_zero_and_suppressed(self):
+        payload = importer.convert(self.path, copy.deepcopy(META))
+        costs = payload["records"][0]["cost"]
+        self.assertEqual(costs["0_30k"], 0)
+        self.assertIsNone(costs["30_48k"])
+        self.assertEqual(costs["48_75k"], 4500)
+        self.assertIsNone(payload["records"][0]["access"])
+
+    def test_missing_unitid_fails(self):
+        meta = copy.deepcopy(META)
+        meta["institutions"] = {"999999": meta["institutions"]["123456"]}
+        with self.assertRaisesRegex(ValueError, "absent"):
+            importer.convert(self.path, meta)
+
+    def test_missing_population_fails(self):
+        meta = copy.deepcopy(META)
+        del meta["institutions"]["123456"]["population"]
+        with self.assertRaisesRegex(ValueError, "population"):
+            importer.convert(self.path, meta)
+
+    def test_unexpected_price_fails(self):
+        self.row["NPT41_PUB"] = "not a price"
+        self.write_rows([self.row])
+        with self.assertRaisesRegex(ValueError, "Unexpected"):
+            importer.convert(self.path, META)
+
+    def test_duplicate_unitid_fails(self):
+        self.write_rows([self.row, self.row])
+        with self.assertRaisesRegex(ValueError, "Duplicate"):
+            importer.convert(self.path, META)
+
+
+if __name__ == "__main__":
+    unittest.main()
