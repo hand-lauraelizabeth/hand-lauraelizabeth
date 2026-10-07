@@ -35,3 +35,7 @@ After downloading the official institution-level ZIP, run `python preflight_scor
 
 ## Current UI limitations
 When a maximum cost is entered, the UI requires known selected-band net price to satisfy that constraint; without a ceiling, unknown-price records remain visible and affordability is not ranked. The point-based ranking remains a prototype, not a validated institutional quality or fit measure. The synthetic demonstration is not a verified dataset.
+
+## June 2026 source verification (October 7, 2026)
+The original 23,559,465-byte archive was retrieved from the dedicated Google Drive intake folder. Its main CSV has 6,273 institution rows and 3,308 distinct columns, including `UNITID`, `INSTNM`, `CONTROL` and all `NPT41`–`NPT45` population variants. `CONTROL` counts: public (`1`) 2,047; private nonprofit (`2`) 1,901; private for-profit (`3`) 2,325. The ZIP also contains a `__MACOSX/` resource-fork sidecar; the preflight ignores it. The official College Scorecard glossary labels overall `NPT4_PUB` and `NPT4_PRIV` as **2023–24 award-year cohort** in the current release, but do not assume every field shares the same year: confirm `NPT41`–`NPT45` against the official dictionary cohort map before assigning `net_price_reference_year`. The glossary also notes that negative net prices can occur when grants exceed attendance cost; the importer currently rejects negative numbers, so resolve the display/validation semantics before importing any such records. No institutional data have been published.
+
