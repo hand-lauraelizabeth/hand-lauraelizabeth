@@ -45,3 +45,6 @@ The importer, bundle validator, and browser now preserve finite negative average
 
 ## Control evidence publication gate
 For reviewed public/private records (`PUB`/`PRIV`), the importer now requires nonblank source `CONTROL` and checks it against the reviewed reporting population. A missing source control is not proof of public/private status and cannot be silently accepted. This gate does not independently verify campus setting, housing, accessibility, or career scores: those must be separately reviewed and attributed before publication.
+
+## Unknown campus evidence
+Reviewed records may use JSON `null` for unverified `setting` and `housing`; `null` is not equivalent to `false`. The browser labels these as unverified, allows unknown housing to remain visible under a housing-required filter with a prominent verification warning, and treats unknown campus setting as possible rather than confirmed preference points. Verify these fields from authoritative institutional sources before making definitive claims.
