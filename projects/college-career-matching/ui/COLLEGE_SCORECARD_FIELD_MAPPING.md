@@ -48,3 +48,6 @@ For reviewed public/private records (`PUB`/`PRIV`), the importer now requires no
 
 ## Unknown campus evidence
 Reviewed records may use JSON `null` for unverified `setting` and `housing`; `null` is not equivalent to `false`. The browser labels these as unverified, allows unknown housing to remain visible under a housing-required filter with a prominent verification warning, and treats unknown campus setting as possible rather than confirmed preference points. Verify these fields from authoritative institutional sources before making definitive claims.
+
+## Aid-category evidence
+`aid: null` means aid categories have not been verified. `aid: []` means a reviewed source explicitly supports an empty list; neither should be inferred from the College Scorecard income-band net-price columns. The interface displays unverified aid separately from an empty category list. Actual grant and scholarship availability requires its own institutional source review.
