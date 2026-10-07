@@ -1,0 +1,36 @@
+name: College matcher validation
+
+on:
+  push:
+    paths:
+      - 'projects/college-career-matching/ui/**'
+      - '.github/workflows/college-matcher-validation.yml'
+  pull_request:
+    paths:
+      - 'projects/college-career-matching/ui/**'
+      - '.github/workflows/college-matcher-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run matcher validator regression suite
+        run: python -m unittest discover -s projects/college-career-matching/ui -p 'test_*.py' -v
+      - name: Validate public data if present
+        shell: bash
+        run: |
+          DATA='projects/college-career-matching/ui/public-data.json'
+          if [ -f "$DATA" ]; then
+            python projects/college-career-matching/ui/validate-public-data.py "$DATA"
+          else
+            echo 'No reviewed public-data.json published; synthetic prototype only.'
+          fi
