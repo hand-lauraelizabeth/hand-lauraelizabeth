@@ -59,7 +59,7 @@ def convert(csv_path, metadata):
         raise ValueError("Metadata must specify official HTTPS source_url")
     from urllib.parse import urlparse
     source = urlparse(metadata["source_url"])
-    if source.hostname not in {"collegescorecard.ed.gov", "ed.gov", "ed-public-download.app.cloud.gov"} or source.username or source.password or source.port:
+    if source.hostname not in {"collegescorecard.ed.gov", "ed-public-download.scorecard.network"} or source.username or source.password or source.port:
         raise ValueError("Source URL must use an approved official Department of Education download host")
     reviewed = metadata.get("institutions")
     if not isinstance(reviewed, dict) or not reviewed:
