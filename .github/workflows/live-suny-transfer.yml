@@ -8,6 +8,7 @@ on:
       - "projects/college-career-matching/suny_transfer_agreement_adapter.py"
       - "projects/college-career-matching/suny_institution_identity.py"
       - "projects/college-career-matching/suny_transfer_identity_bridge.py"
+      - "projects/college-career-matching/suny_transfer_program_review.py"
       - "projects/college-career-matching/suny_transfer_live_pipeline.py"
       - "projects/college-career-matching/suny_step_reviewed_aliases.csv"
       - "scripts/college_career_ingest.py"
@@ -47,3 +48,5 @@ jobs:
             ${{ runner.temp }}/suny-transfer-live/suny_institution_identity_coverage.json
             ${{ runner.temp }}/suny-transfer-live/transfer_agreement_suny_qa.json
             ${{ runner.temp }}/suny-transfer-live/transfer_agreement_suny_identity_qa.json
+            ${{ runner.temp }}/suny-transfer-live/suny_transfer_program_review.csv
+            ${{ runner.temp }}/suny-transfer-live/suny_transfer_program_review_qa.json
