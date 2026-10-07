@@ -22,6 +22,7 @@ from suny_step_live_snapshot import run as snapshot_run
 from suny_transfer_agreement_adapter import run as agreement_run
 from suny_institution_identity import build_indexes,load_reviewed_aliases,resolve,read_csv,write_csv,DEFAULT_REVIEWED_ALIASES
 from suny_transfer_identity_bridge import run as bridge_run
+from suny_transfer_program_review import run as program_review_run
 
 SOURCE_URL="https://step.transfer.suny.edu/agreements/"
 
@@ -108,13 +109,19 @@ def run(ipeds_hd:Path,out_dir:Path):
  ipeds=read_csv(ipeds_hd)
  identity_coverage=identity_stage(campuses,ipeds,out_dir)
  bridge_qa=bridge_run(normalized,out_dir/"suny_institution_identity.csv",out_dir/"transfer_agreement_suny_identity.csv",out_dir/"transfer_agreement_suny_identity_qa.json")
+ program_review_qa=program_review_run(
+  out_dir/"transfer_agreement_suny_identity.csv",
+  out_dir/"suny_transfer_program_review.csv",
+  out_dir/"suny_transfer_program_review_qa.json",
+ )
  baseline={
-  "status":"PASS" if agreement_qa["status"]=="PASS" and bridge_qa["status"]=="PASS" else "FAIL",
+  "status":"PASS" if agreement_qa["status"]=="PASS" and bridge_qa["status"]=="PASS" and program_review_qa["status"]=="PASS" else "FAIL",
   "snapshot":snapshot_meta,
   "agreement_qa":agreement_qa,
   "identity_coverage":identity_coverage,
   "bridge_qa":bridge_qa,
-  "guardrail":"Identity coverage is descriptive evidence availability, not transfer quality or fit. Program/CIP mapping remains unscored and unresolved.",
+  "program_review_qa":program_review_qa,
+  "guardrail":"Identity coverage is descriptive evidence availability, not transfer quality or fit. Program review is a queue, not a CIP mapping; CIP remains unscored and unresolved until authoritative/reviewed evidence supports it.",
  }
  (out_dir/"suny_transfer_live_baseline.json").write_text(json.dumps(baseline,indent=2,sort_keys=True)+"\n",encoding="utf-8")
  return baseline
