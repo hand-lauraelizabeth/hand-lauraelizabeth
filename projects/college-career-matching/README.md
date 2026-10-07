@@ -215,12 +215,16 @@ The source layer is now defined in both human-readable and machine-checkable for
 
 The repository CI validates manifest structure, source IDs, join references, CIP↔SOC cardinality, production-source privacy boundaries, source-matrix consistency, and coverage-baseline configuration.
 
+### SUNY transfer identity baseline
+
+The current SUNY STEP Transfer Agreement Inventory was captured live on 2026-10-07 and validated against the HD2025 IPEDS institution reference. The reviewed identity registry resolves all 58 distinct STEP campus labels and both sending/receiving institution identity for all 528 current agreement rows. This is an institution-identity baseline only: it does not imply program equivalency, admission, credit applicability, or transfer quality. The next gate is the source-preserving program review layer; CIP remains unresolved until authoritative or separately reviewed evidence supports it. See [versioned baseline](baselines/SUNY_TRANSFER_IDENTITY_2026-10-07.md) and [program review contract](SUNY_TRANSFER_PROGRAM_REVIEW.md).
+
 ## Next development stage
 
 The integrated model-ready institution → program → occupation layer is now implemented, including source lineage, conservative institution-identity review clusters, preservation of unmatched programs/occupations, and regression gates. The next work should extend that validated layer rather than create another parallel prototype:
 
 1. ingest and validate a current College Scorecard bulk snapshot through the keyless official-file adapter when the federal CDN is reachable (or from a user-supplied copy of that same official ZIP), using Scorecard only as enrichment rather than as an institution-inclusion filter;
-2. run the implemented SUNY STEP agreement adapter → reviewed SUNY/IPEDS identity layer → transfer-identity bridge against a current authoritative snapshot, review unresolved/review rows, and version the first observed transfer identity/coverage baseline before using transfer evidence in recommendations;
+2. advance the now-validated SUNY transfer layer from institution identity into program identity: the 2026-10-07 live baseline resolves 58/58 STEP campus labels and both sides of all 528 current agreement records through a reviewed current-IPEDS registry; next, use the source-preserving program review queue to map STEP Program/Destination wording to authoritative program/CIP evidence without title-only auto-assignment;
 3. expand OEWS beyond the national baseline to state, metropolitan, and nonmetropolitan geography where local labor-market context materially improves matching;
 4. review identity clusters against authoritative system/campus crosswalks where available, while keeping distinct UNITIDs distinct by default and never collapsing on fuzzy names;
 5. only after those enrichment layers pass QA, begin recommendation-scoring calibration while keeping admissions context, preferences, affordability, career alignment, and data completeness as separate explainable signals.
