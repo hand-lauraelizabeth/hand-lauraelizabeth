@@ -1,27 +1,31 @@
-"""Normalize the public SUNY STEP Transfer Agreements table.
+"""Normalize the public SUNY STEP Transfer Agreement Inventory.
 
-This adapter intentionally preserves source wording and does not infer UNITIDs,
-CIP codes, admission guarantees, or degree applicability from names alone.
+This adapter preserves source wording and does not infer UNITIDs, CIP codes,
+admission guarantees, or degree applicability from institution/program names.
 
-Input contract
---------------
-A CSV snapshot with these source columns (case/spacing aliases accepted):
-- 4 Year Partner Campus OR receiving campus
-- Partner Campus OR sending campus
-- Type Description OR agreement type
-- Major or Program OR program/destination description
+Current public-page contract
+----------------------------
+The live STEP inventory currently exposes:
+- ID
+- Initial Campus
+- Partner Campus
+- Type
+- Program
+- Destination
+- Source
 
-The current public STEP page is the authoritative source:
+For that layout:
+- Initial Campus = sending institution
+- Partner Campus = receiving institution
+- Program = sending/source program wording
+- Destination = receiving/destination program wording
+
+A legacy/export layout is also supported where reviewed columns explicitly name
+sending/receiving campuses. Ambiguous single-column aliases are never preferred
+over the current Initial Campus / Partner Campus pair.
+
+The authoritative source page is:
 https://step.transfer.suny.edu/agreements/
-
-Usage
------
-python suny_transfer_agreement_adapter.py --source-file step_agreements.csv \
-    --output transfer_agreement_suny.csv --qa-output transfer_agreement_suny_qa.json
-
-This is an implementation adapter in the portfolio repository. Successful local
-execution against an authoritative snapshot is still required before coverage
-counts are treated as production baselines.
 """
 
 from __future__ import annotations
@@ -39,24 +43,9 @@ from typing import Dict, Iterable, List, Mapping, Optional
 SOURCE_SYSTEM = "SUNY"
 SOURCE_URL = "https://step.transfer.suny.edu/agreements/"
 
-ALIASES = {
-    "receiving_institution_source_id": [
-        "4 year partner campus",
-        "4-year partner campus",
-        "receiving campus",
-        "receiving institution",
-    ],
-    "sending_institution_source_id": [
-        "partner campus",
-        "sending campus",
-        "sending institution",
-    ],
-    "agreement_type_raw": ["type description", "type", "agreement type"],
-    "program_raw": ["major or program", "program", "destination"],
-}
-
 CANONICAL_FIELDS = [
     "transfer_agreement_id",
+    "source_record_id",
     "source_system",
     "sending_institution_source_id",
     "receiving_institution_source_id",
@@ -66,6 +55,9 @@ CANONICAL_FIELDS = [
     "agreement_type_raw",
     "sending_program_name",
     "receiving_program_name",
+    "source_program_text",
+    "destination_program_text",
+    "source_link_text",
     "sending_cip",
     "receiving_cip",
     "sending_degree",
@@ -78,27 +70,64 @@ CANONICAL_FIELDS = [
     "retrieved_at",
     "source_version",
     "evidence_status",
-    "source_program_text",
 ]
 
 
 def _norm_header(value: str) -> str:
-    return re.sub(r"\s+", " ", value.strip().lower())
+    return re.sub(r"\s+", " ", (value or "").strip().lower())
 
 
-def _resolve_columns(fieldnames: Iterable[str]) -> Dict[str, str]:
+def _first(normalized: Mapping[str, str], aliases: Iterable[str]) -> Optional[str]:
+    for alias in aliases:
+        if alias in normalized:
+            return normalized[alias]
+    return None
+
+
+def _resolve_columns(fieldnames: Iterable[str]) -> Dict[str, Optional[str]]:
     normalized = {_norm_header(name): name for name in fieldnames if name}
-    resolved: Dict[str, str] = {}
-    for target, aliases in ALIASES.items():
-        for alias in aliases:
-            if alias in normalized:
-                resolved[target] = normalized[alias]
-                break
-        if target not in resolved:
-            raise ValueError(
-                f"Required SUNY STEP field not found for {target!r}. "
-                f"Available columns: {sorted(normalized)}"
-            )
+
+    # Prefer the explicit live-page pair. This prevents the live "Partner Campus"
+    # column from being misread as the sender under older export assumptions.
+    if "initial campus" in normalized and "partner campus" in normalized:
+        resolved: Dict[str, Optional[str]] = {
+            "source_record_id": _first(normalized, ["id", "record id", "agreement id"]),
+            "sending_institution_source_id": normalized["initial campus"],
+            "receiving_institution_source_id": normalized["partner campus"],
+            "agreement_type_raw": _first(normalized, ["type", "type description", "agreement type"]),
+            "sending_program_name": _first(normalized, ["program", "major or program", "source program"]),
+            "receiving_program_name": _first(normalized, ["destination", "destination program", "receiving program"]),
+            "source_link_text": _first(normalized, ["source", "source text"]),
+        }
+    else:
+        # Legacy/export contract: only use labels that explicitly identify
+        # direction. "Partner Campus" alone is intentionally excluded here.
+        resolved = {
+            "source_record_id": _first(normalized, ["id", "record id", "agreement id"]),
+            "sending_institution_source_id": _first(
+                normalized, ["sending campus", "sending institution", "initial campus"]
+            ),
+            "receiving_institution_source_id": _first(
+                normalized, ["4 year partner campus", "4-year partner campus", "receiving campus", "receiving institution"]
+            ),
+            "agreement_type_raw": _first(normalized, ["type description", "type", "agreement type"]),
+            "sending_program_name": _first(normalized, ["major or program", "program", "source program"]),
+            "receiving_program_name": _first(normalized, ["destination", "destination program", "receiving program"]),
+            "source_link_text": _first(normalized, ["source", "source text"]),
+        }
+
+    required = [
+        "sending_institution_source_id",
+        "receiving_institution_source_id",
+        "agreement_type_raw",
+        "sending_program_name",
+    ]
+    missing = [key for key in required if not resolved.get(key)]
+    if missing:
+        raise ValueError(
+            f"Required SUNY STEP fields not found for {missing!r}. "
+            f"Available columns: {sorted(normalized)}"
+        )
     return resolved
 
 
@@ -108,32 +137,54 @@ def normalize_agreement_type(raw: str) -> str:
         return "dual_admission"
     if "dual enrollment" in text:
         return "dual_enrollment"
+    if "articulation" in text:
+        return "articulation"
     if "major" in text:
         return "major_specific"
-    if "general" in text or "articulation" in text:
+    if text in {"n/a", "na", "not applicable"}:
+        return "other"
+    if "general" in text:
         return "articulation"
     return "other"
 
 
-def deterministic_id(sending: str, receiving: str, type_raw: str, program: str) -> str:
+def deterministic_id(
+    source_record_id: str,
+    sending: str,
+    receiving: str,
+    type_raw: str,
+    sending_program: str,
+    receiving_program: str,
+) -> str:
+    if source_record_id:
+        return f"SUNY-STEP-{re.sub(r'[^A-Za-z0-9_-]+', '', source_record_id)}"
     payload = "|".join(
         re.sub(r"\s+", " ", value.strip().lower())
-        for value in (sending, receiving, type_raw, program)
+        for value in (sending, receiving, type_raw, sending_program, receiving_program)
     )
     return "SUNY-STEP-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
-def normalize_row(row: Mapping[str, str], columns: Mapping[str, str], retrieved_at: str) -> Dict[str, str]:
-    sending = (row.get(columns["sending_institution_source_id"]) or "").strip()
-    receiving = (row.get(columns["receiving_institution_source_id"]) or "").strip()
-    type_raw = (row.get(columns["agreement_type_raw"]) or "").strip()
-    program = (row.get(columns["program_raw"]) or "").strip()
+def _get(row: Mapping[str, str], column: Optional[str]) -> str:
+    return (row.get(column) or "").strip() if column else ""
 
-    # The public table currently presents a combined Major/Program description.
-    # Preserve it verbatim instead of pretending the sending and receiving
-    # programs can always be separated safely.
+
+def normalize_row(
+    row: Mapping[str, str], columns: Mapping[str, Optional[str]], retrieved_at: str
+) -> Dict[str, str]:
+    source_record_id = _get(row, columns.get("source_record_id"))
+    sending = _get(row, columns.get("sending_institution_source_id"))
+    receiving = _get(row, columns.get("receiving_institution_source_id"))
+    type_raw = _get(row, columns.get("agreement_type_raw"))
+    sending_program = _get(row, columns.get("sending_program_name"))
+    receiving_program = _get(row, columns.get("receiving_program_name"))
+    source_link_text = _get(row, columns.get("source_link_text"))
+
     return {
-        "transfer_agreement_id": deterministic_id(sending, receiving, type_raw, program),
+        "transfer_agreement_id": deterministic_id(
+            source_record_id, sending, receiving, type_raw, sending_program, receiving_program
+        ),
+        "source_record_id": source_record_id,
         "source_system": SOURCE_SYSTEM,
         "sending_institution_source_id": sending,
         "receiving_institution_source_id": receiving,
@@ -141,8 +192,11 @@ def normalize_row(row: Mapping[str, str], columns: Mapping[str, str], retrieved_
         "receiving_unitid": "",
         "agreement_type": normalize_agreement_type(type_raw),
         "agreement_type_raw": type_raw,
-        "sending_program_name": "",
-        "receiving_program_name": "",
+        "sending_program_name": sending_program,
+        "receiving_program_name": receiving_program,
+        "source_program_text": sending_program,
+        "destination_program_text": receiving_program,
+        "source_link_text": source_link_text,
         "sending_cip": "",
         "receiving_cip": "",
         "sending_degree": "",
@@ -153,9 +207,8 @@ def normalize_row(row: Mapping[str, str], columns: Mapping[str, str], retrieved_
         "effective_end": "",
         "source_url": SOURCE_URL,
         "retrieved_at": retrieved_at,
-        "source_version": "public STEP Transfer Agreements snapshot",
+        "source_version": "public STEP Transfer Agreement Inventory snapshot",
         "evidence_status": "current",
-        "source_program_text": program,
     }
 
 
@@ -167,6 +220,8 @@ def validate(records: List[Mapping[str, str]]) -> Dict[str, object]:
     types = Counter(r["agreement_type"] for r in records)
     distinct_sending = len({r["sending_institution_source_id"] for r in records if r["sending_institution_source_id"]})
     distinct_receiving = len({r["receiving_institution_source_id"] for r in records if r["receiving_institution_source_id"]})
+    destination_present = sum(bool(r["receiving_program_name"]) for r in records)
+    source_ids_present = sum(bool(r["source_record_id"]) for r in records)
 
     checks = {
         "records_present": len(records) > 0,
@@ -176,16 +231,19 @@ def validate(records: List[Mapping[str, str]]) -> Dict[str, object]:
         "source_url_constant": all(r["source_url"] == SOURCE_URL for r in records),
         "no_unitid_inference_in_adapter": all(not r["sending_unitid"] and not r["receiving_unitid"] for r in records),
         "source_program_text_preserved": all("source_program_text" in r for r in records),
+        "destination_program_text_preserved": all("destination_program_text" in r for r in records),
     }
     return {
         "status": "PASS" if all(checks.values()) else "FAIL",
         "checks": checks,
         "record_count": len(records),
+        "source_record_id_present_count": source_ids_present,
         "duplicate_id_count": duplicate_ids,
         "missing_sending_institution_count": missing_sending,
         "missing_receiving_institution_count": missing_receiving,
         "distinct_sending_institutions": distinct_sending,
         "distinct_receiving_institutions": distinct_receiving,
+        "receiving_program_present_count": destination_present,
         "agreement_type_counts": dict(sorted(types.items())),
         "unitid_match_rate_sending": None,
         "unitid_match_rate_receiving": None,
@@ -194,7 +252,12 @@ def validate(records: List[Mapping[str, str]]) -> Dict[str, object]:
     }
 
 
-def run(source_file: Path, output_file: Path, qa_file: Path, retrieved_at: Optional[str] = None) -> Dict[str, object]:
+def run(
+    source_file: Path,
+    output_file: Path,
+    qa_file: Path,
+    retrieved_at: Optional[str] = None,
+) -> Dict[str, object]:
     retrieved_at = retrieved_at or datetime.now(timezone.utc).isoformat()
     with source_file.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -216,7 +279,7 @@ def run(source_file: Path, output_file: Path, qa_file: Path, retrieved_at: Optio
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Normalize a SUNY STEP Transfer Agreements CSV snapshot")
+    parser = argparse.ArgumentParser(description="Normalize a SUNY STEP Transfer Agreement Inventory CSV snapshot")
     parser.add_argument("--source-file", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--qa-output", required=True, type=Path)
