@@ -61,6 +61,12 @@ class ImportTests(unittest.TestCase):
         self.assertIsNone(record["setting"])
         self.assertIsNone(record["housing"])
 
+    def test_unverified_aid_types_remain_null(self):
+        meta = copy.deepcopy(META)
+        meta["institutions"]["123456"]["aid"] = None
+        record = importer.convert(self.path, meta)["records"][0]
+        self.assertIsNone(record["aid"])
+
     def test_privacy_suppressed_marker_is_missing(self):
         self.row["NPT42_PUB"] = "PrivacySuppressed"
         self.write_rows([self.row])
