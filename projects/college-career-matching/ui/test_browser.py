@@ -8,22 +8,38 @@ Uses only local files and an intercepted dataset URL; no live institutional data
 """
 import asyncio
 import json
+import functools
+import threading
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from playwright.async_api import async_playwright
 
 ROOT = Path(__file__).resolve().parent
-URL = (ROOT / "index.html").as_uri()
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+
+def local_server():
+    handler = functools.partial(QuietHandler, directory=str(ROOT))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server
+
 
 
 async def main():
-    async with async_playwright() as p:
+    server = local_server()
+    try:
+      url = f"http://127.0.0.1:{server.server_port}/index.html"
+      async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page(viewport={"width": 1280, "height": 900})
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         await page.route("**/public-data.json", lambda route: route.fulfill(status=404, body=""))
-        await page.goto(URL)
+        await page.goto(url)
         await page.locator(".result").first.wait_for()
         assert await page.locator(".result").count() == 4, "Expected four synthetic examples"
         assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
@@ -81,6 +97,9 @@ async def main():
         assert not errors, f"Browser errors: {errors}"
         await browser.close()
         print("PASS: synthetic filters, mobile overflow, public-data loader, missing evidence, HTML escaping, zero-cost eligibility, incomplete-data fallback")
+    finally:
+        server.shutdown()
+        server.server_close()
 
 
 if __name__ == "__main__":
