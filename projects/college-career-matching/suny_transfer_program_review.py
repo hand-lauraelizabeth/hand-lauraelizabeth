@@ -65,7 +65,10 @@ def norm(value: str) -> str:
 
 
 def stable_id(*parts: str) -> str:
-    payload = "|".join(norm(part) for part in parts)
+    # Identity is defined by exact source wording after whitespace/case
+    # normalization. Preserve punctuation so distinct STEP source strings do
+    # not collapse merely because their search-normalized forms are similar.
+    payload = "|".join(" ".join((part or "").split()).casefold() for part in parts)
     return "SUNY-PROG-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:18]
 
 
