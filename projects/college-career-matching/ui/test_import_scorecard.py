@@ -25,7 +25,7 @@ class ImportTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.path = Path(self.tmp.name) / "sample.csv"
-        self.row = {"UNITID": "123456", "INSTNM": "Example University",
+        self.row = {"UNITID": "123456", "INSTNM": "Example University", "CONTROL": "1",
                     **{f"NPT4{i}_PUB": v for i, v in enumerate(("0", "PS", "4500", "7000", "10000"), 1)}}
         self.write_rows([self.row])
 
@@ -68,6 +68,17 @@ class ImportTests(unittest.TestCase):
         self.write_rows([self.row, self.row])
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             importer.convert(self.path, META)
+
+    def test_conflicting_public_private_population_fails(self):
+        self.row["CONTROL"] = "2"
+        self.write_rows([self.row])
+        with self.assertRaisesRegex(ValueError, "conflicts with CONTROL"):
+            importer.convert(self.path, META)
+
+    def test_unavailable_control_does_not_claim_validation(self):
+        self.row["CONTROL"] = ""
+        self.write_rows([self.row])
+        self.assertEqual(len(importer.convert(self.path, META)["records"]), 1)
 
     def test_missing_name_fails(self):
         self.row["INSTNM"] = ""
