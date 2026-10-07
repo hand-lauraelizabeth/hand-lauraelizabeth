@@ -39,6 +39,8 @@ def run():
   driver.find_element(By.ID,"nodeAuthority").send_keys("Confirmed scope for synthetic browser test.")
   click(driver,wait,"saveNode")
   wait.until(lambda d:"Eligible for strong, source-specific wording" in d.find_element(By.ID,"guardrail").text)
+  wait.until(lambda d:"verified" in d.find_element(By.ID,"rows").text)
+  assert "No supported gap" in driver.find_element(By.ID,"rows").text or "verified" in driver.find_element(By.ID,"rows").text
   assert "verified" in driver.find_element(By.ID,"evidenceRows").text
   print("PASS Role Evidence Engine browser scenarios: requirement matrix, evidence nodes, human review, claim guardrail")
  finally:
