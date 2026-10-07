@@ -18,8 +18,10 @@ This is not an emulator for Workday, Greenhouse, iCIMS, Taleo, Ashby, or any emp
 
 ## Roadmap
 
-v2.2a: source-aware provenance scaffold implemented in the browser prototype ([resume] / [portfolio] / [public] / [document] / [user])\nv2.2b: expand that scaffold into a structured candidate evidence graph with dates, depth, authority, metrics, verification status, and source links  
-v2.3: stronger gap taxonomy + ATS-visibility layer  
+v2.2a: source-aware provenance scaffold implemented ([resume] / [portfolio] / [public] / [document] / [user])
+v2.2b: statement-level evidence graph implemented with source, dates/metrics, scope/depth signals, competencies, and JSON export
+v2.2c: human-reviewed evidence metadata and claim-strength guardrails implemented
+v2.3: ATS visibility is now separated from reviewed support; requirement rows distinguish visible-but-unreviewed evidence from source-corroborated/verified support, confidentiality-aware export is enforced, and reviewed metadata survives reanalysis  
 v2.4: executive-scope / compensation-tier model  
 v2.5: claim guardrails + resume/interview/portfolio actions  
 v2.6: multi-posting career-level pattern analysis
