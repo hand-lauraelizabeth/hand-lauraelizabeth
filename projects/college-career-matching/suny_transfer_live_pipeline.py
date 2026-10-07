@@ -20,15 +20,15 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from suny_step_live_snapshot import run as snapshot_run
 from suny_transfer_agreement_adapter import run as agreement_run
-from suny_institution_identity import build_indexes,resolve,read_csv,write_csv
+from suny_institution_identity import build_indexes,load_reviewed_aliases,resolve,read_csv,write_csv,DEFAULT_REVIEWED_ALIASES
 from suny_transfer_identity_bridge import run as bridge_run
 
 SOURCE_URL="https://step.transfer.suny.edu/agreements/"
 
 IDENTITY_FIELDS=[
- "campus_source_id","campus_name_source","identity_class",
+ "campus_source_id","campus_name_source","identity_class","identity_relationship",
  "parent_label_for_matching","subunit_label","unitid","ipeds_name",
- "match_method","match_status","candidate_count","source_url","review_note",
+ "match_method","match_status","candidate_count","source_url","review_evidence_url","review_note",
 ]
 
 def campus_rows(agreements):
@@ -60,8 +60,9 @@ def diagnostic_candidates(label,ipeds_rows,limit=5):
  return [{"score":round(s,4),"unitid":u,"ipeds_name":n} for s,u,n in sorted(scored,reverse=True)[:limit]]
 
 def identity_stage(campuses,ipeds_rows,out_dir):
- _,exact,token=build_indexes(ipeds_rows)
- results=[resolve(r,exact,token) for r in campuses]
+ _,exact,token,_=build_indexes(ipeds_rows)
+ reviewed=load_reviewed_aliases(DEFAULT_REVIEWED_ALIASES,ipeds_rows)
+ results=[resolve(r,exact,token,reviewed) for r in campuses]
  write_csv(out_dir/"suny_institution_identity.csv",results,IDENTITY_FIELDS)
  write_csv(out_dir/"suny_institution_identity_review.csv",[r for r in results if r["match_status"] in {"review","unresolved"}],IDENTITY_FIELDS)
  total=len(results);matchable=sum(r["match_status"]!="not_applicable" for r in results)
