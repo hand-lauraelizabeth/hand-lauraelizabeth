@@ -10,7 +10,7 @@ from pathlib import Path
 
 BANDS = ("0_30k", "30_48k", "48_75k", "75_110k", "110k_plus")
 CAREERS = ("data", "education", "health", "business")
-SETTINGS = {"Urban", "Suburban", "Rural"}
+SETTINGS = {"Urban", "Suburban", "Town", "Rural"}
 REQUIRED = {"name", "setting", "housing", "access", "cost", "careers", "aid", "source", "reference_year"}
 
 def validate(payload):
