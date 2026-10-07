@@ -1,9 +1,6 @@
 name: Scorecard official source inspection
 
 on:
-  push:
-    paths:
-      - '.github/workflows/scorecard-source-inspection.yml'
   workflow_dispatch:
 
 permissions:
@@ -22,9 +19,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --location --retry 2 --connect-timeout 20 --max-time 180 \
-            --output /tmp/scorecard-institutions.zip \
-            'https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip'
+          status=$(curl --silent --show-error --location --connect-timeout 20 --max-time 180 \
+            --write-out '%{http_code}' --output /tmp/scorecard-institutions.zip \
+            'https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip')
+          if [ "$status" != 200 ]; then
+            echo "::error::Official Scorecard archive returned HTTP $status. GitHub runner access may be restricted; use a browser-obtained official archive and local preflight. No third-party mirror is authorized."
+            exit 1
+          fi
           test "$(stat -c %s /tmp/scorecard-institutions.zip)" -gt 1000000
       - name: Record archive fingerprint and check required headers
         shell: bash
