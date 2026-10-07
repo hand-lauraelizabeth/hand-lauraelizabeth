@@ -10,8 +10,8 @@ import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 
-FIELDS = ("UNITID", "INSTNM", "CONTROL", "CITY", "STABBR", "LOCALE", "ROOM", "NPT41_PUB", "NPT41_PRIV")
-OUTPUT = ("UNITID", "INSTNM", "CONTROL", "CITY", "STABBR", "LOCALE", "ROOM", "net_price_population", "net_price_sample", "setting_review", "housing_review", "access_review", "aid_review", "cohort_year_review", "publication_status")
+FIELDS = ("UNITID", "INSTNM", "CONTROL", "CITY", "STABBR", "LOCALE", "NPT41_PUB", "NPT41_PRIV")
+OUTPUT = ("UNITID", "INSTNM", "CONTROL", "CITY", "STABBR", "LOCALE", "housing_source_review", "net_price_population", "net_price_sample", "setting_review", "housing_review", "access_review", "aid_review", "cohort_year_review", "publication_status")
 
 
 @contextmanager
@@ -54,7 +54,7 @@ def build(source, destination, limit=100):
                 "CONTROL": control, "CITY": (row.get("CITY") or "").strip(),
                 "STABBR": (row.get("STABBR") or "").strip(),
                 "LOCALE": (row.get("LOCALE") or "").strip(),
-                "ROOM": (row.get("ROOM") or "").strip(),
+                "housing_source_review": "separate institutional/IPEDS source required",
                 "net_price_population": population,
                 "net_price_sample": sample,
                 "setting_review": "pending", "housing_review": "pending",
