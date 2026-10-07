@@ -156,10 +156,11 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "conflicts with CONTROL"):
             importer.convert(self.path, META)
 
-    def test_unavailable_control_does_not_claim_validation(self):
+    def test_missing_control_blocks_public_private_import(self):
         self.row["CONTROL"] = ""
         self.write_rows([self.row])
-        self.assertEqual(len(importer.convert(self.path, META)["records"]), 1)
+        with self.assertRaisesRegex(ValueError, "Missing CONTROL"):
+            importer.convert(self.path, META)
 
     def test_missing_name_fails(self):
         self.row["INSTNM"] = ""
