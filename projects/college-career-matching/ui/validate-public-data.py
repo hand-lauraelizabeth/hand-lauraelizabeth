@@ -38,8 +38,8 @@ def validate(payload):
             errors.append(f"{prefix}: unrecognized campus setting")
         if not isinstance(record["housing"], bool):
             errors.append(f"{prefix}: housing must be boolean")
-        if type(record["access"]) is not int or not 1 <= record["access"] <= 3:
-            errors.append(f"{prefix}: access must be an integer from 1 to 3")
+        if record["access"] is not None and (type(record["access"]) is not int or not 1 <= record["access"] <= 3):
+            errors.append(f"{prefix}: access must be null or an integer from 1 to 3")
         if not isinstance(record["cost"], dict):
             errors.append(f"{prefix}: cost must be an object")
         else:
@@ -47,8 +47,8 @@ def validate(payload):
                 value = record["cost"].get(band, "MISSING")
                 if value == "MISSING" or (value is not None and (type(value) not in (float, int) or not math.isfinite(value) or value < 0)):
                     errors.append(f"{prefix}: invalid {band} cost; use null for unavailable")
-        if not isinstance(record["careers"], dict) or any(type(record["careers"].get(k)) is not int or not 0 <= record["careers"][k] <= 3 for k in CAREERS):
-            errors.append(f"{prefix}: career signals must be integers 0-3")
+        if not isinstance(record["careers"], dict) or any(record["careers"].get(k, "MISSING") == "MISSING" or (record["careers"][k] is not None and (type(record["careers"][k]) is not int or not 0 <= record["careers"][k] <= 3)) for k in CAREERS):
+            errors.append(f"{prefix}: career signals must be null or integers 0-3")
         if not isinstance(record["aid"], list) or not all(isinstance(a, str) for a in record["aid"]):
             errors.append(f"{prefix}: aid must be a string list")
         if not isinstance(record["source"], str) or not record["source"].strip():
