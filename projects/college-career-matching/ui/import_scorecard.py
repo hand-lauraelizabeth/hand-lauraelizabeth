@@ -34,7 +34,7 @@ spec.loader.exec_module(validator)
 
 BANDS = ("0_30k", "30_48k", "48_75k", "75_110k", "110k_plus")
 POPULATIONS = {"PUB", "PRIV", "PROG", "OTHER"}
-SUPPRESSED = {"", "NULL", "NA", "N/A", "PS", "PRIVACY SUPPRESSED", "-1", "-2"}
+SUPPRESSED = {"", "NULL", "NA", "N/A", "PS", "PRIVACY SUPPRESSED", "PRIVACYSUPPRESSED", "-1", "-2"}
 
 
 def parse_price(value):
@@ -61,7 +61,15 @@ def convert(csv_path, metadata):
     seen = set()
     names_seen = set()
     with open(csv_path, newline="", encoding="utf-8-sig") as handle:
-        for row in csv.DictReader(handle):
+        reader = csv.DictReader(handle)
+        headers = reader.fieldnames or []
+        if len(headers) != len(set(headers)):
+            raise ValueError("Duplicate CSV header detected; source column mapping is ambiguous")
+        if any(not header or not header.strip() for header in headers):
+            raise ValueError("Blank CSV header detected")
+        for row in reader:
+            if None in row:
+                raise ValueError("CSV row has more values than its header columns")
             unitid = (row.get("UNITID") or "").strip()
             if unitid not in reviewed:
                 continue
