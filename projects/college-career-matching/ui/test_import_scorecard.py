@@ -91,6 +91,26 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "net_price_reference_year"):
             importer.convert(self.path, meta)
 
+    def test_invalid_control_code_rejected(self):
+        self.row["CONTROL"] = "9"
+        self.write_rows([self.row])
+        with self.assertRaisesRegex(ValueError, "Unrecognized CONTROL"):
+            importer.convert(self.path, META)
+
+    def test_malformed_reviewed_unitid_rejected(self):
+        meta = copy.deepcopy(META)
+        meta["institutions"] = {"12345X": meta["institutions"]["123456"]}
+        with self.assertRaisesRegex(ValueError, "six-digit ASCII"):
+            importer.convert(self.path, meta)
+
+    def test_malformed_csv_unitid_rejected(self):
+        self.row["UNITID"] = "1234567"
+        self.write_rows([self.row])
+        meta = copy.deepcopy(META)
+        meta["institutions"] = {"1234567": meta["institutions"]["123456"]}
+        with self.assertRaisesRegex(ValueError, "six-digit ASCII"):
+            importer.convert(self.path, meta)
+
     def test_missing_unitid_fails(self):
         meta = copy.deepcopy(META)
         meta["institutions"] = {"999999": meta["institutions"]["123456"]}
