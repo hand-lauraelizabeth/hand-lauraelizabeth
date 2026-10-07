@@ -12,6 +12,7 @@ spec.loader.exec_module(importer)
 
 META = {
     "release_year": 2025,
+    "publication_approved": True,
     "net_price_reference_year": 2023,
     "source_url": "https://collegescorecard.ed.gov/example.csv",
     "institutions": {"123456": {
@@ -38,6 +39,12 @@ class ImportTests(unittest.TestCase):
             writer = csv.DictWriter(f, fieldnames=self.row.keys())
             writer.writeheader()
             writer.writerows(rows)
+
+    def test_import_requires_explicit_publication_approval(self):
+        meta = copy.deepcopy(META)
+        meta.pop("publication_approved")
+        with self.assertRaisesRegex(ValueError, "publication_approved"):
+            importer.convert(self.path, meta)
 
     def test_import_preserves_zero_and_suppressed(self):
         payload = importer.convert(self.path, copy.deepcopy(META))
