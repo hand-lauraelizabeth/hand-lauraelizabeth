@@ -19,7 +19,7 @@ def inspect(csv_path, population):
     csv_path = Path(csv_path)
     if csv_path.suffix.lower() == ".zip":
         with zipfile.ZipFile(csv_path) as archive:
-            candidates = [entry for entry in archive.infolist() if not entry.is_dir() and entry.filename.lower().endswith(".csv")]
+            candidates = [entry for entry in archive.infolist() if not entry.is_dir() and entry.filename.lower().endswith(".csv") and not entry.filename.startswith("__MACOSX/") and not Path(entry.filename).name.startswith("._")]
             if len(candidates) != 1:
                 raise ValueError(f"ZIP must contain exactly one CSV; found {len(candidates)}")
             with archive.open(candidates[0]) as raw:
