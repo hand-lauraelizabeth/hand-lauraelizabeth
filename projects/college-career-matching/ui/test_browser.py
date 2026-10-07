@@ -56,9 +56,22 @@ async def main():
         assert await page.locator(".result img, .result svg, .result script").count() == 0, "Unescaped HTML inserted"
         assert "accessibility information unavailable" in await page.locator(".result").inner_text()
         assert "career alignment information unavailable" in await page.locator(".result").inner_text()
+        await page.locator("#cost").fill("0")
+        assert await page.locator(".result").count() == 1, "A zero-cost public record should remain eligible"
+        await page.locator("#cost").fill("25000")
+        await page.unroute("**/public-data.json")
+        invalid = dict(record)
+        invalid["cost"] = {"low": 0, "high": 12000}
+        await page.route("**/public-data.json", lambda route: route.fulfill(
+            status=200, content_type="application/json",
+            body=json.dumps({"schema_version": 1, "records": [invalid]})))
+        await page.reload()
+        await page.locator(".result").first.wait_for()
+        assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower(), "Incomplete record must not replace synthetic mode"
+        assert await page.locator(".result").count() == 4
         assert not errors, f"Browser errors: {errors}"
         await browser.close()
-        print("PASS: synthetic filters, mobile overflow, public-data loader, missing evidence, HTML escaping")
+        print("PASS: synthetic filters, mobile overflow, public-data loader, missing evidence, HTML escaping, zero-cost eligibility, incomplete-data fallback")
 
 
 if __name__ == "__main__":
