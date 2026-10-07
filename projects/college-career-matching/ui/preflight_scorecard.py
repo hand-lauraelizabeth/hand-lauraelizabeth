@@ -4,6 +4,7 @@ Usage: python preflight_scorecard.py path/to/institution.csv|.zip PUB
 No network calls, no output bundle, no institutional records published.
 """
 import csv
+import hashlib
 import sys
 import zipfile
 from pathlib import Path
@@ -35,7 +36,11 @@ def inspect(csv_path, population):
     missing = sorted(expected - set(headers))
     if missing:
         raise ValueError(f"Missing required columns: {', '.join(missing)}")
-    return {"population": population, "required_columns": len(expected),
+    digest = hashlib.sha256()
+    with csv_path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return {"sha256": digest.hexdigest(), "population": population, "required_columns": len(expected),
             "total_columns": len(headers), "header_check": "PASS"}
 
 
@@ -46,4 +51,6 @@ if __name__ == "__main__":
         result = inspect(Path(sys.argv[1]), sys.argv[2])
     except (OSError, ValueError) as exc:
         sys.exit(str(exc))
-    print(f"PASS: {result['population']} header check; {result['required_columns']} required columns present among {result['total_columns']} total. Data provenance and metric year still require independent verification.")
+    print(f"PASS: {result['population']} header check; {result['required_columns']} required columns present among {result['total_columns']} total.")
+    print(f"Input SHA-256: {result['sha256']} (record with retrieval date and official source URL)")
+    print("Data provenance and metric year still require independent verification.")
