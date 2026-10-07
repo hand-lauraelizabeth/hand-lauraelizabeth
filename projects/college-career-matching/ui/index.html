@@ -7,17 +7,30 @@
 <label for="career">Career interest</label><select id="career"><option value="data">Data / analytics</option><option value="education">Education / learning</option><option value="health">Health / community services</option><option value="business">Business / operations</option></select>
 <label for="cost">Maximum average cost after aid</label><input id="cost" type="number" min="0" step="1000" value="25000">
 <p class="meta">Prototype values below are synthetic. Production recommendations must display source, reference year, missingness, and refresh date for each decision-critical field.</p></aside><section class="card"><h2>Matches</h2><p class="muted">Hard filters remove options only when you set a true constraint. Preferences change ranking and the explanation shows why.</p><div id="results"></div></section></div></main><script>
-const DATA=[
+const SYNTHETIC_DATA=[
 {name:"Metro Public University",setting:"Urban",housing:true,access:3,cost:{low:9000,mid:15500,high:23000},careers:{data:3,education:2,health:2,business:3},aid:["need-based","merit"],note:"Strong transit access; broad program mix."},
 {name:"River County Community College",setting:"Suburban",housing:false,access:2,cost:{low:4500,mid:6500,high:8500},careers:{data:2,education:2,health:3,business:2},aid:["need-based"],note:"Lower-cost commuter pathway; transfer planning matters."},
 {name:"North Valley College",setting:"Rural",housing:true,access:2,cost:{low:11500,mid:17500,high:26000},careers:{data:2,education:3,health:2,business:2},aid:["need-based","merit"],note:"Residential setting with smaller-campus profile."},
 {name:"City Technical Institute",setting:"Urban",housing:false,access:3,cost:{low:8000,mid:12500,high:19000},careers:{data:3,education:1,health:2,business:3},aid:["need-based"],note:"Career-focused technical pathways; primarily commuter."}
 ];
+let DATA=SYNTHETIC_DATA, sourceMode="synthetic";
 const $=s=>document.querySelector(s);
+async function loadValidatedData(){
+ try {
+  const response=await fetch("./public-data.json",{cache:"no-store"});
+  if(!response.ok)return;
+  const payload=await response.json();
+  if(payload.schema_version!==1||!Array.isArray(payload.records)||!payload.records.length)return;
+  const valid=payload.records.every(r=>r&&typeof r.name==="string"&&typeof r.source==="string"&&r.source.length>0&&Number.isInteger(r.reference_year)&&r.cost&&["low","mid","high"].every(k=>r.cost[k]===null||(typeof r.cost[k]==="number"&&Number.isFinite(r.cost[k])&&r.cost[k]>=0))&&r.careers&&r.aid&&Array.isArray(r.aid));
+  if(!valid)return;
+  DATA=payload.records;sourceMode="validated";render();
+ }catch(error){/* Remain in clearly labeled synthetic demonstration mode. */}
+}
+
 function score(x){
  const inc=$("#income").value,setting=$("#setting").value,housing=$("#housing").value,access=+$("#access").value,career=$("#career").value,max=+$("#cost").value||Infinity;
- if(x.cost[inc]>max)return null;if(housing==="required"&&!x.housing)return null;
- let pts=0,why=[];const costFit=Math.max(0,1-x.cost[inc]/Math.max(max,1));pts+=costFit*35;why.push("$"+x.cost[inc].toLocaleString()+" synthetic average cost after aid for selected income band");
+ if(x.cost[inc]===null||x.cost[inc]===undefined||x.cost[inc]>max)return null;if(housing==="required"&&!x.housing)return null;
+ let pts=0,why=[];const costFit=Math.max(0,1-x.cost[inc]/Math.max(max,1));pts+=costFit*35;why.push("$"+x.cost[inc].toLocaleString()+" average cost after aid for selected income band");
  if(setting==="any"){pts+=10}else if(x.setting===setting){pts+=15;why.push(setting+" setting matches")}else pts+=3;
  const a=Math.min(1,x.access/access);pts+=a*20;if(x.access>=access)why.push("accessibility signal meets selected priority");
  const c=x.careers[career]||0;pts+=c/3*30;why.push("career alignment "+c+"/3 for selected interest");
@@ -25,5 +38,5 @@ function score(x){
  return {pts:Math.round(pts),why}
 }
 function render(){const ranked=DATA.map(x=>({x,s:score(x)})).filter(z=>z.s).sort((a,b)=>b.s.pts-a.s.pts);$("#results").innerHTML=ranked.length?ranked.map(({x,s})=>'<article class="result"><div class="score">'+s.pts+' <span class="meta">/ 100 preference fit</span></div><h3>'+x.name+'</h3><div><span class="tag">'+x.setting+'</span><span class="tag">'+(x.housing?'Housing available':'Commuter-oriented')+'</span><span class="tag">Aid: '+x.aid.join(', ')+'</span></div><p>'+x.note+'</p><div class="why"><b>Why this ranked here</b><br>'+s.why.join(' · ')+'</div><p class="meta">Synthetic demonstration record — not a college recommendation.</p></article>').join(''):'<p>No synthetic options meet the hard constraints. Relax a constraint to compare tradeoffs.</p>'}
-document.querySelectorAll("select,input").forEach(el=>el.addEventListener("input",render));render();
+document.querySelectorAll("select,input").forEach(el=>el.addEventListener("input",render));render();loadValidatedData();
 </script></body></html>
