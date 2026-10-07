@@ -45,8 +45,8 @@ def parse_price(value):
         number = float(value.replace(",", ""))
     except ValueError as exc:
         raise ValueError(f"Unexpected net-price value {value!r}") from exc
-    if not math.isfinite(number) or number < 0:
-        raise ValueError(f"Invalid net-price value {value!r}")
+    if not math.isfinite(number):
+        raise ValueError(f"Non-finite net-price value {value!r}")
     return int(number) if number.is_integer() else number
 
 
