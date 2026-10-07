@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.lauraelizabethhand.com/schema/role-evidence-node-v2.2c.json",
+  "$id": "https://www.lauraelizabethhand.com/schema/role-evidence-node-v2.3.json",
   "title": "Role Evidence Engine Candidate Evidence Graph",
   "type": "object",
   "required": ["schema_version", "evidence_nodes"],
   "properties": {
-    "schema_version": {"const": "2.2c"},
+    "schema_version": {"const": "2.3"},
     "generated_at": {"type": "string"},
     "evidence_nodes": {
       "type": "array",
