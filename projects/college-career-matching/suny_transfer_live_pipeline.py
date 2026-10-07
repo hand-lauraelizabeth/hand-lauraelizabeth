@@ -58,6 +58,15 @@ def identity_stage(campuses,ipeds_rows,out_dir):
   "unresolved":unresolved,
   "group_not_applicable":na,
   "accepted_match_rate_of_matchable":round(accepted/matchable,6) if matchable else 0,
+  "accepted_details":[
+   {"source_label":r["campus_name_source"],"unitid":r["unitid"],"ipeds_name":r["ipeds_name"],"match_method":r["match_method"]}
+   for r in results if r["match_status"]=="accepted"
+  ],
+  "review_candidate_details":[
+   {"source_label":r["campus_name_source"],"candidate_ipeds_name":r["ipeds_name"],"match_method":r["match_method"],"candidate_count":r["candidate_count"],"review_note":r["review_note"]}
+   for r in results if r["match_status"]=="review"
+  ],
+  "unresolved_labels":[r["campus_name_source"] for r in results if r["match_status"]=="unresolved"],
  }
  with (out_dir/"suny_institution_identity_coverage.json").open("w",encoding="utf-8") as f:
   json.dump(coverage,f,indent=2,sort_keys=True);f.write("\n")
