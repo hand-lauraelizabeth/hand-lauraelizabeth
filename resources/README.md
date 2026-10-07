@@ -34,7 +34,7 @@ Reusable tools built from Laura Elizabeth Hand's research, teaching, project-man
 | [Decision, Prioritization & Needs-Assessment System](decision-prioritization/) | [Excel workbook](decision-prioritization/Laura_Elizabeth_Hand_Portfolio_Decision_Engine.xlsx) | Transparent multi-criteria decisions and sensitivity |
 | [Survey / Needs-Assessment Builder & Analysis Workbook](survey-needs-assessment/) | [Excel workbook](survey-needs-assessment/Survey_Needs_Assessment_Builder_and_Analysis_Workbook.xlsx) | Instrument design, data QA, segmentation, findings |
 | [Research Project Ethics & IRB Readiness Toolkit](research-ethics-irb/) | [Excel workbook](research-ethics-irb/Research_Project_Ethics_and_IRB_Readiness_Toolkit.xlsx) | Ethics, consent, privacy, recruitment, review readiness |
-| [Quantitative Research & Statistical Analysis Planner](quantitative-analysis/) | [Excel workbook](quantitative-analysis/Quantitative_Research_Statistical_Analysis_Planner.xlsx) | SPSS-ready planning, hypotheses, QA, assumptions, reporting |
+| [Quantitative Research & Statistical Analysis Planner](quantitative-analysis/) | [Excel workbook](quantitative-analysis/Quantitative_Research_Statistical_Analysis_Planner.xlsx) | SPSS-ready planning, hypotheses, QA, assumptions, reporting |\n| [Prompt Literacy & Responsible AI Teaching Kit](responsible-ai-teaching/) | [Prompt Literacy Debugger](../projects/prompt-literacy-debugger/) · [Evidence-Safe Prompt Lab](../projects/evidence-safe-prompt-lab/) · [Ethical AI Scenario Auditor](../projects/ethical-ai-scenario-auditor/) | AI task choice, prompt literacy, evidence, verification, risk, human oversight, red-teaming |
 
 ## Design standard
 
