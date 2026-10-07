@@ -74,6 +74,11 @@ def convert(csv_path, metadata):
             population = info.get("population")
             if population not in POPULATIONS:
                 raise ValueError(f"Reviewed population required for {unitid}")
+            control = (row.get("CONTROL") or "").strip()
+            if population in {"PUB", "PRIV"} and control in {"1", "2", "3"}:
+                expected = "PUB" if control == "1" else "PRIV"
+                if population != expected:
+                    raise ValueError(f"Population {population} conflicts with CONTROL={control} for {unitid}; resolve reporting basis before import")
             cost = {}
             for i, band in enumerate(BANDS, 1):
                 field = f"NPT4{i}_{population}"
