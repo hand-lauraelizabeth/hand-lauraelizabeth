@@ -1,0 +1,59 @@
+step_label,ipeds_name,unitid,identity_relationship,review_status,suny_evidence_url,reviewed_on,review_note
+Adirondack,SUNY Adirondack,188438,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,STEP shorthand reviewed against SUNY campus directory and current IPEDS.
+Albany,University at Albany,196060,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,STEP shorthand reviewed against SUNY campus directory and current IPEDS.
+Alfred State,SUNY College of Technology at Alfred,196006,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this Alfred State College; current IPEDS institutional name retained.
+Binghamton,Binghamton University,196079,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Brockport,SUNY Brockport,196121,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Broome,SUNY Broome Community College,189547,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Buffalo State,SUNY Buffalo State University,196130,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Explicitly prevents false mapping to University at Buffalo.
+Canton,SUNY College of Technology at Canton,196015,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY Canton; current IPEDS institutional name retained.
+Cayuga,Cayuga County Community College,189839,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this Cayuga Community College; current IPEDS institutional name retained.
+Clinton,Clinton Community College,190053,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Cobleskill,SUNY College of Agriculture and Technology at Cobleskill,196033,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY Cobleskill; current IPEDS institutional name retained.
+Columbia-Greene,Columbia-Greene Community College,190169,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Cornell CALS,Cornell University,190415,subunit_parent,accepted,https://www.suny.edu/campuses/cornell-cals/,2026-10-07,CALS is a SUNY statutory college within Cornell University; preserve subunit wording while using Cornell parent UNITID at institution grain.
+Corning,SUNY Corning Community College,190442,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this Corning Community College; current IPEDS institutional name retained.
+Cortland,State University of New York at Cortland,196149,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY Cortland; current IPEDS institutional name retained.
+Delhi,SUNY College of Technology at Delhi,196024,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY Delhi; current IPEDS institutional name retained.
+Dutchess,Dutchess Community College,190840,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+ESF,SUNY College of Environmental Science and Forestry,196103,campus,accepted,https://www.suny.edu/campuses/esf/,2026-10-07,Reviewed against SUNY ESF page and IPEDS identifier.
+Empire State,Empire State University,196264,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory brands this SUNY Empire State University; current IPEDS institutional name retained.
+Erie,Erie Community College,191083,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity; BOCES token candidates are not accepted.
+Farmingdale,Farmingdale State College,196042,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Fashion Institute,Fashion Institute of Technology,191126,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,STEP shorthand corresponds to FIT.
+Finger Lakes,Finger Lakes Community College,191199,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Fredonia,SUNY at Fredonia,196158,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory brands this SUNY Fredonia; current IPEDS institutional name retained.
+Fulton-Montgomery,Fulton-Montgomery Community College,191302,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Genesee,Genesee Community College,191339,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Geneseo,SUNY College at Geneseo,196167,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory brands this SUNY Geneseo; current IPEDS institutional name retained.
+Herkimer,Herkimer County Community College,191612,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Hudson Valley,Hudson Valley Community College,191719,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Jamestown,Jamestown Community College,191986,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Jefferson,Jefferson Community College,192022,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Maritime,SUNY Maritime College,196291,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this Maritime College; current IPEDS institutional name retained.
+Mohawk Valley,Mohawk Valley Community College,193283,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Monroe,Monroe Community College,193326,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Explicitly prevents false mapping to Monroe University.
+Morrisville,SUNY Morrisville,196051,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+NYS College of Ceramics,Alfred University,188641,subunit_parent,accepted,https://www.suny.edu/campuses/ceramics/,2026-10-07,NYS College of Ceramics is a SUNY statutory college at Alfred University; preserve subunit wording while using Alfred University parent UNITID at institution grain.
+Nassau,Nassau Community College,193478,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+New Paltz,State University of New York at New Paltz,196176,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY New Paltz; current IPEDS institutional name retained.
+Niagara,Niagara County Community College,193946,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory brands this SUNY Niagara Community College; current IPEDS institutional name retained; explicitly prevents false mapping to Niagara University.
+North Country,North Country Community College,194028,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Oneonta,SUNY Oneonta,196185,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Onondaga,Onondaga Community College,194222,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Orange County,Orange County Community College,194240,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Oswego,State University of New York at Oswego,196194,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY Oswego; current IPEDS institutional name retained.
+Plattsburgh,State University of New York at Plattsburgh,196246,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY Plattsburgh; current IPEDS institutional name retained.
+Plattsburgh (Queensbury),State University of New York at Plattsburgh,196246,extension_parent,accepted,https://www.suny.edu/attend/apply-to-suny/participating-campuses/,2026-10-07,SUNY explicitly lists SUNY Plattsburgh at Queensbury; preserve extension context while using parent UNITID.
+Potsdam,SUNY College at Potsdam,196200,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this SUNY Potsdam; current IPEDS institutional name retained.
+Rockland,Rockland Community College,195058,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+SUNY Polytechnic,SUNY Polytechnic Institute,196112,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Schenectady,Schenectady County Community College,195322,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory brands this SUNY Schenectady County Community College; current IPEDS institutional name retained.
+Stony Brook,Stony Brook University,196097,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Suffolk,Suffolk County Community College,366395,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed against SUNY campus directory and current IPEDS identifier.
+Sullivan,Sullivan County Community College,195988,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Tompkins Cortland,Tompkins Cortland Community College,196565,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Ulster,Ulster County Community College,196699,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity; BOCES token candidate is not accepted.
+University at Buffalo,University at Buffalo,196088,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Exact source/IPEDS identity.
+Upstate Medical,Upstate Medical University,196307,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,Reviewed campus identity.
+Westchester,SUNY Westchester Community College,197294,campus,accepted,https://www.suny.edu/campuses/,2026-10-07,SUNY directory calls this Westchester Community College; current IPEDS institutional name retained; explicitly prevents false mapping to The College of Westchester.
