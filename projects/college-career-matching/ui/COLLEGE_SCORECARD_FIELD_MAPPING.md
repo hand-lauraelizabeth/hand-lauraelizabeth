@@ -42,3 +42,6 @@ The original 23,559,465-byte archive was retrieved from the dedicated Google Dri
 
 ## Signed net-price values
 The importer, bundle validator, and browser now preserve finite negative average net prices rather than silently converting them to zero or rejecting the record. The UI formats a negative value as `−$275`, and affordability fit is clamped to the existing 0–1 scoring range. A negative *average* net price is not a promise of an individual refund or financial-aid award. Suppressed values remain `null`.
+
+## Control evidence publication gate
+For reviewed public/private records (`PUB`/`PRIV`), the importer now requires nonblank source `CONTROL` and checks it against the reviewed reporting population. A missing source control is not proof of public/private status and cannot be silently accepted. This gate does not independently verify campus setting, housing, accessibility, or career scores: those must be separately reviewed and attributed before publication.
