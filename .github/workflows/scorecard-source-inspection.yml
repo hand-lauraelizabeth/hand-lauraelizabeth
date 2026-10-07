@@ -1,0 +1,47 @@
+name: Scorecard official source inspection
+
+on:
+  push:
+    paths:
+      - '.github/workflows/scorecard-source-inspection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Retrieve official June 2026 institution archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --connect-timeout 20 --max-time 180 \
+            --output /tmp/scorecard-institutions.zip \
+            'https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip'
+          test "$(stat -c %s /tmp/scorecard-institutions.zip)" -gt 1000000
+      - name: Record archive fingerprint and check required headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python projects/college-career-matching/ui/preflight_scorecard.py /tmp/scorecard-institutions.zip PUB
+          python projects/college-career-matching/ui/preflight_scorecard.py /tmp/scorecard-institutions.zip PRIV
+          python - <<'PY'
+          import csv, io, zipfile
+          path = '/tmp/scorecard-institutions.zip'
+          with zipfile.ZipFile(path) as z:
+              csv_files = [n for n in z.namelist() if n.lower().endswith('.csv')]
+              if len(csv_files) != 1:
+                  raise SystemExit(f'Expected one CSV, found {len(csv_files)}')
+              with z.open(csv_files[0]) as raw:
+                  fields = next(csv.reader(io.TextIOWrapper(raw, encoding='utf-8-sig', newline='')))
+          print('Archive CSV entry:', csv_files[0])
+          print('Relevant column names:', ', '.join(x for x in fields if x in {'UNITID','INSTNM','CONTROL'} or x.startswith('NPT4')))
+          print('NOTE: Headers and hash do not establish reporting cohort year or source authenticity.')
+          PY
