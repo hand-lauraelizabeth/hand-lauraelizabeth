@@ -37,6 +37,7 @@ def run():
   wait.until(lambda d:"Use only as a lead for review" in d.find_element(By.ID,"guardrail").text)
   driver.find_element(By.ID,"nodeRole").send_keys("Reviewed test role")
   driver.find_element(By.ID,"nodeSource").send_keys("Synthetic regression fixture")
+  driver.find_element(By.ID,"nodeDates").clear();driver.find_element(By.ID,"nodeDates").send_keys("2017–2026; concurrent roles must not double-count overlap")
   Select(driver.find_element(By.ID,"nodeVerify")).select_by_value("verified")
   Select(driver.find_element(By.ID,"nodeConf")).select_by_value("public")
   driver.find_element(By.ID,"nodeAuthority").send_keys("Confirmed scope for synthetic browser test.")
@@ -45,7 +46,11 @@ def run():
   wait.until(lambda d:"verified" in d.find_element(By.ID,"rows").text)
   assert "No supported gap" in driver.find_element(By.ID,"rows").text or "verified" in driver.find_element(By.ID,"rows").text
   assert "verified" in driver.find_element(By.ID,"evidenceRows").text
-  print("PASS Role Evidence Engine browser scenarios: requirement matrix, evidence nodes, human review, claim guardrail")
+  body=driver.find_element(By.TAG_NAME,"body").text
+  assert "Chronology check" in body
+  assert "Hard-condition check" in body
+  assert "Application-facing wording ceiling" in body
+  print("PASS Role Evidence Engine browser scenarios: requirement matrix, evidence nodes, chronology, hard conditions, human review, claim guardrail")
  finally:
   if driver:driver.quit()
   srv.shutdown();srv.server_close()
