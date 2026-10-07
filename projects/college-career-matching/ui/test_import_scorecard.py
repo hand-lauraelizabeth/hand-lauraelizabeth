@@ -69,6 +69,19 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             importer.convert(self.path, META)
 
+    def test_missing_name_fails(self):
+        self.row["INSTNM"] = ""
+        self.write_rows([self.row])
+        with self.assertRaisesRegex(ValueError, "Missing institution name"):
+            importer.convert(self.path, META)
+
+    def test_unreviewed_records_not_exported(self):
+        extra = dict(self.row, UNITID="654321", INSTNM="Other Institution")
+        self.write_rows([self.row, extra])
+        payload = importer.convert(self.path, META)
+        self.assertEqual(len(payload["records"]), 1)
+        self.assertEqual(payload["records"][0]["name"], "Example University")
+
 
 if __name__ == "__main__":
     unittest.main()
