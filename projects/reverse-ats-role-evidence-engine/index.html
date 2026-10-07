@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Role Evidence Engine — v2.3</title>
+<title>Role Evidence Engine — v2.4</title>
 <style>
 :root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -21,7 +21,7 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <body>
 <header>
   <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
-  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.3</span></h1>
+  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.4</span></h1>
   <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
 </header>
 <main>
@@ -86,8 +86,8 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <div class="matrix"><table><thead><tr><th>Type</th><th>Requirement</th><th>Evidence found</th><th>Visibility</th><th>Reviewed support</th><th>Gap type</th><th>Next action</th></tr></thead><tbody id="rows"><tr><td colspan="7" class="muted">No analysis yet.</td></tr></tbody></table></div>
 </section>
 
-<details class="panel"><summary>How v2.3 classifies text and evidence</summary>
-<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. v2.3 adds human-reviewed metadata and claim-strength guardrails. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency; stronger wording should depend on reviewed evidence, not keyword presence.</p>
+<details class="panel"><summary>How v2.4 classifies text and evidence</summary>
+<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. v2.4 adds human-reviewed metadata and claim-strength guardrails. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency; stronger wording should depend on reviewed evidence, not keyword presence.</p>
 </details>
 </main>
 <script>
@@ -105,6 +105,39 @@ function lines(text){return text.split(/\n+/).flatMap(x=>x.split(/(?<=[.;!?])\s+
 function classify(s){for(const [t,re] of TYPE_RULES)if(re.test(s))return t;return 'context'}
 function terms(s){return [...new Set((s.toLowerCase().match(/[a-z][a-z0-9+#./-]{2,}/g)||[]).map(x=>x.replace(/[.,;:]+$/,'')).filter(x=>!STOP.has(x)&&x.length>3))]}
 function phraseCandidates(s){const out=[]; const patterns=[/\b\d+\+?\s+years?[^,.;]*/ig,/\b(?:bachelor'?s?|master'?s?|phd|doctorate)[^,.;]*/ig,/\b(?:budget|portfolio|roadmap|governance|direct reports?|supervis\w*|manage\w*)[^,.;]*/ig];patterns.forEach(r=>{const m=s.match(r);if(m)out.push(...m)});return out}
+function hardConditions(s){
+ const out=[];
+ const yrs=s.match(/\b(\d+)\+?\s+years?\s+(?:of\s+)?experience/i);if(yrs)out.push({kind:'years',value:+yrs[1],label:yrs[0]});
+ const deg=s.match(/\b(bachelor'?s?|master'?s?|phd|doctorate)(?:\s+degree)?\b/i);if(deg)out.push({kind:'degree',value:deg[1].toLowerCase(),label:deg[0]});
+ const tools=['salesforce','hubspot','workday','tableau','power bi','sql','python','excel','adobe','asana','jira','google analytics'];
+ tools.forEach(t=>{if(new RegExp('\\b'+t.replace(' ','\\s+')+'\\b','i').test(s)&&/(required|must|minimum|proficien|expert|advanced|experience with)/i.test(s))out.push({kind:'tool',value:t,label:t})});
+ return out
+}
+function yearIntervals(graph){
+ const ints=[];
+ graph.forEach(n=>{
+  const txt=(n.reviewed?.dates||'').trim(); if(!txt)return;
+  const re=/(19|20)\d{2}\s*[–—-]\s*(present|(19|20)\d{2})/ig;let m;
+  while((m=re.exec(txt))){const a=+m[0].slice(0,4),b=/present/i.test(m[0])?new Date().getFullYear():+(m[0].match(/(19|20)\d{2}$/)||[])[0];if(a&&b&&b>=a)ints.push([a,b,n.evidence_id])}
+ });
+ return ints
+}
+function chronologyYears(graph){
+ const ints=yearIntervals(graph);if(!ints.length)return {years:null,intervals:[],concurrent:false};
+ const years=new Set();ints.forEach(([a,b])=>{for(let y=a;y<=b;y++)years.add(y)});
+ let concurrent=false;for(let i=0;i<ints.length;i++)for(let j=i+1;j<ints.length;j++)if(Math.max(ints[i][0],ints[j][0])<=Math.min(ints[i][1],ints[j][1]))concurrent=true;
+ return {years:years.size,intervals:ints,concurrent}
+}
+function hardConditionStatus(req,graph,ev){
+ const cs=hardConditions(req);if(!cs.length)return '';
+ const chrono=chronologyYears(graph),notes=[];
+ cs.forEach(c=>{
+  if(c.kind==='years')notes.push(chrono.years==null?'years unresolved':chrono.years>=c.value?'reviewed chronology supports '+c.value+'+ years':'reviewed chronology does not yet support '+c.value+'+ years');
+  if(c.kind==='degree')notes.push(/degree|b\.a\.|bachelor|m\.a\.|master|phd|doctorate/i.test(graph.map(n=>n.statement).join(' '))?'degree text visible':'degree evidence not visible');
+  if(c.kind==='tool')notes.push(ev.status==='strong'||ev.status==='visible'?c.value+' visible; depth still requires review':c.value+' requirement not clearly supported');
+ });
+ return notes.join('; ')
+}
 const SRCW={resume:1,portfolio:.95,public:.9,document:.85,user:.65,other:.7};
 function evidenceBlocks(text){
  const blocks=[];let source='resume',buf=[];
@@ -177,8 +210,9 @@ function reviewedSupport(ev){
  if(ev.verification_status==='self-attested')return 'self-attested';
  return 'unreviewed';
 }
-function gap(type,ev,req){
- const rs=reviewedSupport(ev);
+function gap(type,ev,req,graph){
+ const rs=reviewedSupport(ev),hc=hardConditionStatus(req,graph,ev);
+ if(/does not yet support|unresolved|not visible|not clearly supported/.test(hc))return 'Hard-condition verification gap';
  if((ev.status==='strong'||ev.status==='visible')&&['verified','source-corroborated'].includes(rs))return 'No supported gap';
  if((ev.status==='strong'||ev.status==='visible')&&rs==='blocked for external use')return 'Evidence exists but is not usable externally';
  if((ev.status==='strong'||ev.status==='visible')&&rs==='self-attested')return 'Evidence visible; source corroboration pending';
@@ -194,6 +228,7 @@ function action(type,g){
  if(/not usable externally/.test(g))return 'Do not use this evidence in external materials; recover a shareable source or alternate proof.';
  if(/source corroboration pending/.test(g))return 'Attach/review a supporting source before treating this as application-ready evidence.';
  if(/verification pending/.test(g))return 'Review the evidence node, add a source reference, and confirm scope before strengthening wording.';
+ if(/Hard-condition/.test(g))return 'Resolve the explicit years, degree, or required-tool condition before treating this requirement as satisfied.';
  if(/Verification|chronology/.test(g))return 'Recover exact dates/credential evidence before strengthening the claim.';
  if(/Authority|scope/.test(g))return 'Surface people, budget/resource, portfolio, governance, or decision-right evidence explicitly.';
  if(/Depth|recency/.test(g))return 'Document most recent independent use and depth; refresh or build proof if needed.';
@@ -205,7 +240,7 @@ function analyze(){
  const job=$('#job').value.trim(), cand=$('#candidate').value.trim();
  if(!job){alert('Paste a job description first.');return}
  GRAPH=buildGraph(cand,GRAPH);renderGraph(GRAPH);
- const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text);return{id:i+1,type,text,ev,g,action:action(type,g)}});
+ const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text,GRAPH),hard_check:hardConditionStatus(text,GRAPH,ev);return{id:i+1,type,text,ev,g,action:action(type,g)}});
  DATA=xs;
  const counts={};xs.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
  const hard=xs.filter(x=>x.type==='hard'), hardVisible=hard.filter(x=>['strong','visible'].includes(x.ev.status)).length;
@@ -214,8 +249,9 @@ function analyze(){
  const risk=xs.filter(x=>/material|Verification|Authority|verification pending|corroboration pending|not usable externally/i.test(x.g)).length;
  $('#stats').innerHTML=[[xs.length,'requirements/signals'],[hard.length?Math.round(hardVisible/hard.length*100)+'%':'–','hard req. visibility'],[Math.round(allVisible/xs.length*100)+'%','overall visibility'],[reviewed,'reviewed-support matches']].map(x=>'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
  $('#structure').innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<span class="tag '+k+'">'+k+': '+v+'</span>').join(' ')+'<p class="muted" style="margin-top:12px">'+(job.match(/\$\s?\d{2,3}(?:,\d{3})?/g)||[]).slice(0,4).join(' · ')+'</p>';
- $('#interpret').innerHTML=(risk?'<div class="signal warn"><b>'+risk+' higher-attention items.</b><br>These include possible hard-requirement, chronology, or authority/scope gaps. Review before rewriting materials.</div>':'<div class="signal"><b>No major heuristic risk flags.</b><br>Still verify depth, recency, authority, and source provenance.</div>')+'<div class="signal"><b>Use the matrix as a diagnostic.</b><br>A visibility gap means “not legible in the supplied evidence,” not automatically “you lack the capability.” Evidence sources contributing to visible matches: '+(sources.join(', ')||'none')+'.</div>';
- $('#rows').innerHTML=xs.map(x=>'<tr><td><span class="tag '+x.type+'">'+x.type+'</span></td><td>'+esc(x.text)+'</td><td>'+esc(x.ev.found||'None found')+'</td><td>'+x.ev.status+'</td><td>'+esc(reviewedSupport(x.ev))+'</td><td>'+esc(x.g)+'</td><td>'+esc(x.action)+'</td></tr>').join('');
+ const chrono=chronologyYears(GRAPH);const chronoMsg=chrono.years==null?'Reviewed chronology is not yet sufficient to calculate non-duplicated experience years.':'Reviewed chronology covers about '+chrono.years+' distinct calendar years'+(chrono.concurrent?' with overlapping/concurrent roles detected; overlap is counted once.':'.');
+ $('#interpret').innerHTML='<div class="signal"><b>Chronology check.</b><br>'+esc(chronoMsg)+'</div>'+(risk?'<div class="signal warn"><b>'+risk+' higher-attention items.</b><br>These include possible hard-requirement, chronology, or authority/scope gaps. Review before rewriting materials.</div>':'<div class="signal"><b>No major heuristic risk flags.</b><br>Still verify depth, recency, authority, and source provenance.</div>')+'<div class="signal"><b>Use the matrix as a diagnostic.</b><br>A visibility gap means “not legible in the supplied evidence,” not automatically “you lack the capability.” Evidence sources contributing to visible matches: '+(sources.join(', ')||'none')+'.</div>';
+ $('#rows').innerHTML=xs.map(x=>'<tr><td><span class="tag '+x.type+'">'+x.type+'</span></td><td>'+esc(x.text)+(x.hard_check?'<div class="muted" style="margin-top:6px"><b>Hard-condition check:</b> '+esc(x.hard_check)+'</div>':'')+'</td><td>'+esc(x.ev.found||'None found')+'</td><td>'+x.ev.status+'</td><td>'+esc(reviewedSupport(x.ev))+'</td><td>'+esc(x.g)+'</td><td>'+esc(x.action)+'</td></tr>').join('');
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
@@ -238,12 +274,17 @@ function renderGuardrail(n){
  if(v==='self-attested'){level='Use as self-attested evidence with careful wording';why='The user confirms the claim, but no supporting source is attached.'}
  if(v==='source-corroborated'){level='Use source-bounded wording';cls='';why='A supporting source has been reviewed; keep the claim within what that source demonstrates.'}
  if(v==='verified'){level='Eligible for strong, source-specific wording';cls='';why='The evidence is marked verified. Scope, causality, recency, and confidentiality still constrain wording.'}
+ let claim='Do not generate an application claim yet.';
+ if(v==='self-attested')claim='Possible claim: '+n.statement+' [self-attested; corroborate before strengthening]';
+ if(v==='source-corroborated'||v==='verified')claim='Maximum supported claim: '+n.statement;
+ if((n.reviewed?.confidentiality||'unspecified')==='do-not-use')claim='Blocked: this evidence cannot be used externally.';
+ if((n.reviewed?.confidentiality||'unspecified')==='anonymize')claim='Use only an anonymized claim bounded by the reviewed source.';
  const warnings=[];
  if(scope.some(x=>['people','fiscal','portfolio','governance','executive'].includes(x))&&!auth)warnings.push('Leadership/authority language is detected, but reviewed authority/scope is blank. Do not upgrade “supported/coordinated” to “owned/managed/approved” without confirming it.');
  if(!n.reviewed?.source_reference&&['source-corroborated','verified'].includes(v))warnings.push('Verification is marked strong but no source reference is recorded.');
  if((n.reviewed?.confidentiality||'unspecified')==='do-not-use')warnings.push('This node is marked do not use externally.');
  if((n.reviewed?.confidentiality||'unspecified')==='anonymize')warnings.push('Use only anonymized wording.');
- $('#guardrail').innerHTML='<div class="signal '+cls+'"><b>'+esc(level)+'</b><br>'+esc(why)+'</div><p><b>Detected depth:</b> '+esc(depth)+'</p><p><b>Detected scope:</b> '+(scope.length?scope.map(x=>'<span class="tag">'+esc(x)+'</span>').join(' '):'none')+'</p>'+(warnings.length?warnings.map(w=>'<div class="signal warn">'+esc(w)+'</div>').join(''):'<div class="signal"><b>No additional guardrail flags from current reviewed fields.</b></div>');
+ $('#guardrail').innerHTML='<div class="signal '+cls+'"><b>'+esc(level)+'</b><br>'+esc(why)+'</div><div class="signal"><b>Application-facing wording ceiling</b><br>'+esc(claim)+'</div><p><b>Detected depth:</b> '+esc(depth)+'</p><p><b>Detected scope:</b> '+(scope.length?scope.map(x=>'<span class="tag">'+esc(x)+'</span>').join(' '):'none')+'</p>'+(warnings.length?warnings.map(w=>'<div class="signal warn">'+esc(w)+'</div>').join(''):'<div class="signal"><b>No additional guardrail flags from current reviewed fields.</b></div>');
 }
 $('#nodeSelect').addEventListener('change',loadNodeReview);
 $('#saveNode').onclick=()=>{
@@ -257,7 +298,7 @@ $('#clearNodeReview').onclick=()=>{const n=currentNode();if(!n)return;n.verifica
 $('#analyze').onclick=analyze;
 $('#sampleJob').onclick=()=>{$('#job').value='Director, Learning Programs\nRequired: 8+ years of experience in learning, curriculum, or program leadership.\nBachelor’s degree required; master’s preferred.\nLead a portfolio of learning programs and own the roadmap.\nManage and develop a team of program managers and facilitators.\nOversee vendor contracts and program budgets.\nPartner with executive stakeholders across product, operations, and marketing.\nExperience with analytics and CRM systems preferred.'};
 $('#sampleCandidate').onclick=()=>{$('#candidate').value='[resume]\nM.A., English & Comparative Literature. Manager, Curriculum Development: lead curriculum development, portfolio strategy, QA, facilitator relationships, contracting, performance reviews, and cross-functional workflows. Portfolio includes 17 titles across 38 variants. Previous workforce leadership included 90+ employer partnerships and 260–270 annual placements. Interviewed, onboarded, trained, scheduled, and supported performance for approximately 85–110 instructors per cycle. Operational oversight across budgets and contracts up to $1.25M. Analytics, CRM, CMS, and data-quality experience.\n[portfolio]\nInteractive analytics, NLP, and decision-support tools with public documentation and browser demos.\n[document]\nExecutive operational oversight across budgets and contracts up to $1.25M.'};
-$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim(),GRAPH);renderGraph(GRAPH)}if(!GRAPH.length)return;const safe=GRAPH.filter(n=>(n.reviewed?.confidentiality||'unspecified')!=='do-not-use').map(n=>{const x=JSON.parse(JSON.stringify(n));if(x.reviewed?.confidentiality==='anonymize'){x.statement='[anonymized evidence — source statement omitted]';x.competencies=[];x.metrics=[]}return x});const payload={schema_version:'2.3',generated_at:new Date().toISOString(),export_policy:'do-not-use nodes excluded; anonymize nodes redact statement/competencies/metrics',evidence_nodes:safe};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='candidate-evidence-graph-safe.json';a.click()};
+$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim(),GRAPH);renderGraph(GRAPH)}if(!GRAPH.length)return;const safe=GRAPH.filter(n=>(n.reviewed?.confidentiality||'unspecified')!=='do-not-use').map(n=>{const x=JSON.parse(JSON.stringify(n));if(x.reviewed?.confidentiality==='anonymize'){x.statement='[anonymized evidence — source statement omitted]';x.competencies=[];x.metrics=[]}return x});const payload={schema_version:'2.4',generated_at:new Date().toISOString(),export_policy:'do-not-use nodes excluded; anonymize nodes redact statement/competencies/metrics',evidence_nodes:safe};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='candidate-evidence-graph-safe.json';a.click()};
 $('#export').onclick=()=>{if(!DATA.length)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=['Type,Requirement,Evidence,Visibility,Reviewed support,Gap type,Next action'].concat(DATA.map(x=>[x.type,x.text,x.ev.found,x.ev.status,reviewedSupport(x.ev),x.g,x.action].map(q).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='role-evidence-matrix.csv';a.click()};
 </script>
 </body></html>
