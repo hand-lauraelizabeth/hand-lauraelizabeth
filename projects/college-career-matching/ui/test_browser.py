@@ -56,6 +56,8 @@ async def main():
         assert await page.locator(".result img, .result svg, .result script").count() == 0, "Unescaped HTML inserted"
         assert "accessibility information unavailable" in await page.locator(".result").inner_text()
         assert "career alignment information unavailable" in await page.locator(".result").inner_text()
+        assert "–" in await page.locator(".result .score").inner_text(), "Missing evidence should display a score interval"
+        assert "range reflects missing evidence" in await page.locator(".result .score").inner_text()
         await page.locator("#cost").fill("0")
         assert await page.locator(".result").count() == 1, "A zero-cost public record should remain eligible"
         await page.locator("#cost").fill("25000")
