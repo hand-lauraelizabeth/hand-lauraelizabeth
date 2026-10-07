@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Role Evidence Engine — v2.2b</title>
+<title>Role Evidence Engine — v2.2c</title>
 <style>
 :root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -21,7 +21,7 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <body>
 <header>
   <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
-  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.2b</span></h1>
+  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.2c</span></h1>
   <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
 </header>
 <main>
@@ -57,13 +57,37 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <div class="matrix"><table><thead><tr><th>Node</th><th>Source</th><th>Statement</th><th>Scope signals</th><th>Depth</th><th>Dates / metrics</th><th>Verification</th></tr></thead><tbody id="evidenceRows"><tr><td colspan="7" class="muted">Paste candidate evidence and analyze a posting to build the evidence graph.</td></tr></tbody></table></div>
 </section>
 
+
+<div class="grid" style="margin-top:16px">
+<section class="panel">
+<h2>Review an evidence node</h2>
+<p class="muted">Automatic detection creates a review queue, not a verified career record. Select a node and add only what you can substantiate.</p>
+<label for="nodeSelect"><b>Evidence node</b></label>
+<select id="nodeSelect" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px"><option value="">Build the graph first</option></select>
+<label for="nodeRole"><b>Role / project / organization</b></label><input id="nodeRole" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px">
+<label for="nodeDates"><b>Reviewed dates</b></label><input id="nodeDates" placeholder="e.g., 2023–2025; concurrent with X" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px">
+<label for="nodeSource"><b>Source reference / link</b></label><input id="nodeSource" placeholder="Document, page, URL, tracker row, etc." style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px">
+<div class="grid">
+<div><label for="nodeVerify"><b>Verification</b></label><select id="nodeVerify" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px"><option value="unreviewed">Unreviewed</option><option value="self-attested">Self-attested</option><option value="source-corroborated">Source-corroborated</option><option value="verified">Verified</option></select></div>
+<div><label for="nodeConf"><b>Disclosure</b></label><select id="nodeConf" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px"><option value="unspecified">Unspecified</option><option value="public">Public/shareable</option><option value="private">Private</option><option value="anonymize">Use only in anonymized form</option><option value="do-not-use">Do not use externally</option></select></div>
+</div>
+<label for="nodeAuthority"><b>Authority / scope note</b></label><textarea id="nodeAuthority" style="min-height:80px" placeholder="Only confirmed scope: people led, budget/resource authority, portfolio ownership, governance/decision rights, etc."></textarea>
+<label for="nodeNote"><b>Reviewer note</b></label><textarea id="nodeNote" style="min-height:80px" placeholder="Causality, denominator, recency, limits, wording guardrail, or unresolved question."></textarea>
+<div class="row"><button class="btn" id="saveNode" type="button">Save reviewed metadata</button><button class="btn ghost" id="clearNodeReview" type="button">Clear review fields</button></div>
+</section>
+<section class="panel">
+<h2>Claim-strength guardrail</h2>
+<div id="guardrail"><div class="signal"><b>No node selected.</b><br>Select an evidence node to see what wording strength is currently supportable.</div></div>
+</section>
+</div>
+
 <section class="panel" style="margin-top:16px">
 <h2>Requirement matrix</h2>
 <div class="matrix"><table><thead><tr><th>Type</th><th>Requirement</th><th>Evidence found</th><th>Visibility</th><th>Gap type</th><th>Next action</th></tr></thead><tbody id="rows"><tr><td colspan="6" class="muted">No analysis yet.</td></tr></tbody></table></div>
 </section>
 
-<details class="panel"><summary>How v2.2b classifies text and evidence</summary>
-<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency. Those remain verification tasks.</p>
+<details class="panel"><summary>How v2.2c classifies text and evidence</summary>
+<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. v2.2c adds human-reviewed metadata and claim-strength guardrails. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency; stronger wording should depend on reviewed evidence, not keyword presence.</p>
 </details>
 </main>
 <script>
@@ -121,7 +145,7 @@ function buildGraph(text){
     scope_signals:scope,
     depth:detectedDepth(statement),
     competencies:terms(statement).slice(0,18),
-    verification_status:'source-provided; not independently verified'
+    verification_status:'unreviewed',reviewed:{role_project:'',dates:'',source_reference:'',confidentiality:'unspecified',authority_scope:'',reviewer_note:''}
    });
   }
  }
@@ -129,6 +153,7 @@ function buildGraph(text){
 }
 function renderGraph(nodes){
  $('#evidenceRows').innerHTML=nodes.length?nodes.map(n=>'<tr><td><b>'+n.evidence_id+'</b></td><td>'+esc(n.source_type)+'</td><td>'+esc(n.statement)+'</td><td>'+(n.scope_signals.length?n.scope_signals.map(x=>'<span class="tag">'+esc(x)+'</span>').join(' '):'<span class="muted">none detected</span>')+'</td><td>'+esc(n.depth)+'</td><td>'+esc([n.dates.join(', '),n.metrics.join(', ')].filter(Boolean).join(' · ')||'—')+'</td><td>'+esc(n.verification_status)+'</td></tr>').join(''):'<tr><td colspan="7" class="muted">No evidence nodes were created.</td></tr>';
+ const sel=$('#nodeSelect'); if(sel){const current=sel.value;sel.innerHTML='<option value="">Select a node</option>'+nodes.map(n=>'<option value="'+n.evidence_id+'">'+n.evidence_id+' · '+esc(n.source_type)+' · '+esc(n.statement.slice(0,70))+'</option>').join('');if(nodes.some(n=>n.evidence_id===current))sel.value=current}
 }
 function evidence(req,graph){
  const ts=terms(req),phrases=phraseCandidates(req);
@@ -175,10 +200,46 @@ function analyze(){
  $('#rows').innerHTML=xs.map(x=>'<tr><td><span class="tag '+x.type+'">'+x.type+'</span></td><td>'+esc(x.text)+'</td><td>'+esc(x.ev.found||'None found')+'</td><td>'+x.ev.status+'</td><td>'+esc(x.g)+'</td><td>'+esc(x.action)+'</td></tr>').join('');
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function currentNode(){return GRAPH.find(n=>n.evidence_id===$('#nodeSelect').value)}
+function loadNodeReview(){
+ const n=currentNode();
+ if(!n){$('#guardrail').innerHTML='<div class="signal"><b>No node selected.</b><br>Select an evidence node to inspect its reviewed evidence state.</div>';return}
+ $('#nodeRole').value=n.reviewed?.role_project||'';
+ $('#nodeDates').value=n.reviewed?.dates||n.dates.join(', ');
+ $('#nodeSource').value=n.reviewed?.source_reference||'';
+ $('#nodeVerify').value=n.verification_status||'unreviewed';
+ $('#nodeConf').value=n.reviewed?.confidentiality||'unspecified';
+ $('#nodeAuthority').value=n.reviewed?.authority_scope||'';
+ $('#nodeNote').value=n.reviewed?.reviewer_note||'';
+ renderGuardrail(n);
+}
+function renderGuardrail(n){
+ const v=n.verification_status||'unreviewed',scope=n.scope_signals||[],depth=n.depth||'depth not explicit',auth=(n.reviewed?.authority_scope||'').trim();
+ let level='Use only as a lead for review',cls='warn',why='The statement has not been human-reviewed.';
+ if(v==='self-attested'){level='Use as self-attested evidence with careful wording';why='The user confirms the claim, but no supporting source is attached.'}
+ if(v==='source-corroborated'){level='Use source-bounded wording';cls='';why='A supporting source has been reviewed; keep the claim within what that source demonstrates.'}
+ if(v==='verified'){level='Eligible for strong, source-specific wording';cls='';why='The evidence is marked verified. Scope, causality, recency, and confidentiality still constrain wording.'}
+ const warnings=[];
+ if(scope.some(x=>['people','fiscal','portfolio','governance','executive'].includes(x))&&!auth)warnings.push('Leadership/authority language is detected, but reviewed authority/scope is blank. Do not upgrade “supported/coordinated” to “owned/managed/approved” without confirming it.');
+ if(!n.reviewed?.source_reference&&['source-corroborated','verified'].includes(v))warnings.push('Verification is marked strong but no source reference is recorded.');
+ if((n.reviewed?.confidentiality||'unspecified')==='do-not-use')warnings.push('This node is marked do not use externally.');
+ if((n.reviewed?.confidentiality||'unspecified')==='anonymize')warnings.push('Use only anonymized wording.');
+ $('#guardrail').innerHTML='<div class="signal '+cls+'"><b>'+esc(level)+'</b><br>'+esc(why)+'</div><p><b>Detected depth:</b> '+esc(depth)+'</p><p><b>Detected scope:</b> '+(scope.length?scope.map(x=>'<span class="tag">'+esc(x)+'</span>').join(' '):'none')+'</p>'+(warnings.length?warnings.map(w=>'<div class="signal warn">'+esc(w)+'</div>').join(''):'<div class="signal"><b>No additional guardrail flags from current reviewed fields.</b></div>');
+}
+$('#nodeSelect').addEventListener('change',loadNodeReview);
+$('#saveNode').onclick=()=>{
+ const n=currentNode();if(!n)return;
+ n.verification_status=$('#nodeVerify').value;
+ n.reviewed={role_project:$('#nodeRole').value.trim(),dates:$('#nodeDates').value.trim(),source_reference:$('#nodeSource').value.trim(),confidentiality:$('#nodeConf').value,authority_scope:$('#nodeAuthority').value.trim(),reviewer_note:$('#nodeNote').value.trim()};
+ renderGraph(GRAPH);$('#nodeSelect').value=n.evidence_id;loadNodeReview();
+};
+$('#clearNodeReview').onclick=()=>{const n=currentNode();if(!n)return;n.verification_status='unreviewed';n.reviewed={role_project:'',dates:'',source_reference:'',confidentiality:'unspecified',authority_scope:'',reviewer_note:''};renderGraph(GRAPH);$('#nodeSelect').value=n.evidence_id;loadNodeReview()};
+
 $('#analyze').onclick=analyze;
 $('#sampleJob').onclick=()=>{$('#job').value='Director, Learning Programs\nRequired: 8+ years of experience in learning, curriculum, or program leadership.\nBachelor’s degree required; master’s preferred.\nLead a portfolio of learning programs and own the roadmap.\nManage and develop a team of program managers and facilitators.\nOversee vendor contracts and program budgets.\nPartner with executive stakeholders across product, operations, and marketing.\nExperience with analytics and CRM systems preferred.'};
 $('#sampleCandidate').onclick=()=>{$('#candidate').value='[resume]\nM.A., English & Comparative Literature. Manager, Curriculum Development: lead curriculum development, portfolio strategy, QA, facilitator relationships, contracting, performance reviews, and cross-functional workflows. Portfolio includes 17 titles across 38 variants. Previous workforce leadership included 90+ employer partnerships and 260–270 annual placements. Interviewed, onboarded, trained, scheduled, and supported performance for approximately 85–110 instructors per cycle. Operational oversight across budgets and contracts up to $1.25M. Analytics, CRM, CMS, and data-quality experience.\n[portfolio]\nInteractive analytics, NLP, and decision-support tools with public documentation and browser demos.\n[document]\nExecutive operational oversight across budgets and contracts up to $1.25M.'};
-$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim());renderGraph(GRAPH)}if(!GRAPH.length)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({schema_version:'2.2b',generated_at:new Date().toISOString(),evidence_nodes:GRAPH},null,2)],{type:'application/json'}));a.download='candidate-evidence-graph.json';a.click()};
+$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim());renderGraph(GRAPH)}if(!GRAPH.length)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({schema_version:'2.2c',generated_at:new Date().toISOString(),evidence_nodes:GRAPH},null,2)],{type:'application/json'}));a.download='candidate-evidence-graph.json';a.click()};
 $('#export').onclick=()=>{if(!DATA.length)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=['Type,Requirement,Evidence,Visibility,Gap type,Next action'].concat(DATA.map(x=>[x.type,x.text,x.ev.found,x.ev.status,x.g,x.action].map(q).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='role-evidence-matrix.csv';a.click()};
 </script>
 </body></html>
