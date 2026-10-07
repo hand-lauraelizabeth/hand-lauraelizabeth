@@ -128,13 +128,15 @@ function detectedDepth(s){
  if(/\b(support|supported|assist|assisted|contribute|contributed)\b/i.test(s))return 'support / contribution signal';
  return 'depth not explicit';
 }
-function buildGraph(text){
+function buildGraph(text,prior=[]){
+ const priorMap=new Map((prior||[]).map(n=>[n.source_type+'|'+n.statement,n]));
  const nodes=[];let n=1;
  for(const b of evidenceBlocks(text)){
   for(const statement of lines(b.text)){
    const scope=Object.entries(SCOPE_RULES).filter(([,re])=>re.test(statement)).map(([k])=>k);
    const dates=[...new Set(statement.match(/\b(?:19|20)\d{2}(?:\s*[–—-]\s*(?:present|(?:19|20)\d{2}))?\b/gi)||[])];
    const metrics=[...new Set(statement.match(/(?:\$\s?\d[\d,.]*\s*[KMB]?|\b\d[\d,.]*\+?%|\b\d[\d,.]*\+?\b)/g)||[])].slice(0,8);
+   const prev=priorMap.get(b.source+'|'+statement);
    nodes.push({
     evidence_id:'E'+String(n++).padStart(3,'0'),
     source_type:b.source,
@@ -145,7 +147,8 @@ function buildGraph(text){
     scope_signals:scope,
     depth:detectedDepth(statement),
     competencies:terms(statement).slice(0,18),
-    verification_status:'unreviewed',reviewed:{role_project:'',dates:'',source_reference:'',confidentiality:'unspecified',authority_scope:'',reviewer_note:''}
+    verification_status:prev?.verification_status||'unreviewed',
+    reviewed:prev?.reviewed||{role_project:'',dates:'',source_reference:'',confidentiality:'unspecified',authority_scope:'',reviewer_note:''}
    });
   }
  }
@@ -201,7 +204,7 @@ let DATA=[],GRAPH=[];
 function analyze(){
  const job=$('#job').value.trim(), cand=$('#candidate').value.trim();
  if(!job){alert('Paste a job description first.');return}
- GRAPH=buildGraph(cand);renderGraph(GRAPH);
+ GRAPH=buildGraph(cand,GRAPH);renderGraph(GRAPH);
  const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text);return{id:i+1,type,text,ev,g,action:action(type,g)}});
  DATA=xs;
  const counts={};xs.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
@@ -254,7 +257,7 @@ $('#clearNodeReview').onclick=()=>{const n=currentNode();if(!n)return;n.verifica
 $('#analyze').onclick=analyze;
 $('#sampleJob').onclick=()=>{$('#job').value='Director, Learning Programs\nRequired: 8+ years of experience in learning, curriculum, or program leadership.\nBachelor’s degree required; master’s preferred.\nLead a portfolio of learning programs and own the roadmap.\nManage and develop a team of program managers and facilitators.\nOversee vendor contracts and program budgets.\nPartner with executive stakeholders across product, operations, and marketing.\nExperience with analytics and CRM systems preferred.'};
 $('#sampleCandidate').onclick=()=>{$('#candidate').value='[resume]\nM.A., English & Comparative Literature. Manager, Curriculum Development: lead curriculum development, portfolio strategy, QA, facilitator relationships, contracting, performance reviews, and cross-functional workflows. Portfolio includes 17 titles across 38 variants. Previous workforce leadership included 90+ employer partnerships and 260–270 annual placements. Interviewed, onboarded, trained, scheduled, and supported performance for approximately 85–110 instructors per cycle. Operational oversight across budgets and contracts up to $1.25M. Analytics, CRM, CMS, and data-quality experience.\n[portfolio]\nInteractive analytics, NLP, and decision-support tools with public documentation and browser demos.\n[document]\nExecutive operational oversight across budgets and contracts up to $1.25M.'};
-$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim());renderGraph(GRAPH)}if(!GRAPH.length)return;const safe=GRAPH.filter(n=>(n.reviewed?.confidentiality||'unspecified')!=='do-not-use').map(n=>{const x=JSON.parse(JSON.stringify(n));if(x.reviewed?.confidentiality==='anonymize'){x.statement='[anonymized evidence — source statement omitted]';x.competencies=[];x.metrics=[]}return x});const payload={schema_version:'2.3',generated_at:new Date().toISOString(),export_policy:'do-not-use nodes excluded; anonymize nodes redact statement/competencies/metrics',evidence_nodes:safe};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='candidate-evidence-graph-safe.json';a.click()};
+$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim(),GRAPH);renderGraph(GRAPH)}if(!GRAPH.length)return;const safe=GRAPH.filter(n=>(n.reviewed?.confidentiality||'unspecified')!=='do-not-use').map(n=>{const x=JSON.parse(JSON.stringify(n));if(x.reviewed?.confidentiality==='anonymize'){x.statement='[anonymized evidence — source statement omitted]';x.competencies=[];x.metrics=[]}return x});const payload={schema_version:'2.3',generated_at:new Date().toISOString(),export_policy:'do-not-use nodes excluded; anonymize nodes redact statement/competencies/metrics',evidence_nodes:safe};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='candidate-evidence-graph-safe.json';a.click()};
 $('#export').onclick=()=>{if(!DATA.length)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=['Type,Requirement,Evidence,Visibility,Reviewed support,Gap type,Next action'].concat(DATA.map(x=>[x.type,x.text,x.ev.found,x.ev.status,reviewedSupport(x.ev),x.g,x.action].map(q).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='role-evidence-matrix.csv';a.click()};
 </script>
 </body></html>
