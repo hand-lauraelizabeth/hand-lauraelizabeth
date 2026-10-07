@@ -59,6 +59,7 @@ def convert(csv_path, metadata):
         raise ValueError("Metadata must list explicitly reviewed UNITIDs")
     records = []
     seen = set()
+    names_seen = set()
     with open(csv_path, newline="", encoding="utf-8-sig") as handle:
         for row in csv.DictReader(handle):
             unitid = (row.get("UNITID") or "").strip()
@@ -79,8 +80,14 @@ def convert(csv_path, metadata):
                 if field not in row:
                     raise ValueError(f"Missing source column {field} for {unitid}")
                 cost[band] = parse_price(row[field])
+            institution_name = (row.get("INSTNM") or "").strip()
+            if not institution_name:
+                raise ValueError(f"Missing institution name for {unitid}")
+            if institution_name.casefold() in names_seen:
+                raise ValueError(f"Duplicate institution name: {institution_name}")
+            names_seen.add(institution_name.casefold())
             record = {
-                "name": (row.get("INSTNM") or "").strip(),
+                "name": institution_name,
                 "setting": info.get("setting"),
                 "housing": info.get("housing"),
                 "access": info.get("access"),
