@@ -51,3 +51,6 @@ Reviewed records may use JSON `null` for unverified `setting` and `housing`; `nu
 
 ## Aid-category evidence
 `aid: null` means aid categories have not been verified. `aid: []` means a reviewed source explicitly supports an empty list; neither should be inferred from the College Scorecard income-band net-price columns. The interface displays unverified aid separately from an empty category list. Actual grant and scholarship availability requires its own institutional source review.
+
+## Private evidence review queue
+Run `python build_scorecard_review_queue.py /path/to/Most-Recent-Cohorts-Institution_06102026.zip review-queue.csv 100` to generate a reproducible, NY-first institution review queue. The output contains original source values for `UNITID`, `INSTNM`, `CONTROL`, city/state, `LOCALE`, `ROOM`, and one raw income-band net-price sample, plus explicit pending-review columns. `LOCALE` and `ROOM` are **raw evidence candidates, not reviewed campus-setting or housing assertions**. The queue is strictly internal: every row has `publication_status=DO_NOT_PUBLISH`; it must not be copied to the public matcher. Inspect cohort year, each institution's calendar/population and field-level source attribution before approving imports.
