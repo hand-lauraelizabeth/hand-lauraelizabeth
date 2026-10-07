@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prompt Literacy Debugger | Laura Elizabeth Hand</title>
+<style>
+:root{--ink:#17221d;--muted:#56655d;--paper:#fbfcfa;--panel:#f2f6f2;--line:#c9d6ce;--accent:#285c4b;--accent2:#dfece5;--warn:#6f5420}
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink)}
+main{max-width:1120px;margin:auto;padding:32px 20px 60px}.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:800}
+h1{font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;margin:.35rem 0 1rem}h2{margin-top:0}.lede{max-width:82ch;color:var(--muted);font-size:1.08rem}
+.tags{margin:.5rem 0 1.3rem}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 9px;margin:4px 5px 0 0;font-size:.82rem;background:var(--panel)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 28px rgba(24,44,35,.06)}
+label{display:block;font-weight:750;margin:14px 0 6px}textarea,select,input[type=text]{width:100%;font:inherit;padding:11px 12px;border:1px solid #afbeb5;border-radius:10px;background:#fff;color:inherit}textarea{min-height:130px;resize:vertical}
+.item{border-top:1px solid #e0e8e2;padding:13px 0}.item:first-of-type{border-top:0}.q{font-weight:800}.help,.note{color:var(--muted);font-size:.91rem}.answers{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}.answers label{margin:0;font-weight:500;display:flex;gap:6px;align-items:center}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}button{border:0;border-radius:999px;padding:11px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--accent);color:#fff}.secondary{background:var(--accent2);color:var(--ink)}
+button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #90b8a7;outline-offset:2px}
+.result{border-left:4px solid var(--accent);padding-left:14px}.warn{border-left-color:#ad7d22}.pill{display:inline-block;background:var(--accent2);border-radius:999px;padding:5px 10px;font-weight:800;margin:2px 5px 2px 0}
+pre{white-space:pre-wrap;word-break:break-word;background:#14211c;color:#f7fbf8;border-radius:14px;padding:17px;max-height:520px;overflow:auto;min-height:180px}
+table{width:100%;border-collapse:collapse;margin-top:10px}th,td{text-align:left;vertical-align:top;padding:9px;border-bottom:1px solid #e0e7e2;font-size:.93rem}th{color:var(--muted)}
+details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}summary{font-weight:800;cursor:pointer}.status{min-height:1.4em;color:var(--accent);font-weight:750}
+@media(max-width:850px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Applied technical demonstration · AI literacy</div>
+<h1>Prompt Literacy Debugger</h1>
+<p class="lede">A prompt is not a magic phrase. It is a task specification. This tool helps learners inspect whether a prompt makes the task, evidence, boundaries, verification, and human responsibility visible before they ask an AI system to act.</p>
+<div class="tags"><span class="tag">client-side</span><span class="tag">no API</span><span class="tag">no data leaves this page</span><span class="tag">teaching tool</span></div>
+
+<div class="grid">
+<section class="card">
+<h2>1. Describe the task</h2>
+<label for="prompt">Current prompt or request</label>
+<textarea id="prompt" placeholder="Example: Read these sources and tell me whether my argument is supported."></textarea>
+
+<label for="usecase">Use case</label>
+<select id="usecase">
+<option value="research">Research / evidence synthesis</option>
+<option value="analysis">Data analysis / decision support</option>
+<option value="writing">Writing / communications</option>
+<option value="feedback">Teaching / feedback</option>
+<option value="operations">Workflow / operations</option>
+<option value="other">Other</option>
+</select>
+
+<label for="stakes">Potential consequence if the output is wrong</label>
+<select id="stakes">
+<option value="low">Low — brainstorming, convenience, low-stakes drafting</option>
+<option value="moderate" selected>Moderate — informs work, learning, services, or decisions</option>
+<option value="high">High — may affect access, eligibility, employment, education, health, safety, or rights</option>
+</select>
+
+<label for="data">Data sensitivity</label>
+<select id="data">
+<option value="public">Public / non-sensitive</option>
+<option value="internal">Internal / restricted</option>
+<option value="sensitive">Sensitive, confidential, or identifying</option>
+</select>
+
+<h2 style="margin-top:26px">2. Diagnose the prompt</h2>
+<div id="questions"></div>
+<div class="actions"><button id="assess">Build coverage map</button><button class="secondary" id="example">Load example</button><button class="secondary" id="reset">Clear</button></div>
+</section>
+
+<section class="card">
+<h2>3. Review the coverage map</h2>
+<div id="result"><p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p></div>
+<h3>Rebuild scaffold</h3>
+<pre id="scaffold">A revised prompt scaffold will appear here. It preserves your original request while making missing requirements explicit.</pre>
+<div class="actions"><button id="copy">Copy scaffold</button></div><div class="status" id="status" aria-live="polite"></div>
+</section>
+</div>
+
+<section class="card" style="margin-top:22px">
+<h2>How to teach with it</h2>
+<p>Ask learners to diagnose the same vague prompt individually, then compare their ratings. The disagreement is useful: it exposes which assumptions were implicit. Next, rebuild the prompt and test whether the revision changes the AI output in ways that matter—accuracy, traceability, uncertainty, privacy, or usefulness.</p>
+<p class="note"><strong>Do not grade prompt length.</strong> A short prompt can be well specified. A long prompt can still omit the evidence boundary, verification plan, or human decision rule.</p>
+<details><summary>Seven dimensions</summary>
+<p><strong>Task</strong> — what must be done; <strong>context</strong> — audience and purpose; <strong>evidence</strong> — what may support factual claims; <strong>boundaries</strong> — what the system must not infer or decide; <strong>output</strong> — what a usable response looks like; <strong>verification</strong> — how important claims will be checked; <strong>human responsibility</strong> — who retains judgment, especially when stakes are high.</p>
+</details>
+<p class="note"><strong>Scope:</strong> This tool does not evaluate an AI model, determine whether a prompt is “safe,” or provide legal/compliance advice. It is a structured teaching aid for making hidden task assumptions visible.</p>
+</section>
+</main>
+
+<script>
+const dims=[
+["task","Task","Does the prompt state the action or question clearly enough that success can be recognized?"],
+["context","Context and audience","Does it state who the output is for, why it is needed, or the situation that changes how the task should be handled?"],
+["evidence","Evidence boundary","Does it identify which sources, data, or inputs may support factual claims—and what to do when evidence is missing?"],
+["boundaries","Authority and guardrails","Does it say what the system must not infer, invent, disclose, decide, or overstate?"],
+["output","Output contract","Does it specify the structure, level of detail, or decision-ready form needed from the response?"],
+["verify","Verification","Does it say how important facts, calculations, citations, or conclusions should be checked before use?"],
+["human","Human responsibility","Is it clear where human judgment, review, approval, or contestability remains necessary?"]
+];
+const host=document.getElementById("questions");
+dims.forEach(d=>{
+ const x=document.createElement("div");x.className="item";
+ x.innerHTML='<div class="q">'+d[1]+'</div><div class="help">'+d[2]+'</div><div class="answers"><label><input type="radio" name="'+d[0]+'" value="2"> Explicit</label><label><input type="radio" name="'+d[0]+'" value="1"> Partial / implied</label><label><input type="radio" name="'+d[0]+'" value="0"> Missing</label></div>';
+ host.appendChild(x);
+});
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function assess(){
+ const original=document.getElementById("prompt").value.trim();
+ if(!original){document.getElementById("result").innerHTML='<p>Please enter a prompt or request first.</p>';return}
+ let explicit=0,partial=0,missing=[],unanswered=[];
+ dims.forEach(d=>{const r=document.querySelector('input[name="'+d[0]+'"]:checked');if(!r){unanswered.push(d[1]);return}const v=Number(r.value);if(v===2)explicit++;else if(v===1)partial++;else missing.push(d[1])});
+ const stakes=document.getElementById("stakes").value,data=document.getElementById("data").value;
+ let gates=[];
+ if(stakes==="high")gates.push("High consequence: require meaningful human review, documented limits, and a non-AI fallback before relying on the output.");
+ if(data==="sensitive")gates.push("Sensitive/confidential data: confirm authorization, minimization, retention, and the tool's data-handling terms before entering real data.");
+ if(data==="internal")gates.push("Internal data: confirm the selected tool is approved for that information and minimize what is shared.");
+ const gapRows=missing.length?missing.map(x=>"<tr><td>"+esc(x)+"</td><td>Missing</td></tr>").join(""):'<tr><td colspan="2">No dimensions were marked missing.</td></tr>';
+ const unansweredText=unanswered.length?'<p class="note"><strong>Unrated:</strong> '+unanswered.map(esc).join(", ")+'</p>':"";
+ const gateHtml=gates.length?'<div class="result warn"><strong>Decision gate</strong><ul>'+gates.map(g=>"<li>"+esc(g)+"</li>").join("")+"</ul></div>":"";
+ document.getElementById("result").innerHTML='<p><span class="pill">'+explicit+' explicit</span><span class="pill">'+partial+' partial</span><span class="pill">'+missing.length+' missing</span></p>'+unansweredText+'<table><thead><tr><th>Priority gap</th><th>Status</th></tr></thead><tbody>'+gapRows+"</tbody></table>"+gateHtml;
+
+ const use=document.getElementById("usecase").selectedOptions[0].text;
+ const evidenceLine=missing.includes("Evidence boundary")?"State the approved evidence or inputs. If evidence is missing, ask for it or label the gap instead of filling it from assumption.":"Preserve the evidence boundary already stated in the original prompt.";
+ const boundaryLine=missing.includes("Authority and guardrails")?"State what must not be inferred, invented, disclosed, or decided by the AI.":"Preserve the original authority limits and guardrails.";
+ const verifyLine=missing.includes("Verification")?"Identify which material claims, calculations, citations, or outputs require verification and how they should be checked.":"Follow the verification process already defined.";
+ const humanLine=stakes==="high"?"Treat the AI output as decision support only. Name the accountable human reviewer and the point at which human approval is required.":(missing.includes("Human responsibility")?"State what remains a human judgment or approval step.":"Preserve the human-review rule already defined.");
+ const privacyLine=data==="sensitive"?"Do not include sensitive or identifying information unless its use is authorized and necessary; minimize it before submission.":data==="internal"?"Use only information approved for the selected AI tool; minimize internal data.":"Do not introduce unnecessary personal or confidential information.";
+ const scaffold=[
+ "ORIGINAL REQUEST",original,"",
+ "USE CASE",use,"",
+ "TASK","Restate the task in one precise sentence. Preserve the user's actual goal rather than expanding it.","",
+ "CONTEXT","State the audience, purpose, constraints, and any context that would materially change a good answer.","",
+ "EVIDENCE",evidenceLine,"",
+ "BOUNDARIES",boundaryLine,privacyLine,"",
+ "OUTPUT","State the required form, level of detail, and what would make the output usable.","",
+ "VERIFICATION",verifyLine,"",
+ "HUMAN RESPONSIBILITY",humanLine,"",
+ "FINAL CHECK","Before finalizing, distinguish source-supported facts from inference; state important uncertainty; do not fabricate citations or evidence; flag anything that requires external verification."
+ ];
+ document.getElementById("scaffold").textContent=scaffold.join("\n");
+}
+document.getElementById("assess").addEventListener("click",assess);
+document.getElementById("example").addEventListener("click",()=>{
+ document.getElementById("prompt").value="Read these sources and tell me whether my argument about AI improving healthcare decision-making is correct. Give me citations.";
+ document.getElementById("usecase").value="research";document.getElementById("stakes").value="moderate";document.getElementById("data").value="public";
+ const vals={task:2,context:1,evidence:1,boundaries:0,output:1,verify:0,human:0};
+ Object.entries(vals).forEach(([k,v])=>{const r=document.querySelector('input[name="'+k+'"][value="'+v+'"]');if(r)r.checked=true});
+ assess();
+});
+document.getElementById("reset").addEventListener("click",()=>{document.getElementById("prompt").value="";document.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);document.getElementById("result").innerHTML='<p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p>';document.getElementById("scaffold").textContent="A revised prompt scaffold will appear here. It preserves your original request while making missing requirements explicit.";document.getElementById("status").textContent=""});
+document.getElementById("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(document.getElementById("scaffold").textContent);document.getElementById("status").textContent="Scaffold copied."}catch(e){document.getElementById("status").textContent="Copy was blocked; select the text manually."}});
+</script>
+</body></html>
