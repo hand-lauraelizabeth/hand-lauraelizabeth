@@ -1,5 +1,6 @@
 """Synthetic preflight tests; no official institution data bundled."""
 import csv
+import hashlib
 import importlib.util
 import tempfile
 import unittest
@@ -41,6 +42,11 @@ class PreflightTests(unittest.TestCase):
 
     def test_valid_public_headers(self):
         self.assertEqual(preflight.inspect(self.path, "PUB")["header_check"], "PASS")
+
+    def test_sha256_identifies_exact_input_bytes(self):
+        expected = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        self.assertEqual(preflight.inspect(self.path, "PUB")["sha256"], expected)
+        self.assertEqual(len(expected), 64)
 
     def test_missing_income_band_rejected(self):
         self.write_headers(self.headers[:-1])
