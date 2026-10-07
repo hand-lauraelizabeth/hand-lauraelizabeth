@@ -80,6 +80,14 @@ jobs:
         run: |
           python scripts/college_career_ingest.py --source ipeds_directory_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
           python scripts/college_career_ingest.py --source ipeds_completions_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
+      - name: Live SUNY transfer identity baseline
+        if: contains(github.event.head_commit.message, '[live-suny-transfer-smoke]')
+        run: |
+          python scripts/college_career_ingest.py --source ipeds_directory_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
+          IPEDS_FILE="$(find "${{ runner.temp }}/college-career-smoke/ipeds_directory_2025" -path '*/normalized/institution.csv' -type f | sort | tail -1)"
+          test -n "$IPEDS_FILE"
+          python projects/college-career-matching/suny_transfer_live_pipeline.py --ipeds-hd "$IPEDS_FILE" --output-dir "${{ runner.temp }}/suny-transfer-live"
+          cat "${{ runner.temp }}/suny-transfer-live/suny_transfer_live_baseline.json"
       - name: Live program coverage
         if: contains(github.event.head_commit.message, '[live-program-smoke]')
         run: |
