@@ -48,6 +48,11 @@ class ImportTests(unittest.TestCase):
         self.assertIsNone(payload["records"][0]["access"])
         self.assertEqual(payload["records"][0]["reference_year"], 2023)
 
+    def test_negative_net_price_preserved(self):
+        self.row["NPT41_PUB"] = "-275"
+        self.write_rows([self.row])
+        self.assertEqual(importer.convert(self.path, META)["records"][0]["cost"]["0_30k"], -275)
+
     def test_privacy_suppressed_marker_is_missing(self):
         self.row["NPT42_PUB"] = "PrivacySuppressed"
         self.write_rows([self.row])
