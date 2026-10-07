@@ -220,7 +220,7 @@ The repository CI validates manifest structure, source IDs, join references, CIP
 The integrated model-ready institution → program → occupation layer is now implemented, including source lineage, conservative institution-identity review clusters, preservation of unmatched programs/occupations, and regression gates. The next work should extend that validated layer rather than create another parallel prototype:
 
 1. ingest and validate a current College Scorecard bulk snapshot through the keyless official-file adapter when the federal CDN is reachable (or from a user-supplied copy of that same official ZIP), using Scorecard only as enrichment rather than as an institution-inclusion filter;
-2. add authoritative transfer/articulation information so community-college-to-bachelor pathways can be represented directly rather than inferred from sector or taxonomy alone;
+2. run the implemented SUNY STEP agreement adapter → reviewed SUNY/IPEDS identity layer → transfer-identity bridge against a current authoritative snapshot, review unresolved/review rows, and version the first observed transfer identity/coverage baseline before using transfer evidence in recommendations;
 3. expand OEWS beyond the national baseline to state, metropolitan, and nonmetropolitan geography where local labor-market context materially improves matching;
 4. review identity clusters against authoritative system/campus crosswalks where available, while keeping distinct UNITIDs distinct by default and never collapsing on fuzzy names;
 5. only after those enrichment layers pass QA, begin recommendation-scoring calibration while keeping admissions context, preferences, affordability, career alignment, and data completeness as separate explainable signals.
