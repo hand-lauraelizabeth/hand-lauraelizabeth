@@ -1,8 +1,10 @@
 # College Scorecard affordability field mapping
 
 ## Source and population
-Primary reference: U.S. Department of Education, College Scorecard Institution-Level Technical Documentation (September 2025):
+Primary technical reference: U.S. Department of Education, College Scorecard Institution-Level Technical Documentation (September 2025):
 https://collegescorecard.ed.gov/files/InstitutionDataDocumentation.pdf
+
+The official College Scorecard data-download page reports a June 10, 2026 update and includes institution-level files through 2025–26. Choose and record the specific downloaded release and verify its actual CSV headers before using this importer; the publication year is not necessarily the reference year of each net-price variable. Official download page: https://collegescorecard.ed.gov/data/ . Documentation and dictionary: https://collegescorecard.ed.gov/data/data-documentation/ .
 
 The five net-price income brackets are for **full-time, first-time undergraduate Title IV aid recipients**. For public institutions, net price is restricted to **in-state tuition-paying** students. Net price is cost of attendance less federal, state, and institutional grants/scholarships, not an individual aid offer. Income groups are nominal dollars, not inflation-adjusted. Program-year and other-calendar measures may refer to the largest program rather than the entire institution. Do not label these figures as prices for all students.
 
@@ -26,4 +28,4 @@ Do not substitute overall NPT4_PUB or NPT4_PRIV for an unavailable income-specif
 6. Do not publish a public-data.json bundle until all records pass structural validation, field provenance review, and browser tests.
 
 ## Current UI limitations
-The UI still requires known selected-band net price even when no maximum cost is specified, and it uses a conservative point-based ranking. These behaviors should be revisited for missing-price visibility and cross-record comparability. The synthetic demonstration is not a verified dataset.
+When a maximum cost is entered, the UI requires known selected-band net price to satisfy that constraint; without a ceiling, unknown-price records remain visible and affordability is not ranked. The point-based ranking remains a prototype, not a validated institutional quality or fit measure. The synthetic demonstration is not a verified dataset.
