@@ -27,6 +27,11 @@ class BundleTests(unittest.TestCase):
         payload["records"][0]["cost"]["0_30k"] = -275
         self.assertEqual(validator.validate(payload), [])
 
+    def test_town_setting(self):
+        payload = copy.deepcopy(GOOD)
+        payload["records"][0]["setting"] = "Town"
+        self.assertEqual(validator.validate(payload), [])
+
     def test_unknown_setting_and_housing_allowed(self):
         payload = copy.deepcopy(GOOD)
         payload["records"][0]["setting"] = None
