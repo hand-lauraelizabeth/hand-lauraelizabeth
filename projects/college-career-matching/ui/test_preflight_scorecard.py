@@ -3,6 +3,7 @@ import csv
 import importlib.util
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location("preflight", Path(__file__).with_name("preflight_scorecard.py"))
@@ -23,6 +24,20 @@ class PreflightTests(unittest.TestCase):
     def write_headers(self, headers):
         with self.path.open("w", newline="", encoding="utf-8") as handle:
             csv.writer(handle).writerow(headers)
+
+    def test_single_csv_zip_preflight(self):
+        archive_path = Path(self.tmp.name) / "institution.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            archive.write(self.path, arcname="institution.csv")
+        self.assertEqual(preflight.inspect(archive_path, "PUB")["header_check"], "PASS")
+
+    def test_multiple_csv_zip_rejected(self):
+        archive_path = Path(self.tmp.name) / "institution.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            archive.write(self.path, arcname="one.csv")
+            archive.write(self.path, arcname="two.csv")
+        with self.assertRaisesRegex(ValueError, "exactly one CSV"):
+            preflight.inspect(archive_path, "PUB")
 
     def test_valid_public_headers(self):
         self.assertEqual(preflight.inspect(self.path, "PUB")["header_check"], "PASS")
