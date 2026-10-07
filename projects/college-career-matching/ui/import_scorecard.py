@@ -6,6 +6,7 @@ Usage:
 reviewed-metadata.json:
  {
    "release_year": 2025,
+   "net_price_reference_year": 2023,
    "source_url": "https://...official-release.csv",
    "institutions": {
      "123456": {
@@ -52,6 +53,8 @@ def parse_price(value):
 def convert(csv_path, metadata):
     if not isinstance(metadata, dict) or type(metadata.get("release_year")) is not int:
         raise ValueError("Metadata must specify integer release_year")
+    if type(metadata.get("net_price_reference_year")) is not int or not 2000 <= metadata["net_price_reference_year"] <= metadata["release_year"]:
+        raise ValueError("Metadata must specify net_price_reference_year no later than release_year")
     if not isinstance(metadata.get("source_url"), str) or not metadata["source_url"].startswith("https://"):
         raise ValueError("Metadata must specify official HTTPS source_url")
     from urllib.parse import urlparse
@@ -112,7 +115,7 @@ def convert(csv_path, metadata):
                 "careers": info.get("careers"),
                 "aid": info.get("aid"),
                 "source": f"College Scorecard {metadata['source_url']} · UNITID {unitid} · population {population}",
-                "reference_year": metadata["release_year"],
+                "reference_year": metadata["net_price_reference_year"],
             }
             records.append(record)
     missing = set(reviewed) - seen
