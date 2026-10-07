@@ -64,6 +64,8 @@ def convert(csv_path, metadata):
     reviewed = metadata.get("institutions")
     if not isinstance(reviewed, dict) or not reviewed:
         raise ValueError("Metadata must list explicitly reviewed UNITIDs")
+    if any(not isinstance(unitid, str) or not unitid.isascii() or not unitid.isdecimal() or len(unitid) != 6 for unitid in reviewed):
+        raise ValueError("Reviewed UNITIDs must be six-digit ASCII identifiers")
     records = []
     seen = set()
     names_seen = set()
@@ -80,6 +82,8 @@ def convert(csv_path, metadata):
             unitid = (row.get("UNITID") or "").strip()
             if unitid not in reviewed:
                 continue
+            if not unitid.isascii() or not unitid.isdecimal() or len(unitid) != 6:
+                raise ValueError(f"Malformed UNITID in reviewed source row: {unitid!r}")
             if unitid in seen:
                 raise ValueError(f"Duplicate UNITID in source: {unitid}")
             seen.add(unitid)
@@ -90,6 +94,8 @@ def convert(csv_path, metadata):
             if population not in POPULATIONS:
                 raise ValueError(f"Reviewed population required for {unitid}")
             control = (row.get("CONTROL") or "").strip()
+            if control and control not in {"1", "2", "3"}:
+                raise ValueError(f"Unrecognized CONTROL value {control!r} for {unitid}")
             if population in {"PUB", "PRIV"} and control in {"1", "2", "3"}:
                 expected = "PUB" if control == "1" else "PRIV"
                 if population != expected:
