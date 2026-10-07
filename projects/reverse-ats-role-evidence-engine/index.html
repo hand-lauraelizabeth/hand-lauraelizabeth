@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Role Evidence Engine — v2.1</title>
+<title>Role Evidence Engine — v2.2b</title>
 <style>
 :root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -21,7 +21,7 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <body>
 <header>
   <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
-  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.1</span></h1>
+  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.2b</span></h1>
   <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
 </header>
 <main>
@@ -34,7 +34,7 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <section class="panel">
 <h2>Candidate evidence</h2>
 <textarea id="candidate" placeholder="Paste evidence. Optional section labels: [resume], [portfolio], [document], [public], [user]. The tool keeps source provenance visible instead of treating every mention as equally strong."></textarea>
-<div class="row"><button class="btn ghost" id="sampleCandidate">Load sample evidence</button><button class="btn ghost" id="export">Export matrix CSV</button></div>
+<div class="row"><button class="btn ghost" id="sampleCandidate">Load sample evidence</button><button class="btn ghost" id="exportEvidence">Export evidence JSON</button><button class="btn ghost" id="export">Export matrix CSV</button></div>
 </section>
 </div>
 
@@ -50,13 +50,20 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 </section>
 </div>
 
+
+<section class="panel" style="margin-top:16px">
+<h2>Candidate evidence graph</h2>
+<p class="muted">Each source block is decomposed into evidence nodes. Detected dates, metrics, scope signals, and depth are shown separately so a requirement match can point back to a specific statement instead of a document-wide keyword hit. Detection is heuristic; verification remains explicit and unresolved by default.</p>
+<div class="matrix"><table><thead><tr><th>Node</th><th>Source</th><th>Statement</th><th>Scope signals</th><th>Depth</th><th>Dates / metrics</th><th>Verification</th></tr></thead><tbody id="evidenceRows"><tr><td colspan="7" class="muted">Paste candidate evidence and analyze a posting to build the evidence graph.</td></tr></tbody></table></div>
+</section>
+
 <section class="panel" style="margin-top:16px">
 <h2>Requirement matrix</h2>
 <div class="matrix"><table><thead><tr><th>Type</th><th>Requirement</th><th>Evidence found</th><th>Visibility</th><th>Gap type</th><th>Next action</th></tr></thead><tbody id="rows"><tr><td colspan="6" class="muted">No analysis yet.</td></tr></tbody></table></div>
 </section>
 
-<details class="panel"><summary>How v2.1 classifies text</summary>
-<p>This first implementation is deliberately heuristic and inspectable. It splits the posting into sentences/bullets, classifies each line from visible wording, extracts meaningful terms, and searches candidate evidence for exact or normalized phrase support. It does not infer credentials, direct-report relationships, fiscal authority, or proficiency from ambiguous language.</p>
+<details class="panel"><summary>How v2.2b classifies text and evidence</summary>
+<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency. Those remain verification tasks.</p>
 </details>
 </main>
 <script>
@@ -81,15 +88,58 @@ function evidenceBlocks(text){
  text.split(/\n/).forEach(line=>{const m=line.trim().match(/^\[(resume|portfolio|public|document|user)\]$/i);if(m){push();source=m[1].toLowerCase()}else buf.push(line)});push();
  return blocks.length?blocks:[{source:'resume',text:text,weight:1}]
 }
-function evidence(req,cand){
- const ts=terms(req), phrases=phraseCandidates(req);let best={status:'not visible',found:'',hits:[],ratio:0,source:'',strength:0};
- for(const b of evidenceBlocks(cand)){
-  const c=b.text.toLowerCase(),exact=phrases.find(p=>c.includes(p.toLowerCase())),hits=ts.filter(t=>c.includes(t)),raw=ts.length?hits.length/ts.length:0,score=(exact?1:raw)*b.weight;
-  let status=exact?'strong':raw>=.55?'visible':raw>=.25?'partial':'not visible';
-  if(score>best.strength)best={status,found:exact||hits.slice(0,8).join(', '),hits,ratio:raw,source:b.source,strength:score}
+const SCOPE_RULES={
+ people:/(manage|supervis|direct reports?|interview|onboard|train|coach|performance management|team|instructors?|advisers?|staff)/i,
+ fiscal:/(budget|fiscal|contract|grant|vendor|resource allocation|procurement|spend|revenue)/i,
+ portfolio:/(portfolio|roadmap|catalog|product line|program suite|practice area)/i,
+ governance:/(govern|decision rights?|approve|approval|quality assurance|\bqa\b|compliance|policy|standards?)/i,
+ change:/(transform|redesign|migration|implementation|adoption|change management|rollout|launch)/i,
+ executive:/(executive|senior leadership|\bsvp\b|\bvp\b|president|dean|cabinet|board)/i,
+ technical:/(analytics|\bsql\b|python|\br\b|power bi|tableau|nlp|crm|cms|hubspot|salesforce|data quality|automation|ai\b)/i
+};
+function detectedDepth(s){
+ if(/\b(own|owned|oversee|oversaw|direct|directed|lead|led|govern|approve|approved)\b/i.test(s))return 'lead / authority signal';
+ if(/\b(manage|managed|supervise|supervised|coach|coached)\b/i.test(s))return 'management signal';
+ if(/\b(build|built|design|designed|develop|developed|implement|implemented|analyze|analyzed)\b/i.test(s))return 'independent execution signal';
+ if(/\b(support|supported|assist|assisted|contribute|contributed)\b/i.test(s))return 'support / contribution signal';
+ return 'depth not explicit';
+}
+function buildGraph(text){
+ const nodes=[];let n=1;
+ for(const b of evidenceBlocks(text)){
+  for(const statement of lines(b.text)){
+   const scope=Object.entries(SCOPE_RULES).filter(([,re])=>re.test(statement)).map(([k])=>k);
+   const dates=[...new Set(statement.match(/\b(?:19|20)\d{2}(?:\s*[–—-]\s*(?:present|(?:19|20)\d{2}))?\b/gi)||[])];
+   const metrics=[...new Set(statement.match(/(?:\$\s?\d[\d,.]*\s*[KMB]?|\b\d[\d,.]*\+?%|\b\d[\d,.]*\+?\b)/g)||[])].slice(0,8);
+   nodes.push({
+    evidence_id:'E'+String(n++).padStart(3,'0'),
+    source_type:b.source,
+    source_weight:b.weight,
+    statement,
+    dates,
+    metrics,
+    scope_signals:scope,
+    depth:detectedDepth(statement),
+    competencies:terms(statement).slice(0,18),
+    verification_status:'source-provided; not independently verified'
+   });
+  }
  }
- if(best.found)best.found='['+best.source+'] '+best.found;
- return best
+ return nodes;
+}
+function renderGraph(nodes){
+ $('#evidenceRows').innerHTML=nodes.length?nodes.map(n=>'<tr><td><b>'+n.evidence_id+'</b></td><td>'+esc(n.source_type)+'</td><td>'+esc(n.statement)+'</td><td>'+(n.scope_signals.length?n.scope_signals.map(x=>'<span class="tag">'+esc(x)+'</span>').join(' '):'<span class="muted">none detected</span>')+'</td><td>'+esc(n.depth)+'</td><td>'+esc([n.dates.join(', '),n.metrics.join(', ')].filter(Boolean).join(' · ')||'—')+'</td><td>'+esc(n.verification_status)+'</td></tr>').join(''):'<tr><td colspan="7" class="muted">No evidence nodes were created.</td></tr>';
+}
+function evidence(req,graph){
+ const ts=terms(req),phrases=phraseCandidates(req);
+ let best={status:'not visible',found:'',hits:[],ratio:0,source:'',strength:0,node_id:''};
+ for(const n of graph){
+  const c=n.statement.toLowerCase(),exact=phrases.find(p=>c.includes(p.toLowerCase())),hits=ts.filter(t=>c.includes(t)),raw=ts.length?hits.length/ts.length:0,score=(exact?1:raw)*n.source_weight;
+  const status=exact?'strong':raw>=.55?'visible':raw>=.25?'partial':'not visible';
+  if(score>best.strength)best={status,found:exact||hits.slice(0,8).join(', '),hits,ratio:raw,source:n.source_type,strength:score,node_id:n.evidence_id,statement:n.statement};
+ }
+ if(best.found)best.found=best.node_id+' ['+best.source+'] '+best.found;
+ return best;
 }
 function gap(type,ev,req){
  if(ev.status==='strong'||ev.status==='visible')return 'No visible gap';
@@ -107,11 +157,12 @@ function action(type,g){
  if(/material/.test(g))return 'Do not keyword-stuff. Decide whether to build the capability or deprioritize the role.';
  return 'Add a specific resume bullet, portfolio proof, or interview example if the experience is real.'
 }
-let DATA=[];
+let DATA=[],GRAPH=[];
 function analyze(){
  const job=$('#job').value.trim(), cand=$('#candidate').value.trim();
  if(!job){alert('Paste a job description first.');return}
- const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,cand),g=gap(type,ev,text);return{id:i+1,type,text,ev,g,action:action(type,g)}});
+ GRAPH=buildGraph(cand);renderGraph(GRAPH);
+ const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text);return{id:i+1,type,text,ev,g,action:action(type,g)}});
  DATA=xs;
  const counts={};xs.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
  const hard=xs.filter(x=>x.type==='hard'), hardVisible=hard.filter(x=>['strong','visible'].includes(x.ev.status)).length;
@@ -127,6 +178,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 $('#analyze').onclick=analyze;
 $('#sampleJob').onclick=()=>{$('#job').value='Director, Learning Programs\nRequired: 8+ years of experience in learning, curriculum, or program leadership.\nBachelor’s degree required; master’s preferred.\nLead a portfolio of learning programs and own the roadmap.\nManage and develop a team of program managers and facilitators.\nOversee vendor contracts and program budgets.\nPartner with executive stakeholders across product, operations, and marketing.\nExperience with analytics and CRM systems preferred.'};
 $('#sampleCandidate').onclick=()=>{$('#candidate').value='[resume]\nM.A., English & Comparative Literature. Manager, Curriculum Development: lead curriculum development, portfolio strategy, QA, facilitator relationships, contracting, performance reviews, and cross-functional workflows. Portfolio includes 17 titles across 38 variants. Previous workforce leadership included 90+ employer partnerships and 260–270 annual placements. Interviewed, onboarded, trained, scheduled, and supported performance for approximately 85–110 instructors per cycle. Operational oversight across budgets and contracts up to $1.25M. Analytics, CRM, CMS, and data-quality experience.\n[portfolio]\nInteractive analytics, NLP, and decision-support tools with public documentation and browser demos.\n[document]\nExecutive operational oversight across budgets and contracts up to $1.25M.'};
+$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim());renderGraph(GRAPH)}if(!GRAPH.length)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({schema_version:'2.2b',generated_at:new Date().toISOString(),evidence_nodes:GRAPH},null,2)],{type:'application/json'}));a.download='candidate-evidence-graph.json';a.click()};
 $('#export').onclick=()=>{if(!DATA.length)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=['Type,Requirement,Evidence,Visibility,Gap type,Next action'].concat(DATA.map(x=>[x.type,x.text,x.ev.found,x.ev.status,x.g,x.action].map(q).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='role-evidence-matrix.csv';a.click()};
 </script>
 </body></html>
