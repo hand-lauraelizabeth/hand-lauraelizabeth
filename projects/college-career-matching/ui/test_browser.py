@@ -60,7 +60,7 @@ async def main():
             assert await page.locator(".result").count() == 1
             assert await page.locator(".result em, .result mark, .result small").count() == 0
             assert "<em>Example</em>" in await page.locator(".result").inner_text()
-            assert "accessibility information unavailable" in await page.locator(".result").inner_text()
+            assert await page.locator("#access-feature").count() == 1
             assert "career alignment information unavailable" in await page.locator(".result").inner_text()
             assert "range reflects missing evidence" in await page.locator(".result .score").inner_text()
             await page.locator("#cost").fill("0")
