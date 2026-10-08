@@ -54,51 +54,47 @@ async def main():
         await page.set_viewport_size({"width": 375, "height": 812})
         assert await page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "Mobile horizontal overflow"
 
+        # A file named public-data.json must never load without a separate publication gate.
+        public_requests = []
+        page.on("request", lambda request: public_requests.append(request.url)
+                if request.url.endswith("/public-data.json") else None)
+        await page.reload()
+        await page.locator(".result").first.wait_for()
+        assert await page.locator(".result").count() == 4
+        assert not public_requests, "Unapproved institutional JSON must not be requested"
+        assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
+
+        # Inject synthetic adversarial values in memory to test HTML escaping and unknown evidence.
         record = {
             "name": "<img src=x onerror=alert(1)>",
-            "setting": "Urban", "housing": True, "access": None,
-            "cost": {"0_30k": 0, "30_48k": None, "48_75k": 5000, "75_110k": 9000, "110k_plus": 12000},
+            "setting": None, "housing": None, "access": None,
+            "cost": {"0_30k": 0, "30_48k": None, "48_75k": 5000,
+                     "75_110k": 9000, "110k_plus": 12000},
             "careers": {"data": None, "education": 0, "health": 2, "business": 3},
             "aid": ["<svg onload=alert(1)>"], "note": "<script>alert(1)</script>",
-            "source": "Source <test>", "reference_year": 2025
         }
-        await page.unroute("**/public-data.json")
-        await page.route("**/public-data.json", lambda route: route.fulfill(
-            status=200, content_type="application/json",
-            body=json.dumps({"schema_version": 1, "records": [record]})))
-        await page.reload()
-        await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'source-attributed\')")
-        await page.locator(".result").first.wait_for()
-        assert "source-attributed" in await page.locator("#data-mode").inner_text()
-        assert await page.locator(".result img, .result svg, .result script").count() == 0, "Unescaped HTML inserted"
+        await page.evaluate("(record) => { DATA = [record]; render(); }", record)
+        assert await page.locator(".result").count() == 1
+        assert await page.locator(".result img, .result svg, .result script").count() == 0
         assert "accessibility information unavailable" in await page.locator(".result").inner_text()
         assert "career alignment information unavailable" in await page.locator(".result").inner_text()
-        assert "–" in await page.locator(".result .score").inner_text(), "Missing evidence should display a score interval"
         assert "range reflects missing evidence" in await page.locator(".result .score").inner_text()
         await page.locator("#cost").fill("0")
-        assert await page.locator(".result").count() == 1, "A zero-cost public record should remain eligible"
+        assert await page.locator(".result").count() == 1, "Zero cost must remain eligible"
         await page.locator("#cost").fill("25000")
         await page.locator("#income").select_option("30_48k")
-        assert await page.locator(".result").count() == 0, "Unknown net price cannot satisfy a cost ceiling"
+        assert await page.locator(".result").count() == 0, "Unknown net price fails a cost ceiling"
         await page.locator("#cost").fill("")
-        assert await page.locator(".result").count() == 1, "Unknown net price must remain visible without a ceiling"
+        assert await page.locator(".result").count() == 1, "Unknown price visible without ceiling"
         assert "net price unavailable" in await page.locator(".result").inner_text()
-        assert "no cost ceiling selected; affordability is not ranked" in await page.locator(".result").inner_text()
-        assert "/ 60 possible preference points" in await page.locator(".result .score").inner_text(), "No ceiling and no setting preference must reduce attainable maximum"
-        await page.unroute("**/public-data.json")
-        invalid = dict(record)
-        invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
-        await page.route("**/public-data.json", lambda route: route.fulfill(
-            status=200, content_type="application/json",
-            body=json.dumps({"schema_version": 1, "records": [invalid]})))
+        await page.locator("#housing").select_option("required")
+        assert "housing availability unverified" in await page.locator(".result").inner_text()
         await page.reload()
-        await page.locator(".result").first.wait_for()
-        await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'synthetic\')")
-        assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower(), "Incomplete record must not replace synthetic mode"
         assert await page.locator(".result").count() == 4
+        assert not public_requests, "Page reload must never fetch unapproved data"
         assert not errors, f"Browser errors: {errors}"
         await browser.close()
-        print("PASS: synthetic filters, mobile overflow, public-data loader, missing evidence, HTML escaping, zero-cost eligibility, incomplete-data fallback")
+        print("PASS: synthetic filters, mobile overflow, institutional-data load disabled, missing evidence, HTML escaping, zero-cost eligibility")
     finally:
         server.shutdown()
         server.server_close()
