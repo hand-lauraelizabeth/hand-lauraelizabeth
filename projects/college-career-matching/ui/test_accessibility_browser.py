@@ -1,5 +1,6 @@
 """Browser checks for synthetic accessibility evidence controls."""
 import asyncio
+import unittest
 from playwright.async_api import async_playwright
 from test_browser import local_server
 
@@ -58,5 +59,9 @@ async def main():
         server.shutdown()
         server.server_close()
 
+class AccessibilityBrowserTests(unittest.IsolatedAsyncioTestCase):
+    async def test_feature_evidence_states(self):
+        await main()
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    unittest.main()
