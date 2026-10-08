@@ -39,8 +39,16 @@ async def main():
             assert await page.locator(".result").count() == 0
             await page.locator("#cost").fill("25000")
             await page.locator("#housing").select_option("required")
-            assert await page.locator(".result").count() == 2
+            assert await page.locator(".result").count() == 1, "Only institution-operated housing qualifies"
+            await page.locator("#housing").select_option("partner")
+            assert await page.locator(".result").count() == 2, "Partner housing is a separate opt-in"
+            await page.locator("#housing-term").select_option("open")
+            assert await page.locator(".result").count() == 1, "Closed partner-campus applications excluded"
+            assert "no room guarantee" in await page.locator(".result").first.inner_text()
             await page.locator("#housing").select_option("any")
+            assert await page.locator(".result").count() == 1, "Open-window requirement works without a type filter"
+            await page.locator("#housing-term").select_option("any")
+            assert await page.locator(".result").count() == 4
             await page.set_viewport_size({"width": 375, "height": 812})
             assert await page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             await page.reload()
@@ -81,13 +89,29 @@ async def main():
             await page.evaluate("() => { DATA[0].housing = null; render(); }")
             await page.locator("#housing").select_option("any")
             assert await page.locator(".result").count() == 1, "Unknown visible without strict constraint"
-            assert "Housing unverified" in await page.locator(".result").inner_text()
+            assert "Housing type unknown" in await page.locator(".result").inner_text()
+            await page.locator("#housing-term").select_option("open")
+            assert await page.locator(".result").count() == 0, "Unknown application window fails open requirement"
+            await page.evaluate("""() => { DATA[0].housing = {type:"INSTITUTION_OPERATED",
+                application_status:"OPEN",term:null}; render(); }""")
+            assert await page.locator(".result").count() == 0, "Open status without term is not sufficient"
+            await page.evaluate("""() => { DATA[0].housing.term = "Synthetic Fall 2026"; render(); }""")
+            assert await page.locator(".result").count() == 1, "Term-specific open applications qualify"
+            await page.evaluate("""() => { DATA[0].housing.application_status = "CLOSED"; render(); }""")
+            assert await page.locator(".result").count() == 0, "Closed application window excluded"
+            await page.locator("#housing-term").select_option("any")
+            await page.locator("#housing").select_option("required")
+            await page.evaluate("""() => { DATA[0].housing = {type:"PARTNER_CAMPUS",
+                application_status:"UNKNOWN",term:null}; render(); }""")
+            assert await page.locator(".result").count() == 0, "Partner housing is not institution-operated"
+            await page.locator("#housing").select_option("partner")
+            assert await page.locator(".result").count() == 1, "Partner housing included only when opted in"
             await page.reload()
             assert await page.locator(".result").count() == 4
             assert not public_requests
             assert not errors, f"Browser errors: {errors}"
             await browser.close()
-            print("PASS: synthetic data, responsive layout, escaping, missing evidence, cost and strict housing")
+            print("PASS: synthetic data, responsive layout, escaping, missing evidence, housing operator and term-specific application windows")
     finally:
         server.shutdown()
         server.server_close()
