@@ -8,8 +8,9 @@ import csv
 import sys
 from pathlib import Path
 
-REQUIRED_APPROVED = ("unitid", "institution_name", "setting_source", "housing_source",
-                     "aid_source", "access_source", "cohort_map_reference")
+REQUIRED_APPROVED = ("UNITID", "INSTNM", "institution_identity_source", "locale_evidence_source",
+                     "housing_evidence_source", "aid_evidence_source", "accessibility_evidence_source",
+                     "cohort_dictionary_source", "net_price_cohort_year")
 BLOCKED = {"DO_NOT_PUBLISH", "PENDING", "UNVERIFIED", "REVIEW_REQUIRED"}
 APPROVED = {"APPROVED", "PUBLISH_APPROVED"}
 
@@ -21,6 +22,8 @@ def audit(path):
         if not reader.fieldnames:
             return ["Review CSV has no header"], {}
         headers = set(reader.fieldnames)
+        if "UNITID" not in headers or "INSTNM" not in headers:
+            return ["Review CSV requires UNITID and INSTNM headers"], {}
         if "publication_status" not in headers:
             return ["Review CSV lacks publication_status column"], {}
         counts = {"rows": 0, "blocked": 0, "approved": 0}
@@ -36,7 +39,7 @@ def audit(path):
                         errors.append(f"Line {line}: approved record lacks {field}")
             else:
                 errors.append(f"Line {line}: unknown publication_status {status!r}")
-            unitid = (row.get("unitid") or "").strip()
+            unitid = (row.get("UNITID") or "").strip()
             if unitid and (not unitid.isascii() or not unitid.isdecimal() or len(unitid) != 6):
                 errors.append(f"Line {line}: invalid six-digit institution UNITID")
     return errors, counts
