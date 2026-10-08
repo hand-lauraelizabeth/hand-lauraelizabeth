@@ -33,3 +33,6 @@ Keep 20 eight-digit New York branch/location identifiers outside the six-digit i
 | Exceptions and methodology notes | PENDING |
 | Independent reviewer and approval date | PENDING |
 | Publication status | DO_NOT_PUBLISH |
+
+## Retrieval contingency
+The current official XLSX download may return an access error. If so, request the current release dictionary from the Scorecard help desk (`scorecarddata@rti.org`) and retain the response or downloaded file with its release date and SHA-256. An older archived dictionary can clarify methodology and sheet structure but **must not** be used as proof of the June 2026 metric cohort. The full June 2026 all-data ZIP may contain the dictionary even when the institution-only ZIP does not; verify its archive member list before relying on it. Never substitute a third-party estimate for an official cohort map.
