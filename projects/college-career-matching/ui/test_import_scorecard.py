@@ -13,6 +13,7 @@ spec.loader.exec_module(importer)
 META = {
     "release_year": 2025,
     "publication_approved": True,
+    "cohort_evidence": {"dictionary_url": "https://collegescorecard.ed.gov/assets/CollegeScorecardDataDictionary.xlsx", "dictionary_edition": "Synthetic test edition", "cohort_map_sheet": "Most_Recent_Inst_Cohort_Map", "cohort_map_reference": "Synthetic test cell", "income_band_cohort": "Synthetic test cohort"},
     "net_price_reference_year": 2023,
     "source_url": "https://collegescorecard.ed.gov/example.csv",
     "institutions": {"123456": {
@@ -44,6 +45,12 @@ class ImportTests(unittest.TestCase):
         meta = copy.deepcopy(META)
         meta.pop("publication_approved")
         with self.assertRaisesRegex(ValueError, "publication_approved"):
+            importer.convert(self.path, meta)
+
+    def test_import_requires_cohort_evidence(self):
+        meta = copy.deepcopy(META)
+        meta.pop("cohort_evidence")
+        with self.assertRaisesRegex(ValueError, "cohort_evidence"):
             importer.convert(self.path, meta)
 
     def test_import_preserves_zero_and_suppressed(self):
