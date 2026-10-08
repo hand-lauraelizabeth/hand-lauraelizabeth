@@ -6,6 +6,7 @@
 <label for="housing-term">Housing application window</label><select id="housing-term"><option value="any">No application-window requirement</option><option value="open">Require documented open applications</option></select>
 <label for="access-feature">Accessibility feature</label><select id="access-feature"><option value="any">No feature requirement</option><option value="disability_services">Disability-services office</option><option value="academic_accommodations">Academic accommodations</option><option value="accessible_housing_process">Accessible housing request process</option><option value="building_access">Building access</option><option value="transit_path_access">Transit and pathway access</option><option value="digital_accessibility">Digital accessibility</option></select>
 <label for="access-evidence">Accessibility evidence filter</label><select id="access-evidence"><option value="yes">Show documented yes only</option><option value="include-unknown">Include unknown evidence</option></select>
+<label for="aid-type">Aid program type</label><select id="aid-type"><option value="any">Any aid type</option><option value="need-based">Need-based aid documented</option><option value="merit">Merit aid documented</option></select>
 <label for="career">Career interest</label><select id="career"><option value="data">Data / analytics</option><option value="education">Education / learning</option><option value="health">Health / community services</option><option value="business">Business / operations</option></select>
 <label for="cost">Maximum average cost after aid</label><input id="cost" type="number" min="0" step="1000" value="25000">
 <p class="meta">The five income groups follow College Scorecard reporting brackets; all example prices remain invented demonstration values, not reported net prices. The demonstration starts with synthetic records. Real institutional records are not loaded, even if a public-data.json file is present; a separate verified publication pipeline is required. Missing evidence is shown as unknown, not assumed to be a negative finding. Accessibility filters refer only to the selected feature and never imply campus-wide accessibility. Housing type and term-specific application windows are separate; an open application window does not establish room availability or guarantee placement.</p></aside><section class="card"><h2>Matches</h2><p class="muted">A cost ceiling requires known cost evidence. Without a ceiling, institutions with unknown costs remain visible. Rankings use confirmed points; where evidence is missing, a possible score range shows uncertainty rather than treating unknown as a negative finding.</p><p id="filter-summary" class="meta" role="status" aria-live="polite"></p><div id="results"></div></section></div></main><script>
@@ -43,7 +44,8 @@ const escapeHTML=value=>String(value??"").replace(/[&<>"\x27]/g,ch=>({"&":"&amp;
 // publication pipeline is implemented and reviewed.
 
 function score(x){
- const inc=$("#income").value,setting=$("#setting").value,housing=$("#housing").value,housingTerm=$("#housing-term").value,feature=$("#access-feature").value,includeUnknown=$("#access-evidence").value==="include-unknown",career=$("#career").value,max=$("#cost").value.trim()===""?Infinity:Math.max(0,Number($("#cost").value));
+ const inc=$("#income").value,setting=$("#setting").value,housing=$("#housing").value,housingTerm=$("#housing-term").value,feature=$("#access-feature").value,includeUnknown=$("#access-evidence").value==="include-unknown",career=$("#career").value,aidType=$("#aid-type").value,max=$("#cost").value.trim()===""?Infinity:Math.max(0,Number($("#cost").value));
+ if(aidType!=="any"&&!(Array.isArray(x.aid)&&x.aid.includes(aidType)))return null;
  const knownCost=x.cost[inc]!==null&&x.cost[inc]!==undefined;
  if(Number.isFinite(max)&&(!knownCost||x.cost[inc]>max))return null;
  const h=housingEvidence(x);
@@ -62,6 +64,7 @@ function score(x){
   pts+=costFit*35;
  }else{why.push("no cost ceiling selected; affordability is not ranked");}
  if(setting==="any"){pts+=10}else if(x.setting===null){unknownMax+=15;why.push("campus setting not verified; possible 0–15 additional points")}else if(x.setting===setting){pts+=15;why.push(setting+" setting matches")}else pts+=3;
+ if(aidType!=="any")why.push("Selected aid category listed in synthetic example; individual eligibility unverified");
  if(feature!=="any")why.push(evidence==="OBSERVED_YES"?"selected accessibility feature documented in synthetic example":"selected accessibility feature unknown; confirm directly");
  const c=x.careers[career];if(c===null){unknownMax+=30;why.push("career alignment information unavailable; possible 0–30 additional points")}else{pts+=c/3*30;why.push("career alignment "+c+"/3 for selected interest")}
  if(housing!=="any"&&h.type!=="NONE")why.push(housingTypeLabel(h)+" (synthetic example)");
