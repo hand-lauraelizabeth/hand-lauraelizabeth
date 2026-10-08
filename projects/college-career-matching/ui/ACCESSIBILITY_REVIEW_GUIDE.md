@@ -11,3 +11,9 @@ Baseline carried forward, not re-audited in this change: housing-source reviews 
 ## Distinct dimensions
 
 Track separately: disability-services office/contact; academic accommodations; accessible housing application process; campus building access; accessible transit or paths; and digital accessibility. Do not convert office existence, registration shares, transit proximity, or website presence into an overall accessibility score. An explicit official negative statement is required for an observed negative state.
+
+## Review columns and acceptance criteria
+
+Retain UNITID, institution name, publication status, official source URL, source title, retrieved date, exact supported feature, feature state, reviewer, and review date. Suggested feature states: OBSERVED_YES, OBSERVED_NO, UNKNOWN, NOT_APPLICABLE, NOT_PUBLISHED. Suggested review states: VERIFIED, PENDING, REVIEW_REQUIRED. A VERIFIED source review does not certify an accessible campus. Reject duplicate or blank identities, placeholder citations, missing reviewer/date, unsupported negative assertions, and source pages belonging to another institution.
+
+After completing the six pending accessibility reviews, review official financial-aid sources; distinguish school-funded grants from federal/state aid. Then verify NCES locale at its reported source vintage, and map NPT41–NPT45 cohort years against the official College Scorecard dictionary's Most_Recent_Inst_Cohort_Map, cross-checking Institution_Cohort_Map. A ZIP release date is not a metric cohort year. Record cell references and independent reviewer before any release request.
