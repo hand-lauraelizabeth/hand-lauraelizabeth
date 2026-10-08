@@ -4,7 +4,7 @@ Status: **UNVERIFIED for the June 10, 2026 institution extract**. No real instit
 
 ## Source-of-truth procedure
 
-1. Retrieve the current official College Scorecard Data Dictionary from the Department of Education data-documentation page: https://collegescorecard.ed.gov/data/data-documentation/
+1. Retrieve the current official College Scorecard Data Dictionary from the Department of Education data-documentation page: https://collegescorecard.ed.gov/assets/CollegeScorecardDataDictionary.xlsx
 2. Inspect **`Most_Recent_Inst_Cohort_Map`** for the latest institution extract, and cross-check **`Institution_Cohort_Map`** for the annual archive. Do not substitute the field-description worksheet or the overall net-price glossary.
 3. For each field family `NPT41_PUB` through `NPT45_PUB`, `NPT41_PRIV` through `NPT45_PRIV`, `NPT41_PROG` through `NPT45_PROG`, and `NPT41_OTHER` through `NPT45_OTHER`, identify the reporting cohort aligned with the June 10, 2026 latest institution extract.
 4. Record dictionary edition/date, cohort-map sheet name and cell/row references, metric cohort, and whether every applicable population shares that cohort.
@@ -35,4 +35,4 @@ Keep 20 eight-digit New York branch/location identifiers outside the six-digit i
 | Publication status | DO_NOT_PUBLISH |
 
 ## Retrieval contingency
-The current official XLSX download may return an access error. If so, request the current release dictionary from the Scorecard help desk (`scorecarddata@rti.org`) and retain the response or downloaded file with its release date and SHA-256. An older archived dictionary can clarify methodology and sheet structure but **must not** be used as proof of the June 2026 metric cohort. The full June 2026 all-data ZIP may contain the dictionary even when the institution-only ZIP does not; verify its archive member list before relying on it. Never substitute a third-party estimate for an official cohort map.
+The official September 2025 institution technical documentation points to the `/assets/CollegeScorecardDataDictionary.xlsx` path, which currently returns HTTP 403 in this environment. The previous `/files/` URL should not be treated as authoritative. The current official XLSX download may return an access error. If so, request the current release dictionary from the Scorecard help desk (`scorecarddata@rti.org`) and retain the response or downloaded file with its release date and SHA-256. An older archived dictionary can clarify methodology and sheet structure but **must not** be used as proof of the June 2026 metric cohort. The full June 2026 all-data ZIP may contain the dictionary even when the institution-only ZIP does not; verify its archive member list before relying on it. Never substitute a third-party estimate for an official cohort map.
