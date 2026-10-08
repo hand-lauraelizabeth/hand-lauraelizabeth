@@ -29,7 +29,7 @@ class EvidenceAuditTests(unittest.TestCase):
         self.assertEqual(counts["blocked"], 1)
 
     def test_approved_without_evidence_is_rejected(self):
-        errors, _ = self.audit_rows([{"unitid": "123456", "publication_status": "APPROVED"}])
+        errors, _ = self.audit_rows([{"UNITID": "123456", "publication_status": "APPROVED"}])
         self.assertTrue(any("lacks cohort_dictionary_source" in error for error in errors))
 
     def test_invalid_identifier_rejected(self):
