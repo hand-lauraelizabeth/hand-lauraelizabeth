@@ -240,7 +240,7 @@ function analyze(){
  const job=$('#job').value.trim(), cand=$('#candidate').value.trim();
  if(!job){alert('Paste a job description first.');return}
  GRAPH=buildGraph(cand,GRAPH);renderGraph(GRAPH);
- const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text,GRAPH),hard_check=hardConditionStatus(text,GRAPH,ev);return{id:i+1,type,text,ev,g,action:action(type,g)}});
+ const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text,GRAPH),hard_check=hardConditionStatus(text,GRAPH,ev);return{id:i+1,type,text,ev,g,hard_check,action:action(type,g)}});
  DATA=xs;
  const counts={};xs.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
  const hard=xs.filter(x=>x.type==='hard'), hardVisible=hard.filter(x=>['strong','visible'].includes(x.ev.status)).length;
