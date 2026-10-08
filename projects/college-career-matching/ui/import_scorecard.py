@@ -68,6 +68,11 @@ def convert(csv_path, metadata):
         raise ValueError("Reviewed UNITIDs must be six-digit ASCII identifiers")
     if metadata.get("publication_approved") is not True:
         raise ValueError("Publication requires explicit publication_approved=true after independent evidence review")
+    evidence = metadata.get("cohort_evidence")
+    if not isinstance(evidence, dict) or any(not isinstance(evidence.get(key), str) or not evidence[key].strip() for key in ("dictionary_url", "dictionary_edition", "cohort_map_sheet", "cohort_map_reference", "income_band_cohort")):
+        raise ValueError("Approved publication requires documented cohort_evidence with dictionary URL, edition, sheet, cell reference and income-band cohort")
+    if evidence["cohort_map_sheet"] != "Most_Recent_Inst_Cohort_Map":
+        raise ValueError("Latest institutional extract requires Most_Recent_Inst_Cohort_Map evidence")
     records = []
     seen = set()
     names_seen = set()
