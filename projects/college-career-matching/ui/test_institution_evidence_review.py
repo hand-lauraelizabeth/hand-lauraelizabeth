@@ -37,7 +37,7 @@ class EvidenceAuditTests(unittest.TestCase):
         self.assertTrue(any("six-digit" in error for error in errors))
 
     def test_unrecognized_status_rejected(self):
-        errors, _ = self.audit_rows([{"unitid": "123456", "publication_status": "MAYBE"}])
+        errors, _ = self.audit_rows([{"UNITID": "123456", "publication_status": "MAYBE"}])
         self.assertTrue(any("unknown publication_status" in error for error in errors))
 
 
