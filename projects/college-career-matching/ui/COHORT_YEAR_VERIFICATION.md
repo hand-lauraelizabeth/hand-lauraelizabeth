@@ -5,7 +5,7 @@ Status: **UNVERIFIED for the June 10, 2026 institution extract**. No real instit
 ## Source-of-truth procedure
 
 1. Retrieve the current official College Scorecard Data Dictionary from the Department of Education data-documentation page: https://collegescorecard.ed.gov/data/data-documentation/
-2. Inspect the **institution cohort map** worksheet, not only the field-description worksheet or the overall net-price glossary.
+2. Inspect **`Most_Recent_Inst_Cohort_Map`** for the latest institution extract, and cross-check **`Institution_Cohort_Map`** for the annual archive. Do not substitute the field-description worksheet or the overall net-price glossary.
 3. For each field family `NPT41_PUB` through `NPT45_PUB`, `NPT41_PRIV` through `NPT45_PRIV`, `NPT41_PROG` through `NPT45_PROG`, and `NPT41_OTHER` through `NPT45_OTHER`, identify the reporting cohort aligned with the June 10, 2026 latest institution extract.
 4. Record dictionary edition/date, cohort-map sheet name and cell/row references, metric cohort, and whether every applicable population shares that cohort.
 5. Compare against the official institution-level technical documentation; document exceptions and distinguish collection year, award year, and academic year.
@@ -27,7 +27,8 @@ Keep 20 eight-digit New York branch/location identifiers outside the six-digit i
 | --- | --- |
 | Official dictionary URL | https://collegescorecard.ed.gov/data/data-documentation/ |
 | Dictionary edition and retrieval date | PENDING |
-| Cohort map sheet and cell references | PENDING |
+| Latest-file cohort map | `Most_Recent_Inst_Cohort_Map` — cell references PENDING |
+| Annual-file cross-check | `Institution_Cohort_Map` — cell references PENDING |
 | NPT41–NPT45 applicable population/cohort mapping | PENDING |
 | Exceptions and methodology notes | PENDING |
 | Independent reviewer and approval date | PENDING |
