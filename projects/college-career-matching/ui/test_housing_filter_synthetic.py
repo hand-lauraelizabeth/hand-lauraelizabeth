@@ -23,7 +23,24 @@ class HousingFilterTests(unittest.TestCase):
         self.assertEqual(public_filter([evidence(publication_status="APPROVED", owner_approved=True, unitid=None)]), [])
     def test_approved_record_is_eligible_in_isolated_fixture(self):
         e = evidence(publication_status="APPROVED", owner_approved=True)
-        self.assertEqual(public_filter([e]), [e])
+        self.assertEqual(public_filter([e]), [])\n        self.assertEqual(public_filter([e], approved_unitids={"SYNTHETIC-001"}), [e])
+    def test_allowlist_without_record_approval_denied(self):
+        self.assertEqual(public_filter([evidence()], approved_unitids={"SYNTHETIC-001"}), [])
+    def test_other_unitid_denied(self):
+        e = evidence(publication_status="APPROVED", owner_approved=True)
+        self.assertEqual(public_filter([e], approved_unitids={"SYNTHETIC-002"}), [])
+    def test_unverified_housing_is_unknown(self):
+        d = classify_housing(evidence(verified=False))
+        self.assertTrue(d["unknown_housing"])
+        self.assertFalse(d["on_campus"])
+    def test_missing_provenance_is_unknown(self):
+        d = classify_housing(evidence(source_url=None))
+        self.assertTrue(d["unknown_housing"])
+        self.assertFalse(d["confirmed_vacancy"])
+    def test_unverified_negative_not_documented(self):
+        d = classify_housing(evidence(housing_type=HousingType.DOCUMENTED_NONE, verified=False))
+        self.assertFalse(d["documented_none"])
+        self.assertTrue(d["unknown_housing"])
     def test_matching_term_confirmed(self):
         self.assertTrue(classify_housing(evidence(), "2027-FALL")["confirmed_vacancy"])
     def test_mismatched_term_not_confirmed(self):
