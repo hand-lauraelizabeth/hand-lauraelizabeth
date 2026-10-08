@@ -23,7 +23,8 @@ class HousingFilterTests(unittest.TestCase):
         self.assertEqual(public_filter([evidence(publication_status="APPROVED", owner_approved=True, unitid=None)]), [])
     def test_approved_record_is_eligible_in_isolated_fixture(self):
         e = evidence(publication_status="APPROVED", owner_approved=True)
-        self.assertEqual(public_filter([e]), [])\n        self.assertEqual(public_filter([e], approved_unitids={"SYNTHETIC-001"}), [e])
+        self.assertEqual(public_filter([e]), [])
+        self.assertEqual(public_filter([e], approved_unitids={"SYNTHETIC-001"}), [e])
     def test_allowlist_without_record_approval_denied(self):
         self.assertEqual(public_filter([evidence()], approved_unitids={"SYNTHETIC-001"}), [])
     def test_other_unitid_denied(self):
