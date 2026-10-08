@@ -63,7 +63,7 @@ def run():
   assert len(driver.find_elements(By.CSS_SELECTOR,".card"))>=1
   first=driver.find_element(By.CSS_SELECTOR,".card")
   first_id=first.get_attribute("data-id")
-  Select(first.find_element(By.CSS_SELECTOR,'[data-k="s"]')).select_by_value("Applied")
+  Select(first.find_element(By.CSS_SELECTOR,'[data-k="s"]')).select_by_visible_text("Applied")
   first.find_element(By.CSS_SELECTOR,'[data-k="n"]').send_keys("Preserve this synthetic application note.")
   click(driver,wait,"profileSave")
   driver.refresh()
