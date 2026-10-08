@@ -6,7 +6,7 @@ Keep all institution records DO_NOT_PUBLISH until independently verified and exp
 
 ## Queue baseline and next verification
 
-Carry-forward counts only (not independently re-audited in this change): housing-source review 20/20, accessibility-source review 14/20, net-price cohort-year verification 0/20. The six unfinished institutions must be identified from the private queue before searching official school sites. Record official URL, page title, retrieval date, reviewed UNITID, supported claim, feature state, reviewer, and review date. A checked source is not a quality rating.
+Private queue field-presence audit (2026-10-08; 20 records): disability-services status and office 20/20; academic-accommodations evidence 19/20; physical-accessibility evidence 14/20; housing-accessibility evidence 2/20. All 20 accessibility reviews are partial and all 20 records remain DO_NOT_PUBLISH. The earlier 14/20 count must not be interpreted as six institutions with no accessibility review. Field presence is not independent feature verification. Net-price cohort-year verification remains 0/20. Record official URL, page title, retrieval date, reviewed UNITID, supported claim, feature state, reviewer, and review date.
 
 ## Separate accessibility evidence
 
