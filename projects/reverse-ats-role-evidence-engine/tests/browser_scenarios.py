@@ -26,7 +26,7 @@ def run():
   driver=webdriver.Chrome(options=o);driver.get(f"http://127.0.0.1:{port}/index.html");wait=WebDriverWait(driver,10)
   assert "does not emulate a proprietary ATS" in driver.find_element(By.TAG_NAME,"body").text
   click(driver,wait,"sampleJob");click(driver,wait,"sampleCandidate");click(driver,wait,"analyze")
-  wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#evidenceRows tr"))>=3)
+  wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#evidenceRows tr"))>=2)  # Sample has two nonempty source blocks
   wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#rows tr"))>=3)
   matrix=driver.find_element(By.ID,"rows").text
   assert "E00" in matrix, matrix
