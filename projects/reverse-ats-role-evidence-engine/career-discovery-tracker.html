@@ -82,6 +82,14 @@ textarea{width:100%;min-height:76px;margin-top:8px;background:var(--bg);border:1
 </header>
 <main>
 <aside>
+
+  <div class="panel"><h3>Shared candidate profile</h3>
+    <p class="note">Transfer candidate evidence between this tracker and Role Evidence Analysis. Imports merge text without clearing your existing pipeline. Profile JSON can contain personal information; keep it private.</p>
+    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" type="button" id="profileSave">Save profile locally</button><button class="btn ghost" type="button" id="profileLoad">Load saved profile</button><button class="btn ghost" type="button" id="profileDownload">Download profile JSON</button></div>
+    <label for="profileImport" class="note">Import shared profile JSON</label><input id="profileImport" type="file" accept=".json,application/json" style="max-width:100%">
+    <p class="note" id="profileMsg" role="status" aria-live="polite">If the two tools run in separate browser contexts, use JSON export/import.</p>
+  </div>
+
   <div class="panel" data-src="resume"><h3>1. Resume / CV <small>weight 1.0</small></h3>
     <textarea placeholder="Paste your resume text, or add a file below"></textarea>
     <div class="drop"><input type="file" accept=".pdf,.docx,.txt,.md,.rtf,.html,.json,.csv" multiple></div></div>
@@ -228,6 +236,91 @@ $('#csv').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';dl('r
 $('#json').onclick=()=>dl('reverse-tracker.json',JSON.stringify({profile:S.prof,tracker:S.track,roles:S.rows.map(r=>({role:r.ttl,match:r.pct,matched:r.hit,gaps:r.gap,pay:r.pays}))},null,2),'application/json');
 $('#theme').onclick=()=>{const d=document.documentElement,dark=getComputedStyle(d).getPropertyValue('--bg').trim()==='#121a17';d.dataset.theme=dark?'light':'dark'};
 if(Object.values(S.src).join('').trim())build();else{$('#loc').innerHTML='<option value="">Anywhere</option>'+Object.entries(H).map(([k,h])=>`<option value="${k}">${h[0]}</option>`).join('')}
+
+/* Shared local-first candidate profile. Manual import/load never silently replaces work. */
+const PROFILE_KEY='role-evidence.shared-profile.v1',PROFILE_FORMAT='role-evidence-candidate-profile';
+function checkedProfile(raw){
+  if(!raw||raw.format!==PROFILE_FORMAT||raw.version!==1||!raw.sections||typeof raw.sections!=='object')throw Error('Unsupported profile format or version.');
+  if(JSON.stringify(raw).length>1800000)throw Error('Profile exceeds the 1.8 MB import limit.');
+  const sections={};
+  for(const key of ['resume','footprint','docs','ai']){
+    const v=raw.sections[key]??'';
+    if(typeof v!=='string'||v.length>500000)throw Error('Invalid '+key+' section.');
+    sections[key]=v;
+  }
+  if(raw.evidence_nodes!==undefined&&!Array.isArray(raw.evidence_nodes))throw Error('Invalid evidence list.');
+  if((raw.evidence_nodes||[]).length>2000)throw Error('Too many evidence nodes.');
+  const nodes=(raw.evidence_nodes||[]).filter(n=>n&&typeof n.statement==='string'&&n.statement.length<=10000&&
+    ['resume','portfolio','public','document','user','other'].includes(n.source_type)&&
+    !['private','anonymize','do-not-use'].includes(n.reviewed?.confidentiality))
+    .map(n=>({
+      ...n,
+      verification_status:['unreviewed','self-attested','source-corroborated','verified'].includes(n.verification_status)?n.verification_status:'unreviewed',
+      reviewed:{role_project:String(n.reviewed?.role_project||''),dates:String(n.reviewed?.dates||''),
+        source_reference:String(n.reviewed?.source_reference||''),confidentiality:n.reviewed?.confidentiality==='public'?'public':'unspecified',
+        authority_scope:String(n.reviewed?.authority_scope||''),reviewer_note:String(n.reviewed?.reviewer_note||'')}
+    }));
+  return{format:PROFILE_FORMAT,version:1,created_at:String(raw.created_at||''),sections,evidence_nodes:nodes};
+}
+function makeProfile(sections,nodes=[]){
+  return checkedProfile({format:PROFILE_FORMAT,version:1,created_at:new Date().toISOString(),sections,evidence_nodes:nodes});
+}
+function profileDownload(profile){
+  const url=URL.createObjectURL(new Blob([JSON.stringify(profile,null,2)],{type:'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download='role-evidence-candidate-profile.json';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function profileSaveLocal(profile){
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));return true}catch(e){return false}
+}
+function profileReadLocal(){
+  let data;try{data=localStorage.getItem(PROFILE_KEY)}catch(e){throw Error('Browser storage is not accessible here; use a JSON file.')}
+  if(!data)throw Error('No shared profile is saved in this browser context; import a JSON file instead.');
+  return checkedProfile(JSON.parse(data));
+}
+
+
+let linkedEvidenceNodes=[];
+function trackerProfile(){
+  if(!Object.values(S.src).some(s=>s.trim()))throw Error('Add candidate material before exporting.');
+  return makeProfile({...S.src},linkedEvidenceNodes);
+}
+function mergeProfileText(current,incoming){
+  const a=current.trim(),b=incoming.trim();
+  if(!b||a.includes(b))return current;
+  if(!a||b.includes(a))return incoming;
+  return current+'\n\n'+incoming;
+}
+function applyTrackerProfile(p){
+  let changed=0;
+  for(const k of ['resume','footprint','docs','ai']){
+    const next=mergeProfileText(S.src[k]||'',p.sections[k]);
+    if(next!==S.src[k]){S.src[k]=next;changed++}
+    document.querySelector('[data-src="'+k+'"] textarea').value=S.src[k];
+  }
+  store.set('rt.src',S.src); // Does not touch rt.track.
+  linkedEvidenceNodes=p.evidence_nodes;
+  if(Object.values(S.src).some(t=>t.trim()))build();
+  return changed;
+}
+function trackerProfileMessage(s){$('#profileMsg').textContent=s}
+$('#profileSave').onclick=()=>{
+  try{const p=trackerProfile();trackerProfileMessage(profileSaveLocal(p)?'Saved profile locally. Your application statuses and notes are unchanged.':'Browser storage unavailable; use Download profile JSON.')}catch(e){trackerProfileMessage(e.message)}
+};
+$('#profileDownload').onclick=()=>{
+  try{const p=trackerProfile();profileDownload(p);trackerProfileMessage('Downloaded private candidate-profile JSON with '+p.evidence_nodes.length+' reviewed-node records.')}catch(e){trackerProfileMessage(e.message)}
+};
+$('#profileLoad').onclick=()=>{
+  try{const p=profileReadLocal();const n=applyTrackerProfile(p);trackerProfileMessage('Profile loaded; '+n+' source sections updated. Existing tracker statuses and notes preserved.')}catch(e){trackerProfileMessage(e.message)}
+};
+$('#profileImport').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{if(file.size>1800000)throw Error('File exceeds the 1.8 MB limit.');
+    const p=checkedProfile(JSON.parse(await file.text()));const n=applyTrackerProfile(p);
+    trackerProfileMessage('Imported '+p.evidence_nodes.length+' evidence-node records; '+n+' source sections updated without resetting application tracking.');
+  }catch(err){trackerProfileMessage('Import failed: '+err.message)}finally{e.target.value=''}
+});
+
 </script>
 </body>
 </html>
