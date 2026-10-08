@@ -22,13 +22,17 @@ An interactive, evidence-centered career decision workspace. It helps people exp
 - Track application states and notes in browser storage; export CSV/JSON.
 - Optionally add public GitHub repository descriptions.
 
-These workspaces are currently presented separately within one website page. Their features are retained as the underlying evidence model and user experience are progressively integrated.
+These workspaces remain independently usable. A shared candidate profile now supports explicit browser-local save/load and private JSON transfer between them without clearing the discovery tracker. Transfers from Role Evidence Analysis exclude nodes labeled private, anonymize-only, or do-not-use. Imported verification labels still require human review; exported JSON can contain personal material and should not be published.
 
 ## How to start
 
 For a specific opportunity, open **Role Evidence Analysis**, use the sample job and fictional sample candidate to explore the workflow, or paste your own job and experience. Read the requirement matrix and evidence-review panel before drawing conclusions.
 
 To discover possible directions from your experience and record opportunities, expand **Career Discovery & Tracking**. Build a profile from materials, adjust the filters, and export the tracker when needed.
+
+## Transferring evidence between workspaces
+
+Use **Save profile locally** and **Load saved profile** when the workspaces share the same browser origin and storage context. When website embeds or browsers have separate storage, choose **Download profile JSON** in one workspace and **Import shared profile JSON** in the other. In the discovery tracker, imports merge source text instead of wiping existing source fields, and they do not modify application statuses or notes. Save again when you want to update the transferable snapshot.
 
 ## Interpretation and privacy
 
