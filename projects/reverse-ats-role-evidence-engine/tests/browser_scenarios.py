@@ -50,6 +50,35 @@ def run():
   assert "Chronology check" in body
   assert "Hard-condition check" in body
   assert "Application-facing wording ceiling" in body
+
+  # Shared profile: reviewed nodes transfer to the discovery workspace.
+  click(driver,wait,"profileSave")
+  saved=driver.execute_script("return JSON.parse(localStorage.getItem('role-evidence.shared-profile.v1'))")
+  assert saved["format"]=="role-evidence-candidate-profile" and saved["version"]==1
+  assert any(n["verification_status"]=="verified" for n in saved["evidence_nodes"])
+  driver.get(f"http://127.0.0.1:{port}/career-discovery-tracker.html")
+  click(driver,wait,"profileLoad")
+  wait.until(lambda d:"source sections" in d.find_element(By.ID,"profileMsg").text)
+  assert "Synthetic example" in driver.find_element(By.CSS_SELECTOR,'[data-src="resume"] textarea').get_attribute("value")
+  assert len(driver.find_elements(By.CSS_SELECTOR,".card"))>=1
+  first=driver.find_element(By.CSS_SELECTOR,".card")
+  first_id=first.get_attribute("data-id")
+  Select(first.find_element(By.CSS_SELECTOR,'[data-k="s"]')).select_by_value("Applied")
+  first.find_element(By.CSS_SELECTOR,'[data-k="n"]').send_keys("Preserve this synthetic application note.")
+  click(driver,wait,"profileSave")
+  driver.refresh()
+  wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,".card"))>=1)
+  saved_tracker=driver.execute_script("return JSON.parse(localStorage.getItem('rt.track'))")
+  assert saved_tracker[first_id]["s"]=="Applied" and "synthetic application" in saved_tracker[first_id]["n"]
+  driver.get(f"http://127.0.0.1:{port}/index.html")
+  click(driver,wait,"profileLoad")
+  assert "Synthetic example" in driver.find_element(By.ID,"candidate").get_attribute("value")
+  assert "verified" in driver.find_element(By.ID,"evidenceRows").text
+  driver.get(f"http://127.0.0.1:{port}/career-discovery-tracker.html")
+  click(driver,wait,"profileLoad")
+  assert driver.execute_script("return JSON.parse(localStorage.getItem('rt.track'))")[first_id]["s"]=="Applied"
+  print("PASS Shared candidate profile: verified evidence transfer, same-origin browser storage, round-trip, application state preservation")
+
   print("PASS Role Evidence Engine browser scenarios: requirement matrix, evidence nodes, chronology, hard conditions, human review, claim guardrail")
  finally:
   if driver:driver.quit()
