@@ -1,4 +1,4 @@
-name: Matcher synthetic housing and locale regression
+name: Matcher synthetic evidence filters
 on:
   push:
     paths:
@@ -6,6 +6,8 @@ on:
       - 'projects/college-career-matching/ui/test_housing_filter_synthetic.py'
       - 'projects/college-career-matching/ui/locale_filter_synthetic.py'
       - 'projects/college-career-matching/ui/test_locale_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/accessibility_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_accessibility_filter_synthetic.py'
       - '.github/workflows/matcher-housing-tests.yml'
   pull_request:
     paths:
@@ -13,6 +15,8 @@ on:
       - 'projects/college-career-matching/ui/test_housing_filter_synthetic.py'
       - 'projects/college-career-matching/ui/locale_filter_synthetic.py'
       - 'projects/college-career-matching/ui/test_locale_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/accessibility_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_accessibility_filter_synthetic.py'
       - '.github/workflows/matcher-housing-tests.yml'
   workflow_dispatch:
 permissions:
@@ -27,6 +31,6 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile matcher Python sources
-        run: python -m compileall -q projects/college-career-matching/ui/housing_filter_synthetic.py projects/college-career-matching/ui/test_housing_filter_synthetic.py projects/college-career-matching/ui/locale_filter_synthetic.py projects/college-career-matching/ui/test_locale_filter_synthetic.py
-      - name: Run synthetic housing and locale regression suites
+        run: python -m compileall -q projects/college-career-matching/ui/housing_filter_synthetic.py projects/college-career-matching/ui/test_housing_filter_synthetic.py projects/college-career-matching/ui/locale_filter_synthetic.py projects/college-career-matching/ui/test_locale_filter_synthetic.py projects/college-career-matching/ui/accessibility_filter_synthetic.py projects/college-career-matching/ui/test_accessibility_filter_synthetic.py
+      - name: Run synthetic housing, locale and accessibility regression suites
         run: python -m unittest discover -v -s projects/college-career-matching/ui -p 'test_*_filter_synthetic.py'
