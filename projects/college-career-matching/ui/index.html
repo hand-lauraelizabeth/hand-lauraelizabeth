@@ -6,7 +6,7 @@
 <label for="access">Accessibility priority</label><select id="access"><option value="1">Standard</option><option value="2">High priority</option><option value="3">Essential</option></select>
 <label for="career">Career interest</label><select id="career"><option value="data">Data / analytics</option><option value="education">Education / learning</option><option value="health">Health / community services</option><option value="business">Business / operations</option></select>
 <label for="cost">Maximum average cost after aid</label><input id="cost" type="number" min="0" step="1000" value="25000">
-<p class="meta">The five income groups follow College Scorecard reporting brackets; all example prices remain invented demonstration values, not reported net prices. The demonstration starts with synthetic records. A source-attributed dataset loads only if a reviewed bundle is available. Missing evidence is shown as a possible score range, not assumed to be a negative finding.</p></aside><section class="card"><h2>Matches</h2><p class="muted">A cost ceiling requires known cost evidence. Without a ceiling, institutions with unknown costs remain visible. Rankings use confirmed points; where evidence is missing, a possible score range shows uncertainty rather than treating unknown as a negative finding.</p><div id="results"></div></section></div></main><script>
+<p class="meta">The five income groups follow College Scorecard reporting brackets; all example prices remain invented demonstration values, not reported net prices. The demonstration starts with synthetic records. Real institutional records are not loaded, even if a public-data.json file is present; a separate verified publication pipeline is required. Missing evidence is shown as a possible score range, not assumed to be a negative finding.</p></aside><section class="card"><h2>Matches</h2><p class="muted">A cost ceiling requires known cost evidence. Without a ceiling, institutions with unknown costs remain visible. Rankings use confirmed points; where evidence is missing, a possible score range shows uncertainty rather than treating unknown as a negative finding.</p><div id="results"></div></section></div></main><script>
 const SYNTHETIC_DATA=[
 {name:"Metro Public University",setting:"Urban",housing:true,access:3,cost:{"0_30k":9000,"30_48k":12000,"48_75k":15500,"75_110k":19500,"110k_plus":23000},careers:{data:3,education:2,health:2,business:3},aid:["need-based","merit"],note:"Strong transit access; broad program mix."},
 {name:"River County Community College",setting:"Suburban",housing:false,access:2,cost:{"0_30k":4500,"30_48k":5500,"48_75k":6500,"75_110k":7500,"110k_plus":8500},careers:{data:2,education:2,health:3,business:2},aid:["need-based"],note:"Lower-cost commuter pathway; transfer planning matters."},
@@ -16,17 +16,9 @@ const SYNTHETIC_DATA=[
 let DATA=SYNTHETIC_DATA, sourceMode="synthetic";
 const $=s=>document.querySelector(s);
 const escapeHTML=value=>String(value??"").replace(/[&<>"\x27]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","\x27":"&#39;"}[ch]));
-async function loadValidatedData(){
- try {
-  const response=await fetch("./public-data.json",{cache:"no-store"});
-  if(!response.ok)return;
-  const payload=await response.json();
-  if(payload.schema_version!==1||!Array.isArray(payload.records)||!payload.records.length)return;
-  const valid=payload.records.every(r=>r&&typeof r==="object"&&typeof r.name==="string"&&r.name.trim()&&typeof r.source==="string"&&r.source.trim()&&Number.isInteger(r.reference_year)&&(r.setting===null||["Urban","Suburban","Town","Rural"].includes(r.setting))&&(r.housing===null||typeof r.housing==="boolean")&&(r.access===null||(Number.isInteger(r.access)&&r.access>=1&&r.access<=3))&&r.cost&&["0_30k","30_48k","48_75k","75_110k","110k_plus"].every(k=>Object.hasOwn(r.cost,k)&&(r.cost[k]===null||(typeof r.cost[k]==="number"&&Number.isFinite(r.cost[k]))))&&r.careers&&["data","education","health","business"].every(k=>Object.hasOwn(r.careers,k)&&(r.careers[k]===null||(Number.isInteger(r.careers[k])&&r.careers[k]>=0&&r.careers[k]<=3)))&&(r.aid===null||(Array.isArray(r.aid)&&r.aid.every(a=>typeof a==="string"))));
-  if(!valid)return;
-  DATA=payload.records;sourceMode="validated";$("#data-mode").textContent="source-attributed records";render();
- }catch(error){/* Remain in clearly labeled synthetic demonstration mode. */}
-}
+// Publication is intentionally disabled: structural JSON checks are not owner approval.
+// Only synthetic records are used until an independently verified, separately approved
+// publication pipeline is implemented and reviewed.
 
 function score(x){
  const inc=$("#income").value,setting=$("#setting").value,housing=$("#housing").value,access=+$("#access").value,career=$("#career").value,max=$("#cost").value.trim()===""?Infinity:Math.max(0,Number($("#cost").value));
@@ -48,5 +40,5 @@ function score(x){
  return {pts:Math.round(pts),upper:Math.min(possibleMax,Math.round(pts+unknownMax)),possibleMax,unknownMax,why}
 }
 function render(){const ranked=DATA.map(x=>({x,s:score(x)})).filter(z=>z.s).sort((a,b)=>b.s.pts-a.s.pts);$("#results").innerHTML=ranked.length?ranked.map(({x,s})=>'<article class="result"><div class="score">'+s.pts+(s.unknownMax?'–'+s.upper:'')+' <span class="meta">/ '+s.possibleMax+' possible preference points'+(s.unknownMax?' · range reflects missing evidence':'')+'</span></div><h3>'+escapeHTML(x.name)+'</h3><div><span class="tag">'+escapeHTML(x.setting??'Setting unverified')+'</span><span class="tag">'+(x.housing===null?'Housing unverified':x.housing?'Housing available':'No on-campus housing reported')+'</span><span class="tag">Aid: '+escapeHTML(x.aid.join(', '))+'</span></div><p>'+escapeHTML(x.note)+'</p><div class="why"><b>Why this ranked here</b><br>'+s.why.map(escapeHTML).join(' · ')+'</div><p class="meta">'+(sourceMode==='synthetic'?'Synthetic demonstration record — not a college recommendation.':'Source: '+escapeHTML(x.source)+' · Reference year: '+escapeHTML(x.reference_year)+' · Confirm field-level evidence independently.')+'</p></article>').join(''):'<p>No institutions meet these constraints with sufficient evidence. Relax a constraint to compare tradeoffs.</p>'}
-document.querySelectorAll("select,input").forEach(el=>el.addEventListener("input",render));render();loadValidatedData();
+document.querySelectorAll("select,input").forEach(el=>el.addEventListener("input",render));render();
 </script></body></html>
