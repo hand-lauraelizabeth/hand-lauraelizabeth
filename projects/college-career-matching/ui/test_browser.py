@@ -67,9 +67,13 @@ async def main():
             status=200, content_type="application/json",
             body=json.dumps({"schema_version": 1, "records": [record]})))
         await page.reload()
-        await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'source-attributed\')")
         await page.locator(".result").first.wait_for()
-        assert "source-attributed" in await page.locator("#data-mode").inner_text()
+        assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
+        assert await page.locator(".result").count() == 4, "Unapproved external payload must not load"
+        # Exercise escaping and unknown-evidence rendering without changing the
+        # disabled external-data publication gate or approving a real record.
+        await page.evaluate("(record) => { DATA=[record]; render(); }", record)
+        assert await page.locator(".result").count() == 1
         assert await page.locator(".result img, .result svg, .result script").count() == 0, "Unescaped HTML inserted"
         assert "accessibility information unavailable" in await page.locator(".result").inner_text()
         assert "career alignment information unavailable" in await page.locator(".result").inner_text()
@@ -98,7 +102,7 @@ async def main():
         assert await page.locator(".result").count() == 4
         assert not errors, f"Browser errors: {errors}"
         await browser.close()
-        print("PASS: synthetic filters, mobile overflow, public-data loader, missing evidence, HTML escaping, zero-cost eligibility, incomplete-data fallback")
+        print("PASS: synthetic filters, mobile overflow, unapproved-data rejection, missing evidence, HTML escaping, zero-cost eligibility, incomplete-data fallback")
     finally:
         server.shutdown()
         server.server_close()
