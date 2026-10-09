@@ -120,6 +120,10 @@ class ApplicantInputTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             m.enrollment_preference(record, definition="total", minimum=200, maximum=100)
 
+    def test_institution_testing_policy_requires_cohort(self):
+        with self.assertRaises(ValueError):
+            m.validate_institution_testing_policy("optional", unitid="123456", source_url="https://example.edu", reporting_year=2025)
+
 
 if __name__ == "__main__":
     unittest.main()
