@@ -1,0 +1,21 @@
+{
+  "records": 6243,
+  "source_rows": 6273,
+  "excluded_nonoperating": 30,
+  "states_and_territories": 59,
+  "eight_digit_branch_or_extension_ids": 456,
+  "school_size_available": 5462,
+  "net_price_available": 5021,
+  "any_income_band_available": 5021,
+  "all_five_income_bands_available": 3018,
+  "individual_income_band_cells_available": 20472,
+  "in_state_tuition_available": 3601,
+  "annual_cost_available": 5022,
+  "sat_avg_available": 1037,
+  "act_mid_available": 970,
+  "historical_admit_rate_available": 1909,
+  "scorecard_locale_available_not_independent": 5716,
+  "historical_major_family_distribution_available_not_program_list": 5468,
+  "institution_site_link_available": 5511,
+  "accreditor_name_reported_unverified": 6182
+}
