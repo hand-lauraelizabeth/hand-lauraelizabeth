@@ -11,13 +11,24 @@
     if(!Number.isFinite(n)||n<0||n>max) return {ok:false,reason:"GPA must be between zero and the selected scale maximum."};
     return {ok:true,value:n,scale:max,weighting,missing:false};
   }
-  function validateTesting(mode,satTotal,actComposite){
+  function validateTesting(mode,satTotal,actComposite,sections={}){
     if(!["omit","sat","act","test_optional","test_blind"].includes(mode))return {ok:false,reason:"Unknown testing choice."};
-    if(["omit","test_optional","test_blind"].includes(mode))return {ok:true,omitted:true};
-    const n=Number(mode==="sat"?satTotal:actComposite);
-    const low=mode==="sat"?400:1, high=mode==="sat"?1600:36;
-    if(!Number.isInteger(n)||n<low||n>high)return {ok:false,reason:mode.toUpperCase()+" score is outside its valid range."};
-    return {ok:true,mode,value:n,omitted:false};
+    if(["omit","test_optional","test_blind"].includes(mode))return {ok:true,mode,omitted:true};
+    const raw=mode==="sat"?satTotal:actComposite;
+    if(raw===""||raw===null||raw===undefined)return {ok:false,reason:"Enter a score or select no score."};
+    const sat=mode==="sat",n=Number(raw);
+    if(!Number.isInteger(n)||n<(sat?400:1)||n>(sat?1600:36)||(sat&&n%10!==0))return {ok:false,reason:"Invalid reported score."};
+    const keys=sat?["satReadingWriting","satMath"]:["actEnglish","actMath","actReading","actScience"];
+    const values={};
+    for(const key of keys){
+      const rawSection=sections?.[key];
+      if(rawSection===""||rawSection==null)continue;
+      const v=Number(rawSection);
+      if(!Number.isInteger(v)||v<(sat?200:1)||v>(sat?800:36)||(sat&&v%10!==0))return {ok:false,reason:"Invalid "+key+" section score."};
+      values[key]=v;
+    }
+    if(sat&&values.satReadingWriting!=null&&values.satMath!=null&&values.satReadingWriting+values.satMath!==n)return {ok:false,reason:"SAT total must equal section sum."};
+    return {ok:true,mode,value:n,sections:values,omitted:false};
   }
   function validEnrollment(record,kind){
     const value=record?.enrollment?.[kind];
