@@ -217,11 +217,25 @@ def validate_institution_testing_policy(policy, *, unitid, source_url=None,
             "publication_status": "DO_NOT_PUBLISH"}
 
 
+def validate_institution_testing_policy_record(record):
+    """Reconstruct policy evidence from its validated fields."""
+    if not isinstance(record, dict):
+        raise ValueError("Institution policy must be a record")
+    expected = validate_institution_testing_policy(
+        record.get("reported_policy"), unitid=record.get("unitid"),
+        source_url=record.get("source_url"),
+        reporting_year=record.get("reporting_year"),
+        admissions_cohort=record.get("admissions_cohort"),
+        independently_reviewed=record.get("independently_reviewed"))
+    if record != expected:
+        raise ValueError("Inconsistent institution testing policy")
+    return expected
+
+
 def testing_evidence_with_provenance(policy_record, score):
     """Only independently reviewed school policy may enable descriptive scores."""
-    if not isinstance(policy_record, dict) or policy_record.get("publication_status") != "DO_NOT_PUBLISH":
-        raise ValueError("Private institutional policy evidence required")
-    policy = policy_record.get("effective_policy")
+    policy_record = validate_institution_testing_policy_record(policy_record)
+    policy = policy_record["effective_policy"]
     if policy not in TEST_POLICIES:
         raise ValueError("Invalid effective testing policy")
     decision = testing_evidence(policy, score)
