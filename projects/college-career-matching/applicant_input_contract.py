@@ -111,6 +111,28 @@ def validate_act(composite=None, *, english=None, math=None, reading=None, scien
     return {"test": "ACT", "status": "provided", "composite": composite, "sections": sections}
 
 
+def validate_score_record(score):
+    if score is None:
+        return None
+    if not isinstance(score, dict) or score.get("test") not in ("SAT", "ACT"):
+        raise ValueError("Invalid test record")
+    if score.get("status") in MISSING_STATES:
+        valid = validate_sat(status=score["status"]) if score["test"] == "SAT" else validate_act(status=score["status"])
+    elif score.get("status") == "provided":
+        sections = score.get("sections")
+        if not isinstance(sections, dict):
+            raise ValueError("Invalid sections")
+        try:
+            valid = validate_sat(score.get("total"), **sections) if score["test"] == "SAT" else validate_act(score.get("composite"), **sections)
+        except TypeError as exc:
+            raise ValueError("Invalid sections") from exc
+    else:
+        raise ValueError("Invalid test status")
+    if score != valid:
+        raise ValueError("Invalid test record")
+    return valid
+
+
 def testing_evidence(policy, score):
     """A policy-aware descriptive indicator, not an admissions score or cutoff."""
     if policy not in TEST_POLICIES:
