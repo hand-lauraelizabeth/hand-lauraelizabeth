@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - 'projects/college-career-matching/ui/**'
+      - 'projects/college-career-matching/ny_pilot_*.py'
+      - 'projects/college-career-matching/tests/test_ny_pilot_*.py'
       - '.github/workflows/college-matcher-validation.yml'
   pull_request:
     paths:
       - 'projects/college-career-matching/ui/**'
+      - 'projects/college-career-matching/ny_pilot_*.py'
+      - 'projects/college-career-matching/tests/test_ny_pilot_*.py'
       - '.github/workflows/college-matcher-validation.yml'
   workflow_dispatch:
 
@@ -38,5 +42,9 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Run matcher validator and importer regression suite
         run: python -m unittest discover -s projects/college-career-matching/ui -p 'test_*.py' -v
+      - name: Run NY pilot provenance and admissions regression tests
+        env:
+          PYTHONPATH: projects/college-career-matching
+        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny_pilot_*.py' -v
       - name: Run matcher browser smoke tests
         run: python projects/college-career-matching/ui/test_browser.py
