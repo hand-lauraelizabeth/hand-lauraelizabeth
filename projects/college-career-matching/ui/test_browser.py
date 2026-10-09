@@ -87,6 +87,19 @@ async def main():
         assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
         assert await page.locator(".result img, .result svg, .result script").count() == 0
         # A valid-looking source-attributed record is not a publication approval.
+        # Even a valid-looking payload must not load when the approval manifest is absent.
+        await page.route("**/publication-approvals.json", lambda route: route.fulfill(status=404, body=""))
+        await page.reload()
+        assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
+        assert await page.locator(".result").count() == 4
+        await page.unroute("**/publication-approvals.json")
+        # Malformed manifests also fail closed rather than silently granting access.
+        await page.route("**/publication-approvals.json", lambda route: route.fulfill(
+            status=200, content_type="application/json", body="{not valid json"))
+        await page.reload()
+        assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
+        assert await page.locator(".result").count() == 4
+        await page.unroute("**/publication-approvals.json")
         await page.unroute("**/public-data.json")
         invalid = dict(record)
         invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
@@ -100,7 +113,7 @@ async def main():
         assert await page.locator(".result").count() == 4
         assert not errors, f"Browser errors: {errors}"
         await browser.close()
-        print("PASS: synthetic filters, mobile overflow, unapproved-public-data rejection, HTML escaping, incomplete-data fallback")
+        print("PASS: synthetic filters, mobile overflow, unapproved-public-data rejection, absent/malformed approval manifests, HTML escaping, incomplete-data fallback")
     finally:
         server.shutdown()
         server.server_close()
