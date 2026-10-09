@@ -64,6 +64,8 @@ def run():
   first=driver.find_element(By.CSS_SELECTOR,'article.card[data-id]:has([data-k="s"]):has([data-k="n"])')
   first_id=first.get_attribute("data-id")
   Select(first.find_element(By.CSS_SELECTOR,'[data-k="s"]')).select_by_visible_text("Applied")
+  # Status updates rebuild cards; locate the same record again after rendering.
+  first=wait.until(lambda d:d.find_element(By.CSS_SELECTOR, f'article.card[data-id="{first_id}"]'))
   first.find_element(By.CSS_SELECTOR,'[data-k="n"]').send_keys("Preserve this synthetic application note.")
   click(driver,wait,"profileSave")
   driver.refresh()
