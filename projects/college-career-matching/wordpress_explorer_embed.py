@@ -16,6 +16,17 @@ INLINE_LOAD="async load(){if(this.mode==='fixture')this.fixtures=structuredClone
 def build(source,client_source,fixtures):
  if '"mode":"fixture"' not in source or '"production_authorized":false' not in source:
   raise ValueError("public explorer source must default to non-production fixture mode")
+ # The source currently contains an accidentally appended duplicate document
+ # after its first closing HTML tag. Reject arbitrary trailing content, and
+ # package only the first complete document when the extra module is identical.
+ end=source.find("</html>")
+ if end<0:raise ValueError("public explorer closing HTML boundary not found")
+ trailing=source[end+len("</html>"):]
+ if trailing.strip():
+  matches=list(MODULE_RE.finditer(source))
+  if source.count("</html>")!=2 or len(matches)!=2 or matches[0].group(0)!=matches[1].group(0) or not source.rstrip().endswith("</html>"):
+   raise ValueError("unexpected content after public explorer document")
+  source=source[:end+len("</html>")]
  m=MODULE_RE.search(source)
  if not m:raise ValueError("public explorer module boundary not found")
  client=client_source.replace("export class ","class ").replace("export function ","function ")
