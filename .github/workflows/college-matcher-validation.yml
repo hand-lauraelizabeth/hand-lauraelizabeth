@@ -6,6 +6,9 @@ on:
       - 'projects/college-career-matching/ui/**'
       - 'projects/college-career-matching/ny_pilot_*.py'
       - 'projects/college-career-matching/ny-pilot-*.json'
+      - 'projects/college-career-matching/data/ny20-*.json'
+      - 'projects/college-career-matching/ny20-widget.*'
+      - 'projects/college-career-matching/tests/test_ny20_live_projection.py'
       - 'projects/college-career-matching/ny-pilot-*.html'
       - 'projects/college-career-matching/tests/test_ny_pilot_*.py'
       - '.github/workflows/college-matcher-validation.yml'
@@ -52,5 +55,9 @@ jobs:
         env:
           PYTHONPATH: projects/college-career-matching
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny_pilot_*.py' -v
+      - name: Run NY20 descriptive projection regression tests
+        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny20_live_projection.py' -v
+      - name: Validate institution-widget JavaScript syntax
+        run: node --check projects/college-career-matching/ny20-widget.js
       - name: Run matcher browser smoke tests
         run: python projects/college-career-matching/ui/test_browser.py
