@@ -47,10 +47,17 @@
   }
   function policyNote(record,mode){
     const policy=testingPolicy(record);
-    if(policy==="blind")return "Test-blind: submitted scores are not considered; confirm the current official policy.";
-    if(policy==="optional")return "Test-optional: scores may be omitted; confirm the current official policy.";
-    if(policy==="required")return "Testing required according to the record; verify current policy and accepted test types.";
-    return "Testing policy unknown; confirm directly with admissions.";
+    const source=typeof record?.testing_policy_source==="string"?record.testing_policy_source.trim():"";
+    const year=Number.isInteger(record?.testing_policy_year)?record.testing_policy_year:null;
+    const evidence=source&&year?"Source: "+source+"; reporting year: "+year+". ":"Policy source or reporting year unavailable. ";
+    let note=policy==="blind"?"Recorded test-blind policy: scores are not considered. ":
+      policy==="optional"?"Recorded test-optional policy: scores may be omitted. ":
+      policy==="required"?"Recorded testing requirement: confirm accepted tests and exceptions. ":
+      "Testing policy unknown. ";
+    if(mode==="omit"&&policy==="required")note+="No score supplied; check application requirements. ";
+    if((mode==="sat"||mode==="act")&&policy==="blind")note+="Your score is not used in matching. ";
+    if(mode==="test_optional"||mode==="test_blind")note+="Applicant preference is not evidence of institutional policy. ";
+    return note+evidence+"Confirm current rules with admissions; no admission probability is estimated.";
   }
   const api={validateGpa,validateTesting,validEnrollment,sizeMatch,testingPolicy,policyNote};
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
