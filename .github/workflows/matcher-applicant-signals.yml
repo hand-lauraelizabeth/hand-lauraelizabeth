@@ -4,6 +4,8 @@ on:
     paths:
       - 'projects/college-career-matching/ui/applicant-*.js'
       - 'projects/college-career-matching/ui/test_applicant_*.cjs'
+      - 'projects/college-career-matching/ui/institution-policy.js'
+      - 'projects/college-career-matching/ui/test_institution_policy.cjs'
       - 'projects/college-career-matching/ui/index.html'
       - '.github/workflows/matcher-applicant-signals.yml'
   pull_request:
@@ -22,3 +24,4 @@ jobs:
       - name: Validate applicant signals
         run: |
           for test in projects/college-career-matching/ui/test_applicant_*.cjs; do node "$test"; done
+          node projects/college-career-matching/ui/test_institution_policy.cjs
