@@ -24,3 +24,7 @@
 #leh-ccx .ny20-caveat{border-left:3px solid #477965;padding:10px 12px;background:#edf4ef;color:#284a3e;font-size:13px;line-height:1.5;margin:8px 0 16px}
 #leh-ccx .ny20-empty{padding:18px;background:white;border:1px solid #d9e3dc;border-radius:9px}
 @media(max-width:640px){#leh-ccx #ccx-real-institutions{padding:12px}#leh-ccx .ny20-card dl{grid-template-columns:1fr;gap:2px}}
+
+#leh-ccx .ny20-more{min-height:44px;border:1px solid #245847;border-radius:999px;background:#fff;color:#184537;font:inherit;font-weight:700;cursor:pointer;padding:9px 16px;justify-self:center;grid-column:1/-1;margin:10px 0}
+#leh-ccx .ny20-more:hover{background:#edf4ef}
+#leh-ccx .ny20-more:focus-visible{outline:3px solid #7aa994;outline-offset:3px}
