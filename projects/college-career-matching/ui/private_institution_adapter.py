@@ -46,6 +46,36 @@ def validate_record(record):
         errors.append("test_policy is invalid")
     return errors
 
+def scorecard_directory_record(source, retrieved_at, source_url, reporting_year):
+    """Map one official Scorecard institution row into private review form.
+
+    Only identity and undergraduate enrollment are mapped. Admissions policies,
+    accessibility, housing, aid and accreditation remain unknown pending their
+    independent official sources and field-specific review.
+    """
+    unitid = source.get("UNITID")
+    try:
+        unitid = int(unitid)
+    except (TypeError, ValueError):
+        unitid = None
+    enrollment = source.get("UGDS")
+    try:
+        enrollment = int(enrollment) if enrollment not in (None, "", "NULL", "PrivacySuppressed") else None
+    except (TypeError, ValueError):
+        enrollment = None
+    fields = {"name": source.get("INSTNM"), "state": source.get("STABBR"),
+              "city": source.get("CITY"), "control": source.get("CONTROL"),
+              "undergraduate_enrollment": enrollment}
+    evidence = {key: {"url": source_url, "as_of": str(reporting_year),
+                      "source_field": {"name": "INSTNM", "state": "STABBR",
+                                       "city": "CITY", "control": "CONTROL",
+                                       "undergraduate_enrollment": "UGDS"}[key]}
+                for key, value in fields.items() if value is not None}
+    return {"unitid": unitid, **fields, "test_policy": None,
+            "source_url": source_url, "retrieved_at": retrieved_at,
+            "field_evidence": evidence,
+            "publication_status": "DO_NOT_PUBLISH"}
+
 def stage_records(records, destination):
     """Produce PRIVATE review artifact only; never an importable public-data.json."""
     seen = set()
