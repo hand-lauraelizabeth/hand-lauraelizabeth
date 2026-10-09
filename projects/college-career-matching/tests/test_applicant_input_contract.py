@@ -73,6 +73,10 @@ class ApplicantInputTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             m.validate_act(29, status="not_applicable")
 
+    def test_reject_forged_sat_total(self):
+        with self.assertRaises(ValueError):
+            m.testing_evidence("blind", {"test": "SAT", "status": "provided", "total": 1700, "sections": {}})
+
     def test_test_blind_never_uses_scores(self):
         x = m.testing_evidence("blind", m.validate_sat(1500))
         self.assertFalse(x["consider_scores"])
