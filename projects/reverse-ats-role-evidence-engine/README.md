@@ -1,29 +1,49 @@
-# Role Evidence Engine — v2.1
+# Reverse ATS · Role Evidence Studio
 
-An explainable, local-first prototype for comparing a job description with documented candidate evidence.
+An interactive, evidence-centered career decision workspace. It helps people explore plausible role families, interpret job requirements, distinguish experience from what an application currently makes visible, and decide what to document, verify, or develop next.
 
-## What v2.1 adds
+**[Use the interactive website tool](https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/)**
 
-- pasted job-description parsing;
-- visible classification of hard requirements, preferred signals, responsibilities, scope/seniority signals, tools, and context;
-- candidate-evidence comparison;
-- hard-requirement visibility;
-- gap labels that distinguish possible material gaps from visibility, chronology, authority/scope, and depth/recency gaps;
-- next-action guidance;
-- CSV export of the requirement matrix.
+## Two active workspaces
 
-## What it does **not** claim
+### Role Evidence Analysis
+- Paste a job description and candidate evidence, optionally separated by source markers: `[resume]`, `[portfolio]`, `[public]`, `[document]`, or `[user]`.
+- Classify required qualifications, preferred signals, responsibilities, tools, context, seniority, and scope.
+- Inspect requirement-by-requirement visibility, source provenance, human-reviewed support, and gap explanations.
+- Detect chronology and scope cues without turning them into verified claims.
+- Review evidence nodes, record source references, note confidential material, and set verification status.
+- Export a requirement matrix (CSV) and appropriately filtered evidence graph (JSON).
 
-This is not an emulator for Workday, Greenhouse, iCIMS, Taleo, Ashby, or any employer’s proprietary ranking process. The heuristic output is a diagnostic aid. Keyword presence does not prove proficiency, recency, authority, causality, or job performance.
+### Career Discovery & Tracking
+- Supply résumé/CV material, digital-footprint details, supporting documents, and contextual information.
+- Parse supported text, DOCX, PDF, HTML, JSON, CSV, and other browser-readable formats.
+- Explore role-family suggestions with source-weighted skills and seniority heuristics.
+- Filter roles by geography, estimated pay, visible match, status, and sorting preference.
+- Track application states and notes in browser storage; export CSV/JSON.
+- Optionally add public GitHub repository descriptions.
 
-## Roadmap
+These workspaces remain independently usable. A shared candidate profile now supports explicit browser-local save/load and private JSON transfer between them without clearing the discovery tracker. Transfers from Role Evidence Analysis exclude nodes labeled private, anonymize-only, or do-not-use. Imported verification labels still require human review; exported JSON can contain personal material and should not be published.
 
-v2.2a: source-aware provenance scaffold implemented ([resume] / [portfolio] / [public] / [document] / [user])
-v2.2b: statement-level evidence graph implemented with source, dates/metrics, scope/depth signals, competencies, and JSON export
-v2.2c: human-reviewed evidence metadata and claim-strength guardrails implemented
-v2.3: ATS visibility is now separated from reviewed support; requirement rows distinguish visible-but-unreviewed evidence from source-corroborated/verified support, confidentiality-aware export is enforced, and reviewed metadata survives reanalysis  
-v2.4: executive-scope / compensation-tier model  
-v2.5: claim guardrails + resume/interview/portfolio actions  
-v2.6: multi-posting career-level pattern analysis
+## How to start
 
-The full product/scoring specification is maintained separately in the user's working Drive.
+For a specific opportunity, open **Role Evidence Analysis**, use the sample job and fictional sample candidate to explore the workflow, or paste your own job and experience. Read the requirement matrix and evidence-review panel before drawing conclusions.
+
+To discover possible directions from your experience and record opportunities, expand **Career Discovery & Tracking**. Build a profile from materials, adjust the filters, and export the tracker when needed.
+
+## Transferring evidence between workspaces
+
+Use **Save profile locally** and **Load saved profile** when the workspaces share the same browser origin and storage context. When website embeds or browsers have separate storage, choose **Download profile JSON** in one workspace and **Import shared profile JSON** in the other. In the discovery tracker, imports merge source text instead of wiping existing source fields, and they do not modify application statuses or notes. Save again when you want to update the transferable snapshot.
+
+## Interpretation and privacy
+
+Outputs are diagnostic guidance that requires human judgment. A missing term can indicate missing capability, unexpressed experience, weak public proof, an unclear date, or a claim that still needs verification. Source corroboration, authority, chronology, and confidentiality matter.
+
+Input text and files are handled in the browser by default. The discovery tracker uses browser-local storage; exports are user-initiated. Optional public-profile lookups involve a network request when selected. Salary estimates without a cited posting range are heuristic, not offers or verified market quotes.
+
+## Source files
+
+- [`index.html`](./index.html): posting analysis and structured evidence review
+- [`career-discovery-tracker.html`](./career-discovery-tracker.html): role discovery, document input, and local pipeline tracking
+- [`evidence-graph.schema.json`](./evidence-graph.schema.json): evidence graph structure
+
+The website implementation keeps the two applications isolated within the site's layout, so each can evolve without losing the other application's functionality.
