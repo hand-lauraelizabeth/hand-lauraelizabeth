@@ -1,0 +1,41 @@
+{
+  "source_sha256": "f56a181b000ca4914e924c16b6b81dcc656e25aeb2ac68ab7d271ac0f29ffd58",
+  "source_release": "2026-06-10",
+  "source_universe_rows": 6273,
+  "operating_source_rows": 6243,
+  "excluded_not_currently_operating": 30,
+  "distinct_state_territory_codes": 59,
+  "ny20_exact_unitid_name_size_price_consistent": 20,
+  "metric_coverage": {
+    "unitid": 6243,
+    "name": 6243,
+    "city": 6243,
+    "state": 6243,
+    "control": 6243,
+    "predominant_degree": 6243,
+    "highest_degree": 6243,
+    "size": 5462,
+    "tuition_in": 3601,
+    "tuition_out": 3601,
+    "annual_cost": 5022,
+    "net_price": 5021,
+    "income_net_prices": 6243,
+    "admit_rate": 1909,
+    "sat_avg": 1037,
+    "act_mid": 970,
+    "locale_code": 5716,
+    "latitude": 5715,
+    "longitude": 5715,
+    "institution_url": 5511,
+    "net_price_calculator_url": 4881,
+    "subject_mix": 5468,
+    "accreditation_agency_as_reported": 6182
+  },
+  "source_period_gaps": [
+    "HD2025 independent locale source not available",
+    "Scorecard cohort-year dictionary not independently reconciled",
+    "Program-specific current offerings and transfer eligibility not validated",
+    "Accreditation status unverified independently"
+  ],
+  "scoring_authorized": false
+}
