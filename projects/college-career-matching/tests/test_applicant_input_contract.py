@@ -148,6 +148,13 @@ class ApplicantInputTests(unittest.TestCase):
             record = m.validate_institution_enrollment(definition="total", unitid="123456", status=state)
             self.assertIsNone(m.enrollment_evidence_preference(record, definition="total", maximum=500)["match"])
 
+    def test_reviewed_optional_policy_allows_omission(self):
+        policy = m.validate_institution_testing_policy("optional", unitid="123456", source_url="https://example.edu", reporting_year=2025, admissions_cohort="Fall 2025", independently_reviewed=True)
+        result = m.testing_evidence_with_provenance(policy, m.validate_sat(status="missing"))
+        self.assertEqual(result["evidence"], "scores_omitted_allowed")
+        self.assertEqual(result["policy_reporting_year"], 2025)
+        self.assertEqual(policy["publication_status"], "DO_NOT_PUBLISH")
+
 
 if __name__ == "__main__":
     unittest.main()
