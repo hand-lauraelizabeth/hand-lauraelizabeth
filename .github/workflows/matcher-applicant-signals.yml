@@ -1,0 +1,24 @@
+name: Applicant signal validation
+on:
+  push:
+    paths:
+      - 'projects/college-career-matching/ui/applicant-*.js'
+      - 'projects/college-career-matching/ui/test_applicant_*.cjs'
+      - 'projects/college-career-matching/ui/index.html'
+      - '.github/workflows/matcher-applicant-signals.yml'
+  pull_request:
+    paths:
+      - 'projects/college-career-matching/ui/**'
+permissions:
+  contents: read
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate applicant signals
+        run: |
+          for test in projects/college-career-matching/ui/test_applicant_*.cjs; do node "$test"; done
