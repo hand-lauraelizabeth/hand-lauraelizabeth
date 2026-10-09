@@ -115,9 +115,7 @@ def testing_evidence(policy, score):
     """A policy-aware descriptive indicator, not an admissions score or cutoff."""
     if policy not in TEST_POLICIES:
         raise ValueError("Unsupported testing policy")
-    if score is not None and (not isinstance(score, dict) or score.get("test") not in ("SAT", "ACT")
-                              or score.get("status") not in (*MISSING_STATES, "provided")):
-        raise ValueError("Use a validated SAT or ACT input")
+    score = validate_score_record(score)
     if policy == "blind":
         return {"consider_scores": False, "evidence": "test_blind", "admission_probability": None}
     if policy == "unknown":
