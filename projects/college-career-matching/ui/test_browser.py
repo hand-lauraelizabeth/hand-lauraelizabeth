@@ -44,6 +44,21 @@ async def main():
         assert await page.locator(".result").count() == 4, "Expected four synthetic examples"
         assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
 
+        assert await page.locator("#gpaValue").count() == 1, "GPA control missing"
+        await page.locator("#gpaValue").fill("4.5")
+        assert "GPA must be" in await page.locator("#applicantFeedback").inner_text()
+        await page.locator("#gpaScale").select_option("5")
+        assert "GPA must be" not in await page.locator("#applicantFeedback").inner_text()
+        await page.locator("#testingChoice").select_option("sat")
+        await page.locator("#satTotal").fill("399")
+        assert "outside its valid range" in await page.locator("#applicantFeedback").inner_text()
+        await page.locator("#testingChoice").select_option("omit")
+        await page.locator("#sizeKind").select_option("undergraduate")
+        await page.locator("#sizeMin").fill("1000")
+        assert await page.locator(".result").count() == 0, "Unknown enrollment must not pass strict size filter"
+        await page.locator("#sizeKind").select_option("any")
+        assert await page.locator(".result").count() == 4, "Clearing size filter must restore synthetic examples"
+
         await page.locator("#cost").fill("0")
         assert await page.locator(".result").count() == 0, "Zero-cost constraint should filter nonzero records"
         await page.locator("#cost").fill("25000")
