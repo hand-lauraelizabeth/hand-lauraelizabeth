@@ -1,0 +1,34 @@
+name: Matcher publication gate
+
+on:
+  push:
+    paths:
+      - 'projects/college-career-matching/ui/**'
+      - '.github/workflows/matcher-publication-gate.yml'
+  pull_request:
+    paths:
+      - 'projects/college-career-matching/ui/**'
+      - '.github/workflows/matcher-publication-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publication-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Python publication gate regression
+        run: python -m unittest discover -s projects/college-career-matching/ui -p 'test_publication_gate.py' -v
+      - name: JavaScript publication gate regression
+        run: node projects/college-career-matching/ui/test_publication_gate.cjs
+      - name: Deny any unapproved real institution bundle
+        run: python projects/college-career-matching/ui/publication_gate.py
