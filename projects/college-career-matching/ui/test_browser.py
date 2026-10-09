@@ -49,6 +49,31 @@ async def main():
             assert await page.locator(".result").count() == 1, "Open-window requirement works without a type filter"
             await page.locator("#housing-term").select_option("any")
             assert await page.locator(".result").count() == 4
+            # Academic inputs remain contextual and are validated in-browser.
+            await page.locator("#gpa").fill("4.5")
+            assert await page.locator(".result").count() == 0
+            assert "GPA must be within" in await page.locator("#academic-feedback").inner_text()
+            await page.locator("#gpa-scale").select_option("5")
+            assert await page.locator(".result").count() == 4
+            await page.locator("#sat").fill("401")
+            assert await page.locator(".result").count() == 0
+            await page.locator("#sat").fill("1450")
+            assert await page.locator(".result").count() == 4
+            assert "Test-blind example" in await page.locator("#results").inner_text()
+            await page.locator("#size-min").fill("1000")
+            await page.locator("#size-max").fill("5000")
+            assert await page.locator(".result").count() == 3
+            await page.locator("#size-unknown").select_option("exclude")
+            assert await page.locator(".result").count() == 2
+            await page.locator("#size-min").fill("6000")
+            assert await page.locator(".result").count() == 0
+            assert "Minimum enrollment exceeds maximum" in await page.locator("#academic-feedback").inner_text()
+            await page.locator("#gpa").fill("")
+            await page.locator("#sat").fill("")
+            await page.locator("#size-min").fill("")
+            await page.locator("#size-max").fill("")
+            await page.locator("#size-unknown").select_option("include")
+            assert await page.locator(".result").count() == 4
             await page.set_viewport_size({"width": 375, "height": 812})
             assert await page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             await page.reload()
