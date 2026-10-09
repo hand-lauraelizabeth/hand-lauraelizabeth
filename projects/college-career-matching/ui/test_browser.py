@@ -82,24 +82,11 @@ async def main():
             status=200, content_type="application/json",
             body=json.dumps({"schema_version": 1, "records": [record]})))
         await page.reload()
-        await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'source-attributed\')")
-        await page.locator(".result").first.wait_for()
-        assert "source-attributed" in await page.locator("#data-mode").inner_text()
-        assert await page.locator(".result img, .result svg, .result script").count() == 0, "Unescaped HTML inserted"
-        assert "accessibility information unavailable" in await page.locator(".result").inner_text()
-        assert "career alignment information unavailable" in await page.locator(".result").inner_text()
-        assert "–" in await page.locator(".result .score").inner_text(), "Missing evidence should display a score interval"
-        assert "range reflects missing evidence" in await page.locator(".result .score").inner_text()
-        await page.locator("#cost").fill("0")
-        assert await page.locator(".result").count() == 1, "A zero-cost public record should remain eligible"
-        await page.locator("#cost").fill("25000")
-        await page.locator("#income").select_option("30_48k")
-        assert await page.locator(".result").count() == 0, "Unknown net price cannot satisfy a cost ceiling"
-        await page.locator("#cost").fill("")
-        assert await page.locator(".result").count() == 1, "Unknown net price must remain visible without a ceiling"
-        assert "net price unavailable" in await page.locator(".result").inner_text()
-        assert "no cost ceiling selected; affordability is not ranked" in await page.locator(".result").inner_text()
-        assert "/ 60 possible preference points" in await page.locator(".result .score").inner_text(), "No ceiling and no setting preference must reduce attainable maximum"
+        await page.wait_for_function("document.querySelector('#data-mode').textContent.includes('synthetic')")
+        assert await page.locator(".result").count() == 4, "Unapproved public payload must not replace synthetic demo"
+        assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
+        assert await page.locator(".result img, .result svg, .result script").count() == 0
+        # A valid-looking source-attributed record is not a publication approval.
         await page.unroute("**/public-data.json")
         invalid = dict(record)
         invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
@@ -113,7 +100,7 @@ async def main():
         assert await page.locator(".result").count() == 4
         assert not errors, f"Browser errors: {errors}"
         await browser.close()
-        print("PASS: synthetic filters, mobile overflow, public-data loader, missing evidence, HTML escaping, zero-cost eligibility, incomplete-data fallback")
+        print("PASS: synthetic filters, mobile overflow, unapproved-public-data rejection, HTML escaping, incomplete-data fallback")
     finally:
         server.shutdown()
         server.server_close()
