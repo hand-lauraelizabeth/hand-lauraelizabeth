@@ -22,6 +22,9 @@ class PrivateAdapterTests(unittest.TestCase):
             self.assertEqual(json.loads(target.read_text())["publication_status"], "DO_NOT_PUBLISH")
             with self.assertRaises(ValueError):
                 stage_records([record], Path(directory) / "public-data.json")
+            for blocked in ("public-data.JSON", "dist/private_review.json", "site/private_review.json", "static/private_review.json"):
+                with self.subTest(destination=blocked), self.assertRaises(ValueError):
+                    stage_records([record], Path(directory) / blocked)
 
     def test_missing_field_evidence(self):
         record = {"unitid": 123456, "name": "Example", "state": "NY",
