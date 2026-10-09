@@ -221,7 +221,7 @@ function render(){const L=$('#loc').value,mp=+$('#pay').value,ms=+$('#sc').value
   <div class="chips">${r.hit.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}${r.gap.map(s=>`<span class="chip gap" title="Not found in your materials">${esc(s)}</span>`).join('')}</div></div>
   <div class="pay">${pay}<small>${L?'in '+esc(locName):'across hubs'}</small></div>
   <div class="more"><div class="chips">${G[r.g].map(h=>`<span class="chip loc">${H[h][0]} $${r.pays.find(p=>p.h===h).v}k</span>`).join('')}</div>
-  <div class="act"><select data-k="s">${['Target','Applied','Interview','Offer','Passed'].map(o=>`<option${o===r.status?' selected':''}>${o}</option>`).join('')}</select>
+  <div class="act"><select data-k="s">${['Target','Applied','Interview','Offer','Passed'].map(o=>`<option value="${esc(o)}"${o===r.status?' selected':''}>${esc(o)}</option>`).join('')}</select>
   <a target="_blank" rel="noopener" href="https://www.linkedin.com/jobs/search/?keywords=${q}&location=${ql}">LinkedIn</a>
   <a target="_blank" rel="noopener" href="https://www.indeed.com/jobs?q=${q}&l=${ql}">Indeed</a>
   <a target="_blank" rel="noopener" href="https://www.google.com/search?q=${q}+jobs+${ql}&ibp=htl;jobs">Google Jobs</a></div>
