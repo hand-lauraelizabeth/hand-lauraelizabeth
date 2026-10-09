@@ -55,6 +55,24 @@ class ReviewQueueTests(unittest.TestCase):
             self.assertEqual(rows["444444"]["locale_category"], "Suburb")
             self.assertTrue(all(row["publication_status"] == "DO_NOT_PUBLISH" for row in rows.values()))
 
+    def test_negative_net_price_sentinel_not_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "source.csv"
+            output = Path(tmp) / "review.csv"
+            with source.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=["UNITID", "INSTNM", "CONTROL", "NPT41_PUB"])
+                writer.writeheader()
+                writer.writerow({"UNITID": "111111", "INSTNM": "Synthetic A", "CONTROL": "1", "NPT41_PUB": "-1"})
+                writer.writerow({"UNITID": "222222", "INSTNM": "Synthetic B", "CONTROL": "1", "NPT41_PUB": "0"})
+                writer.writerow({"UNITID": "333333", "INSTNM": "Synthetic C", "CONTROL": "1", "NPT41_PUB": "12000"})
+            queue.build(source, output, 3)
+            with output.open(encoding="utf-8", newline="") as handle:
+                rows = {row["UNITID"]: row for row in csv.DictReader(handle)}
+            self.assertEqual(rows["111111"]["net_price_status"], "unavailable_or_suppressed")
+            self.assertEqual(rows["222222"]["net_price_status"], "reported")
+            self.assertEqual(rows["333333"]["net_price_status"], "reported")
+            self.assertTrue(all(row["publication_status"] == "DO_NOT_PUBLISH" for row in rows.values()))
+
     def test_invalid_limit_rejected(self):
         with self.assertRaisesRegex(ValueError, "LIMIT"):
             queue.build("unused.csv", "unused-output.csv", 0)
