@@ -58,8 +58,12 @@ def stage_records(records, destination):
         staged.append({"record": row, "validation_errors": problems,
                        "publication_status": "DO_NOT_PUBLISH"})
     target = Path(destination)
-    if target.name == "public-data.json" or "public" in target.parts:
-        raise ValueError("Private staging cannot target a public data path")
+    resolved = target.resolve()
+    parts = {part.lower() for part in resolved.parts}
+    if target.name.lower() == "public-data.json" or any("public" in part or part in {"docs", "site", "dist", "build", "www", "static"} for part in parts):
+        raise ValueError("Private staging cannot target a public or deployable data path")
+    if target.suffix.lower() != ".json":
+        raise ValueError("Private staging requires a JSON review artifact")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps({"schema_version": 1, "records": staged,
                                   "publication_status": "DO_NOT_PUBLISH"},
