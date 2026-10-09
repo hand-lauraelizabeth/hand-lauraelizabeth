@@ -17,7 +17,7 @@
     const raw=mode==="sat"?satTotal:actComposite;
     if(raw===""||raw===null||raw===undefined)return {ok:false,reason:"Enter a score or select no score."};
     const sat=mode==="sat",n=Number(raw);
-    if(!Number.isInteger(n)||n<(sat?400:1)||n>(sat?1600:36)||(sat&&n%10!==0))return {ok:false,reason:"Invalid reported score."};
+    if(!Number.isInteger(n)||n<(sat?400:1)||n>(sat?1600:36)||(sat&&n%10!==0))return {ok:false,reason:"Score is outside its valid range or increment."};
     const keys=sat?["satReadingWriting","satMath"]:["actEnglish","actMath","actReading","actScience"];
     const values={};
     for(const key of keys){
