@@ -100,6 +100,51 @@ async def main():
         assert "synthetic" in (await page.locator("#data-mode").inner_text()).lower()
         assert await page.locator(".result").count() == 4
         await page.unroute("**/publication-approvals.json")
+        # Positive path uses a wholly synthetic, explicitly authorized fixture.
+        synthetic = {
+            **record,
+            "unitid": "123456",
+            "name": "Authorized Synthetic Fixture",
+            "publication_status": "APPROVED",
+            "publication_approved_by_user": True,
+            "access": None,
+            "aid": None,
+            "enrollment": {"undergraduate": None, "total": None},
+            "field_provenance": {},
+        }
+        synthetic["field_provenance"].update({
+            key: {"status": "UNKNOWN"} for key in ("setting", "access", "aid")
+        })
+        synthetic["setting"] = None
+        synthetic["field_provenance"]["housing"] = {
+            "status": "VERIFIED", "source_url": "https://example.edu/synthetic",
+            "reporting_year": 2025
+        }
+        for group, values in (("cost", synthetic["cost"]), ("careers", synthetic["careers"]),
+                              ("enrollment", synthetic["enrollment"])):
+            for key, value in values.items():
+                evidence = {"status": "UNKNOWN"} if value is None else {
+                    "status": "VERIFIED", "source_url": "https://example.edu/synthetic",
+                    "reporting_year": 2025
+                }
+                if group == "cost" and value is not None:
+                    evidence["cohort_map_reference"] = "Synthetic fixture only"
+                synthetic["field_provenance"][group + "." + key] = evidence
+        manifest = {"schema_version": 1, "approved_unitids": [{
+            "unitid": "123456", "approved_by": "user", "approved_on": "2026-10-09",
+            "approval_reference": "SYNTHETIC TEST ONLY"
+        }]}
+        await page.unroute("**/public-data.json")
+        await page.route("**/public-data.json", lambda route: route.fulfill(
+            status=200, content_type="application/json",
+            body=json.dumps({"schema_version": 1, "records": [synthetic]})))
+        await page.route("**/publication-approvals.json", lambda route: route.fulfill(
+            status=200, content_type="application/json", body=json.dumps(manifest)))
+        await page.reload()
+        await page.wait_for_function("document.querySelector('#data-mode').textContent.includes('source-attributed')")
+        assert await page.locator(".result").count() == 1
+        assert "Authorized Synthetic Fixture" in await page.locator(".result").inner_text()
+        await page.unroute("**/publication-approvals.json")
         await page.unroute("**/public-data.json")
         invalid = dict(record)
         invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
@@ -113,7 +158,7 @@ async def main():
         assert await page.locator(".result").count() == 4
         assert not errors, f"Browser errors: {errors}"
         await browser.close()
-        print("PASS: synthetic filters, mobile overflow, unapproved-public-data rejection, absent/malformed approval manifests, HTML escaping, incomplete-data fallback")
+        print("PASS: synthetic filters, mobile overflow, unapproved-public-data rejection, absent/malformed approval manifests, synthetic authorized positive path, HTML escaping, incomplete-data fallback")
     finally:
         server.shutdown()
         server.server_close()
