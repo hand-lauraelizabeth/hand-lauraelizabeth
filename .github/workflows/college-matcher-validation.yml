@@ -7,6 +7,8 @@ on:
       - 'projects/college-career-matching/ny_pilot_*.py'
       - 'projects/college-career-matching/ny-pilot-*.json'
       - 'projects/college-career-matching/data/ny20-*.json'
+      - 'projects/college-career-matching/data/national/**'
+      - 'projects/college-career-matching/tests/test_national_snapshot.py'
       - 'projects/college-career-matching/ny20-widget.*'
       - 'projects/college-career-matching/public-explorer.html'
       - 'projects/college-career-matching/tests/test_ny20_live_projection.py'
@@ -56,6 +58,8 @@ jobs:
         env:
           PYTHONPATH: projects/college-career-matching
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny_pilot_*.py' -v
+      - name: Run national Scorecard source integrity tests
+        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_national_snapshot.py' -v
       - name: Run NY20 descriptive projection regression tests
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny20_live_projection.py' -v
       - name: Validate institution-widget JavaScript syntax
