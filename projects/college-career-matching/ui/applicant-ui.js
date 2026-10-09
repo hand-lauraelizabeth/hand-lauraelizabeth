@@ -53,7 +53,8 @@
   const baseRender=window.render;
   window.render=function(){
     const g=M.validateGpa(get("gpaValue").value,get("gpaScale").value,get("gpaWeight").value);
-    const t=M.validateTesting(get("testingChoice").value,get("satTotal").value,get("actComposite").value);
+    syncTestingInputs();
+    const t=M.validateTesting(get("testingChoice").value,get("satTotal").value,get("actComposite").value,sectionValues());
     const bad=g.ok?(t.ok?"":t.reason):g.reason;
     get("applicantFeedback").textContent=bad||"Applicant inputs do not determine admission odds.";
     baseRender();
