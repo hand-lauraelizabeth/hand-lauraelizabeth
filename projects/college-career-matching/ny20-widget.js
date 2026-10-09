@@ -12,18 +12,22 @@ const lookup=id=>document.getElementById(id);
 const controls=['ny20-search','ny20-system','ny20-state','ny20-size','ny20-income','ny20-budget','ny20-hs','ny20-transfer','ny20-housing','ny20-sort'];
 const unknown='Not reported / not yet verified';
 const groups=[['0_30k','$0–$30,000'],['30_48k','$30,001–$48,000'],['48_75k','$48,001–$75,000'],['75_110k','$75,001–$110,000'],['110k_plus','Over $110,000']];
-const SOURCE_URL='https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/main/projects/college-career-matching/data/ny20-institution-evidence.v1.json';
-let records=[],dataVersion='not loaded',loadState='';
+const SOURCE_URL='https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/main/projects/college-career-matching/data/national/manifest.v1.json';
+const NATIONAL_BASE=SOURCE_URL.slice(0,SOURCE_URL.lastIndexOf('/')+1);
+const PAGE_SIZE=24;
+let records=[],dataVersion='not loaded',loadState='',pageNumber=1;
 function val(e){if(e==null)return null;if(typeof e==='object'&&!Array.isArray(e)&&Object.prototype.hasOwnProperty.call(e,'value'))return val(e.value);return (typeof e==='number'&&Number.isFinite(e))?e:null;}
 function url(v){return typeof v==='string'&&/^https:\/\/[^\s<>"']+$/i.test(v)?v:null;}
 function clean(r){
- if(!r||typeof r!=='object'||!/^[0-9]{6}$/.test(String(r.unitid||''))||typeof r.name!=='string'||!r.name.trim())return null;
+ if(!r||typeof r!=='object'||!/^[0-9]{6}(?:[0-9]{2})?$/.test(String(r.unitid||''))||typeof r.name!=='string'||!r.name.trim())return null;
  const a=r.admissions||{},h=r.housing||{},loc=r.location||{},links=r.links||{};
  return {unitid:String(r.unitid),name:r.name.trim(),city:String(r.city||''),state:String(r.state||''),system:String(r.system||'Other'),type:String(r.type||''),
  size:val(r.size),tuition:val(r.tuition_in),net:val(r.net_price),income:r.income_net_prices&&typeof r.income_net_prices==='object'?r.income_net_prices:{},
  hs:a.hs_admitted_mean&&a.hs_admitted_mean.scale==='hs_percent_100'?a.hs_admitted_mean:null,
  transfer:a.transfer_mean&&a.transfer_mean.scale==='college_gpa_4'?a.transfer_mean:null,
- historical_admissions:val(a.historical_admit_rate),
+ historical_admissions:val(a.historical_admit_rate),sat_avg:val(a.sat_avg),act_mid:val(a.act_mid),
+ subject_mix:Array.isArray(r.subject_mix)?r.subject_mix:null, subject_labels:r.subject_labels&&typeof r.subject_labels==='object'?r.subject_labels:{},
+ sector:String(r.sector||''),reported_locale:val(loc.locale_code_reported),
  housing:String(h.type||'NOT_VERIFIED'),housing_price:val(h.starting_price),housing_period:String(h.price_period||''),housing_year:String(h.rate_year||''),
  office:String((r.accessibility||{}).office||''),locale:loc.locale_independently_verified===true?String(loc.locale_label_provisional||''):null,
  relocation:String(loc.relocation_note||''),programs:Array.isArray(r.programs)?r.programs:null,
@@ -52,6 +56,10 @@ function card(rec,inputs){
  addField(dl,inputs.income==='overall'?'Average net price':'Income-band net price',fmt(net));
  if(inputs.budget!==null)addField(dl,'Budget comparison',net===null?'Unknown price — retained':net>inputs.budget?'Reported average above selected reference (not filtered)':'Reported average within selected reference (not a quote)');
  addField(dl,'In-state tuition',fmt(rec.tuition));
+ if(rec.sat_avg!==null)addField(dl,'Reported SAT average',number(rec.sat_avg)+' / 1600 (historical aggregate, not a cutoff)');
+ if(rec.act_mid!==null)addField(dl,'Reported ACT composite midpoint',number(rec.act_mid)+' / 36 (historical aggregate, not a cutoff)');
+ if(rec.reported_locale!==null)addField(dl,'Campus setting','Scorecard-reported locale code '+rec.reported_locale+'; 2025 IPEDS confirmation pending');
+ if(rec.subject_mix?.length){const top=rec.subject_mix.slice(0,3).map(([code,share])=>(rec.subject_labels[code]||'CIP '+code)+' ('+(share*100).toFixed(0)+'%)').join(' · '); addField(dl,'Reported academic-field distribution',top+' · historical field mix, not a current majors list');}
  addField(dl,'Freshman academic profile',scoreDesc(rec,'hs',inputs.hs,'hs'));
  addField(dl,'Transfer academic profile',scoreDesc(rec,'transfer',inputs.transfer,'transfer'));
  const housingLabels={CAMPUS_OPERATED_RESIDENCES:'Institution-operated residence information',PARTNER_CAMPUS_SUNY_PLATTSBURGH_HALLS:'Partner-campus housing arrangement',NO_INSTITUTION_OWNED_HOUSING:'No institution-owned housing reported',AVAILABLE_OFF_CAMPUS_COLLEGE_AFFILIATED:'College-affiliated off-campus housing reference',NOT_VERIFIED:'Housing arrangement not verified'};
@@ -79,22 +87,64 @@ function filter(){const s=(lookup('ny20-search')?.value||'').trim().toLowerCase(
  pass.sort((a,b)=>sort==='size_desc'?(b.size??-1)-(a.size??-1)||a.name.localeCompare(b.name):sort==='size_asc'?(a.size??Infinity)-(b.size??Infinity)||a.name.localeCompare(b.name):a.name.localeCompare(b.name));return pass;
 }
 function render(){if(!records.length)return;const inp={income:lookup('ny20-income')?.value||'overall',budget:inputNumber('ny20-budget',0,1000000),hs:inputNumber('ny20-hs',0,100),transfer:inputNumber('ny20-transfer',0,4),housing:!!lookup('ny20-housing')?.checked};
- const arr=filter(),frag=document.createDocumentFragment();for(const r of arr)frag.append(card(r,inp));if(!arr.length)frag.append(el('p','ny20-empty','No institutions meet those confirmed filters. Try a broader location or school-size range.'));
- results.replaceChildren(frag);lookup('ny20-count').textContent=`Showing ${arr.length} of ${records.length} institutions · descriptive records only · ${dataVersion}`;
+ const arr=filter(),frag=document.createDocumentFragment(),shown=Math.min(arr.length,pageNumber*PAGE_SIZE);
+ for(const r of arr.slice(0,shown))frag.append(card(r,inp));
+ if(!arr.length)frag.append(el('p','ny20-empty','No institutions meet those confirmed filters. Try a broader location or school-size range.'));
+ if(shown<arr.length){const more=el('button','ny20-more',`Show ${Math.min(PAGE_SIZE,arr.length-shown)} more schools`);more.type='button';more.addEventListener('click',()=>{pageNumber+=1;render();});frag.append(more);}
+ results.replaceChildren(frag);lookup('ny20-count').textContent=`Showing ${shown} of ${arr.length} matching institutions · ${records.length} in source · descriptive only · ${dataVersion}`;
 }
 function setOptions(id,values){const sel=lookup(id);if(!sel)return;for(const v of values){if(!v)continue;const x=el('option','',v);x.value=v;sel.append(x);}}
-function activate(payload){const d=normalize(payload);records=d.records;dataVersion=d.version;
+function activate(payload,{preservePilot=false}={}){const d=normalize(payload);
+ if(preservePilot){const prior=new Map(records.map(x=>[x.unitid,x]));d.records=d.records.map(x=>{const y=prior.get(x.unitid);if(!y)return x;return {...x,system:y.system,type:y.type,hs:y.hs,transfer:y.transfer,housing:y.housing,housing_price:y.housing_price,housing_period:y.housing_period,housing_year:y.housing_year,office:y.office,relocation:y.relocation,links:{...x.links,...y.links},subject_mix:x.subject_mix,subject_labels:x.subject_labels};});}
+ records=d.records;dataVersion=d.version;pageNumber=1;
  for(const id of ['ny20-system','ny20-state']){const elSel=lookup(id);if(elSel)while(elSel.options.length>1)elSel.remove(1);}
  setOptions('ny20-system',[...new Set(records.map(x=>x.system))].sort());setOptions('ny20-state',[...new Set(records.map(x=>x.state))].sort());render();
 }
 function mode(real){pane.hidden=!real;if(root)root.hidden=real;for(const n of demoNotes)n.hidden=real;bReal.setAttribute('aria-pressed',String(real));bDemo.setAttribute('aria-pressed',String(!real));}
 bReal.addEventListener('click',()=>mode(true));bDemo.addEventListener('click',()=>mode(false));
-for(const id of controls)lookup(id)?.addEventListener('input',render);
+for(const id of controls)lookup(id)?.addEventListener('input',()=>{pageNumber=1;render();});
 const embedded=lookup('ny20-embedded-data');
 try{activate(JSON.parse(embedded.textContent));loadState='bundled';}catch(e){results.replaceChildren(el('p','ny20-empty','Institution records could not be loaded; the program demonstration remains available.'));loadState='failed';}
 mode(loadState!=='failed');
-// Independently versioned public projection can expand to more schools; retain bundled fallback if unavailable.
-if(typeof fetch==='function')fetch(SOURCE_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('network unavailable');return r.json()}).then(d=>{activate(d);loadState='remote';}).catch(()=>{});
+// National Scorecard source shards are metadata/identity evidence, never production scoring input.
+const national=(async()=>{
+ if(typeof fetch!=='function')return;
+ const getJSON=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('Source unavailable');return r.json();};
+ try{
+  const manifest=await getJSON(SOURCE_URL);
+  if(!manifest||manifest.schema_version!=='1.0'||manifest.projection_kind!=='institution_reference'||manifest.data_publication_scope!=='DESCRIPTIVE_INSTITUTION_REFERENCE_ONLY'||manifest.scoring_authorized!==false||manifest.admission_predictions_authorized!==false||manifest.program_ranking_authorized!==false||!Array.isArray(manifest.row_layout)||!Array.isArray(manifest.shards)||manifest.shards.length<1||manifest.shards.length>200||!Number.isInteger(manifest.expected_records)||manifest.expected_records<1||manifest.expected_records>30000)throw Error('Manifest rejected');
+  const expected=['unitid','name','city','state','control','predominant_degree','highest_degree','size','tuition_in','tuition_out','annual_cost','net_price','income_net_prices','admit_rate','sat_avg','act_mid','locale_code','latitude','longitude','institution_url','net_price_calculator_url','subject_mix','accreditation_agency_as_reported'];
+  if(manifest.row_layout.length!==expected.length||expected.some((v,i)=>manifest.row_layout[i]!==v))throw Error('Schema drift');
+  const list=[],seenParts=new Set();
+  for(let i=0;i<manifest.shards.length;i+=4){
+   const batch=manifest.shards.slice(i,i+4);
+   const received=await Promise.all(batch.map(async sh=>{
+    if(!sh||!/^national-[0-9]{2,3}\.json$/.test(sh.file)||!Number.isInteger(sh.count)||sh.count<1||sh.count>520)throw Error('Invalid source descriptor');
+    const part=await getJSON(NATIONAL_BASE+sh.file);if(part.schema_version!=='1.0'||!Number.isInteger(part.part)||!Array.isArray(part.records)||part.records.length!==sh.count)throw Error('Invalid source shard');return part;
+   }));
+   for(const part of received){if(seenParts.has(part.part))throw Error('Duplicate source shard');seenParts.add(part.part);list.push(...part.records);}
+  }
+  if(list.length!==manifest.expected_records||seenParts.size!==manifest.shards.length)throw Error('Incomplete source coverage');
+  const incomeKeys=['0_30k','30_48k','48_75k','75_110k','110k_plus'];
+  const normalized=list.map(a=>{
+   if(!Array.isArray(a)||a.length!==expected.length)throw Error('Unexpected source record');
+   const z=Object.fromEntries(expected.map((field,j)=>[field,a[j]]));
+   if(!/^[0-9]{6}(?:[0-9]{2})?$/.test(String(z.unitid))||typeof z.name!=='string'||!z.name.trim())throw Error('Invalid institution identity');
+   const controlLabel={1:'Public',2:'Private nonprofit',3:'Private for-profit'};
+   const income=Object.fromEntries(incomeKeys.map((k,j)=>[k,{value:Array.isArray(z.income_net_prices)?z.income_net_prices[j]:null}]));
+   return {unitid:z.unitid,name:z.name,city:z.city,state:z.state,system:controlLabel[z.control]||'Control not reported',sector:controlLabel[z.control]||'',type:'Source predominant degree '+(z.predominant_degree??'unknown'),
+   size:{value:z.size},tuition_in:{value:z.tuition_in},net_price:{value:z.net_price},income_net_prices:income,
+   admissions:{hs_admitted_mean:null,transfer_mean:null,historical_admit_rate:{value:z.admit_rate},sat_avg:{value:z.sat_avg},act_mid:{value:z.act_mid},probability:null},
+   location:{locale_code_reported:z.locale_code,locale_independently_verified:false},
+   housing:{type:'NOT_VERIFIED',starting_price:null,vacancy_verified:false,accessible_vacancy_verified:false},
+   accessibility:{routes_verified:false,quality_score:null},programs:null,transfer_rules:null,subject_mix:z.subject_mix,subject_labels:manifest.cip2_labels||{},
+   links:{institution_website:z.institution_url,net_price_calculator:z.net_price_calculator_url},score_authorized:false};
+  });
+  if(new Set(normalized.map(a=>a.unitid)).size!==manifest.expected_records)throw Error('Duplicate institution keys');
+  activate({...manifest,institutions:normalized},{preservePilot:true});loadState='national';
+ }catch(e){const label=lookup('ny20-count');if(label)label.textContent+=' · nationwide update unavailable, pilot data retained';}
+})();
+
 // Separate from the governed program-scoring service: no student data are transmitted.
 window.CCXInstitutionReference={normalize,refresh:render,version:()=>dataVersion};
 }
