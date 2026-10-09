@@ -13,6 +13,12 @@
   };
   const validYear=n=>Number.isInteger(n)&&n>=2000&&n<=2100;
   const validUnitid=x=>typeof x==="string"&&/^[0-9]{6}$/.test(x);
+  const validApprovalDate=value=>{
+    if(typeof value!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value))return false;
+    if(Number(value.slice(0,4))<1)return false;
+    const parsed=new Date(value+"T00:00:00Z");
+    return Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===value;
+  };
   function evidenceOK(value,evidence,isCost=false){
     if(!evidence||typeof evidence!=="object")return false;
     const status=evidence.status;
@@ -31,7 +37,7 @@
     for(const a of manifest.approved_unitids){
       if(!a||!validUnitid(a.unitid)||a.approved_by!=="user"||
          typeof a.approval_reference!=="string"||!a.approval_reference.trim()||
-         typeof a.approved_on!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(a.approved_on)||
+         typeof a.approved_on!=="string"||!validApprovalDate(a.approved_on)||
          approvals.has(a.unitid))return {ok:false,reason:"Malformed or duplicate publication approval."};
       approvals.set(a.unitid,a);
     }
