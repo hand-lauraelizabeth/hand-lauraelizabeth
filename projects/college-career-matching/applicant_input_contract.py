@@ -271,12 +271,27 @@ def validate_institution_enrollment(value=None, *, definition, unitid,
             "publication_status": "DO_NOT_PUBLISH"}
 
 
+def validate_institution_enrollment_record(record):
+    """Validate internal consistency; independent source authentication is separate."""
+    if not isinstance(record, dict):
+        raise ValueError("Institution enrollment must be a record")
+    status = record.get("status")
+    expected = validate_institution_enrollment(
+        record.get("value"), definition=record.get("definition"),
+        unitid=record.get("unitid"), source_url=record.get("source_url"),
+        reporting_year=record.get("reporting_year"),
+        status=status if status in MISSING_STATES else None,
+        independently_reviewed=record.get("independently_reviewed"))
+    if record != expected:
+        raise ValueError("Inconsistent institution enrollment record")
+    return expected
+
+
 def enrollment_evidence_preference(record, *, definition, minimum=None,
                                    maximum=None, mode="filter"):
     """Unreviewed counts remain unknown rather than a positive or negative match."""
-    if not isinstance(record, dict) or record.get("publication_status") != "DO_NOT_PUBLISH":
-        raise ValueError("Private institution enrollment record required")
-    if not record.get("independently_reviewed"):
+    record = validate_institution_enrollment_record(record)
+    if not record["independently_reviewed"]:
         # Validate range and mode even if institutional evidence is unavailable.
         check = enrollment_preference({"definition": definition, "status": "unknown"},
                                       definition=definition, minimum=minimum,
