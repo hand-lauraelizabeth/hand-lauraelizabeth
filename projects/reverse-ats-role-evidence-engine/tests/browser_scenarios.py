@@ -60,14 +60,14 @@ def run():
   click(driver,wait,"profileLoad")
   wait.until(lambda d:"source sections" in d.find_element(By.ID,"profileMsg").text)
   assert "Synthetic example" in driver.find_element(By.CSS_SELECTOR,'[data-src="resume"] textarea').get_attribute("value")
-  assert len(driver.find_elements(By.CSS_SELECTOR,".card"))>=1
-  first=driver.find_element(By.CSS_SELECTOR,".card")
+  assert len(driver.find_elements(By.CSS_SELECTOR,'article.card[data-id]:has([data-k="s"]):has([data-k="n"])'))>=1
+  first=driver.find_element(By.CSS_SELECTOR,'article.card[data-id]:has([data-k="s"]):has([data-k="n"])')
   first_id=first.get_attribute("data-id")
   Select(first.find_element(By.CSS_SELECTOR,'[data-k="s"]')).select_by_value("Applied")
   first.find_element(By.CSS_SELECTOR,'[data-k="n"]').send_keys("Preserve this synthetic application note.")
   click(driver,wait,"profileSave")
   driver.refresh()
-  wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,".card"))>=1)
+  wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,'article.card[data-id]:has([data-k="s"]):has([data-k="n"])'))>=1)
   saved_tracker=driver.execute_script("return JSON.parse(localStorage.getItem('rt.track'))")
   assert saved_tracker[first_id]["s"]=="Applied" and "synthetic application" in saved_tracker[first_id]["n"]
   driver.get(f"http://127.0.0.1:{port}/index.html")
