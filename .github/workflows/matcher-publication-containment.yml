@@ -1,0 +1,23 @@
+name: Matcher publication containment
+on:
+  push:
+    branches:
+      - feature/matcher-publication-containment-20261009
+  pull_request:
+    paths:
+      - 'projects/college-career-matching/public-explorer.html'
+      - 'projects/college-career-matching/publication_exposure_audit.py'
+      - 'projects/college-career-matching/tests/test_publication_exposure_audit.py'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run publication exposure regressions
+        run: python -m unittest discover -s projects/college-career-matching/tests -p test_publication_exposure_audit.py -v
+      - name: Audit public explorer source
+        run: python projects/college-career-matching/publication_exposure_audit.py projects/college-career-matching/public-explorer.html
