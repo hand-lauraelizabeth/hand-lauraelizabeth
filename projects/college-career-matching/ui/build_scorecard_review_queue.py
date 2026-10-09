@@ -51,7 +51,7 @@ def build(source, destination, limit=100):
             sample = (row.get("NPT41_" + population) or "").strip()
             locale = (row.get("LOCALE") or "").strip()
             locale_category = {"1": "City", "2": "Suburb", "3": "Town", "4": "Rural"}.get(locale[:1], "Unknown") if locale in {str(n) for n in (11, 12, 13, 21, 22, 23, 31, 32, 33, 41, 42, 43)} else "Unknown"
-            net_price_status = "reported" if sample.lstrip("-").isdigit() else "unavailable_or_suppressed"
+            net_price_status = "reported" if sample.isascii() and sample.isdecimal() else "unavailable_or_suppressed"
             rows.append({
                 "UNITID": unitid, "INSTNM": (row.get("INSTNM") or "").strip(),
                 "CONTROL": control, "CITY": (row.get("CITY") or "").strip(),
