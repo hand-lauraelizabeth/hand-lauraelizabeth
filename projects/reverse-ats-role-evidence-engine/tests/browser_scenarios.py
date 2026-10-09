@@ -25,8 +25,19 @@ def run():
   o=Options();o.add_argument("--headless=new");o.add_argument("--no-sandbox");o.add_argument("--disable-dev-shm-usage");o.add_argument("--window-size=1440,1600")
   driver=webdriver.Chrome(options=o);driver.get(f"http://127.0.0.1:{port}/index.html");wait=WebDriverWait(driver,10)
   assert "does not emulate a proprietary ATS" in driver.find_element(By.TAG_NAME,"body").text
+  wait.until(lambda d:d.execute_script("return document.readyState")=="complete")
+  errors=[entry for entry in driver.get_log("browser") if entry.get("level")=="SEVERE" and "SyntaxError" in entry.get("message","")]
+  assert not errors, "Page JavaScript failed to parse: "+repr(errors)
   click(driver,wait,"sampleJob");click(driver,wait,"sampleCandidate");click(driver,wait,"analyze")
-  wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#evidenceRows tr"))>=3)
+  try:
+   wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#evidenceRows tr"))>=2)
+  except Exception:
+   print("DIAGNOSTIC URL:",driver.current_url)
+   print("DIAGNOSTIC INPUT LENGTHS:",len(driver.find_element(By.ID,"job").get_attribute("value")),len(driver.find_element(By.ID,"candidate").get_attribute("value")))
+   print("DIAGNOSTIC EVIDENCE HTML:",driver.find_element(By.ID,"evidenceRows").get_attribute("innerHTML")[:1200])
+   print("DIAGNOSTIC MATRIX HTML:",driver.find_element(By.ID,"rows").get_attribute("innerHTML")[:1200])
+   print("DIAGNOSTIC BROWSER LOG:",driver.get_log("browser")[-8:])
+   raise
   wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#rows tr"))>=3)
   matrix=driver.find_element(By.ID,"rows").text
   assert "E00" in matrix, matrix

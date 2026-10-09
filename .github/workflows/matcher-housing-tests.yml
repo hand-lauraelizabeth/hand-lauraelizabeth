@@ -1,0 +1,36 @@
+name: Matcher synthetic evidence filters
+on:
+  push:
+    paths:
+      - 'projects/college-career-matching/ui/housing_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_housing_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/locale_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_locale_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/accessibility_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_accessibility_filter_synthetic.py'
+      - '.github/workflows/matcher-housing-tests.yml'
+  pull_request:
+    paths:
+      - 'projects/college-career-matching/ui/housing_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_housing_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/locale_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_locale_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/accessibility_filter_synthetic.py'
+      - 'projects/college-career-matching/ui/test_accessibility_filter_synthetic.py'
+      - '.github/workflows/matcher-housing-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  housing-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile matcher Python sources
+        run: python -m compileall -q projects/college-career-matching/ui/housing_filter_synthetic.py projects/college-career-matching/ui/test_housing_filter_synthetic.py projects/college-career-matching/ui/locale_filter_synthetic.py projects/college-career-matching/ui/test_locale_filter_synthetic.py projects/college-career-matching/ui/accessibility_filter_synthetic.py projects/college-career-matching/ui/test_accessibility_filter_synthetic.py
+      - name: Run synthetic housing, locale and accessibility regression suites
+        run: python -m unittest discover -v -s projects/college-career-matching/ui -p 'test_*_filter_synthetic.py'
