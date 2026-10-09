@@ -287,7 +287,7 @@ const national=(async()=>{
   const manifest=await getJSON(SOURCE_URL);
   if(!manifest||manifest.schema_version!=='1.0'||manifest.projection_kind!=='institution_reference'||manifest.data_publication_scope!=='DESCRIPTIVE_INSTITUTION_REFERENCE_ONLY'||manifest.scoring_authorized!==false||manifest.admission_predictions_authorized!==false||manifest.program_ranking_authorized!==false||!Array.isArray(manifest.row_layout)||!Array.isArray(manifest.shards)||manifest.shards.length<1||manifest.shards.length>200||!Number.isInteger(manifest.expected_records)||manifest.expected_records<1||manifest.expected_records>30000)throw Error('Manifest rejected');
   const expected=['unitid','name','city','state','control','predominant_degree','highest_degree','size','tuition_in','tuition_out','annual_cost','net_price','income_net_prices','admit_rate','sat_avg','act_mid','locale_code','latitude','longitude','institution_url','net_price_calculator_url','subject_mix','accreditation_agency_as_reported'];
-  if(manifest.row_layout.length!==expected.length||expected.some((v,i)=>manifest.row_layout[i]!==v))throw Error('Schema drift');
+  if(manifest.row_layout.length<3||manifest.row_layout.length>80||new Set(manifest.row_layout).size!==manifest.row_layout.length||!manifest.row_layout.every(x=>typeof x==='string'&&/^[a-z][a-z0-9_]*$/.test(x))||!['unitid','name','state'].every(x=>manifest.row_layout.includes(x)))throw Error('Missing required institution identity fields');
   const list=[],seenParts=new Set();
   for(let i=0;i<manifest.shards.length;i+=4){
    const batch=manifest.shards.slice(i,i+4);
@@ -300,8 +300,8 @@ const national=(async()=>{
   if(list.length!==manifest.expected_records||seenParts.size!==manifest.shards.length)throw Error('Incomplete source coverage');
   const incomeKeys=['0_30k','30_48k','48_75k','75_110k','110k_plus'];
   const normalized=list.map(a=>{
-   if(!Array.isArray(a)||a.length!==expected.length)throw Error('Unexpected source record');
-   const z=Object.fromEntries(expected.map((field,j)=>[field,a[j]]));
+   if(!Array.isArray(a)||a.length!==manifest.row_layout.length)throw Error('Unexpected source record');
+   const z=Object.fromEntries(manifest.row_layout.map((field,j)=>[field,a[j]]));
    if(!/^[0-9]{6}(?:[0-9]{2})?$/.test(String(z.unitid))||typeof z.name!=='string'||!z.name.trim())throw Error('Invalid institution identity');
    const controlLabel={1:'Public',2:'Private nonprofit',3:'Private for-profit'};
    const income=Object.fromEntries(incomeKeys.map((k,j)=>[k,{value:Array.isArray(z.income_net_prices)?z.income_net_prices[j]:null}]));
