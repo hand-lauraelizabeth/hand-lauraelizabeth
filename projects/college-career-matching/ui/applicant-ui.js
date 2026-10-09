@@ -38,6 +38,18 @@
     if(!M.sizeMatch(record,kind,min,max).include)return null;
     return originalScore(record);
   };
+  function sectionValues(){
+    return Object.fromEntries(["satReadingWriting","satMath","actEnglish","actMath","actReading","actScience"].map(id=>[id,get(id).value]));
+  }
+  function syncTestingInputs(){
+    const mode=get("testingChoice").value;
+    get("satTotal").disabled=mode!=="sat";
+    get("actComposite").disabled=mode!=="act";
+    for(const [id,active] of [["satSections",mode==="sat"],["actSections",mode==="act"]]){
+      get(id).hidden=!active;
+      get(id).querySelectorAll("input").forEach(el=>el.disabled=!active);
+    }
+  }
   const baseRender=window.render;
   window.render=function(){
     const g=M.validateGpa(get("gpaValue").value,get("gpaScale").value,get("gpaWeight").value);
