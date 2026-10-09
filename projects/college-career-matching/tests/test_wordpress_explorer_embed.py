@@ -21,6 +21,14 @@ class WordPressExplorerEmbedTests(unittest.TestCase):
   self.assertEqual(app.count("(async function(){"),1);self.assertEqual(app.count("class MatchingServiceClient"),1);self.assertEqual(app.count("const INLINE_FIXTURES="),1)
   self.assertNotIn('<script type="module">',out);self.assertNotIn("import {MatchingServiceClient",app)
   self.assertIn('"mode":"fixture"',out);self.assertIn('"production_authorized":false',out)
+ def test_duplicate_document_is_not_packaged_twice(self):
+  out=build(SOURCE,CLIENT,FIXTURES)
+  self.assertEqual(out.count("</html>"),1)
+  self.assertEqual(out.count('data-ccx-bootstrap="1"'),1)
+  self.assertEqual(decoded_app(out).count("class MatchingServiceClient"),1)
+ def test_unexpected_trailing_document_is_rejected(self):
+  with self.assertRaisesRegex(ValueError,"unexpected content"):
+   build(SOURCE+"UNEXPECTED_TRAILING_TEXT",CLIENT,FIXTURES)
  def test_dollar_number_literals_do_not_duplicate_module_body(self):
   self.assertRegex(SOURCE,r"\$[0-9]")
   app=decoded_app(build(SOURCE,CLIENT,FIXTURES))
