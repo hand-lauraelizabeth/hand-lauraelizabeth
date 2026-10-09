@@ -136,6 +136,18 @@ class ApplicantInputTests(unittest.TestCase):
         self.assertFalse(result["consider_scores"])
         self.assertIsNone(result["admission_probability"])
 
+    def test_institution_enrollment_requires_independent_review_for_match(self):
+        record = m.validate_institution_enrollment(5000, definition="undergraduate", unitid="123456", source_url="https://nces.ed.gov", reporting_year=2024)
+        self.assertIsNone(m.enrollment_evidence_preference(record, definition="undergraduate", minimum=1000, maximum=9000)["match"])
+        reviewed = m.validate_institution_enrollment(5000, definition="undergraduate", unitid="123456", source_url="https://nces.ed.gov", reporting_year=2024, independently_reviewed=True)
+        self.assertTrue(m.enrollment_evidence_preference(reviewed, definition="undergraduate", minimum=5000, maximum=5000)["match"])
+        self.assertIsNone(m.enrollment_evidence_preference(reviewed, definition="total", minimum=5000)["match"])
+
+    def test_institution_unknown_enrollment_is_not_zero(self):
+        for state in m.MISSING_STATES:
+            record = m.validate_institution_enrollment(definition="total", unitid="123456", status=state)
+            self.assertIsNone(m.enrollment_evidence_preference(record, definition="total", maximum=500)["match"])
+
 
 if __name__ == "__main__":
     unittest.main()
