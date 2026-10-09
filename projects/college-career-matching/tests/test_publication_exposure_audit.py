@@ -25,6 +25,14 @@ class PublicationExposureAuditTests(unittest.TestCase):
     def test_real_institution_panel_blocked(self):
         self.assertIn("real-institution UI is present", audit.inspect_public_explorer('<section id="ccx-real-institutions"></section>'))
 
+    def test_repository_explorer_is_synthetic_only(self):
+        html = (MODULE.parent / "public-explorer.html").read_text(encoding="utf-8")
+        self.assertEqual(audit.inspect_public_explorer(html), [])
+        self.assertIn('id="ccx-form"', html)
+        self.assertIn("service-client.js", html)
+        self.assertNotIn('id="ny20-embedded-data"', html)
+        self.assertNotIn('id="ccx-real-institutions"', html)
+
     def test_unrelated_public_program_service_remains_allowed(self):
         html = '<script type="module">import {MatchingServiceClient} from "./prototype/client.js";</script>'
         self.assertEqual(audit.inspect_public_explorer(html), [])
