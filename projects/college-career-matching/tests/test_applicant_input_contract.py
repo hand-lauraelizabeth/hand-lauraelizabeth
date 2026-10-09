@@ -124,6 +124,18 @@ class ApplicantInputTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             m.validate_institution_testing_policy("optional", unitid="123456", source_url="https://example.edu", reporting_year=2025)
 
+    def test_unreviewed_school_policy_does_not_use_scores(self):
+        policy = m.validate_institution_testing_policy("required", unitid="123456", source_url="https://example.edu", reporting_year=2025, admissions_cohort="Fall 2025")
+        result = m.testing_evidence_with_provenance(policy, m.validate_sat(1500))
+        self.assertFalse(result["consider_scores"])
+        self.assertEqual(result["confidence"], "policy_unverified")
+
+    def test_reviewed_test_blind_ignores_scores(self):
+        policy = m.validate_institution_testing_policy("blind", unitid="123456", source_url="https://example.edu", reporting_year=2025, admissions_cohort="Fall 2025", independently_reviewed=True)
+        result = m.testing_evidence_with_provenance(policy, m.validate_act(36))
+        self.assertFalse(result["consider_scores"])
+        self.assertIsNone(result["admission_probability"])
+
 
 if __name__ == "__main__":
     unittest.main()
