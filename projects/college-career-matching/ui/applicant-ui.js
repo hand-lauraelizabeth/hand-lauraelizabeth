@@ -2,6 +2,7 @@
 (function(){
   "use strict";
   const M=window.MatcherSignals;
+  const P=window.MatcherInstitutionPolicy;
   if(!M)return;
   const panel=document.createElement("fieldset");
   panel.setAttribute("aria-label","Applicant and school size preferences");
@@ -36,6 +37,7 @@
     const max=get("sizeMax").value===""?null:Number(get("sizeMax").value);
     if(min!==null&&(!Number.isInteger(min)||min<0)||max!==null&&(!Number.isInteger(max)||max<0)||min!==null&&max!==null&&min>max)return null;
     if(!M.sizeMatch(record,kind,min,max).include)return null;
+    if(P&&!P.match(record,get("testingChoice").value).include)return null;
     return originalScore(record);
   };
   function sectionValues(){
@@ -56,7 +58,8 @@
     syncTestingInputs();
     const t=M.validateTesting(get("testingChoice").value,get("satTotal").value,get("actComposite").value,sectionValues());
     const bad=g.ok?(t.ok?"":t.reason):g.reason;
-    get("applicantFeedback").textContent=bad||"Applicant inputs do not determine admission odds.";
+    const strictPolicy=["test_optional","test_blind"].includes(get("testingChoice").value);
+    get("applicantFeedback").textContent=bad||(strictPolicy?"Only independently reviewed institutional testing policies qualify. Unverified and synthetic examples are excluded.":"Applicant inputs do not determine admission odds.");
     if(!bad)baseRender();else get("results").textContent="Correct the applicant input to compare matches.";
     if(bad)get("applicantFeedback").textContent=bad+" Correct this input before using it for planning.";
   };
