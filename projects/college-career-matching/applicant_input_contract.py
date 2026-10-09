@@ -156,3 +156,100 @@ def enrollment_preference(record, *, definition, minimum=None, maximum=None, mod
     value = record["value"]
     match = (minimum is None or value >= minimum) and (maximum is None or value <= maximum)
     return {"match": match, "reason": "within_range" if match else "outside_range", "mode": mode}
+
+
+def _official_reference(unitid, source_url, reporting_year, admissions_cohort):
+    """Institution-specific provenance; a release date is not a cohort year."""
+    if not isinstance(unitid, str) or len(unitid) != 6 or not unitid.isascii() or not unitid.isdigit():
+        raise ValueError("Official institution evidence requires a six-digit UNITID")
+    if not isinstance(source_url, str) or not source_url.startswith("https://") or len(source_url) <= 8:
+        raise ValueError("Official evidence requires an HTTPS source URL")
+    if isinstance(reporting_year, bool) or not isinstance(reporting_year, int) or not 1990 <= reporting_year <= 2026:
+        raise ValueError("Institution-specific reporting year required")
+    if not isinstance(admissions_cohort, str) or not admissions_cohort.strip():
+        raise ValueError("Admissions cohort required; a data release date is insufficient")
+    return {"unitid": unitid, "source_url": source_url,
+            "reporting_year": reporting_year, "admissions_cohort": admissions_cohort.strip()}
+
+
+def validate_institution_testing_policy(policy, *, unitid, source_url=None,
+                                        reporting_year=None, admissions_cohort=None,
+                                        independently_reviewed=False):
+    """Private evidence. Unreviewed policies NEVER influence matching."""
+    if policy not in TEST_POLICIES:
+        raise ValueError("Unsupported testing policy")
+    if not isinstance(independently_reviewed, bool):
+        raise ValueError("Independent review must be boolean")
+    if policy == "unknown":
+        if independently_reviewed:
+            raise ValueError("Unknown policy cannot be independently verified")
+        if any(v is not None for v in (source_url, reporting_year, admissions_cohort)):
+            raise ValueError("Unknown policy should not imply source-verified policy evidence")
+        if not isinstance(unitid, str) or len(unitid) != 6 or not unitid.isascii() or not unitid.isdigit():
+            raise ValueError("Six-digit UNITID required")
+        provenance = {"unitid": unitid, "source_url": None,
+                      "reporting_year": None, "admissions_cohort": None}
+    else:
+        provenance = _official_reference(unitid, source_url, reporting_year, admissions_cohort)
+    return {**provenance, "reported_policy": policy,
+            "effective_policy": policy if independently_reviewed else "unknown",
+            "independently_reviewed": independently_reviewed,
+            "publication_status": "DO_NOT_PUBLISH"}
+
+
+def testing_evidence_with_provenance(policy_record, score):
+    """Only independently reviewed school policy may enable descriptive scores."""
+    if not isinstance(policy_record, dict) or policy_record.get("publication_status") != "DO_NOT_PUBLISH":
+        raise ValueError("Private institutional policy evidence required")
+    policy = policy_record.get("effective_policy")
+    if policy not in TEST_POLICIES:
+        raise ValueError("Invalid effective testing policy")
+    decision = testing_evidence(policy, score)
+    return {**decision, "confidence": "reviewed_policy" if policy_record.get("independently_reviewed") else "policy_unverified",
+            "policy_reporting_year": policy_record.get("reporting_year"),
+            "policy_admissions_cohort": policy_record.get("admissions_cohort"),
+            "policy_source_url": policy_record.get("source_url"),
+            "admission_probability": None}
+
+
+def validate_institution_enrollment(value=None, *, definition, unitid,
+                                    source_url=None, reporting_year=None,
+                                    status=None, independently_reviewed=False):
+    """Private enrollment evidence; definition and reporting year remain separate."""
+    if not isinstance(independently_reviewed, bool):
+        raise ValueError("Independent review must be boolean")
+    count = validate_enrollment(value, definition=definition, status=status)
+    if count["status"] == "provided":
+        provenance = _official_reference(unitid, source_url, reporting_year,
+                                         f"Enrollment {reporting_year}")
+    else:
+        if any(v is not None for v in (source_url, reporting_year)):
+            raise ValueError("Missing enrollment cannot carry asserted source evidence")
+        if not isinstance(unitid, str) or len(unitid) != 6 or not unitid.isascii() or not unitid.isdigit():
+            raise ValueError("Six-digit UNITID required")
+        if independently_reviewed:
+            raise ValueError("Missing enrollment is not a verified numeric count")
+        provenance = {"unitid": unitid, "source_url": None, "reporting_year": None}
+    return {**count, "unitid": provenance["unitid"],
+            "source_url": provenance["source_url"],
+            "reporting_year": provenance["reporting_year"],
+            "independently_reviewed": independently_reviewed,
+            "publication_status": "DO_NOT_PUBLISH"}
+
+
+def enrollment_evidence_preference(record, *, definition, minimum=None,
+                                   maximum=None, mode="filter"):
+    """Unreviewed counts remain unknown rather than a positive or negative match."""
+    if not isinstance(record, dict) or record.get("publication_status") != "DO_NOT_PUBLISH":
+        raise ValueError("Private institution enrollment record required")
+    if not record.get("independently_reviewed"):
+        # Validate range and mode even if institutional evidence is unavailable.
+        check = enrollment_preference({"definition": definition, "status": "unknown"},
+                                      definition=definition, minimum=minimum,
+                                      maximum=maximum, mode=mode)
+        return {**check, "reason": "enrollment_source_unverified",
+                "confidence": "insufficient_evidence"}
+    result = enrollment_preference(record, definition=definition,
+                                   minimum=minimum, maximum=maximum, mode=mode)
+    return {**result, "confidence": "reviewed_official_source" if result["match"] is not None
+            else "insufficient_evidence"}
