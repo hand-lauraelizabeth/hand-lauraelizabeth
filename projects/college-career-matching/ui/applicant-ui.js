@@ -12,6 +12,14 @@
     '<label for="testingChoice">Testing information</label><select id="testingChoice"><option value="omit">No score / unknown</option><option value="test_optional">Prefer test-optional</option><option value="test_blind">Prefer test-blind</option><option value="sat">SAT total</option><option value="act">ACT composite</option></select>'+
     '<label for="satTotal">SAT total (400–1600)</label><input id="satTotal" type="number" min="400" max="1600" placeholder="Optional">'+
     '<label for="actComposite">ACT composite (1–36)</label><input id="actComposite" type="number" min="1" max="36" placeholder="Optional">'+
+    '<fieldset id="satSections"><legend>SAT sections (optional)</legend>' +
+    '<label for="satReadingWriting">Reading and Writing (200–800)</label><input id="satReadingWriting" type="number" min="200" max="800" step="10">' +
+    '<label for="satMath">Math (200–800)</label><input id="satMath" type="number" min="200" max="800" step="10"></fieldset>' +
+    '<fieldset id="actSections"><legend>ACT sections (optional)</legend>' +
+    '<label for="actEnglish">English (1–36)</label><input id="actEnglish" type="number" min="1" max="36">' +
+    '<label for="actMath">Math (1–36)</label><input id="actMath" type="number" min="1" max="36">' +
+    '<label for="actReading">Reading (1–36)</label><input id="actReading" type="number" min="1" max="36">' +
+    '<label for="actScience">Science (1–36; optional)</label><input id="actScience" type="number" min="1" max="36"></fieldset>' +
     '<label for="sizeKind">Enrollment definition</label><select id="sizeKind"><option value="any">No school-size preference</option><option value="undergraduate">Undergraduate enrollment</option><option value="total">Total enrollment</option></select>'+
     '<label for="sizeMin">Minimum students</label><input id="sizeMin" type="number" min="0" placeholder="No minimum">'+
     '<label for="sizeMax">Maximum students</label><input id="sizeMax" type="number" min="0" placeholder="No maximum">'+
