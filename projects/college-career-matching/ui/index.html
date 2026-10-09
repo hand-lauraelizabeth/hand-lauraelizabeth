@@ -6,7 +6,7 @@
 <label for="access">Accessibility priority</label><select id="access"><option value="1">Standard</option><option value="2">High priority</option><option value="3">Essential</option></select>
 <label for="career">Career interest</label><select id="career"><option value="data">Data / analytics</option><option value="education">Education / learning</option><option value="health">Health / community services</option><option value="business">Business / operations</option></select>
 <label for="cost">Maximum average cost after aid</label><input id="cost" type="number" min="0" step="1000" value="25000">
-<p class="meta">The five income groups follow College Scorecard reporting brackets; all example prices remain invented demonstration values, not reported net prices. The demonstration starts with synthetic records. A source-attributed dataset loads only if a reviewed bundle is available. Missing evidence is shown as a possible score range, not assumed to be a negative finding.</p></aside><section class="card"><h2>Matches</h2><p class="muted">A cost ceiling requires known cost evidence. Without a ceiling, institutions with unknown costs remain visible. Rankings use confirmed points; where evidence is missing, a possible score range shows uncertainty rather than treating unknown as a negative finding.</p><div id="results"></div></section></div></main><script>
+<p class="meta">The five income groups follow College Scorecard reporting brackets; all example prices remain invented demonstration values, not reported net prices. The demonstration starts with synthetic records. A source-attributed dataset loads only if a reviewed bundle is available. Missing evidence is shown as a possible score range, not assumed to be a negative finding.</p></aside><section class="card"><h2>Matches</h2><p class="muted">A cost ceiling requires known cost evidence. Without a ceiling, institutions with unknown costs remain visible. Rankings use confirmed points; where evidence is missing, a possible score range shows uncertainty rather than treating unknown as a negative finding.</p><div id="results"></div></section></div></main><script src="./publication-gate.js"></script><script>
 const SYNTHETIC_DATA=[
 {name:"Metro Public University",setting:"Urban",housing:true,access:3,cost:{"0_30k":9000,"30_48k":12000,"48_75k":15500,"75_110k":19500,"110k_plus":23000},careers:{data:3,education:2,health:2,business:3},aid:["need-based","merit"],note:"Strong transit access; broad program mix."},
 {name:"River County Community College",setting:"Suburban",housing:false,access:2,cost:{"0_30k":4500,"30_48k":5500,"48_75k":6500,"75_110k":7500,"110k_plus":8500},careers:{data:2,education:2,health:3,business:2},aid:["need-based"],note:"Lower-cost commuter pathway; transfer planning matters."},
@@ -24,6 +24,13 @@ async function loadValidatedData(){
   if(payload.schema_version!==1||!Array.isArray(payload.records)||!payload.records.length)return;
   const valid=payload.records.every(r=>r&&typeof r==="object"&&typeof r.name==="string"&&r.name.trim()&&typeof r.source==="string"&&r.source.trim()&&Number.isInteger(r.reference_year)&&(r.setting===null||["Urban","Suburban","Town","Rural"].includes(r.setting))&&(r.housing===null||typeof r.housing==="boolean")&&(r.access===null||(Number.isInteger(r.access)&&r.access>=1&&r.access<=3))&&r.cost&&["0_30k","30_48k","48_75k","75_110k","110k_plus"].every(k=>Object.hasOwn(r.cost,k)&&(r.cost[k]===null||(typeof r.cost[k]==="number"&&Number.isFinite(r.cost[k]))))&&r.careers&&["data","education","health","business"].every(k=>Object.hasOwn(r.careers,k)&&(r.careers[k]===null||(Number.isInteger(r.careers[k])&&r.careers[k]>=0&&r.careers[k]<=3)))&&(r.aid===null||(Array.isArray(r.aid)&&r.aid.every(a=>typeof a==="string"))));
   if(!valid)return;
+  // Fail closed: source attribution alone never authorizes public release.
+  const gate=window.MatcherPublicationGate;
+  if(!gate||typeof gate.validate!=="function")return;
+  const approvalsResponse=await fetch("./publication-approvals.json",{cache:"no-store"});
+  if(!approvalsResponse.ok)return;
+  const approvals=await approvalsResponse.json();
+  if(!gate.validate(payload,approvals).ok)return;
   DATA=payload.records;sourceMode="validated";$("#data-mode").textContent="source-attributed records";render();
  }catch(error){/* Remain in clearly labeled synthetic demonstration mode. */}
 }
