@@ -9,3 +9,8 @@ def validate_gpa_scale(scale):
     if scale not in GPA_SCALES:
         raise ValueError('Unsupported GPA scale')
     return scale
+
+def validate_weighting(value):
+    if value not in ('weighted', 'unweighted'):
+        raise ValueError('GPA weighting must be declared')
+    return value
