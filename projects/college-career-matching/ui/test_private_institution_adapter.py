@@ -2,7 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from private_institution_adapter import stage_records, validate_record
+from private_institution_adapter import stage_records, validate_record, scorecard_directory_record
 
 class PrivateAdapterTests(unittest.TestCase):
     def test_valid_record_remains_private(self):
@@ -25,6 +25,21 @@ class PrivateAdapterTests(unittest.TestCase):
             for blocked in ("public-data.JSON", "dist/private_review.json", "site/private_review.json", "static/private_review.json"):
                 with self.subTest(destination=blocked), self.assertRaises(ValueError):
                     stage_records([record], Path(directory) / blocked)
+
+    def test_scorecard_private_mapping(self):
+        row = {"UNITID": "190521", "INSTNM": "Example Institution",
+               "STABBR": "NY", "CITY": "New York", "CONTROL": 1, "UGDS": "12345"}
+        mapped = scorecard_directory_record(
+            row, "2026-10-08", "https://collegescorecard.ed.gov/data/", "2024-25")
+        self.assertEqual(mapped["unitid"], 190521)
+        self.assertEqual(mapped["undergraduate_enrollment"], 12345)
+        self.assertEqual(mapped["field_evidence"]["undergraduate_enrollment"]["source_field"], "UGDS")
+        self.assertEqual(mapped["publication_status"], "DO_NOT_PUBLISH")
+        self.assertIsNone(mapped["test_policy"])
+        self.assertEqual(validate_record(mapped), [])
+        row["UGDS"] = "PrivacySuppressed"
+        self.assertIsNone(scorecard_directory_record(
+            row, "2026-10-08", "https://collegescorecard.ed.gov/data/", "2024-25")["undergraduate_enrollment"])
 
     def test_missing_field_evidence(self):
         record = {"unitid": 123456, "name": "Example", "state": "NY",
