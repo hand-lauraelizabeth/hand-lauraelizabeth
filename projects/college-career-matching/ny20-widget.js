@@ -9,7 +9,7 @@ const root=host.querySelector('.ccx-grid');
 const demoNotes=['ccx-mode-note','ccx-service-state','ccx-retry','ccx-request-state'].map(id=>document.getElementById(id)).filter(Boolean);
 const bReal=document.getElementById('ny20-tab-real'),bDemo=document.getElementById('ny20-tab-demo');
 const lookup=id=>document.getElementById(id);
-const controls=['ny20-search','ny20-system','ny20-state','ny20-size','ny20-income','ny20-budget','ny20-hs','ny20-transfer','ny20-housing','ny20-sort'];
+const controls=['ny20-search','ny20-system','ny20-state','ny20-sector','ny20-setting','ny20-size','ny20-income','ny20-budget','ny20-hs','ny20-transfer','ny20-sat','ny20-act','ny20-housing','ny20-sort'];
 const unknown='Not reported / not yet verified';
 const groups=[['0_30k','$0–$30,000'],['30_48k','$30,001–$48,000'],['48_75k','$48,001–$75,000'],['75_110k','$75,001–$110,000'],['110k_plus','Over $110,000']];
 const SOURCE_URL='https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/main/projects/college-career-matching/data/national/manifest.v1.json';
@@ -18,6 +18,7 @@ const PAGE_SIZE=24;
 let records=[],dataVersion='not loaded',loadState='',pageNumber=1;
 function val(e){if(e==null)return null;if(typeof e==='object'&&!Array.isArray(e)&&Object.prototype.hasOwnProperty.call(e,'value'))return val(e.value);return (typeof e==='number'&&Number.isFinite(e))?e:null;}
 function url(v){return typeof v==='string'&&/^https:\/\/[^\s<>"']+$/i.test(v)?v:null;}
+function settingGroup(code){if(code==null)return null;return ({1:'City',2:'Suburban',3:'Town',4:'Rural'})[Math.floor(code/10)]||null;}
 function clean(r){
  if(!r||typeof r!=='object'||!/^[0-9]{6}(?:[0-9]{2})?$/.test(String(r.unitid||''))||typeof r.name!=='string'||!r.name.trim())return null;
  const a=r.admissions||{},h=r.housing||{},loc=r.location||{},links=r.links||{};
@@ -27,7 +28,7 @@ function clean(r){
  transfer:a.transfer_mean&&a.transfer_mean.scale==='college_gpa_4'?a.transfer_mean:null,
  historical_admissions:val(a.historical_admit_rate),sat_avg:val(a.sat_avg),act_mid:val(a.act_mid),
  subject_mix:Array.isArray(r.subject_mix)?r.subject_mix:null, subject_labels:r.subject_labels&&typeof r.subject_labels==='object'?r.subject_labels:{},
- sector:String(r.sector||''),reported_locale:val(loc.locale_code_reported),
+ sector:String(r.sector||''),reported_locale:val(loc.locale_code_reported),reported_setting:settingGroup(val(loc.locale_code_reported)),
  housing:String(h.type||'NOT_VERIFIED'),housing_price:val(h.starting_price),housing_period:String(h.price_period||''),housing_year:String(h.rate_year||''),
  office:String((r.accessibility||{}).office||''),locale:loc.locale_independently_verified===true?String(loc.locale_label_provisional||''):null,
  relocation:String(loc.relocation_note||''),programs:Array.isArray(r.programs)?r.programs:null,
@@ -58,7 +59,9 @@ function card(rec,inputs){
  addField(dl,'In-state tuition',fmt(rec.tuition));
  if(rec.sat_avg!==null)addField(dl,'Reported SAT average',number(rec.sat_avg)+' / 1600 (historical aggregate, not a cutoff)');
  if(rec.act_mid!==null)addField(dl,'Reported ACT composite midpoint',number(rec.act_mid)+' / 36 (historical aggregate, not a cutoff)');
- if(rec.reported_locale!==null)addField(dl,'Campus setting','Scorecard-reported locale code '+rec.reported_locale+'; 2025 IPEDS confirmation pending');
+ if(inputs.sat!==null)addField(dl,'SAT input vs reported average',rec.sat_avg===null?'No comparable SAT aggregate reported — kept in results':`${inputs.sat} vs ${rec.sat_avg} reported mean; descriptive difference only, not admission likelihood`);
+ if(inputs.act!==null)addField(dl,'ACT input vs reported midpoint',rec.act_mid===null?'No comparable ACT aggregate reported — kept in results':`${inputs.act} vs ${rec.act_mid} reported composite midpoint; descriptive difference only, not admission likelihood`);
+ if(rec.reported_setting)addField(dl,'Campus setting',rec.reported_setting+' · Scorecard locale '+rec.reported_locale+'; 2025 IPEDS confirmation pending');
  if(rec.subject_mix?.length){const top=rec.subject_mix.slice(0,3).map(([code,share])=>(rec.subject_labels[code]||'CIP '+code)+' ('+(share*100).toFixed(0)+'%)').join(' · '); addField(dl,'Reported academic-field distribution',top+' · historical field mix, not a current majors list');}
  addField(dl,'Freshman academic profile',scoreDesc(rec,'hs',inputs.hs,'hs'));
  addField(dl,'Transfer academic profile',scoreDesc(rec,'transfer',inputs.transfer,'transfer'));
@@ -75,10 +78,13 @@ function card(rec,inputs){
  return c;
 }
 function inputNumber(id,min,max){const value=String(lookup(id)?.value||'').trim();if(!value)return null;const n=Number(value);return Number.isFinite(n)&&n>=min&&n<=max?n:null;}
-function filter(){const s=(lookup('ny20-search')?.value||'').trim().toLowerCase();const sy=lookup('ny20-system')?.value||'';const st=lookup('ny20-state')?.value||'';const size=lookup('ny20-size')?.value||'';const sort=lookup('ny20-sort')?.value||'name';
+function filter(){const s=(lookup('ny20-search')?.value||'').trim().toLowerCase();const sy=lookup('ny20-system')?.value||'';const st=lookup('ny20-state')?.value||'';const sector=lookup('ny20-sector')?.value||'';const setting=lookup('ny20-setting')?.value||'';const size=lookup('ny20-size')?.value||'';const sort=lookup('ny20-sort')?.value||'name';
  const pass=records.filter(r=>{
  if(s&&!`${r.name} ${r.city} ${r.state} ${r.system} ${r.unitid}`.toLowerCase().includes(s))return false;
  if(sy&&r.system!==sy)return false;if(st&&r.state!==st)return false;
+ if(sector&&r.sector&&r.sector!==sector)return false;
+ // Unknown setting is retained; a missing locale is not proof of an incompatible campus.
+ if(setting&&r.reported_setting&&r.reported_setting!==setting)return false;
  // A missing size is preserved as unknown rather than excluded by a numerical filter.
  if(r.size!==null&&size==='small'&&r.size>=5000)return false;
  if(r.size!==null&&size==='medium'&&(r.size<5000||r.size>=15000))return false;
@@ -86,7 +92,7 @@ function filter(){const s=(lookup('ny20-search')?.value||'').trim().toLowerCase(
  return true});
  pass.sort((a,b)=>sort==='size_desc'?(b.size??-1)-(a.size??-1)||a.name.localeCompare(b.name):sort==='size_asc'?(a.size??Infinity)-(b.size??Infinity)||a.name.localeCompare(b.name):a.name.localeCompare(b.name));return pass;
 }
-function render(){if(!records.length)return;const inp={income:lookup('ny20-income')?.value||'overall',budget:inputNumber('ny20-budget',0,1000000),hs:inputNumber('ny20-hs',0,100),transfer:inputNumber('ny20-transfer',0,4),housing:!!lookup('ny20-housing')?.checked};
+function render(){if(!records.length)return;const inp={income:lookup('ny20-income')?.value||'overall',budget:inputNumber('ny20-budget',0,1000000),hs:inputNumber('ny20-hs',0,100),transfer:inputNumber('ny20-transfer',0,4),sat:inputNumber('ny20-sat',400,1600),act:inputNumber('ny20-act',1,36),housing:!!lookup('ny20-housing')?.checked};
  const arr=filter(),frag=document.createDocumentFragment(),shown=Math.min(arr.length,pageNumber*PAGE_SIZE);
  for(const r of arr.slice(0,shown))frag.append(card(r,inp));
  if(!arr.length)frag.append(el('p','ny20-empty','No institutions meet those confirmed filters. Try a broader location or school-size range.'));
@@ -97,8 +103,8 @@ function setOptions(id,values){const sel=lookup(id);if(!sel)return;for(const v o
 function activate(payload,{preservePilot=false}={}){const d=normalize(payload);
  if(preservePilot){const prior=new Map(records.map(x=>[x.unitid,x]));d.records=d.records.map(x=>{const y=prior.get(x.unitid);if(!y)return x;return {...x,system:y.system,type:y.type,hs:y.hs,transfer:y.transfer,housing:y.housing,housing_price:y.housing_price,housing_period:y.housing_period,housing_year:y.housing_year,office:y.office,relocation:y.relocation,links:{...x.links,...y.links},subject_mix:x.subject_mix,subject_labels:x.subject_labels};});}
  records=d.records;dataVersion=d.version;pageNumber=1;
- for(const id of ['ny20-system','ny20-state']){const elSel=lookup(id);if(elSel)while(elSel.options.length>1)elSel.remove(1);}
- setOptions('ny20-system',[...new Set(records.map(x=>x.system))].sort());setOptions('ny20-state',[...new Set(records.map(x=>x.state))].sort());render();
+ for(const id of ['ny20-system','ny20-state','ny20-sector']){const elSel=lookup(id);if(elSel)while(elSel.options.length>1)elSel.remove(1);}
+ setOptions('ny20-system',[...new Set(records.map(x=>x.system))].sort());setOptions('ny20-state',[...new Set(records.map(x=>x.state))].sort());setOptions('ny20-sector',[...new Set(records.map(x=>x.sector))].sort());render();
 }
 function mode(real){pane.hidden=!real;if(root)root.hidden=real;for(const n of demoNotes)n.hidden=real;bReal.setAttribute('aria-pressed',String(real));bDemo.setAttribute('aria-pressed',String(!real));}
 bReal.addEventListener('click',()=>mode(true));bDemo.addEventListener('click',()=>mode(false));
