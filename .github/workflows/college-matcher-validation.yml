@@ -8,6 +8,7 @@ on:
       - 'projects/college-career-matching/ny-pilot-*.json'
       - 'projects/college-career-matching/data/ny20-*.json'
       - 'projects/college-career-matching/ny20-widget.*'
+      - 'projects/college-career-matching/public-explorer.html'
       - 'projects/college-career-matching/tests/test_ny20_live_projection.py'
       - 'projects/college-career-matching/ny-pilot-*.html'
       - 'projects/college-career-matching/tests/test_ny_pilot_*.py'
