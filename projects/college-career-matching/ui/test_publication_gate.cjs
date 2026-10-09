@@ -29,4 +29,12 @@ let [p,m]=fixture();m.approved_unitids=[];assert.equal(G.validate(p,m).ok,false)
 [p,m]=fixture();p.records[0].enrollment.total=-1;p.records[0].field_provenance['enrollment.total']=known;assert.equal(G.validate(p,m).ok,false);
 [p,m]=fixture();p.records[0].testing_policy='optional';assert.equal(G.validate(p,m).ok,false);
 [p,m]=fixture();m.approved_unitids.push({...m.approved_unitids[0]});assert.equal(G.validate(p,m).ok,false);
-console.log('PASS: 14 synthetic publication-gate JavaScript assertions');
+for(const date of ['2026-02-30','2025-02-29','2026-13-01','2026-00-01','0000-01-01','2026-04-31','2026-2-09']){
+  const [p,m]=fixture();m.approved_unitids[0].approved_on=date;
+  assert.equal(G.validate(p,m).ok,false,'Invalid approval date accepted: '+date);
+}
+for(const date of ['2024-02-29','2026-10-09']){
+  const [p,m]=fixture();m.approved_unitids[0].approved_on=date;
+  assert.equal(G.validate(p,m).ok,true,'Valid approval date rejected: '+date);
+}
+console.log('PASS: 23 synthetic publication-gate JavaScript assertions');
