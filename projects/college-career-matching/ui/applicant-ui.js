@@ -57,7 +57,7 @@
     const t=M.validateTesting(get("testingChoice").value,get("satTotal").value,get("actComposite").value,sectionValues());
     const bad=g.ok?(t.ok?"":t.reason):g.reason;
     get("applicantFeedback").textContent=bad||"Applicant inputs do not determine admission odds.";
-    baseRender();
+    if(!bad)baseRender();else get("results").textContent="Correct the applicant input to compare matches.";
     if(bad)get("applicantFeedback").textContent=bad+" Correct this input before using it for planning.";
   };
   panel.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",()=>window.render()));
