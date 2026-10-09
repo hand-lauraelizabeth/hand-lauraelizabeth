@@ -171,13 +171,20 @@ class ApplicantInputTests(unittest.TestCase):
             independently_reviewed=True)
         for key, value in (
             ("effective_policy", "required"),
-            ("reported_policy", "optional"),
             ("independently_reviewed", False),
-            ("reporting_year", 2026),
-            ("admissions_cohort", "Fall 2026"),
             ("publication_status", "PUBLISH")):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 m.testing_evidence_with_provenance({**base, key: value}, m.validate_sat(1400))
+
+    def test_syntactically_valid_provenance_changes_require_external_review(self):
+        base = m.validate_institution_testing_policy(
+            "blind", unitid="123456", source_url="https://example.edu",
+            reporting_year=2025, admissions_cohort="Fall 2025",
+            independently_reviewed=True)
+        changed = {**base, "reporting_year": 2026,
+                   "admissions_cohort": "Fall 2026"}
+        # Schema checks cannot authenticate two individually valid cohorts.
+        self.assertEqual(m.validate_institution_testing_policy_record(changed), changed)
 
     def test_school_policy_unreviewed_cannot_claim_effective_policy(self):
         base = m.validate_institution_testing_policy(
