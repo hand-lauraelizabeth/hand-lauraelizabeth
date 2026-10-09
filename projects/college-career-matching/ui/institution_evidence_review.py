@@ -2,7 +2,8 @@
 
 Usage: python institution_evidence_review.py review.csv
 Exits 1 when a row is incorrectly marked publishable or when required review
-fields are missing for an approved row. Does not independently verify sources.
+fields or explicit publication-approval provenance are missing for an approved row.
+Does not independently verify sources or prove that an approval is authentic.
 """
 import csv
 import sys
@@ -10,7 +11,8 @@ from pathlib import Path
 
 REQUIRED_APPROVED = ("UNITID", "INSTNM", "institution_identity_source", "locale_evidence_source",
                      "housing_evidence_source", "aid_evidence_source", "accessibility_evidence_source",
-                     "cohort_dictionary_source", "net_price_cohort_year")
+                     "cohort_dictionary_source", "net_price_cohort_year",
+                     "publication_approval_reference", "publication_approved_by", "publication_approval_date")
 BLOCKED = {"DO_NOT_PUBLISH", "PENDING", "UNVERIFIED", "REVIEW_REQUIRED"}
 APPROVED = {"APPROVED", "PUBLISH_APPROVED"}
 
@@ -27,6 +29,7 @@ def audit(path):
         if "publication_status" not in headers:
             return ["Review CSV lacks publication_status column"], {}
         counts = {"rows": 0, "blocked": 0, "approved": 0}
+        seen_unitids = set()
         for line, row in enumerate(reader, 2):
             counts["rows"] += 1
             status = (row.get("publication_status") or "").strip().upper()
@@ -42,6 +45,10 @@ def audit(path):
             unitid = (row.get("UNITID") or "").strip()
             if unitid and (not unitid.isascii() or not unitid.isdecimal() or len(unitid) != 6):
                 errors.append(f"Line {line}: invalid six-digit institution UNITID")
+            if unitid in seen_unitids:
+                errors.append(f"Line {line}: duplicate institution UNITID {unitid}")
+            elif unitid:
+                seen_unitids.add(unitid)
     return errors, counts
 
 
