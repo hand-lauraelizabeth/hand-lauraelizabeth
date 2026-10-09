@@ -6,6 +6,7 @@ on:
     paths:
       - 'projects/college-career-matching/applicant_input_contract.py'
       - 'projects/college-career-matching/tests/test_applicant_input_contract.py'
+      - 'projects/college-career-matching/tests/test_applicant_score_boundary.py'
       - '.github/workflows/matcher-applicant-input.yml'
   workflow_dispatch:
 jobs:
@@ -17,4 +18,4 @@ jobs:
         with:
           python-version: '3.11'
       - name: Validate GPA SAT ACT testing policies and enrollment
-        run: python -m unittest discover -s projects/college-career-matching/tests -p test_applicant_input_contract.py -v
+        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_applicant*.py' -v
