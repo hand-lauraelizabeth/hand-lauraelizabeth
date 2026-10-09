@@ -117,7 +117,936 @@
     <p class="ccx-kicker">Interactive decision-support sample</p>
     <h1>College + Career Explorer</h1>
     <p class="ccx-lead">Start with the things that matter to you. The interface builds the governed matcher request and renders only the response returned by the matching service—no account, download, or technical setup required.</p>
-    <p class="ccx-note" id="ccx-mode-note"><strong>Portfolio demo:</strong> the programs shown here are fictional while the current-data service remains gated. Use this page to explore the interaction design and evidence model—not to choose a college.</p><div class="ccx-service-state" id="ccx-service-state" role="status" aria-live="polite">Loading governed fixture service…</div><button class="ccx-reset" id="ccx-retry" type="button" hidden>Retry matcher</button><div class="ccx-request-state" id="ccx-request-state" aria-live="polite"></div>
+    <p class="ccx-note" id="ccx-mode-note"><strong>Portfolio demo:</strong> the programs shown here are fictional while the current-data service remains gated. Use this page to explore the interaction design and evidence model—not to choose a college.</p>
+<div class="ny20-mode-row" role="group" aria-label="Explore institution records or program matcher demo">
+<button type="button" id="ny20-tab-real" aria-controls="ccx-real-institutions" aria-pressed="true">Explore real colleges</button>
+<button type="button" id="ny20-tab-demo" aria-pressed="false">Program matcher demonstration</button>
+</div>
+<section id="ccx-real-institutions" aria-labelledby="ny20-heading">
+<h2 id="ny20-heading">Explore colleges and universities</h2>
+<p class="ny20-legend">Real institutions, source-reconciled descriptive evidence. These are <strong>not ranked recommendations</strong>. Missing program, housing, transfer, or accessibility information is displayed as unknown, not treated as a negative finding. Your inputs stay in this browser.</p>
+<div class="ny20-controls">
+<label for="ny20-search">Search schools, cities, or UNITIDs<input id="ny20-search" type="search" placeholder="School name or location" autocomplete="off"></label>
+<label for="ny20-state">State<select id="ny20-state"><option value="">All states</option></select></label>
+<label for="ny20-system">System<select id="ny20-system"><option value="">All systems</option></select></label>
+<label for="ny20-size">Undergraduate school size<select id="ny20-size"><option value="">Any / unknown remains visible</option><option value="small">Under 5,000</option><option value="medium">5,000–14,999</option><option value="large">15,000 or more</option></select></label>
+<label for="ny20-income">Published average net price<select id="ny20-income"><option value="overall">Overall public-institution average</option><option value="0_30k">Family income $0–$30,000</option><option value="30_48k">$30,001–$48,000</option><option value="48_75k">$48,001–$75,000</option><option value="75_110k">$75,001–$110,000</option><option value="110k_plus">Over $110,000</option></select></label>
+<label for="ny20-budget">Soft annual net-price reference ($)<input id="ny20-budget" type="number" min="0" max="1000000" step="500" placeholder="Optional; won't exclude schools"></label>
+<label for="ny20-hs">Your high-school average (0–100 scale)<input id="ny20-hs" type="number" min="0" max="100" step="0.1" placeholder="Optional: same-scale context"></label>
+<label for="ny20-transfer">Your transfer GPA (4.0 scale)<input id="ny20-transfer" type="number" min="0" max="4" step="0.01" placeholder="Optional: same-scale context"></label>
+<label for="ny20-sort">Display order<select id="ny20-sort"><option value="name">School name A–Z</option><option value="size_asc">Undergraduate count, smaller first</option><option value="size_desc">Undergraduate count, larger first</option></select></label>
+<label for="ny20-housing">Housing access consideration <span style="display:flex;align-items:center;gap:9px;margin-top:12px;font-weight:500"><input type="checkbox" id="ny20-housing" style="width:20px;min-height:20px;margin:0">Housing is important to me</span></label>
+</div>
+<p class="ny20-caveat">Cost and enrollment figures reflect the June 10, 2026 College Scorecard extract; the exact underlying survey years require independent cohort verification. Income-band values are historical group averages, not personal aid estimates. Reported room prices do not establish vacancies. Admissions averages are descriptive, not cutoffs or odds. Program and transfer rules still require source-specific verification.</p>
+<p class="ny20-count" id="ny20-count" role="status" aria-live="polite">Loading institution reference data…</p>
+<div class="ny20-results" id="ny20-results" aria-label="Institution reference results"></div>
+</section>
+<style>
+#leh-ccx .ny20-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;margin:16px 0}
+#leh-ccx .ny20-controls label{display:block;color:#284b3e;font-weight:700;font-size:13px;margin:0}
+#leh-ccx .ny20-controls input,#leh-ccx .ny20-controls select{display:block;width:100%;margin:5px 0 0;min-height:44px;padding:8px 10px;font:inherit;color:#162e26;border:1px solid #a5bcb0;background:#fff;border-radius:8px}
+#leh-ccx .ny20-mode-row{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+#leh-ccx .ny20-mode-row button{border:1px solid #315e50;background:white;color:#184537;padding:10px 15px;min-height:44px;border-radius:999px;font:inherit;font-weight:700;cursor:pointer}
+#leh-ccx .ny20-mode-row button[aria-pressed=true]{background:#245847;color:#fff}
+#leh-ccx .ny20-mode-row button:focus-visible,#leh-ccx .ny20-controls :focus-visible,#leh-ccx .ny20-card a:focus-visible{outline:3px solid #7aa994;outline-offset:3px}
+#leh-ccx #ccx-real-institutions[hidden],#leh-ccx .ccx-grid[hidden],#leh-ccx #ccx-mode-note[hidden],#leh-ccx #ccx-service-state[hidden],#leh-ccx #ccx-retry[hidden],#leh-ccx #ccx-request-state[hidden]{display:none!important}
+#leh-ccx #ccx-real-institutions{background:#f7faf8;padding:20px;border:1px solid #d8e2dc;border-radius:16px;margin:18px 0}
+#leh-ccx #ccx-real-institutions .ny20-legend{font-size:13px;line-height:1.55;color:#476155;margin:0 0 15px}
+#leh-ccx #ccx-real-institutions h2{font:700 29px Georgia,serif;color:#184537;margin:0 0 9px}
+#leh-ccx #ccx-real-institutions h3{font:700 23px Georgia,serif;color:#184537;margin:0 0 6px}
+#leh-ccx .ny20-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:12px}
+#leh-ccx .ny20-card{background:#fff;border:1px solid #d9e3dc;border-radius:12px;padding:15px;min-width:0}
+#leh-ccx .ny20-card p{margin:5px 0 10px;font-size:14px;line-height:1.5}
+#leh-ccx .ny20-card .ny20-meta{font-size:12px;color:#476155}
+#leh-ccx .ny20-card dl{margin:12px 0;display:grid;grid-template-columns:minmax(100px,1fr) 1.4fr;gap:6px 12px;font-size:13px}
+#leh-ccx .ny20-card dt{font-weight:700;color:#3f5d51}
+#leh-ccx .ny20-card dd{margin:0;min-width:0;overflow-wrap:anywhere}
+#leh-ccx .ny20-card a{color:#205b47;text-decoration:underline;text-underline-offset:2px}
+#leh-ccx .ny20-card .ny20-links{display:flex;flex-wrap:wrap;gap:7px 14px;font-size:13px;border-top:1px solid #e4ece7;padding-top:11px;margin-top:12px}
+#leh-ccx .ny20-card .ny20-unknown{padding:8px 10px;background:#f5f8f6;border-radius:7px;color:#4a6257;font-size:12px}
+#leh-ccx .ny20-count{font-size:13px;color:#3e5e51;margin:12px 0}
+#leh-ccx .ny20-caveat{border-left:3px solid #477965;padding:10px 12px;background:#edf4ef;color:#284a3e;font-size:13px;line-height:1.5;margin:8px 0 16px}
+#leh-ccx .ny20-empty{padding:18px;background:white;border:1px solid #d9e3dc;border-radius:9px}
+@media(max-width:640px){#leh-ccx #ccx-real-institutions{padding:12px}#leh-ccx .ny20-card dl{grid-template-columns:1fr;gap:2px}}
+</style>
+<script type="application/json" id="ny20-embedded-data">{"schema_version":"1.0","projection_kind":"institution_reference","data_version":"ny20-2026-10-09-evidence-v1","source_release":"2026-06-10","data_publication_scope":"DESCRIPTIVE_INSTITUTION_REFERENCE_ONLY","scoring_authorized":false,"admission_predictions_authorized":false,"program_ranking_authorized":false,"price_cohort_year_verified":false,"independent_locale_verified":false,"institutions":[{"unitid":"196079","name":"Binghamton University","city":"Vestal","state":"NY","system":"SUNY","type":"SUNY research university","size":{"value":14655,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":10567.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":30447.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":30345.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":21620.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":12171.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":15281.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":20347.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":23533.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":28475.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":96.0,"scale":"hs_percent_100","cohort":"Fall 2025","source_url":null,"probability":null},"transfer_mean":null,"historical_admit_rate":{"value":0.3861,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":22,"locale_independently_verified":false,"locale_label_provisional":"Suburb: Midsize","relocation_note":null},"housing":{"type":"CAMPUS_OPERATED_RESIDENCES","starting_price":5749,"price_period":"semester (Fall 2026-Spring 2027)","rate_year":"2026-27","vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Services for Students with Disabilities (SSD)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.binghamton.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":null},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"189839","name":"Cayuga County Community College","city":"Auburn","state":"NY","system":"SUNY","type":"SUNY community college","size":{"value":1187,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7056.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":12336.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":16709.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":8662.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":5334.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":6485.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":10243.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":13743.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":15726.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":null,"transfer_mean":null,"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":32,"locale_independently_verified":false,"locale_label_provisional":"Town: Distant","relocation_note":null},"housing":{"type":"NO_INSTITUTION_OPERATED_RESIDENCE_HALLS","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office of Accessibility Resources (Auburn and Fulton)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.cayuga-cc.edu/","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":null},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190053","name":"Clinton Community College","city":"Plattsburgh","state":"NY","system":"SUNY","type":"SUNY community college","size":{"value":400,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":6831.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":6831.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":16318.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":9112.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":7778.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":9114.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":9675.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":11656.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":11719.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":null,"transfer_mean":null,"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":32,"locale_independently_verified":false,"locale_label_provisional":"Town: Distant","relocation_note":"Campus relocated in 2025; check current teaching sites."},"housing":{"type":"PARTNER_CAMPUS_SUNY_PLATTSBURGH_HALLS","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Accommodative Services, Moore Building, second floor, Room 213a","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.clinton.edu/","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":null},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"417868","name":"Clinton Essex Warren Washington BOCES","city":"Plattsburgh","state":"NY","system":"BOCES","type":"BOCES / workforce nursing program","size":{"value":31,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":null,"status":"source_missing","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":null,"status":"source_missing","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":null,"status":"source_missing","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":14384.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":13719.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":11179.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":15034.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":18324.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":13656.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":null,"transfer_mean":null,"historical_admit_rate":{"value":0.3111,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":32,"locale_independently_verified":false,"locale_label_provisional":"Town: Distant","relocation_note":null},"housing":{"type":"NOT_VERIFIED","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":null,"routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":null,"programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":null},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190558","name":"College of Staten Island CUNY","city":"Staten Island","state":"NY","system":"CUNY","type":"CUNY","size":{"value":9657,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7490.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15440.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14795.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":5579.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":3903.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":4473.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":7364.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9923.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":13444.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":82.7,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.7,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.9234,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"CAMPUS_OPERATED_DOLPHIN_COVE","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office of Accessibility Services (OAS), Center for the Arts 1P-101","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":null,"programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190169","name":"Columbia-Greene Community College","city":"Hudson","state":"NY","system":"SUNY","type":"SUNY community college","size":{"value":876,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":6048.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":11448.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14261.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":6559.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":4979.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":4173.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":8800.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":10637.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":13103.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":null,"transfer_mean":null,"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":41,"locale_independently_verified":false,"locale_label_provisional":"Rural: Fringe","relocation_note":null},"housing":{"type":"NO_COLLEGE_RESIDENTIAL_FACILITIES","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office of Accessibility Services (OAS)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.columbiagreene.edu/","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":"https://www.columbiagreene.edu/tuition-financial-aid/net-price-calculator/","transfer":null},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190512","name":"CUNY Bernard M Baruch College","city":"New York","state":"NY","system":"CUNY","type":"CUNY","size":{"value":16154,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7464.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15414.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14170.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":3033.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":607.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":2052.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":6312.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":8623.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12314.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":92.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":3.3,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.4752,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"COLLEGE_AFFILIATED_OFF_CAMPUS_FULL_FALL2026","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Student Disability Services (SDS)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.baruch.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190521","name":"CUNY Borough of Manhattan Community College","city":"New York","state":"NY","system":"CUNY","type":"CUNY","size":{"value":18623,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":5170.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":8050.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":12866.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":4976.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":4057.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":4837.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":7460.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":8927.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12016.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":77.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.3,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"NO_INSTITUTION_OWNED_HOUSING","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office of Accessibility, 199 Chambers St Room N-360","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.bmcc.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190530","name":"CUNY Bronx Community College","city":"Bronx","state":"NY","system":"CUNY","type":"CUNY","size":{"value":5964,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":5206.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":8086.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":12677.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":4462.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":3667.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":4507.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":7190.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":8545.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":10195.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":77.5,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.2,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"EXTERNAL_REFERRALS_ONLY_CONFIRMED","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Disability Services Office, Loew Hall Room 211 (official BCC office page; CUNY directory lists Room 213, verify before displaying room)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.bcc.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190549","name":"CUNY Brooklyn College","city":"Brooklyn","state":"NY","system":"CUNY","type":"CUNY","size":{"value":10543,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7452.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15402.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14151.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":3103.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":1029.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":2287.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":6193.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":8917.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12254.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":89.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":3.1,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.5836,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"CURRENT_HOUSING_RESOURCES_LISTED__COLLEGE_OPERATED_RESIDENCE_NOT_CONFIRMED__PRIVATE_RESIDENCE_STATUS_UNKNOWN","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Center for Student Disability Services; 138 Roosevelt Hall (handbook)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.brooklyn.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190567","name":"CUNY City College","city":"New York","state":"NY","system":"CUNY","type":"CUNY","size":{"value":12505,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7340.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15290.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14403.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":3776.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":1251.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":2990.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":6811.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9982.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12806.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":90.1,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":3.2,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.6002,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"ON_CAMPUS_THE_TOWERS_THIRD_PARTY_MANAGED","starting_price":15616,"price_period":"academic lease (2026-08-22 through 2027-05-21)","rate_year":"2026-27","vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"AccessAbility Center/Student Disability Services; NAC 1/218","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.ccny.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190585","name":"CUNY Hostos Community College","city":"Bronx","state":"NY","system":"CUNY","type":"CUNY","size":{"value":4900,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":5254.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":8134.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":13069.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":5297.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":4541.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":5401.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":7615.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9074.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12248.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":77.2,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.2,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"No college dormitories (institutional statement); public-housing guidance/referrals available","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Accessibility Resource Center (ARC)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":null,"programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190594","name":"CUNY Hunter College","city":"New York","state":"NY","system":"CUNY","type":"CUNY","size":{"value":16289,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7382.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15332.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":13905.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":2984.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":1029.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":1935.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":6003.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":8810.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12259.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":91.4,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":3.2,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.538,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"LEASED_OFF_CAMPUS_CAPACITY_LIMITED","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office of AccessABILITY","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.hunter.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190600","name":"CUNY John Jay College of Criminal Justice","city":"New York","state":"NY","system":"CUNY","type":"CUNY","size":{"value":11590,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7470.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15420.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14212.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":3203.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":1073.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":2506.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":6760.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":8427.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":13292.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":88.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":3.0,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.5711,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"NO_INSTITUTION_MANAGED_RESIDENCES","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office of Accessibility Services","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.jjay.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190619","name":"CUNY Kingsborough Community College","city":"Brooklyn","state":"NY","system":"CUNY","type":"CUNY","size":{"value":7670,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":5252.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":8132.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":13580.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":5606.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":4664.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":5388.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":8270.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9595.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":11273.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":77.4,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.2,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"STUDENT_HOUSING_INSECURITY_SUPPORT_ONLY_RESIDENCE_STATUS_UNVERIFIED","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Access-Ability Services","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.kbcc.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":"https://www.kbcc.cuny.edu/financialaid/awarding_criteria.html","transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190628","name":"CUNY LaGuardia Community College","city":"Long Island City","state":"NY","system":"CUNY","type":"CUNY","size":{"value":11254,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":5218.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":8098.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":13648.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":6120.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":5269.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":5767.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":8282.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9478.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12745.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":77.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.3,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":null,"status":"source_missing","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"EXTERNAL_HOUSING_REFERRALS_ONLY_COLLEGE_OPERATED_STATUS_UNVERIFIED","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office for Students with Disabilities (location unverified)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.lagcc.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190637","name":"CUNY Lehman College","city":"Bronx","state":"NY","system":"CUNY","type":"CUNY","size":{"value":10696,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7410.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15360.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14121.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":3148.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":1589.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":2374.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":6834.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9696.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":13600.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":89.1,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.9,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.5658,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"AVAILABLE_OFF_CAMPUS_COLLEGE_AFFILIATED","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Student Disability Services, Shuster Hall Room 238; Access and Technology Center, Leonard Lief Library Room 146","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.lehman.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190646","name":"CUNY Medgar Evers College","city":"Brooklyn","state":"NY","system":"CUNY","type":"CUNY","size":{"value":3233,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7352.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15302.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14771.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":5718.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":4368.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":5547.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":8661.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":10131.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":14006.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":78.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.6,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.8605,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"NO_ON_CAMPUS_RESIDENCES","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office of Accessibility & Accommodations Services, 1650 Bedford Avenue, Brooklyn","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.mec.cuny.edu/","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190655","name":"CUNY New York City College of Technology","city":"Brooklyn","state":"NY","system":"CUNY","type":"CUNY","size":{"value":13580,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7332.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15282.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14110.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":5127.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":3810.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":4606.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":7886.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9809.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":13043.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":81.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":2.9,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.8029,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"External housing resources linked; college-operated housing unverified","starting_price":null,"price_period":null,"rate_year":null,"vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Center for Student Accessibility, Library Building L-237, 300 Jay Street","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.citytech.cuny.edu","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false},{"unitid":"190664","name":"CUNY Queens College","city":"Queens","state":"NY","system":"CUNY","type":"CUNY","size":{"value":12550,"status":"source_reconciled_year_not_verified","source_field":"UGDS","source_release":"2026-06-10","reference_year":null},"tuition_in":{"value":7538.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_IN","source_release":"2026-06-10","reference_year":null},"tuition_out":{"value":15488.0,"status":"source_reconciled_year_not_verified","source_field":"TUITIONFEE_OUT","source_release":"2026-06-10","reference_year":null},"annual_cost":{"value":14367.0,"status":"source_reconciled_year_not_verified","source_field":"COSTT4_A","source_release":"2026-06-10","reference_year":null},"net_price":{"value":4195.0,"status":"source_reconciled_year_not_verified","source_field":"NPT4_PUB","source_release":"2026-06-10","reference_year":null},"income_net_prices":{"0_30k":{"value":1541.0,"status":"source_reconciled_year_not_verified","source_field":"NPT41_PUB","source_release":"2026-06-10","reference_year":null},"30_48k":{"value":3133.0,"status":"source_reconciled_year_not_verified","source_field":"NPT42_PUB","source_release":"2026-06-10","reference_year":null},"48_75k":{"value":6785.0,"status":"source_reconciled_year_not_verified","source_field":"NPT43_PUB","source_release":"2026-06-10","reference_year":null},"75_110k":{"value":9110.0,"status":"source_reconciled_year_not_verified","source_field":"NPT44_PUB","source_release":"2026-06-10","reference_year":null},"110k_plus":{"value":12700.0,"status":"source_reconciled_year_not_verified","source_field":"NPT45_PUB","source_release":"2026-06-10","reference_year":null}},"admissions":{"hs_admitted_mean":{"value":88.9,"scale":"hs_percent_100","cohort":"Fall 2026","source_url":null,"probability":null},"transfer_mean":{"value":3.0,"scale":"college_gpa_4","cohort":"Fall 2026","source_url":null,"probability":null},"historical_admit_rate":{"value":0.6435,"status":"source_reconciled_year_not_verified","source_field":"ADM_RATE","source_release":"2026-06-10","reference_year":null},"probability":null},"location":{"locale_code_reported":11,"locale_independently_verified":false,"locale_label_provisional":"City: Large","relocation_note":null},"housing":{"type":"ON_CAMPUS_SUMMIT_APARTMENTS","starting_price":13350,"price_period":"academic year 2026-27 per person","rate_year":"2026-27","vacancy_verified":false,"accessible_vacancy_verified":false},"accessibility":{"office":"Office for Students with Disabilities & Access (OSDA)","routes_verified":false,"quality_score":null},"programs":null,"transfer_rules":null,"links":{"institution_website":"https://www.qc.cuny.edu/","programs":null,"disability_services":null,"housing":null,"admissions":null,"net_price_calculator":null,"transfer":"https://explorer.cuny.edu/"},"status":"descriptive_source_evidence_only","score_authorized":false}]}</script>
+<script>
+(function(){
+'use strict';
+function initialize(){
+const host=document.getElementById('leh-ccx');
+const pane=document.getElementById('ccx-real-institutions');
+const results=document.getElementById('ny20-results');
+if(!host||!pane||!results)return;
+const root=host.querySelector('.ccx-grid');
+const demoNotes=['ccx-mode-note','ccx-service-state','ccx-retry','ccx-request-state'].map(id=>document.getElementById(id)).filter(Boolean);
+const bReal=document.getElementById('ny20-tab-real'),bDemo=document.getElementById('ny20-tab-demo');
+const lookup=id=>document.getElementById(id);
+const controls=['ny20-search','ny20-system','ny20-state','ny20-size','ny20-income','ny20-budget','ny20-hs','ny20-transfer','ny20-housing','ny20-sort'];
+const unknown='Not reported / not yet verified';
+const groups=[['0_30k','$0–$30,000'],['30_48k','$30,001–$48,000'],['48_75k','$48,001–$75,000'],['75_110k','$75,001–$110,000'],['110k_plus','Over $110,000']];
+const SOURCE_URL='https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/main/projects/college-career-matching/data/ny20-institution-evidence.v1.json';
+let records=[],dataVersion='not loaded',loadState='';
+function val(e){if(e==null)return null;if(typeof e==='object'&&!Array.isArray(e)&&Object.prototype.hasOwnProperty.call(e,'value'))return val(e.value);return (typeof e==='number'&&Number.isFinite(e))?e:null;}
+function url(v){return typeof v==='string'&&/^https:\/\/[^\s<>"']+$/i.test(v)?v:null;}
+function clean(r){
+ if(!r||typeof r!=='object'||!/^[0-9]{6}$/.test(String(r.unitid||''))||typeof r.name!=='string'||!r.name.trim())return null;
+ const a=r.admissions||{},h=r.housing||{},loc=r.location||{},links=r.links||{};
+ return {unitid:String(r.unitid),name:r.name.trim(),city:String(r.city||''),state:String(r.state||''),system:String(r.system||'Other'),type:String(r.type||''),
+ size:val(r.size),tuition:val(r.tuition_in),net:val(r.net_price),income:r.income_net_prices&&typeof r.income_net_prices==='object'?r.income_net_prices:{},
+ hs:a.hs_admitted_mean&&a.hs_admitted_mean.scale==='hs_percent_100'?a.hs_admitted_mean:null,
+ transfer:a.transfer_mean&&a.transfer_mean.scale==='college_gpa_4'?a.transfer_mean:null,
+ historical_admissions:val(a.historical_admit_rate),
+ housing:String(h.type||'NOT_VERIFIED'),housing_price:val(h.starting_price),housing_period:String(h.price_period||''),housing_year:String(h.rate_year||''),
+ office:String((r.accessibility||{}).office||''),locale:loc.locale_independently_verified===true?String(loc.locale_label_provisional||''):null,
+ relocation:String(loc.relocation_note||''),programs:Array.isArray(r.programs)?r.programs:null,
+ links:Object.fromEntries(Object.entries(links).filter(([k,v])=>url(v)).map(([k,v])=>[k,url(v)])),score_authorized:false};
+}
+function normalize(data){
+ if(!data||data.projection_kind!=='institution_reference'||data.data_publication_scope!=='DESCRIPTIVE_INSTITUTION_REFERENCE_ONLY'||data.scoring_authorized!==false||data.admission_predictions_authorized!==false||data.program_ranking_authorized!==false||!Array.isArray(data.institutions))throw Error('Dataset is not authorized for descriptive institution display');
+ const ids=new Set(),arr=[];for(const raw of data.institutions){const o=clean(raw);if(!o||ids.has(o.unitid))continue;ids.add(o.unitid);arr.push(o)}
+ if(!arr.length)throw Error('No valid institution records');return {records:arr,version:String(data.data_version||'unversioned')};
+}
+const el=(tag,cl='',txt)=>{const x=document.createElement(tag);if(cl)x.className=cl;if(txt!==undefined&&txt!==null)x.textContent=String(txt);return x};
+const fmt=n=>n===null?unknown:' role="status" aria-live="polite">Loading governed fixture service…</div><button class="ccx-reset" id="ccx-retry" type="button" hidden>Retry matcher</button><div class="ccx-request-state" id="ccx-request-state" aria-live="polite"></div>
+    <div class="ccx-grid">
+      <form class="ccx-controls" id="ccx-form">
+        <fieldset>
+          <label class="ccx-label" for="ccx-decision-mode">How are you exploring?</label>
+          <select id="ccx-decision-mode">
+            <option value="broad_exploration">I'm exploring broadly</option>
+            <option value="career_first">Start with careers and work backward</option>
+            <option value="college_program_first">Start with colleges or programs</option>
+            <option value="transfer">Plan a transfer pathway</option>
+            <option value="returning_student">Return to school with prior experience or credits</option>
+            <option value="compare_known">Compare options I already know</option>
+          </select>
+          <div class="ccx-detail">This changes the governed decision context sent to the service; it does not force you through a separate workflow or hide the filters below.</div>
+        </fieldset>
+        <div class="ccx-mode-context" id="ccx-mode-context">Broad exploration keeps every control optional so you can start with whatever you know.</div>
+        <fieldset class="ccx-mode-tools" id="ccx-career-tools" hidden>
+          <legend>Career & labor-market context</legend>
+          <label class="ccx-label" for="ccx-work-market-semantics">Where should career-market evidence focus?</label>
+          <select id="ccx-work-market-semantics">
+            <option value="unspecified">I'm not sure yet</option>
+            <option value="selected_market" id="ccx-selected-market-option">A specific labor market I choose</option>
+            <option value="national">National context</option>
+            <option value="remote_or_flexible">I'm flexible or interested in remote work</option>
+          </select>
+          <div id="ccx-selected-market-row" hidden>
+            <label class="ccx-label" for="ccx-work-market" style="margin-top:12px">Specific labor market</label>
+            <input type="search" id="ccx-work-market" list="ccx-labor-market-options" autocomplete="off" placeholder="Search governed labor markets">
+          </div>
+          <div class="ccx-checks" style="margin-top:12px">
+            <label class="ccx-check"><input type="checkbox" id="ccx-current-labor"> <span>Make current labor-market context an explicit priority</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-long-term"> <span>Make long-term occupational outlook an explicit priority</span></label>
+          </div>
+          <fieldset id="ccx-career-characteristics" style="margin-top:12px" hidden>
+            <legend>What would you like the work itself to involve?</legend>
+            <div class="ccx-checks">
+              <label class="ccx-check" id="ccx-career-analysis-row"><input type="checkbox" id="ccx-career-analysis"> <span>Analyzing data or information is an important part of the work</span></label>
+              <label class="ccx-check" id="ccx-career-problem-solving-row"><input type="checkbox" id="ccx-career-problem-solving"> <span>Making decisions and solving problems is an important part of the work</span></label>
+              <label class="ccx-check" id="ccx-career-creativity-row"><input type="checkbox" id="ccx-career-creativity"> <span>Thinking creatively is an important part of the work</span></label>
+            </div>
+            <div class="ccx-detail">These optional preferences use reviewed O*NET 31.0 Work Activity Importance ratings. They appear only when those governed attributes are loaded by the service. Missing O*NET evidence reduces coverage rather than becoming a mismatch.</div>
+          </fieldset>
+          <div class="ccx-detail">Current market evidence and long-term projections remain separate. Specific markets come only from the service's governed labor evidence.</div>
+        </fieldset>
+        <fieldset class="ccx-mode-tools" id="ccx-known-college-tools" hidden>
+          <legend>Start from something you already know</legend>
+          <label class="ccx-label" for="ccx-known-institution">Known college or university <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-known-institution" list="ccx-institution-options" autocomplete="off" placeholder="Search the active institution list">
+          <label class="ccx-label" for="ccx-known-program" style="margin-top:12px">Known program <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-known-program" list="ccx-program-options" autocomplete="off" placeholder="Search the active program list">
+          <div class="ccx-detail">Choose an exact suggestion from the active snapshot. Free text is never converted to an institution or program ID by name similarity.</div>
+        </fieldset>
+        <fieldset class="ccx-mode-tools" id="ccx-compare-known-tools" hidden>
+          <legend>Programs you want to compare</legend>
+          <label class="ccx-label" for="ccx-compare-program-1">Program 1</label>
+          <input type="search" id="ccx-compare-program-1" list="ccx-program-options" autocomplete="off" placeholder="Search the active program list">
+          <label class="ccx-label" for="ccx-compare-program-2" style="margin-top:12px">Program 2 <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-compare-program-2" list="ccx-program-options" autocomplete="off" placeholder="Search another program">
+          <label class="ccx-label" for="ccx-compare-program-3" style="margin-top:12px">Program 3 <span aria-hidden="true">(optional)</span></label>
+          <input type="search" id="ccx-compare-program-3" list="ccx-program-options" autocomplete="off" placeholder="Search another program">
+          <div class="ccx-detail">Exact governed candidate IDs are sent to the service as the comparison universe. The browser does not decide which option wins.</div>
+        </fieldset>
+        <fieldset class="ccx-mode-tools" id="ccx-transfer-tools" hidden>
+          <legend>Your starting institution</legend>
+          <label class="ccx-label" for="ccx-transfer-source">Where are you transferring from?</label>
+          <input type="search" id="ccx-transfer-source" list="ccx-institution-options" autocomplete="off" placeholder="Search the active institution list">
+          <div class="ccx-detail">An exact selection populates transfer context only; it does not imply that credits transfer or that an articulation agreement exists.</div>
+        </fieldset>
+        <datalist id="ccx-institution-options"></datalist>
+        <datalist id="ccx-program-options"></datalist>
+        <datalist id="ccx-labor-market-options"></datalist>
+        <fieldset>
+          <label class="ccx-label" for="ccx-cip">Academic field</label>
+          <select id="ccx-cip">
+            <option value="">Any academic field in the active snapshot</option>
+          </select>
+          <div class="ccx-detail">Field choices come from authoritative CIP classifications in the active program snapshot; the browser does not infer a field from program-title similarity.</div>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-state">School location</label>
+          <select id="ccx-state">
+            <option value="">Anywhere in this sample</option>
+            <option value="NY">New York</option>
+            <option value="NJ">New Jersey</option>
+            <option value="PA">Pennsylvania</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-setting">Campus setting</label>
+          <select id="ccx-setting">
+            <option value="">Any setting</option>
+            <option value="city">City</option>
+            <option value="suburban">Suburban</option>
+            <option value="town">Town</option>
+            <option value="rural">Rural</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-credential">Credential</label>
+          <select id="ccx-credential">
+            <option value="">Any credential</option>
+            <option value="Associate">Associate degree</option>
+            <option value="Bachelor">Bachelor's degree</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-income">Household income range</label>
+          <select id="ccx-income">
+            <option value="">Use overall average net price</option>
+            <option value="0-30">$0–30,000</option>
+            <option value="30-48">$30,001–48,000</option>
+            <option value="48-75">$48,001–75,000</option>
+            <option value="75-110">$75,001–110,000</option>
+            <option value="110+">$110,001+</option>
+          </select>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-price">Maximum average net price after grants/scholarships</label>
+          <select id="ccx-price">
+            <option value="">No ceiling</option>
+            <option value="15000">$15,000</option>
+            <option value="25000">$25,000</option>
+            <option value="40000">$40,000</option>
+          </select>
+          <details><summary>What does this mean?</summary><div class="ccx-detail">Net price is cost of attendance minus grants and scholarships—not loans. Choosing an income range uses that historical income-band average. It is not a personalized aid estimate, and this tool does not invent a family-size adjustment from data that do not support one.</div></details>
+        </fieldset>
+        <fieldset>
+          <label class="ccx-label" for="ccx-housing">Housing preference</label>
+          <select id="ccx-housing">
+            <option value="">No housing requirement</option>
+            <option value="available">Institutionally controlled housing available</option>
+            <option value="choice">Housing available, but not universally required</option>
+            <option value="commuter">No institutionally controlled housing / commuter-oriented</option>
+          </select>
+          <div class="ccx-detail">Federal data support housing availability and broad residency requirements. Roommate versus private-room options require school-specific evidence and are not inferred here.</div>
+        </fieldset>
+        <fieldset>
+          <legend>Format & aid needs</legend>
+          <div class="ccx-checks">
+            <label class="ccx-check"><input type="checkbox" id="ccx-online"> <span>Online option required</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-inst-aid"> <span>Institutional grants/scholarships available in the sample</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-workstudy"> <span>Federal Work-Study evidence available</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-state-aid"> <span>State/local grant-aid evidence available</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Prioritize</legend>
+          <div class="ccx-checks">
+            <label class="ccx-check"><input type="checkbox" id="ccx-afford"> <span>Lower average net price after grants/scholarships</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-career"> <span>Career-pathway fit and evidence</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-transfer"> <span>Transfer-friendly pathways</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-small"> <span>Smaller learning environment</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-transit"> <span>Better public-transit access</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-walk"> <span>More walkable access to daily needs</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-housing-choice"> <span>More housing choice</span></label>
+            <label class="ccx-check"><input type="checkbox" id="ccx-disability-info"> <span>Documented disability-services information</span></label>
+          </div>
+        </fieldset>
+        <button type="button" class="ccx-reset" id="ccx-reset">Reset preferences</button>
+      </form>
+      <section aria-labelledby="ccx-results-title">
+        <div class="ccx-results-head">
+          <div><h2 id="ccx-results-title">Explore matches</h2><div class="ccx-count" id="ccx-count" aria-live="polite">3 fictional service-fixture programs</div></div>
+          <label class="ccx-page-size" for="ccx-page-size">Results per page <select id="ccx-page-size"><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option></select></label>
+        </div>
+        <div class="ccx-results" id="ccx-results" aria-live="polite">
+          <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Synthetic service fixture</div><h3>Data & Information Systems</h3><p class="ccx-school">North Harbor College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-reasons"><div class="ccx-reason">JavaScript loads the governed fixture response and its evidence metadata.</div></div></article>
+          <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Synthetic service fixture</div><h3>Information Technology</h3><p class="ccx-school">Metro Public College · NY</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-reasons"><div class="ccx-reason">JavaScript loads the governed fixture response and its evidence metadata.</div></div></article>
+          <article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">Synthetic service fixture</div><h3>Applied Computing</h3><p class="ccx-school">River State University · NJ</p></div><div class="ccx-score">Unranked</div></div><div class="ccx-reasons"><div class="ccx-reason">JavaScript loads the governed fixture response and its evidence metadata.</div></div></article>
+        </div><nav class="ccx-pagination" id="ccx-pagination" aria-label="Match results pages" hidden><div class="ccx-page-actions"><button type="button" class="ccx-page-button" id="ccx-prev">Previous</button><span class="ccx-page-status" id="ccx-page-status" aria-live="polite"></span><button type="button" class="ccx-page-button" id="ccx-next">Next</button></div></nav><noscript><p class="ccx-note">These synthetic fixture names remain readable without JavaScript. Evidence details, governed requests, filtering, and any gated ordering require the matching service through JavaScript.</p></noscript>
+        <div class="ccx-compare-panel" id="ccx-compare-panel"><h3>Compare programs</h3><p class="ccx-compare-note" id="ccx-compare-note" aria-live="polite">Select up to three programs from the cards above. Comparison appears here automatically.</p><div class="ccx-compare-table" id="ccx-compare-table"></div><button type="button" class="ccx-clear" id="ccx-clear" hidden>Clear comparison</button></div><div class="ccx-safety"><strong>How to read this:</strong> the browser does not calculate a fit score or rank. It builds a governed request and renders the service response. Any displayed rank must come through the recommendation review gate. Fixture/review eligibility alone is not production authorization; production mode additionally requires the exact activation-pinned data, model, and snapshot identity. Cost, transit, walkability, housing, and disability-services evidence remain separate signals.</div>
+      </section>
+    </div>
+  </div>
+  <script type="module">
+  import {MatchingServiceClient,assertContract,validateRuntimeConfig,assertRuntimeMetadata} from './prototype/service-client.js';
+  (async function(){
+    const root=document.getElementById('leh-ccx'); if(!root||root.dataset.ready)return; root.dataset.ready='1';
+    const q=id=>root.querySelector('#'+id);
+    const runtimeConfig=validateRuntimeConfig(JSON.parse(q('ccx-runtime-config').textContent));
+    root.dataset.serviceMode=runtimeConfig.mode;
+    const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const money=v=>v==null?'—':Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
+    const controls=['ccx-decision-mode','ccx-work-market-semantics','ccx-work-market','ccx-current-labor','ccx-long-term','ccx-career-analysis','ccx-career-problem-solving','ccx-career-creativity','ccx-known-institution','ccx-known-program','ccx-compare-program-1','ccx-compare-program-2','ccx-compare-program-3','ccx-transfer-source','ccx-cip','ccx-state','ccx-setting','ccx-credential','ccx-income','ccx-price','ccx-housing','ccx-online','ccx-inst-aid','ccx-workstudy','ccx-state-aid','ccx-afford','ccx-career','ccx-transfer','ccx-small','ccx-transit','ccx-walk','ccx-housing-choice','ccx-disability-info'];
+    const selected=new Set(),selectedRecords=new Map(),candidateDetailCache=new Map(),candidateDetailLoads=new Map(),compareCache=new Map();
+    const governedLookups={institution:new Map(),program:new Map(),market:new Map(),career:new Map()};
+    let lastResponse=null,metadata=null,optionResponse=null,refreshTimer=null,requestGeneration=0,activeRequestController=null,compareGeneration=0,activeCompareController=null,currentPage=1,pageSize=20;
+    function setInteractive(enabled){
+      controls.forEach(id=>{const el=q(id);if(el)el.disabled=!enabled});
+      q('ccx-reset').disabled=!enabled;q('ccx-page-size').disabled=!enabled;q('ccx-form').setAttribute('aria-disabled',String(!enabled));
+      if(!enabled){q('ccx-prev').disabled=true;q('ccx-next').disabled=true}
+    }
+    function modeText(){return runtimeConfig.mode==='fixture'?'Synthetic fixture service':runtimeConfig.mode==='staging'?'Synthetic staging HTTP service':'Authorized production matching service'}
+    function renderServiceIdentity(){
+      if(!metadata)return;
+      q('ccx-service-state').innerHTML='<strong>'+esc(modeText())+'</strong> · data '+esc(metadata.data_version)+' · model '+esc(metadata.model_version)+' · production authorized: '+(metadata.production_authorized?'yes':'no');
+      q('ccx-retry').hidden=true;q('ccx-retry').disabled=false;
+    }
+    function transientServiceFailure(err){
+      root.dataset.serviceStatus='request-error';root.dataset.requestStatus='error';
+      clearServiceResults('Service response unavailable.','Previous results were cleared. '+(err&&err.message||err),'No service response');
+      q('ccx-service-state').innerHTML='<strong>Service temporarily unavailable.</strong> Previous results were cleared. Retry when the service is available again.';
+      q('ccx-retry').hidden=false;q('ccx-retry').disabled=false;
+    }
+    function fatalServiceFailure(err){
+      requestGeneration++;if(activeRequestController){activeRequestController.abort();activeRequestController=null}
+      root.dataset.serviceStatus='error';root.dataset.requestStatus='error';setInteractive(false);
+      q('ccx-service-state').textContent='Unable to initialize governed service: '+(err&&err.message||err);
+      q('ccx-retry').hidden=true;
+      clearServiceResults('Matcher unavailable.','The governed service identity could not be validated. Controls are disabled until a valid service identity is available.','Matcher unavailable');
+    }
+    function clearServiceResults(title,detail,countText){
+      compareGeneration++;if(activeCompareController){activeCompareController.abort();activeCompareController=null}
+      lastResponse=null;selected.clear();selectedRecords.clear();
+      q('ccx-pagination').hidden=true;q('ccx-page-status').textContent='';
+      q('ccx-results').innerHTML='<div class="ccx-empty"><strong>'+esc(title)+'</strong><p>'+esc(detail)+'</p></div>';
+      q('ccx-count').textContent=countText;
+      q('ccx-compare-table').innerHTML='';q('ccx-compare-note').textContent='Select two or three programs from the current service results.';q('ccx-clear').hidden=true;
+    }
+
+    function resolveGovernedLookup(kind,value){
+      const v=String(value||'').trim();
+      return v?(governedLookups[kind].get(v)||null):null;
+    }
+    function updateModeContext(){
+      const mode=q('ccx-decision-mode').value;
+      const copy={
+        broad_exploration:'Broad exploration keeps every control optional so you can start with whatever you know.',
+        career_first:'Career-first exploration keeps college filters available while emphasizing program-to-career pathways and labor-market evidence; no occupation is inferred from a job-title guess.',
+        college_program_first:'Start with an exact institution or program if you know one, then use the same affordability, setting, aid, and pathway controls to refine the result.',
+        compare_known:'Choose up to three exact programs from the active snapshot. The service narrows the candidate universe; the comparison view remains evidence-based and does not automatically prefer an option.',
+        transfer:'Add your starting institution as transfer context, then use the existing program, cost, location, and transfer-pathway controls. Transferability is never assumed.',
+        returning_student:'Add a prior institution when relevant and keep the rest of the page available for degree-completion, affordability, format, and pathway constraints.'
+      };
+      q('ccx-mode-context').textContent=copy[mode]||copy.broad_exploration;
+      q('ccx-career-tools').hidden=mode!=='career_first';
+      q('ccx-selected-market-row').hidden=mode!=='career_first'||q('ccx-work-market-semantics').value!=='selected_market';
+      q('ccx-known-college-tools').hidden=mode!=='college_program_first';
+      q('ccx-compare-known-tools').hidden=mode!=='compare_known';
+      q('ccx-transfer-tools').hidden=!['transfer','returning_student'].includes(mode);
+    }
+    function state(){
+      return {
+        decisionMode:q('ccx-decision-mode').value,
+        workMarketSemantics:q('ccx-work-market-semantics').value,
+        workMarket:q('ccx-work-market').value,
+        currentLabor:q('ccx-current-labor').checked,
+        longTerm:q('ccx-long-term').checked,
+        careerAnalysis:q('ccx-career-analysis').checked,
+        careerProblemSolving:q('ccx-career-problem-solving').checked,
+        careerCreativity:q('ccx-career-creativity').checked,
+        knownInstitution:q('ccx-known-institution').value,
+        knownProgram:q('ccx-known-program').value,
+        comparePrograms:[q('ccx-compare-program-1').value,q('ccx-compare-program-2').value,q('ccx-compare-program-3').value],
+        transferSource:q('ccx-transfer-source').value,
+        cip:q('ccx-cip').value,
+        state:q('ccx-state').value,
+        setting:q('ccx-setting').value,
+        credential:q('ccx-credential').value,
+        income:q('ccx-income').value,
+        price:q('ccx-price').value?Number(q('ccx-price').value):null,
+        housing:q('ccx-housing').value,
+        online:q('ccx-online').checked,
+        instAid:q('ccx-inst-aid').checked,
+        workStudy:q('ccx-workstudy').checked,
+        stateAid:q('ccx-state-aid').checked,
+        afford:q('ccx-afford').checked,
+        career:q('ccx-career').checked,
+        transfer:q('ccx-transfer').checked,
+        small:q('ccx-small').checked,
+        transit:q('ccx-transit').checked,
+        walk:q('ccx-walk').checked,
+        housingChoice:q('ccx-housing-choice').checked,
+        disabilityInfo:q('ccx-disability-info').checked
+      };
+    }
+    function governedIncomeSelector(v){const map={'0-30':'0_30','30-48':'30_48','48-75':'48_75','75-110':'75_110','110+':'110_plus'};const allowed=['overall','0_30','30_48','48_75','75_110','110_plus'];return map[v]||(allowed.includes(v)?v:'overall')}
+    function governedSetting(v){return {'city':'City','suburban':'Suburban','town':'Town','rural':'Rural'}[v]||v}
+    function buildGovernedRequest(s){
+      const constraints=[],preferences=[];
+      const hard=(id,field,operator,value)=>constraints.push({constraint_id:id,field,operator,value,unknown_policy:'keep_visible',source_question_id:id});
+      const soft=(id,dimension,enabled)=>{if(enabled)preferences.push({preference_id:id,dimension,importance:1,priority_explicit:true,source_question_id:id})};
+      if(s.cip)hard('academic_fields','cip_code','eq',s.cip);
+      if(s.state)hard('school_states','state','eq',s.state);
+      if(s.setting)hard('campus_settings','campus__locale_category','eq',governedSetting(s.setting));
+      if(s.credential)hard('credential_levels','credential_level','eq',s.credential);
+      if(s.price){
+        const band=governedIncomeSelector(s.income);
+        const fields={overall:'finance__net_price_overall','0_30':'finance__net_price_income_0_30','30_48':'finance__net_price_income_30_48','48_75':'finance__net_price_income_48_75','75_110':'finance__net_price_income_75_110','110_plus':'finance__net_price_income_110_plus'};
+        hard('net_price_ceiling',fields[band],'lte',s.price);
+      }
+      if(s.housing==='available')hard('housing_requirement:1','campus__housing_available','eq',true);
+      if(s.housing==='choice'){hard('housing_requirement:1','campus__housing_available','eq',true);hard('housing_requirement:2','campus__housing_required_all_ftft','eq',false)}
+      if(s.housing==='commuter')hard('housing_requirement:1','campus__housing_available','eq',false);
+      if(s.online)hard('online_requirement','online_available','eq',true);
+      if(s.instAid)hard('institutional_aid_required','finance__institutional_grant_evidence','eq',true);
+      if(s.workStudy)hard('work_study_required','finance__work_study_evidence','eq',true);
+      if(s.stateAid)hard('state_local_aid_required','finance__state_local_grant_evidence','eq',true);
+      soft('affordability_priority','affordability',s.afford);
+      soft('career_pathway_priority','career_pathway_fit',s.career);
+      const mode=s.decisionMode||'broad_exploration',careerMode=mode==='career_first';
+      soft('current_labor_market_priority','current_labor_market',careerMode&&s.currentLabor);
+      soft('long_term_outlook_priority','long_term_outlook',careerMode&&s.longTerm);
+      const careerPreferences=[];
+      const careerPref=(questionId,enabled)=>{
+        if(!careerMode||!enabled)return;
+        const spec=governedLookups.career.get(questionId);
+        if(!spec)throw new Error('A selected work-characteristic preference is not available in the active governed O*NET evidence.');
+        careerPreferences.push({preference_id:questionId,attribute_id:spec.attribute_id,operator:spec.operator,importance:1,priority_explicit:true,target_value:null,target_min:null,target_max:null,scale_min:Number(spec.scale_min),scale_max:Number(spec.scale_max),source_question_id:questionId});
+      };
+      careerPref('career_analysis',s.careerAnalysis);careerPref('career_problem_solving',s.careerProblemSolving);careerPref('career_creativity',s.careerCreativity);
+      soft('transfer_priority','transfer_pathway_fit',s.transfer);
+      soft('smaller_environment_priority','college_fit',s.small);
+      soft('transit_access_priority','transit_access_fit',s.transit);
+      soft('walkability_priority','walkability_fit',s.walk);
+      soft('housing_choice_priority','housing_context_fit',s.housingChoice);
+      soft('disability_services_priority','accessibility_evidence_fit',s.disabilityInfo);
+      const knownInstitution=resolveGovernedLookup('institution',s.knownInstitution);
+      const knownProgram=resolveGovernedLookup('program',s.knownProgram);
+      const comparePrograms=[...new Set((s.comparePrograms||[]).map(v=>resolveGovernedLookup('program',v)).filter(Boolean))];
+      const transferSource=resolveGovernedLookup('institution',s.transferSource);
+      if(mode==='college_program_first'){
+        if(knownProgram)hard('known_program','candidate_id','eq',knownProgram);
+        else if(knownInstitution)hard('known_institution','UNITID','eq',knownInstitution);
+      }
+      if(mode==='compare_known'&&comparePrograms.length)hard('known_programs','candidate_id','in',comparePrograms);
+      const transferContext=['transfer','returning_student'].includes(mode)&&transferSource?{source_institution_id:transferSource,source_system:null,completed_course_ids:[],target_program_required:false}:null;
+      const workSemantics=careerMode?(s.workMarketSemantics||'unspecified'):'unspecified';
+      const workMarket=workSemantics==='selected_market'?resolveGovernedLookup('market',s.workMarket):null;
+      if(workSemantics==='selected_market'&&!workMarket)throw new Error('Choose a labor market from the governed service suggestions.');
+      return {schema_version:'1.0',decision_mode:mode,constraints,preferences,career_preferences:careerPreferences,geography:{school_location_semantics:s.state?'selected_places':'no_preference',selected_states:s.state?[s.state]:[],work_market_semantics:workSemantics,intended_work_market:workMarket},transfer_context:transferContext,pinned_candidate_ids:mode==='compare_known'?comparePrograms:[],page:currentPage,page_size:pageSize,data_version:null,model_version:null};
+    }
+
+    function rankLabel(rec){
+      if(!rec||rec.status==='not_ranked')return 'Unranked';
+      if(rec.status==='eligible_unranked')return 'Eligible · unranked';
+      if(rec.status==='review_eligible_ranked')return (rec.production_authorized?'Rank ':'Review rank ')+rec.rank;
+      return 'Unranked';
+    }
+    function resultReason(x){
+      if(x.recommendation&&x.recommendation.status==='review_eligible_ranked')return x.recommendation.production_authorized?'Rank supplied by the explicitly authorized production service.':'Rank supplied by the gated recommendation service; not production authorization.';
+      if(x.eligibility&&x.eligibility.status==='eligible_with_unknown')return 'Eligible with one or more unresolved must-have evidence fields.';
+      return 'Service returned this program as eligible for the current request.';
+    }
+    function evidenceStateText(state){
+      const map={observed:'observed',missing:'missing / not reported',suppressed:'suppressed by source',unresolved:'unresolved',not_published:'not published',unavailable:'unavailable for this candidate',not_requested:'not requested'};
+      return map[state]||state||'state not reported';
+    }
+    function evidenceValue(item,formatter){
+      if(!item||item.value===null||item.value===undefined||item.value==='')return '—';
+      return formatter?formatter(item.value):esc(item.value);
+    }
+    function percent(v){
+      if(v===null||v===undefined||v==='')return '—';
+      const n=Number(v);return Number.isFinite(n)?Math.round(n*1000)/10+'%':esc(v);
+    }
+    function provenance(item){
+      if(!item)return '';
+      const bits=[];if(item.source_id)bits.push(item.source_id);if(item.source_vintage)bits.push(item.source_vintage);
+      return bits.length?'<div class="ccx-provenance">Source: '+esc(bits.join(' · '))+'</div>':'';
+    }
+    function evidenceRow(label,item,formatter){
+      return '<div class="ccx-evidence-row"><dt>'+esc(label)+'</dt><dd>'+evidenceValue(item,formatter)+'<span class="ccx-evidence-state">'+esc(evidenceStateText(item&&item.evidence_state))+'</span>'+provenance(item)+'</dd></div>';
+    }
+    function simpleRow(label,value,state){
+      return '<div class="ccx-evidence-row"><dt>'+esc(label)+'</dt><dd>'+(value===null||value===undefined||value===''?'—':esc(value))+(state?'<span class="ccx-evidence-state">'+esc(state)+'</span>':'')+'</dd></div>';
+    }
+    function listItemText(x){
+      if(!x||typeof x!=='object')return String(x);
+      if(x.source_family||x.vintage)return [x.source_family,x.vintage].filter(Boolean).join(' · ');
+      if(x.source_id||x.source_vintage)return [x.source_id,x.source_vintage].filter(Boolean).join(' · ');
+      return Object.entries(x).filter(([,v])=>v!==null&&v!==undefined&&v!=='').map(([k,v])=>k+': '+v).join(', ');
+    }
+    function listText(value){return Array.isArray(value)&&value.length?value.map(listItemText).join('; '):'—'}
+    function pathwayLabel(x){
+      if(!x)return '';
+      if(typeof x==='string')return 'SOC '+x;
+      const code=x.soc_code||'',title=x.occupation_title||'';
+      return title?(title+(code?' ('+code+')':'')):(code?'SOC '+code:'');
+    }
+    function pathwayText(value){return Array.isArray(value)&&value.length?value.map(pathwayLabel).filter(Boolean).join('; '):'—'}
+    function pathwayPreview(career){
+      const paths=career&&Array.isArray(career.pathways)?career.pathways:[],count=Number(career&&career.pathway_count||paths.length||0);
+      if(!paths.length)return '';
+      const shown=paths.slice(0,3),extra=Math.max(count-shown.length,0);
+      return '<div class="ccx-pathway-preview"><strong>Related career pathways:</strong> '+esc(shown.map(pathwayLabel).filter(Boolean).join('; '))+(extra?' · +'+extra+' more mapped pathway'+(extra===1?'':'s'):'')+'<span class="ccx-pathway-note">CIP→SOC pathways describe related occupations; they are not placement probabilities or promised outcomes.</span></div>';
+    }
+    function compactLaborFamily(family,type){
+      const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[],heading=type==='current'?'Current selected market':'Long-term outlook';
+      const marketLabel=type==='current'&&family&&family.market_label?'<span class="ccx-career-state">'+esc(family.market_label)+'</span>':'';
+      if(!rows.length)return '<section class="ccx-career-family"><h4>'+heading+'</h4>'+marketLabel+'<span class="ccx-career-state">'+esc(evidenceStateText(state))+'.</span></section>';
+      const shown=rows.slice(0,2);
+      return '<section class="ccx-career-family"><h4>'+heading+'</h4>'+marketLabel+shown.map(x=>{
+        const label=pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified';
+        if(type==='current'){
+          const wage=x.median_wage!==null&&x.median_wage!==undefined?money(x.median_wage):'wage —',employment=x.employment!==null&&x.employment!==undefined?'employment '+x.employment:'employment —';
+          return '<div class="ccx-career-item"><strong>'+esc(label)+'</strong><span class="ccx-career-measure">'+wage+' · '+esc(employment)+'</span><span class="ccx-career-state">wage '+esc(evidenceStateText(x.wage_state||'missing'))+' · employment '+esc(evidenceStateText(x.employment_state||'missing'))+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
+        }
+        const change=x.employment_change_pct!==null&&x.employment_change_pct!==undefined?x.employment_change_pct+'% projected change':'projected change —',openings=x.annual_openings!==null&&x.annual_openings!==undefined?x.annual_openings+' annual openings':'annual openings —',horizon=x.projection_year?' · through '+x.projection_year:'';
+        return '<div class="ccx-career-item"><strong>'+esc(label)+'</strong><span class="ccx-career-measure">'+esc(change+' · '+openings+horizon)+'</span><span class="ccx-career-state">'+esc(x.projection_geography||'projection geography not reported')+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
+      }).join('')+(rows.length>shown.length?'<span class="ccx-career-state">+'+(rows.length-shown.length)+' additional occupation evidence row'+(rows.length-shown.length===1?'':'s')+' in details.</span>':'')+'</section>';
+    }
+    function careerCardSnapshot(x){
+      if(q('ccx-decision-mode').value!=='career_first')return '';
+      const labor=x&&x.labor_market||{};
+      return '<div class="ccx-career-snapshot">'+compactLaborFamily(labor.selected_work_market,'current')+compactLaborFamily(labor.long_term_outlook,'future')+'<p class="ccx-career-snapshot-note">Descriptive occupation-level evidence only—not graduate earnings or placement rates. Current wages/employment and long-term projections remain separate; higher values are not converted into a browser-side career score.</p></div>';
+    }
+    function traceGeographyText(trace){
+      const g=trace&&trace.geography||{},bits=[];
+      if(g.market_label)bits.push(g.market_label);
+      else if(g.market_id)bits.push((g.market_type?g.market_type+' ':'')+g.market_id);
+      if(g.projection_geography)bits.push(g.projection_geography);
+      if(g.work_market_semantics&&!g.market_id)bits.push('work-market setting: '+g.work_market_semantics);
+      return bits.length?bits.join(' · '):'Geography not specified';
+    }
+    function traceMeasuresText(trace){
+      const m=trace&&trace.measures||{},states=trace&&trace.measure_states||{},parts=[];
+      if(m.median_wage!==null&&m.median_wage!==undefined)parts.push('Median wage '+money(m.median_wage)+(states.median_wage?' ('+evidenceStateText(states.median_wage)+')':''));
+      if(m.employment!==null&&m.employment!==undefined)parts.push('Employment '+m.employment+(states.employment?' ('+evidenceStateText(states.employment)+')':''));
+      if(m.employment_change_pct!==null&&m.employment_change_pct!==undefined)parts.push('Projected change '+m.employment_change_pct+'%');
+      if(m.annual_openings!==null&&m.annual_openings!==undefined)parts.push('Annual openings '+m.annual_openings);
+      if(m.base_year||m.projection_year)parts.push('Projection period '+(m.base_year||'—')+'–'+(m.projection_year||'—'));
+      return parts.join(' · ');
+    }
+    function explanationTraceDetails(reason){
+      const traces=reason&&Array.isArray(reason.supporting_evidence)?reason.supporting_evidence:[];
+      if(!traces.length)return '';
+      return '<details class="ccx-explanation-trace"><summary>Supporting evidence ('+traces.length+')</summary><div class="ccx-trace-list">'+traces.map(trace=>{
+        const label=trace.soc_code?pathwayLabel({soc_code:trace.soc_code,occupation_title:trace.occupation_title}):(trace.evidence_family==='current_labor_market'?'Current labor-market evidence':'Long-term outlook evidence');
+        const measures=traceMeasuresText(trace);
+        return '<div class="ccx-trace-row"><strong>'+esc(label)+'</strong><span class="ccx-trace-meta">'+esc(traceGeographyText(trace))+'</span><span class="ccx-trace-meta">Evidence state: '+esc(evidenceStateText(trace.evidence_state))+'</span>'+(trace.source_vintage?'<span class="ccx-trace-meta">Source vintage: '+esc(trace.source_vintage)+'</span>':'<span class="ccx-trace-meta">Source vintage: not reported</span>')+(measures?'<span class="ccx-trace-meta">'+esc(measures)+'</span>':'')+'<span class="ccx-trace-id">Evidence ID: '+esc(trace.evidence_id)+'</span></div>';
+      }).join('')+'</div></details>';
+    }
+    function careerPriorityExplanations(x){
+      if(q('ccx-decision-mode').value!=='career_first')return '';
+      const explanation=x&&x.explanation||{},context=Array.isArray(explanation.context)?explanation.context:[],unknowns=Array.isArray(explanation.unknowns)?explanation.unknowns:[];
+      const priorityUnknowns=unknowns.filter(r=>r&&/^(CURRENT_LABOR_PRIORITY|LONG_TERM_OUTLOOK_PRIORITY)/.test(r.code||''));
+      const rows=context.map(r=>'<div class="ccx-priority-explanation"><strong>Priority context</strong>'+esc(r.text)+explanationTraceDetails(r)+'</div>').concat(priorityUnknowns.map(r=>'<div class="ccx-priority-explanation ccx-gap"><strong>Evidence gap</strong>'+esc(r.text)+explanationTraceDetails(r)+'</div>'));
+      return rows.length?'<div class="ccx-priority-explanations">'+rows.join('')+'</div>':'';
+    }
+    function careerAlignmentPreview(x){
+      if(q('ccx-decision-mode').value!=='career_first')return '';
+      const a=x&&x.career_preference_alignment;
+      if(!a||!a.explicit_preference_count)return '';
+      if(a.status!=='observed')return '<div class="ccx-priority-explanation ccx-gap"><strong>Work-characteristic evidence gap</strong>No reviewed O*NET work-activity evidence was available for the mapped career pathways. Missing evidence is not treated as mismatch.</div>';
+      const score=a.score_summary&&a.score_summary.median!=null?Math.round(Number(a.score_summary.median)*100):null,coverage=a.pathway_count?Math.round((Number(a.pathway_coverage_rate)||0)*100):0;
+      const paths=(a.pathways||[]).map(p=>{
+        const title=((x.career_pathways&&x.career_pathways.pathways)||[]).find(y=>y.soc_code===p.soc_code),label=pathwayLabel(title||{soc_code:p.soc_code});
+        const ps=p.alignment_score==null?'—':Math.round(Number(p.alignment_score)*100)+'/100',pc=Math.round((Number(p.coverage_rate)||0)*100)+'% evidence coverage';
+        return '<div class="ccx-trace-row"><strong>'+esc(label)+'</strong><span class="ccx-trace-meta">Alignment index: '+esc(ps)+' · '+esc(pc)+'</span></div>';
+      }).join('');
+      return '<div class="ccx-priority-explanation"><strong>Work-characteristic alignment</strong>Median pathway alignment index: '+esc(score==null?'—':score+'/100')+' · pathways with observed alignment: '+esc(a.observed_pathway_count)+' of '+esc(a.pathway_count)+' · pathway coverage: '+esc(coverage)+'%.<details><summary>Pathway alignment evidence</summary><div class="ccx-trace-list">'+paths+'</div></details><span class="ccx-pathway-note">This index compares only the work characteristics you explicitly selected with reviewed O*NET Work Activity Importance ratings. It is not a probability, placement outcome, or service rank.</span></div>';
+    }
+    function laborSummary(family,type){
+      const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
+      if(!rows.length)return '<div class="ccx-detail-note">'+esc(evidenceStateText(state))+'.</div>';
+      return '<dl class="ccx-evidence-list">'+rows.map(x=>{
+        const label=pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified';
+        if(type==='current')return simpleRow(label,(x.median_wage!==null&&x.median_wage!==undefined?money(x.median_wage):'Wage —')+(x.employment!==null&&x.employment!==undefined?' · employment '+x.employment:''),'wage '+evidenceStateText(x.wage_state||'missing')+(x.source_vintage?' · '+x.source_vintage:''));
+        return simpleRow(label,(x.employment_change_pct!==null&&x.employment_change_pct!==undefined?x.employment_change_pct+'% change':'change —')+(x.annual_openings!==null&&x.annual_openings!==undefined?' · '+x.annual_openings+' annual openings':'')+(x.projection_year?' · through '+x.projection_year:''),x.source_vintage||'');
+      }).join('')+'</dl>';
+    }
+    function renderCandidateDetail(detail){
+      const a=detail.affordability||{},aid=detail.aid_context||{},out=detail.program_outcomes||{},tr=detail.transfer||{},career=detail.career||{},labor=detail.labor_market||{},acc=detail.institution&&detail.institution.accreditation||{},fresh=detail.freshness||{};
+      const unknowns=Array.isArray(detail.unknowns)?detail.unknowns:[];
+      return '<div class="ccx-detail-grid">'+
+        '<section class="ccx-evidence-group"><h4>Cost & debt evidence</h4><dl class="ccx-evidence-list">'+
+          evidenceRow('Average net price',a.net_price,money)+evidenceRow('In-state tuition',a.tuition_in_state,money)+evidenceRow('Out-of-state tuition',a.tuition_out_of_state,money)+evidenceRow('Cost of attendance',a.cost_of_attendance,money)+evidenceRow('Institution median debt',a.institution_median_debt,money)+
+        '</dl><p class="ccx-detail-note">Net price is not the same as tuition or cost of attendance and is not a personalized aid estimate.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Aid context</h4><dl class="ccx-evidence-list">'+
+          evidenceRow('Institutional grant share',aid.institutional_grant_share,percent)+evidenceRow('Work-Study share',aid.work_study_share,percent)+evidenceRow('State/local grant share',aid.state_local_grant_share,percent)+
+        '</dl><p class="ccx-detail-note">These are separate evidence families; availability or reporting does not guarantee an individual award.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Program / field outcomes</h4><dl class="ccx-evidence-list">'+
+          simpleRow('Coverage',out.covered?'Evidence present':'No covered record')+evidenceRow('Median earnings',out.median_earnings,money)+evidenceRow('Median debt',out.median_debt,money)+evidenceRow('Completion rate',out.completion_rate,percent)+
+        '</dl><p class="ccx-detail-note">Program/field outcomes remain separate from institution-level outcomes.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Transfer & career-pathway evidence</h4><dl class="ccx-evidence-list">'+
+          simpleRow('Transfer coverage',tr.covered?'Evidence present':'No covered record')+simpleRow('Transfer evidence records',tr.evidence_record_count)+simpleRow('Evidence levels',listText(tr.evidence_levels))+simpleRow('Source systems',listText(tr.source_systems))+simpleRow('Career pathway coverage',career.covered?'Evidence present':'No covered record')+simpleRow('Mapped pathway count',career.pathway_count)+simpleRow('Related career pathways',pathwayText(career.pathways))+(career.representative_pathways&&career.representative_pathways.length?simpleRow('Representative aligned pathways',pathwayText(career.representative_pathways)):'')+
+        '</dl><p class="ccx-detail-note">CIP→SOC pathways identify related occupations, not observed placement shares. Pathway count is descriptive and is not treated here as a quality score. Representative aligned pathways appear only when reviewed preference-alignment evidence supplies them.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Labor-market evidence</h4><strong class="ccx-detail-note">Current selected-market evidence</strong>'+laborSummary(labor.selected_work_market,'current')+'<strong class="ccx-detail-note">Long-term outlook</strong>'+laborSummary(labor.long_term_outlook,'future')+'<p class="ccx-detail-note">Current-market evidence and long-term projections are separate and do not substitute for one another.</p></section>'+
+        '<section class="ccx-evidence-group"><h4>Source status & provenance</h4><dl class="ccx-evidence-list">'+
+          simpleRow('Accreditation coverage',acc.covered?'Evidence present':'No covered record')+simpleRow('Accreditation statuses',listText(acc.statuses))+simpleRow('Accrediting agencies',listText(acc.agency_names))+simpleRow('Data version',fresh.data_version)+simpleRow('Source freshness',listText(fresh.source_freshness))+simpleRow('Unresolved fields',unknowns.length?unknowns.join('; '):'None reported')+
+        '</dl><p class="ccx-detail-note">Absence of accreditation evidence is unknown coverage, not a determination that an institution is unaccredited.</p></section>'+
+      '</div>';
+    }
+    async function toggleCandidateDetail(button,region){
+      const id=button.dataset.detailKey;
+      if(!region.hidden){region.hidden=true;button.setAttribute('aria-expanded','false');button.textContent='Evidence details';return}
+      region.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Hide evidence details';
+      if(candidateDetailCache.has(id)){region.innerHTML=renderCandidateDetail(candidateDetailCache.get(id));return}
+      region.innerHTML='<div class="ccx-detail-note">Loading governed candidate evidence…</div>';button.disabled=true;
+      let promise=candidateDetailLoads.get(id);
+      if(!promise){promise=client.candidate(id);candidateDetailLoads.set(id,promise)}
+      try{
+        const detail=assertContract(await promise,'candidate');
+        if(detail.candidate_id!==id)throw new Error('Candidate detail identity mismatch');
+        if(metadata&&detail.data_version!==metadata.data_version)throw new Error('Candidate detail data version does not match loaded metadata');
+        candidateDetailCache.set(id,detail);region.innerHTML=renderCandidateDetail(detail);
+      }catch(err){
+        region.innerHTML='<div class="ccx-empty"><strong>Evidence details unavailable.</strong><p>'+esc(err&&err.message||err)+'</p></div>';
+      }finally{
+        candidateDetailLoads.delete(id);button.disabled=false;
+      }
+    }
+    function renderPagination(response){
+      const nav=q('ccx-pagination'),status=q('ccx-page-status'),prev=q('ccx-prev'),next=q('ccx-next');
+      if(!response||!response.pagination){nav.hidden=true;status.textContent='';prev.disabled=true;next.disabled=true;return}
+      const p=response.pagination,total=Number(response.result_count||0),rows=response.results||[];
+      currentPage=Number(p.page||1);
+      const start=total&&rows.length?((currentPage-1)*Number(p.page_size||pageSize)+1):0;
+      const end=total&&rows.length?Math.min(start+rows.length-1,total):0;
+      status.textContent=total?('Page '+currentPage+' of '+p.total_pages+' · showing '+start+'–'+end+' of '+total):'No result pages';
+      prev.disabled=!p.has_previous;next.disabled=!p.has_next;nav.hidden=Number(p.total_pages||0)<=1;
+      root.dataset.currentPage=String(currentPage);root.dataset.totalPages=String(p.total_pages||0);
+    }
+    function compareEvidenceCell(item,formatter){
+      if(!item)return '—<span class="ccx-cell-state">not reported</span>';
+      const value=evidenceValue(item,formatter),state=evidenceStateText(item.evidence_state),bits=[];
+      if(item.source_id)bits.push(item.source_id);if(item.source_vintage)bits.push(item.source_vintage);
+      return value+'<span class="ccx-cell-state">'+esc(state)+'</span>'+(bits.length?'<span class="ccx-cell-source">'+esc(bits.join(' · '))+'</span>':'');
+    }
+    function compareTextCell(value,state){
+      return (value===null||value===undefined||value===''?'—':esc(value))+(state?'<span class="ccx-cell-state">'+esc(state)+'</span>':'');
+    }
+    function compareLaborCell(family,type){
+      const state=family&&family.evidence_state||'unavailable',rows=family&&Array.isArray(family.soc_evidence)?family.soc_evidence:[];
+      if(!rows.length)return '—<span class="ccx-cell-state">'+esc(evidenceStateText(state))+'</span>';
+      return rows.map(x=>{
+        if(type==='current'){
+          const parts=[pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified'];
+          if(x.median_wage!==null&&x.median_wage!==undefined)parts.push(money(x.median_wage));
+          if(x.employment!==null&&x.employment!==undefined)parts.push('employment '+x.employment);
+          return '<div>'+esc(parts.join(' · '))+'<span class="ccx-cell-state">'+esc(evidenceStateText(x.wage_state||state))+(x.source_vintage?' · '+esc(x.source_vintage):'')+'</span></div>';
+        }
+        const parts=[pathwayLabel({soc_code:x.soc_code,occupation_title:x.occupation_title})||'Occupation not identified'];
+        if(x.employment_change_pct!==null&&x.employment_change_pct!==undefined)parts.push(x.employment_change_pct+'% change');
+        if(x.annual_openings!==null&&x.annual_openings!==undefined)parts.push(x.annual_openings+' annual openings');
+        if(x.projection_year)parts.push('through '+x.projection_year);
+        return '<div>'+esc(parts.join(' · '))+(x.source_vintage?'<span class="ccx-cell-state">'+esc(x.source_vintage)+'</span>':'')+'</div>';
+      }).join('');
+    }
+    function renderCompareResponse(response){
+      const host=q('ccx-compare-table'),candidates=response.candidates||[],n=candidates.length;
+      const cells=fn=>candidates.map(x=>'<td>'+fn(x)+'</td>').join('');
+      const row=(label,fn)=>'<tr><th>'+esc(label)+'</th>'+cells(fn)+'</tr>';
+      const section=label=>'<tr class="ccx-compare-section"><th colspan="'+(n+1)+'">'+esc(label)+'</th></tr>';
+      host.innerHTML='<table><tr><th>Evidence field</th>'+candidates.map(x=>'<th><span class="ccx-compare-program">'+esc(x.program.name)+'</span><span class="ccx-compare-school">'+esc(x.institution.name)+'</span></th>').join('')+'</tr>'+
+        section('Program identity')+
+        row('Location',x=>compareTextCell([x.institution.city,x.institution.state].filter(Boolean).join(', ')))+
+        row('Credential',x=>compareTextCell(x.program.credential_level))+
+        row('CIP',x=>compareTextCell([x.program.cip_code,x.program.cip_title].filter(Boolean).join(' · ')))+
+        row('Online availability',x=>compareEvidenceCell(x.program.online_available,v=>String(v)))+
+        section('Cost & debt evidence')+
+        row('Average net price',x=>compareEvidenceCell(x.affordability.net_price,money))+
+        row('In-state tuition',x=>compareEvidenceCell(x.affordability.tuition_in_state,money))+
+        row('Out-of-state tuition',x=>compareEvidenceCell(x.affordability.tuition_out_of_state,money))+
+        row('Cost of attendance',x=>compareEvidenceCell(x.affordability.cost_of_attendance,money))+
+        row('Institution median debt',x=>compareEvidenceCell(x.affordability.institution_median_debt,money))+
+        section('Aid context')+
+        row('Institutional grant share',x=>compareEvidenceCell(x.aid_context.institutional_grant_share,percent))+
+        row('Work-Study share',x=>compareEvidenceCell(x.aid_context.work_study_share,percent))+
+        row('State/local grant share',x=>compareEvidenceCell(x.aid_context.state_local_grant_share,percent))+
+        section('Program / field outcomes')+
+        row('Outcome coverage',x=>compareTextCell(x.program_outcomes.covered?'Evidence present':'No covered record'))+
+        row('Median earnings',x=>compareEvidenceCell(x.program_outcomes.median_earnings,money))+
+        row('Median debt',x=>compareEvidenceCell(x.program_outcomes.median_debt,money))+
+        row('Completion rate',x=>compareEvidenceCell(x.program_outcomes.completion_rate,percent))+
+        section('Transfer & career evidence')+
+        row('Transfer coverage',x=>compareTextCell(x.transfer.covered?'Evidence present':'No covered record'))+
+        row('Transfer evidence records',x=>compareTextCell(x.transfer.evidence_record_count))+
+        row('Transfer evidence levels',x=>compareTextCell(listText(x.transfer.evidence_levels)))+
+        row('Transfer source systems',x=>compareTextCell(listText(x.transfer.source_systems)))+
+        row('Mapped career pathways',x=>compareTextCell(pathwayText(x.career.pathways),x.career.covered?'related occupations; not placement probabilities':'coverage not present'))+
+        row('Mapped pathway count',x=>compareTextCell(x.career.pathway_count,'descriptive; not a quality score'))+
+        section('Labor-market evidence')+
+        row('Current selected market',x=>compareLaborCell(x.labor_market.selected_work_market,'current'))+
+        row('Long-term outlook',x=>compareLaborCell(x.labor_market.long_term_outlook,'future'))+
+        section('Source status & unresolved evidence')+
+        row('Accreditation coverage',x=>compareTextCell(x.institution.accreditation.covered?'Evidence present':'No covered record'))+
+        row('Accreditation statuses',x=>compareTextCell(listText(x.institution.accreditation.statuses)))+
+        row('Accrediting agencies',x=>compareTextCell(listText(x.institution.accreditation.agency_names)))+
+        row('Source freshness',x=>compareTextCell(listText(x.freshness.source_freshness),'data '+(x.freshness.data_version||'not reported')))+
+        row('Unresolved fields',x=>compareTextCell(x.unknowns.length?x.unknowns.join('; '):'None reported'))+
+      '</table>';
+    }
+    function compareContext(){
+      const request=buildGovernedRequest(state());
+      return {intended_work_market:request.geography&&request.geography.intended_work_market||null};
+    }
+    function compareKey(ids,context){return JSON.stringify({data_version:metadata&&metadata.data_version||null,candidate_ids:ids,context})}
+    async function renderCompare(){
+      const host=q('ccx-compare-table'),note=q('ccx-compare-note'),clear=q('ccx-clear'),ids=[...selected];
+      if(ids.length<2||!lastResponse){
+        compareGeneration++;if(activeCompareController){activeCompareController.abort();activeCompareController=null}
+        host.innerHTML='';note.textContent='Select two or three programs from the service results.';clear.hidden=ids.length===0;return
+      }
+      clear.hidden=false;
+      const context=compareContext(),key=compareKey(ids,context),cached=compareCache.get(key);
+      note.textContent='Governed side-by-side evidence comparison; no winner is calculated in the browser.';
+      if(cached){renderCompareResponse(cached);return}
+      const generation=++compareGeneration;
+      if(activeCompareController)activeCompareController.abort();
+      activeCompareController=typeof AbortController!=='undefined'?new AbortController():null;
+      const controller=activeCompareController,signal=controller?controller.signal:null;
+      host.innerHTML='<div class="ccx-detail-note">Loading governed comparison evidence…</div>';
+      try{
+        const response=assertContract(await client.compare(ids,context,{signal}),'compare');
+        if(generation!==compareGeneration)return;
+        if(metadata&&response.data_version!==metadata.data_version)throw new Error('Compare data version does not match loaded metadata');
+        if(JSON.stringify(response.candidate_ids)!==JSON.stringify(ids))throw new Error('Compare response candidate identity/order mismatch');
+        compareCache.set(key,response);renderCompareResponse(response);
+      }catch(err){
+        if(generation!==compareGeneration||err&&err.name==='AbortError')return;
+        host.innerHTML='<div class="ccx-empty"><strong>Comparison evidence unavailable.</strong><p>'+esc(err&&err.message||err)+'</p></div>';
+      }finally{
+        if(generation===compareGeneration&&activeCompareController===controller)activeCompareController=null;
+      }
+    }
+    function renderResponse(response){
+      lastResponse=response;
+      const rows=response.results||[],p=response.pagination||{page:1,page_size:pageSize,total_pages:1,has_next:false,has_previous:false};
+      const mode=response.ordering&&response.ordering.mode==='review_eligible_ranking'?(response.ordering.production_authorized?'authorized ranking':'gated review ranking'):'service order · unranked';
+      const total=Number(response.result_count||0),start=total&&rows.length?((Number(p.page)-1)*Number(p.page_size)+1):0,end=total&&rows.length?Math.min(start+rows.length-1,total):0;
+      q('ccx-count').textContent=total?('Showing '+start+'–'+end+' of '+total+' service-returned program'+(total===1?'':'s')+' · '+mode):('0 service-returned programs · '+mode);
+      q('ccx-results').innerHTML=rows.length?rows.map(x=>{
+        const rec=x.recommendation||{};
+        const score=rec.status==='review_eligible_ranked'&&rec.baseline_score!=null?'<div class="ccx-score">'+esc(rankLabel(rec))+' · '+Math.round(rec.baseline_score*100)+'/100 index</div>':'<div class="ccx-score">'+esc(rankLabel(rec))+'</div>';
+        const career=x.career_pathways&&x.career_pathways.pathway_count!=null?'<span class="ccx-pill">'+esc(x.career_pathways.pathway_count)+' mapped career pathway'+(x.career_pathways.pathway_count===1?'':'s')+'</span>':'';
+        const careerPreview=pathwayPreview(x.career_pathways);
+        const careerSnapshot=careerCardSnapshot(x);
+        const priorityExplanations=careerPriorityExplanations(x);
+        const careerAlignment=careerAlignmentPreview(x);
+        const coverage=x.evidence_coverage?'<span class="ccx-pill">'+esc(x.evidence_coverage.overall_status)+' evidence coverage</span>':'';
+        const unknownCount=x.explanation&&Array.isArray(x.explanation.unknowns)?x.explanation.unknowns.length:0;
+        const unknown=unknownCount?'<span class="ccx-pill">'+unknownCount+' unresolved must-have evidence field'+(unknownCount===1?'':'s')+'</span>':'';
+        const selectedAttr=selected.has(x.candidate_id)?' checked':'';
+        return '<article class="ccx-card"><div class="ccx-card-top"><div><div class="ccx-rank">'+esc(rec.status==='review_eligible_ranked'?(rec.production_authorized?'Production ranking':'Review-eligible ranking'):'Service result')+'</div><h3>'+esc(x.program.name)+'</h3><p class="ccx-school">'+esc(x.institution.name)+' · '+esc(x.institution.state||'')+'</p></div>'+score+'</div><div class="ccx-meta"><span class="ccx-pill">'+esc(x.program.credential_level||'Credential not reported')+'</span>'+career+coverage+unknown+'</div>'+careerPreview+careerSnapshot+careerAlignment+priorityExplanations+'<div class="ccx-reasons"><div class="ccx-reason">'+esc(resultReason(x))+'</div></div><details><summary>Service evidence status</summary><div class="ccx-detail">Eligibility: '+esc(x.eligibility.status)+'. Recommendation status: '+esc(rec.status||'not_ranked')+'. Production authorized: '+(rec.production_authorized?'yes':'no')+'. Current labor-market evidence: '+esc(x.labor_market&&x.labor_market.selected_work_market&&x.labor_market.selected_work_market.evidence_state||'not loaded')+'. Long-term outlook: '+esc(x.labor_market&&x.labor_market.long_term_outlook&&x.labor_market.long_term_outlook.evidence_state||'not loaded')+'.</div></details><div class="ccx-card-actions"><button type="button" class="ccx-detail-button" data-detail-key="'+esc(x.candidate_id)+'" aria-expanded="false">Evidence details</button><label class="ccx-compare-toggle"><input type="checkbox" data-key="'+esc(x.candidate_id)+'"'+selectedAttr+'> <span>Compare</span></label></div><div class="ccx-detail-region" data-detail-region="'+esc(x.candidate_id)+'" hidden></div></article>';
+      }).join(''):'<div class="ccx-empty"><strong>No service results returned.</strong><p>Try relaxing one or more must-have constraints.</p></div>';
+      root.querySelectorAll('.ccx-detail-button').forEach(button=>button.addEventListener('click',()=>{const region=button.closest('.ccx-card').querySelector('.ccx-detail-region');toggleCandidateDetail(button,region)}));
+      root.querySelectorAll('.ccx-compare-toggle input').forEach(el=>el.addEventListener('change',()=>{
+        if(el.checked&&selected.size>=3){el.checked=false;q('ccx-compare-note').textContent='Compare up to three programs at a time.';return}
+        if(el.checked){selected.add(el.dataset.key);const row=rows.find(x=>x.candidate_id===el.dataset.key);if(row)selectedRecords.set(el.dataset.key,row)}else{selected.delete(el.dataset.key);selectedRecords.delete(el.dataset.key)}renderCompare();
+      }));
+      renderCompare();renderPagination(response);
+    }
+    function renderRequestState(request){
+      const suffix=root.dataset.serviceMode==='fixture'?' Static fixture records remain fixed; no browser-side filtering or ranking is performed.':' Results are requested from the configured service.';
+      q('ccx-request-state').textContent='Governed request: '+request.constraints.length+' must-have constraint'+(request.constraints.length===1?'':'s')+' · '+request.preferences.length+' explicit priorit'+(request.preferences.length===1?'y':'ies')+' · '+(request.career_preferences||[]).length+' work-characteristic priorit'+((request.career_preferences||[]).length===1?'y':'ies')+'.'+suffix;
+    }
+    function populateSelect(id,items,placeholder,skipValue){
+      const el=q(id),current=el.value;
+      const usable=(items||[]).filter(x=>!skipValue||x.value!==skipValue);
+      el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+usable.map(x=>'<option value="'+esc(x.value)+'">'+esc(x.label||x.value)+'</option>').join('');
+      if(usable.some(x=>String(x.value)===String(current)))el.value=current;
+    }
+    function populateGovernedLookups(o){
+      governedLookups.institution.clear();governedLookups.program.clear();
+      const institutions=o.institutions||[],programs=o.programs||[],institutionLabels=new Map(institutions.map(x=>[String(x.value),x.label||x.value]));
+      const institutionOptions=institutions.map(x=>{
+        const place=[x.city,x.state].filter(Boolean).join(', '),display=(x.label||x.value)+(place?' — '+place:'')+' ['+x.value+']';
+        governedLookups.institution.set(display,String(x.value));governedLookups.institution.set(String(x.value),String(x.value));
+        return '<option value="'+esc(display)+'"></option>';
+      });
+      const programOptions=programs.map(x=>{
+        const candidateId=String(x.candidate_id||x.value),school=institutionLabels.get(String(x.unitid))||String(x.unitid||''),display=(x.label||candidateId)+(school?' — '+school:'')+' ['+candidateId+']';
+        governedLookups.program.set(display,candidateId);governedLookups.program.set(candidateId,candidateId);
+        return '<option value="'+esc(display)+'"></option>';
+      });
+      governedLookups.market.clear();
+      const marketOptions=(o.labor_markets||[]).map(x=>{
+        const market={market_id:String(x.market_id),market_type:String(x.market_type)},display=(x.label||x.value)+' ['+market.market_type+':'+market.market_id+']';
+        governedLookups.market.set(display,market);governedLookups.market.set(String(x.value),market);
+        return '<option value="'+esc(display)+'"></option>';
+      });
+      q('ccx-institution-options').innerHTML=institutionOptions.join('');
+      q('ccx-program-options').innerHTML=programOptions.join('');
+      q('ccx-labor-market-options').innerHTML=marketOptions.join('');
+      q('ccx-selected-market-option').disabled=marketOptions.length===0;
+      if(marketOptions.length===0&&q('ccx-work-market-semantics').value==='selected_market')q('ccx-work-market-semantics').value='unspecified';
+      governedLookups.career.clear();
+      const careerOptions=o.career_preference_attributes||[];
+      careerOptions.forEach(x=>governedLookups.career.set(String(x.question_id),x));
+      const careerRows={career_analysis:'ccx-career-analysis-row',career_problem_solving:'ccx-career-problem-solving-row',career_creativity:'ccx-career-creativity-row'};
+      Object.entries(careerRows).forEach(([qid,id])=>{q(id).hidden=!governedLookups.career.has(qid);if(!governedLookups.career.has(qid))q(id).querySelector('input').checked=false});
+      q('ccx-career-characteristics').hidden=careerOptions.length===0;
+    }
+    function applyServiceOptions(response){
+      const o=response.options||{};
+      populateSelect('ccx-cip',o.cip_fields,'Any academic field in the active snapshot');
+      populateSelect('ccx-state',o.states,'Anywhere in the active snapshot');
+      populateSelect('ccx-setting',o.campus_settings,'Any setting');
+      populateSelect('ccx-credential',o.credential_levels,'Any credential');
+      populateSelect('ccx-income',o.affordability&&o.affordability.income_bands,'Use overall average net price','overall');
+      populateGovernedLookups(o);
+    }
+    async function refresh(){
+      const generation=++requestGeneration;
+      if(activeRequestController)activeRequestController.abort();
+      activeRequestController=typeof AbortController!=='undefined'?new AbortController():null;
+      const controller=activeRequestController,signal=controller?controller.signal:null;
+      let request;
+      try{
+        request=buildGovernedRequest(state());root.dataset.governedRequest=JSON.stringify(request);root.dataset.requestStatus='loading';renderRequestState(request);
+        const response=assertContract(await client.match(request,{signal}),'match',{productionAuthorized:runtimeConfig.production_authorized});
+        if(generation!==requestGeneration)return;
+        if(metadata&&(response.data_version!==metadata.data_version||response.model_version!==metadata.model_version))throw new Error('Service response version does not match loaded metadata');
+        if(runtimeConfig.mode!=='fixture'&&response.pagination&&(Number(response.pagination.page)!==Number(request.page)||Number(response.pagination.page_size)!==Number(request.page_size)))throw new Error('Service pagination does not match the governed request');
+        renderResponse(response);root.dataset.serviceStatus='ready';root.dataset.requestStatus='ready';renderServiceIdentity();
+      }catch(err){
+        if(generation!==requestGeneration||err&&err.name==='AbortError')return;
+        transientServiceFailure(err);
+      }finally{
+        if(generation===requestGeneration&&activeRequestController===controller)activeRequestController=null;
+      }
+    }
+    function scheduleRefresh(){clearTimeout(refreshTimer);refreshTimer=setTimeout(refresh,120)}
+    function criteriaChanged(){currentPage=1;selected.clear();selectedRecords.clear();renderCompare();scheduleRefresh()}
+    async function goToPage(page){
+      const totalPages=lastResponse&&lastResponse.pagination?Number(lastResponse.pagination.total_pages||0):0;
+      const target=Math.max(1,Math.min(Number(page)||1,totalPages||1));
+      if(target===currentPage)return;
+      currentPage=target;await refresh();
+      q('ccx-results-title').scrollIntoView({block:'start',behavior:'auto'});
+    }
+    async function retryService(){
+      q('ccx-retry').disabled=true;root.dataset.serviceStatus='recovering';root.dataset.requestStatus='recovering';
+      q('ccx-service-state').innerHTML='<strong>Rechecking governed service…</strong> Validating service identity before restoring results.';
+      let recoveredMetadata,recoveredOptions;
+      try{
+        recoveredMetadata=assertContract(await client.metadata(),'metadata');
+        recoveredOptions=assertContract(await client.options(),'options');
+      }catch(err){
+        transientServiceFailure(err);return;
+      }
+      try{
+        recoveredMetadata=assertRuntimeMetadata(runtimeConfig,recoveredMetadata);
+        if(recoveredOptions.data_version!==recoveredMetadata.data_version)throw new Error('Options data version does not match recovered metadata');
+      }catch(err){
+        fatalServiceFailure(err);return;
+      }
+      metadata=recoveredMetadata;optionResponse=recoveredOptions;applyServiceOptions(optionResponse);setInteractive(true);renderServiceIdentity();
+      await refresh();
+    }
+
+    const client=new MatchingServiceClient({mode:runtimeConfig.mode,baseUrl:runtimeConfig.service_base_url||'',fixtureUrl:runtimeConfig.fixture_url||'./prototype/contract-fixtures.json',runtimeConfig});
+    root.dataset.serviceStatus='initializing';setInteractive(false);
+    try{
+      await client.load();
+      metadata=assertRuntimeMetadata(runtimeConfig,assertContract(await client.metadata(),'metadata'));
+      optionResponse=assertContract(await client.options(),'options');
+      if(optionResponse.data_version!==metadata.data_version)throw new Error('Options data version does not match loaded metadata');
+      applyServiceOptions(optionResponse);
+      renderServiceIdentity();root.dataset.serviceStatus='ready';setInteractive(true);
+      q('ccx-mode-note').innerHTML=runtimeConfig.mode==='fixture'?'<strong>Synthetic fixture mode:</strong> this public portfolio page currently uses a static, fictional service response while the authoritative product snapshot and recommendation release remain gated. The controls build the real governed request shape, but the static fixture records do not change with that request and should not be used as college advice.':runtimeConfig.mode==='staging'?'<strong>Synthetic staging mode:</strong> this non-public harness is connected to the real HTTP service boundary using invented records. It is explicitly non-production and must not be used as college advice.':'<strong>Production service mode:</strong> the browser accepted an explicitly authorized service only after its metadata matched the activation-pinned data, model, and snapshot identity.';
+    }catch(err){
+      fatalServiceFailure(err);return;
+    }
+    controls.forEach(id=>{const el=q(id);if(el){el.addEventListener('change',()=>{if(id==='ccx-decision-mode'||id==='ccx-work-market-semantics')updateModeContext();criteriaChanged()});if(el.type!=='search')el.addEventListener('input',criteriaChanged)}});
+    q('ccx-page-size').addEventListener('change',()=>{pageSize=Number(q('ccx-page-size').value)||20;currentPage=1;refresh()});
+    q('ccx-prev').addEventListener('click',()=>goToPage(currentPage-1));q('ccx-next').addEventListener('click',()=>goToPage(currentPage+1));
+    q('ccx-reset').addEventListener('click',()=>{q('ccx-form').reset();selected.clear();selectedRecords.clear();currentPage=1;pageSize=Number(q('ccx-page-size').value)||20;updateModeContext();refresh();q('ccx-decision-mode').focus()});
+    q('ccx-clear').addEventListener('click',()=>{selected.clear();selectedRecords.clear();renderCompare();renderResponse(lastResponse)});q('ccx-retry').addEventListener('click',retryService);
+    updateModeContext();
+    root.getGovernedRequest=()=>buildGovernedRequest(state());
+    root.getLastServiceResponse=()=>lastResponse;root.getRequestGeneration=()=>requestGeneration;root.getPaginationState=()=>({page:currentPage,page_size:pageSize,total_pages:lastResponse&&lastResponse.pagination?lastResponse.pagination.total_pages:0,selected_count:selected.size});root.getCandidateDetailState=()=>({cached_ids:[...candidateDetailCache.keys()],loading_ids:[...candidateDetailLoads.keys()]});root.getCompareState=()=>({generation:compareGeneration,cached_keys:[...compareCache.keys()],selected_ids:[...selected],loading:!!activeCompareController});
+    await refresh();
+  })();
+  </script>
+</div>
+</body>
+</html>
++Math.round(n).toLocaleString('en-US');
+const number=n=>n===null?unknown:Math.round(n).toLocaleString('en-US');
+function link(group,label,target){const u=url(target);if(!u)return;const a=el('a','',label);a.href=u;a.target='_blank';a.rel='noopener noreferrer';group.append(a)}
+function addField(dl,k,value){const dt=el('dt','',k),dd=el('dd','',value==null?unknown:value);dl.append(dt,dd)}
+function scoreDesc(rec,key,input,unit){const a=rec[key];if(!a||typeof a.value!=='number')return unknown;
+ const baseline=(key==='hs'?`${a.value.toFixed(1)} / 100`:a.value.toFixed(2)+' / 4.0');
+ if(input===null)return `${baseline} admitted-cohort mean (${a.cohort||'cohort unspecified'}); not a cutoff`;
+ const diff=input-a.value;
+ return `${baseline} admitted-cohort mean; your input is ${Math.abs(diff).toFixed(unit==='hs'?1:2)} ${unit==='hs'?'points':'GPA points'} ${diff>=0?'above':'below'} that historical mean—not admission odds`;
+}
+function card(rec,inputs){
+ const c=el('article','ny20-card'); c.append(el('h3','',rec.name),el('p','ny20-meta',`${rec.city||'Location not confirmed'}, ${rec.state||'state unreported'} · ${rec.system} · UNITID ${rec.unitid}`));
+ const dl=el('dl');addField(dl,'Undergraduates',number(rec.size));
+ let net=inputs.income==='overall'?rec.net:val(rec.income[inputs.income]);
+ addField(dl,inputs.income==='overall'?'Average net price':'Income-band net price',fmt(net));
+ if(inputs.budget!==null)addField(dl,'Budget comparison',net===null?'Unknown price — retained':net>inputs.budget?'Reported average above selected reference (not filtered)':'Reported average within selected reference (not a quote)');
+ addField(dl,'In-state tuition',fmt(rec.tuition));
+ addField(dl,'Freshman academic profile',scoreDesc(rec,'hs',inputs.hs,'hs'));
+ addField(dl,'Transfer academic profile',scoreDesc(rec,'transfer',inputs.transfer,'transfer'));
+ const housingLabels={CAMPUS_OPERATED_RESIDENCES:'Institution-operated residence information',PARTNER_CAMPUS_SUNY_PLATTSBURGH_HALLS:'Partner-campus housing arrangement',NO_INSTITUTION_OWNED_HOUSING:'No institution-owned housing reported',AVAILABLE_OFF_CAMPUS_COLLEGE_AFFILIATED:'College-affiliated off-campus housing reference',NOT_VERIFIED:'Housing arrangement not verified'};
+ addField(dl,'Housing',housingLabels[rec.housing]||'Housing arrangements require confirmation');
+ if(rec.housing_price!==null)addField(dl,'Published room rate',`${fmt(rec.housing_price)} starting · ${rec.housing_period||'period not verified'} · ${rec.housing_year||'year not verified'}`);
+ addField(dl,'Accessible routes',unknown);
+ if(inputs.housing)addField(dl,'Housing priority','Room and accessible-room vacancies are not verified; contact the provider');
+ c.append(dl);
+ if(rec.relocation)c.append(el('p','ny20-caveat',rec.relocation));
+ c.append(el('p','ny20-unknown','Program-specific offerings, prerequisites, guaranteed transfer credits, admission probabilities, and room/route accessibility are not yet verified in this dataset. Missing values do not mean zero or unavailable.'));
+ const l=el('div','ny20-links');link(l,'Programs',rec.links.programs);link(l,'Accessibility services',rec.links.disability_services);link(l,'Housing details',rec.links.housing);link(l,'Financial aid calculator',rec.links.net_price_calculator);link(l,'Transfer resources',rec.links.transfer);link(l,'Institution website',rec.links.institution_website);c.append(l);
+ c.append(el('p','ny20-meta','Source: College Scorecard institution extract, June 10, 2026. Underlying price/enrollment cohort years may differ. Academic profiles: cited admitted cohorts, not eligibility criteria.'));
+ return c;
+}
+function inputNumber(id,min,max){const value=String(lookup(id)?.value||'').trim();if(!value)return null;const n=Number(value);return Number.isFinite(n)&&n>=min&&n<=max?n:null;}
+function filter(){const s=(lookup('ny20-search')?.value||'').trim().toLowerCase();const sy=lookup('ny20-system')?.value||'';const st=lookup('ny20-state')?.value||'';const size=lookup('ny20-size')?.value||'';const sort=lookup('ny20-sort')?.value||'name';
+ const pass=records.filter(r=>{
+ if(s&&!`${r.name} ${r.city} ${r.state} ${r.system} ${r.unitid}`.toLowerCase().includes(s))return false;
+ if(sy&&r.system!==sy)return false;if(st&&r.state!==st)return false;
+ // A missing size is preserved as unknown rather than excluded by a numerical filter.
+ if(r.size!==null&&size==='small'&&r.size>=5000)return false;
+ if(r.size!==null&&size==='medium'&&(r.size<5000||r.size>=15000))return false;
+ if(r.size!==null&&size==='large'&&r.size<15000)return false;
+ return true});
+ pass.sort((a,b)=>sort==='size_desc'?(b.size??-1)-(a.size??-1)||a.name.localeCompare(b.name):sort==='size_asc'?(a.size??Infinity)-(b.size??Infinity)||a.name.localeCompare(b.name):a.name.localeCompare(b.name));return pass;
+}
+function render(){if(!records.length)return;const inp={income:lookup('ny20-income')?.value||'overall',budget:inputNumber('ny20-budget',0,1000000),hs:inputNumber('ny20-hs',0,100),transfer:inputNumber('ny20-transfer',0,4),housing:!!lookup('ny20-housing')?.checked};
+ const arr=filter(),frag=document.createDocumentFragment();for(const r of arr)frag.append(card(r,inp));if(!arr.length)frag.append(el('p','ny20-empty','No institutions meet those confirmed filters. Try a broader location or school-size range.'));
+ results.replaceChildren(frag);lookup('ny20-count').textContent=`Showing ${arr.length} of ${records.length} institutions · descriptive records only · ${dataVersion}`;
+}
+function setOptions(id,values){const sel=lookup(id);if(!sel)return;for(const v of values){if(!v)continue;const x=el('option','',v);x.value=v;sel.append(x);}}
+function activate(payload){const d=normalize(payload);records=d.records;dataVersion=d.version;
+ for(const id of ['ny20-system','ny20-state']){const elSel=lookup(id);if(elSel)while(elSel.options.length>1)elSel.remove(1);}
+ setOptions('ny20-system',[...new Set(records.map(x=>x.system))].sort());setOptions('ny20-state',[...new Set(records.map(x=>x.state))].sort());render();
+}
+function mode(real){pane.hidden=!real;if(root)root.hidden=real;for(const n of demoNotes)n.hidden=real;bReal.setAttribute('aria-pressed',String(real));bDemo.setAttribute('aria-pressed',String(!real));}
+bReal.addEventListener('click',()=>mode(true));bDemo.addEventListener('click',()=>mode(false));
+for(const id of controls)lookup(id)?.addEventListener('input',render);
+const embedded=lookup('ny20-embedded-data');
+try{activate(JSON.parse(embedded.textContent));loadState='bundled';}catch(e){results.replaceChildren(el('p','ny20-empty','Institution records could not be loaded; the program demonstration remains available.'));loadState='failed';}
+mode(loadState!=='failed');
+// Independently versioned public projection can expand to more schools; retain bundled fallback if unavailable.
+if(typeof fetch==='function')fetch(SOURCE_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('network unavailable');return r.json()}).then(d=>{activate(d);loadState='remote';}).catch(()=>{});
+// Separate from the governed program-scoring service: no student data are transmitted.
+window.CCXInstitutionReference={normalize,refresh:render,version:()=>dataVersion};
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
+})();
+
+</script>
+
+<div class="ccx-service-state" id="ccx-service-state" role="status" aria-live="polite">Loading governed fixture service…</div><button class="ccx-reset" id="ccx-retry" type="button" hidden>Retry matcher</button><div class="ccx-request-state" id="ccx-request-state" aria-live="polite"></div>
     <div class="ccx-grid">
       <form class="ccx-controls" id="ccx-form">
         <fieldset>
