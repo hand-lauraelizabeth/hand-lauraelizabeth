@@ -4,4 +4,7 @@ assert.equal(signals.validateGpa('3.5', '4', 'unweighted').ok, true);
 assert.equal(signals.validateTesting('sat','1200','',{satReadingWriting:'600',satMath:'600'}).ok,true);
 assert.equal(signals.validateTesting('sat','1200','',{satReadingWriting:'610',satMath:'600'}).ok,false);
 assert.equal(signals.validateTesting('sat','1200','',{satReadingWriting:'605'}).ok,false);
+assert.equal(signals.validateTesting('act','','25',{actEnglish:'24',actMath:'25',actReading:'26'}).ok,true);
+assert.equal(signals.validateTesting('act','','25',{actEnglish:'0'}).ok,false);
+assert.equal(signals.validateTesting('act','','25',{actScience:'37'}).ok,false);
 console.log('PASS applicant baseline');
