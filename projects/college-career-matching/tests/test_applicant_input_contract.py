@@ -164,5 +164,29 @@ class ApplicantInputTests(unittest.TestCase):
         self.assertEqual(policy["publication_status"], "DO_NOT_PUBLISH")
 
 
+    def test_school_policy_tampering_is_rejected(self):
+        base = m.validate_institution_testing_policy(
+            "blind", unitid="123456", source_url="https://example.edu",
+            reporting_year=2025, admissions_cohort="Fall 2025",
+            independently_reviewed=True)
+        for key, value in (
+            ("effective_policy", "required"),
+            ("reported_policy", "optional"),
+            ("independently_reviewed", False),
+            ("reporting_year", 2026),
+            ("admissions_cohort", "Fall 2026"),
+            ("publication_status", "PUBLISH")):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                m.testing_evidence_with_provenance({**base, key: value}, m.validate_sat(1400))
+
+    def test_school_policy_unreviewed_cannot_claim_effective_policy(self):
+        base = m.validate_institution_testing_policy(
+            "required", unitid="123456", source_url="https://example.edu",
+            reporting_year=2025, admissions_cohort="Fall 2025")
+        with self.assertRaises(ValueError):
+            m.testing_evidence_with_provenance(
+                {**base, "effective_policy": "required"}, m.validate_act(30))
+
+
 if __name__ == "__main__":
     unittest.main()
