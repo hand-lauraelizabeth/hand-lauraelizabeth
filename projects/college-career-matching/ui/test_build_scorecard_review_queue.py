@@ -38,6 +38,23 @@ class ReviewQueueTests(unittest.TestCase):
             self.assertEqual(rows[0]["publication_status"], "DO_NOT_PUBLISH")
             self.assertEqual(rows[1]["net_price_population"], "PRIV")
 
+    def test_invalid_nces_locale_remains_unknown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "source.csv"
+            output = Path(tmp) / "review.csv"
+            with source.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=["UNITID", "INSTNM", "CONTROL", "LOCALE"])
+                writer.writeheader()
+                for unitid, locale in [("111111", "14"), ("222222", "20"), ("333333", "43"), ("444444", "21"), ("555555", "PS")]:
+                    writer.writerow({"UNITID": unitid, "INSTNM": "Synthetic " + unitid, "CONTROL": "1", "LOCALE": locale})
+            self.assertEqual(queue.build(source, output, 5), 5)
+            with output.open(encoding="utf-8", newline="") as handle:
+                rows = {row["UNITID"]: row for row in csv.DictReader(handle)}
+            self.assertEqual([rows[x]["locale_category"] for x in ("111111", "222222", "555555")], ["Unknown"] * 3)
+            self.assertEqual(rows["333333"]["locale_category"], "Rural")
+            self.assertEqual(rows["444444"]["locale_category"], "Suburb")
+            self.assertTrue(all(row["publication_status"] == "DO_NOT_PUBLISH" for row in rows.values()))
+
     def test_invalid_limit_rejected(self):
         with self.assertRaisesRegex(ValueError, "LIMIT"):
             queue.build("unused.csv", "unused-output.csv", 0)
