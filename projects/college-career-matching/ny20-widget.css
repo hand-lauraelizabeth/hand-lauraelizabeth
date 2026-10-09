@@ -1,0 +1,26 @@
+#leh-ccx .ny20-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;margin:16px 0}
+#leh-ccx .ny20-controls label{display:block;color:#284b3e;font-weight:700;font-size:13px;margin:0}
+#leh-ccx .ny20-controls input,#leh-ccx .ny20-controls select{display:block;width:100%;margin:5px 0 0;min-height:44px;padding:8px 10px;font:inherit;color:#162e26;border:1px solid #a5bcb0;background:#fff;border-radius:8px}
+#leh-ccx .ny20-mode-row{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+#leh-ccx .ny20-mode-row button{border:1px solid #315e50;background:white;color:#184537;padding:10px 15px;min-height:44px;border-radius:999px;font:inherit;font-weight:700;cursor:pointer}
+#leh-ccx .ny20-mode-row button[aria-pressed=true]{background:#245847;color:#fff}
+#leh-ccx .ny20-mode-row button:focus-visible,#leh-ccx .ny20-controls :focus-visible,#leh-ccx .ny20-card a:focus-visible{outline:3px solid #7aa994;outline-offset:3px}
+#leh-ccx #ccx-real-institutions[hidden],#leh-ccx .ccx-grid[hidden],#leh-ccx #ccx-mode-note[hidden],#leh-ccx #ccx-service-state[hidden],#leh-ccx #ccx-retry[hidden],#leh-ccx #ccx-request-state[hidden]{display:none!important}
+#leh-ccx #ccx-real-institutions{background:#f7faf8;padding:20px;border:1px solid #d8e2dc;border-radius:16px;margin:18px 0}
+#leh-ccx #ccx-real-institutions .ny20-legend{font-size:13px;line-height:1.55;color:#476155;margin:0 0 15px}
+#leh-ccx #ccx-real-institutions h2{font:700 29px Georgia,serif;color:#184537;margin:0 0 9px}
+#leh-ccx #ccx-real-institutions h3{font:700 23px Georgia,serif;color:#184537;margin:0 0 6px}
+#leh-ccx .ny20-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:12px}
+#leh-ccx .ny20-card{background:#fff;border:1px solid #d9e3dc;border-radius:12px;padding:15px;min-width:0}
+#leh-ccx .ny20-card p{margin:5px 0 10px;font-size:14px;line-height:1.5}
+#leh-ccx .ny20-card .ny20-meta{font-size:12px;color:#476155}
+#leh-ccx .ny20-card dl{margin:12px 0;display:grid;grid-template-columns:minmax(100px,1fr) 1.4fr;gap:6px 12px;font-size:13px}
+#leh-ccx .ny20-card dt{font-weight:700;color:#3f5d51}
+#leh-ccx .ny20-card dd{margin:0;min-width:0;overflow-wrap:anywhere}
+#leh-ccx .ny20-card a{color:#205b47;text-decoration:underline;text-underline-offset:2px}
+#leh-ccx .ny20-card .ny20-links{display:flex;flex-wrap:wrap;gap:7px 14px;font-size:13px;border-top:1px solid #e4ece7;padding-top:11px;margin-top:12px}
+#leh-ccx .ny20-card .ny20-unknown{padding:8px 10px;background:#f5f8f6;border-radius:7px;color:#4a6257;font-size:12px}
+#leh-ccx .ny20-count{font-size:13px;color:#3e5e51;margin:12px 0}
+#leh-ccx .ny20-caveat{border-left:3px solid #477965;padding:10px 12px;background:#edf4ef;color:#284a3e;font-size:13px;line-height:1.5;margin:8px 0 16px}
+#leh-ccx .ny20-empty{padding:18px;background:white;border:1px solid #d9e3dc;border-radius:9px}
+@media(max-width:640px){#leh-ccx #ccx-real-institutions{padding:12px}#leh-ccx .ny20-card dl{grid-template-columns:1fr;gap:2px}}
