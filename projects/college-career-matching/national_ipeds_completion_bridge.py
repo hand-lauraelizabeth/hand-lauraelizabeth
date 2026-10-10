@@ -68,7 +68,7 @@ def checked_rows(stream, required):
     missing = required - set(columns)
     if missing:
         raise ValueError("Missing required IPEDS fields: " + ", ".join(sorted(missing)))
-    if "CIP6" in required and "CIP6" not in columns and "CIPCODE" not in columns:
+    if "CTOTALT" in required and "CIP6" not in columns and "CIPCODE" not in columns:
         raise ValueError("Missing CIP6/CIPCODE")
     for row in reader:
         if None in row:
@@ -113,7 +113,7 @@ def normalize_cip(value):
         token = token.replace(".", "")
     if not re.fullmatch(r"\d{6}", token):
         return None
-    if token.startswith("99") or token == "000099":
+    if token.startswith("99") or token in {"000099", "000000"}:
         return None
     return token
 
