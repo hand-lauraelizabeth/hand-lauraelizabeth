@@ -1,0 +1,32 @@
+name: College Search live WordPress browser smoke
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - '.github/workflows/college-search-live-smoke.yml'
+      - 'projects/college-career-matching/tests/test_college_search_live.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Chromium browser
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Test production page 1044 live, read-only
+        run: python projects/college-career-matching/tests/test_college_search_live.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: college-search-live-smoke-evidence
+          path: college-search-live-smoke/
+          if-no-files-found: warn

@@ -1,7 +1,7 @@
 """Dataset-only regression tests; these do not authorize admissions prediction or rankings."""
 import hashlib, json, pathlib, unittest
 ROOT=pathlib.Path(__file__).resolve().parent
-P=ROOT/'shards' if (ROOT/'shards'/'manifest.v1.json').exists() else ROOT.parent/'data'/'national'
+P=ROOT.parent/'data'/'national'  # always audit the committed production source, not an optional fixture
 M=json.loads((P/'manifest.v1.json').read_text())
 class NationalSnapshotTests(unittest.TestCase):
  @classmethod
@@ -9,7 +9,8 @@ class NationalSnapshotTests(unittest.TestCase):
   cls.rows=[]
   for i,part in enumerate(M['shards']):
    p=P/part['file'];raw=p.read_bytes()
-   assert hashlib.sha256(raw).hexdigest()==part['sha256'],part['file']
+   actual=hashlib.sha256(raw).hexdigest()
+   assert actual==part['sha256'], f"{p}: actual sha256={actual}, manifest sha256={part['sha256']}, bytes={len(raw)}"
    d=json.loads(raw);assert d['part']==i and d['schema_version']=='1.0'
    assert len(d['records'])==part['count']
    cls.rows.extend(d['records'])
@@ -26,13 +27,15 @@ class NationalSnapshotTests(unittest.TestCase):
   self.assertEqual(len(set(ids)),len(ids));self.assertTrue(all(re.fullmatch(r'\d{6}(?:\d{2})?',x) for x in ids));self.assertTrue(any(len(x)==8 for x in ids))
  def test_states_and_territories(self):
   self.assertEqual(len({r[self.fields['state']] for r in self.rows}),59)
- def test_mapped_ny_pilot(self):
-  pilots=[pathlib.Path('/mnt/data/NY20_Live_Integration_2026-10-09/ny20-institution-evidence.v1.json'),ROOT.parent/'data'/'ny20-institution-evidence.v1.json']
-  pilot=next((x for x in pilots if x.exists()),None)
-  self.assertIsNotNone(pilot)
-  old=json.loads(pilot.read_text())
-  for r in old['institutions']:
-   new=self.item(r['unitid']);self.assertEqual(new[self.fields['name']],r['name']);self.assertEqual(new[self.fields['size']],r['size']['value']);self.assertEqual(new[self.fields['net_price']],r['net_price']['value'])
+ def test_public_ny_directory_identity(self):
+  # Verify public-only reference identity; do not depend on deleted unreviewed NY20 evidence.
+  directory=json.loads((ROOT.parent/'ny-pilot-20-public-reference.json').read_text())
+  self.assertEqual(directory['publication_scope'],'PUBLIC_REFERENCE_DIRECTORY_ONLY')
+  self.assertIs(directory['matcher_activation_authorized'],False)
+  for entry in directory['institutions']:
+   new=self.item(entry['unitid'])
+   self.assertEqual(new[self.fields['name']],entry['name'])
+   self.assertEqual(new[self.fields['city']],entry['city'])
  def test_income_five_bands_and_missing(self):
   for r in self.rows:
    a=r[self.fields['income_net_prices']];self.assertEqual(len(a),5)

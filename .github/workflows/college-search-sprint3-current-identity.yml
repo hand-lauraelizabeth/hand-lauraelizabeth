@@ -1,0 +1,72 @@
+name: Sprint 3 official NCES directory and institution identity reconciliation
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/reconcile_sprint3_06.py'
+      - '.github/workflows/college-search-sprint3-current-identity.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  current-identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate canonical dataset and script
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python -m py_compile projects/college-career-matching/reconcile_sprint3_06.py
+      - name: Reproduce all 49 cases and check official NCES and institution sources
+        run: python projects/college-career-matching/reconcile_sprint3_06.py
+      - name: Verify fail-closed identity registry and complete audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("projects/college-career-matching")
+          s=json.loads((root/"research_aggregate/s3_06_reconciliation_summary.json").read_text())
+          q=json.loads((root/"research_work/s3_06_49_case_ledger.json").read_text())["rows"]
+          registry=json.loads((root/"research_aggregate/s3_05_approved_city_place_registry.json").read_text())
+          assert len(q)==s["records_reviewed"]==49
+          assert sum(s["decisions"].values())==49
+          assert s["new_approved_census_place_geoids"]==0
+          assert registry["accepted_records"]==3 and not registry["deployment_approved"]
+          assert all(not x["institution_current_identity_cleared"] for x in q)
+          assert all(x["approved_place_geoid"] is None and x["campus_coordinates"] is None for x in q)
+          assert s["public_city_name_match_baseline"]==5659 and s["original_distance_unresolved"]==584
+          assert s["public_college_search_school_count"]==6243 and not s["wordpress_staging_edited"]
+          assert s["2025_directory_obtained"] == bool(s["2025_directory_metadata"])
+          if s["2025_directory_obtained"]:
+              assert s["2025_directory_metadata"]["record_count"]>5000
+              assert len(s["2025_directory_metadata"]["zip_sha256"])==64
+          else:
+              assert len(s["2025_retrieval_probes"])>=2
+              assert s["primary_directory_year"]==2024
+          assert len({x["unitid"] for x in q})==49
+          assert not any("latitude" in x or "longitude" in x for x in q)
+          print("S3_06_CI_CHECK_PASS",s["decisions"],"HD2025",s["2025_directory_obtained"])
+          PY
+      - name: Retain non-coordinate 49-case triage ledger separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint3-06-official-identity-49-cases
+          path: projects/college-career-matching/research_work/s3_06_49_case_ledger.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit aggregate evidence and report only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_06_reconciliation_summary.json projects/college-career-matching/S3_06_IDENTITY_RECONCILIATION.md
+          if git diff --cached --quiet; then
+            echo "S3-06 evidence unchanged"
+          else
+            git commit -m "Record S3-06 current IPEDS access checks and 49 unresolved geographic identity decisions"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi

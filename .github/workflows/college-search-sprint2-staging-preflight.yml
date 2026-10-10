@@ -1,0 +1,48 @@
+name: College Search Sprint 2 pinned CDN staging preflight
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - '.github/workflows/college-search-sprint2-staging-preflight.yml'
+      - 'projects/college-career-matching/college-search-sprint2-embed.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned-staging-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Confirm immutable CDN external runtime and national v2 data load from a WordPress origin
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, urllib.request
+          root=pathlib.Path("projects/college-career-matching")
+          base="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@b506b373f786896c0584c3bcc2c792377e496c46/projects/college-career-matching/"
+          items=[
+            ("college-search-sprint2-embed.js",root/"college-search-sprint2-embed.js"),
+            ("data/sprint2/college-search-national.v2.json",root/"data/sprint2/college-search-national.v2.json")
+          ]
+          for rel,path in items:
+              request=urllib.request.Request(base+rel,headers={"Origin":"https://www.lauraelizabethhand.com","User-Agent":"CollegeSearchS2StagingPreflight/1.0"})
+              with urllib.request.urlopen(request,timeout=40) as response:
+                  body=response.read()
+                  cors=response.headers.get("Access-Control-Allow-Origin","")
+                  assert response.status==200,(rel,response.status)
+                  assert cors in ("*","https://www.lauraelizabethhand.com"),(rel,cors)
+                  assert body==path.read_bytes(),f"Remote data differs from pinned GitHub asset: {rel}"
+                  print("STAGING_ASSET_PIN_PASS",json.dumps({"path":rel,"status":200,
+                    "cors":cors,"bytes":len(body),"sha256":hashlib.sha256(body).hexdigest()},sort_keys=True))
+                  if rel.endswith(".json"):
+                      obj=json.loads(body)
+                      assert obj["source_release"]=="2026-06-10"
+                      assert len(obj["institutions"])==6243
+                  else:
+                      assert b"CollegeSearchCore" in body and b"cs-control" in body and b"cs-locale" in body and b"cs-size" in body
+          print("SPRINT2_STAGING_CDN_PREFLIGHT_PASS")
+          PY

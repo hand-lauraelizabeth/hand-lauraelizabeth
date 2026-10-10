@@ -1,0 +1,68 @@
+name: Sprint 3 official institutional identity adjudication
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/adjudicate_sprint3_05.py'
+      - '.github/workflows/college-search-sprint3-adjudication.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  check-s3-05:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify unchanged 6,243 verified institutions and adjudication source syntax
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python -m py_compile projects/college-career-matching/adjudicate_sprint3_05.py
+      - name: Reproduce all 52 case files and check official institution pages
+        run: python projects/college-career-matching/adjudicate_sprint3_05.py
+      - name: Validate fail-closed adjudication and publishable scope
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path("projects/college-career-matching")
+          s=json.loads((p/"research_aggregate/s3_05_adjudication_summary.json").read_text())
+          r=json.loads((p/"research_aggregate/s3_05_approved_city_place_registry.json").read_text())
+          cases=json.loads((p/"research_work/s3_05_full_adjudication.json").read_text())["cases"]
+          assert len(cases)==s["reviewed_52"]==52
+          assert sum(s["decisions"].values())==52
+          assert len(r["records"])==r["accepted_records"]==s["approved_city_place_proxy_count"]
+          assert s["approved_city_place_proxy_count"]<=3
+          assert s["remaining_original_584_unresolved_for_public_release"]==584
+          assert not r["deployment_approved"] and not s["published_on_wordpress"]
+          assert all(c["approved_city_place_proxy"] == (c["selected_geoid"] is not None) for c in cases)
+          assert all(c["selected_geoid"] is None for c in cases if not c["approved_city_place_proxy"])
+          assert all(c["unitid"] not in ("115746","125897") for c in r["records"])
+          assert all(c["location_scope"].startswith("Census place ID proxy") for c in r["records"])
+          assert all(not any(k in c for k in ("latitude","longitude","lat","lon","coordinates")) for c in r["records"])
+          assert all(c.get("review_date_utc") for c in r["records"])
+          assert {x["unitid"] for x in cases}=={x["unitid"] for x in json.loads((p/"research_work/s3_04_independent_review_queue.json").read_text())["cases"]}
+          print("S3_05_REGISTRY_PASS",r["accepted_records"],s["decisions"])
+          PY
+      - name: Store 52-case review details as CI artifact, not public site data
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint3-05-52-case-identity-adjudication
+          path: projects/college-career-matching/research_work/s3_05_full_adjudication.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit registry, aggregate result and research report only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_05_approved_city_place_registry.json projects/college-career-matching/research_aggregate/s3_05_adjudication_summary.json projects/college-career-matching/S3_05_ADJUDICATION.md
+          if git diff --cached --quiet; then
+            echo "S3-05 aggregate evidence unchanged"
+          else
+            git commit -m "Record S3-05 institution sourced city-place approvals and unresolved merger/campus cases"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi

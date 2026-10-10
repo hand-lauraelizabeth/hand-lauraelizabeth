@@ -1,0 +1,61 @@
+{
+  "accepted_records": 3,
+  "created_utc": "2026-10-10T17:49:37.186400+00:00",
+  "deployment_approved": false,
+  "prohibited_uses": [
+    "road distance",
+    "campus point",
+    "ZIP deliverability",
+    "driving time",
+    "merger/closure status inferred from historical IPEDS UNITID"
+  ],
+  "records": [
+    {
+      "census_gazetteer_vintage": "2026",
+      "census_place_geoid": "0550450",
+      "census_polygon_lookup_vintage": "Current_Current",
+      "city_label": "N Little Rock",
+      "institution_name_at_review": "Shorter College",
+      "ipeds_directory_vintage": "2024",
+      "location_scope": "Census place ID proxy; NOT verified campus coordinates",
+      "national_scorecard_vintage": "2026-06-10",
+      "official_institution_url": "https://shortercollege.edu/contact-us-full/",
+      "official_page_text_sha256": "75b3e10561a9c21c4d19e1450753a4c19712639c5d3a8d5bd95ce779f25077ad",
+      "review_date_utc": "2026-10-10T17:49:37.186400+00:00",
+      "state": "AR",
+      "unitid": "107840"
+    },
+    {
+      "census_gazetteer_vintage": "2026",
+      "census_place_geoid": "1833466",
+      "census_polygon_lookup_vintage": "Current_Current",
+      "city_label": "Highland",
+      "institution_name_at_review": "Tricoci University of Beauty Culture \u2014 Highland campus",
+      "ipeds_directory_vintage": "2024",
+      "location_scope": "Census place ID proxy; NOT verified campus coordinates",
+      "national_scorecard_vintage": "2026-06-10",
+      "official_institution_url": "https://www.tricociuniversity.edu/contact-us/",
+      "official_page_text_sha256": "f2f5cb05aa4b61f06144d145d5e5d5b3fb8e96524e5d1291df7a5e27f9f8660a",
+      "review_date_utc": "2026-10-10T17:49:37.186400+00:00",
+      "state": "IN",
+      "unitid": "150303"
+    },
+    {
+      "census_gazetteer_vintage": "2026",
+      "census_place_geoid": "2671740",
+      "census_polygon_lookup_vintage": "Current_Current",
+      "city_label": "Sault Ste Marie",
+      "institution_name_at_review": "Lake Superior State University",
+      "ipeds_directory_vintage": "2024",
+      "location_scope": "Census place ID proxy; NOT verified campus coordinates",
+      "national_scorecard_vintage": "2026-06-10",
+      "official_institution_url": "https://www.lssu.edu/campus-map/",
+      "official_page_text_sha256": "5c4fbc725beb8144f7eee7b38ea976ee661768bc5ece614cb742c6db60949839",
+      "review_date_utc": "2026-10-10T17:49:37.186400+00:00",
+      "state": "MI",
+      "unitid": "170639"
+    }
+  ],
+  "registry_type": "reviewed Census place ID proxies, not campuses",
+  "source_release": "2026-06-10"
+}
