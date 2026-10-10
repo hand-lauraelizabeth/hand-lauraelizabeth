@@ -1,0 +1,58 @@
+name: Build Sprint 2 national descriptive dataset
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/build_sprint2_national.py'
+      - '.github/workflows/college-search-sprint2-data.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-checkin-sprint2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate v2 JSON and real deterministic gzip from 13 verified shards
+        run: python projects/college-career-matching/build_sprint2_national.py
+      - name: Independently rebuild, check both committed output bytes and 750 KiB limit
+        run: python projects/college-career-matching/build_sprint2_national.py --check
+      - name: Verify Sprint 1 live dataset unchanged
+        run: python projects/college-career-matching/build_sprint1_national.py --check
+      - name: Commit only Sprint 2 JSON and gzip assets to feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/data/sprint2/college-search-national.v2.json projects/college-career-matching/data/sprint2/college-search-national.v2.json.gz
+          if git diff --cached --quiet; then
+            echo "Sprint 2 data assets already current"
+          else
+            git commit -m "Generate verified Sprint 2 control, locale and enrollment national assets"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi
+      - name: Check committed assets again
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python - <<'PY'
+          import json, pathlib, gzip
+          root=pathlib.Path("projects/college-career-matching/data/sprint2")
+          j=root/"college-search-national.v2.json"
+          gz=root/"college-search-national.v2.json.gz"
+          obj=json.loads(j.read_bytes())
+          assert len(obj["institutions"])==6243
+          for row in obj["institutions"].values():
+              assert row["control"] in {"public","private_nonprofit","private_for_profit",None}
+              assert row["locale"] in {"city","suburb","town","rural",None}
+              n=row["undergraduate_size"]
+              assert n is None or (type(n) is int and n>=0)
+          assert gzip.decompress(gz.read_bytes())==j.read_bytes()
+          assert len(gz.read_bytes())<=750*1024
+          print("SPRINT2_DATA_CI_PASS",len(obj["institutions"]),len(gz.read_bytes()))
+          PY
