@@ -1,0 +1,86 @@
+name: National college IPEDS enrichment validation
+
+on:
+  push:
+    paths:
+      - 'projects/college-career-matching/national_ipeds_completion_bridge.py'
+      - 'projects/college-career-matching/tests/test_national_ipeds_completion_bridge.py'
+      - 'projects/college-career-matching/data/national/**'
+      - '.github/workflows/national-ipeds-enrichment-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact-ID and source integrity regression tests
+        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_national_ipeds_completion_bridge.py' -v
+      - name: Existing national Scorecard snapshot regression tests
+        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_national_snapshot.py' -v
+
+  staged-national-sources:
+    needs: bridge-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download independently pinned public NCES files
+        id: fetch
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ipeds-candidate
+          curl -fL --retry 2 --connect-timeout 15 --max-time 120 \
+            'https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip' \
+            -o /tmp/ipeds-candidate/HD2025.zip
+          curl -fL --retry 2 --connect-timeout 15 --max-time 120 \
+            'https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip' \
+            -o /tmp/ipeds-candidate/C2025_A.zip
+          # Known verified October 4, 2026 source bytes; a revised file MUST be reviewed.
+          echo 'aadad9277a2255c85813b6d206475ddbf8a7330d79cc0236c2ecae685b00f1bf  /tmp/ipeds-candidate/HD2025.zip' | sha256sum -c -
+          echo '555c6522ccf011d54b06520b128badb8558aba3d0038c97f231f5efaa7161183  /tmp/ipeds-candidate/C2025_A.zip' | sha256sum -c -
+      - name: Record access or checksum blocker
+        if: steps.fetch.outcome != 'success'
+        run: echo 'Official IPEDS transport or pinned checksum unavailable; no candidate enrichment produced and nothing deployed.'
+      - name: Build non-published same-matcher enrichment candidate
+        if: steps.fetch.outcome == 'success'
+        run: |
+          python projects/college-career-matching/national_ipeds_completion_bridge.py \
+            projects/college-career-matching/data/national \
+            /tmp/ipeds-candidate/HD2025.zip \
+            /tmp/ipeds-candidate/C2025_A.zip \
+            /tmp/ipeds-candidate/generated
+      - name: Validate minimum national join and provenance
+        if: steps.fetch.outcome == 'success'
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          f=Path('/tmp/ipeds-candidate/generated/enrichment.manifest.v1.json')
+          report=json.loads(f.read_text())
+          counts=report['counts']
+          assert report['publication_authorized'] is False
+          assert counts['institution_records']==6243, counts
+          assert counts['exact_six_digit_hd2025_matches']>=5000, counts
+          assert counts['institutions_with_2024_25_first_major_completions']>=4500, counts
+          assert counts['independent_ipeds_locale_cells']>=4500, counts
+          print('Staged candidate passes national join floors (NOT authorized for public release).')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outcome == 'success'
+        with:
+          name: national-ipeds-enrichment-candidate
+          path: /tmp/ipeds-candidate/generated/*
+          retention-days: 30
