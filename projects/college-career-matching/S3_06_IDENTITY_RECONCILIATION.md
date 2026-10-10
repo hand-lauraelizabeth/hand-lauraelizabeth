@@ -1,6 +1,6 @@
 # S3-06 — NCES 2025 retrieval and official institution change reconciliation
 
-**Date:** 2026-10-10T18:02:22.626186+00:00
+**Date:** 2026-10-10T18:03:28.539090+00:00
 
 Reconciled all **49 S3-05 nonapproved cases** against the current directory when retrievable, the verified 2024 NCES directory, institution-declared website URLs, and two dated institution-controlled merger/transition sources. **No unverified mapping was accepted, no website data or coordinates were changed.**
 

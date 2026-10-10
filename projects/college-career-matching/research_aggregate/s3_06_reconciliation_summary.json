@@ -92,9 +92,9 @@
       "url": "https://nces.ed.gov/ipeds/datacenter/data/HD2025_P.zip"
     }
   ],
-  "audited_at_utc": "2026-10-10T18:02:22.626186+00:00",
+  "audited_at_utc": "2026-10-10T18:03:28.539090+00:00",
   "checks": {
-    "2014_or_2024_prefix_parent": 8,
+    "2024_directory_prefix_candidate": 8,
     "2024_directory_record": 41,
     "current_directory_record": 0,
     "homepage_retrieved": 37,
