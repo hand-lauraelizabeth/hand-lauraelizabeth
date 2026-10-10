@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>College Search | Laura Elizabeth Hand</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+#college-search{--ink:#1e332c;--green:#245a4b;--border:#c8d6ce;--muted:#52665b;--surface:#fff;max-width:1100px;padding:clamp(18px,4vw,48px);margin:0 auto}
+#college-search [hidden]{display:none!important}
+#college-search .cs-skip{position:absolute;top:-100px;left:12px;z-index:5;background:white;color:var(--ink);padding:10px 16px;border:2px solid var(--green)}
+#college-search .cs-skip:focus{top:10px}
+#college-search a{color:var(--green);text-underline-offset:3px}
+#college-search a:hover{text-decoration-thickness:2px}
+#college-search :is(a,button,input,select):focus-visible{outline:3px solid #d78b20;outline-offset:3px}
+#college-search .cs-eyebrow{margin:0 0 8px;color:var(--green);font-size:.85rem;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
+#college-search h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.045em;line-height:1.15;margin:0 0 12px}
+#college-search .cs-intro{max-width:700px;color:var(--muted);margin:0 0 28px}
+#college-search .cs-toolbar{background:var(--surface);border:1px solid var(--border);border-radius:18px;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:16px;align-items:end;padding:20px;box-shadow:0 3px 15px #193e3010}
+#college-search label{display:grid;gap:7px;font-weight:700;font-size:.9rem}
+#college-search :is(input,select){width:100%;min-width:0;border:1px solid #8ca698;border-radius:9px;background:#fff;color:var(--ink);font:inherit;min-height:44px;padding:10px 12px}
+#college-search input::placeholder{color:#62756b;opacity:1}
+#college-search :is(input,select,button):disabled{opacity:.58;cursor:not-allowed}
+#college-search button{min-height:44px;border:1px solid var(--green);border-radius:10px;background:var(--green);color:#fff;padding:10px 18px;font:inherit;font-weight:700;cursor:pointer}
+#college-search button:hover:not(:disabled){background:#173f34}
+#college-search #cs-clear{background:#fff;color:var(--green)}
+#college-search #cs-clear:hover:not(:disabled){background:#e9f2ec}
+#college-search .cs-progress{min-height:52px;margin:22px 0 0;color:var(--muted);font-weight:600}
+#college-search .cs-progress[data-state="loading"]::before{content:"";display:inline-block;vertical-align:-3px;width:14px;height:14px;border-radius:50%;border:2px solid #a8bcb0;border-top-color:var(--green);margin-right:9px;animation:cs-spin .8s linear infinite}
+@keyframes cs-spin{to{transform:rotate(360deg)}}
+#college-search .cs-error{background:#fff4f0;border:1px solid #c65946;border-radius:12px;padding:16px 20px;margin:20px 0}
+#college-search .cs-error p{margin:0 0 12px}
+#college-search .cs-heading{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:12px 0 16px}
+#college-search h2{font-size:1.5rem;margin:0}
+#college-search #cs-result-count{font-variant-numeric:tabular-nums;font-weight:700;color:var(--muted);margin:0}
+#college-search .cs-results{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#college-search .cs-card{min-width:0;border:1px solid var(--border);background:#fff;border-radius:12px;padding:19px}
+#college-search .cs-card h3{font-size:1.1rem;line-height:1.35;margin:0 0 9px;color:var(--ink)}
+#college-search .cs-card p{margin:0 0 10px;color:var(--muted)}
+#college-search .cs-card a{font-weight:700;overflow-wrap:anywhere}
+#college-search .cs-unavailable{font-size:.88rem;color:var(--muted)}
+#college-search .cs-empty{padding:26px;background:#fff;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}
+#college-search .cs-more{display:flex;justify-content:center;margin:24px 0}
+#college-search .cs-more button{min-width:160px}
+#college-search .cs-visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:760px){#college-search .cs-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#college-search .cs-search-field{grid-column:1/-1}#college-search #cs-clear{grid-column:1/-1}#college-search .cs-results{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:380px){#college-search .cs-toolbar{grid-template-columns:1fr}#college-search .cs-toolbar>*{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#college-search .cs-progress[data-state="loading"]::before{animation:none}}
+</style>
+</head>
+<body>
+<main id="college-search" data-src="./data/sprint1/college-search-national.v1.json">
+<a class="cs-skip" href="#cs-results-heading">Skip to results</a>
+<header>
+<p class="cs-eyebrow">Data &amp; decision-making tools</p>
+<h1>College Search</h1>
+<p class="cs-intro">Explore institutions across the United States using school names and state filters. Listings are descriptive—not admissions predictions or rankings.</p>
+</header>
+<section aria-label="Search and filter colleges">
+<div class="cs-toolbar">
+<label class="cs-search-field" for="cs-name">School name
+<input id="cs-name" type="search" autocomplete="off" placeholder="Search college names" disabled></label>
+<label for="cs-state">State or territory
+<select id="cs-state" disabled><option value="">All states and territories</option></select></label>
+<label for="cs-sort">Sort by
+<select id="cs-sort" disabled>
+<option value="name-asc">School name: A–Z</option>
+<option value="name-desc">School name: Z–A</option>
+</select></label>
+<button id="cs-clear" type="button" disabled>Clear</button>
+</div>
+</section>
+<p id="cs-load-status" class="cs-progress" data-state="loading" role="status" aria-live="polite">Loading national college data…</p>
+<div id="cs-error" class="cs-error" role="alert" hidden>
+<p id="cs-error-text">College data could not be loaded.</p>
+<button id="cs-retry" type="button">Retry loading</button>
+</div>
+<section id="cs-results-section" aria-labelledby="cs-results-heading" hidden>
+<div class="cs-heading">
+<h2 id="cs-results-heading">Results</h2>
+<p id="cs-result-count" role="status" aria-live="polite"></p>
+</div>
+<ul class="cs-results" id="cs-results-list"></ul>
+<p id="cs-empty" class="cs-empty" hidden>No schools match those filters. Try changing the school name or state.</p>
+<div class="cs-more"><button id="cs-show-more" type="button" aria-controls="cs-results-list" hidden>Show 24 more</button></div>
+</section>
+<noscript><p>This college search requires JavaScript. Enable JavaScript to search the national dataset.</p></noscript>
+</main>
+<script data-college-search>
+(function () {
+  "use strict";
+
+  var PAGE_SIZE = 24;
+  var EXPECTED_COUNT = 6243;
+  var STATE_NAMES = {
+    AK:"Alaska",AL:"Alabama",AR:"Arkansas",AS:"American Samoa",AZ:"Arizona",
+    CA:"California",CO:"Colorado",CT:"Connecticut",DC:"District of Columbia",
+    DE:"Delaware",FL:"Florida",FM:"Federated States of Micronesia",
+    GA:"Georgia",GU:"Guam",HI:"Hawaii",IA:"Iowa",ID:"Idaho",IL:"Illinois",
+    IN:"Indiana",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",MA:"Massachusetts",
+    MD:"Maryland",ME:"Maine",MH:"Marshall Islands",MI:"Michigan",MN:"Minnesota",
+    MO:"Missouri",MP:"Northern Mariana Islands",MS:"Mississippi",MT:"Montana",
+    NC:"North Carolina",ND:"North Dakota",NE:"Nebraska",NH:"New Hampshire",
+    NJ:"New Jersey",NM:"New Mexico",NV:"Nevada",NY:"New York",OH:"Ohio",
+    OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",PR:"Puerto Rico",PW:"Palau",
+    RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",
+    TX:"Texas",UT:"Utah",VA:"Virginia",VI:"U.S. Virgin Islands",VT:"Vermont",
+    WA:"Washington",WI:"Wisconsin",WV:"West Virginia",WY:"Wyoming"
+  };
+  var collator = new Intl.Collator("en", { sensitivity:"base", numeric:true });
+
+  function normalize(value) {
+    return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  }
+  function filterSchools(records, options) {
+    var name = normalize(options.name);
+    var state = options.state || "";
+    var sort = options.sort === "name-desc" ? -1 : 1;
+    return records.filter(function (record) {
+      return (!name || normalize(record.name).includes(name)) && (!state || record.state === state);
+    }).sort(function (a, b) {
+      var byName = collator.compare(a.name, b.name);
+      return sort * (byName || collator.compare(a.unitid, b.unitid));
+    });
+  }
+  function validatePayload(payload) {
+    if (!payload || payload.source !== "College Scorecard" ||
+        payload.source_release !== "2026-06-10" ||
+        !payload.institutions || typeof payload.institutions !== "object" ||
+        Array.isArray(payload.institutions)) {
+      throw new Error("The national data has an unexpected format.");
+    }
+    var entries = Object.entries(payload.institutions);
+    if (entries.length !== EXPECTED_COUNT) {
+      throw new Error("The national dataset is incomplete.");
+    }
+    return entries.map(function (entry) {
+      var id = entry[0], r = entry[1];
+      if (!/^\d{6,8}$/.test(id) || !r ||
+          typeof r.name !== "string" || !r.name.trim() ||
+          typeof r.city !== "string" || !r.city.trim() ||
+          typeof r.state !== "string" || !/^[A-Z]{2}$/.test(r.state) ||
+          (r.url !== null && (typeof r.url !== "string" || !/^https?:\/\//i.test(r.url)))) {
+        throw new Error("An institution record failed validation.");
+      }
+      return {unitid:id, name:r.name, city:r.city, state:r.state, url:r.url};
+    });
+  }
+
+  // Pure functions are exposed for later unit tests; the UI has no dependencies.
+  if (typeof window !== "undefined") {
+    window.CollegeSearchCore = Object.freeze({filterSchools:filterSchools, validatePayload:validatePayload});
+  }
+
+  var root = document.getElementById("college-search");
+  if (!root) return;
+  var nameInput = root.querySelector("#cs-name");
+  var stateSelect = root.querySelector("#cs-state");
+  var sortSelect = root.querySelector("#cs-sort");
+  var clearButton = root.querySelector("#cs-clear");
+  var moreButton = root.querySelector("#cs-show-more");
+  var list = root.querySelector("#cs-results-list");
+  var count = root.querySelector("#cs-result-count");
+  var empty = root.querySelector("#cs-empty");
+  var section = root.querySelector("#cs-results-section");
+  var progress = root.querySelector("#cs-load-status");
+  var errorBox = root.querySelector("#cs-error");
+  var errorText = root.querySelector("#cs-error-text");
+  var retryButton = root.querySelector("#cs-retry");
+  var records = [], matches = [], rendered = 0;
+  var loading = false;
+
+  function setControls(enabled) {
+    [nameInput, stateSelect, sortSelect].forEach(function (element) {
+      element.disabled = !enabled;
+    });
+    clearButton.disabled = !enabled || !hasChanges();
+  }
+  function hasChanges() {
+    return !!nameInput.value || !!stateSelect.value || sortSelect.value !== "name-asc" ||
+      rendered > PAGE_SIZE;
+  }
+  function stateOptions() {
+    var codes = Array.from(new Set(records.map(function (r) { return r.state; })));
+    codes.sort(function (a, b) {
+      return collator.compare(STATE_NAMES[a] || a, STATE_NAMES[b] || b);
+    });
+    stateSelect.replaceChildren(new Option("All states and territories", ""));
+    codes.forEach(function (code) {
+      stateSelect.add(new Option((STATE_NAMES[code] || code) + " (" + code + ")", code));
+    });
+  }
+  function makeCard(record) {
+    var item = document.createElement("li");
+    item.className = "cs-card";
+    var heading = document.createElement("h3");
+    heading.textContent = record.name;
+    var locality = document.createElement("p");
+    locality.textContent = record.city + ", " + record.state;
+    var unitid = document.createElement("p");
+    unitid.className = "cs-visually-hidden";
+    unitid.textContent = "Institution identifier " + record.unitid;
+    item.append(heading, locality, unitid);
+    if (record.url) {
+      var link = document.createElement("a");
+      link.textContent = "Visit school website";
+      link.href = record.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      var screenReader = document.createElement("span");
+      screenReader.className = "cs-visually-hidden";
+      screenReader.textContent = " (opens in a new tab)";
+      link.appendChild(screenReader);
+      item.appendChild(link);
+    } else {
+      var unknown = document.createElement("span");
+      unknown.className = "cs-unavailable";
+      unknown.textContent = "School website not reported";
+      item.appendChild(unknown);
+    }
+    return item;
+  }
+  function render(append) {
+    var start = append ? rendered : 0;
+    if (!append) {
+      rendered = 0;
+      list.replaceChildren();
+    }
+    var end = Math.min(start + PAGE_SIZE, matches.length);
+    var fragment = document.createDocumentFragment();
+    for (var i=start; i<end; i++) fragment.appendChild(makeCard(matches[i]));
+    list.appendChild(fragment);
+    rendered = end;
+    count.textContent = matches.length.toLocaleString("en-US") +
+      (matches.length === 1 ? " school" : " schools") + " found" +
+      (matches.length ? " · showing " + rendered.toLocaleString("en-US") : "");
+    empty.hidden = matches.length !== 0;
+    moreButton.hidden = rendered >= matches.length;
+    moreButton.textContent = "Show " + Math.min(PAGE_SIZE, matches.length - rendered) + " more";
+    clearButton.disabled = !hasChanges();
+  }
+  function applyFilters() {
+    matches = filterSchools(records, {
+      name:nameInput.value, state:stateSelect.value, sort:sortSelect.value
+    });
+    render(false);
+  }
+  function clear() {
+    nameInput.value = "";
+    stateSelect.value = "";
+    sortSelect.value = "name-asc";
+    applyFilters();
+    nameInput.focus();
+  }
+  function showError(message) {
+    progress.hidden = true;
+    errorText.textContent = message;
+    errorBox.hidden = false;
+    section.hidden = true;
+    setControls(false);
+  }
+  async function loadData() {
+    if (loading) return;
+    loading = true;
+    progress.hidden = false;
+    progress.dataset.state = "loading";
+    progress.textContent = "Loading national college data…";
+    errorBox.hidden = true;
+    section.hidden = true;
+    retryButton.disabled = true;
+    setControls(false);
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 20000);
+    try {
+      var src = root.getAttribute("data-src");
+      if (!src) throw new Error("The data source is not configured.");
+      var response = await fetch(src, {signal:controller.signal, credentials:"omit"});
+      if (!response.ok) throw new Error("Data request failed (" + response.status + ").");
+      var payload = await response.json();
+      records = validatePayload(payload);
+      stateOptions();
+      matches = filterSchools(records, {name:"", state:"", sort:"name-asc"});
+      rendered = 0;
+      nameInput.value = "";
+      stateSelect.value = "";
+      sortSelect.value = "name-asc";
+      section.hidden = false;
+      progress.hidden = true;
+      render(false);
+      setControls(true);
+    } catch (e) {
+      // No cached or fictional records are substituted on failure.
+      records = [];
+      matches = [];
+      showError("Unable to load and verify the national college data. Check your connection and try again.");
+    } finally {
+      clearTimeout(timer);
+      loading = false;
+      retryButton.disabled = false;
+    }
+  }
+  nameInput.addEventListener("input", applyFilters);
+  stateSelect.addEventListener("change", applyFilters);
+  sortSelect.addEventListener("change", applyFilters);
+  clearButton.addEventListener("click", clear);
+  moreButton.addEventListener("click", function () { render(true); });
+  retryButton.addEventListener("click", loadData);
+  loadData();
+}());
+</script>
+</body>
+</html>

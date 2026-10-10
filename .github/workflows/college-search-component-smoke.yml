@@ -1,0 +1,80 @@
+name: College Search Sprint 1 component smoke
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/college-search-sprint1.html'
+      - '.github/workflows/college-search-component-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Extract JavaScript and check syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          doc=Path('projects/college-career-matching/college-search-sprint1.html').read_text(encoding='utf-8')
+          script=re.search(r'<script data-college-search>(.*?)</script>',doc,re.S)
+          assert script,'Missing component script'
+          Path('/tmp/college-search-component.js').write_text(script.group(1),encoding='utf-8')
+          for marker in ['id="cs-name"','id="cs-state"','id="cs-sort"','id="cs-clear"','id="cs-result-count"','id="cs-show-more"','id="cs-retry"','id="cs-error"','id="cs-load-status"','data-src="./data/sprint1/college-search-national.v1.json"']:
+              assert marker in doc,marker
+          assert 'ny20' not in doc.lower() and 'fixture' not in doc.lower(),'Unapproved fallback reference'
+          print('Component structure and source binding: PASS')
+          PY
+          node --check /tmp/college-search-component.js
+      - name: Install Chromium browser
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Test real 6243-institution dataset and failure recovery
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/college-search-server.log 2>&1 &
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              page=browser.new_page(viewport={'width':390,'height':844})
+              console_errors=[]
+              page.on('pageerror',lambda error: console_errors.append(str(error)))
+              page.goto('http://127.0.0.1:8765/college-search-sprint1.html',wait_until='domcontentloaded')
+              page.locator('#cs-results-section').wait_for(state='visible',timeout=30000)
+              assert '6,243 schools found' in page.locator('#cs-result-count').inner_text()
+              assert page.locator('.cs-card').count()==24
+              assert page.locator('#cs-state option').count()==60
+              page.locator('#cs-show-more').click()
+              assert page.locator('.cs-card').count()==48
+              page.locator('#cs-name').fill('Harvard University')
+              assert page.locator('.cs-card').count()>=1
+              page.locator('#cs-state').select_option('NY')
+              assert '0 schools found' in page.locator('#cs-result-count').inner_text()
+              assert page.locator('#cs-empty').is_visible()
+              page.locator('#cs-clear').click()
+              assert '6,243 schools found' in page.locator('#cs-result-count').inner_text()
+              first=page.locator('.cs-card h3').first.inner_text()
+              page.locator('#cs-sort').select_option('name-desc')
+              assert page.locator('.cs-card h3').first.inner_text()!=first
+              assert not console_errors,console_errors
+              print('Browser smoke: search/state/sort/count/Clear/show-more and console PASS')
+              route_pattern='**/data/sprint1/college-search-national.v1.json'
+              page.route(route_pattern,lambda route: route.abort())
+              page.reload(wait_until='domcontentloaded')
+              page.locator('#cs-error').wait_for(state='visible',timeout=30000)
+              assert page.locator('#cs-results-section').is_hidden()
+              page.unroute(route_pattern)
+              page.locator('#cs-retry').click()
+              page.locator('#cs-results-section').wait_for(state='visible',timeout=30000)
+              assert '6,243 schools found' in page.locator('#cs-result-count').inner_text()
+              print('Browser smoke: failure visible, no fallback, Retry restores full count: PASS')
+              browser.close()
+          PY
