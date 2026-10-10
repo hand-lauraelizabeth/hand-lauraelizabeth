@@ -79,6 +79,9 @@ def checked_rows(stream, required):
 def national_records(folder):
     folder = Path(folder)
     manifest = load_json(folder / "manifest.v1.json")
+    layout = manifest.get("row_layout")
+    if not isinstance(layout, list) or "locale_code" not in layout or len(layout) != len(set(layout)):
+        raise ValueError("National Scorecard row_layout must name locale_code exactly once")
     if manifest.get("expected_records", 0) < 1 or not manifest.get("shards"):
         raise ValueError("National Scorecard manifest is incomplete")
     seen = set()
@@ -95,6 +98,8 @@ def national_records(folder):
         if source.get("part") != int(name[9:11]) or len(records) != descriptor["count"]:
             raise ValueError(f"National shard row count or part mismatch: {name}")
         for record in records:
+            if len(record) != len(layout):
+                raise ValueError("National Scorecard row length does not match declared row_layout")
             unitid = record[0]
             if not isinstance(unitid, str) or not re.fullmatch(r"\d{6}|\d{8}", unitid):
                 raise ValueError("Malformed Scorecard UNITID")
@@ -127,7 +132,7 @@ def count_value(value):
     return int(float(raw))
 
 
-def build_enrichment(base_shards, hd_rows, completion_rows):
+def build_enrichment(base_shards, hd_rows, completion_rows, *, locale_index=16):
     base_ids = {record[0] for _, records in base_shards for record in records}
     directory = {}
     warnings = []
@@ -180,10 +185,10 @@ def build_enrichment(base_shards, hd_rows, completion_rows):
             locale = locale if locale in VALID_LOCALES else None
             if locale:
                 locale_covered += 1
-                if base[16] is not None and str(base[16]) != locale:
+                if base[locale_index] is not None and str(base[locale_index]) != locale:
                     locale_disagreements += 1
                     warnings.append({"unitid": unitid, "field": "LOCALE",
-                                     "scorecard": base[16], "ipeds": locale})
+                                     "scorecard": base[locale_index], "ipeds": locale})
             programs = activity.get(unitid, {})
             if programs:
                 matched_activity += 1
@@ -229,6 +234,7 @@ def build(base_folder, hd_path, c_path, output_folder):
         base_shards,
         read_csv(hd_path, "hd2025.csv", REQUIRED_HD),
         read_csv(c_path, "c2025_a.csv", REQUIRED_C),
+        locale_index=base_manifest["row_layout"].index("locale_code"),
     )
     output = Path(output_folder)
     output.mkdir(parents=True, exist_ok=True)
