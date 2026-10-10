@@ -77,7 +77,7 @@ test("Clear resets all three controls, invokes filtering and restores name focus
   const nameInput = { value: "Harvard University", focus() { focused = true; } };
   const stateSelect = { value: "MA" };
   const sortSelect = { value: "name-desc" };
-  const scope = { nameInput, stateSelect, sortSelect, applyFilters() { reapplied++; } };
+  const scope = { nameInput, stateSelect, sortSelect, resetFilterOptions: core.resetFilterOptions, applyFilters() { reapplied++; } };
   vm.runInNewContext("function clear() {" + clearFunction[1] + "\n}\nclear();", scope);
   assert.equal(nameInput.value, "");
   assert.equal(stateSelect.value, "");
