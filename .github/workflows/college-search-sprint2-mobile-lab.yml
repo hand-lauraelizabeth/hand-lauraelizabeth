@@ -1,0 +1,123 @@
+name: College Search Sprint 2 mobile Lighthouse (static proxy)
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - '.github/workflows/college-search-sprint2-mobile-lab.yml'
+      - 'projects/college-career-matching/college-search-sprint2.html'
+      - 'projects/college-career-matching/tests/serve_sprint2_mobile_lab.py'
+      - 'projects/college-career-matching/data/sprint2/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-lighthouse-proxy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify actual v2 source and compressed transfer budgets
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python - <<'PY'
+          import gzip, json
+          from pathlib import Path
+          root = Path("projects/college-career-matching")
+          html = (root/"college-search-sprint2.html").read_bytes()
+          raw = (root/"data/sprint2/college-search-national.v2.json").read_bytes()
+          gz = (root/"data/sprint2/college-search-national.v2.json.gz").read_bytes()
+          budget = 750*1024
+          ui_gzip = gzip.compress(html, compresslevel=9, mtime=0)
+          assert gzip.decompress(gz) == raw
+          assert b'data-src="./data/sprint2/college-search-national.v2.json"' in html
+          assert len(json.loads(raw)["institutions"]) == 6243
+          assert len(gz) <= budget, "Gzipped national data exceeds 750 KiB"
+          assert len(gz)+len(ui_gzip) <= budget, "Combined HTML + data exceeds 750 KiB"
+          print("SPRINT2_COMPRESSED_BUDGET_PASS",
+                json.dumps({"institutions":6243,"dataset_gzip_bytes":len(gz),
+                            "html_gzip_bytes":len(ui_gzip),
+                            "combined_gzip_bytes":len(gz)+len(ui_gzip),
+                            "budget_bytes":budget},sort_keys=True))
+          PY
+      - name: Start gzip-enabled local static proxy and inspect HTTP response
+        run: |
+          python -u projects/college-career-matching/tests/serve_sprint2_mobile_lab.py >/tmp/college-search-s2-lab.log 2>&1 &
+          for n in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8776/college-search-sprint2.html -o /dev/null; then break; fi
+            sleep .5
+          done
+          curl -fsS -D /tmp/college-search-s2-headers.txt -o /tmp/college-search-s2-data.gz \
+            http://127.0.0.1:8776/data/sprint2/college-search-national.v2.json
+          grep -iq '^Content-Encoding: gzip' /tmp/college-search-s2-headers.txt
+          cmp /tmp/college-search-s2-data.gz projects/college-career-matching/data/sprint2/college-search-national.v2.json.gz
+          echo "SPRINT2_GZIP_HTTP_RESPONSE_PASS"
+      - name: Install pinned Lighthouse
+        run: npm install --no-save --no-package-lock --ignore-scripts lighthouse@12.8.2
+      - name: Run three independent simulated-mobile Lighthouse audits and enforce median LCP
+        run: |
+          command -v google-chrome || command -v chromium
+          for n in 1 2 3; do
+            ./node_modules/.bin/lighthouse \
+              http://127.0.0.1:8776/college-search-sprint2.html \
+              --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage" \
+              --only-categories=performance --form-factor=mobile \
+              --throttling-method=simulate --output=json \
+              --output-path="/tmp/college-search-s2-lighthouse-$n.json" --quiet
+          done
+          python - <<'PY'
+          import gzip, json, statistics
+          from pathlib import Path
+          root=Path("projects/college-career-matching")
+          data_gzip=(root/"data/sprint2/college-search-national.v2.json.gz").stat().st_size
+          html_gzip=len(gzip.compress((root/"college-search-sprint2.html").read_bytes(),compresslevel=9,mtime=0))
+          limit=750*1024
+          runs=[]
+          for n in (1,2,3):
+              p=Path(f"/tmp/college-search-s2-lighthouse-{n}.json")
+              report=json.loads(p.read_text())
+              assert report["requestedUrl"].endswith("/college-search-sprint2.html"), report["requestedUrl"]
+              assert report["configSettings"]["formFactor"]=="mobile"
+              a=report["audits"]
+              assert a["largest-contentful-paint"]["scoreDisplayMode"] == "numeric"
+              runs.append({
+                  "run":n,
+                  "lcp_ms":round(a["largest-contentful-paint"]["numericValue"],1),
+                  "performance_score":round(report["categories"]["performance"]["score"]*100),
+                  "tbt_ms":round(a["total-blocking-time"]["numericValue"],1),
+                  "cls":round(a["cumulative-layout-shift"]["numericValue"],3),
+              })
+          median=round(statistics.median(x["lcp_ms"] for x in runs),1)
+          result={
+              "component":"College Search Sprint 2",
+              "scope":"LOCAL STATIC PROXY; not WordPress/Divi; not a physical device",
+              "method":"Lighthouse 12.8.2 mobile, simulated throttling; three independent Chrome invocations",
+              "runs":runs,"median_lcp_ms":median,"lcp_budget_ms":3000,
+              "lcp_budget_met":median<3000,
+              "dataset_gzip_bytes":data_gzip,"html_gzip_bytes":html_gzip,
+              "combined_gzip_bytes":data_gzip+html_gzip,
+              "gzip_budget_bytes":limit,"gzip_budget_met":data_gzip+html_gzip<=limit,
+              "wordpress_staging_host_lcp":"UNVERIFIED",
+          }
+          Path("college-search-sprint2-mobile-lighthouse-summary.json").write_text(
+              json.dumps(result,indent=2)+"\n")
+          print("SPRINT2_MOBILE_LIGHTHOUSE_SUMMARY "+json.dumps(result,sort_keys=True))
+          assert data_gzip+html_gzip <= limit, "750 KiB compressed data+HTML budget exceeded"
+          assert median < 3000, f"Mobile LCP median {median}ms exceeded strict <3000ms target"
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: college-search-sprint2-mobile-lighthouse-static-proxy
+          path: |
+            /tmp/college-search-s2-lighthouse-*.json
+            college-search-sprint2-mobile-lighthouse-summary.json
+          if-no-files-found: warn
