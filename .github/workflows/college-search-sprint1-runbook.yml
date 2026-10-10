@@ -7,6 +7,8 @@ on:
       - 'projects/college-career-matching/SPRINT1_DEVICE_QA_AND_ROLLBACK.md'
       - 'projects/college-career-matching/tests/test_sprint1_device_qa_runbook.py'
       - '.github/workflows/college-search-sprint1-runbook.yml'
+      - 'projects/college-career-matching/SPRINT2_DEVICE_QA_AND_ROLLBACK.md'
+      - 'projects/college-career-matching/tests/test_sprint2_device_qa_runbook.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,4 +21,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify manual device coverage and rollback safety
-        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_sprint1_device_qa_runbook.py' -v
+        run: |
+          python -m unittest discover -s projects/college-career-matching/tests -p 'test_sprint1_device_qa_runbook.py' -v
+          python projects/college-career-matching/tests/test_sprint2_device_qa_runbook.py
