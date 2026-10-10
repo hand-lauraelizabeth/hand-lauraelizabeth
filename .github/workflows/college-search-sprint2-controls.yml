@@ -1,0 +1,55 @@
+name: College Search Sprint 2 functional controls smoke
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/college-search-sprint2.html'
+      - 'projects/college-career-matching/tests/test_sprint2_controls_browser.py'
+      - '.github/workflows/college-search-sprint2-controls.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-controls:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate exactly three new controls, real source, runtime JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html=Path("projects/college-career-matching/college-search-sprint2.html").read_text()
+          assert len(re.findall(r'<select id="cs-(?:control|locale|size)"',html))==3
+          for ctrl in ("control","locale","size"):
+              assert html.count(f'id="cs-{ctrl}"')==1,ctrl
+              assert f'for="cs-{ctrl}"' in html,ctrl
+          assert 'data-src="./data/sprint2/college-search-national.v2.json"' in html
+          assert not re.search(r'data-src="[^"]*sprint1',html)
+          assert 'ny20' not in html.lower()
+          js=re.search(r'<script data-college-search>(.*?)</script>',html,re.S)
+          assert js,"Missing browser runtime"
+          Path("/tmp/college-search-sprint2.js").write_text(js.group(1))
+          print("SPRINT2_HTML_SOURCE_PASS three controls, pinned v2")
+          PY
+          node --check /tmp/college-search-sprint2.js
+      - name: Verify versioned v2 data and unchanged live Sprint 1 asset
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python projects/college-career-matching/build_sprint1_national.py --check
+      - name: Install Chromium
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Browser-check every new selection and combined filtering at mobile and desktop widths
+        run: |
+          python -m http.server 8766 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/college-search-sprint2-server.log 2>&1 &
+          python projects/college-career-matching/tests/test_sprint2_controls_browser.py
