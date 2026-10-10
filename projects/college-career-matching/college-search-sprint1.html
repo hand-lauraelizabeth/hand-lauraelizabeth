@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
+<link rel="icon" href="data:,">
 <title>College Search | Laura Elizabeth Hand</title>
 <style>
 :root{color-scheme:light}
@@ -16,7 +17,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-skip:focus{top:10px}
 #college-search a{color:var(--green);text-underline-offset:3px}
 #college-search a:hover{text-decoration-thickness:2px}
-#college-search :is(a,button,input,select):focus-visible{outline:3px solid #d78b20;outline-offset:3px}
+#college-search :is(a,button,input,select):focus-visible{outline:3px solid #9c5300;outline-offset:3px}
 #college-search .cs-eyebrow{margin:0 0 8px;color:var(--green);font-size:.85rem;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
 #college-search h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.045em;line-height:1.15;margin:0 0 12px}
 #college-search .cs-intro{max-width:700px;color:var(--muted);margin:0 0 28px}
@@ -210,13 +211,13 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     item.append(heading, locality, unitid);
     if (record.url) {
       var link = document.createElement("a");
-      link.textContent = "Visit school website";
+      link.textContent = "Visit " + record.name + " website";
       link.href = record.url;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       var screenReader = document.createElement("span");
       screenReader.className = "cs-visually-hidden";
-      screenReader.textContent = " (opens in a new tab)";
+      screenReader.textContent = " in " + record.city + ", " + record.state + " (opens in a new tab)";
       link.appendChild(screenReader);
       item.appendChild(link);
     } else {

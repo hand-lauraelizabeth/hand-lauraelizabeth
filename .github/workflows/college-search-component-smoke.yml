@@ -6,6 +6,7 @@ on:
     paths:
       - 'projects/college-career-matching/college-search-sprint1.html'
       - 'projects/college-career-matching/tests/test_college_search_core.cjs'
+      - 'projects/college-career-matching/tests/test_college_search_accessibility.py'
       - '.github/workflows/college-search-component-smoke.yml'
   workflow_dispatch:
 permissions:
@@ -81,3 +82,5 @@ jobs:
               print('Browser smoke: failure visible, no fallback, Retry restores full count: PASS')
               browser.close()
           PY
+      - name: Verify zoom, named controls/links, landmarks, keyboard focus and error-free rendering
+        run: python projects/college-career-matching/tests/test_college_search_accessibility.py
