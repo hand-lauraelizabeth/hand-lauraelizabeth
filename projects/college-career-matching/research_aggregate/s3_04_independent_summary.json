@@ -1,0 +1,336 @@
+{
+  "accepted_new_matches": 0,
+  "audit_utc": "2026-10-10T17:42:17.024258+00:00",
+  "baseline_city_label_matches": 5659,
+  "bounded_single_candidate": 32,
+  "case_count": 52,
+  "census_2026_gazetteer_sha256": "af678e2d990827c89ee39b98c82de6e90b693c7361ff0e559ae3076670dd2863",
+  "census_geocoder_api": "https://geocoding.geo.census.gov/geocoder/geographies/coordinates",
+  "evidence_availability": {
+    "census_lookup_success": 44,
+    "ipeds_address_state_complete": 44,
+    "ipeds_has_coordinate": 44,
+    "ipeds_record_exists": 44
+  },
+  "examples": {
+    "census_polygon_does_not_support_candidates": [
+      {
+        "candidate_census_geoid": [
+          "0669070"
+        ],
+        "ipeds_city": "Carpinteria",
+        "reported_city": "Santa Barbara CA",
+        "state": "CA",
+        "unitid": "115746"
+      },
+      {
+        "candidate_census_geoid": [
+          "0608954",
+          "0608968"
+        ],
+        "ipeds_city": "Burbank",
+        "reported_city": "Burbank",
+        "state": "CA",
+        "unitid": "125897"
+      },
+      {
+        "candidate_census_geoid": [
+          "4523245",
+          "4523290"
+        ],
+        "ipeds_city": "Elgin",
+        "reported_city": "Elgin",
+        "state": "SC",
+        "unitid": "491923"
+      }
+    ],
+    "census_polygon_not_returned": [
+      {
+        "candidate_census_geoid": [
+          "2405525",
+          "2405550"
+        ],
+        "ipeds_city": "Bel Air",
+        "reported_city": "Bel Air",
+        "state": "MD",
+        "unitid": "162706"
+      },
+      {
+        "candidate_census_geoid": [
+          "3723600",
+          "3723640"
+        ],
+        "ipeds_city": "Flat Rock",
+        "reported_city": "Flat Rock",
+        "state": "NC",
+        "unitid": "198039"
+      },
+      {
+        "candidate_census_geoid": [
+          "3969526"
+        ],
+        "ipeds_city": "St Clairsville",
+        "reported_city": "St Clairsville",
+        "state": "OH",
+        "unitid": "201283"
+      },
+      {
+        "candidate_census_geoid": [
+          "4254184",
+          "4254264"
+        ],
+        "ipeds_city": "Newtown",
+        "reported_city": "Newtown",
+        "state": "PA",
+        "unitid": "211307"
+      },
+      {
+        "candidate_census_geoid": [
+          "4249128",
+          "4249144"
+        ],
+        "ipeds_city": "Middletown",
+        "reported_city": "Middletown",
+        "state": "PA",
+        "unitid": "214713"
+      },
+      {
+        "candidate_census_geoid": [
+          "7252431"
+        ],
+        "ipeds_city": "Mayaguez",
+        "reported_city": "Mayaguez",
+        "state": "PR",
+        "unitid": "241191"
+      }
+    ],
+    "census_polygon_supported_candidate": [
+      {
+        "candidate_census_geoid": [
+          "0550450"
+        ],
+        "ipeds_city": "N Little Rock",
+        "reported_city": "N Little Rock",
+        "state": "AR",
+        "unitid": "107840"
+      },
+      {
+        "candidate_census_geoid": [
+          "1833466",
+          "1833484"
+        ],
+        "ipeds_city": "Highland",
+        "reported_city": "Highland",
+        "state": "IN",
+        "unitid": "150303"
+      },
+      {
+        "candidate_census_geoid": [
+          "1846908",
+          "1847045"
+        ],
+        "ipeds_city": "Marion",
+        "reported_city": "Marion",
+        "state": "IN",
+        "unitid": "151801"
+      },
+      {
+        "candidate_census_geoid": [
+          "1954705"
+        ],
+        "ipeds_city": "Mt. Pleasant",
+        "reported_city": "Mt. Pleasant",
+        "state": "IA",
+        "unitid": "153463"
+      },
+      {
+        "candidate_census_geoid": [
+          "2405525",
+          "2405550"
+        ],
+        "ipeds_city": "Bel Air",
+        "reported_city": "Bel Air",
+        "state": "MD",
+        "unitid": "162830"
+      },
+      {
+        "candidate_census_geoid": [
+          "2671740"
+        ],
+        "ipeds_city": "Sault Ste Marie",
+        "reported_city": "Sault Ste Marie",
+        "state": "MI",
+        "unitid": "170639"
+      }
+    ],
+    "no_current_ipeds_identity": [
+      {
+        "candidate_census_geoid": [
+          "1258715"
+        ],
+        "ipeds_city": null,
+        "reported_city": "Port St Lucie",
+        "state": "FL",
+        "unitid": "13508111"
+      },
+      {
+        "candidate_census_geoid": [
+          "1224125"
+        ],
+        "ipeds_city": null,
+        "reported_city": "Ft Myers",
+        "state": "FL",
+        "unitid": "13508113"
+      },
+      {
+        "candidate_census_geoid": [
+          "1846908",
+          "1847045"
+        ],
+        "ipeds_city": null,
+        "reported_city": "Marion",
+        "state": "IN",
+        "unitid": "15098715"
+      },
+      {
+        "candidate_census_geoid": [
+          "1331068"
+        ],
+        "ipeds_city": null,
+        "reported_city": "Ft. Stewart",
+        "state": "GA",
+        "unitid": "17706523"
+      },
+      {
+        "candidate_census_geoid": [
+          "7271136"
+        ],
+        "ipeds_city": null,
+        "reported_city": "Rio Grande",
+        "state": "PR",
+        "unitid": "24297202"
+      },
+      {
+        "candidate_census_geoid": [
+          "7252431"
+        ],
+        "ipeds_city": null,
+        "reported_city": "Mayaguez",
+        "state": "PR",
+        "unitid": "24297205"
+      }
+    ]
+  },
+  "existing_ambiguous": 20,
+  "geo_vintage_used": "Current_Current",
+  "group_counts": {
+    "bounded_single_candidate": {
+      "census_polygon_does_not_support_candidates": 1,
+      "census_polygon_not_returned": 5,
+      "census_polygon_supported_candidate": 19,
+      "no_current_ipeds_identity": 7
+    },
+    "existing_ambiguous": {
+      "census_polygon_does_not_support_candidates": 2,
+      "census_polygon_not_returned": 5,
+      "census_polygon_supported_candidate": 12,
+      "no_current_ipeds_identity": 1
+    }
+  },
+  "limitations": [
+    "IPEDS directory self-reported campus address/coordinates may be approximate",
+    "IPEDS vintage differs from June 2026 Scorecard and Census Gazetteer 2026",
+    "Census Geocoder current geography vintage may differ from Gazetteer 2026",
+    "Census internal point is not campus coordinate or travel distance",
+    "Census geographic point in place does not prove campus entrance/physical buildings"
+  ],
+  "no_wordpress_or_ui_changes": true,
+  "review_status_counts": {
+    "census_polygon_does_not_support_candidates": 3,
+    "census_polygon_not_returned": 10,
+    "census_polygon_supported_candidate": 31,
+    "no_current_ipeds_identity": 8
+  },
+  "source_directory": {
+    "available_fields": [
+      "ACT",
+      "ADDR",
+      "ADMINURL",
+      "APPLURL",
+      "ATHURL",
+      "C00CARNEGIE",
+      "C21BASIC",
+      "CARNEGIEALF",
+      "CARNEGIEAPM",
+      "CARNEGIEGPM",
+      "CARNEGIEIC",
+      "CARNEGIERSCH",
+      "CARNEGIESAEC",
+      "CARNEGIESIZE",
+      "CBSA",
+      "CBSATYPE",
+      "CHFNM",
+      "CHFTITLE",
+      "CITY",
+      "CLOSEDAT",
+      "CNGDSTCD",
+      "CONTROL",
+      "COUNTYCD",
+      "COUNTYNM",
+      "CSA",
+      "CYACTIVE",
+      "DEATHYR",
+      "DEGGRANT",
+      "DFRCGID",
+      "DFRCUSCG",
+      "DISAURL",
+      "EIN",
+      "F1SYSCOD",
+      "F1SYSNAM",
+      "F1SYSTYP",
+      "FAIDURL",
+      "FIPS",
+      "GENTELE",
+      "GROFFER",
+      "HBCU",
+      "HDEGOFR1",
+      "HLOFFER",
+      "HOSPITAL",
+      "IALIAS",
+      "ICLEVEL",
+      "INSTCAT",
+      "INSTNM",
+      "INSTSIZE",
+      "LANDGRNT",
+      "LATITUDE",
+      "LOCALE",
+      "LONGITUD",
+      "MEDICAL",
+      "NEWID",
+      "NPRICURL",
+      "OBEREG",
+      "OPEFLAG",
+      "OPEID",
+      "OPENPUBL",
+      "POSTSEC",
+      "PSEFLAG",
+      "PSET4FLG",
+      "RPTMTH",
+      "SECTOR",
+      "STABBR",
+      "TRIBAL",
+      "UEIS",
+      "UGOFFER",
+      "UNITID",
+      "VETURL",
+      "WEBADDR",
+      "ZIP"
+    ],
+    "csv_sha256": "d7b20e136fd971d7dce8ad6ec9b7002f0f281f133959f2c3a6c089a5a4610fe5",
+    "records": 6072,
+    "url": "https://nces.ed.gov/ipeds/datacenter/data/HD2024.zip",
+    "year": 2024,
+    "zip_sha256": "d98425c123d7c0e872aec6e83960dfb501884818bf17385c340790f3d1f28345"
+  },
+  "verified_exact_campus_locations": 0
+}
