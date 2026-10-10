@@ -157,7 +157,7 @@ def main():
     assert sum(counts.values())==52
     assert len({o["unitid"] for o in results})==52
     assert all(o["selected_geoid"] is None for o in results if not o["approved_city_place_proxy"])
-    assert all(o["approved_city_place_proxy"] and re.fullmatch(r"\d{7}",o["census_place_geoid"]) for o in approved)
+    assert all(re.fullmatch(r"\d{7}",o["census_place_geoid"]) for o in approved)
     assert not any(any(k in o for k in ("latitude","longitude","coordinates")) for o in approved)
     registry={
         "registry_type":"reviewed Census place ID proxies, not campuses",
