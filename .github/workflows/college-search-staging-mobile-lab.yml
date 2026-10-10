@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/college-search-staging-mobile-lab.yml'
       - 'projects/college-career-matching/tests/serve_sprint1_mobile_lab.py'
+      - 'projects/college-career-matching/college-search-sprint1.html'
+      - 'projects/college-career-matching/data/sprint1/**'
   workflow_dispatch:
 
 permissions:
@@ -83,6 +85,7 @@ jobs:
                   "lcp_budget_met":median<3000}
           Path("college-search-mobile-lighthouse-summary.json").write_text(json.dumps(result,indent=2)+"\n")
           print("MOBILE_LIGHTHOUSE_SUMMARY "+json.dumps(result,sort_keys=True))
+          assert median < 3000, f"Mobile LCP budget failed: median {median} ms (max 3000 ms)"
           PY
       - uses: actions/upload-artifact@v4
         if: always()

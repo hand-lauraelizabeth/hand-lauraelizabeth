@@ -7,6 +7,7 @@ on:
       - 'projects/college-career-matching/college-search-sprint1.html'
       - 'projects/college-career-matching/tests/test_college_search_core.cjs'
       - 'projects/college-career-matching/tests/test_college_search_accessibility.py'
+      - 'projects/college-career-matching/tests/test_college_search_performance.py'
       - '.github/workflows/college-search-component-smoke.yml'
   workflow_dispatch:
 permissions:
@@ -84,3 +85,5 @@ jobs:
           PY
       - name: Verify zoom, named controls/links, landmarks, keyboard focus and error-free rendering
         run: python projects/college-career-matching/tests/test_college_search_accessibility.py
+      - name: Verify compressed asset and visible-page render budgets
+        run: python projects/college-career-matching/tests/test_college_search_performance.py
