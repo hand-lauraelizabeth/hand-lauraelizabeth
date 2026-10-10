@@ -60,6 +60,7 @@ class NationalBridgeTests(unittest.TestCase):
         self.sha = hashlib.sha256(path.read_bytes()).hexdigest()
         (self.national / "manifest.v1.json").write_text(json.dumps({
             "data_version": "synthetic-national-v1", "expected_records": len(self.records),
+            "row_layout": ["unitid"] + ["field_" + str(i) for i in range(1, 16)] + ["locale_code"] + ["field_" + str(i) for i in range(17, 23)],
             "shards": [{"file": "national-00.json", "count": len(self.records), "sha256": self.sha}]
         }), encoding="utf-8")
 
