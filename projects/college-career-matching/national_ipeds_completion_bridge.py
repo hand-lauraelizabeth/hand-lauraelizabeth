@@ -180,10 +180,10 @@ def build_enrichment(base_shards, hd_rows, completion_rows):
             locale = locale if locale in VALID_LOCALES else None
             if locale:
                 locale_covered += 1
-                if base[18] is not None and str(base[18]) != locale:
+                if base[16] is not None and str(base[16]) != locale:
                     locale_disagreements += 1
                     warnings.append({"unitid": unitid, "field": "LOCALE",
-                                     "scorecard": base[18], "ipeds": locale})
+                                     "scorecard": base[16], "ipeds": locale})
             programs = activity.get(unitid, {})
             if programs:
                 matched_activity += 1
