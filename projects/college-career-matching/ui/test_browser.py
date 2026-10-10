@@ -62,10 +62,31 @@ async def main():
             "aid": ["<svg onload=alert(1)>"], "note": "<script>alert(1)</script>",
             "source": "Source <test>", "reference_year": 2025
         }
+        # Exercise the reviewed release branch only within this test harness.
+        # The committed production page keeps the release switch disabled.
+        original_html = (ROOT / "index.html").read_text(encoding="utf-8")
+        switch = "const ENABLE_REVIEWED_EXTERNAL_DATA=false;"
+        assert original_html.count(switch) == 1, "Unexpected release switch"
+        test_html = original_html.replace(switch, "const ENABLE_REVIEWED_EXTERNAL_DATA=true;")
+        await page.route("**/index.html", lambda route: route.fulfill(
+            status=200, content_type="text/html", body=test_html))
+        record.update({
+            "publication_status": "PUBLIC_APPROVED",
+            "identity_review": "verified",
+            "locale_review": "verified",
+            "net_price_cohort_review": "verified"
+        })
+        approved_payload = {
+            "schema_version": 1, "records": [record], "record_count": 1,
+            "publication_status": "PUBLIC_APPROVED",
+            "bundle_id": "synthetic-browser-test-only",
+            "review": {"status": "approved", "reviewer": "synthetic QA fixture",
+                       "reviewed_at": "2026-10-09"}
+        }
         await page.unroute("**/public-data.json")
         await page.route("**/public-data.json", lambda route: route.fulfill(
             status=200, content_type="application/json",
-            body=json.dumps({"schema_version": 1, "records": [record]})))
+            body=json.dumps(approved_payload)))
         await page.reload()
         await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'source-attributed\')")
         await page.locator(".result").first.wait_for()
@@ -90,7 +111,7 @@ async def main():
         invalid["cost"] = {"0_30k": 0, "110k_plus": 12000}
         await page.route("**/public-data.json", lambda route: route.fulfill(
             status=200, content_type="application/json",
-            body=json.dumps({"schema_version": 1, "records": [invalid]})))
+            body=json.dumps(dict(approved_payload, records=[invalid]))))
         await page.reload()
         await page.locator(".result").first.wait_for()
         await page.wait_for_function("document.querySelector(\'#data-mode\').textContent.includes(\'synthetic\')")
