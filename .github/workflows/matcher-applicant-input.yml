@@ -1,0 +1,21 @@
+name: Applicant input validation
+on:
+  push:
+    branches:
+      - feature/matcher-publication-containment-20261009
+    paths:
+      - 'projects/college-career-matching/applicant_input_contract.py'
+      - 'projects/college-career-matching/tests/test_applicant_input_contract.py'
+      - 'projects/college-career-matching/tests/test_applicant_score_boundary.py'
+      - '.github/workflows/matcher-applicant-input.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate GPA SAT ACT testing policies and enrollment
+        run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_applicant*.py' -v

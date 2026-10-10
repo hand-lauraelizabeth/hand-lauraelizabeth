@@ -1,0 +1,26 @@
+name: Matcher private locale evidence checks
+
+on:
+  push:
+    paths:
+      - 'projects/college-career-matching/private_review/**'
+      - '.github/workflows/matcher-private-locale.yml'
+  pull_request:
+    paths:
+      - 'projects/college-career-matching/private_review/**'
+      - '.github/workflows/matcher-private-locale.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Validate all locale codes and fail-closed publication status
+        run: python -m unittest discover -s projects/college-career-matching/private_review -p 'test_*.py' -v
