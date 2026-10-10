@@ -1,0 +1,99 @@
+{
+  "all_positive_cases": {
+    "107840": {
+      "evidence_status": {
+        "all_terms_present": true,
+        "final_url": "https://shortercollege.edu/contact-us-full/",
+        "http_status": 200,
+        "missing_terms": [],
+        "retrieved": true,
+        "visible_text_sha256": "75b3e10561a9c21c4d19e1450753a4c19712639c5d3a8d5bd95ce779f25077ad"
+      },
+      "terms": [
+        "shorter college",
+        "604",
+        "locust",
+        "north little rock",
+        "72114"
+      ],
+      "url": "https://shortercollege.edu/contact-us-full/"
+    },
+    "150303": {
+      "evidence_status": {
+        "all_terms_present": true,
+        "final_url": "https://www.tricociuniversity.edu/contact-us/",
+        "http_status": 200,
+        "missing_terms": [],
+        "retrieved": true,
+        "visible_text_sha256": "f2f5cb05aa4b61f06144d145d5e5d5b3fb8e96524e5d1291df7a5e27f9f8660a"
+      },
+      "terms": [
+        "tricoci",
+        "2549",
+        "highway avenue",
+        "highland",
+        "46322"
+      ],
+      "url": "https://www.tricociuniversity.edu/contact-us/"
+    },
+    "170639": {
+      "evidence_status": {
+        "all_terms_present": true,
+        "final_url": "https://www.lssu.edu/campus-map/",
+        "http_status": 200,
+        "missing_terms": [],
+        "retrieved": true,
+        "visible_text_sha256": "5c4fbc725beb8144f7eee7b38ea976ee661768bc5ece614cb742c6db60949839"
+      },
+      "terms": [
+        "lake superior state university",
+        "650",
+        "easterday",
+        "sault ste",
+        "49783"
+      ],
+      "url": "https://www.lssu.edu/campus-map/"
+    }
+  },
+  "approved_city_place_proxy_count": 3,
+  "audit_utc": "2026-10-10T17:49:37.186400+00:00",
+  "baseline_prior_city_place_matches": 5659,
+  "decisions": {
+    "approve_census_city_place_proxy": 3,
+    "hold_missing_2024_ipeds_identity": 8,
+    "hold_multiple_campuses_transition": 1,
+    "hold_postmerger_unitid": 1,
+    "hold_unverified_institutional_campus": 38,
+    "reject_suggested_place_not_supported": 1
+  },
+  "institution_identity_holds": {
+    "115746": {
+      "decision": "hold_multiple_campuses_transition",
+      "official_urls": [
+        "https://www.pacifica.edu/",
+        "https://www.pacifica.edu/pacificas-campus-transition/"
+      ],
+      "reason": "Pacifica currently lists Carpinteria Lambert and Santa Barbara Ladera locations, and a dated 2026\u201327 consolidation; do not force unqualified Scorecard city to one permanent Census place."
+    },
+    "125897": {
+      "decision": "hold_postmerger_unitid",
+      "official_urls": [
+        "https://www.redlands.edu/about/office-of-the-president/presidents-messages/2026/university-of-redlands-and-woodbury-university-complete-historic-merger",
+        "https://woodbury.edu/about/people/directory/"
+      ],
+      "reason": "Redlands reports completed July 6 2026 merger; continuing institution is Redlands with former Woodbury campus now Redlands Los Angeles. The original Woodbury UNITID needs post-merger verification even though Burbank campus address remains published."
+    }
+  },
+  "national_institutions_unchanged": 6243,
+  "not_measured": [
+    "school campus coordinate accuracy",
+    "current USPS ZIP universe",
+    "browser bundle gzip size",
+    "host LCP"
+  ],
+  "pending_or_rejected": 49,
+  "published_on_wordpress": false,
+  "remaining_original_584_unresolved_for_public_release": 584,
+  "research_only_potential": 5662,
+  "reviewed_52": 52
+}
