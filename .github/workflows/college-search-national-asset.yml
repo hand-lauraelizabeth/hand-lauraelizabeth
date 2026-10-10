@@ -1,0 +1,24 @@
+name: College Search Sprint 1 national asset
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/data/sprint1/**'
+      - 'projects/college-career-matching/build_sprint1_national.py'
+      - '.github/workflows/college-search-national-asset.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-national-asset:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify Scorecard shards, keyed JSON and gzip round trip
+        run: python projects/college-career-matching/build_sprint1_national.py --check
