@@ -33,6 +33,10 @@ def check_page(browser, label, width, height):
         }""",timeout=35000)
         report["count"]=page.locator("#cs-result-count").inner_text()
         report["initial_cards"]=page.locator(".cs-card").count()
+        report["divi_line_breaks"]=page.locator("#college-search .cs-toolbar > br").count()
+        assert page.evaluate("""() => [...document.querySelectorAll(
+            '#college-search .cs-toolbar > br,#college-search label > br,#college-search > br'
+        )].every(el => getComputedStyle(el).display === 'none')"""), "Divi line breaks interrupt the search toolbar grid"
         assert report["initial_cards"]==24,report
         assert page.locator("#cs-name").is_enabled()
         assert page.locator("#cs-state").is_enabled()
