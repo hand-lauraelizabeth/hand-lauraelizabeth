@@ -1,6 +1,6 @@
 # College Search — execution status
 
-Last updated: 2026-10-09 (America/New_York)
+Last updated: 2026-10-09 23:25 EDT (2026-10-10 03:25 UTC)
 Repository branch: `feature/college-search-sprint1-20261009`
 Production release: **BLOCKED** until Sprint 1 staging, source integrity, performance, manual QA, and explicit owner approval are complete.
 WordPress production page 1044 remains **Draft**; do not publish without approval.
@@ -15,7 +15,7 @@ WordPress production page 1044 remains **Draft**; do not publish without approva
 ## Task queue (strict order)
 | # | Task | Status | Evidence / blocker |
 |---|---|---|---|
-| 1 | Resolve `national-00.json` SHA-256 mismatch; determine cause or rebuild manifest | IN_PROGRESS | Direct GitHub connector read of `national-00.json` produced SHA-256 `3719b6345f9af3a0d1385334bea689162b1a5697be869749733d660bd1c52d1f`, matching `manifest.v1.json`. Prior GitHub Actions national test reported a mismatch; cause must be established and CI repaired. |
+| 1 | Resolve `national-00.json` SHA-256 mismatch; determine cause or rebuild manifest | DONE | The committed `national-00.json` hashes to `3719b6345f9af3a0d1385334bea689162b1a5697be869749733d660bd1c52d1f`, **equal** to the manifest value. The integrity test now always targets the committed national source rather than an optional alternate `tests/shards` folder, and checks the public-only NY institution directory instead of removed NY20 evidence. GitHub Actions [run 38020357137](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/38020357137), job `114119785207`, recorded **10 national snapshot tests passed (0.045 s)**. No manifest rebuild or data deletion warranted. Commit `7c7f1403aa0dc6df66d94c9524a6788ad971992b`. |
 | 2 | Create minified one-file national JSON keyed by UNITID; only UNITID/name/city/state/URL; gzip and report count/size | TODO | 6,243 expected unique UNITIDs |
 | 3 | Standalone dependency-free component: name/state/sort/count/Clear/pagination/loading/error/Retry; no fallback | TODO | |
 | 4 | Unit tests for name, state, combination, sort, zero results and Clear | TODO | |
@@ -37,4 +37,6 @@ WordPress production page 1044 remains **Draft**; do not publish without approva
 - Only private staging page and page 1044 may be changed.
 
 ## Latest run
-- 2026-10-09: initialized state file. Task #1 in progress; no launch authorized.
+- **2026-10-09 23:25 EDT — Task #1 DONE.** Commit `7c7f1403aa0dc6df66d94c9524a6788ad971992b` repaired national test source selection and replaced the test's dependency on removed private NY20 evidence with a public-only identity check. GitHub Actions run [38020357137](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/38020357137) reports **10 national snapshot tests passed**, including checksums, 6,243 national records and unique UNITIDs. Direct repository-text SHA-256 of national-00.json is identical to the existing manifest. **Next task: #2 — build minified keyed national asset and report gzip size/count.** Do not re-run completed task #1.
+- **Independent CI blocker:** The **overall workflow is not green**: downstream `test_ny20_live_projection.py` fails `FileNotFoundError` because it still expects the deliberately deleted `data/ny20-institution-evidence.v1.json`. This legacy test must be changed to a public-only fixture or retired as part of the pre-staging CI gate; do **not** restore unreviewed NY20 data. This failure is unrelated to the now-passing national SHA integrity test.
+- **Deployment status:** WordPress production page 1044 Draft; no staging deployment or production publication performed. No human approval question currently blocks task #2.
