@@ -59,18 +59,28 @@ def check_page(browser, label, width, height):
         print("LIVE_SEARCH_PASS",json.dumps(report,sort_keys=True),flush=True)
     except Exception as e:
         report["exception"]=repr(e)
-        report["page_title"]=page.title()
-        report["load_text"]=page.locator("#cs-load-status").inner_text() if page.locator("#cs-load-status").count() else None
-        report["error_text"]=page.locator("#cs-error-text").inner_text() if page.locator("#cs-error-text").count() else None
-        report["count_text"]=page.locator("#cs-result-count").inner_text() if page.locator("#cs-result-count").count() else None
-        report["has_component_script"]=page.evaluate("!!document.querySelector('script[data-college-search]')")
-        report["core_ready"]=page.evaluate("!!window.CollegeSearchCore")
+        for key,fn in (
+            ("page_title",lambda:page.title()),
+            ("load_text",lambda:page.locator("#cs-load-status").inner_text(timeout=3500)),
+            ("error_text",lambda:page.locator("#cs-error-text").inner_text(timeout=3500)),
+            ("count_text",lambda:page.locator("#cs-result-count").inner_text(timeout=3500)),
+            ("has_component_script",lambda:page.evaluate("!!document.querySelector('script[data-college-search]')")),
+            ("core_ready",lambda:page.evaluate("!!window.CollegeSearchCore")),
+            ("current_url",lambda:page.url),
+        ):
+            try:
+                report[key]=fn()
+            except Exception as debug_error:
+                report[key+"_error"]=str(debug_error)[:180]
         print("LIVE_SEARCH_FAIL",json.dumps(report,sort_keys=True),flush=True)
     finally:
         report["dataset_responses"]=responses
         report["page_errors"]=errors[:20]
         report["request_failures"]=failed[:20]
-        page.screenshot(path=str(OUT/f"{label}.png"),full_page=False)
+        try:
+            page.screenshot(path=str(OUT/f"{label}.png"),full_page=False,timeout=12000)
+        except Exception as capture_error:
+            report["screenshot_error"]=str(capture_error)[:250]
         (OUT/f"{label}.json").write_text(json.dumps(report,indent=2)+"\n")
         page.close()
     return report
