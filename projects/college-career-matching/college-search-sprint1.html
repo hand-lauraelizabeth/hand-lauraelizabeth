@@ -116,6 +116,9 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
   function normalize(value) {
     return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   }
+  function resetFilterOptions() {
+    return {name:"", state:"", sort:"name-asc"};
+  }
   function filterSchools(records, options) {
     var name = normalize(options.name);
     var state = options.state || "";
@@ -153,7 +156,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 
   // Pure functions are exposed for later unit tests; the UI has no dependencies.
   if (typeof window !== "undefined") {
-    window.CollegeSearchCore = Object.freeze({filterSchools:filterSchools, validatePayload:validatePayload});
+    window.CollegeSearchCore = Object.freeze({filterSchools:filterSchools, resetFilterOptions:resetFilterOptions, validatePayload:validatePayload});
   }
 
   var root = document.getElementById("college-search");
@@ -250,9 +253,10 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     render(false);
   }
   function clear() {
-    nameInput.value = "";
-    stateSelect.value = "";
-    sortSelect.value = "name-asc";
+    var defaults = resetFilterOptions();
+    nameInput.value = defaults.name;
+    stateSelect.value = defaults.state;
+    sortSelect.value = defaults.sort;
     applyFilters();
     nameInput.focus();
   }

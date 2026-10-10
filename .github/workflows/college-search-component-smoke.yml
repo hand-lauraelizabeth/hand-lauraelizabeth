@@ -5,6 +5,7 @@ on:
       - feature/college-search-sprint1-20261009
     paths:
       - 'projects/college-career-matching/college-search-sprint1.html'
+      - 'projects/college-career-matching/tests/test_college_search_core.cjs'
       - '.github/workflows/college-search-component-smoke.yml'
   workflow_dispatch:
 permissions:
@@ -33,6 +34,8 @@ jobs:
           print('Component structure and source binding: PASS')
           PY
           node --check /tmp/college-search-component.js
+      - name: Run Sprint 1 filter and Clear unit tests
+        run: node --test projects/college-career-matching/tests/test_college_search_core.cjs
       - name: Install Chromium browser
         run: |
           python -m pip install playwright
