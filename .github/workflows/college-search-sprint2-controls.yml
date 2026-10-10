@@ -6,6 +6,7 @@ on:
     paths:
       - 'projects/college-career-matching/college-search-sprint2.html'
       - 'projects/college-career-matching/tests/test_sprint2_controls_browser.py'
+      - 'projects/college-career-matching/tests/test_sprint2_unknowns_browser.py'
       - '.github/workflows/college-search-sprint2-controls.yml'
   workflow_dispatch:
 permissions:
@@ -53,3 +54,5 @@ jobs:
         run: |
           python -m http.server 8766 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/college-search-sprint2-server.log 2>&1 &
           python projects/college-career-matching/tests/test_sprint2_controls_browser.py
+      - name: Verify visible unknown counts and missing-data semantics in Chromium
+        run: python projects/college-career-matching/tests/test_sprint2_unknowns_browser.py

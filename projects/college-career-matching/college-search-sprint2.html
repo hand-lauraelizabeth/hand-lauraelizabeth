@@ -49,6 +49,14 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-more{display:flex;justify-content:center;margin:24px 0}
 #college-search .cs-more button{min-width:160px}
 #college-search .cs-toolbar > br,#college-search label > br,#college-search > br{display:none!important}
+#college-search .cs-coverage{background:#edf4ef;border:1px solid var(--border);border-radius:12px;margin:12px 0 0;padding:14px 18px;color:var(--ink)}
+#college-search .cs-coverage p{margin:0 0 8px}
+#college-search .cs-coverage p:last-child{margin-bottom:0}
+#college-search .cs-coverage-title{font-weight:750}
+#college-search .cs-coverage-list{display:flex;flex-wrap:wrap;gap:5px 20px;margin:0 0 9px;padding:0;list-style:none}
+#college-search .cs-coverage-list li{font-size:.94rem}
+#college-search .cs-coverage-list strong{font-variant-numeric:tabular-nums}
+#college-search .cs-coverage-note{color:var(--muted);font-size:.9rem;line-height:1.6}
 #college-search .cs-about{margin:22px 0 0;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--ink)}
 #college-search .cs-about summary{cursor:pointer;padding:16px 20px;font-weight:750;color:var(--green)}
 #college-search .cs-about[open] summary{border-bottom:1px solid var(--border)}
@@ -80,14 +88,14 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <option value="name-desc">School name: Z–A</option>
 </select></label>
 <label for="cs-control">Institution control
-<select id="cs-control" disabled>
+<select id="cs-control" aria-describedby="cs-control-missing" disabled>
 <option value="">All institution types</option>
 <option value="public">Public</option>
 <option value="private_nonprofit">Private nonprofit</option>
 <option value="private_for_profit">Private for-profit</option>
 </select></label>
 <label for="cs-locale">Campus setting
-<select id="cs-locale" disabled>
+<select id="cs-locale" aria-describedby="cs-locale-missing" disabled>
 <option value="">All settings</option>
 <option value="city">City</option>
 <option value="suburb">Suburb</option>
@@ -95,13 +103,22 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <option value="rural">Rural</option>
 </select></label>
 <label for="cs-size">Undergraduate size
-<select id="cs-size" disabled>
+<select id="cs-size" aria-describedby="cs-size-missing" disabled>
 <option value="">All sizes</option>
 <option value="under-5000">Under 5,000</option>
 <option value="5000-14999">5,000–14,999</option>
 <option value="15000-plus">15,000+</option>
 </select></label>
 <button id="cs-clear" type="button" disabled>Clear</button>
+</div>
+<div id="cs-data-completeness" class="cs-coverage" aria-labelledby="cs-coverage-title" hidden>
+<p id="cs-coverage-title" class="cs-coverage-title">Data completeness — all <span id="cs-coverage-total"></span> institutions, before filters</p>
+<ul class="cs-coverage-list">
+<li id="cs-control-missing">Institution control unknown: <strong id="cs-control-unknown"></strong></li>
+<li id="cs-locale-missing">Campus setting unknown: <strong id="cs-locale-unknown"></strong></li>
+<li id="cs-size-missing">Undergraduate size unknown: <strong id="cs-size-unknown"></strong></li>
+</ul>
+<p class="cs-coverage-note">“All” includes schools with missing data. Choosing a value excludes schools with unknown data for that field; unknown is never interpreted as rural or a small enrollment. Campus settings use reported locale codes; missing or unclassifiable codes remain unknown. Size means undergraduate enrollment, not total enrollment.</p>
 </div>
 </section>
 <p id="cs-load-status" class="cs-progress" data-state="loading" role="status" aria-live="polite">Loading national college data…</p>
@@ -164,6 +181,14 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     if (band === "15000-plus") return value >= 15000;
     return false;
   }
+  function countUnknowns(records) {
+    return {
+      total: records.length,
+      control: records.filter(function (r) { return r.control === null; }).length,
+      locale: records.filter(function (r) { return r.locale === null; }).length,
+      size: records.filter(function (r) { return r.undergraduate_size === null; }).length
+    };
+  }
   function filterSchools(records, options) {
     var name = normalize(options.name);
     var state = options.state || "";
@@ -216,7 +241,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 
   // Pure functions are exposed for later unit tests; the UI has no dependencies.
   if (typeof window !== "undefined") {
-    window.CollegeSearchCore = Object.freeze({filterSchools:filterSchools, matchesSizeBand:matchesSizeBand, resetFilterOptions:resetFilterOptions, validatePayload:validatePayload});
+    window.CollegeSearchCore = Object.freeze({filterSchools:filterSchools, matchesSizeBand:matchesSizeBand, countUnknowns:countUnknowns, resetFilterOptions:resetFilterOptions, validatePayload:validatePayload});
   }
 
   var root = document.getElementById("college-search");
@@ -237,6 +262,11 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
   var errorBox = root.querySelector("#cs-error");
   var errorText = root.querySelector("#cs-error-text");
   var retryButton = root.querySelector("#cs-retry");
+  var completeness = root.querySelector("#cs-data-completeness");
+  var coverageTotal = root.querySelector("#cs-coverage-total");
+  var controlUnknown = root.querySelector("#cs-control-unknown");
+  var localeUnknown = root.querySelector("#cs-locale-unknown");
+  var sizeUnknown = root.querySelector("#cs-size-unknown");
   var records = [], matches = [], rendered = 0;
   var loading = false;
 
@@ -250,6 +280,14 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     return !!nameInput.value || !!stateSelect.value || !!controlSelect.value ||
       !!localeSelect.value || !!sizeSelect.value || sortSelect.value !== "name-asc" ||
       rendered > PAGE_SIZE;
+  }
+  function showDataCompleteness() {
+    var missing = countUnknowns(records);
+    coverageTotal.textContent = missing.total.toLocaleString("en-US");
+    controlUnknown.textContent = missing.control.toLocaleString("en-US");
+    localeUnknown.textContent = missing.locale.toLocaleString("en-US");
+    sizeUnknown.textContent = missing.size.toLocaleString("en-US");
+    completeness.hidden = false;
   }
   function stateOptions() {
     var codes = Array.from(new Set(records.map(function (r) { return r.state; })));
@@ -329,6 +367,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     nameInput.focus();
   }
   function showError(message) {
+    completeness.hidden = true;
     progress.hidden = true;
     errorText.textContent = message;
     errorBox.hidden = false;
@@ -343,6 +382,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     progress.textContent = "Loading national college data…";
     errorBox.hidden = true;
     section.hidden = true;
+    completeness.hidden = true;
     retryButton.disabled = true;
     setControls(false);
     var controller = new AbortController();
@@ -355,6 +395,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
       var payload = await response.json();
       records = validatePayload(payload);
       stateOptions();
+      showDataCompleteness();
       matches = filterSchools(records, resetFilterOptions());
       rendered = 0;
       nameInput.value = "";
