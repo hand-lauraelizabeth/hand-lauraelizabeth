@@ -17,7 +17,7 @@ def baseline(unitid, locale=None):
     row = [None] * 23
     row[0] = unitid
     row[1] = "Fixture College " + unitid
-    row[18] = locale
+    row[16] = locale
     return row
 
 
