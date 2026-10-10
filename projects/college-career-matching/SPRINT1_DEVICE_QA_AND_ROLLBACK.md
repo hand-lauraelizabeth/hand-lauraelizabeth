@@ -1,5 +1,8 @@
 # College Search Sprint 1 — Manual Device QA and Safe Rollback
 
+> **POST-LAUNCH STATUS — October 10, 2026.** The owner approved a **public test release** so the College Search could be evaluated in action. Production page **1044 is PUBLISHED** and passed live Chromium functional checks at mobile and desktop viewport widths: [GitHub Actions live verification](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/38047260355). Staging page **1154 remains Draft**. One **actual WordPress mobile PageSpeed** audit reported **LCP 2.9 seconds**, performance **84**, accessibility **91**, and best practices **100**. Physical iOS/Android testing and three actual-host LCP repetitions remain outstanding; restrictive viewport and unnamed-link accessibility warnings need review. The document below is the **original pre-launch test plan and rollback procedure**; its historical NOT RUN / NOT GRANTED entries reflect the state when the plan was written, **not the current page publication status**. Current operational truth is in [STATUS.md](./STATUS.md). This release notice does **not** authorize further live updates.
+
+
 **Status:** TEST PLAN ONLY — NOT EXECUTED / NOT RELEASE-APPROVED. Sprint 1 Task 9 creates instructions and verification criteria; it does **not** certify that desktop, physical iOS Safari, or physical Android Chrome has passed.
 
 **Scope:** National College Search for 6,243 institutions (College Scorecard June 10, 2026 snapshot) on **private WordPress Draft page 1154**. Old explorer page **1044 remains Draft**. Production publication is blocked until explicit owner approval.
