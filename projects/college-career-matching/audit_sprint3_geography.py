@@ -15,7 +15,7 @@ from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parent
 URL_ROOT = "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/"
 SOURCES = {"places": "2026_Gaz_place_national.zip", "zctas": "2026_Gaz_zcta_national.zip"}
-OUTPUT = ROOT / "research_private" / "s3_02_aggregate_coverage.json"
+OUTPUT = ROOT / "research_aggregate" / "s3_02_aggregate_coverage.json"
 NOTES = ROOT / "S3_02_GEOGRAPHY_VALIDATION.md"
 FIELDS = {
     "places": {"USPS", "GEOID", "GEOIDFQ", "NAME", "LSAD", "FUNCSTAT", "INTPTLAT", "INTPTLONG"},
@@ -176,7 +176,7 @@ def main():
                      + " | " + str(m["valid_internal_points"]) + " | " + m["zip_sha256"] + " |")
     lines.extend([
         "",
-        "See research_private/s3_02_aggregate_coverage.json for original publisher URLs, "
+        "See research_aggregate/s3_02_aggregate_coverage.json for original publisher URLs, "
         "ZIP and extracted TXT SHA-256, byte sizes, published HTTP date, member names, "
         "delimiter, schema, supported states and leading-zero GEOIDs. Required fields, "
         "unique 5-digit ZCTA and 7-digit Place GEOIDs, and legal latitude/longitude bounds validated.",
