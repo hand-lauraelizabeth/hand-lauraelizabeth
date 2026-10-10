@@ -30,6 +30,15 @@ jobs:
           from pathlib import Path
           p=Path('projects/college-career-matching/data/national')
           m=json.loads((p/'manifest.v1.json').read_text())
+          raw=(p/'national-00.json').read_bytes()
+          original=next(x['sha256'] for x in m['shards'] if x['file']=='national-00.json')
+          candidates={
+              'raw':raw, 'plus_newline':raw+b'\n', 'trim_newline':raw.rstrip(b'\r\n'),
+              'plus_crlf':raw+b'\r\n', 'crlf_to_lf':raw.replace(b'\r\n',b'\n')
+          }
+          print('national-00 byte length',len(raw),'final bytes',repr(raw[-25:]))
+          for variant,data in candidates.items():
+              print('candidate',variant,'matches',hashlib.sha256(data).hexdigest()==original)
           for s in m['shards']:
               filename=s['file']
               actual=hashlib.sha256((p/filename).read_bytes()).hexdigest()
