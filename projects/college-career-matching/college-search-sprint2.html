@@ -57,6 +57,11 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-coverage-list li{font-size:.94rem}
 #college-search .cs-coverage-list strong{font-variant-numeric:tabular-nums}
 #college-search .cs-coverage-note{color:var(--muted);font-size:.9rem;line-height:1.6}
+#college-search .cs-active{margin:0 0 18px;padding:13px 17px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+#college-search .cs-active h3{font-size:1rem;margin:0 0 7px;color:var(--ink)}
+#college-search .cs-active p{margin:5px 0;color:var(--muted);font-size:.92rem}
+#college-search .cs-active-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+#college-search .cs-active-list li{max-width:100%;overflow-wrap:anywhere;border-left:3px solid var(--green);background:#edf4ef;border-radius:4px;padding:5px 9px;font-size:.91rem}
 #college-search .cs-about{margin:22px 0 0;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--ink)}
 #college-search .cs-about summary{cursor:pointer;padding:16px 20px;font-weight:750;color:var(--green)}
 #college-search .cs-about[open] summary{border-bottom:1px solid var(--border)}
@@ -131,6 +136,12 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <h2 id="cs-results-heading">Results</h2>
 <p id="cs-result-count" role="status" aria-live="polite"></p>
 </div>
+<section id="cs-active-summary" class="cs-active" aria-labelledby="cs-active-title">
+<h3 id="cs-active-title">Active selections</h3>
+<p id="cs-active-none">No filters applied.</p>
+<ul id="cs-active-list" class="cs-active-list" hidden></ul>
+<p id="cs-active-sort">Sort: School name: A–Z</p>
+</section>
 <ul class="cs-results" id="cs-results-list"></ul>
 <p id="cs-empty" class="cs-empty" hidden>No schools match those filters. Try changing one or more selections.</p>
 <div class="cs-more"><button id="cs-show-more" type="button" aria-controls="cs-results-list" hidden>Show 24 more</button></div>
@@ -256,6 +267,9 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
   var moreButton = root.querySelector("#cs-show-more");
   var list = root.querySelector("#cs-results-list");
   var count = root.querySelector("#cs-result-count");
+  var activeList = root.querySelector("#cs-active-list");
+  var activeNone = root.querySelector("#cs-active-none");
+  var activeSort = root.querySelector("#cs-active-sort");
   var empty = root.querySelector("#cs-empty");
   var section = root.querySelector("#cs-results-section");
   var progress = root.querySelector("#cs-load-status");
@@ -329,6 +343,24 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     }
     return item;
   }
+  function updateActiveSelections() {
+    var selections = [];
+    if (normalize(nameInput.value)) selections.push("School name: “" + nameInput.value.trim() + "”");
+    if (stateSelect.value) selections.push("State or territory: " + stateSelect.selectedOptions[0].textContent);
+    if (controlSelect.value) selections.push("Institution control: " + controlSelect.selectedOptions[0].textContent);
+    if (localeSelect.value) selections.push("Campus setting: " + localeSelect.selectedOptions[0].textContent);
+    if (sizeSelect.value) selections.push("Undergraduate size: " + sizeSelect.selectedOptions[0].textContent);
+    var fragment = document.createDocumentFragment();
+    selections.forEach(function (label) {
+      var item = document.createElement("li");
+      item.textContent = label;
+      fragment.appendChild(item);
+    });
+    activeList.replaceChildren(fragment);
+    activeList.hidden = selections.length === 0;
+    activeNone.hidden = selections.length !== 0;
+    activeSort.textContent = "Sort: " + sortSelect.selectedOptions[0].textContent;
+  }
   function render(append) {
     var start = append ? rendered : 0;
     if (!append) {
@@ -346,6 +378,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
     empty.hidden = matches.length !== 0;
     moreButton.hidden = rendered >= matches.length;
     moreButton.textContent = "Show " + Math.min(PAGE_SIZE, matches.length - rendered) + " more";
+    updateActiveSelections();
     clearButton.disabled = !hasChanges();
   }
   function applyFilters() {

@@ -7,6 +7,7 @@ on:
       - 'projects/college-career-matching/college-search-sprint2.html'
       - 'projects/college-career-matching/tests/test_sprint2_controls_browser.py'
       - 'projects/college-career-matching/tests/test_sprint2_unknowns_browser.py'
+      - 'projects/college-career-matching/tests/test_sprint2_active_selections_browser.py'
       - 'projects/college-career-matching/tests/test_sprint2_filters_unit.cjs'
       - '.github/workflows/college-search-sprint2-controls.yml'
   workflow_dispatch:
@@ -59,3 +60,5 @@ jobs:
           python projects/college-career-matching/tests/test_sprint2_controls_browser.py
       - name: Verify visible unknown counts and missing-data semantics in Chromium
         run: python projects/college-career-matching/tests/test_sprint2_unknowns_browser.py
+      - name: Verify active selections, live count and complete Clear/pagination reset
+        run: python projects/college-career-matching/tests/test_sprint2_active_selections_browser.py
