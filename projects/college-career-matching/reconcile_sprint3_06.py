@@ -251,7 +251,7 @@ def main():
         outcomes[decision]+=1
         controls["current_directory_record"]+=bool(row25) if directory2025 is not None else 0
         controls["2024_directory_record"]+=bool(row24)
-        controls["2014_or_2024_prefix_parent"]+=bool(parent)
+        controls["2024_directory_prefix_candidate"]+=bool(parent)
         controls["homepage_supplied"]+=uid in site_jobs
         controls["homepage_retrieved"]+=bool(site_results.get(uid,{}).get("retrieved"))
         if decision not in examples:examples[decision]={"unitid":uid,"reported_city":previous["reported_city"],"state":previous["state"]}
