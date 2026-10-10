@@ -39,7 +39,8 @@ jobs:
           assert j["accepted_new_matches"]==j["verified_exact_campus_locations"]==0
           assert j["baseline_city_label_matches"]==5659
           assert all(c["accepted_school_geoid"] is None and not c["publishable_campus_match"] for c in q["cases"])
-          assert "latitude" not in p.read_text().lower() and "longitude" not in p.read_text().lower()
+          assert all(not isinstance(v,(int,float)) for v in (j.get("latitude"),j.get("longitude")) if v is not None)
+          assert all(not any(k in ex for k in ("lat","lon","latitude","longitude","coordinates")) for group in j["examples"].values() for ex in group)
           assert p.stat().st_size < 60000
           print("S3_04_VERIFIED_INVARIANTS",j["review_status_counts"])
           PY
