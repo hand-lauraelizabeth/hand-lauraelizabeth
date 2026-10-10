@@ -265,7 +265,7 @@ def main():
       "- NCES IPEDS directory ZIP provenance, schema and SHA are in the aggregate JSON.",
       "- Source geographies come from the official US Census 2026 Gazetteer and "
       "the separately dated Census geocoder Current_Current endpoint.",
-      "- The private 52-case CI artifact records UNITID, reported Scorecard city, "
+      "- The 52-case GitHub Actions artifact (access governed by repository permissions) records UNITID, reported Scorecard city, "
       "IPEDS official institution/address, Census official names/GEOIDs and "
       "polygon-lookup statuses, **but no latitude/longitude values**.",
       "- Never choose a city/CDP/town GEOID by name or proximity; point-in-polygon "
