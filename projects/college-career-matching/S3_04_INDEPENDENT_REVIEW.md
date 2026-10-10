@@ -1,6 +1,6 @@
 # S3-04 — Independent institutional/geographic evidence review
 
-**Audit:** 2026-10-10T17:42:17.024258+00:00
+**Audit:** 2026-10-10T17:43:18.141422+00:00
 
 Reprocessed all **32 bounded single-Census-place name candidates** and **20 pre-existing same-state ambiguous college/place matches** (52 total). The tested geographic place alternatives and census Gazetteer hashes are pinned to prior source-audited files. The review uses the official NCES/IPEDS institution directory by exact UNITID where available and the Census Geocoder geographic lookup for official directory coordinates, NOT a website search snippet. The complete case ledger is retained as a GitHub Actions artifact, not as a public map or a campus geocode lookup.
 
@@ -27,7 +27,7 @@ Census's current geographic lookup and the Gazetteer's 2026 point files are **di
 
 - NCES IPEDS directory ZIP provenance, schema and SHA are in the aggregate JSON.
 - Source geographies come from the official US Census 2026 Gazetteer and the separately dated Census geocoder Current_Current endpoint.
-- The private 52-case CI artifact records UNITID, reported Scorecard city, IPEDS official institution/address, Census official names/GEOIDs and polygon-lookup statuses, **but no latitude/longitude values**.
+- The 52-case GitHub Actions artifact (access governed by repository permissions) records UNITID, reported Scorecard city, IPEDS official institution/address, Census official names/GEOIDs and polygon-lookup statuses, **but no latitude/longitude values**.
 - Never choose a city/CDP/town GEOID by name or proximity; point-in-polygon can only corroborate a location, not manufacture a campus address.
 - Independent human verification of campus vs branch and dates is still required before a new city-level association is treated as approved.
 - There is no Census-derived browser dataset, gzip budget claim, ZIP-origin feature, or WordPress change in this audit.
