@@ -1,0 +1,185 @@
+{
+  "2024_fallback_metadata": {
+    "columns_present": [
+      "ACT",
+      "ADDR",
+      "ADMINURL",
+      "APPLURL",
+      "ATHURL",
+      "C00CARNEGIE",
+      "C21BASIC",
+      "CARNEGIEALF",
+      "CARNEGIEAPM",
+      "CARNEGIEGPM",
+      "CARNEGIEIC",
+      "CARNEGIERSCH",
+      "CARNEGIESAEC",
+      "CARNEGIESIZE",
+      "CBSA",
+      "CBSATYPE",
+      "CHFNM",
+      "CHFTITLE",
+      "CITY",
+      "CLOSEDAT",
+      "CNGDSTCD",
+      "CONTROL",
+      "COUNTYCD",
+      "COUNTYNM",
+      "CSA",
+      "CYACTIVE",
+      "DEATHYR",
+      "DEGGRANT",
+      "DFRCGID",
+      "DFRCUSCG",
+      "DISAURL",
+      "EIN",
+      "F1SYSCOD",
+      "F1SYSNAM",
+      "F1SYSTYP",
+      "FAIDURL",
+      "FIPS",
+      "GENTELE",
+      "GROFFER",
+      "HBCU",
+      "HDEGOFR1",
+      "HLOFFER",
+      "HOSPITAL",
+      "IALIAS",
+      "ICLEVEL",
+      "INSTCAT",
+      "INSTNM",
+      "INSTSIZE",
+      "LANDGRNT",
+      "LATITUDE",
+      "LOCALE",
+      "LONGITUD",
+      "MEDICAL",
+      "NEWID",
+      "NPRICURL",
+      "OBEREG",
+      "OPEFLAG",
+      "OPEID",
+      "OPENPUBL",
+      "POSTSEC",
+      "PSEFLAG",
+      "PSET4FLG",
+      "RPTMTH",
+      "SECTOR",
+      "STABBR",
+      "TRIBAL",
+      "UEIS",
+      "UGOFFER",
+      "UNITID",
+      "VETURL",
+      "WEBADDR",
+      "ZIP"
+    ],
+    "csv_sha256": "d7b20e136fd971d7dce8ad6ec9b7002f0f281f133959f2c3a6c089a5a4610fe5",
+    "record_count": 6072,
+    "zip_sha256": "d98425c123d7c0e872aec6e83960dfb501884818bf17385c340790f3d1f28345"
+  },
+  "2025_directory_metadata": null,
+  "2025_directory_obtained": false,
+  "2025_retrieval_probes": [
+    {
+      "error": "HTTP Error 404: Not Found",
+      "status": "unavailable",
+      "url": "https://nces.ed.gov/ipeds/datacenter/data/HD2025.zip"
+    },
+    {
+      "error": "HTTP Error 404: Not Found",
+      "status": "unavailable",
+      "url": "https://nces.ed.gov/ipeds/datacenter/data/HD2025_P.zip"
+    }
+  ],
+  "audited_at_utc": "2026-10-10T18:02:22.626186+00:00",
+  "checks": {
+    "2014_or_2024_prefix_parent": 8,
+    "2024_directory_record": 41,
+    "current_directory_record": 0,
+    "homepage_retrieved": 37,
+    "homepage_supplied": 41
+  },
+  "decisions": {
+    "hold_2024_directory_only": 38,
+    "hold_no_official_directory_unitid": 8,
+    "hold_pacifica_two_campuses_until_2027_consolidation": 1,
+    "hold_woodbury_redlands_identity_change": 1,
+    "reject_previous_census_place_candidate": 1
+  },
+  "example_cases": {
+    "hold_2024_directory_only": {
+      "reported_city": "Marion",
+      "state": "IN",
+      "unitid": "151801"
+    },
+    "hold_no_official_directory_unitid": {
+      "reported_city": "Port St Lucie",
+      "state": "FL",
+      "unitid": "13508111"
+    },
+    "hold_pacifica_two_campuses_until_2027_consolidation": {
+      "reported_city": "Santa Barbara CA",
+      "state": "CA",
+      "unitid": "115746"
+    },
+    "hold_woodbury_redlands_identity_change": {
+      "reported_city": "Burbank",
+      "state": "CA",
+      "unitid": "125897"
+    },
+    "reject_previous_census_place_candidate": {
+      "reported_city": "Elgin",
+      "state": "SC",
+      "unitid": "491923"
+    }
+  },
+  "institution_publisher_checks": {
+    "pacifica_transition": {
+      "all_terms_present": true,
+      "required_terms": {
+        "april 2027": true,
+        "ladera campus": true,
+        "lambert campus": true,
+        "updated july 2026": true,
+        "winter 2027": true
+      },
+      "resolved_url": "https://www.pacifica.edu/pacificas-campus-transition/",
+      "retrieved": true,
+      "url": "https://www.pacifica.edu/pacificas-campus-transition/",
+      "visible_text_sha256": "66a8b41dea9cf3c47023739d5113a2a4473f4381bc818256297d3b796c5d2fa5"
+    },
+    "redlands_merger": {
+      "all_terms_present": true,
+      "required_terms": {
+        "continuing and responsible institution": true,
+        "july 6 2026": true,
+        "university of redlands": true,
+        "university of redlands los angeles": true,
+        "woodbury university": true
+      },
+      "resolved_url": "https://www.redlands.edu/about/office-of-the-president/presidents-messages/2026/university-of-redlands-and-woodbury-university-complete-historic-merger",
+      "retrieved": true,
+      "url": "https://www.redlands.edu/about/office-of-the-president/presidents-messages/2026/university-of-redlands-and-woodbury-university-complete-historic-merger",
+      "visible_text_sha256": "aca88dccddb4f96da7d73062b72553ee1aa1ea1bbfa49e45712db4775eed962f"
+    }
+  },
+  "limits": [
+    "2025 NCES IPEDS provisional and 2024 final are different source vintages",
+    "2024 IPEDS website fields are self-reported and do not prove current street address",
+    "unverified school homepages are reachability checks only, not campus-location evidence",
+    "Census Place internal points are not campus coordinates",
+    "formal merger identity/continuing UNITID not determined by merger press release alone",
+    "2026 Pacifica campus transition is date-dependent through winter 2027"
+  ],
+  "new_approved_census_place_geoids": 0,
+  "original_distance_unresolved": 584,
+  "primary_directory_year": 2024,
+  "public_city_name_match_baseline": 5659,
+  "public_college_search_school_count": 6243,
+  "records_reviewed": 49,
+  "s3_05_research_approved_count": 3,
+  "s3_05_research_registry_preserved": true,
+  "source_catalog": "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7",
+  "wordpress_staging_edited": false
+}
