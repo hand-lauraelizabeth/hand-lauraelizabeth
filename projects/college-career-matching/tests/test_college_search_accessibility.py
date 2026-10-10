@@ -43,19 +43,6 @@ def main():
             page.locator("#cs-results-section").wait_for(state="visible", timeout=30000)
             assert "6,243 schools found" in page.locator("#cs-result-count").inner_text()
             assert page.get_by_role("main").count() == 1, "Exactly one main landmark expected"
-            about = page.locator("details#cs-about-data")
-            assert about.count() == 1, "There must be exactly one About this data note"
-            summary = about.locator("summary")
-            assert summary.inner_text().strip() == "About this data"
-            assert not about.evaluate("(el) => el.open"), "Source note must start collapsed"
-            summary.click()
-            assert about.evaluate("(el) => el.open"), "Source note must expand on click"
-            assert about.locator("time[datetime='2026-06-10']").inner_text() == "June 10, 2026"
-            assert about.locator("a[href='https://collegescorecard.ed.gov/data/']").count() == 1
-            assert "6,243 institutions" in about.inner_text()
-            assert "not an independently verified list" in about.inner_text()
-            summary.press("Enter")
-            assert not about.evaluate("(el) => el.open"), "Keyboard must collapse source note"
             viewport = page.locator('meta[name="viewport"]').get_attribute("content")
             lowered = viewport.lower()
             assert "width=device-width" in lowered, viewport
@@ -84,6 +71,19 @@ def main():
                 "Keyboard tab should reach the school-name search"
             outline = page.evaluate("getComputedStyle(document.activeElement).outlineWidth")
             assert float(outline.removesuffix("px")) >= 3, "Keyboard focus indicator missing"
+            about = page.locator("details#cs-about-data")
+            assert about.count() == 1, "There must be exactly one About this data note"
+            summary = about.locator("summary")
+            assert summary.inner_text().strip() == "About this data"
+            assert not about.evaluate("(el) => el.open"), "Source note must start collapsed"
+            summary.click()
+            assert about.evaluate("(el) => el.open"), "Source note must expand on click"
+            assert about.locator("time[datetime='2026-06-10']").inner_text() == "June 10, 2026"
+            assert about.locator("a[href='https://collegescorecard.ed.gov/data/']").count() == 1
+            assert "6,243 institutions" in about.inner_text()
+            assert "not an independently verified list" in about.inner_text()
+            summary.press("Enter")
+            assert not about.evaluate("(el) => el.open"), "Keyboard must collapse source note"
             assert not page_errors, page_errors
             assert not console_errors, console_errors
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2"), \
