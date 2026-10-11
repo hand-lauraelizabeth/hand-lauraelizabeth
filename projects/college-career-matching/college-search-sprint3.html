@@ -44,7 +44,11 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-card.cs-has-badge h3{padding-right:105px}
 #college-search .cs-admission-badge{position:absolute;top:12px;right:12px;display:inline-block;background:#f1f4f1;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:.75rem;line-height:1.2;font-weight:800;text-decoration:none;letter-spacing:.02em}
 #college-search .cs-admission-badge:focus-visible{outline:3px solid #9c5300}
-#college-search .cs-card-scores{font-weight:650;font-size:.9rem;margin:7px 0 12px}
+#college-search .cs-card-scores{font-size:.88rem;margin:10px 0 14px;padding:10px 11px;background:#f5f8f5;border-left:3px solid #5c846b;color:var(--ink)}
+#college-search .cs-card-scores p{margin:0 0 6px;color:var(--ink)}
+#college-search .cs-card-scores p:last-child{margin-bottom:0}
+#college-search .cs-card-scores .cs-score-source{font-size:.82rem;color:var(--muted)}
+#college-search .cs-card-scores .cs-score-source a{white-space:nowrap}
 #college-search .cs-admissions-note{margin:22px 0 0;padding:13px 0;border-top:1px solid var(--border);color:var(--muted);font-size:.92rem;max-width:95ch}
 #college-search .cs-score-field{grid-column:span 2;border:1px solid var(--border);border-radius:12px;min-width:0;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #college-search .cs-score-field legend{font-weight:750;color:var(--ink);padding:0 5px}
@@ -105,7 +109,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 </style>
 </head>
 <body>
-<main id="college-search" data-src="./data/sprint3/college-search-national.v3.json" data-scores-src="./data/sprint3/college-search-scores.v1.json">
+<main id="college-search" data-src="./data/sprint3/college-search-national.v3.json" data-scores-src="./data/sprint3/college-search-scores.v2.json">
 <a class="cs-skip" href="#cs-results-heading">Skip to results</a>
 <header>
 <p class="cs-eyebrow">Data &amp; decision-making tools</p>
@@ -228,7 +232,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <summary>About this data</summary>
 <div class="cs-about-body">
 <p>This directory uses the U.S. Department of Education’s <a href="https://collegescorecard.ed.gov/data/">College Scorecard</a> institution data snapshot dated <time datetime="2026-06-10">June 10, 2026</time>. It includes 6,243 institutions reported as operating in that source. It is not an independently verified list of every accredited U.S. institution.</p>
-<p>SAT uses the source institution-level reported average (SAT_AVG), and ACT uses the source reported composite midpoint (ACTCMMID). Not every school reports scores; sliding a range excludes schools missing that metric. The optional comparison label is intentionally hidden without a personal score and verified percentile evidence. No TOEFL test-score dataset is included. School names, locations, website links, annual cost, tuition and net prices are descriptive published source figures, not quotes or admissions predictions. Tuition and fees are part of annual cost, not an additional amount. Where the source has no website address, the listing says “School website not reported.” Verify current details directly with each institution.</p>
+<p>SAT uses the source institution-level reported average (SAT_AVG), and ACT uses the source reported composite midpoint (ACTCMMID). Score comparisons use the reported 25th, 50th, and 75th percentile section scores (SATVR25/50/75 and SATMT25/50/75), or ACT composite scores (ACTCM25/50/75). Each result card identifies its test-score source and cohort. Not every school reports scores; sliding a range excludes schools missing that metric. The optional comparison label is intentionally hidden without a personal score and verified percentile evidence. No TOEFL test-score dataset is included. School names, locations, website links, annual cost, tuition and net prices are descriptive published source figures, not quotes or admissions predictions. Tuition and fees are part of annual cost, not an additional amount. Where the source has no website address, the listing says “School website not reported.” Verify current details directly with each institution.</p>
 </div>
 </details>
 <noscript><p>This college search requires JavaScript. Enable JavaScript to search the national dataset.</p></noscript>
