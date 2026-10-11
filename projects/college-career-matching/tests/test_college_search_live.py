@@ -21,7 +21,7 @@ def check_page(browser, label, width, height):
     page.on("console", lambda m: errors.append("console:"+m.text) if m.type=="error" else None)
     page.on("requestfailed", lambda req: failed.append({"url":req.url[:240],"failure":req.failure}))
     page.on("response", lambda res: responses.append({"status":res.status,"url":res.url[:250]})
-            if "college-search-national.v1.json" in res.url else None)
+            if "college-search-national.v2.json" in res.url else None)
     report={"url":URL,"viewport":width,"label":label,"passed":False}
     try:
         nav=page.goto(URL,wait_until="domcontentloaded",timeout=30000)
@@ -41,7 +41,33 @@ def check_page(browser, label, width, height):
         assert page.locator("#cs-name").is_enabled()
         assert page.locator("#cs-state").is_enabled()
         assert page.locator("#cs-sort").is_enabled()
+        for field in ("control", "locale", "size"):
+            assert page.locator("#cs-"+field).is_enabled(), "Sprint 2 filter not enabled: "+field
+        assert page.locator("#cs-data-completeness").is_visible()
+        assert page.locator("#cs-control-unknown").inner_text()=="0"
+        assert page.locator("#cs-locale-unknown").inner_text()=="531"
+        assert page.locator("#cs-size-unknown").inner_text()=="781"
+        assert page.locator("#cs-coverage-total").inner_text()=="6,243"
         assert page.locator("details#cs-about-data").count()==1
+        for value,expected in (("public",2044),("private_nonprofit",1890),("private_for_profit",2309)):
+            page.locator("#cs-control").select_option(value)
+            text=page.locator("#cs-result-count").inner_text()
+            assert f"{expected:,} schools found" in text, (value,text)
+            assert page.locator("#cs-active-list").is_visible()
+        page.locator("#cs-locale").select_option("city")
+        both_count=int(page.locator("#cs-result-count").inner_text().split(" ")[0].replace(",",""))
+        assert 0<both_count<2309, both_count
+        page.locator("#cs-size").select_option("under-5000")
+        three_count=int(page.locator("#cs-result-count").inner_text().split(" ")[0].replace(",",""))
+        assert 0<three_count<=both_count, three_count
+        report["control_counts_verified"]={"public":2044,"private_nonprofit":1890,"private_for_profit":2309}
+        report["combined_city_and_size_count"]=three_count
+        page.locator("#cs-clear").click()
+        assert "6,243 schools found" in page.locator("#cs-result-count").inner_text()
+        assert page.locator("#cs-control").input_value()==""
+        assert page.locator("#cs-locale").input_value()==""
+        assert page.locator("#cs-size").input_value()==""
+        assert page.locator("#cs-active-none").is_visible()
         page.locator("#cs-name").fill("Harvard University")
         page.wait_for_function("""() => document.querySelectorAll('.cs-card').length===1""",timeout=8000)
         report["harvard_result"]=page.locator(".cs-card").first.inner_text()[:210]
