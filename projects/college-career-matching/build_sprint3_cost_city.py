@@ -20,7 +20,9 @@ EXPECTED={"annual_cost":5022,"average_net_price":5021,"tuition_in_state":3601,"t
 
 def money(value,uid,field):
     if value is None:return None
-    if type(value) is not int or value<0:
+    # Some official average net prices are negative when grant aid exceeds
+    # the reported cost of attendance; preserve the signed source value.
+    if type(value) is not int or (value < 0 and field != "net_price"):
         raise ValueError(f"Invalid {field} for {uid}: {value!r}")
     return value
 
