@@ -1,0 +1,240 @@
+{
+  "all_456_extracted_from_checked_in_source_shards": true,
+  "all_456_original_bulk_UNITID_values_rechecked_this_run": false,
+  "audit_utc": "2026-10-11T01:12:13.665896+00:00",
+  "browser_data_replaced": false,
+  "classification_counts": {
+    "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 456
+  },
+  "eight_digit_keys": 456,
+  "eight_digit_source_key_equals_opeid8_confirmed_count": null,
+  "existing_browser_budget_limit": 768000,
+  "existing_browser_gzip_bytes": 177188,
+  "existing_browser_headroom": 590812,
+  "national_json_sha256": "478f9e05da1fecd0154fcb28acd0dbdae57ad4c8f22af009f82e311c3febe3bd",
+  "national_record_count": 6243,
+  "national_source_rows_preserved": 6243,
+  "nces_hd2025_sha256": "aadad9277a2255c85813b6d206475ddbf8a7330d79cc0236c2ecae685b00f1bf",
+  "new_geocodes_approved": 0,
+  "new_legal_parent_relation_approvals": 0,
+  "new_official_ipeds_unitid_crosswalk_approvals": 0,
+  "opeid6_and_opeid8_could_be_retrieved": false,
+  "original_scorecard_bulk_source": {
+    "manifest_url": "https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_06102026.zip",
+    "recorded_source_archive_sha256": "f56a181b000ca4914e924c16b6b81dcc656e25aeb2ac68ab7d271ac0f29ffd58",
+    "unavailable_error": "HTTPError: HTTP Error 403: Forbidden",
+    "verified_directly_this_run": false
+  },
+  "per_state_classes": {
+    "AL": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 7
+    },
+    "AR": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 7
+    },
+    "AZ": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 22
+    },
+    "CA": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 36
+    },
+    "CO": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 3
+    },
+    "CT": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 5
+    },
+    "DC": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 2
+    },
+    "DE": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 3
+    },
+    "FL": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 63
+    },
+    "GA": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 20
+    },
+    "ID": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 2
+    },
+    "IL": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 13
+    },
+    "IN": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 41
+    },
+    "KS": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 5
+    },
+    "KY": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 2
+    },
+    "LA": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 7
+    },
+    "MA": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 5
+    },
+    "MD": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "ME": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 3
+    },
+    "MH": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "MI": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 12
+    },
+    "MN": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 19
+    },
+    "MO": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 6
+    },
+    "MS": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 5
+    },
+    "MT": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "NC": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 9
+    },
+    "ND": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "NE": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "NJ": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 8
+    },
+    "NV": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "NY": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 20
+    },
+    "OH": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 13
+    },
+    "OK": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 6
+    },
+    "OR": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "PA": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 18
+    },
+    "PR": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 19
+    },
+    "RI": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 2
+    },
+    "SC": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 3
+    },
+    "TN": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 8
+    },
+    "TX": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 22
+    },
+    "UT": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 4
+    },
+    "VA": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 16
+    },
+    "VI": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 1
+    },
+    "WA": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 9
+    },
+    "WI": {
+      "scorecard_and_nces_prefix_observed_opeid_relationship_unverified": 3
+    }
+  },
+  "raw_scorecard_csv_statistics": {
+    "raw_source_csv_rows_verified_this_run": null
+  },
+  "raw_zip_downloaded_and_parsed": false,
+  "release_notes": "Existing 456 eight-digit source-projected keys should not be labeled independently verified 6-digit NCES UNITIDs. Preserve source exact string identity, no guess at campus/parent.",
+  "research_ledger_gzip_bytes_separate_from_browser": 13093,
+  "scorecard_projected_source_identities_hash_verified": 6243,
+  "six_digit_keys": 5787,
+  "source_caveat": "Original ED bulk ZIP unavailable via direct CDN on this runner; 13 source projection shards and pinned manifest still verified, but Scorecard raw OPEID8/OPEID6 remain null until retrieval.",
+  "source_manifest_sha256": "3acae7cd9a8b58dccbdeab660f3dfa2c6a2b4a9841ad3d5f113030e96f20a25c",
+  "source_manifest_shards_sha_checked": 13,
+  "top_prefix_counts": [
+    {
+      "prefix": "242972",
+      "record_count": 26
+    },
+    {
+      "prefix": "150987",
+      "record_count": 19
+    },
+    {
+      "prefix": "455196",
+      "record_count": 18
+    },
+    {
+      "prefix": "475033",
+      "record_count": 17
+    },
+    {
+      "prefix": "135081",
+      "record_count": 16
+    },
+    {
+      "prefix": "104151",
+      "record_count": 15
+    },
+    {
+      "prefix": "248934",
+      "record_count": 15
+    },
+    {
+      "prefix": "177065",
+      "record_count": 13
+    },
+    {
+      "prefix": "189088",
+      "record_count": 12
+    },
+    {
+      "prefix": "243780",
+      "record_count": 11
+    },
+    {
+      "prefix": "485111",
+      "record_count": 7
+    },
+    {
+      "prefix": "110468",
+      "record_count": 6
+    },
+    {
+      "prefix": "220552",
+      "record_count": 6
+    },
+    {
+      "prefix": "130174",
+      "record_count": 5
+    },
+    {
+      "prefix": "156310",
+      "record_count": 5
+    }
+  ],
+  "unique_numeric_prefixes": 180,
+  "wordpress_edited": false
+}
