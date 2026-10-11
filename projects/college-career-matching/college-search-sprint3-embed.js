@@ -208,6 +208,11 @@
       !payload.institutions || Array.isArray(payload.institutions)) throw Error("Invalid score source.");
     var known=new Set(allRecords.map(function(r){return r.unitid;}));
     var data=payload.institutions;
+    if(Object.values(data).some(function(v){return Array.isArray(v)&&v.length>2;}) &&
+      (payload.percentile_source_status!=="verified_2026_scorecard" ||
+       payload.source_archive_sha256!=="f56a181b000ca4914e924c16b6b81dcc656e25aeb2ac68ab7d271ac0f29ffd58")) {
+      throw Error("Percentile provenance cannot be verified.");
+    }
     for(var id of Object.keys(data)) {
       if(!known.has(id))throw Error("Score UNITID not in the national catalog.");
       var v=data[id];
@@ -237,7 +242,10 @@
         r.act_p25=v[5]??null;r.act_p50=v[6]??null;r.act_p75=v[7]??null;
       });
       scoresReady=true;
-      scoresStatus.textContent="SAT uses the published institutional average; ACT uses the reported composite midpoint. Comparisons require a verified percentile band and an optional personal score. TOEFL is not included in the federal source.";
+      var bandCounts=payload.verified_band_counts;
+      scoresStatus.textContent="SAT uses the published institutional average; ACT uses the reported composite midpoint. "+
+        (bandCounts ? ("Percentile data: "+bandCounts.sat_complete_bands+" SAT and "+bandCounts.act_complete_bands+" ACT institutions. ") : "Percentile bands are not yet included in this verified national extract. ")+
+        "Comparison labels require a personal score and verified complete percentile data; TOEFL is not included in the federal source.";
     }catch(err){
       scoresStatus.textContent="SAT/ACT score filters currently unavailable; the other college filters still work.";
     }
