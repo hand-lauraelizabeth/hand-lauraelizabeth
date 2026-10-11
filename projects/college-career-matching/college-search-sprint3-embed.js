@@ -203,20 +203,33 @@
     drawScoreLabels();applyFilters();
   }
   function validateScoreOverlay(payload,allRecords) {
-    if(!payload || payload.schema_version!==1 || payload.source!=="College Scorecard" ||
+    if(!payload || payload.schema_version!==2 || payload.source!=="College Scorecard" ||
       payload.source_release!=="2026-06-10" || payload.school_count!==EXPECTED_COUNT ||
       !payload.institutions || Array.isArray(payload.institutions)) throw Error("Invalid score source.");
     var known=new Set(allRecords.map(function(r){return r.unitid;}));
     var data=payload.institutions;
-    if(Object.values(data).some(function(v){return Array.isArray(v)&&v.length>2;}) &&
-      (payload.percentile_source_status!=="verified_2026_scorecard" ||
-       payload.source_archive_sha256!=="f56a181b000ca4914e924c16b6b81dcc656e25aeb2ac68ab7d271ac0f29ffd58")) {
+    if(payload.percentile_source_status!=="verified_2026_scorecard" ||
+       payload.source_archive_sha256!=="f56a181b000ca4914e924c16b6b81dcc656e25aeb2ac68ab7d271ac0f29ffd58") {
       throw Error("Percentile provenance cannot be verified.");
     }
+    var sources=payload.source_registry;
+    if(!sources||typeof sources!=="object"||Array.isArray(sources)||
+       !sources.scorecard_2026||
+       sources.scorecard_2026.url!=="https://collegescorecard.ed.gov/data/"||
+       payload.verified_band_counts.sat_complete_bands!==949||
+       payload.verified_band_counts.act_complete_bands!==920)throw Error("Source registry or coverage could not be verified.");
+    Object.keys(sources).forEach(function(id){
+      var source=sources[id];
+      if(!source||typeof source.provider!=="string"||typeof source.cohort!=="string"||
+         !source.url||!/^https:\/\//.test(source.url))throw Error("Invalid source metadata.");
+    });
     for(var id of Object.keys(data)) {
       if(!known.has(id))throw Error("Score UNITID not in the national catalog.");
       var v=data[id];
-      if(!Array.isArray(v)||v.length<2||v.length>8)throw Error("Malformed score row.");
+      if(!Array.isArray(v)||v.length!==10)throw Error("Malformed score row.");
+      if(![8,9].every(function(i){return v[i]===null||(typeof v[i]==="string" && Object.hasOwn(sources,v[i]));}))throw Error("Unknown score source.");
+      if((v[0]!==null || v[2]!==null) && !v[8])throw Error("SAT score source missing.");
+      if((v[1]!==null || v[5]!==null) && !v[9])throw Error("ACT score source missing.");
       function valid(value,min,max){return value==null||(Number.isInteger(value)&&value>=min&&value<=max);}
       if(!valid(v[0],400,1600)||!valid(v[1],1,36) ||
         ![2,3,4].every(function(i){return valid(v[i],400,1600);}) ||
@@ -234,12 +247,16 @@
     try{
       var response=await fetch(source,{signal:signal,credentials:"omit"});
       if(!response.ok)throw Error("Scores request failed.");
-      var data=validateScoreOverlay(await response.json(),records);
+      var payload=await response.json();
+      var data=validateScoreOverlay(payload,records);
+      var sourceRegistry=payload.source_registry;
       records.forEach(function(r){
         var v=data[r.unitid]||[];
         r.sat_avg=v[0]??null;r.act_mid=v[1]??null;
         r.sat_p25=v[2]??null;r.sat_p50=v[3]??null;r.sat_p75=v[4]??null;
         r.act_p25=v[5]??null;r.act_p50=v[6]??null;r.act_p75=v[7]??null;
+        r.sat_source=(v[8]&&sourceRegistry[v[8]])||null;
+        r.act_source=(v[9]&&sourceRegistry[v[9]])||null;
       });
       scoresReady=true;
       var bandCounts=payload.verified_band_counts;
@@ -407,11 +424,32 @@
     if(record.tuition_out_state!==null && record.tuition_out_state!==record.tuition_in_state)
       addCost("Tuition and fees — out-of-state",record.tuition_out_state);
     if(costs.childElementCount)item.appendChild(costs);
-    if(Number.isFinite(record.sat_avg)||Number.isFinite(record.act_mid)){
-      var testing=document.createElement("p");
+    if(record.sat_source||record.act_source){
+      var testing=document.createElement("div");
       testing.className="cs-card-scores";
-      testing.textContent=[Number.isFinite(record.sat_avg)?"SAT average: "+record.sat_avg:null,
-        Number.isFinite(record.act_mid)?"ACT composite midpoint: "+record.act_mid:null].filter(Boolean).join(" · ");
+      function addScore(label,average,p25,p50,p75,source){
+        if(!source)return;
+        var entry=document.createElement("p");
+        var header=document.createElement("strong");header.textContent=label+": ";
+        entry.appendChild(header);
+        var middle=(Number.isFinite(p25)&&Number.isFinite(p50)&&Number.isFinite(p75)) ?
+          "25th / 50th / 75th: "+p25+" / "+p50+" / "+p75 : "25th–75th percentile unavailable";
+        entry.appendChild(document.createTextNode((Number.isFinite(average)?("reported "+average+" · "):"")+middle));
+        testing.appendChild(entry);
+      }
+      addScore("SAT (estimated total percentiles)",record.sat_avg,record.sat_p25,record.sat_p50,record.sat_p75,record.sat_source);
+      addScore("ACT composite",record.act_mid,record.act_p25,record.act_p50,record.act_p75,record.act_source);
+      var uniqueSources=[];
+      [record.sat_source,record.act_source].forEach(function(source){
+        if(source&&!uniqueSources.some(function(prev){return prev.url===source.url&&prev.cohort===source.cohort;}))uniqueSources.push(source);
+      });
+      uniqueSources.forEach(function(source){
+        var cite=document.createElement("p");cite.className="cs-score-source";
+        cite.appendChild(document.createTextNode("Test-score source: "+source.provider+" · "+source.dataset+" · "+source.cohort+" · "));
+        var link=document.createElement("a");link.textContent="Source data";link.href=source.url;
+        link.target="_blank";link.rel="noopener noreferrer";cite.appendChild(link);
+        testing.appendChild(cite);
+      });
       item.appendChild(testing);
     }
     if (record.url) {
