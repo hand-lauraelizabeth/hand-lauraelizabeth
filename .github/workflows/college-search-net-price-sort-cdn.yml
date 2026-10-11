@@ -1,0 +1,36 @@
+name: College Search net-price sort pinned CDN preflight
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - '.github/workflows/college-search-net-price-sort-cdn.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare pinned public JS and national v3 dataset byte-for-byte
+        run: |
+          python - <<'PY'
+          import pathlib,urllib.request,json,hashlib
+          root=pathlib.Path("projects/college-career-matching")
+          base="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@f9ed130bd4affac954b7a1e25847df337206e995/projects/college-career-matching/"
+          for rel in ("college-search-sprint3-embed.js","data/sprint3/college-search-national.v3.json"):
+              request=urllib.request.Request(base+rel,headers={"Origin":"https://www.lauraelizabethhand.com","User-Agent":"CollegeSearch-price-sort-preflight"})
+              with urllib.request.urlopen(request,timeout=60) as resp:
+                  remote=resp.read()
+                  cors=resp.headers.get("Access-Control-Allow-Origin","")
+                  assert resp.status==200,(rel,resp.status)
+                  assert cors in ("*","https://www.lauraelizabethhand.com"),(rel,cors)
+                  assert remote==(root/rel).read_bytes(),f"Pinned CDN mismatch for {rel}"
+                  if rel.endswith(".json"):
+                      assert len(json.loads(remote)["institutions"])==6243
+                  else:
+                      assert b"net-asc" in remote and b"net-desc" in remote
+                  print("PINNED_NET_SORT_CDN_PASS",rel,len(remote),hashlib.sha256(remote).hexdigest(),cors)
+          PY
