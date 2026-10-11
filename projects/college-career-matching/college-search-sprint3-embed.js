@@ -41,16 +41,16 @@
   }
   function admissionsCategory(record, ownSAT, ownACT) {
     var labels=[];
-    function category(score,low,high) {
-      if (!Number.isFinite(score) || !Number.isFinite(low) || !Number.isFinite(high) || low > high) return null;
+    function category(score,low,median,high) {
+      if (!Number.isFinite(score) || !Number.isFinite(low) || !Number.isFinite(median) || !Number.isFinite(high) || low > median || median > high) return null;
       return score < low ? "REACH" : score > high ? "SAFETY" : "TARGET";
     }
     if (Number.isFinite(ownSAT)) {
-      var satLabel=category(ownSAT,record.sat_p25,record.sat_p75);
+      var satLabel=category(ownSAT,record.sat_p25,record.sat_p50,record.sat_p75);
       if (satLabel) labels.push(satLabel);
     }
     if (Number.isFinite(ownACT)) {
-      var actLabel=category(ownACT,record.act_p25,record.act_p75);
+      var actLabel=category(ownACT,record.act_p25,record.act_p50,record.act_p75);
       if (actLabel) labels.push(actLabel);
     }
     // Avoid an arbitrary decision when the two examinations disagree.
@@ -217,7 +217,7 @@
         ![2,3,4].every(function(i){return valid(v[i],400,1600);}) ||
         ![5,6,7].every(function(i){return valid(v[i],1,36);})) throw Error("Score out of range.");
       function ordered(a,b,c){return (a==null&&b==null&&c==null)||
-        (a!=null&&c!=null&&a<=c&&(b==null||(a<=b&&b<=c)));}
+        (a!=null&&b!=null&&c!=null&&a<=b&&b<=c);}
       if(!ordered(v[2],v[3],v[4])||!ordered(v[5],v[6],v[7]))throw Error("Invalid score percentiles.");
     }
     return data;
@@ -369,6 +369,7 @@
     item.className = "cs-card";
     var category=admissionsCategory(record,ownScore(ownSATInput,400,1600),ownScore(ownACTInput,1,36));
     if(category){
+      item.classList.add("cs-has-badge");
       var badge=document.createElement("a");
       badge.className="cs-admission-badge cs-admission-"+category.toLowerCase();
       badge.href="#cs-admissions-note";
