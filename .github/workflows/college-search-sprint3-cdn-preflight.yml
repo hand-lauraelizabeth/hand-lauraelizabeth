@@ -1,0 +1,36 @@
+name: College Search v3 pinned public CDN production preflight
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - '.github/workflows/college-search-sprint3-cdn-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm immutable JS and national v3 JSON reach live WordPress origin
+        run: |
+          python - <<'PY'
+          import pathlib,urllib.request,hashlib,json
+          p=pathlib.Path("projects/college-career-matching")
+          base="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@e69e95b25bf86df9668d56e0d14195961c895fb8/projects/college-career-matching/"
+          for relative in ("college-search-sprint3-embed.js","data/sprint3/college-search-national.v3.json"):
+              request=urllib.request.Request(base+relative,headers={"Origin":"https://www.lauraelizabethhand.com","User-Agent":"CollegeSearch-v3-release-check"})
+              with urllib.request.urlopen(request,timeout=65) as response:
+                  remote=response.read()
+                  cors=response.headers.get("Access-Control-Allow-Origin","")
+                  assert response.status==200 and cors in ("*","https://www.lauraelizabethhand.com"),(relative,cors)
+                  local=(p/relative).read_bytes()
+                  assert remote==local,(relative,"remote mismatch")
+                  if relative.endswith(".json"):
+                      j=json.loads(remote)
+                      assert j["source_release"]=="2026-06-10"
+                      assert len(j["institutions"])==6243
+                  print("S3_CDN_SOURCE_PASS",json.dumps({"path":relative,"bytes":len(remote),"sha256":hashlib.sha256(remote).hexdigest(),"cors":cors}))
+          PY
