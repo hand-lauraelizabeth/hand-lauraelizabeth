@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:,">
+<title>College Search | Laura Elizabeth Hand</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+#college-search{--ink:#1e332c;--green:#245a4b;--border:#c8d6ce;--muted:#52665b;--surface:#fff;max-width:1100px;padding:clamp(18px,4vw,48px);margin:0 auto}
+#college-search [hidden]{display:none!important}
+#college-search .cs-skip{position:absolute;top:-100px;left:12px;z-index:5;background:white;color:var(--ink);padding:10px 16px;border:2px solid var(--green)}
+#college-search .cs-skip:focus{top:10px}
+#college-search a{color:var(--green);text-underline-offset:3px}
+#college-search a:hover{text-decoration-thickness:2px}
+#college-search :is(a,button,input,select,summary):focus-visible{outline:3px solid #9c5300;outline-offset:3px}
+#college-search .cs-eyebrow{margin:0 0 8px;color:var(--green);font-size:.85rem;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
+#college-search h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.045em;line-height:1.15;margin:0 0 12px}
+#college-search .cs-intro{max-width:700px;color:var(--muted);margin:0 0 28px}
+#college-search .cs-toolbar{background:var(--surface);border:1px solid var(--border);border-radius:18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:end;padding:20px;box-shadow:0 3px 15px #193e3010}
+#college-search .cs-search-field{grid-column:span 2}
+#college-search label{display:grid;gap:7px;font-weight:700;font-size:.9rem}
+#college-search :is(input,select){width:100%;min-width:0;border:1px solid #8ca698;border-radius:9px;background:#fff;color:var(--ink);font:inherit;min-height:44px;padding:10px 12px}
+#college-search input::placeholder{color:#62756b;opacity:1}
+#college-search :is(input,select,button):disabled{opacity:.58;cursor:not-allowed}
+#college-search button{min-height:44px;border:1px solid var(--green);border-radius:10px;background:var(--green);color:#fff;padding:10px 18px;font:inherit;font-weight:700;cursor:pointer}
+#college-search button:hover:not(:disabled){background:#173f34}
+#college-search #cs-clear{background:#fff;color:var(--green)}
+#college-search #cs-clear:hover:not(:disabled){background:#e9f2ec}
+#college-search .cs-progress{min-height:52px;margin:22px 0 0;color:var(--muted);font-weight:600}
+#college-search .cs-progress[data-state="loading"]::before{content:"";display:inline-block;vertical-align:-3px;width:14px;height:14px;border-radius:50%;border:2px solid #a8bcb0;border-top-color:var(--green);margin-right:9px;animation:cs-spin .8s linear infinite}
+@keyframes cs-spin{to{transform:rotate(360deg)}}
+#college-search .cs-error{background:#fff4f0;border:1px solid #c65946;border-radius:12px;padding:16px 20px;margin:20px 0}
+#college-search .cs-error p{margin:0 0 12px}
+#college-search .cs-heading{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:12px 0 16px}
+#college-search h2{font-size:1.5rem;margin:0}
+#college-search #cs-result-count{font-variant-numeric:tabular-nums;font-weight:700;color:var(--muted);margin:0}
+#college-search .cs-results{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#college-search .cs-card{min-width:0;border:1px solid var(--border);background:#fff;border-radius:12px;padding:19px}
+#college-search .cs-card h3{font-size:1.1rem;line-height:1.35;margin:0 0 9px;color:var(--ink)}
+#college-search .cs-card p{margin:0 0 10px;color:var(--muted)}
+#college-search .cs-card a{font-weight:700;overflow-wrap:anywhere}
+#college-search .cs-unavailable{font-size:.88rem;color:var(--muted)}
+#college-search .cs-empty{padding:26px;background:#fff;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}
+#college-search .cs-more{display:flex;justify-content:center;margin:24px 0}
+#college-search .cs-more button{min-width:160px}
+#college-search .cs-toolbar > br,#college-search label > br,#college-search > br{display:none!important}
+#college-search .cs-coverage{background:#edf4ef;border:1px solid var(--border);border-radius:12px;margin:12px 0 0;padding:14px 18px;color:var(--ink)}
+#college-search .cs-coverage p{margin:0 0 8px}
+#college-search .cs-coverage p:last-child{margin-bottom:0}
+#college-search .cs-coverage-title{font-weight:750}
+#college-search .cs-coverage-list{display:flex;flex-wrap:wrap;gap:5px 20px;margin:0 0 9px;padding:0;list-style:none}
+#college-search .cs-coverage-list li{font-size:.94rem}
+#college-search .cs-coverage-list strong{font-variant-numeric:tabular-nums}
+#college-search .cs-coverage-note{color:var(--muted);font-size:.9rem;line-height:1.6}
+#college-search .cs-active{margin:0 0 18px;padding:13px 17px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+#college-search .cs-active h3{font-size:1rem;margin:0 0 7px;color:var(--ink)}
+#college-search .cs-active p{margin:5px 0;color:var(--muted);font-size:.92rem}
+#college-search .cs-active-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+#college-search .cs-active-list li{max-width:100%;overflow-wrap:anywhere;border-left:3px solid var(--green);background:#edf4ef;border-radius:4px;padding:5px 9px;font-size:.91rem}
+#college-search .cs-about{margin:22px 0 0;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--ink)}
+#college-search .cs-about summary{cursor:pointer;padding:16px 20px;font-weight:750;color:var(--green)}
+#college-search .cs-about[open] summary{border-bottom:1px solid var(--border)}
+#college-search .cs-about-body{padding:4px 20px 16px}
+#college-search .cs-about-body p{margin:12px 0;color:var(--muted);max-width:90ch}
+#college-search .cs-city-field{grid-column:span 2;align-self:stretch;border:1px solid #8ca698;border-radius:10px;background:#fff;padding:0;min-width:0}
+#college-search .cs-city-field summary{cursor:pointer;font-weight:700;padding:11px 14px;min-height:44px}
+#college-search #cs-city-count{font-size:.82rem;font-weight:500;color:var(--muted)}
+#college-search .cs-city-inside{padding:0 12px 12px}
+#college-search .cs-city-inside label{font-weight:600}
+#college-search #cs-city-feedback{font-size:.86rem;color:var(--muted);margin:8px 0}
+#college-search .cs-city-options{list-style:none;max-height:235px;overflow:auto;margin:0;padding:0;display:grid;gap:5px}
+#college-search .cs-city-option{width:100%;text-align:left;background:#fff;color:var(--green);min-height:36px;padding:6px 10px;border:1px solid var(--border)}
+#college-search .cs-city-option[aria-pressed="true"]{background:#e4f0e9;border-color:var(--green)}
+#college-search .cs-city-selected{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 0}
+#college-search .cs-city-chip{min-height:35px;background:#e4f0e9;color:var(--ink);border:1px solid var(--border);padding:5px 9px;font-size:.85rem}
+#college-search .cs-money-field{grid-column:span 2;min-width:0;gap:9px}
+#college-search .cs-money-field input[type="range"]{height:34px;min-height:34px;padding:0;accent-color:var(--green);cursor:pointer}
+#college-search .cs-money-label{font-weight:600;font-size:.9rem}
+#college-search .cs-money-label output{font-weight:750;color:var(--green)}
+#college-search .cs-costs{margin:12px 0;padding:10px 12px;border-left:3px solid var(--green);background:#f0f6f1;font-size:.9rem}
+#college-search .cs-costs p{margin:0 0 5px;line-height:1.4}
+#college-search .cs-costs p:last-child{margin:0}
+#college-search .cs-cost-note{color:var(--muted);font-size:.91rem;max-width:90ch;margin:12px 0 0}
+#college-search .cs-visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:760px){#college-search .cs-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#college-search .cs-search-field{grid-column:1/-1}#college-search #cs-clear{grid-column:1/-1}#college-search .cs-results{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:380px){#college-search .cs-toolbar{grid-template-columns:1fr}#college-search .cs-toolbar>*{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#college-search .cs-progress[data-state="loading"]::before{animation:none}}
+</style>
+</head>
+<body>
+<main id="college-search" data-src="./data/sprint3/college-search-national.v3.json">
+<a class="cs-skip" href="#cs-results-heading">Skip to results</a>
+<header>
+<p class="cs-eyebrow">Data &amp; decision-making tools</p>
+<h1>College Search</h1>
+<p class="cs-intro">Explore U.S. colleges by school, state, multiple cities, institution control, campus setting, undergraduate size, average net price and annual cost. Cost figures are descriptive federal averages—not individualized offers.</p>
+</header>
+<section aria-label="Search and filter colleges">
+<div class="cs-toolbar">
+<label class="cs-search-field" for="cs-name">School name
+<input id="cs-name" type="search" autocomplete="off" placeholder="Search college names" disabled></label>
+<label for="cs-state">State or territory
+<select id="cs-state" disabled><option value="">All states and territories</option></select></label>
+<label for="cs-sort">Sort by
+<select id="cs-sort" disabled>
+<option value="name-asc">School name: A–Z</option>
+<option value="name-desc">School name: Z–A</option>
+</select></label>
+<label for="cs-control">Institution control
+<select id="cs-control" aria-describedby="cs-control-missing" disabled>
+<option value="">All institution types</option>
+<option value="public">Public</option>
+<option value="private_nonprofit">Private nonprofit</option>
+<option value="private_for_profit">Private for-profit</option>
+</select></label>
+<label for="cs-locale">Campus setting
+<select id="cs-locale" aria-describedby="cs-locale-missing" disabled>
+<option value="">All settings</option>
+<option value="city">City</option>
+<option value="suburb">Suburb</option>
+<option value="town">Town</option>
+<option value="rural">Rural</option>
+</select></label>
+<label for="cs-size">Undergraduate size
+<select id="cs-size" aria-describedby="cs-size-missing" disabled>
+<option value="">All sizes</option>
+<option value="under-5000">Under 5,000</option>
+<option value="5000-14999">5,000–14,999</option>
+<option value="15000-plus">15,000+</option>
+</select></label>
+<details id="cs-city-details" class="cs-city-field">
+<summary>City or town — choose multiple <span id="cs-city-count">(all cities)</span></summary>
+<div class="cs-city-inside">
+<label for="cs-city-search">Search city names (include state)</label>
+<input id="cs-city-search" type="search" autocomplete="off" placeholder="e.g., Cambridge or Albany, NY" disabled>
+<p id="cs-city-feedback" role="status" aria-live="polite">Type at least 2 letters to find cities.</p>
+<ul id="cs-city-options" class="cs-city-options" aria-label="Matching cities"></ul>
+<div id="cs-city-selected" class="cs-city-selected" aria-label="Selected city filters"></div>
+</div></details>
+<label class="cs-money-field" for="cs-net-max">Average net price after grant aid
+<span class="cs-money-label">Maximum: <output id="cs-net-output" for="cs-net-max">Any</output></span>
+<input id="cs-net-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-net-missing"></label>
+<label class="cs-money-field" for="cs-cost-max">Annual cost (tuition + living and other expenses)
+<span class="cs-money-label">Maximum: <output id="cs-cost-output" for="cs-cost-max">Any</output></span>
+<input id="cs-cost-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-cost-missing"></label>
+<button id="cs-clear" type="button" disabled>Clear</button>
+</div>
+<div id="cs-data-completeness" class="cs-coverage" aria-labelledby="cs-coverage-title" hidden>
+<p id="cs-coverage-title" class="cs-coverage-title">Data completeness — all <span id="cs-coverage-total"></span> institutions, before filters</p>
+<ul class="cs-coverage-list">
+<li id="cs-control-missing">Institution control unknown: <strong id="cs-control-unknown"></strong></li>
+<li id="cs-locale-missing">Campus setting unknown: <strong id="cs-locale-unknown"></strong></li>
+<li id="cs-size-missing">Undergraduate size unknown: <strong id="cs-size-unknown"></strong></li>
+<li id="cs-net-missing">Average net price unavailable: <strong id="cs-net-unknown"></strong></li>
+<li id="cs-cost-missing">Annual cost unavailable: <strong id="cs-cost-unknown"></strong></li>
+</ul>
+<p class="cs-coverage-note">“All” includes schools with missing data. Choosing a value excludes schools with unknown data for that field; unknown is never interpreted as rural or a small enrollment. Campus settings use reported locale codes; missing or unclassifiable codes remain unknown. Size means undergraduate enrollment, not total enrollment. Moving a price slider applies a maximum and excludes records missing that price; “Any” includes them.</p>
+</div>
+<p class="cs-cost-note">Average net price is the published average after grant and scholarship aid for eligible first-time, full-time federal-aid recipients (in-state students at public institutions). Annual cost is an estimated cost of attendance before grant aid; reported tuition and fees are included within annual cost, not added on top. Actual costs vary by program, residency, living arrangements and aid.</p>
+</section>
+<p id="cs-load-status" class="cs-progress" data-state="loading" role="status" aria-live="polite">Loading national college data…</p>
+<div id="cs-error" class="cs-error" role="alert" hidden>
+<p id="cs-error-text">College data could not be loaded.</p>
+<button id="cs-retry" type="button">Retry loading</button>
+</div>
+<section id="cs-results-section" aria-labelledby="cs-results-heading" hidden>
+<div class="cs-heading">
+<h2 id="cs-results-heading">Results</h2>
+<p id="cs-result-count" role="status" aria-live="polite"></p>
+</div>
+<section id="cs-active-summary" class="cs-active" aria-labelledby="cs-active-title">
+<h3 id="cs-active-title">Active selections</h3>
+<p id="cs-active-none">No filters applied.</p>
+<ul id="cs-active-list" class="cs-active-list" hidden></ul>
+<p id="cs-active-sort">Sort: School name: A–Z</p>
+</section>
+<ul class="cs-results" id="cs-results-list"></ul>
+<p id="cs-empty" class="cs-empty" hidden>No schools match those filters. Try changing one or more selections.</p>
+<div class="cs-more"><button id="cs-show-more" type="button" aria-controls="cs-results-list" hidden>Show 24 more</button></div>
+</section>
+<details id="cs-about-data" class="cs-about">
+<summary>About this data</summary>
+<div class="cs-about-body">
+<p>This directory uses the U.S. Department of Education’s <a href="https://collegescorecard.ed.gov/data/">College Scorecard</a> institution data snapshot dated <time datetime="2026-06-10">June 10, 2026</time>. It includes 6,243 institutions reported as operating in that source. It is not an independently verified list of every accredited U.S. institution.</p>
+<p>School names, locations, website links, annual cost, tuition and net prices are descriptive published source figures, not quotes or admissions predictions. Tuition and fees are part of annual cost, not an additional amount. Where the source has no website address, the listing says “School website not reported.” Verify current details directly with each institution.</p>
+</div>
+</details>
+<noscript><p>This college search requires JavaScript. Enable JavaScript to search the national dataset.</p></noscript>
+</main>
+<script data-college-search src="./college-search-sprint3-embed.js" defer></script>
+</body>
+</html>
