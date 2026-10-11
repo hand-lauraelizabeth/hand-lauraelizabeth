@@ -6,25 +6,35 @@ on:
       - feature/college-admissions-score-bands-20261011
     paths:
       - .github/workflows/college-admissions-enrichment.yml
-      - projects/college-career-matching/build_sprint4_admissions.py
+      - projects/college-career-matching/college-search-sprint3-embed.js
+      - projects/college-career-matching/college-search-sprint3.html
+      - projects/college-career-matching/tests/test_admissions_scores.cjs
+      - projects/college-career-matching/data/sprint3/college-search-scores.v1.json
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate SAT ACT ranges, evidence gate and DOM contracts
+        run: node --test projects/college-career-matching/tests/test_admissions_scores.cjs
+
   enrich:
+    if: github.event_name == 'workflow_dispatch'
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Validate SAT and ACT range filters and category rules
-        run: node --test projects/college-career-matching/tests/test_admissions_scores.cjs
-      - name: Verify pinned source archive, build real score percentile bands
+      - name: Verify pinned Scorecard archive and build real score percentile bands
         run: python projects/college-career-matching/build_sprint4_admissions.py
-      - name: Confirm enriched fixture is safe
+      - name: Validate generated percentile data
         run: node --test projects/college-career-matching/tests/test_admissions_scores.cjs
       - name: Commit only generated score overlay to review branch
         run: |
