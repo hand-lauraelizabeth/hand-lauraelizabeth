@@ -1,0 +1,70 @@
+name: Sprint 3 official HD2025 source recovery and 49-case comparison
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/recover_sprint3_07.py'
+      - '.github/workflows/college-search-sprint3-source-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  recover-hd2025:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check source syntax and pre-existing 6243 row Scorecard snapshot
+        run: |
+          python -m py_compile projects/college-career-matching/recover_sprint3_07.py
+          python projects/college-career-matching/build_sprint2_national.py --check
+      - name: Fetch official HD2025 and compare all 49 unresolved institutions
+        run: python projects/college-career-matching/recover_sprint3_07.py
+      - name: Assert authentic official source and no accidental public geo assignment
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("projects/college-career-matching")
+          j=json.loads((p/"research_aggregate/s3_07_hd2025_source_recovery.json").read_text())
+          q=json.loads((p/"research_work/s3_07_49_case_comparison.json").read_text())["cases"]
+          assert j["recovered_direct_official_source"],"Source missing; do not mark recovery DONE"
+          assert j["official_archive_metadata"]["url"]=="https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip"
+          assert j["official_archive_metadata"]["record_count"]>5000
+          assert len(j["official_archive_metadata"]["zip_sha256"])==64
+          assert len(j["official_archive_metadata"]["csv_sha256"])==64
+          assert sum(j["crossyear_49_cases"].values())==49==len(q)
+          assert all(x["2025_directory_present"] is not None for x in q)
+          assert len({x["unitid"] for x in q})==49
+          assert j["new_approved_place_geoids"]==0
+          assert j["unchanged_public_city_label_coverage"]==5659
+          assert j["unchanged_original_unresolved"]==584
+          assert j["unchanged_s3_05_approved_city_place_proxy_count"]==3
+          assert not j["deployment_approved"]
+          assert all(not x["exact_campus_location_verified"] and x["approved_new_census_geoid"] is None for x in q)
+          registry=json.loads((p/"research_aggregate/s3_05_approved_city_place_registry.json").read_text())
+          assert registry["accepted_records"]==3 and not registry["deployment_approved"]
+          print("S3_07_OFFICIAL_HD2025_VERIFIED",j["official_archive_metadata"]["record_count"],j["crossyear_49_cases"])
+          PY
+      - name: Archive private working comparison as repo-permission artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint3-07-hd2025-unitid-reconciliation-49
+          path: projects/college-career-matching/research_work/s3_07_49_case_comparison.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Commit source hashes and aggregate report, never raw college coordinates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_07_hd2025_source_recovery.json projects/college-career-matching/S3_07_IPEDS_RECOVERY.md
+          if git diff --cached --quiet; then
+            echo "S3-07 findings already current"
+          else
+            git commit -m "Record official HD2025 source hashes and 49-school historical identity comparison"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi
