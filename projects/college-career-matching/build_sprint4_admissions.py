@@ -46,13 +46,33 @@ def main():
     assert manifest["source_release"] == "2026-06-10"
     assert overlay["source_archive_sha256"] == manifest["source_archive_sha256"]
     assert overlay["school_count"] == 6243
-    url = SOURCE_BASE + "Most-Recent-Cohorts-Institution_06102026.zip"
-    request = urllib.request.Request(url, headers={"User-Agent": "CollegeSearchDataValidation/1.0"})
-    with urllib.request.urlopen(request, timeout=120) as response:
-        archive = response.read()
+    filename = "Most-Recent-Cohorts-Institution_06102026.zip"
+    # Try only ED-controlled hosts. The SHA-256 pin is mandatory regardless of
+    # which hostname responds. An unavailable archive must fail closed.
+    urls = [
+        SOURCE_BASE + filename,
+        "https://collegescorecard.ed.gov/data/" + filename,
+        "https://ed-public-download.app.cloud.gov/downloads/" + filename,
+    ]
+    archive = None
+    failures = []
+    for url in urls:
+        try:
+            request = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0 (compatible; CollegeSearchDataValidation/1.0)",
+                "Accept": "application/zip,*/*",
+            })
+            with urllib.request.urlopen(request, timeout=120) as response:
+                candidate = response.read()
+            if hashlib.sha256(candidate).hexdigest() != manifest["source_archive_sha256"]:
+                raise ValueError("Source archive checksum mismatch")
+            archive = candidate
+            break
+        except (OSError, ValueError) as error:
+            failures.append(f"{url}: {type(error).__name__}: {error}")
+    if archive is None:
+        raise RuntimeError("Could not download checksum-verified archive: " + " | ".join(failures))
     digest = hashlib.sha256(archive).hexdigest()
-    if digest != manifest["source_archive_sha256"]:
-        raise ValueError("Source archive checksum mismatch; no output written")
 
     records = overlay["institutions"]
     relevant = set(records)
