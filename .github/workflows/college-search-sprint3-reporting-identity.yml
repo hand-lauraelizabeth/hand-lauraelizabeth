@@ -1,0 +1,70 @@
+name: S3-08 eight reporting-unit identities and Pacifica city change
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/audit_sprint3_08_reporting_ids.py'
+      - '.github/workflows/college-search-sprint3-reporting-identity.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  official-identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Confirm six-thousand school input and script syntax
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python -m py_compile projects/college-career-matching/audit_sprint3_08_reporting_ids.py
+      - name: Audit NCES 2024/2025 and Pacifica primary sources
+        run: python projects/college-career-matching/audit_sprint3_08_reporting_ids.py
+      - name: Enforce only research-grade identifier conclusions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path("projects/college-career-matching")
+          a=json.loads((root/"research_aggregate/s3_08_reporting_unit_audit.json").read_text())
+          ledger=json.loads((root/"research_work/s3_08_nine_cases.json").read_text())
+          assert a["national_school_records"]==6243
+          assert a["missing_2024_2025_s3_07_cases"]==len(ledger["eight_cases"])==8
+          assert a["approved_new_reporting_unit_links"]==0
+          assert a["approved_new_campus_geocodes"]==0
+          assert a["public_city_matching_unchanged"]==5659
+          assert a["public_location_records_unresolved_unchanged"]==584
+          assert a["s3_05_three_entry_registry_unchanged"] and not a["wordpress_changed"]
+          assert a["changed_city_case"]["unitid"]=="115746"
+          assert a["changed_city_case"]["2024_ipeds_city"]!=a["changed_city_case"]["2025_ipeds_city"]
+          assert len({x["scorecard_display_id"] for x in ledger["eight_cases"]})==8
+          assert all(len(x["scorecard_display_id"])==8 and len(x["candidate_six_digit_prefix"])==6
+                     and x["scorecard_display_id"].startswith(x["candidate_six_digit_prefix"])
+                     and x["prefix_in_2025_ipeds"] and x["prefix_in_2024_ipeds"]
+                     and not x["verified_parent_child_relationship"] and x["approved_geo_association"] is None
+                     for x in ledger["eight_cases"])
+          assert (root/"research_aggregate/s3_08_reporting_unit_audit.json").stat().st_size < 100000
+          print("S3_08_IDENTITY_VALIDATED", a["all_national_key_lengths"])
+          PY
+      - name: Archive nine-case evidence ledger for review (not public mapping)
+        uses: actions/upload-artifact@v4
+        with:
+          name: college-s3-08-nine-unitid-reporting-identity-cases
+          path: projects/college-career-matching/research_work/s3_08_nine_cases.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit aggregate research only; never modify site or national data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_08_reporting_unit_audit.json projects/college-career-matching/S3_08_REPORTING_UNIT_REVIEW.md
+          if git diff --cached --quiet; then
+            echo "S3-08 aggregate research unchanged"
+          else
+            git commit -m "Record NCES-vetted S3-08 eight extended IDs and Pacifica city-label audit"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi
