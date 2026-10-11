@@ -9,6 +9,7 @@ on:
       - projects/college-career-matching/college-search-sprint3-embed.js
       - projects/college-career-matching/college-search-sprint3.html
       - projects/college-career-matching/tests/test_admissions_scores.cjs
+      - projects/college-career-matching/tests/test_admissions_scores_browser.py
       - projects/college-career-matching/data/sprint3/college-search-scores.v1.json
   workflow_dispatch:
 
@@ -22,6 +23,28 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate SAT ACT ranges, evidence gate and DOM contracts
         run: node --test projects/college-career-matching/tests/test_admissions_scores.cjs
+
+  browser:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+      - name: Run static matcher mobile/desktop browser scenarios
+        run: |
+          cd projects/college-career-matching
+          python -m http.server 8766 --bind 127.0.0.1 >/tmp/score-site.log 2>&1 &
+          sleep 2
+          python tests/test_admissions_scores_browser.py
+          python tests/test_sprint3_city_cost_browser.py
+          python tests/test_sprint3_net_sort_browser.py
 
   enrich:
     if: github.event_name == 'workflow_dispatch'
