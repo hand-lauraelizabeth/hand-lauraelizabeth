@@ -1,6 +1,6 @@
 # S3-08 — Reporting-unit identity and Pacifica city-label audit
 
-**Verified on (UTC):** 2026-10-11T00:25:15.943529+00:00
+**Verified on (UTC):** 2026-10-11T00:26:30.073723+00:00
 
 **Status:** eight extended identifiers and one changed-city record audited against SHA-pinned official 2024 and 2025 NCES IPEDS directories, the 6,243-school national source and official Pacifica institutional pages. No parent/branch relationship or geographic campus point is approved.
 
@@ -21,7 +21,7 @@
 | 24297213 | NUC University - IBC Technical Division - Mayaguez | Mayaguez, PR | 242972 | NUC University |
 | 24297216 | NUC University - IBC Technical Division - Manati | Manati, PR | 242972 | NUC University |
 
-**Identity decisions:** all eight **HOLD — reporting unit relation unverified**. The six-digit prefix is an investigation lead only; no inheritance of the prefix school address/coordinates, OPEID eligibility or accreditation is allowed.
+**Identity decisions:** all eight **HOLD — reporting unit relation unverified**. None of the eight display IDs equals the OPEID recorded for its six-digit-prefix institution. The prefix is an investigation lead only; no inheritance of the prefix school address/coordinates, OPEID eligibility or accreditation is allowed.
 
 **National identifier audit:** 6-digit: 5787, 8-digit: 456. 456 national search keys are not six digits. They must not be described as verified IPEDS UNITIDs until provenance is corrected.
 
@@ -32,7 +32,7 @@
 - June 2026 Scorecard-derived city: **Santa Barbara CA**.
 - [Pacifica's current visitor page](https://www.pacifica.edu/visitors/) lists **Lambert campus, 249 Lambert Road, Carpinteria**, and **Ladera campus, 801 Ladera Lane, Santa Barbara**.
 - [Pacifica's dated campus transition notice](https://www.pacifica.edu/pacificas-campus-transition/) places its transition into winter 2027, so the changed administrative city label does not show a single current instructional campus.
-- [California Bureau for Private Postsecondary Education](https://search-bppe.dca.ca.gov/institutionDetail?schoolCode=77183565) separately lists mailing and physical addresses, but these address roles must not be conflated.
+- [California Bureau for Private Postsecondary Education](https://search-bppe.dca.ca.gov/institutionDetail?schoolCode=77183565): automated source check unavailable at audit time; no conclusion or approval depends on its content.
 
 **Decision: HOLD — multi-campus city-label change**. The Scorecard and IPEDS labels do not license choosing one point, using a city internal point as the campus entrance, or showing travel time.
 
