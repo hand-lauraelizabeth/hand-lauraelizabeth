@@ -107,10 +107,13 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <label for="cs-state">State or territory
 <select id="cs-state" disabled><option value="">All states and territories</option></select></label>
 <label for="cs-sort">Sort by
-<select id="cs-sort" disabled>
+<select id="cs-sort" aria-describedby="cs-sort-note" disabled>
 <option value="name-asc">School name: A–Z</option>
 <option value="name-desc">School name: Z–A</option>
-</select></label>
+<option value="net-asc">Average net price after aid: low to high</option>
+<option value="net-desc">Average net price after aid: high to low</option>
+</select>
+<small id="cs-sort-note">For price sorts, schools without reported net-price data appear last.</small></label>
 <label for="cs-control">Institution control
 <select id="cs-control" aria-describedby="cs-control-missing" disabled>
 <option value="">All institution types</option>
