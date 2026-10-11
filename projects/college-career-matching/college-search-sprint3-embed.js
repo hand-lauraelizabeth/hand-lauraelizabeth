@@ -53,7 +53,7 @@
     var cities = options.cities || [];
     var netMax = Number.isFinite(options.netMax) ? options.netMax : null;
     var costMax = Number.isFinite(options.costMax) ? options.costMax : null;
-    var sort = options.sort === "name-desc" ? -1 : 1;
+    var sort = options.sort || "name-asc";
     return records.filter(function (record) {
       return (!name || normalize(record.name).includes(name)) &&
         (!state || record.state === state) &&
@@ -64,8 +64,20 @@
         (netMax === null || (record.average_net_price !== null && record.average_net_price <= netMax)) &&
         (costMax === null || (record.annual_cost !== null && record.annual_cost <= costMax));
     }).sort(function (a, b) {
-      var byName = collator.compare(a.name, b.name);
-      return sort * (byName || collator.compare(a.unitid, b.unitid));
+      // Missing average net price is always last for either price direction.
+      // Ties are stable by school name and exact Scorecard source record key.
+      var byName = collator.compare(a.name, b.name) || collator.compare(a.unitid, b.unitid);
+      if (sort === "net-asc" || sort === "net-desc") {
+        var aHasPrice = Number.isFinite(a.average_net_price);
+        var bHasPrice = Number.isFinite(b.average_net_price);
+        if (aHasPrice !== bHasPrice) return aHasPrice ? -1 : 1;
+        if (aHasPrice) {
+          var byPrice = a.average_net_price - b.average_net_price;
+          if (byPrice !== 0) return sort === "net-asc" ? byPrice : -byPrice;
+        }
+        return byName;
+      }
+      return sort === "name-desc" ? -byName : byName;
     });
   }
   function validatePayload(payload) {
