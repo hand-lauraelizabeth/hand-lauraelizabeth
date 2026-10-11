@@ -5,6 +5,16 @@ Repository branch: `feature/college-search-sprint1-20261009`
 Production release: **PUBLIC TEST RELEASE LIVE** on WordPress page 1044 by explicit owner approval 2026-10-10. Browser smoke PASS; physical-device QA, repeated live LCP and theme accessibility issues pending. Further production edits require review.
 WordPress production page 1044 is **PUBLISHED**; staging page 1154 remains **DRAFT**. GitHub PR #7 remains Draft.
 
+## Sprint 4 — optional standardized-test bands (2026-10-11)
+
+**Development branch:** `feature/college-admissions-score-bands-20261011` (based on existing college-search Sprint 3 development; **not deployed** to WordPress page 1044 or 1154). This owner-requested extension does not alter the approval gate for production.
+
+- **DONE — verified baseline score overlay:** `data/sprint3/college-search-scores.v1.json` keyed by UNITID, joined from the same 13 pinned June 10, 2026 Scorecard source shards: **6,243** institutions in the national universe; **1,037** with `SAT_AVG`, **970** with `ACTCMMID`, **1,198** with at least one. Overlay starts at **23,486 UTF-8 bytes**. The pinned national shards do **not** contain percentiles or TOEFL, so none were fabricated.
+- **DONE — interface/code:** SAT and ACT optional dual-ended score sliders, explicit missing-data counts, source-linked score readouts, independent optional personal-score inputs to compare with verified middle-half percentile bands, conditional SAFETY/TARGET/REACH* badges, and persistent explanatory note. Retains name, state, city multi-select, control, locale, size, cost, net price, price sorting, results count, Show More, error/Retry, and Clear. A default-wide score interval leaves schools with unknown scores visible; narrowing either interval excludes unknowns for the selected metric.
+- **DONE — safeguards:** Badge hidden unless a personal score and that exam's verified 25th/50th/75th scores are present; suppressed if simultaneous SAT and ACT evidence conflicts. SAT bands (once sourced) are approximate totals of reading/math section quartiles, not official composite percentiles. An estimate is never an admissions probability. Full explanatory asterisk note is shown on the page. TOEFL not exposed as an inert control because the source lacks it.
+- **VERIFIED locally through repository source inspection and V8 core execution:** 18/18 checks passed for source coverage, default filters, SAT/ACT range AND logic, missing values, three labels, conflicting/missing percentile suppression, DOM IDs, source URL, and footnote. Source-build/download/CI browser checks **pending**; no physical-device sign-off yet. `build_sprint4_admissions.py` downloads and checksum-verifies the official archive to enrich verified percentile bands; this is not the same as a completed population of the overlay.
+- **Next:** run pinned-source percentile enrichment and CI/browser/mobile verification; review release before WordPress deployment. Do not describe badges as live before non-null verified percentiles are present.
+
 ## Operating rules
 - Execute exactly **one** first not-done/not-blocked task per hourly run; **prioritize the Sprint 2 strict queue above**, verify with evidence, commit to the current review branch, update this file, stop.
 - Move past human-decision blockers only after recording the precise question.
