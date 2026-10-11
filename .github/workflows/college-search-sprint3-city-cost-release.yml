@@ -1,0 +1,72 @@
+name: College Search Sprint 3 City and Costs functional release gate
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/build_sprint3_cost_city.py'
+      - 'projects/college-career-matching/college-search-sprint3-embed.js'
+      - 'projects/college-career-matching/college-search-sprint3.html'
+      - 'projects/college-career-matching/tests/test_sprint3_city_cost_browser.py'
+      - '.github/workflows/college-search-sprint3-city-cost-release.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  v3-city-cost:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate existing v2, construct compact v3 prices from source SHA-pinned shards
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python projects/college-career-matching/build_sprint3_cost_city.py
+          python projects/college-career-matching/build_sprint3_cost_city.py --check
+      - name: Static v3 markup, price source, data, JS syntax and missing-value policy
+        run: |
+          python - <<'PY'
+          import pathlib,json,hashlib
+          p=pathlib.Path("projects/college-career-matching")
+          html=(p/"college-search-sprint3.html").read_text()
+          js=(p/"college-search-sprint3-embed.js").read_text()
+          assert html.count('id="cs-city-search"')==1
+          assert html.count('id="cs-net-max"')==1
+          assert html.count('id="cs-cost-max"')==1
+          assert html.count('id="cs-city-options"')==1
+          assert 'data/sprint3/college-search-national.v3.json' in html
+          assert 'college-search-sprint3-embed.js' in html
+          assert 'cs-cost-unknown' in html and 'cs-net-unknown' in html
+          assert 'source' not in html or 'collegescorecard.ed.gov' in html
+          obj=json.loads((p/"data/sprint3/college-search-national.v3.json").read_text())
+          assert len(obj["institutions"])==6243
+          for k in ("annual_cost","average_net_price","tuition_in_state","tuition_out_state"):
+              assert all(k in x for x in obj["institutions"].values()),k
+          assert sum(v["annual_cost"] is not None for v in obj["institutions"].values())==5022
+          assert sum(v["average_net_price"] is not None for v in obj["institutions"].values())==5021
+          assert sum(v["tuition_in_state"] is not None for v in obj["institutions"].values())==3601
+          print("S3_PRICE_CITY_STATIC_PASS", len(js),len(html))
+          PY
+          node --check projects/college-career-matching/college-search-sprint3-embed.js
+      - name: Install Chromium browser
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Functional mobile and desktop City and Costs QA
+        run: |
+          python -m http.server 8766 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/s3-city-cost-server.log 2>&1 &
+          python projects/college-career-matching/tests/test_sprint3_city_cost_browser.py
+      - name: Commit validated v3 source data and fixed gzip to feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/data/sprint3/college-search-national.v3.json projects/college-career-matching/data/sprint3/college-search-national.v3.json.gz
+          if git diff --cached --quiet; then
+            echo "v3 data already matches original source"
+          else
+            git commit -m "data(college-search): commit 6243 price-aware national v3 records after browser gate"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi
