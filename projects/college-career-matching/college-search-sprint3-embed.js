@@ -24,7 +24,7 @@
     return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   }
   function resetFilterOptions() {
-    return {name:"", state:"", sort:"name-asc", control:"", locale:"", size:"", cities:[], netMax:null, costMax:null};
+    return {name:"", state:"", sort:"name-asc", control:"", locale:"", size:"", cities:[], netMax:null, costMax:null, satRange:null, actRange:null, ownSAT:null, ownACT:null};
   }
   function matchesSizeBand(value, band) {
     if (!band) return true;
@@ -34,6 +34,28 @@
     if (band === "15000-plus") return value >= 15000;
     return false;
   }
+  // A score interval limits schools by the published institutional score measure,
+  // not by a prediction about an individual's chance of admission.
+  function matchesScoreRange(value, range) {
+    return !range || (Number.isFinite(value) && value >= range.min && value <= range.max);
+  }
+  function admissionsCategory(record, ownSAT, ownACT) {
+    var labels=[];
+    function category(score,low,high) {
+      if (!Number.isFinite(score) || !Number.isFinite(low) || !Number.isFinite(high) || low > high) return null;
+      return score < low ? "REACH" : score > high ? "SAFETY" : "TARGET";
+    }
+    if (Number.isFinite(ownSAT)) {
+      var satLabel=category(ownSAT,record.sat_p25,record.sat_p75);
+      if (satLabel) labels.push(satLabel);
+    }
+    if (Number.isFinite(ownACT)) {
+      var actLabel=category(ownACT,record.act_p25,record.act_p75);
+      if (actLabel) labels.push(actLabel);
+    }
+    // Avoid an arbitrary decision when the two examinations disagree.
+    return labels.length && labels.every(function(v){return v===labels[0];}) ? labels[0] : null;
+  }
   function countUnknowns(records) {
     return {
       total: records.length,
@@ -41,7 +63,11 @@
       locale: records.filter(function (r) { return r.locale === null; }).length,
       size: records.filter(function (r) { return r.undergraduate_size === null; }).length,
       net: records.filter(function (r) { return r.average_net_price === null; }).length,
-      cost: records.filter(function (r) { return r.annual_cost === null; }).length
+      cost: records.filter(function (r) { return r.annual_cost === null; }).length,
+      sat: records.filter(function (r) { return !Number.isFinite(r.sat_avg); }).length,
+      act: records.filter(function (r) { return !Number.isFinite(r.act_mid); }).length,
+      satBands: records.filter(function (r) { return !Number.isFinite(r.sat_p25) || !Number.isFinite(r.sat_p75); }).length,
+      actBands: records.filter(function (r) { return !Number.isFinite(r.act_p25) || !Number.isFinite(r.act_p75); }).length
     };
   }
   function filterSchools(records, options) {
@@ -54,6 +80,8 @@
     var netMax = Number.isFinite(options.netMax) ? options.netMax : null;
     var costMax = Number.isFinite(options.costMax) ? options.costMax : null;
     var sort = options.sort || "name-asc";
+    var satRange = options.satRange || null;
+    var actRange = options.actRange || null;
     return records.filter(function (record) {
       return (!name || normalize(record.name).includes(name)) &&
         (!state || record.state === state) &&
@@ -62,7 +90,9 @@
         matchesSizeBand(record.undergraduate_size, size) &&
         (!cities.length || cities.includes(record.state + "|" + record.city)) &&
         (netMax === null || (record.average_net_price !== null && record.average_net_price <= netMax)) &&
-        (costMax === null || (record.annual_cost !== null && record.annual_cost <= costMax));
+        (costMax === null || (record.annual_cost !== null && record.annual_cost <= costMax)) &&
+        matchesScoreRange(record.sat_avg, satRange) &&
+        matchesScoreRange(record.act_mid, actRange);
     }).sort(function (a, b) {
       // Missing average net price is always last for either price direction.
       // Ties are stable by school name and exact Scorecard source record key.
@@ -120,7 +150,7 @@
 
   // Pure functions are exposed for later unit tests; the UI has no dependencies.
   if (typeof window !== "undefined") {
-    window.CollegeSearchCore = Object.freeze({filterSchools:filterSchools, matchesSizeBand:matchesSizeBand, countUnknowns:countUnknowns, resetFilterOptions:resetFilterOptions, validatePayload:validatePayload});
+    window.CollegeSearchCore = Object.freeze({filterSchools:filterSchools, matchesSizeBand:matchesSizeBand, matchesScoreRange:matchesScoreRange, admissionsCategory:admissionsCategory, countUnknowns:countUnknowns, resetFilterOptions:resetFilterOptions, validatePayload:validatePayload});
   }
 
   var root = document.getElementById("college-search");
@@ -142,6 +172,76 @@
   var costOutput = root.querySelector("#cs-cost-output");
   var netUnknown = root.querySelector("#cs-net-unknown");
   var costUnknown = root.querySelector("#cs-cost-unknown");
+  var satLow=root.querySelector("#cs-sat-low"), satHigh=root.querySelector("#cs-sat-high");
+  var actLow=root.querySelector("#cs-act-low"), actHigh=root.querySelector("#cs-act-high");
+  var ownSATInput=root.querySelector("#cs-own-sat"), ownACTInput=root.querySelector("#cs-own-act");
+  var satLowOutput=root.querySelector("#cs-sat-low-output"),satHighOutput=root.querySelector("#cs-sat-high-output");
+  var actLowOutput=root.querySelector("#cs-act-low-output"),actHighOutput=root.querySelector("#cs-act-high-output");
+  var satUnknown=root.querySelector("#cs-sat-unknown"),actUnknown=root.querySelector("#cs-act-unknown");
+  var satBandsUnknown=root.querySelector("#cs-sat-band-unknown"),actBandsUnknown=root.querySelector("#cs-act-band-unknown");
+  var scoresStatus=root.querySelector("#cs-scores-status");
+  var scoresReady=false;
+  function rangeValue(lo,hi,min,max) {
+    var a=Number(lo.value),b=Number(hi.value);
+    return a===min && b===max ? null : {min:a,max:b};
+  }
+  function ownScore(input,min,max) {
+    if (!input.value.trim()) return null;
+    var number=Number(input.value);
+    return Number.isInteger(number)&&number>=min&&number<=max ? number : null;
+  }
+  function currentSATRange(){return scoresReady ? rangeValue(satLow,satHigh,400,1600) : null;}
+  function currentACTRange(){return scoresReady ? rangeValue(actLow,actHigh,1,36) : null;}
+  function drawScoreLabels(){
+    satLowOutput.value=satLow.value; satHighOutput.value=satHigh.value;
+    actLowOutput.value=actLow.value; actHighOutput.value=actHigh.value;
+  }
+  function changeScoreRange(lo,hi,which) {
+    if(Number(lo.value)>Number(hi.value)) {
+      if(which==="low")hi.value=lo.value;else lo.value=hi.value;
+    }
+    drawScoreLabels();applyFilters();
+  }
+  function validateScoreOverlay(payload,allRecords) {
+    if(!payload || payload.schema_version!==1 || payload.source!=="College Scorecard" ||
+      payload.source_release!=="2026-06-10" || payload.school_count!==EXPECTED_COUNT ||
+      !payload.institutions || Array.isArray(payload.institutions)) throw Error("Invalid score source.");
+    var known=new Set(allRecords.map(function(r){return r.unitid;}));
+    var data=payload.institutions;
+    for(var id of Object.keys(data)) {
+      if(!known.has(id))throw Error("Score UNITID not in the national catalog.");
+      var v=data[id];
+      if(!Array.isArray(v)||v.length<2||v.length>8)throw Error("Malformed score row.");
+      function valid(value,min,max){return value==null||(Number.isInteger(value)&&value>=min&&value<=max);}
+      if(!valid(v[0],400,1600)||!valid(v[1],1,36) ||
+        ![2,3,4].every(function(i){return valid(v[i],400,1600);}) ||
+        ![5,6,7].every(function(i){return valid(v[i],1,36);})) throw Error("Score out of range.");
+      function ordered(a,b,c){return (a==null&&b==null&&c==null)||
+        (a!=null&&c!=null&&a<=c&&(b==null||(a<=b&&b<=c)));}
+      if(!ordered(v[2],v[3],v[4])||!ordered(v[5],v[6],v[7]))throw Error("Invalid score percentiles.");
+    }
+    return data;
+  }
+  async function loadScores(signal){
+    scoresReady=false;
+    var source=root.getAttribute("data-scores-src");
+    if(!source){scoresStatus.textContent="Test-score filters unavailable: no data source configured.";return;}
+    try{
+      var response=await fetch(source,{signal:signal,credentials:"omit"});
+      if(!response.ok)throw Error("Scores request failed.");
+      var data=validateScoreOverlay(await response.json(),records);
+      records.forEach(function(r){
+        var v=data[r.unitid]||[];
+        r.sat_avg=v[0]??null;r.act_mid=v[1]??null;
+        r.sat_p25=v[2]??null;r.sat_p50=v[3]??null;r.sat_p75=v[4]??null;
+        r.act_p25=v[5]??null;r.act_p50=v[6]??null;r.act_p75=v[7]??null;
+      });
+      scoresReady=true;
+      scoresStatus.textContent="SAT uses the published institutional average; ACT uses the reported composite midpoint. Comparisons require a verified percentile band and an optional personal score. TOEFL is not included in the federal source.";
+    }catch(err){
+      scoresStatus.textContent="SAT/ACT score filters currently unavailable; the other college filters still work.";
+    }
+  }
   var selectedCities = new Set(), cityCatalog = [];
   function money(value) { return "$" + value.toLocaleString("en-US"); }
   function activeMax(input) {
@@ -229,12 +329,15 @@
     [nameInput, stateSelect, sortSelect, controlSelect, localeSelect, sizeSelect, citySearch, netSlider, costSlider].forEach(function (element) {
       element.disabled = !enabled;
     });
+    [satLow,satHigh,actLow,actHigh,ownSATInput,ownACTInput].forEach(function(element){element.disabled=!enabled||!scoresReady;});
     clearButton.disabled = !enabled || !hasChanges();
   }
   function hasChanges() {
     return !!nameInput.value || !!stateSelect.value || !!controlSelect.value ||
       !!localeSelect.value || !!sizeSelect.value || selectedCities.size > 0 ||
-      activeMax(netSlider) !== null || activeMax(costSlider) !== null || sortSelect.value !== "name-asc" ||
+      activeMax(netSlider) !== null || activeMax(costSlider) !== null ||
+      currentSATRange()!==null || currentACTRange()!==null ||
+      !!ownSATInput.value || !!ownACTInput.value || sortSelect.value !== "name-asc" ||
       rendered > PAGE_SIZE;
   }
   function showDataCompleteness() {
@@ -245,6 +348,10 @@
     sizeUnknown.textContent = missing.size.toLocaleString("en-US");
     netUnknown.textContent = missing.net.toLocaleString("en-US");
     costUnknown.textContent = missing.cost.toLocaleString("en-US");
+    satUnknown.textContent = scoresReady ? missing.sat.toLocaleString("en-US") : "Unavailable";
+    actUnknown.textContent = scoresReady ? missing.act.toLocaleString("en-US") : "Unavailable";
+    satBandsUnknown.textContent = scoresReady ? missing.satBands.toLocaleString("en-US") : "Unavailable";
+    actBandsUnknown.textContent = scoresReady ? missing.actBands.toLocaleString("en-US") : "Unavailable";
     completeness.hidden = false;
   }
   function stateOptions() {
@@ -260,6 +367,15 @@
   function makeCard(record) {
     var item = document.createElement("li");
     item.className = "cs-card";
+    var category=admissionsCategory(record,ownScore(ownSATInput,400,1600),ownScore(ownACTInput,1,36));
+    if(category){
+      var badge=document.createElement("a");
+      badge.className="cs-admission-badge cs-admission-"+category.toLowerCase();
+      badge.href="#cs-admissions-note";
+      badge.textContent=category+"*";
+      badge.setAttribute("aria-label",category+" — see approximate test score categorization note");
+      item.appendChild(badge);
+    }
     var heading = document.createElement("h3");
     heading.textContent = record.name;
     var locality = document.createElement("p");
@@ -282,6 +398,13 @@
     if(record.tuition_out_state!==null && record.tuition_out_state!==record.tuition_in_state)
       addCost("Tuition and fees — out-of-state",record.tuition_out_state);
     if(costs.childElementCount)item.appendChild(costs);
+    if(Number.isFinite(record.sat_avg)||Number.isFinite(record.act_mid)){
+      var testing=document.createElement("p");
+      testing.className="cs-card-scores";
+      testing.textContent=[Number.isFinite(record.sat_avg)?"SAT average: "+record.sat_avg:null,
+        Number.isFinite(record.act_mid)?"ACT composite midpoint: "+record.act_mid:null].filter(Boolean).join(" · ");
+      item.appendChild(testing);
+    }
     if (record.url) {
       var link = document.createElement("a");
       link.textContent = "Visit " + record.name + " website";
@@ -311,6 +434,11 @@
     if (selectedCities.size) selections.push("Cities: " + Array.from(selectedCities).map(function(k){var p=k.split("|");return p[1]+", "+p[0];}).join("; "));
     if (activeMax(netSlider)!==null) selections.push("Max average net price: " + money(activeMax(netSlider)));
     if (activeMax(costSlider)!==null) selections.push("Max annual cost: " + money(activeMax(costSlider)));
+    var satRange=currentSATRange(),actRange=currentACTRange();
+    if(satRange)selections.push("SAT institution average: "+satRange.min+"–"+satRange.max);
+    if(actRange)selections.push("ACT institution midpoint: "+actRange.min+"–"+actRange.max);
+    if(ownScore(ownSATInput,400,1600)!==null)selections.push("My SAT comparison: "+ownSATInput.value);
+    if(ownScore(ownACTInput,1,36)!==null)selections.push("My ACT comparison: "+ownACTInput.value);
     var fragment = document.createDocumentFragment();
     selections.forEach(function (label) {
       var item = document.createElement("li");
@@ -346,7 +474,8 @@
     matches = filterSchools(records, {
       name:nameInput.value, state:stateSelect.value, sort:sortSelect.value,
       control:controlSelect.value, locale:localeSelect.value, size:sizeSelect.value,
-      cities:Array.from(selectedCities), netMax:activeMax(netSlider), costMax:activeMax(costSlider)
+      cities:Array.from(selectedCities), netMax:activeMax(netSlider), costMax:activeMax(costSlider),
+      satRange:currentSATRange(),actRange:currentACTRange()
     });
     render(false);
   }
@@ -360,6 +489,8 @@
     sizeSelect.value = defaults.size;
     selectedCities.clear();citySearch.value="";
     netSlider.value=netSlider.max;costSlider.value=costSlider.max;
+    satLow.value=400;satHigh.value=1600;actLow.value=1;actHigh.value=36;
+    ownSATInput.value="";ownACTInput.value="";drawScoreLabels();
     drawMoneyLabels();redrawSelectedCities();renderCityOptions();
     applyFilters();
     nameInput.focus();
@@ -392,9 +523,11 @@
       if (!response.ok) throw new Error("Data request failed (" + response.status + ").");
       var payload = await response.json();
       records = validatePayload(payload);
+      await loadScores(controller.signal);
       stateOptions();
       populateCities();
       populateCostSliders();
+      drawScoreLabels();
       showDataCompleteness();
       matches = filterSchools(records, resetFilterOptions());
       rendered = 0;
@@ -428,6 +561,12 @@
   citySearch.addEventListener("input", renderCityOptions);
   netSlider.addEventListener("input", function () {drawMoneyLabels();applyFilters();});
   costSlider.addEventListener("input", function () {drawMoneyLabels();applyFilters();});
+  satLow.addEventListener("input",function(){changeScoreRange(satLow,satHigh,"low");});
+  satHigh.addEventListener("input",function(){changeScoreRange(satLow,satHigh,"high");});
+  actLow.addEventListener("input",function(){changeScoreRange(actLow,actHigh,"low");});
+  actHigh.addEventListener("input",function(){changeScoreRange(actLow,actHigh,"high");});
+  ownSATInput.addEventListener("input",applyFilters);
+  ownACTInput.addEventListener("input",applyFilters);
   clearButton.addEventListener("click", clear);
   moreButton.addEventListener("click", function () { render(true); });
   retryButton.addEventListener("click", loadData);
