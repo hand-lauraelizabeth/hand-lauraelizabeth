@@ -19,12 +19,12 @@ def run(browser,width):
     assert page.locator("#cs-sat-band-unknown").inner_text()=="5,294"
     assert page.locator("#cs-act-band-unknown").inner_text()=="5,323"
     assert "949 SAT and 920 ACT institutions" in page.locator("#cs-scores-status").inner_text()
-    assert "U.S. Department of Education" in page.locator(".cs-card").first.inner_text()
 
     # Filter a named school for stable category assertions; badge is a score
     # convention only and disappears on reset or when measures conflict.
     page.locator("#cs-name").fill("Alabama A & M University")
     assert page.locator("#cs-result-count").inner_text().startswith("1 school")
+    assert "U.S. Department of Education" in page.locator(".cs-card").first.inner_text()
     entry=DATA["institutions"]["100654"]
     assert entry[2:5]==[810,930,1040] or all(isinstance(n,int) for n in entry[2:5]),entry
     own=page.locator("#cs-own-sat")
