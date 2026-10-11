@@ -44,7 +44,7 @@ def run(browser,url,width):
     for option,expected in (("net-asc",overall["lo"]),("net-desc",overall["hi"])):
         sort.select_option(option)
         assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
-        actual=page.locator(".cs-card .cs-visually-hidden").all_inner_texts()
+        actual=page.locator(".cs-card > p.cs-visually-hidden").all_inner_texts()
         ids=[s.replace("Institution identifier ","") for s in actual]
         assert ids==[uid for uid,p in expected[:24]],(option,ids[:4],expected[:4])
         assert page.locator("#cs-active-sort").inner_text().lower().find("net price")>=0
