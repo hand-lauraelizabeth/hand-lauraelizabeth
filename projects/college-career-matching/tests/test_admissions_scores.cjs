@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const base = path.join(__dirname, "..");
 const source = fs.readFileSync(path.join(base, "college-search-sprint3-embed.js"), "utf8");
 const html = fs.readFileSync(path.join(base, "college-search-sprint3.html"), "utf8");
-const overlay = JSON.parse(fs.readFileSync(path.join(base, "data/sprint3/college-search-scores.v1.json"), "utf8"));
+const overlay = JSON.parse(fs.readFileSync(path.join(base, "data/sprint3/college-search-scores.v2.json"), "utf8"));
 const context = {window:{}, document:{getElementById:()=>null}, Intl, Number, Object, Set};
 vm.runInNewContext(source, context);
 const core = context.window.CollegeSearchCore;
