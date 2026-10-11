@@ -40,7 +40,19 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search h2{font-size:1.5rem;margin:0}
 #college-search #cs-result-count{font-variant-numeric:tabular-nums;font-weight:700;color:var(--muted);margin:0}
 #college-search .cs-results{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-#college-search .cs-card{min-width:0;border:1px solid var(--border);background:#fff;border-radius:12px;padding:19px}
+#college-search .cs-card{min-width:0;border:1px solid var(--border);background:#fff;border-radius:12px;padding:19px;position:relative}
+#college-search .cs-card.cs-has-badge h3{padding-right:105px}
+#college-search .cs-admission-badge{position:absolute;top:12px;right:12px;display:inline-block;background:#f1f4f1;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:.75rem;line-height:1.2;font-weight:800;text-decoration:none;letter-spacing:.02em}
+#college-search .cs-admission-badge:focus-visible{outline:3px solid #9c5300}
+#college-search .cs-card-scores{font-weight:650;font-size:.9rem;margin:7px 0 12px}
+#college-search .cs-admissions-note{margin:22px 0 0;padding:13px 0;border-top:1px solid var(--border);color:var(--muted);font-size:.92rem;max-width:95ch}
+#college-search .cs-score-field{grid-column:span 2;border:1px solid var(--border);border-radius:12px;min-width:0;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#college-search .cs-score-field legend{font-weight:750;color:var(--ink);padding:0 5px}
+#college-search .cs-score-field input[type=range]{height:38px;min-height:38px;padding:0;accent-color:var(--green);cursor:pointer}
+#college-search .cs-score-field output{font-variant-numeric:tabular-nums;color:var(--green)}
+#college-search .cs-score-field .cs-personal-score{grid-column:1/-1}
+#college-search .cs-score-help{grid-column:1/-1;font-size:.86rem;color:var(--muted)}
+#college-search #cs-scores-status{margin:8px 0;font-size:.9rem;color:var(--muted)}
 #college-search .cs-card h3{font-size:1.1rem;line-height:1.35;margin:0 0 9px;color:var(--ink)}
 #college-search .cs-card p{margin:0 0 10px;color:var(--muted)}
 #college-search .cs-card a{font-weight:700;overflow-wrap:anywhere}
@@ -87,18 +99,18 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-costs p:last-child{margin:0}
 #college-search .cs-cost-note{color:var(--muted);font-size:.91rem;max-width:90ch;margin:12px 0 0}
 #college-search .cs-visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:760px){#college-search .cs-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#college-search .cs-search-field{grid-column:1/-1}#college-search #cs-clear{grid-column:1/-1}#college-search .cs-results{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:760px){#college-search .cs-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#college-search .cs-score-field{grid-column:1/-1}#college-search .cs-search-field{grid-column:1/-1}#college-search #cs-clear{grid-column:1/-1}#college-search .cs-results{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:380px){#college-search .cs-toolbar{grid-template-columns:1fr}#college-search .cs-toolbar>*{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#college-search .cs-progress[data-state="loading"]::before{animation:none}}
 </style>
 </head>
 <body>
-<main id="college-search" data-src="./data/sprint3/college-search-national.v3.json">
+<main id="college-search" data-src="./data/sprint3/college-search-national.v3.json" data-scores-src="./data/sprint3/college-search-scores.v1.json">
 <a class="cs-skip" href="#cs-results-heading">Skip to results</a>
 <header>
 <p class="cs-eyebrow">Data &amp; decision-making tools</p>
 <h1>College Search</h1>
-<p class="cs-intro">Explore U.S. colleges by school, state, multiple cities, institution control, campus setting, undergraduate size, average net price and annual cost. Cost figures are descriptive federal averages—not individualized offers.</p>
+<p class="cs-intro">Explore U.S. colleges by school, state, multiple cities, institution control, campus setting, undergraduate size, average net price, annual cost, and optional SAT/ACT score ranges. Cost figures are descriptive federal averages—not individualized offers.</p>
 </header>
 <section aria-label="Search and filter colleges">
 <div class="cs-toolbar">
@@ -151,6 +163,26 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <label class="cs-money-field" for="cs-cost-max">Annual cost (tuition + living and other expenses)
 <span class="cs-money-label">Maximum: <output id="cs-cost-output" for="cs-cost-max">Any</output></span>
 <input id="cs-cost-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-cost-missing"></label>
+<fieldset class="cs-score-field" aria-describedby="cs-sat-missing cs-scores-status">
+<legend>Optional SAT score range — reported school average</legend>
+<label for="cs-sat-low">From <output id="cs-sat-low-output" for="cs-sat-low">400</output>
+<input type="range" id="cs-sat-low" min="400" max="1600" step="10" value="400" disabled></label>
+<label for="cs-sat-high">To <output id="cs-sat-high-output" for="cs-sat-high">1600</output>
+<input type="range" id="cs-sat-high" min="400" max="1600" step="10" value="1600" disabled></label>
+<label class="cs-personal-score" for="cs-own-sat">My SAT score (optional, for approximate comparison)
+<input type="number" id="cs-own-sat" min="400" max="1600" step="10" inputmode="numeric" placeholder="e.g., 1300" disabled></label>
+<small class="cs-score-help">Both ends at the defaults means no SAT filter. School average, not an individual admission cutoff.</small>
+</fieldset>
+<fieldset class="cs-score-field" aria-describedby="cs-act-missing cs-scores-status">
+<legend>Optional ACT score range — reported school midpoint</legend>
+<label for="cs-act-low">From <output id="cs-act-low-output" for="cs-act-low">1</output>
+<input type="range" id="cs-act-low" min="1" max="36" step="1" value="1" disabled></label>
+<label for="cs-act-high">To <output id="cs-act-high-output" for="cs-act-high">36</output>
+<input type="range" id="cs-act-high" min="1" max="36" step="1" value="36" disabled></label>
+<label class="cs-personal-score" for="cs-own-act">My ACT composite (optional, for approximate comparison)
+<input type="number" id="cs-own-act" min="1" max="36" step="1" inputmode="numeric" placeholder="e.g., 28" disabled></label>
+<small class="cs-score-help">Both ends at the defaults means no ACT filter. School midpoint is a descriptive source value.</small>
+</fieldset>
 <button id="cs-clear" type="button" disabled>Clear</button>
 </div>
 <div id="cs-data-completeness" class="cs-coverage" aria-labelledby="cs-coverage-title" hidden>
@@ -161,9 +193,14 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <li id="cs-size-missing">Undergraduate size unknown: <strong id="cs-size-unknown"></strong></li>
 <li id="cs-net-missing">Average net price unavailable: <strong id="cs-net-unknown"></strong></li>
 <li id="cs-cost-missing">Annual cost unavailable: <strong id="cs-cost-unknown"></strong></li>
+<li id="cs-sat-missing">SAT average unavailable: <strong id="cs-sat-unknown"></strong></li>
+<li id="cs-act-missing">ACT midpoint unavailable: <strong id="cs-act-unknown"></strong></li>
+<li>Verified SAT 25th/75th bands unavailable: <strong id="cs-sat-band-unknown"></strong></li>
+<li>Verified ACT 25th/75th bands unavailable: <strong id="cs-act-band-unknown"></strong></li>
 </ul>
 <p class="cs-coverage-note">“All” includes schools with missing data. Choosing a value excludes schools with unknown data for that field; unknown is never interpreted as rural or a small enrollment. Campus settings use reported locale codes; missing or unclassifiable codes remain unknown. Size means undergraduate enrollment, not total enrollment. Moving a price slider applies a maximum and excludes records missing that price; “Any” includes them.</p>
 </div>
+<p id="cs-scores-status" role="status" aria-live="polite">Loading optional college test-score data…</p>
 <p class="cs-cost-note">Average net price is the published average after grant and scholarship aid for eligible first-time, full-time federal-aid recipients (in-state students at public institutions). Annual cost is an estimated cost of attendance before grant aid; reported tuition and fees are included within annual cost, not added on top. Actual costs vary by program, residency, living arrangements and aid.</p>
 </section>
 <p id="cs-load-status" class="cs-progress" data-state="loading" role="status" aria-live="polite">Loading national college data…</p>
@@ -186,11 +223,12 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <p id="cs-empty" class="cs-empty" hidden>No schools match those filters. Try changing one or more selections.</p>
 <div class="cs-more"><button id="cs-show-more" type="button" aria-controls="cs-results-list" hidden>Show 24 more</button></div>
 </section>
+<p id="cs-admissions-note" class="cs-admissions-note"><strong>* SAFETY, TARGET and REACH are broad approximations under a conventional admissions-categorization shorthand.</strong> They describe only how a personally entered SAT or ACT score compares with reported 25th, 50th and 75th percentile score bands where those data have been verified. They are not concrete predictions or projections of admission, nor admissions probabilities. A “SAFETY” designation does not guarantee an offer. Admission policies, test optionality, academic record, application context and competition may change outcomes; the reported score bands reflect enrolled students, not all applicants.</p>
 <details id="cs-about-data" class="cs-about">
 <summary>About this data</summary>
 <div class="cs-about-body">
 <p>This directory uses the U.S. Department of Education’s <a href="https://collegescorecard.ed.gov/data/">College Scorecard</a> institution data snapshot dated <time datetime="2026-06-10">June 10, 2026</time>. It includes 6,243 institutions reported as operating in that source. It is not an independently verified list of every accredited U.S. institution.</p>
-<p>School names, locations, website links, annual cost, tuition and net prices are descriptive published source figures, not quotes or admissions predictions. Tuition and fees are part of annual cost, not an additional amount. Where the source has no website address, the listing says “School website not reported.” Verify current details directly with each institution.</p>
+<p>SAT uses the source institution-level reported average (SAT_AVG), and ACT uses the source reported composite midpoint (ACTCMMID). Not every school reports scores; sliding a range excludes schools missing that metric. The optional comparison label is intentionally hidden without a personal score and verified percentile evidence. No TOEFL test-score dataset is included. School names, locations, website links, annual cost, tuition and net prices are descriptive published source figures, not quotes or admissions predictions. Tuition and fees are part of annual cost, not an additional amount. Where the source has no website address, the listing says “School website not reported.” Verify current details directly with each institution.</p>
 </div>
 </details>
 <noscript><p>This college search requires JavaScript. Enable JavaScript to search the national dataset.</p></noscript>
