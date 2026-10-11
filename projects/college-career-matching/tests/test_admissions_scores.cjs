@@ -22,11 +22,17 @@ test("national source and actual Scorecard test-score coverage",()=>{
     assert.equal(overlay.source_release,"2026-06-10");
     assert.equal(overlay.school_scores.sat_avg,1037);
     assert.equal(overlay.school_scores.act_mid,970);
-    assert.ok(Object.keys(overlay.institutions).length>=1198);
+    assert.equal(overlay.schema_version,2);
+    assert.equal(overlay.verified_band_counts.sat_complete_bands,949);
+    assert.equal(overlay.verified_band_counts.act_complete_bands,920);
+    assert.equal(Object.keys(overlay.institutions).length,1199);
+    assert.equal(overlay.source_registry.scorecard_2026.cohort,"Fall 2024");
     for(const values of Object.values(overlay.institutions)){
-        assert.ok(Array.isArray(values) && values.length>=2 && values.length<=8);
-        if(overlay.percentile_source_status!=="verified_2026_scorecard")
-            assert.equal(values.length,2,"No synthetic percentile bands");
+        assert.equal(values.length,10);
+        if(values[2]!=null) assert.ok(values[2]<=values[3]&&values[3]<=values[4]);
+        if(values[5]!=null) assert.ok(values[5]<=values[6]&&values[6]<=values[7]);
+        if(values[0]!=null || values[2]!=null)assert.equal(values[8],"scorecard_2026");
+        if(values[1]!=null || values[5]!=null)assert.equal(values[9],"scorecard_2026");
     }
 });
 
@@ -61,7 +67,10 @@ test("score inputs, defaults, coverage and prominent caveat appear in accessible
         "cs-scores-status"]){
         assert.ok(html.includes('id="'+id+'"'),"Missing "+id);
     }
-    assert.ok(html.includes("data-scores-src="));
+    assert.ok(html.includes("data-scores-src=\"./data/sprint3/college-search-scores.v2.json\""));
+    assert.ok(source.includes("Test-score source:"));
+    assert.ok(source.includes("sourceRegistry"));
+    assert.ok(source.includes("payload.verified_band_counts"));
     assert.ok(html.includes("not concrete predictions or projections"));
     assert.ok(html.includes("TOEFL"));
     assert.ok(html.includes('id="cs-result-count"'));
