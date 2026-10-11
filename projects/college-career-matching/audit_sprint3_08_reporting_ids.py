@@ -164,6 +164,7 @@ def main():
       "missing_2024_2025_s3_07_cases":8,
       "all_eight_scorecard_pseudounitids_have_six_digit_prefix_in_both_years":True,
       "eight_explicit_reporting_unit_holds":table,
+      "eight_values_matching_prefix_institution_opeid":sum(x["eight_digit_value_equals_ipeds_opeid"] for x in table),
       "genuine_ipeds_unitids_for_eight_extended_values":0,
       "ipeds_2024_sha256":metadata24["zip_sha256"],
       "ipeds_2025_sha256":metadata25["zip_sha256"],
@@ -205,7 +206,7 @@ def main():
                    " | "+x["prefix_ipeds_2025_name"].replace("|","/")+" |")
     doc.extend([
        "",
-       "**Identity decisions:** all eight **HOLD — reporting unit relation unverified**. The six-digit prefix is an investigation lead only; no inheritance of the prefix school address/coordinates, OPEID eligibility or accreditation is allowed.",
+       "**Identity decisions:** all eight **HOLD — reporting unit relation unverified**. None of the eight display IDs equals the OPEID recorded for its six-digit-prefix institution. The prefix is an investigation lead only; no inheritance of the prefix school address/coordinates, OPEID eligibility or accreditation is allowed.",
        "",
        "**National identifier audit:** "+", ".join(str(n)+"-digit: "+str(count) for n,count in sorted(lengths.items()))+". "+str(summary["non_six_digit_national_ids"])+" national search keys are not six digits. They must not be described as verified IPEDS UNITIDs until provenance is corrected.",
        "",
@@ -215,7 +216,7 @@ def main():
        "- June 2026 Scorecard-derived city: **"+pacifica["scorecard_june_2026_city"]+"**.",
        "- [Pacifica's current visitor page]("+PACIFICA+") lists **Lambert campus, 249 Lambert Road, Carpinteria**, and **Ladera campus, 801 Ladera Lane, Santa Barbara**.",
        "- [Pacifica's dated campus transition notice]("+TRANSITION+") places its transition into winter 2027, so the changed administrative city label does not show a single current instructional campus.",
-       "- [California Bureau for Private Postsecondary Education]("+CA_BPPE+") separately lists mailing and physical addresses, but these address roles must not be conflated.",
+       "- [California Bureau for Private Postsecondary Education]("+CA_BPPE+"): "+("the automated source check independently confirmed distinct mailing/physical address roles." if source_checks["california_state_regulator"]["all_phrases_present"] else "automated source check unavailable at audit time; no conclusion or approval depends on its content.") ,
        "",
        "**Decision: HOLD — multi-campus city-label change**. The Scorecard and IPEDS labels do not license choosing one point, using a city internal point as the campus entrance, or showing travel time.",
        "",
