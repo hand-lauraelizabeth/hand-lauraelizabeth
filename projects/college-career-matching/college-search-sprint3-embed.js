@@ -216,8 +216,12 @@
     if(!sources||typeof sources!=="object"||Array.isArray(sources)||
        !sources.scorecard_2026||
        sources.scorecard_2026.url!=="https://collegescorecard.ed.gov/data/"||
-       payload.verified_band_counts.sat_complete_bands!==949||
-       payload.verified_band_counts.act_complete_bands!==920)throw Error("Source registry or coverage could not be verified.");
+       !Number.isInteger(payload.verified_band_counts?.sat_complete_bands)||
+       !Number.isInteger(payload.verified_band_counts?.act_complete_bands)||
+       payload.verified_band_counts.sat_complete_bands<949||
+       payload.verified_band_counts.act_complete_bands<920||
+       payload.verified_band_counts.sat_complete_bands>EXPECTED_COUNT||
+       payload.verified_band_counts.act_complete_bands>EXPECTED_COUNT)throw Error("Source registry or coverage could not be verified.");
     Object.keys(sources).forEach(function(id){
       var source=sources[id];
       if(!source||typeof source.provider!=="string"||typeof source.cohort!=="string"||
