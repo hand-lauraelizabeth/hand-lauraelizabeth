@@ -1,201 +1,250 @@
-"""S3-07: recover HD2025 from the NCES official complete-data-files link.
+"""S3-07 official NCES HD2025 source recovery and 49-case institution identity audit.
 
-Rerun prior S3-06 comparison with an official publisher-linked download URL.
-Keep earlier S3-06 report as a historical audit; commit new S3-07 aggregates only.
-Research; neither Census GEOIDs nor campus coordinates are newly approved.
+No dependency on live Census geocoding: S3-05's approved place identities and
+S3-03's source-pinned candidates are reused, not re-adjudicated.
+No campus points or WordPress changes.
 """
 from __future__ import annotations
-
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 import hashlib
 import json
-from pathlib import Path
+import re
 
-import reconcile_sprint3_06 as prior
+from audit_sprint3_identity import run as regenerate_official_name_candidates
 from audit_sprint3_geography import ROOT
+from reconcile_sprint3_06 import extract_directory, url_probe, read_url
 
 OFFICIAL_ZIP = "https://nces.ed.gov/ipeds/complete-data-files/HD2025.zip"
-OFFICIAL_DICTIONARY = "https://nces.ed.gov/ipeds/complete-data-files/HD2025_Dict.zip"
-OFFICIAL_CATALOG = "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7"
-FINAL_JSON = ROOT / "research_aggregate/s3_07_hd2025_source_recovery.json"
-FINAL_MD = ROOT / "S3_07_IPEDS_RECOVERY.md"
-CASES = ROOT / "research_work/s3_07_49_case_comparison.json"
+CATALOG = "https://nces.ed.gov/ipeds/datacenter/DataFiles.aspx?gotoReportId=7"
+PREVIOUS_BAD_URLS = [
+ "https://nces.ed.gov/ipeds/datacenter/data/HD2025.zip",
+ "https://nces.ed.gov/ipeds/datacenter/data/HD2025_P.zip",
+]
+RESULT = ROOT / "research_aggregate/s3_07_hd2025_source_recovery.json"
+NOTES = ROOT / "S3_07_IPEDS_RECOVERY.md"
+QUEUE = ROOT / "research_work/s3_07_49_case_comparison.json"
+PRIOR_REGISTRY = ROOT / "research_aggregate/s3_05_approved_city_place_registry.json"
+PRIOR_S3_06 = ROOT / "research_aggregate/s3_06_reconciliation_summary.json"
+
+def load_cases():
+    regenerate_official_name_candidates()  # SHA-pins the Census Place archive and 6,243 Scorecard rows.
+    base = json.loads((ROOT / "research_work/s3_03_review_queue.json").read_text())["items"]
+    proposed = []
+    for row in base:
+        if row["baseline_category"] == "ambiguous_place_name":
+            proposed.append(row)
+        else:
+            opts = {x["geoid"] for sub in row.get("probes",{}).values() for x in sub}
+            if len(opts) == 1:
+                proposed.append(row)
+    assert len(proposed)==52, len(proposed)
+    regbytes = PRIOR_REGISTRY.read_bytes()
+    registry = json.loads(regbytes)
+    assert registry["accepted_records"] == 3 and not registry["deployment_approved"]
+    approved_ids = {x["unitid"] for x in registry["records"]}
+    assert len(approved_ids) == 3
+    assert approved_ids.issubset({row["unitid"] for row in proposed})
+    cases=[x for x in proposed if x["unitid"] not in approved_ids]
+    assert len(cases)==49 and len({c["unitid"] for c in cases})==49
+    return cases,regbytes
+
+def checked_official_archive():
+    zipraw,probe = url_probe(OFFICIAL_ZIP,limit=25_000_000,timeout=65)
+    if zipraw is None:
+        return None,None,[probe]
+    try:
+        data,metadata=extract_directory(zipraw)
+        metadata.update({
+            "url":OFFICIAL_ZIP,"final_url":probe.get("final_url"),
+            "bytes":probe.get("bytes"),"vintage":"2025",
+            "release_designation":"2025 provisional 2025–26 institutional directory; confirm against NCES release memo",
+        })
+        return data,metadata,[{**probe,"validation":"original NCES hosted ZIP and required schema checked"}]
+    except Exception as e:
+        return None,None,[{**probe,"validation":"invalid archive or schema","error":repr(e)[:190]}]
+
+def source_directory_2024():
+    url="https://nces.ed.gov/ipeds/datacenter/data/HD2024.zip"
+    raw=read_url(url,maxbytes=25_000_000,timeout=55)
+    directory,details=extract_directory(raw)
+    assert details["record_count"]==6072,details["record_count"]
+    # independent S3-04 source pin
+    assert details["zip_sha256"]=="d98425c123d7c0e872aec6e83960dfb501884818bf17385c340790f3d1f28345"
+    return directory,details
 
 def main():
-    prior.OFFICIAL_2025_URLS = [
-        OFFICIAL_ZIP, *[x for x in prior.OFFICIAL_2025_URLS if x != OFFICIAL_ZIP]
-    ]
-    original_probe = prior.url_probe
-    # Official distribution can take time; avoid mistaking a slow response for 404.
-    def probe(url, limit=25_000_000, timeout=55):
-        return original_probe(url, limit=limit, timeout=timeout)
-    prior.url_probe = probe
-    existing_registry = (ROOT / "research_aggregate/s3_05_approved_city_place_registry.json").read_bytes()
-    prior.main()
-    assert existing_registry == (ROOT / "research_aggregate/s3_05_approved_city_place_registry.json").read_bytes()
-
-    evidence = json.loads((ROOT / "research_aggregate/s3_06_reconciliation_summary.json").read_text())
-    cases = json.loads((ROOT / "research_work/s3_06_49_case_ledger.json").read_text())["rows"]
-    assert len(cases) == evidence["records_reviewed"] == 49
-    meta25 = evidence["2025_directory_metadata"]
-    recovered = evidence["2025_directory_obtained"]
-    candidates = Counter()
-    by_old = defaultdict(Counter)
-    changes = []
-    for row in cases:
-        prior24 = row["official_nces_2024_present"]
-        current25 = row["official_nces_2025_present"]
-        if recovered:
-            status = ("both_years" if prior24 and current25 else
-                      "new_in_2025" if (not prior24) and current25 else
-                      "missing_in_2025" if prior24 and not current25 else
-                      "missing_in_both")
-            assert current25 is not None
+    cases,registry_bytes = load_cases()
+    directory25,meta25,attempts=checked_official_archive()
+    directory24,meta24=source_directory_2024()
+    previous=json.loads(PRIOR_S3_06.read_text())
+    assert previous["records_reviewed"]==49
+    group_counts=Counter()
+    older_group_counts=defaultdict(Counter)
+    field_changes=Counter()
+    decisions=Counter()
+    example_differences=[]
+    results=[]
+    for case in cases:
+        uid=case["unitid"]
+        old=directory24.get(uid)
+        new=directory25.get(uid) if directory25 is not None else None
+        if directory25 is None:
+            group="no_2025_source"
+        elif old and new:
+            group="present_both"
+        elif new and not old:
+            group="new_in_2025_directory"
+        elif old and not new:
+            group="absent_from_2025_directory"
         else:
-            status = "2025_unavailable"
-            assert current25 is None
-        candidates[status] += 1
-        by_old[row["s3_05_decision"]][status] += 1
-        changes.append({
-            "unitid": row["unitid"], "scorecard_city":row["scorecard_city"],
-            "state": row["state"], "2024_directory_present": prior24,
-            "2025_directory_present": current25,
-            "crossyear_class":status,
-            "2025_or_fallback_directory_name":row["directory_name"],
-            "2025_or_fallback_directory_city":row["directory_city"],
-            "2025_or_fallback_directory_state":row["directory_state"],
-            "possible_6_digit_prefix":row["possible_branch_unitid_prefix"],
-            "decision":row["s3_06_decision"],
-            "approved_new_census_geoid":None,
-            "exact_campus_location_verified":False,
+            group="missing_both"
+        group_counts[group]+=1
+        older_group_counts[case["baseline_category"]][group]+=1
+        names_changed=bool(old and new and old.get("INSTNM","")!=new.get("INSTNM",""))
+        cities_changed=bool(old and new and old.get("CITY","")!=new.get("CITY",""))
+        states_changed=bool(old and new and old.get("STABBR","")!=new.get("STABBR",""))
+        if names_changed:field_changes["name_changed"]+=1
+        if cities_changed:field_changes["city_changed"]+=1
+        if states_changed:field_changes["state_changed"]+=1
+        parent=uid[:6] if len(uid)>6 else None
+        has_parent=bool(parent and (directory25 or {}).get(parent))
+        if parent:field_changes["long_unitid_with_six_digit_prefix"]+=1
+        if has_parent:field_changes["six_digit_prefix_also_reported_in_2025"]+=1
+
+        # Merger/transition cases always fail closed, regardless of directory membership.
+        if uid=="125897":
+            decision="hold_woodbury_merger_continuing_unitid"
+        elif uid=="115746":
+            decision="hold_pacifica_campus_transition"
+        elif uid=="491923":
+            decision="reject_unsupported_census_place_candidate"
+        elif directory25 is None:
+            decision="hold_hd2025_source_unavailable"
+        elif new is None:
+            decision="hold_missing_2025_directory_identity"
+        elif states_changed or new.get("STABBR","")!=case["state"]:
+            decision="hold_state_or_location_record_conflict"
+        else:
+            decision="hold_2025_directory_record_campus_unverified"
+        decisions[decision]+=1
+        if (names_changed or cities_changed or states_changed or group!="present_both") and len(example_differences)<25:
+            example_differences.append({
+                "unitid":uid,"2024_name":old.get("INSTNM") if old else None,
+                "2025_name":new.get("INSTNM") if new else None,
+                "2024_city":old.get("CITY") if old else None,
+                "2025_city":new.get("CITY") if new else None,
+                "year_group":group,
+            })
+        results.append({
+            "unitid":uid, "state":case["state"],"scorecard_city":case["city"],
+            "source_name_2024":old.get("INSTNM") if old else None,
+            "source_name_2025":new.get("INSTNM") if new else None,
+            "source_city_2024":old.get("CITY") if old else None,
+            "source_city_2025":new.get("CITY") if new else None,
+            "source_state_2025":new.get("STABBR") if new else None,
+            "source_zip_2025":new.get("ZIP") if new else None,
+            "year_group":group,
+            "s3_07_decision":decision,
+            "possible_six_digit_unitid_prefix":parent,
+            "prefix_exists_2025":has_parent,
+            "reviewed_census_geoid":None,
+            "campus_coordinate":None,
+            "location_approved_for_public_release":False,
         })
-    if recovered:
-        assert meta25 is not None
-        assert meta25["url"] == OFFICIAL_ZIP
-        assert len(meta25["zip_sha256"]) == 64
-        assert len(meta25["csv_sha256"]) == 64
-        assert meta25["record_count"] >= 5000
-        assert sum(candidates.values())==49
-        assert evidence["primary_directory_year"]==2025
-    else:
-        assert not meta25 and evidence["primary_directory_year"]==2024
-    assert sum(candidates.values())==49
-    assert all(x["approved_new_census_geoid"] is None for x in changes)
-    assert evidence["new_approved_census_place_geoids"]==0
+    assert len(results)==49 and sum(group_counts.values())==49
+    assert sum(decisions.values())==49
+    assert PRIOR_REGISTRY.read_bytes()==registry_bytes
     now=datetime.now(timezone.utc).isoformat()
-    data={
-        "audit_utc":now,
-        "official_nces_catalog":OFFICIAL_CATALOG,
-        "recovered_direct_official_source":recovered,
-        "official_archive_url_requested":OFFICIAL_ZIP,
-        "official_dictionary_url":OFFICIAL_DICTIONARY,
-        "official_archive_metadata":meta25,
-        "all_attempts":evidence["2025_retrieval_probes"],
-        "previous_fallback_vintage":"2024",
-        "previous_fallback_sha256":evidence["2024_fallback_metadata"]["zip_sha256"],
-        "reconciled_s3_05_pending_cases":len(cases),
-        "crossyear_49_cases":dict(sorted(candidates.items())),
-        "cases_grouped_by_prior_disposition":{
-            k:dict(sorted(v.items())) for k,v in sorted(by_old.items())},
-        "new_approved_place_geoids":0,
-        "unchanged_public_city_label_coverage":5659,
-        "unchanged_original_unresolved":584,
-        "unchanged_s3_05_approved_city_place_proxy_count":3,
-        "remaining_decisions":evidence["decisions"],
-        "woodbury_and_pacifica_source_checks":evidence["institution_publisher_checks"],
-        "institution_sites_tested":evidence["checks"].get("homepage_supplied"),
-        "institution_sites_retrieved":evidence["checks"].get("homepage_retrieved"),
-        "deployment_approved":False,
-        "notes":[
-            "HD2025 release is provisional according to 2026 NCES public release materials; validate release-specific metadata before aggregate uses.",
-            "Presence or disappearance of a UNITID in a directory does not demonstrate physical campus opening, closure, legal parent, or moving.",
-            "The source is an institution directory, not certified exact campus buildings or accessibility/routing data.",
-            "Source ZIP and case-by-case input files exist only in CI runner; no source ZIP or address-coordinate fixture committed.",
-            "S3-06 rerun report is local to CI as historical report remains unchanged in GitHub.",
+    evidence={
+        "audited_utc":now,
+        "official_nces_catalog":CATALOG,
+        "official_hd2025_file_url":OFFICIAL_ZIP,
+        "official_hd2025_retrieved":directory25 is not None,
+        "official_source_probe":attempts,
+        "hd2025_metadata":meta25,
+        "hd2024_metadata":meta24,
+        "records_compared":49,
+        "cross_year_unitid_membership":dict(sorted(group_counts.items())),
+        "by_s3_03_original_category":{k:dict(sorted(v.items())) for k,v in sorted(older_group_counts.items())},
+        "record_field_change_counts":dict(sorted(field_changes.items())),
+        "decision_counts":dict(sorted(decisions.items())),
+        "source_identity_examples":example_differences,
+        "new_location_approvals":0,
+        "s3_05_research_registry_unchanged":True,
+        "prior_research_only_census_place_identifiers":3,
+        "original_unresolved_for_location_release":584,
+        "existing_city_label_match_baseline":5659,
+        "total_college_institutions":6243,
+        "public_deployment_authorized":False,
+        "constraints":[
+            "Presence of a UNITID in IPEDS 2025 is not proof of current campus building, closure/merger legal identity, or exact address.",
+            "Any 2025 release is provisional and may include imputation; release vintage is separate from current 2026 street-address verification.",
+            "A 6-digit prefix shared by UNITIDs is not evidence of legal parent-child lineage.",
+            "Woodbury July 2026 merger and Pacifica fall 2026/winter 2027 campus transition retain explicit holds.",
+            "Census internal points are not campus coordinates or routing/geographic accessibility metrics.",
         ],
     }
-    FINAL_JSON.parent.mkdir(parents=True,exist_ok=True)
-    FINAL_JSON.write_text(json.dumps(data,indent=2,sort_keys=True,ensure_ascii=False)+"\n",encoding="utf-8")
-    CASES.parent.mkdir(parents=True,exist_ok=True)
-    CASES.write_text(json.dumps({"audited_at":now,"cases":changes},indent=2,sort_keys=True,ensure_ascii=False)+"\n",encoding="utf-8")
-
-    body=[
-        "# S3-07 — Recover official NCES IPEDS HD2025 and rerun identity lineage",
-        "",
-        "**Audit timestamp (UTC):** "+now,
-        "",
-        "**Scope:** Source recovery, validation and the 49-case 2024/2025 institution-identity comparison only. "
-        "All new geographic/campus assignments remain unapproved and the live WordPress pages unchanged.",
-        "",
-        "## Source recovery",
-        "",
-        "NCES dataset catalog: "+OFFICIAL_CATALOG,
-        "",
-        "Official direct source URL obtained from a link labeled as the original NCES download: "
-        +OFFICIAL_ZIP,
-        "",
+    RESULT.parent.mkdir(parents=True,exist_ok=True)
+    RESULT.write_text(json.dumps(evidence,indent=2,sort_keys=True,ensure_ascii=False)+"\n",encoding="utf-8")
+    QUEUE.parent.mkdir(parents=True,exist_ok=True)
+    QUEUE.write_text(json.dumps({"audited_utc":now,"cases":results},indent=2,sort_keys=True,ensure_ascii=False)+"\n",encoding="utf-8")
+    doc=[
+        "# S3-07 — Official NCES HD2025 source recovery and 49-case comparison","",
+        "**Audited (UTC):** "+now,"",
+        "**Research only.** Source records and case decisions are not campus geocodes, ZIP coverage, driving distances, or authorization to change WordPress.","",
+        "## Official NCES source and provenance","",
+        "- [NCES Complete Data Files catalog]("+CATALOG+")",
+        "- Official HD2025 ZIP URL: "+OFFICIAL_ZIP,
     ]
-    if recovered:
-        body += [
-            "**HD2025 recovery: SUCCESS — authoritative publisher-hosted ZIP downloaded and parsed.**",
-            "",
-            "- Release year/vintage: **2025** (institutional directory). NCES materials identify 2025–26 as a provisional release; it is **not** a contemporaneous October 2026 location registry.",
-            "- UNITIDs: **"+str(meta25["record_count"])+"** unique records.",
-            "- ZIP SHA-256: \`"+meta25["zip_sha256"]+"\`.",
-            "- Member CSV SHA-256: \`"+meta25["csv_sha256"]+"\`.",
-            "- Official verified URL: "+meta25["final_url"],
-            "- Bytes of official ZIP: "+str(meta25["bytes"])+".",
-            "- Verified minimum fields: UNITID, INSTNM, ADDR, CITY, STABBR, ZIP; rejected duplicate UNITIDs.",
-            "",
+    if meta25:
+        doc += [
+            "- **Verified authentic NCES hosted ZIP**; "+str(meta25["record_count"])+" unique official 2025 UNITIDs.",
+            "- ZIP SHA-256: \x60"+meta25["zip_sha256"]+"\x60",
+            "- extracted CSV SHA-256: \x60"+meta25["csv_sha256"]+"\x60",
+            "- archive byte size: "+str(meta25["bytes"]),
+            "- release caveat: 2025–26 provisional institutional directory; not an October 2026 campus registry.",
         ]
     else:
-        body += [
-            "**HD2025 recovery remains blocked:** attempted official ZIP URL not downloaded/parsed. "
-            "Historical 2024 source remains correctly labeled as 2024, not substituted silently.",
-            "",
+        doc += [
+            "- **Not recovered.** Official source request/ZIP/schema failed; reason recorded in source-probe JSON. No 2024 record was mislabeled as 2025.",
         ]
-    body += [
-        "## 49 records compared to the 2024 directory",
-        "",
-        "| Cross-year status | S3-05 still-unapproved records |",
-        "|---|---:|",
+    doc += ["",
+        "2024 control archive: SHA-256 \x60"+meta24["zip_sha256"]+"\x60, "+str(meta24["record_count"])+" unique UNITIDs.",
+        "The earlier guessed /ipeds/datacenter/data/HD2025.zip and HD2025_P.zip endpoints returned HTTP 404; S3-07 tests the publisher's /ipeds/complete-data-files/ distribution instead.","",
+        "## Source-year reconciliation for the 49 unresolved S3-05 cases","",
+        "| Comparison result | Schools |", "|---|---:|",
     ]
-    for name,count in sorted(candidates.items()):
-        body.append("| "+name.replace("_"," ")+" | "+str(count)+" |")
-    body += [
+    for name,count in sorted(group_counts.items()):
+        doc.append("| "+name.replace("_"," ")+" | "+str(count)+" |")
+    doc+=["","Differences in names: "+str(field_changes["name_changed"])+
+        "; differences in city: "+str(field_changes["city_changed"])+
+        "; differences in state: "+str(field_changes["state_changed"])+".",
+        "Neither missing entries nor name changes prove a closure or merger. All changes require publisher identity evidence.",
         "",
-        "This comparison never infers an institution's closure, merger, new branch, or exact campus location from inclusion/absence alone.",
+        "## Pending dispositions","",
+        "| Disposition | Records |", "|---|---:|"]
+    for decision,count in sorted(decisions.items()):
+        doc.append("| "+decision.replace("_"," ")+" | "+str(count)+" |")
+    doc += ["",
+        "Woodbury (UNITID 125897) remains on an explicit post-merger identity hold; Pacifica (115746) remains on a two-campus transition hold; the previous unsupported Census place candidate (491923) stays rejected.",
+        "All new location approvals: **0**. Existing 3 research-only Census place IDs are unchanged. Baseline 5,659/6,243 school-city matches and 584 outstanding location-release uncertainties are unchanged.",
         "",
-        "## Historical identity holds",
+        "Complete 49-case comparison, including names, source-year city/state, and potential six-digit UNITID prefixes, is retained as a 30-day GitHub Actions artifact governed by repository access.",
         "",
-        "- **Woodbury / University of Redlands Los Angeles:** merger officially announced completed July 6, 2026. Remains **held** until legal/survey UNITID lineage is corroborated, even if the historic UNITID still appears in an earlier directory.",
-        "- **Pacifica:** its Lambert/Ladera instructional-campus transition continues through winter 2027. Remains **held** despite a 2025 directory address.",
-        "- **All other pending cases:** keep their 2024/2025 source-specific statuses in the non-coordinate CI audit artifact; do not assign a Census place or school campus by fuzzy label or a numeric UNITID prefix.",
+        "## Separate release gates","",
+        "Current institutional/campus identity and addresses require current institution-controlled sources and verified parent/branch reporting; 2025 IPEDS alone is not campus geolocation. Future ZIP features must separately verify current USPS coverage, Census ZCTA precision, browser gzip budget, and physical-device/mobile QA.",
+        "No WordPress edits or deployable distance feature were made.",
         "",
-        "## Release gate and next steps",
-        "",
-        "No geographic filter, ZIP search, coordinates, 750 KiB browser payload, road distance, or public release was created. "
-        "**Three** earlier approved *research-only* Census-place IDs remain unchanged; **5,659/6,243** "
-        "baseline label matches remain unchanged; **584** still unresolved for production geographic functionality.",
-        "",
-        "Review the 49-case artifact to determine historical/campus identities with **current official institution pages and published NCES parent/child evidence**. "
-        "Preserve the 2025 release provenance, audit any name/status changes rather than guessing.",
-        "",
-        "Sources: [NCES complete data files]("+OFFICIAL_CATALOG+"), "
-        "[official 2025 directory ZIP]("+OFFICIAL_ZIP+"), "
-        "[NCES IPEDS release information](https://nces.ed.gov/ipeds), "
-        "[Woodbury merger publisher source](https://www.redlands.edu/about/office-of-the-president/presidents-messages/2026/university-of-redlands-and-woodbury-university-complete-historic-merger), "
-        "[Pacifica campus transition](https://www.pacifica.edu/pacificas-campus-transition/).",
-        "",
+        "Publisher references: [NCES IPEDS](https://nces.ed.gov/ipeds), [Data Center complete files]("+CATALOG+"), [official archive]("+OFFICIAL_ZIP+"), [Woodbury/Redlands merger](https://www.redlands.edu/about/office-of-the-president/presidents-messages/2026/university-of-redlands-and-woodbury-university-complete-historic-merger), [Pacifica transition](https://www.pacifica.edu/pacificas-campus-transition/).",
     ]
-    FINAL_MD.write_text("\n".join(body),encoding="utf-8")
-    print("S3_07_RECOVERY_AUDIT_PASS "+json.dumps({
-        "hd2025_download_verified":recovered,
-        "hd2025_count":meta25["record_count"] if recovered else None,
-        "crossyear_49":dict(candidates),
-        "source_sha256":meta25["zip_sha256"] if recovered else None,
-        "approved_new_geoids":0,
+    NOTES.write_text("\n".join(doc)+"\n",encoding="utf-8")
+    print("S3_07_SOURCE_AUDIT_PASS "+json.dumps({
+        "recovered":directory25 is not None,
+        "hd2025_records":meta25["record_count"] if meta25 else None,
+        "comparisons":dict(group_counts),
+        "decisions":dict(decisions),
+        "new_location_approvals":0,
     },sort_keys=True))
 
 if __name__=="__main__":
