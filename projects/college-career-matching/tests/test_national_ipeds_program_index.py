@@ -25,8 +25,8 @@ class NationalProgramEvidenceTests(unittest.TestCase):
         self.completions = self.root / "C2025_A.csv"
         self.write_csv(self.cip, ["CIPCode", "CIPTitle"], [
             ["11", "Computer and information sciences"],
-            ["11.0101", "Computer and Information Sciences, General."],
-            ["51.3801", "Registered Nursing/Registered Nurse."],
+            ['="11.0101"', "Computer and Information Sciences, General."],
+            ['="51.3801"', "Registered Nursing/Registered Nurse."],
         ])
         self.write_csv(self.completions,
             ["UNITID", "CIPCODE", "MAJORNUM", "AWLEVEL", "CTOTALT"], [
