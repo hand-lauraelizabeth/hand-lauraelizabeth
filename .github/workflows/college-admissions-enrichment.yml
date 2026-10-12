@@ -10,6 +10,7 @@ on:
       - projects/college-career-matching/college-search-sprint3.html
       - projects/college-career-matching/tests/test_admissions_scores.cjs
       - projects/college-career-matching/tests/test_admissions_scores_browser.py
+      - projects/college-career-matching/tests/test_admissions_scores_live.py
       - projects/college-career-matching/data/sprint3/college-search-scores.v1.json
       - projects/college-career-matching/data/sprint3/college-search-scores.v2.json
       - projects/college-career-matching/data/sprint3/college-search-scores.v3.json
@@ -48,6 +49,7 @@ jobs:
           python tests/test_admissions_scores_browser.py
           python tests/test_sprint3_city_cost_browser.py
           python tests/test_sprint3_net_sort_browser.py
+          python tests/test_admissions_scores_live.py
 
   enrich:
     if: github.event_name == 'workflow_dispatch'
