@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright
 import json
 
 URL="https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/"
-SHA="75ba0d344ace49c30125522aafecb4285026ff8f"
+SHA="3abb9f458c9d0d43c857c64292dc407f3bd1e911"
 
 def run(browser,width):
     page=browser.new_page(viewport={"width":width,"height":850},device_scale_factor=1)
