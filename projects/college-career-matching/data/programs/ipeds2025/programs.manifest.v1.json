@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0",
+  "data_kind": "IPEDS_2024_25_HISTORICAL_FIRST_MAJOR_COMPLETIONS",
+  "current_program_offering_verified": false,
+  "credential_name_institution_verified": false,
+  "professional_license_eligibility_verified": false,
+  "admissions_and_career_matching_authorized": false,
+  "national_scorecard_data_version": "us-scorecard-2026-06-10-national-index-v1",
+  "unitid_join_rule": "Exact six-digit UNITID only; eight-digit extensions remain unmatched",
+  "program_identity": [
+    "UNITID",
+    "CIP2020_6digit",
+    "AWLEVEL"
+  ],
+  "program_row_layout": [
+    "cip6",
+    "awlevel",
+    "awards_conferred",
+    "count_status"
+  ],
+  "source_reporting_period": "2024-07-01 through 2025-06-30",
+  "source_release_status": "IPEDS 2025 preliminary/provisional; check source revision",
+  "sources": {
+    "completions": {
+      "url": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip",
+      "sha256": "555c6522ccf011d54b06520b128badb8558aba3d0038c97f231f5efaa7161183"
+    },
+    "cip2020": {
+      "url": "https://nces.ed.gov/ipeds/cipcode/resources.aspx?y=56",
+      "sha256": "6cf0882c1f5beb94981d0a1a72285ab5cf633759f45433fb909afbfb6d6b2657"
+    }
+  },
+  "award_levels": {
+    "1": "Undergraduate certificate: less than 1 year",
+    "2": "Undergraduate certificate: 1 to under 2 years",
+    "3": "Associate's degree",
+    "4": "Undergraduate certificate: 2 to under 4 years",
+    "5": "Bachelor's degree",
+    "6": "Postbaccalaureate certificate",
+    "7": "Master's degree",
+    "8": "Post-master's certificate",
+    "17": "Doctor's degree: research/scholarship",
+    "18": "Doctor's degree: professional practice",
+    "19": "Doctor's degree: other"
+  },
+  "cip2020_titles": {
+    "file": "cip2020-titles.json",
+    "sha256": "2f28a605d48706b17245b24d829832f949842651c56556ba45603f1b93dff825",
+    "bytes": 114529,
+    "gzip_bytes": 25454,
+    "gzip_sha256": "efea5bc1bbd2dbddca35763c9aa49c05798a41ed6685e4678f6df479be27ec57"
+  },
+  "counts": {
+    "national_institutions": 6243,
+    "institutions_with_historical_program_completions": 5658,
+    "national_institutions_without_joined_completions": 585,
+    "distinct_six_digit_cip2020_titles": 2325,
+    "source_rows": 313566,
+    "joined_program_award_records": 235330,
+    "reported_completion_cells": 235330,
+    "cip_summary_excluded": 19447,
+    "second_major_excluded": 20715,
+    "overlapping_award_totals_excluded": 37947,
+    "source_rows_outside_national_universe": 127
+  },
+  "shards": [
+    {
+      "file": "programs-00.json",
+      "sha256": "4b6a5820eb84e0b8f95544f5073a8cf17d618bf679647ebd2c16a705f618d3a6",
+      "bytes": 956164,
+      "gzip_bytes": 117545,
+      "gzip_sha256": "92184da8f52d0254399de8f73171d1d7b1f1db88d7c36a4758e597771e78a877",
+      "institutions": 517,
+      "program_award_records": 33320
+    },
+    {
+      "file": "programs-01.json",
+      "sha256": "32773f090afbf6365d81eb85095d56ff803ad1c17cc43ed934ad38730282df63",
+      "bytes": 963830,
+      "gzip_bytes": 122095,
+      "gzip_sha256": "7fe3c10776103df5fe65a834def7c3a6b4719d1be10f921895cce35dbc8dfa31",
+      "institutions": 516,
+      "program_award_records": 33606
+    },
+    {
+      "file": "programs-02.json",
+      "sha256": "5b397f462e06ddcdde29205e394f3a3db28121b1131a0ec7c90b0ae4bbabab4f",
+      "bytes": 939881,
+      "gzip_bytes": 118943,
+      "gzip_sha256": "b8d8290d68a278e13c39ca5b891327616cdbc40fe8de6318a867177761767efb",
+      "institutions": 518,
+      "program_award_records": 32825
+    },
+    {
+      "file": "programs-03.json",
+      "sha256": "a0d1e73b927c698660993e11cdd980652629082b324b7aec26f635e85bafa4cb",
+      "bytes": 874684,
+      "gzip_bytes": 110924,
+      "gzip_sha256": "db2f3adedaad3b2c3998d3b7850d26db93920998ff3afdef7dcf2fc21e20ab7b",
+      "institutions": 515,
+      "program_award_records": 30527
+    },
+    {
+      "file": "programs-04.json",
+      "sha256": "91287f4bbd54ee6c405408dffa24eaf1016553ecfe386bc40fb6fa1877d36954",
+      "bytes": 907068,
+      "gzip_bytes": 111768,
+      "gzip_sha256": "02be85b0569b00264cd86424432cb4314e969e1b6139daa3a05c2fb6bad22e23",
+      "institutions": 519,
+      "program_award_records": 31692
+    },
+    {
+      "file": "programs-05.json",
+      "sha256": "602c05de43172387d3a39eff8b612abf7c254792169fa0dee532087a36c65b10",
+      "bytes": 902946,
+      "gzip_bytes": 113664,
+      "gzip_sha256": "27d01c0c521447bcc4c4acc317daa842756a08a1bf45dd33089e54921de32818",
+      "institutions": 519,
+      "program_award_records": 31500
+    },
+    {
+      "file": "programs-06.json",
+      "sha256": "cc0fafff24ffa1ebca2f75ef7d09261387614b783ed6df32abc0386a9f4b52ba",
+      "bytes": 759395,
+      "gzip_bytes": 96409,
+      "gzip_sha256": "4404f4744be27eee2acbcb81f20e1fbf9d77116ccd4db3d466abaf3d0a59c442",
+      "institutions": 515,
+      "program_award_records": 26444
+    },
+    {
+      "file": "programs-07.json",
+      "sha256": "f26ec24d55c863e1d3c26d236a6c50590ee7e04cc3f513d70211068658c6e119",
+      "bytes": 132539,
+      "gzip_bytes": 18748,
+      "gzip_sha256": "2c1ff1ef6c0cc1f10733948f18acd786af91bc154667270e0baf7b1c2b1a1ce9",
+      "institutions": 501,
+      "program_award_records": 4407
+    },
+    {
+      "file": "programs-08.json",
+      "sha256": "37b47167320e7e0dab35bfa097874af17561d8d58a73092cd10240f61140ed0b",
+      "bytes": 116727,
+      "gzip_bytes": 15714,
+      "gzip_sha256": "2e7658fce8a476fa17a43bcaf8e2bafc41fba2ab486320f1fa7d8d988c225119",
+      "institutions": 496,
+      "program_award_records": 3860
+    },
+    {
+      "file": "programs-09.json",
+      "sha256": "a028d0ee683d3f36f47c0106534b1fe4fd9dd9fa30703cc2a4fe6b9b0b729886",
+      "bytes": 137796,
+      "gzip_bytes": 19166,
+      "gzip_sha256": "ade4c6a60a5b452d961cf3d83a098f295ba931b281aa90f0457fbac933ec1b9a",
+      "institutions": 492,
+      "program_award_records": 4596
+    },
+    {
+      "file": "programs-10.json",
+      "sha256": "c41e0c7cc9c78d3845fabfefaa76b2d2e418e783fef301c8f5ef0ee84327e949",
+      "bytes": 73954,
+      "gzip_bytes": 10912,
+      "gzip_sha256": "8c5fa19385768762d58e99339efdb919076492ee8514706e6f67125b6f96f18a",
+      "institutions": 485,
+      "program_award_records": 2365
+    },
+    {
+      "file": "programs-11.json",
+      "sha256": "f031da995097b18e53114051973b92a7895ce956f311ec8432bf1ae73cfdcd68",
+      "bytes": 6199,
+      "gzip_bytes": 913,
+      "gzip_sha256": "98fcbbe629b9dfe67e194a95e87ca25284ac550174856674815e3c447dbfbe20",
+      "institutions": 65,
+      "program_award_records": 188
+    },
+    {
+      "file": "programs-12.json",
+      "sha256": "b58d051d05c677e80de5b4a7f108ec57208858b0c2a8d8ebe00e5ce4cc0e1b1c",
+      "bytes": 43,
+      "gzip_bytes": 62,
+      "gzip_sha256": "b587100e9150f456d7da818dc788971f2628646b2fa4799c0d30ba306b8b43a8",
+      "institutions": 0,
+      "program_award_records": 0
+    }
+  ],
+  "caveats": [
+    "IPEDS completions are historical activity, not a current academic program catalog.",
+    "CIP titles are federal categories, not exact school-advertised degree names.",
+    "Award level is not evidence of RN/LPN licensing, board eligibility or a named BSN/AAS credential.",
+    "Zero is an observed count; missing/suppressed counts remain null, never zero.",
+    "No program-present inference from the absence of completions; no parent-campus UNITID coercion.",
+    "No career or admission outcome inferred from CIP/completions alone."
+  ]
+}
