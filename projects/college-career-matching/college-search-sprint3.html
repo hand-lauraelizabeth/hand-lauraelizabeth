@@ -50,6 +50,11 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-card-scores .cs-score-source{font-size:.82rem;color:var(--muted)}
 #college-search .cs-card-scores .cs-score-source a{white-space:nowrap}
 #college-search .cs-admissions-note{margin:22px 0 0;padding:13px 0;border-top:1px solid var(--border);color:var(--muted);font-size:.92rem;max-width:95ch}
+#college-search .cs-score-panel{grid-column:1/-1;min-width:0;border:1px solid var(--border);border-radius:12px;background:#fff}
+#college-search .cs-score-panel>summary{cursor:pointer;min-height:44px;padding:12px 15px;font-weight:750;color:var(--green)}
+#college-search #cs-score-filter-count{display:inline-block;margin-left:8px;font-size:.84rem;font-weight:600;color:var(--muted)}
+#college-search .cs-score-panel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 12px 12px}
+#college-search .cs-score-panel-grid .cs-score-field{grid-column:auto}
 #college-search .cs-score-field{grid-column:span 2;border:1px solid var(--border);border-radius:12px;min-width:0;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #college-search .cs-score-field legend{font-weight:750;color:var(--ink);padding:0 5px}
 #college-search .cs-score-field input[type=range]{height:38px;min-height:38px;padding:0;accent-color:var(--green);cursor:pointer}
@@ -103,7 +108,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-costs p:last-child{margin:0}
 #college-search .cs-cost-note{color:var(--muted);font-size:.91rem;max-width:90ch;margin:12px 0 0}
 #college-search .cs-visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:760px){#college-search .cs-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#college-search .cs-score-field{grid-column:1/-1}#college-search .cs-search-field{grid-column:1/-1}#college-search #cs-clear{grid-column:1/-1}#college-search .cs-results{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:760px){#college-search .cs-score-panel-grid{grid-template-columns:minmax(0,1fr)}#college-search .cs-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#college-search .cs-score-field{grid-column:1/-1}#college-search .cs-search-field{grid-column:1/-1}#college-search #cs-clear{grid-column:1/-1}#college-search .cs-results{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:380px){#college-search .cs-toolbar{grid-template-columns:1fr}#college-search .cs-toolbar>*{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#college-search .cs-progress[data-state="loading"]::before{animation:none}}
 </style>
@@ -167,6 +172,8 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <label class="cs-money-field" for="cs-cost-max">Annual cost (tuition + living and other expenses)
 <span class="cs-money-label">Maximum: <output id="cs-cost-output" for="cs-cost-max">Any</output></span>
 <input id="cs-cost-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-cost-missing"></label>
+<details id="cs-score-panel" class="cs-score-panel" open><summary>Optional SAT/ACT comparisons <span id="cs-score-filter-count">No score filters active</span></summary>
+<div class="cs-score-panel-grid">
 <fieldset class="cs-score-field" aria-describedby="cs-sat-missing cs-scores-status">
 <legend>Optional SAT score range — reported school average</legend>
 <label for="cs-sat-low">From <output id="cs-sat-low-output" for="cs-sat-low">400</output>
@@ -187,6 +194,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <input type="number" id="cs-own-act" min="1" max="36" step="1" inputmode="numeric" placeholder="e.g., 28" disabled></label>
 <small class="cs-score-help">Both ends at the defaults means no ACT filter. School midpoint is a descriptive source value.</small>
 </fieldset>
+</div></details>
 <button id="cs-clear" type="button" disabled>Clear</button>
 </div>
 <div id="cs-data-completeness" class="cs-coverage" aria-labelledby="cs-coverage-title" hidden>
@@ -218,7 +226,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <p id="cs-result-count" role="status" aria-live="polite"></p>
 </div>
 <section id="cs-active-summary" class="cs-active" aria-labelledby="cs-active-title">
-<h3 id="cs-active-title">Active selections</h3>
+<h3 id="cs-active-title">Active selections <span id="cs-active-count">(0)</span></h3>
 <p id="cs-active-none">No filters applied.</p>
 <ul id="cs-active-list" class="cs-active-list" hidden></ul>
 <p id="cs-active-sort">Sort: School name: A–Z</p>
