@@ -144,6 +144,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-program-suggestion-meta{display:block;font-size:.78rem;color:var(--muted);font-weight:500}
 #college-search .cs-program-options li{margin:0}
 #college-search .cs-program-options button{display:grid;align-items:start;gap:3px}
+#college-search .cs-financial-inside{padding:14px 18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#college-search .cs-financial-inside .cs-money-field{grid-column:auto}#college-search .cs-financial-active{display:block;font-size:.85rem;font-weight:500;color:var(--muted)}#college-search .cs-qualifier-details{border:1px solid var(--border);border-radius:12px;background:var(--surface);margin:12px 0;padding:0 16px}#college-search .cs-qualifier-details>summary{cursor:pointer;padding:13px 0;font-weight:750;color:var(--green)}#college-search .cs-qualifier-details[open]>summary{border-bottom:1px solid var(--border)}#college-search .cs-qualifier-details .cs-coverage-list{padding-top:12px}#college-search .cs-qualifier-details .cs-coverage-note{padding-bottom:12px}#college-search .cs-qualifier-details .cs-cost-note,#college-search .cs-qualifier-details .cs-admissions-note{margin:12px 0;padding:0;border:0}@media(max-width:760px){#college-search .cs-financial-inside{grid-template-columns:1fr;padding:12px}}
 </style>
 </head>
 <body>
@@ -199,12 +200,17 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <ul id="cs-city-options" class="cs-city-options" aria-label="Matching cities"></ul>
 <div id="cs-city-selected" class="cs-city-selected" aria-label="Selected city filters"></div>
 </div></details>
+<details id="cs-financial-details" class="cs-program-details cs-financial-details">
+<summary>Cost and financial aid filters <span class="cs-financial-active">Optional · average net price and annual cost</span></summary>
+<div class="cs-financial-inside">
 <label class="cs-money-field" for="cs-net-max">Average net price after grant aid
 <span class="cs-money-label">Maximum: <output id="cs-net-output" for="cs-net-max">Any</output></span>
 <input id="cs-net-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-net-missing"></label>
 <label class="cs-money-field" for="cs-cost-max">Annual cost (tuition + living and other expenses)
 <span class="cs-money-label">Maximum: <output id="cs-cost-output" for="cs-cost-max">Any</output></span>
 <input id="cs-cost-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-cost-missing"></label>
+</div>
+</details>
 <details id="cs-program-details" class="cs-program-details">
 <summary>Majors, programs and degree levels <span id="cs-program-active">Optional · historical 2024–25 completions</span></summary>
 <div class="cs-program-inside">
@@ -261,8 +267,9 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 </details>
 <button id="cs-clear" type="button" disabled>Clear</button>
 </div>
-<div id="cs-data-completeness" class="cs-coverage" aria-labelledby="cs-coverage-title" hidden>
-<p id="cs-coverage-title" class="cs-coverage-title">Data completeness — all <span id="cs-coverage-total"></span> institutions, before filters</p>
+<details id="cs-data-completeness" class="cs-coverage cs-qualifier-details" hidden>
+<summary id="cs-coverage-title" class="cs-coverage-title">Data availability and important qualifiers — <span id="cs-coverage-total"></span> institutions</summary>
+
 <ul class="cs-coverage-list">
 <li id="cs-control-missing">Institution control unknown: <strong id="cs-control-unknown"></strong></li>
 <li id="cs-locale-missing">Campus setting unknown: <strong id="cs-locale-unknown"></strong></li>
@@ -275,9 +282,9 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <li>Verified ACT 25th/75th bands unavailable: <strong id="cs-act-band-unknown"></strong></li>
 </ul>
 <p class="cs-coverage-note">“All” includes schools with missing data. Choosing a value excludes schools with unknown data for that field; unknown is never interpreted as rural or a small enrollment. Campus settings use reported locale codes; missing or unclassifiable codes remain unknown. Size means undergraduate enrollment, not total enrollment. Moving a price slider applies a maximum and excludes records missing that price; “Any” includes them. Score-range filters may use clearly identified fall 2022 or fall 2023 records where no fall 2024 values were reported for that exam; no older score is presented as current.</p>
-</div>
+</details>
 <p id="cs-scores-status" role="status" aria-live="polite">Loading optional college test-score data…</p>
-<p class="cs-cost-note">Average net price is the published average after grant and scholarship aid for eligible first-time, full-time federal-aid recipients (in-state students at public institutions). Annual cost is an estimated cost of attendance before grant aid; reported tuition and fees are included within annual cost, not added on top. Actual costs vary by program, residency, living arrangements and aid.</p>
+<details class="cs-qualifier-details cs-cost-qualifier"><summary>How net price and annual cost are calculated</summary><p class="cs-cost-note">Average net price is the published average after grant and scholarship aid for eligible first-time, full-time federal-aid recipients (in-state students at public institutions). Annual cost is an estimated cost of attendance before grant aid; reported tuition and fees are included within annual cost, not added on top. Actual costs vary by program, residency, living arrangements and aid.</p></details>
 </section>
 <p id="cs-load-status" class="cs-progress" data-state="loading" role="status" aria-live="polite">Loading national college data…</p>
 <div id="cs-error" class="cs-error" role="alert" hidden>
@@ -299,7 +306,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <p id="cs-empty" class="cs-empty" hidden>No schools match those filters. Try changing one or more selections.</p>
 <div class="cs-more"><button id="cs-show-more" type="button" aria-controls="cs-results-list" hidden>Show 24 more</button></div>
 </section>
-<p id="cs-admissions-note" class="cs-admissions-note"><strong>* SAFETY, TARGET and REACH are broad approximations under a conventional admissions-categorization shorthand.</strong> They describe only how a personally entered SAT or ACT score compares with 25th, 50th and 75th percentile score bands where those data have been verified. For SAT, total-score bands are estimates made by adding separately reported reading and mathematics percentile values, not officially reported composite percentiles. They are not concrete predictions or projections of admission, nor admissions probabilities. A “SAFETY” designation does not guarantee an offer. Where an institution has historical rather than fall 2024 test scores, the shorthand is based on that earlier cohort and is especially uncertain. Admission policies, test optionality, academic record, application context and competition may change outcomes; the reported score bands reflect enrolled students, not all applicants.</p>
+<details class="cs-qualifier-details cs-admissions-qualifier"><summary>How safety, target and reach labels are estimated</summary><p id="cs-admissions-note" class="cs-admissions-note"><strong>* SAFETY, TARGET and REACH are broad approximations under a conventional admissions-categorization shorthand.</strong> They describe only how a personally entered SAT or ACT score compares with 25th, 50th and 75th percentile score bands where those data have been verified. For SAT, total-score bands are estimates made by adding separately reported reading and mathematics percentile values, not officially reported composite percentiles. They are not concrete predictions or projections of admission, nor admissions probabilities. A “SAFETY” designation does not guarantee an offer. Where an institution has historical rather than fall 2024 test scores, the shorthand is based on that earlier cohort and is especially uncertain. Admission policies, test optionality, academic record, application context and competition may change outcomes; the reported score bands reflect enrolled students, not all applicants.</p></details>
 <details id="cs-about-data" class="cs-about">
 <summary>About this data</summary>
 <div class="cs-about-body">
