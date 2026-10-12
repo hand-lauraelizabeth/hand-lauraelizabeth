@@ -42,8 +42,8 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-results{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 #college-search .cs-card{min-width:0;border:1px solid var(--border);background:#fff;border-radius:12px;padding:19px;position:relative}
 #college-search .cs-card.cs-has-badge h3{padding-right:105px}
-#college-search .cs-admission-badge{position:absolute;top:12px;right:12px;display:inline-block;background:#f1f4f1;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:.75rem;line-height:1.2;font-weight:800;text-decoration:none;letter-spacing:.02em}
-#college-search .cs-admission-badge:focus-visible{outline:3px solid #9c5300}
+#college-search .cs-score-position-badge{position:absolute;top:12px;right:12px;display:inline-block;background:#f1f4f1;color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:.75rem;line-height:1.2;font-weight:800;text-decoration:none;letter-spacing:.02em}
+#college-search .cs-score-position-badge:focus-visible{outline:3px solid #9c5300}
 #college-search .cs-card-scores{font-size:.88rem;margin:10px 0 14px;padding:10px 11px;background:#f5f8f5;border-left:3px solid #5c846b;color:var(--ink)}
 #college-search .cs-card-scores p{margin:0 0 6px;color:var(--ink)}
 #college-search .cs-card-scores p:last-child{margin-bottom:0}
@@ -227,7 +227,7 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <p id="cs-empty" class="cs-empty" hidden>No schools match those filters. Try changing one or more selections.</p>
 <div class="cs-more"><button id="cs-show-more" type="button" aria-controls="cs-results-list" hidden>Show 24 more</button></div>
 </section>
-<p id="cs-admissions-note" class="cs-admissions-note"><strong>* SAFETY, TARGET and REACH are broad approximations under a conventional admissions-categorization shorthand.</strong> They describe only how a personally entered SAT or ACT score compares with 25th, 50th and 75th percentile score bands where those data have been verified. For SAT, total-score bands are estimates made by adding separately reported reading and mathematics percentile values, not officially reported composite percentiles. They are not concrete predictions or projections of admission, nor admissions probabilities. A “SAFETY” designation does not guarantee an offer. Admission policies, test optionality, academic record, application context and competition may change outcomes; the reported score bands reflect enrolled students, not all applicants.</p>
+<p id="cs-admissions-note" class="cs-admissions-note"><strong>* Score position is descriptive, not an admissions category or prediction.</strong> A voluntarily entered SAT or ACT score is compared with reported scores of enrolled first-time students who submitted results. “Below,” “within,” and “above” refer only to the displayed 25th–75th percentile interval, not to an admissions cutoff or chance of acceptance. SAT total boundaries are estimates formed by adding separately reported reading and mathematics section percentiles; they are not reported composite percentiles. Current institution-specific testing policies have not been verified in this dataset: do not assume a score is required, considered, optional, or accepted. Test-blind schools must disregard scores in admissions decisions; this comparison does not establish a school’s current policy. Applicants may leave scores blank. Check each institution’s current policy and admissions requirements.</p>
 <details id="cs-about-data" class="cs-about">
 <summary>About this data</summary>
 <div class="cs-about-body">

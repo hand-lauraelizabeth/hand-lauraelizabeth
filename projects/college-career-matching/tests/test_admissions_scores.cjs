@@ -47,13 +47,13 @@ test("score range filters act only when non-default and exclude unknowns",()=>{
     assert.equal(core.filterSchools(records,{satRange:{min:1500,max:1600}}).length,0);
 });
 
-test("category labels require personal scores and valid complete source percentile bands",()=>{
+test("descriptive score positions require personal scores and valid complete source percentile bands",()=>{
     const r={sat_p25:1000,sat_p50:1200,sat_p75:1400,act_p25:22,act_p50:26,act_p75:31};
-    assert.equal(core.admissionsCategory(r,1450,null),"SAFETY");
-    assert.equal(core.admissionsCategory(r,1200,null),"TARGET");
-    assert.equal(core.admissionsCategory(r,950,null),"REACH");
-    assert.equal(core.admissionsCategory(r,null,32),"SAFETY");
-    assert.equal(core.admissionsCategory(r,null,22),"TARGET");
+    assert.equal(core.admissionsCategory(r,1450,null),"ABOVE_75");
+    assert.equal(core.admissionsCategory(r,1200,null),"WITHIN_25_75");
+    assert.equal(core.admissionsCategory(r,950,null),"BELOW_25");
+    assert.equal(core.admissionsCategory(r,null,32),"ABOVE_75");
+    assert.equal(core.admissionsCategory(r,null,22),"WITHIN_25_75");
     assert.equal(core.admissionsCategory(r,1450,21),null,"Disagreement never generates a label");
     assert.equal(core.admissionsCategory({...r,sat_p50:null},1450,null),null);
     assert.equal(core.admissionsCategory({...r,act_p75:null},null,32),null);
@@ -71,7 +71,7 @@ test("score inputs, defaults, coverage and prominent caveat appear in accessible
     assert.ok(source.includes("Test-score source:"));
     assert.ok(source.includes("sourceRegistry"));
     assert.ok(source.includes("payload.verified_band_counts"));
-    assert.ok(html.includes("not concrete predictions or projections"));
+    assert.ok(html.includes("not an admissions category or prediction"));
     assert.ok(html.includes("TOEFL"));
     assert.ok(html.includes('id="cs-result-count"'));
     assert.ok(html.includes('id="cs-city-selected"'));

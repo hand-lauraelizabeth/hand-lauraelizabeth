@@ -20,7 +20,7 @@ def run(browser,width):
     assert page.locator("#cs-act-band-unknown").inner_text()=="5,323"
     assert "949 SAT and 920 ACT institutions" in page.locator("#cs-scores-status").inner_text()
 
-    # Filter a named school for stable category assertions; badge is a score
+    # Filter a named school for stable score-position assertions; badge is a score
     # convention only and disappears on reset or when measures conflict.
     page.locator("#cs-name").fill("Alabama A & M University")
     assert page.locator("#cs-result-count").inner_text().startswith("1 school")
@@ -29,13 +29,13 @@ def run(browser,width):
     assert entry[2:5]==[810,930,1040] or all(isinstance(n,int) for n in entry[2:5]),entry
     own=page.locator("#cs-own-sat")
     own.fill("1500")
-    assert page.locator(".cs-card .cs-admission-badge").inner_text()=="SAFETY*"
+    assert page.locator(".cs-card .cs-score-position-badge").inner_text()=="Above score reference range*"
     own.fill("880")
-    assert page.locator(".cs-card .cs-admission-badge").inner_text()=="TARGET*"
+    assert page.locator(".cs-card .cs-score-position-badge").inner_text()=="Within score reference range*"
     own.fill("400")
-    assert page.locator(".cs-card .cs-admission-badge").inner_text()=="REACH*"
+    assert page.locator(".cs-card .cs-score-position-badge").inner_text()=="Below score reference range*"
     own.fill("")
-    assert page.locator(".cs-card .cs-admission-badge").count()==0
+    assert page.locator(".cs-card .cs-score-position-badge").count()==0
     assert page.locator(".cs-card .cs-score-source a").count()==1
     assert "Fall 2024" in page.locator(".cs-card .cs-score-source").inner_text()
 
@@ -52,7 +52,7 @@ def run(browser,width):
     assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
     assert not page.evaluate("document.documentElement.scrollWidth>window.innerWidth+2")
     assert not errors,errors
-    print(f"SCORE_ADMISSIONS_BROWSER_PASS width={width} percentiles=949+920; categories=3; source=verified")
+    print(f"SCORE_ADMISSIONS_BROWSER_PASS width={width} percentiles=949+920; positions=3; source=verified")
     page.close()
 
 if __name__=="__main__":

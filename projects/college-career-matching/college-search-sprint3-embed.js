@@ -43,7 +43,7 @@
     var labels=[];
     function category(score,low,median,high) {
       if (!Number.isFinite(score) || !Number.isFinite(low) || !Number.isFinite(median) || !Number.isFinite(high) || low > median || median > high) return null;
-      return score < low ? "REACH" : score > high ? "SAFETY" : "TARGET";
+      return score < low ? "BELOW_25" : score > high ? "ABOVE_75" : "WITHIN_25_75";
     }
     if (Number.isFinite(ownSAT)) {
       var satLabel=category(ownSAT,record.sat_p25,record.sat_p50,record.sat_p75);
@@ -266,7 +266,7 @@
       var bandCounts=payload.verified_band_counts;
       scoresStatus.textContent="SAT uses the published institutional average; ACT uses the reported composite midpoint. "+
         (bandCounts ? ("Percentile data: "+bandCounts.sat_complete_bands+" SAT and "+bandCounts.act_complete_bands+" ACT institutions. ") : "Percentile bands are not yet included in this verified national extract. ")+
-        "Comparison labels require a personal score and verified complete percentile data; TOEFL is not included in the federal source.";
+        "Score-position comparisons require a personal score and verified complete percentile data; they do not estimate admission chances. TOEFL is not included in the federal source.";
     }catch(err){
       scoresStatus.textContent="SAT/ACT score filters currently unavailable; the other college filters still work.";
     }
@@ -396,14 +396,15 @@
   function makeCard(record) {
     var item = document.createElement("li");
     item.className = "cs-card";
-    var category=admissionsCategory(record,ownScore(ownSATInput,400,1600),ownScore(ownACTInput,1,36));
-    if(category){
+    var position=admissionsCategory(record,ownScore(ownSATInput,400,1600),ownScore(ownACTInput,1,36));
+    if(position){
+      var positionLabels={BELOW_25:"Below score reference range",WITHIN_25_75:"Within score reference range",ABOVE_75:"Above score reference range"};
       item.classList.add("cs-has-badge");
       var badge=document.createElement("a");
-      badge.className="cs-admission-badge cs-admission-"+category.toLowerCase();
+      badge.className="cs-score-position-badge";
       badge.href="#cs-admissions-note";
-      badge.textContent=category+"*";
-      badge.setAttribute("aria-label",category+" — see approximate test score categorization note");
+      badge.textContent=positionLabels[position]+"*";
+      badge.setAttribute("aria-label",positionLabels[position]+"; enrolled-student score comparison only, not admission likelihood. Read source and policy note.");
       item.appendChild(badge);
     }
     var heading = document.createElement("h3");
