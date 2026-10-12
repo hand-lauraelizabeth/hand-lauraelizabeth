@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -52,6 +52,11 @@ jobs:
             exit 1
           fi
           sha256sum source/CIPCode2020.csv | tee -a source/retrieval.txt
+          printf '%s  %s\n' \
+            '555c6522ccf011d54b06520b128badb8558aba3d0038c97f231f5efaa7161183' source/C2025_A.zip \
+            '6cf0882c1f5beb94981d0a1a72285ab5cf633759f45433fb909afbfb6d6b2657' source/CIPCode2020.csv \
+            | sha256sum --check --status
+          echo 'SOURCE_SHA256_PINS_VERIFIED' | tee -a source/retrieval.txt
           echo "NCES CIP2020 CSV received and checksum recorded" | tee -a source/retrieval.txt
           python projects/college-career-matching/national_ipeds_program_index.py \
             projects/college-career-matching/data/national \
@@ -63,6 +68,23 @@ jobs:
           print('SHARD_GZIP_BYTES',sum(x['gzip_bytes'] for x in m['shards']))
           print('PROGRAM_EVIDENCE_HISTORICAL_ONLY',not m['current_program_offering_verified'])
           PY
+      - name: Commit historically labeled, source-verified data to review branch only
+        if: success() && github.ref == 'refs/heads/feature/national-program-awards-20261012'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest=projects/college-career-matching/data/programs/ipeds2025
+          mkdir -p "$dest"
+          cp -a output/. "$dest/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$dest"
+          if git diff --cached --quiet; then
+            echo 'No program data changes from pinned sources'
+          else
+            git commit -m 'Build audited NCES 2025 historical CIP6 by award-level program data'
+            git push origin HEAD:refs/heads/feature/national-program-awards-20261012
+          fi
       - name: Retain validated source report and development-only dataset
         if: always()
         uses: actions/upload-artifact@v4
