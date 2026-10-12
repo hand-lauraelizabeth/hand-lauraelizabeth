@@ -1,0 +1,31 @@
+name: National program evidence validation
+on:
+  push:
+    branches:
+      - feature/national-program-awards-20261012
+    paths:
+      - 'projects/college-career-matching/national_ipeds_program_index.py'
+      - 'projects/college-career-matching/national_ipeds_completion_bridge.py'
+      - 'projects/college-career-matching/tests/test_national_ipeds_program_index.py'
+      - 'projects/college-career-matching/tests/test_national_ipeds_completion_bridge.py'
+      - '.github/workflows/national-program-evidence-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-program-evidence:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile evidence builders
+        run: |
+          python -m py_compile projects/college-career-matching/national_ipeds_program_index.py
+          python -m py_compile projects/college-career-matching/national_ipeds_completion_bridge.py
+      - name: Validate with synthetic, non-public fixtures
+        run: |
+          python -m unittest discover -s projects/college-career-matching/tests -p 'test_national_ipeds_program_index.py' -v
+          python -m unittest discover -s projects/college-career-matching/tests -p 'test_national_ipeds_completion_bridge.py' -v
