@@ -1,0 +1,42 @@
+name: College Search test disclosure review
+
+on:
+  push:
+    branches:
+      - feature/college-search-test-filters-collapse-20261012
+    paths:
+      - '.github/workflows/college-search-test-disclosure-review.yml'
+      - 'projects/college-career-matching/college-search-sprint3.html'
+      - 'projects/college-career-matching/college-search-sprint3-embed.js'
+      - 'projects/college-career-matching/tests/test_admissions_scores_browser.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify JavaScript syntax
+        run: node --check projects/college-career-matching/college-search-sprint3-embed.js
+      - name: Verify score/range and sort regression
+        run: |
+          node --test projects/college-career-matching/tests/test_admissions_scores.cjs
+          node projects/college-career-matching/tests/test_sprint3_net_sort.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+      - name: Run responsive browser regression for closed and open testing controls
+        run: |
+          python -m http.server 8766 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/matcher-review-server.log 2>&1 &
+          sleep 2
+          python projects/college-career-matching/tests/test_admissions_scores_browser.py
+          python projects/college-career-matching/tests/test_sprint3_city_cost_browser.py
+          python projects/college-career-matching/tests/test_sprint3_net_sort_browser.py

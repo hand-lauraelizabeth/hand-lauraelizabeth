@@ -503,6 +503,16 @@
     if(actRange)selections.push("ACT institution midpoint: "+actRange.min+"–"+actRange.max);
     if(ownScore(ownSATInput,400,1600)!==null)selections.push("My SAT comparison: "+ownSATInput.value);
     if(ownScore(ownACTInput,1,36)!==null)selections.push("My ACT comparison: "+ownACTInput.value);
+
+    // The collapsed testing panel always discloses active controls and preserves
+    // their values; closing the panel never resets or disables a filter.
+    var activeTestingCount = (satRange ? 1 : 0) + (actRange ? 1 : 0)
+      + (ownScore(ownSATInput,400,1600)!==null ? 1 : 0)
+      + (ownScore(ownACTInput,1,36)!==null ? 1 : 0);
+    var testingStatus = root.querySelector("#cs-testing-active");
+    if (testingStatus) testingStatus.textContent = activeTestingCount
+      ? activeTestingCount + " active testing " + (activeTestingCount===1 ? "setting" : "settings")
+      : "No testing settings applied";
     var fragment = document.createDocumentFragment();
     selections.forEach(function (label) {
       var item = document.createElement("li");

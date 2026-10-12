@@ -50,6 +50,15 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-card-scores .cs-score-source{font-size:.82rem;color:var(--muted)}
 #college-search .cs-card-scores .cs-score-source a{white-space:nowrap}
 #college-search .cs-admissions-note{margin:22px 0 0;padding:13px 0;border-top:1px solid var(--border);color:var(--muted);font-size:.92rem;max-width:95ch}
+
+#college-search .cs-testing-details{grid-column:1/-1;border:1px solid var(--border);border-radius:12px;background:#fff;min-width:0;overflow:hidden}
+#college-search .cs-testing-details>summary{cursor:pointer;min-height:48px;display:list-item;padding:14px 18px;font-weight:750;color:var(--green)}
+#college-search .cs-testing-details>summary:focus-visible{outline:3px solid #9c5300;outline-offset:-3px}
+#college-search .cs-testing-details[open]>summary{border-bottom:1px solid var(--border)}
+#college-search #cs-testing-active{display:block;font-size:.86rem;font-weight:500;color:var(--muted);margin-top:3px}
+#college-search .cs-testing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}
+#college-search .cs-testing-grid>.cs-score-field{grid-column:auto;min-width:0}
+@media(max-width:760px){#college-search .cs-testing-grid{grid-template-columns:minmax(0,1fr)}}
 #college-search .cs-score-field{grid-column:span 2;border:1px solid var(--border);border-radius:12px;min-width:0;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #college-search .cs-score-field legend{font-weight:750;color:var(--ink);padding:0 5px}
 #college-search .cs-score-field input[type=range]{height:38px;min-height:38px;padding:0;accent-color:var(--green);cursor:pointer}
@@ -167,6 +176,9 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <label class="cs-money-field" for="cs-cost-max">Annual cost (tuition + living and other expenses)
 <span class="cs-money-label">Maximum: <output id="cs-cost-output" for="cs-cost-max">Any</output></span>
 <input id="cs-cost-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-cost-missing"></label>
+<details id="cs-testing-details" class="cs-testing-details">
+<summary>Optional SAT/ACT score filters and comparisons <span id="cs-testing-active" role="status" aria-live="polite">No testing settings applied</span></summary>
+<div class="cs-testing-grid">
 <fieldset class="cs-score-field" aria-describedby="cs-sat-missing cs-scores-status">
 <legend>Optional SAT score range — reported school average</legend>
 <label for="cs-sat-low">From <output id="cs-sat-low-output" for="cs-sat-low">400</output>
@@ -187,6 +199,8 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <input type="number" id="cs-own-act" min="1" max="36" step="1" inputmode="numeric" placeholder="e.g., 28" disabled></label>
 <small class="cs-score-help">Both ends at the defaults means no ACT filter. School midpoint is a descriptive source value.</small>
 </fieldset>
+</div>
+</details>
 <button id="cs-clear" type="button" disabled>Clear</button>
 </div>
 <div id="cs-data-completeness" class="cs-coverage" aria-labelledby="cs-coverage-title" hidden>
