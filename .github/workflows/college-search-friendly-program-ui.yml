@@ -33,6 +33,23 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check playwright
           python -m playwright install --with-deps chromium
+      - name: Verify pinned CDN delivery for user-facing vocabulary and national datasets
+        env:
+          REV: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          root="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@${REV}/projects/college-career-matching/"
+          for file in college-program-search.js college-search-sprint3-embed.js \
+            data/programs/ipeds2025/program-search-terms.v1.json \
+            data/programs/ipeds2025/cip2020-titles.json \
+            data/programs/ipeds2025/programs.manifest.v1.json \
+            data/programs/ipeds2025/programs-00.json \
+            data/sprint3/college-search-national.v3.json \
+            data/sprint3/college-search-scores.v3.json; do
+            curl --fail --location --silent --show-error --retry 3 --retry-delay 2 --connect-timeout 8 --max-time 80 "$root$file" --output /tmp/cdn-matcher-asset
+            test -s /tmp/cdn-matcher-asset
+            echo "PINNED_CDN_OK $file"
+          done
       - name: Real national browser QA at mobile and desktop widths
         run: |
           python -m http.server 8766 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/friendly-program.log 2>&1 &
