@@ -1,15 +1,15 @@
 # College Search — execution status
 
-Last updated: 2026-10-11T01:46:53Z UTC
-Repository branch: `feature/college-search-sprint1-20261009`
-Production release: **PUBLIC TEST RELEASE LIVE** on WordPress page 1044 by explicit owner approval 2026-10-10. Browser smoke PASS; physical-device QA, repeated live LCP and theme accessibility issues pending. Further production edits require review.
-WordPress production page 1044 is **PUBLISHED**; staging page 1154 remains **DRAFT**. GitHub PR #7 remains Draft.
+Last updated: 2026-10-12T10:31:00Z UTC
+Repository branch (this release): `feature/college-admissions-score-bands-20261011`; base development branch: `feature/college-search-sprint1-20261009`
+Production release: **NATIONAL SAT/ACT SCORE MATCHER LIVE** on existing WordPress page 1044 by explicit owner approval 2026-10-12. Independent mobile 390px and desktop 1440px public-site Chromium category/filter/source browser smoke PASS; physical-device QA and theme-level accessibility/performance reviews remain separate.
+WordPress production page 1044 is **PUBLISHED**; staging pages 1154 and 1164 remain **DRAFT**. GitHub PR #7 and score extension PR #8 remain Draft.
 
 ## Sprint 6 — public College Search SAT/ACT release (2026-10-12)
 
 **PUBLISHED on existing WordPress page 1044** at `https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/`, at 2026-10-12 06:23:37 America/New_York. User expressly authorized public deployment. Single page-scoped Divi module replaced with tested private draft 1164; existing permalink, WordPress page ID/title and `publish` status retained. Draft 1164 remains unchanged. WordPress REST readback confirms the three commit-pinned CDN assets (commit `55fa3b7a38416fcdd6978f4e45abb3ab37398b40`), score overlay v3, existing state/city/control/locale/size/net price/annual cost/sort controls, optional SAT/ACT sliders, year-specific source disclosures and starred categorization note.
 
-**Public delivery checked:** independent requests returned all three pinned assets (script, 6,243-institution national catalog, 1,247-institution SAT/ACT overlay). Live WordPress front-end `#college-search` includes new SAT/ACT controls. 390px mobile live Chromium test **PASS** in run `38236187724`: real result count 6,243, correct historical/current sources, live category transitions, Clear restoration, 200 CDN responses, no console errors or failed asset requests. The same workflow's second back-to-back 1440px attempt got an intermittent site HTTP 202/blank pre-render challenge; separate desktop retry is workflow `38236619403`. Treat second attempt as inconclusive, not a college-search application error. Full static desktop/mobile regression already passed in `38196856343`.
+**Public delivery checked:** independent requests returned all three pinned assets (script, 6,243-institution national catalog, 1,247-institution SAT/ACT overlay). Live WordPress front-end `#college-search` includes new SAT/ACT controls. 390px mobile live Chromium test **PASS** in run `38236187724`: real result count 6,243, correct historical/current sources, live category transitions, Clear restoration, 200 CDN responses, no console errors or failed asset requests. The same workflow's second back-to-back 1440px attempt hit a transient site HTTP 202 challenge; **separate 1440px public-site desktop retest PASS** in [run 38236619403](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/38236619403), including all actual score/category/source checks and Clear, all three CDN requests HTTP 200, zero console errors and zero failed network requests. Full static desktop/mobile and previous filter regression also passed in that successful run.
 
 **Rollback:** last pre-release WordPress revision `1163`, new publication revision `1169`. Keep source asset URLs pinned rather than moving branch references.
 
