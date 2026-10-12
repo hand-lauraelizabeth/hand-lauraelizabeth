@@ -15,7 +15,7 @@ var active=root.querySelector("#cs-program-active");
 var retry=root.querySelector("#cs-program-retry");
 if(!details||!query||!results||!chosen||!choice||!remove||!level||!status||!active||!retry)return;
 var list=[],notify=function(){},ready=false,loading=false,enabled=false;
-var selected="",index=new Map(),titles={},keys=[];
+var selected="",index=new Map(),titles={},keys=[],reportedCips=new Set();
 var sourceLink="https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip";
 var CIP2020_SHA="6cf0882c1f5beb94981d0a1a72285ab5cf633759f45433fb909afbfb6d6b2657";
 var C2025_SHA="555c6522ccf011d54b06520b128badb8558aba3d0038c97f231f5efaa7161183";
@@ -55,12 +55,12 @@ function rate(text,key){
    else if(term.startsWith(q))offer(68,"related");
    else if(term.includes(q)||tokenMatch(term,q))offer(57,"related");
  });
- return best?{cip:key,title:titles[key],score:best,kind:origin}:null;
+ return best?{cip:key,title:titles[key],score:best,kind:origin,reported:reportedCips.has(key)}:null;
 }
 function suggestFor(text,limit){
  var found=[];
  keys.forEach(function(key){var hit=rate(text,key);if(hit)found.push(hit);});
- found.sort(function(a,b){return b.score-a.score||collator.compare(a.title,b.title)||collator.compare(a.cip,b.cip);});
+ found.sort(function(a,b){return b.score-a.score||Number(b.reported)-Number(a.reported)||collator.compare(a.title,b.title)||collator.compare(a.cip,b.cip);});
  return {total:found.length,options:found.slice(0,limit||15)};
 }
 function activeFilters(){return !!(selected||level.value);}
@@ -94,10 +94,14 @@ function suggestions(){
   var note=document.createElement("span");note.className="cs-program-suggestion-meta";
   note.textContent="CIP "+hit.cip.slice(0,2)+"."+hit.cip.slice(2)+
      (hit.kind==="related"?" · Related subject — compare curricula":
-     hit.kind==="everyday"?" · Common-language match":" · Classification match");
+     hit.kind==="everyday"?" · Common-language match":" · Classification match")+
+     (hit.reported?"":" · No matching 2024–25 completions");
   b.append(name,note);
   b.addEventListener("click",function(){
-   selected=hit.cip;query.value=hit.title;results.replaceChildren();updateLabel();notify();
+   selected=hit.cip;query.value=hit.title;results.replaceChildren();updateLabel();
+   if(!hit.reported)status.textContent="No matched 2024–25 completion records for this classification. Current offerings are unverified; check official college catalogs.";
+   else status.textContent="Field selected. Results reflect federal 2024–25 completions, not verified current offerings or credentials.";
+   notify();
   });
   li.appendChild(b);results.appendChild(li);
  });
@@ -194,13 +198,13 @@ async function load(){
   if(joined.size!==5658||total!==235330)throw Error("Incomplete national program index");
   var observed=new Set();
   joined.forEach(function(rs){rs.forEach(function(r){observed.add(r[0]);});});
-  titles=nameMap;index=joined;discoveryTerms=words;
-  keys=Array.from(observed).sort(function(a,b){return collator.compare(titles[a],titles[b]);});
+  titles=nameMap;index=joined;discoveryTerms=words;reportedCips=observed;
+  keys=Object.keys(titles).sort(function(a,b){return collator.compare(titles[a],titles[b]);});
   ready=true;setEnabled(true);
   status.textContent="Search everyday words (nurse, coding, HR), school subjects, or CIP codes; choose a suggested field. Verified historical 2024–25 completion data cover 5,658 of 6,243 colleges; the other 585 lack matched records, not necessarily active programs.";
   updateLabel();notify();
  }catch(e){
-  ready=false;selected="";index=new Map();titles={};keys=[];
+  ready=false;selected="";index=new Map();titles={};keys=[];reportedCips=new Set();
   setEnabled(false);level.value="";
   status.textContent="Historical program source could not be independently verified. Other college filters remain available.";
   retry.hidden=false;updateLabel();notify();
