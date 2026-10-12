@@ -203,7 +203,7 @@
     drawScoreLabels();applyFilters();
   }
   function validateScoreOverlay(payload,allRecords) {
-    if(!payload || payload.schema_version!==2 || payload.source!=="College Scorecard" ||
+    if(!payload || payload.schema_version!==3 || payload.source!=="College Scorecard" ||
       payload.source_release!=="2026-06-10" || payload.school_count!==EXPECTED_COUNT ||
       !payload.institutions || Array.isArray(payload.institutions)) throw Error("Invalid score source.");
     var known=new Set(allRecords.map(function(r){return r.unitid;}));
@@ -218,12 +218,21 @@
        sources.scorecard_2026.url!=="https://collegescorecard.ed.gov/data/"||
        !Number.isInteger(payload.verified_band_counts?.sat_complete_bands)||
        !Number.isInteger(payload.verified_band_counts?.act_complete_bands)||
-       payload.verified_band_counts.sat_complete_bands<949||
-       payload.verified_band_counts.act_complete_bands<920||
+       payload.verified_band_counts.sat_complete_bands<1051||
+       payload.verified_band_counts.act_complete_bands<965||
        payload.verified_band_counts.sat_complete_bands>EXPECTED_COUNT||
        payload.verified_band_counts.act_complete_bands>EXPECTED_COUNT)throw Error("Source registry or coverage could not be verified.");
+    if(payload.historical_archive_sha256!=="bfe3add63069fea1fa61c8b910bfaef9d29baa3ae68702e6595b04d2023293a1" ||
+       !payload.historical_backfill ||
+       payload.historical_backfill.do_not_mix_years_within_exam!==true ||
+       payload.historical_backfill.report_as_historical!==true)
+      throw Error("Historical source validation failed.");
     Object.keys(sources).forEach(function(id){
       var source=sources[id];
+      if(source.is_historical &&
+        (!["Fall 2022","Fall 2023"].includes(source.cohort)||
+         source.source_archive_sha256!==payload.historical_archive_sha256||
+         !/^MERGED202[23]_[0-9]{2}_PP\.csv$/.test(source.source_file)))throw Error("Unverified historical source.");
       if(!source||typeof source.provider!=="string"||typeof source.cohort!=="string"||
          !source.url||!/^https:\/\//.test(source.url))throw Error("Invalid source metadata.");
     });
@@ -264,7 +273,7 @@
       });
       scoresReady=true;
       var bandCounts=payload.verified_band_counts;
-      scoresStatus.textContent="SAT uses the published institutional average; ACT uses the reported composite midpoint. "+
+      scoresStatus.textContent="SAT uses a reported institutional average; ACT uses a reported midpoint or historical median. Verified 2022–23 admissions cohorts fill exam-level gaps only when 2024 metrics are unavailable. "+
         (bandCounts ? ("Percentile data: "+bandCounts.sat_complete_bands+" SAT and "+bandCounts.act_complete_bands+" ACT institutions. ") : "Percentile bands are not yet included in this verified national extract. ")+
         "Comparison labels require a personal score and verified complete percentile data; TOEFL is not included in the federal source.";
     }catch(err){
@@ -403,7 +412,10 @@
       badge.className="cs-admission-badge cs-admission-"+category.toLowerCase();
       badge.href="#cs-admissions-note";
       badge.textContent=category+"*";
-      badge.setAttribute("aria-label",category+" — see approximate test score categorization note");
+      var historicMatch=(Number.isFinite(ownScore(ownSATInput,400,1600))&&Number.isFinite(record.sat_p50)&&record.sat_source?.is_historical)||
+        (Number.isFinite(ownScore(ownACTInput,1,36))&&Number.isFinite(record.act_p50)&&record.act_source?.is_historical);
+      badge.setAttribute("aria-label",category+(historicMatch?" based partly or wholly on historical admissions data":"")+" — see approximate test score categorization note");
+      if(historicMatch)badge.setAttribute("title","Historical test-score comparison; see reported cohort on the card");
       item.appendChild(badge);
     }
     var heading = document.createElement("h3");
@@ -434,11 +446,12 @@
       function addScore(label,average,p25,p50,p75,source){
         if(!source)return;
         var entry=document.createElement("p");
-        var header=document.createElement("strong");header.textContent=label+": ";
+        var header=document.createElement("strong");header.textContent=(source.is_historical?"Historical ":"")+label+" ("+source.cohort+"): ";
         entry.appendChild(header);
         var middle=(Number.isFinite(p25)&&Number.isFinite(p50)&&Number.isFinite(p75)) ?
           "25th / 50th / 75th: "+p25+" / "+p50+" / "+p75 : "25th–75th percentile unavailable";
-        entry.appendChild(document.createTextNode((Number.isFinite(average)?("reported "+average+" · "):"")+middle));
+        var measure=label.startsWith("ACT") ? (source.act_reference_field==="ACTCM50"?"reported median":"reported midpoint") : "reported average";
+        entry.appendChild(document.createTextNode((Number.isFinite(average)?(measure+" "+average+" · "):"")+middle));
         testing.appendChild(entry);
       }
       addScore("SAT (estimated total percentiles)",record.sat_avg,record.sat_p25,record.sat_p50,record.sat_p75,record.sat_source);
@@ -449,7 +462,7 @@
       });
       uniqueSources.forEach(function(source){
         var cite=document.createElement("p");cite.className="cs-score-source";
-        cite.appendChild(document.createTextNode("Test-score source: "+source.provider+" · "+source.dataset+" · "+source.cohort+" · "));
+        cite.appendChild(document.createTextNode((source.is_historical?"Historical ":"")+"Test-score source: "+source.provider+" · "+source.dataset+" · "+source.cohort+" · "));
         var link=document.createElement("a");link.textContent="Source data";link.href=source.url;
         link.target="_blank";link.rel="noopener noreferrer";cite.appendChild(link);
         testing.appendChild(cite);
