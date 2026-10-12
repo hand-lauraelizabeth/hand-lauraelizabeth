@@ -1,0 +1,64 @@
+name: Sprint 3 NCES and Census independent campus identity evidence
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/audit_sprint3_independent.py'
+      - '.github/workflows/college-search-sprint3-campus-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  independent-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate reproducible inputs and Python source
+        run: |
+          python -m py_compile projects/college-career-matching/audit_sprint3_independent.py
+          python projects/college-career-matching/build_sprint2_national.py --check
+      - name: Regenerate candidate review queue and crosscheck 52 against NCES and Census
+        run: python projects/college-career-matching/audit_sprint3_independent.py
+      - name: Confirm 52 records accounted for, no approved guesses, no coordinates in public reports
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("projects/college-career-matching")
+          p=root/"research_aggregate/s3_04_independent_summary.json"
+          j=json.loads(p.read_text())
+          q=json.loads((root/"research_work/s3_04_independent_review_queue.json").read_text())
+          assert len(q["cases"])==52==j["case_count"]
+          assert j["bounded_single_candidate"]==32 and j["existing_ambiguous"]==20
+          assert sum(j["review_status_counts"].values())==52
+          assert j["accepted_new_matches"]==j["verified_exact_campus_locations"]==0
+          assert j["baseline_city_label_matches"]==5659
+          assert all(c["accepted_school_geoid"] is None and not c["publishable_campus_match"] for c in q["cases"])
+          assert all(not isinstance(v,(int,float)) for v in (j.get("latitude"),j.get("longitude")) if v is not None)
+          assert all(not any(k in ex for k in ("lat","lon","latitude","longitude","coordinates")) for group in j["examples"].values() for ex in group)
+          assert p.stat().st_size < 60000
+          print("S3_04_VERIFIED_INVARIANTS",j["review_status_counts"])
+          PY
+      - name: Save full 52-case evidence ledger for authorized review only
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint3-04-nces-census-review-52
+          path: projects/college-career-matching/research_work/s3_04_independent_review_queue.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Commit summary and research report only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_04_independent_summary.json projects/college-career-matching/S3_04_INDEPENDENT_REVIEW.md
+          if git diff --cached --quiet; then
+            echo "Evidence unchanged"
+          else
+            git commit -m "Record S3-04 official NCES and Census candidate evidence without approving coordinates"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi

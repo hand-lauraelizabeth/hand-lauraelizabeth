@@ -1,0 +1,39 @@
+name: College Search external runtime preflight
+on:
+  push:
+    branches: [feature/college-search-sprint1-20261009]
+    paths:
+      - 'projects/college-career-matching/college-search-sprint1-embed.js'
+      - '.github/workflows/college-search-external-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-external-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Local script passes Node syntax
+        run: node --check projects/college-career-matching/college-search-sprint1-embed.js
+      - name: Pinned CDN browser script returns correct content
+        run: |
+          python - <<'PY'
+          import urllib.request,hashlib,pathlib
+          url = "https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@46b1f1dff858fc128f80b0670efa79c17c03bdc0/projects/college-career-matching/college-search-sprint1-embed.js"
+          request=urllib.request.Request(url,headers={"Origin":"https://www.lauraelizabethhand.com"})
+          with urllib.request.urlopen(request,timeout=25) as response:
+              body=response.read()
+              status=response.status
+              mime=response.headers.get("Content-Type")
+              assert status==200,(status,url)
+              assert "javascript" in mime.lower(),mime
+              local=pathlib.Path("projects/college-career-matching/college-search-sprint1-embed.js").read_bytes()
+              assert body==local,(len(body),len(local))
+              pathlib.Path("/tmp/college-search-remote.js").write_bytes(body)
+              print("SCRIPT_CDN_PASS", {"bytes":len(body),"sha256":hashlib.sha256(body).hexdigest(),"type":mime,"url":url})
+          PY
+          node --check /tmp/college-search-remote.js

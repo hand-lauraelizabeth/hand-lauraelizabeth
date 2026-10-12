@@ -1,0 +1,24 @@
+name: College Search Sprint 1 unit tests
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/tests/test_college_search_sprint1.cjs'
+      - 'projects/college-career-matching/college-search-sprint1.html'
+      - 'projects/college-career-matching/data/sprint1/college-search-national.v1.json'
+      - '.github/workflows/college-search-unit-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  node-unit-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run unit tests against the national dataset
+        run: node --test projects/college-career-matching/tests/test_college_search_sprint1.cjs

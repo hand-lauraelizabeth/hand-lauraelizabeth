@@ -1,0 +1,71 @@
+name: S3-10 federal reporting roster and national filter inventory
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/audit_sprint3_10_crosswalk_filters.py'
+      - '.github/workflows/college-search-sprint3-10-roster-filters.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  official-roster-and-filters:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate immutable source and code syntax
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python -m py_compile projects/college-career-matching/audit_sprint3_10_crosswalk_filters.py
+      - name: Audit 456 extended IDs, official NCES rosters and existing filters
+        run: python projects/college-career-matching/audit_sprint3_10_crosswalk_filters.py
+      - name: Check no guessed OPEIDs or school ZIP, preserve all 6243 source rows
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          base=Path("projects/college-career-matching")
+          a=json.loads((base/"research_aggregate/s3_10_official_roster_and_filters.json").read_text())
+          q=json.loads((base/"research_work/s3_10_456_branch_identity_ledger.json").read_text())["records"]
+          f=a["filters"]
+          assert a["extended_ids"]==len(q)==456
+          assert a["six_digit_roster_ids"]==180
+          assert sum(a["official_roster_evidence_counts"].values())==456
+          assert len({row["source_key"] for row in q})==456
+          assert a["all_original_national_records_retained"]==6243
+          assert a["new_approved_federal_opeid_crosswalks"]==0 and a["new_campus_geocoordinates"]==0
+          assert not a["direct_2026_opeid6_opeid8_extracted"]
+          assert all(x["authentic_2026_opeid8"] is None and x["authentic_2026_opeid6"] is None for x in q)
+          assert all(not x["legal_parent_link_verified"] and not x["current_campus_operation_verified"] for x in q)
+          assert all(x["campus_geolocation_approved"] is None for x in q)
+          assert f["raw_source_nonnull_counts"]["city"]==f["raw_source_nonnull_counts"]["state"]==6243
+          assert f["raw_source_nonnull_counts"]["undergraduate_size"]==5462
+          assert "school_zip" in f["not_in_compiled_source"]
+          assert len(f["browser"])==6
+          assert a["existing_national_gzip_bytes"]==177188 and a["existing_national_gzip_budget"]==768000
+          assert not a["word_press_modified"] and not a["new_browser_asset_created"]
+          print("S3_10_ROSTER_FILTERS_VERIFIED",a["official_roster_evidence_counts"],f["ownership_codes"])
+          PY
+      - name: Retain 456-case non-coordinate roster audit evidence for 30 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint3-10-official-nces-roster-456
+          path: projects/college-career-matching/research_work/s3_10_456_branch_identity_ledger.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Commit official aggregate, methodological report and filter inventory
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_10_official_roster_and_filters.json projects/college-career-matching/S3_10_CROSSWALK_AND_FILTERS.md projects/college-career-matching/S3_10_FILTER_INVENTORY.md
+          if git diff --cached --quiet; then
+            echo "S3-10 aggregate evidence unchanged"
+          else
+            git commit -m "Record S3-10 official NCES branch survey evidence and national filter coverage"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi

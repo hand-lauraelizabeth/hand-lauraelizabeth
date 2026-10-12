@@ -1,0 +1,28 @@
+name: College Search v3 live production City and Cost mobile smoke
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/tests/test_sprint3_live_cost_city.py'
+      - '.github/workflows/college-search-sprint3-live-city-cost.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-site:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check immutable national v3 data build and its 750 KiB compressed budget
+        run: python projects/college-career-matching/build_sprint3_cost_city.py --check
+      - name: Install Chromium
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Read-only QA of actual published WordPress v3 (mobile and desktop)
+        run: python projects/college-career-matching/tests/test_sprint3_live_cost_city.py

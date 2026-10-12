@@ -1,0 +1,73 @@
+name: Sprint 3 geographic identity mismatch triage
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/audit_sprint3_identity.py'
+      - '.github/workflows/college-search-sprint3-identity-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  identity-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify source and tests for bounded exact-name probe rules
+        run: |
+          python projects/college-career-matching/build_sprint2_national.py --check
+          python -m py_compile projects/college-career-matching/audit_sprint3_identity.py
+          cd projects/college-career-matching
+          python - <<'PY'
+          from audit_sprint3_identity import tokens, candidate_queries
+          assert tokens("St. John's") == "st john s"
+          assert candidate_queries("Santa Barbara CA", "CA")["redundant_state_suffix"] == {"santa barbara"}
+          assert candidate_queries("N Little Rock", "AR")["initial_abbreviation"] == {"north little rock"}
+          assert "initial_abbreviation" not in candidate_queries("Normal", "AL")
+          assert "redundant_state_suffix" not in candidate_queries("Santa Barbara NY", "CA")
+          print("S3_03_BOUNDARY_RULES_PASS")
+          PY
+      - name: Run pinned Census source audit and all 584 mismatch probes
+        run: python projects/college-career-matching/audit_sprint3_identity.py
+      - name: Independently cross-check aggregate status and no locations in committed evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          base=Path("projects/college-career-matching")
+          q=json.loads((base/"research_work/s3_03_review_queue.json").read_text())
+          s=json.loads((base/"research_aggregate/s3_03_identity_summary.json").read_text())
+          assert len(q["items"])==584
+          assert s["baseline_matched"]==5659 and s["baseline_unresolved"]==584
+          assert s["denominator_colleges"]==6243
+          assert s["baseline_categories"]=={"ambiguous_place_name":20,"no_exact_place_name":553,"outside_places_geography":11,"unique_city_place_match":5659}
+          assert sum(s["no_exact_probes"].values()) == 553
+          assert s["unique_candidate_max_if_each_later_approved"] + s["baseline_matched"] <= 6243
+          assert s["hypothetical_only_coverage_max"] == s["unique_candidate_max_if_each_later_approved"] + s["baseline_matched"]
+          assert all(not any(k in item for k in ("latitude", "longitude", "coordinates", "distance", "address")) for item in q["items"])
+          assert (base/"research_aggregate/s3_03_identity_summary.json").stat().st_size < 120000
+          print("S3_03_EVIDENCE_PASS", s["no_exact_probes"])
+          PY
+      - name: Archive full non-geocoding 584-record review queue for follow-on private review
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint3-03-review-queue
+          path: projects/college-career-matching/research_work/s3_03_review_queue.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Commit aggregate evidence and report only, never full queue
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_03_identity_summary.json projects/college-career-matching/S3_03_IDENTITY_REVIEW.md
+          if git diff --cached --quiet; then
+            echo "S3-03 aggregate report unchanged"
+          else
+            git commit -m "Record verified S3-03 identity gap counts and bounded review candidates"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi

@@ -1,0 +1,574 @@
+{
+  "archives": {
+    "places": {
+      "columns": [
+        "USPS",
+        "GEOID",
+        "GEOIDFQ",
+        "ANSICODE",
+        "NAME",
+        "LSAD",
+        "FUNCSTAT",
+        "ALAND",
+        "AWATER",
+        "ALAND_SQMI",
+        "AWATER_SQMI",
+        "INTPTLAT",
+        "INTPTLONG"
+      ],
+      "delimiter": "PIPE",
+      "http_last_modified": "Tue, 08 Sep 2026 21:00:12 GMT",
+      "leading_zero_geoids": 4365,
+      "records": 32363,
+      "source_url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_Gaz_place_national.zip",
+      "states": [
+        "AK",
+        "AL",
+        "AR",
+        "AZ",
+        "CA",
+        "CO",
+        "CT",
+        "DC",
+        "DE",
+        "FL",
+        "GA",
+        "HI",
+        "IA",
+        "ID",
+        "IL",
+        "IN",
+        "KS",
+        "KY",
+        "LA",
+        "MA",
+        "MD",
+        "ME",
+        "MI",
+        "MN",
+        "MO",
+        "MS",
+        "MT",
+        "NC",
+        "ND",
+        "NE",
+        "NH",
+        "NJ",
+        "NM",
+        "NV",
+        "NY",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "PR",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VA",
+        "VT",
+        "WA",
+        "WI",
+        "WV",
+        "WY"
+      ],
+      "text_bytes": 3290463,
+      "text_member": "2026_Gaz_place_national.txt",
+      "text_sha256": "e10cb8004732684fa2a75b9d6030c6c9171674d6b112cff29dbc1bc31a9b82fa",
+      "unique_geoids": 32363,
+      "valid_internal_points": 32363,
+      "zip_bytes": 1214650,
+      "zip_sha256": "af678e2d990827c89ee39b98c82de6e90b693c7361ff0e559ae3076670dd2863"
+    },
+    "zctas": {
+      "columns": [
+        "GEOID",
+        "GEOIDFQ",
+        "ALAND",
+        "AWATER",
+        "ALAND_SQMI",
+        "AWATER_SQMI",
+        "INTPTLAT",
+        "INTPTLONG"
+      ],
+      "delimiter": "PIPE",
+      "http_last_modified": "Tue, 08 Sep 2026 21:00:12 GMT",
+      "leading_zero_geoids": 2583,
+      "records": 33791,
+      "source_url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_Gaz_zcta_national.zip",
+      "text_bytes": 2369699,
+      "text_member": "2026_Gaz_zcta_national.txt",
+      "text_sha256": "e85e5d6a3df1d4f0655dae4851383b0e8f68579fb0f3f62ef0f11928b70bbda4",
+      "unique_geoids": 33791,
+      "valid_internal_points": 33791,
+      "zip_bytes": 952131,
+      "zip_sha256": "f1e9046b91f6e60686a99343cb2752834c02b0764939403b331c78c017e2c54c"
+    }
+  },
+  "audit_utc": "2026-10-10T17:31:55.291739+00:00",
+  "catalog": "https://www.census.gov/geographies/reference-files/2026/geo/gazetter-file.html",
+  "college_city_label_coverage": {
+    "by_control": {
+      "private_for_profit": {
+        "ambiguous_place_name": 7,
+        "no_exact_place_name": 199,
+        "unique_city_place_match": 2103
+      },
+      "private_nonprofit": {
+        "ambiguous_place_name": 6,
+        "no_exact_place_name": 222,
+        "outside_places_geography": 1,
+        "unique_city_place_match": 1661
+      },
+      "public": {
+        "ambiguous_place_name": 7,
+        "no_exact_place_name": 132,
+        "outside_places_geography": 10,
+        "unique_city_place_match": 1895
+      }
+    },
+    "by_state": {
+      "AK": {
+        "no_exact_place_name": 1,
+        "unique_city_place_match": 9
+      },
+      "AL": {
+        "no_exact_place_name": 2,
+        "unique_city_place_match": 79
+      },
+      "AR": {
+        "no_exact_place_name": 2,
+        "unique_city_place_match": 81
+      },
+      "AS": {
+        "outside_places_geography": 1
+      },
+      "AZ": {
+        "unique_city_place_match": 128
+      },
+      "CA": {
+        "ambiguous_place_name": 2,
+        "no_exact_place_name": 36,
+        "unique_city_place_match": 620
+      },
+      "CO": {
+        "no_exact_place_name": 1,
+        "unique_city_place_match": 83
+      },
+      "CT": {
+        "no_exact_place_name": 12,
+        "unique_city_place_match": 44
+      },
+      "DC": {
+        "unique_city_place_match": 23
+      },
+      "DE": {
+        "unique_city_place_match": 18
+      },
+      "FL": {
+        "ambiguous_place_name": 1,
+        "no_exact_place_name": 13,
+        "unique_city_place_match": 360
+      },
+      "FM": {
+        "outside_places_geography": 1
+      },
+      "GA": {
+        "no_exact_place_name": 20,
+        "unique_city_place_match": 140
+      },
+      "GU": {
+        "outside_places_geography": 3
+      },
+      "HI": {
+        "no_exact_place_name": 11,
+        "unique_city_place_match": 9
+      },
+      "IA": {
+        "no_exact_place_name": 1,
+        "unique_city_place_match": 74
+      },
+      "ID": {
+        "no_exact_place_name": 8,
+        "unique_city_place_match": 29
+      },
+      "IL": {
+        "ambiguous_place_name": 1,
+        "no_exact_place_name": 2,
+        "unique_city_place_match": 231
+      },
+      "IN": {
+        "ambiguous_place_name": 4,
+        "no_exact_place_name": 26,
+        "unique_city_place_match": 117
+      },
+      "KS": {
+        "unique_city_place_match": 81
+      },
+      "KY": {
+        "no_exact_place_name": 8,
+        "unique_city_place_match": 79
+      },
+      "LA": {
+        "no_exact_place_name": 2,
+        "unique_city_place_match": 111
+      },
+      "MA": {
+        "no_exact_place_name": 31,
+        "unique_city_place_match": 109
+      },
+      "MD": {
+        "ambiguous_place_name": 2,
+        "no_exact_place_name": 4,
+        "unique_city_place_match": 69
+      },
+      "ME": {
+        "no_exact_place_name": 5,
+        "unique_city_place_match": 31
+      },
+      "MH": {
+        "outside_places_geography": 2
+      },
+      "MI": {
+        "no_exact_place_name": 13,
+        "unique_city_place_match": 156
+      },
+      "MN": {
+        "ambiguous_place_name": 1,
+        "no_exact_place_name": 18,
+        "unique_city_place_match": 91
+      },
+      "MO": {
+        "no_exact_place_name": 22,
+        "unique_city_place_match": 119
+      },
+      "MP": {
+        "outside_places_geography": 1
+      },
+      "MS": {
+        "no_exact_place_name": 3,
+        "unique_city_place_match": 53
+      },
+      "MT": {
+        "no_exact_place_name": 2,
+        "unique_city_place_match": 26
+      },
+      "NC": {
+        "ambiguous_place_name": 1,
+        "no_exact_place_name": 3,
+        "unique_city_place_match": 164
+      },
+      "ND": {
+        "unique_city_place_match": 26
+      },
+      "NE": {
+        "unique_city_place_match": 40
+      },
+      "NH": {
+        "no_exact_place_name": 3,
+        "unique_city_place_match": 27
+      },
+      "NJ": {
+        "no_exact_place_name": 45,
+        "unique_city_place_match": 112
+      },
+      "NM": {
+        "no_exact_place_name": 1,
+        "unique_city_place_match": 44
+      },
+      "NV": {
+        "no_exact_place_name": 2,
+        "unique_city_place_match": 37
+      },
+      "NY": {
+        "no_exact_place_name": 116,
+        "unique_city_place_match": 301
+      },
+      "OH": {
+        "no_exact_place_name": 10,
+        "unique_city_place_match": 269
+      },
+      "OK": {
+        "no_exact_place_name": 3,
+        "unique_city_place_match": 99
+      },
+      "OR": {
+        "no_exact_place_name": 1,
+        "unique_city_place_match": 67
+      },
+      "PA": {
+        "ambiguous_place_name": 2,
+        "no_exact_place_name": 25,
+        "unique_city_place_match": 290
+      },
+      "PR": {
+        "ambiguous_place_name": 1,
+        "no_exact_place_name": 46,
+        "unique_city_place_match": 91
+      },
+      "PW": {
+        "outside_places_geography": 1
+      },
+      "RI": {
+        "no_exact_place_name": 5,
+        "unique_city_place_match": 18
+      },
+      "SC": {
+        "ambiguous_place_name": 1,
+        "unique_city_place_match": 87
+      },
+      "SD": {
+        "unique_city_place_match": 24
+      },
+      "TN": {
+        "no_exact_place_name": 30,
+        "unique_city_place_match": 115
+      },
+      "TX": {
+        "ambiguous_place_name": 1,
+        "no_exact_place_name": 2,
+        "unique_city_place_match": 407
+      },
+      "UT": {
+        "no_exact_place_name": 5,
+        "unique_city_place_match": 57
+      },
+      "VA": {
+        "no_exact_place_name": 6,
+        "unique_city_place_match": 148
+      },
+      "VI": {
+        "outside_places_geography": 2
+      },
+      "VT": {
+        "no_exact_place_name": 3,
+        "unique_city_place_match": 11
+      },
+      "WA": {
+        "no_exact_place_name": 1,
+        "unique_city_place_match": 99
+      },
+      "WI": {
+        "ambiguous_place_name": 3,
+        "unique_city_place_match": 82
+      },
+      "WV": {
+        "no_exact_place_name": 3,
+        "unique_city_place_match": 63
+      },
+      "WY": {
+        "unique_city_place_match": 11
+      }
+    },
+    "matched": 5659,
+    "matched_percent": 90.65,
+    "matching_policy": "State-qualified exact normalized School.city to Census Place NAME after limited legal suffix removal; no fuzzy mapping",
+    "school_records": 6243,
+    "school_sha256": "478f9e05da1fecd0154fcb28acd0dbdae57ad4c8f22af009f82e311c3febe3bd",
+    "totals": {
+      "ambiguous_place_name": 20,
+      "no_exact_place_name": 553,
+      "outside_places_geography": 11,
+      "unique_city_place_match": 5659
+    },
+    "unmatched_examples": {
+      "ambiguous_place_name": [
+        {
+          "candidates": 2,
+          "city": "Burbank",
+          "state": "CA",
+          "unitid": "125897"
+        },
+        {
+          "candidates": 2,
+          "city": "Highland",
+          "state": "IN",
+          "unitid": "150303"
+        },
+        {
+          "candidates": 2,
+          "city": "Marion",
+          "state": "IN",
+          "unitid": "15098715"
+        },
+        {
+          "candidates": 2,
+          "city": "Marion",
+          "state": "IN",
+          "unitid": "151801"
+        },
+        {
+          "candidates": 2,
+          "city": "Bel Air",
+          "state": "MD",
+          "unitid": "162706"
+        },
+        {
+          "candidates": 2,
+          "city": "Bel Air",
+          "state": "MD",
+          "unitid": "162830"
+        },
+        {
+          "candidates": 2,
+          "city": "Flat Rock",
+          "state": "NC",
+          "unitid": "198039"
+        },
+        {
+          "candidates": 2,
+          "city": "Newtown",
+          "state": "PA",
+          "unitid": "211307"
+        },
+        {
+          "candidates": 2,
+          "city": "Middletown",
+          "state": "PA",
+          "unitid": "214713"
+        },
+        {
+          "candidates": 2,
+          "city": "Waukesha",
+          "state": "WI",
+          "unitid": "238458"
+        }
+      ],
+      "no_exact_place_name": [
+        {
+          "candidates": 0,
+          "city": "Normal",
+          "state": "AL",
+          "unitid": "100654"
+        },
+        {
+          "candidates": 0,
+          "city": "Tanner",
+          "state": "AL",
+          "unitid": "101514"
+        },
+        {
+          "candidates": 0,
+          "city": "Helena",
+          "state": "AR",
+          "unitid": "107619"
+        },
+        {
+          "candidates": 0,
+          "city": "N Little Rock",
+          "state": "AR",
+          "unitid": "107840"
+        },
+        {
+          "candidates": 0,
+          "city": "Northridge",
+          "state": "CA",
+          "unitid": "110608"
+        },
+        {
+          "candidates": 0,
+          "city": "La Jolla",
+          "state": "CA",
+          "unitid": "110680"
+        },
+        {
+          "candidates": 0,
+          "city": "Valencia",
+          "state": "CA",
+          "unitid": "111081"
+        },
+        {
+          "candidates": 0,
+          "city": "Sherman Oaks",
+          "state": "CA",
+          "unitid": "111638"
+        },
+        {
+          "candidates": 0,
+          "city": "Nashville",
+          "state": "TN",
+          "unitid": "11163801"
+        },
+        {
+          "candidates": 0,
+          "city": "Santa Barbara CA",
+          "state": "CA",
+          "unitid": "115746"
+        }
+      ],
+      "outside_places_geography": [
+        {
+          "candidates": 0,
+          "city": "Pago Pago",
+          "state": "AS",
+          "unitid": "240736"
+        },
+        {
+          "candidates": 0,
+          "city": "Mangilao",
+          "state": "GU",
+          "unitid": "240745"
+        },
+        {
+          "candidates": 0,
+          "city": "Mangilao",
+          "state": "GU",
+          "unitid": "240754"
+        },
+        {
+          "candidates": 0,
+          "city": "Saipan",
+          "state": "MP",
+          "unitid": "240790"
+        },
+        {
+          "candidates": 0,
+          "city": "Pohnpei",
+          "state": "FM",
+          "unitid": "243638"
+        },
+        {
+          "candidates": 0,
+          "city": "Koror",
+          "state": "PW",
+          "unitid": "243647"
+        },
+        {
+          "candidates": 0,
+          "city": "Charlotte Amalie",
+          "state": "VI",
+          "unitid": "243665"
+        },
+        {
+          "candidates": 0,
+          "city": "St. Croix",
+          "state": "VI",
+          "unitid": "24366501"
+        },
+        {
+          "candidates": 0,
+          "city": "Majuro",
+          "state": "MH",
+          "unitid": "376695"
+        },
+        {
+          "candidates": 0,
+          "city": "Kwajalein Atoll",
+          "state": "MH",
+          "unitid": "37669501"
+        }
+      ],
+      "unique_city_place_match": []
+    }
+  },
+  "not_measured": [
+    "current USPS ZIP delivery area overlap with ZCTA GEOIDs",
+    "campus street addresses or campus point geocoding",
+    "road/transit/travel time and physically accessible routes"
+  ],
+  "schema": "https://www.census.gov/programs-surveys/geography/technical-documentation/records-layout/gaz-record-layouts.2026.html",
+  "source": "U.S. Census Bureau 2026 Gazetteer"
+}

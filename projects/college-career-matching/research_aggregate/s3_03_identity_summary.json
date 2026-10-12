@@ -1,0 +1,986 @@
+{
+  "ambiguous_distinct_state_city_pairs": 16,
+  "audit_utc": "2026-10-10T17:37:40.217049+00:00",
+  "baseline_categories": {
+    "ambiguous_place_name": 20,
+    "no_exact_place_name": 553,
+    "outside_places_geography": 11,
+    "unique_city_place_match": 5659
+  },
+  "baseline_matched": 5659,
+  "baseline_unresolved": 584,
+  "by_control_unresolved": {
+    "private_for_profit": {
+      "ambiguous_place_name": 7,
+      "no_exact_place_name": 199
+    },
+    "private_nonprofit": {
+      "ambiguous_place_name": 6,
+      "no_exact_place_name": 222,
+      "outside_places_geography": 1
+    },
+    "public": {
+      "ambiguous_place_name": 7,
+      "no_exact_place_name": 132,
+      "outside_places_geography": 10
+    }
+  },
+  "by_state_unresolved": {
+    "AK": {
+      "no_exact_place_name": 1,
+      "unique_city_place_match": 9
+    },
+    "AL": {
+      "no_exact_place_name": 2,
+      "unique_city_place_match": 79
+    },
+    "AR": {
+      "no_exact_place_name": 2,
+      "unique_city_place_match": 81
+    },
+    "AS": {
+      "outside_places_geography": 1
+    },
+    "CA": {
+      "ambiguous_place_name": 2,
+      "no_exact_place_name": 36,
+      "unique_city_place_match": 620
+    },
+    "CO": {
+      "no_exact_place_name": 1,
+      "unique_city_place_match": 83
+    },
+    "CT": {
+      "no_exact_place_name": 12,
+      "unique_city_place_match": 44
+    },
+    "FL": {
+      "ambiguous_place_name": 1,
+      "no_exact_place_name": 13,
+      "unique_city_place_match": 360
+    },
+    "FM": {
+      "outside_places_geography": 1
+    },
+    "GA": {
+      "no_exact_place_name": 20,
+      "unique_city_place_match": 140
+    },
+    "GU": {
+      "outside_places_geography": 3
+    },
+    "HI": {
+      "no_exact_place_name": 11,
+      "unique_city_place_match": 9
+    },
+    "IA": {
+      "no_exact_place_name": 1,
+      "unique_city_place_match": 74
+    },
+    "ID": {
+      "no_exact_place_name": 8,
+      "unique_city_place_match": 29
+    },
+    "IL": {
+      "ambiguous_place_name": 1,
+      "no_exact_place_name": 2,
+      "unique_city_place_match": 231
+    },
+    "IN": {
+      "ambiguous_place_name": 4,
+      "no_exact_place_name": 26,
+      "unique_city_place_match": 117
+    },
+    "KY": {
+      "no_exact_place_name": 8,
+      "unique_city_place_match": 79
+    },
+    "LA": {
+      "no_exact_place_name": 2,
+      "unique_city_place_match": 111
+    },
+    "MA": {
+      "no_exact_place_name": 31,
+      "unique_city_place_match": 109
+    },
+    "MD": {
+      "ambiguous_place_name": 2,
+      "no_exact_place_name": 4,
+      "unique_city_place_match": 69
+    },
+    "ME": {
+      "no_exact_place_name": 5,
+      "unique_city_place_match": 31
+    },
+    "MH": {
+      "outside_places_geography": 2
+    },
+    "MI": {
+      "no_exact_place_name": 13,
+      "unique_city_place_match": 156
+    },
+    "MN": {
+      "ambiguous_place_name": 1,
+      "no_exact_place_name": 18,
+      "unique_city_place_match": 91
+    },
+    "MO": {
+      "no_exact_place_name": 22,
+      "unique_city_place_match": 119
+    },
+    "MP": {
+      "outside_places_geography": 1
+    },
+    "MS": {
+      "no_exact_place_name": 3,
+      "unique_city_place_match": 53
+    },
+    "MT": {
+      "no_exact_place_name": 2,
+      "unique_city_place_match": 26
+    },
+    "NC": {
+      "ambiguous_place_name": 1,
+      "no_exact_place_name": 3,
+      "unique_city_place_match": 164
+    },
+    "NH": {
+      "no_exact_place_name": 3,
+      "unique_city_place_match": 27
+    },
+    "NJ": {
+      "no_exact_place_name": 45,
+      "unique_city_place_match": 112
+    },
+    "NM": {
+      "no_exact_place_name": 1,
+      "unique_city_place_match": 44
+    },
+    "NV": {
+      "no_exact_place_name": 2,
+      "unique_city_place_match": 37
+    },
+    "NY": {
+      "no_exact_place_name": 116,
+      "unique_city_place_match": 301
+    },
+    "OH": {
+      "no_exact_place_name": 10,
+      "unique_city_place_match": 269
+    },
+    "OK": {
+      "no_exact_place_name": 3,
+      "unique_city_place_match": 99
+    },
+    "OR": {
+      "no_exact_place_name": 1,
+      "unique_city_place_match": 67
+    },
+    "PA": {
+      "ambiguous_place_name": 2,
+      "no_exact_place_name": 25,
+      "unique_city_place_match": 290
+    },
+    "PR": {
+      "ambiguous_place_name": 1,
+      "no_exact_place_name": 46,
+      "unique_city_place_match": 91
+    },
+    "PW": {
+      "outside_places_geography": 1
+    },
+    "RI": {
+      "no_exact_place_name": 5,
+      "unique_city_place_match": 18
+    },
+    "SC": {
+      "ambiguous_place_name": 1,
+      "unique_city_place_match": 87
+    },
+    "TN": {
+      "no_exact_place_name": 30,
+      "unique_city_place_match": 115
+    },
+    "TX": {
+      "ambiguous_place_name": 1,
+      "no_exact_place_name": 2,
+      "unique_city_place_match": 407
+    },
+    "UT": {
+      "no_exact_place_name": 5,
+      "unique_city_place_match": 57
+    },
+    "VA": {
+      "no_exact_place_name": 6,
+      "unique_city_place_match": 148
+    },
+    "VI": {
+      "outside_places_geography": 2
+    },
+    "VT": {
+      "no_exact_place_name": 3,
+      "unique_city_place_match": 11
+    },
+    "WA": {
+      "no_exact_place_name": 1,
+      "unique_city_place_match": 99
+    },
+    "WI": {
+      "ambiguous_place_name": 3,
+      "unique_city_place_match": 82
+    },
+    "WV": {
+      "no_exact_place_name": 3,
+      "unique_city_place_match": 63
+    }
+  },
+  "candidate_policy": "Unique official Census name candidates are unverified proposals; never auto-assign a GEOID or coordinate.",
+  "college_sha256": "478f9e05da1fecd0154fcb28acd0dbdae57ad4c8f22af009f82e311c3febe3bd",
+  "denominator_colleges": 6243,
+  "examples": {
+    "ambiguous_place_name": [
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Burbank",
+        "official_place_options": [
+          {
+            "census_name": "Burbank city",
+            "geoid": "0608954",
+            "lsad": "25"
+          },
+          {
+            "census_name": "Burbank CDP",
+            "geoid": "0608968",
+            "lsad": "57"
+          }
+        ],
+        "state": "CA",
+        "unitid": "125897"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Highland",
+        "official_place_options": [
+          {
+            "census_name": "Highland town",
+            "geoid": "1833466",
+            "lsad": "43"
+          },
+          {
+            "census_name": "Highland CDP",
+            "geoid": "1833484",
+            "lsad": "57"
+          }
+        ],
+        "state": "IN",
+        "unitid": "150303"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Marion",
+        "official_place_options": [
+          {
+            "census_name": "Marion city",
+            "geoid": "1846908",
+            "lsad": "25"
+          },
+          {
+            "census_name": "Marion CDP",
+            "geoid": "1847045",
+            "lsad": "57"
+          }
+        ],
+        "state": "IN",
+        "unitid": "15098715"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Marion",
+        "official_place_options": [
+          {
+            "census_name": "Marion city",
+            "geoid": "1846908",
+            "lsad": "25"
+          },
+          {
+            "census_name": "Marion CDP",
+            "geoid": "1847045",
+            "lsad": "57"
+          }
+        ],
+        "state": "IN",
+        "unitid": "151801"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Bel Air",
+        "official_place_options": [
+          {
+            "census_name": "Bel Air CDP",
+            "geoid": "2405525",
+            "lsad": "57"
+          },
+          {
+            "census_name": "Bel Air town",
+            "geoid": "2405550",
+            "lsad": "43"
+          }
+        ],
+        "state": "MD",
+        "unitid": "162706"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Bel Air",
+        "official_place_options": [
+          {
+            "census_name": "Bel Air CDP",
+            "geoid": "2405525",
+            "lsad": "57"
+          },
+          {
+            "census_name": "Bel Air town",
+            "geoid": "2405550",
+            "lsad": "43"
+          }
+        ],
+        "state": "MD",
+        "unitid": "162830"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Flat Rock",
+        "official_place_options": [
+          {
+            "census_name": "Flat Rock village",
+            "geoid": "3723600",
+            "lsad": "47"
+          },
+          {
+            "census_name": "Flat Rock CDP",
+            "geoid": "3723640",
+            "lsad": "57"
+          }
+        ],
+        "state": "NC",
+        "unitid": "198039"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Newtown",
+        "official_place_options": [
+          {
+            "census_name": "Newtown borough",
+            "geoid": "4254184",
+            "lsad": "21"
+          },
+          {
+            "census_name": "Newtown CDP",
+            "geoid": "4254264",
+            "lsad": "57"
+          }
+        ],
+        "state": "PA",
+        "unitid": "211307"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Middletown",
+        "official_place_options": [
+          {
+            "census_name": "Middletown borough",
+            "geoid": "4249128",
+            "lsad": "21"
+          },
+          {
+            "census_name": "Middletown CDP",
+            "geoid": "4249144",
+            "lsad": "57"
+          }
+        ],
+        "state": "PA",
+        "unitid": "214713"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Waukesha",
+        "official_place_options": [
+          {
+            "census_name": "Waukesha city",
+            "geoid": "5584250",
+            "lsad": "25"
+          },
+          {
+            "census_name": "Waukesha village",
+            "geoid": "5584275",
+            "lsad": "47"
+          }
+        ],
+        "state": "WI",
+        "unitid": "238458"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Pewaukee",
+        "official_place_options": [
+          {
+            "census_name": "Pewaukee city",
+            "geoid": "5562240",
+            "lsad": "25"
+          },
+          {
+            "census_name": "Pewaukee village",
+            "geoid": "5562250",
+            "lsad": "47"
+          }
+        ],
+        "state": "WI",
+        "unitid": "240125"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Superior",
+        "official_place_options": [
+          {
+            "census_name": "Superior city",
+            "geoid": "5578650",
+            "lsad": "25"
+          },
+          {
+            "census_name": "Superior village",
+            "geoid": "5578660",
+            "lsad": "47"
+          }
+        ],
+        "state": "WI",
+        "unitid": "240426"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Bayamón",
+        "official_place_options": [
+          {
+            "census_name": "Bayamón zona urbana",
+            "geoid": "7206593",
+            "lsad": "62"
+          },
+          {
+            "census_name": "Bayamón comunidad",
+            "geoid": "7206679",
+            "lsad": "55"
+          }
+        ],
+        "state": "PR",
+        "unitid": "241225"
+      },
+      {
+        "baseline_category": "ambiguous_place_name",
+        "city": "Willowbrook",
+        "official_place_options": [
+          {
+            "census_name": "Willowbrook village",
+            "geoid": "1781919",
+            "lsad": "47"
+          },
+          {
+            "census_name": "Willowbrook CDP",
+            "geoid": "1781938",
+            "lsad": "57"
+          }
+        ],
+        "state": "IL",
+        "unitid": "244613"
+      }
+    ],
+    "no_exact_place_name": [
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Normal",
+        "state": "AL",
+        "unitid": "100654"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Tanner",
+        "state": "AL",
+        "unitid": "101514"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Helena",
+        "state": "AR",
+        "unitid": "107619"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "N Little Rock",
+        "probes": {
+          "initial_abbreviation": [
+            {
+              "census_name": "North Little Rock city",
+              "geoid": "0550450",
+              "lsad": "25"
+            }
+          ]
+        },
+        "state": "AR",
+        "unitid": "107840"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Northridge",
+        "state": "CA",
+        "unitid": "110608"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "La Jolla",
+        "state": "CA",
+        "unitid": "110680"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Valencia",
+        "state": "CA",
+        "unitid": "111081"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Sherman Oaks",
+        "state": "CA",
+        "unitid": "111638"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Nashville",
+        "state": "TN",
+        "unitid": "11163801"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Santa Barbara CA",
+        "probes": {
+          "redundant_state_suffix": [
+            {
+              "census_name": "Santa Barbara city",
+              "geoid": "0669070",
+              "lsad": "25"
+            }
+          ]
+        },
+        "state": "CA",
+        "unitid": "115746"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Wilmington",
+        "state": "CA",
+        "unitid": "117690"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Woodland Hills",
+        "state": "CA",
+        "unitid": "117706"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Valley Glen",
+        "state": "CA",
+        "unitid": "117733"
+      },
+      {
+        "baseline_category": "no_exact_place_name",
+        "city": "Sylmar",
+        "state": "CA",
+        "unitid": "117867"
+      }
+    ],
+    "outside_places_geography": [
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Pago Pago",
+        "state": "AS",
+        "unitid": "240736"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Mangilao",
+        "state": "GU",
+        "unitid": "240745"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Mangilao",
+        "state": "GU",
+        "unitid": "240754"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Saipan",
+        "state": "MP",
+        "unitid": "240790"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Pohnpei",
+        "state": "FM",
+        "unitid": "243638"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Koror",
+        "state": "PW",
+        "unitid": "243647"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Charlotte Amalie",
+        "state": "VI",
+        "unitid": "243665"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "St. Croix",
+        "state": "VI",
+        "unitid": "24366501"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Majuro",
+        "state": "MH",
+        "unitid": "376695"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Kwajalein Atoll",
+        "state": "MH",
+        "unitid": "37669501"
+      },
+      {
+        "baseline_category": "outside_places_geography",
+        "city": "Mangilao",
+        "state": "GU",
+        "unitid": "439862"
+      }
+    ]
+  },
+  "hypothetical_only_coverage_max": 5691,
+  "no_exact_probes": {
+    "multiple_official_place_candidates": 19,
+    "no_official_place_candidate": 502,
+    "one_official_place_candidate": 32
+  },
+  "not_approved": [
+    "campus coordinates",
+    "automatic match of candidate labels",
+    "full current USPS ZIP match rate",
+    "campus-address verification",
+    "Haversine distance",
+    "new UI control",
+    "Sprint 2 release"
+  ],
+  "probe_hits_by_type_not_disjoint": {
+    "initial_abbreviation": 5,
+    "punctuation_or_diacritic": 45,
+    "redundant_state_suffix": 1
+  },
+  "source_archive_sha256": "af678e2d990827c89ee39b98c82de6e90b693c7361ff0e559ae3076670dd2863",
+  "source_url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_Gaz_place_national.zip",
+  "top_issues_by_state": {
+    "CA": [
+      {
+        "city": "North Hollywood",
+        "records": 5
+      },
+      {
+        "city": "Ventura",
+        "records": 4
+      },
+      {
+        "city": "Hollywood",
+        "records": 2
+      },
+      {
+        "city": "La Jolla",
+        "records": 2
+      },
+      {
+        "city": "Northridge",
+        "records": 2
+      },
+      {
+        "city": "Reseda",
+        "records": 2
+      },
+      {
+        "city": "Sherman Oaks",
+        "records": 2
+      },
+      {
+        "city": "Van Nuys",
+        "records": 2
+      },
+      {
+        "city": "Woodland Hills",
+        "records": 2
+      },
+      {
+        "city": "Canoga Park",
+        "records": 1
+      },
+      {
+        "city": "Cardiff",
+        "records": 1
+      },
+      {
+        "city": "Panorama City",
+        "records": 1
+      },
+      {
+        "city": "Paso Robles",
+        "records": 1
+      },
+      {
+        "city": "Sandy Springs",
+        "records": 1
+      },
+      {
+        "city": "Santa Barbara CA",
+        "records": 1
+      },
+      {
+        "city": "Sylmar",
+        "records": 1
+      },
+      {
+        "city": "Tarzana",
+        "records": 1
+      },
+      {
+        "city": "Valencia",
+        "records": 1
+      },
+      {
+        "city": "Valley Glen",
+        "records": 1
+      },
+      {
+        "city": "West Hills",
+        "records": 1
+      }
+    ],
+    "NJ": [
+      {
+        "city": "Bloomfield",
+        "records": 4
+      },
+      {
+        "city": "Cherry Hill",
+        "records": 3
+      },
+      {
+        "city": "Edison",
+        "records": 3
+      },
+      {
+        "city": "Ewing",
+        "records": 3
+      },
+      {
+        "city": "Wayne",
+        "records": 3
+      },
+      {
+        "city": "Denville",
+        "records": 2
+      },
+      {
+        "city": "Howell",
+        "records": 2
+      },
+      {
+        "city": "Mahwah",
+        "records": 2
+      },
+      {
+        "city": "Nutley",
+        "records": 2
+      },
+      {
+        "city": "Piscataway",
+        "records": 2
+      },
+      {
+        "city": "Adelphia",
+        "records": 1
+      },
+      {
+        "city": "Branchburg",
+        "records": 1
+      },
+      {
+        "city": "Brick Township",
+        "records": 1
+      },
+      {
+        "city": "Egg Harbor Township",
+        "records": 1
+      },
+      {
+        "city": "Galloway",
+        "records": 1
+      },
+      {
+        "city": "Gloucester",
+        "records": 1
+      },
+      {
+        "city": "Medford",
+        "records": 1
+      },
+      {
+        "city": "Montclair",
+        "records": 1
+      },
+      {
+        "city": "Moorestown",
+        "records": 1
+      },
+      {
+        "city": "Mount Laurel",
+        "records": 1
+      }
+    ],
+    "NY": [
+      {
+        "city": "Brooklyn",
+        "records": 53
+      },
+      {
+        "city": "Bronx",
+        "records": 10
+      },
+      {
+        "city": "Staten Island",
+        "records": 8
+      },
+      {
+        "city": "Flushing",
+        "records": 5
+      },
+      {
+        "city": "Long Island City",
+        "records": 5
+      },
+      {
+        "city": "Far Rockaway",
+        "records": 3
+      },
+      {
+        "city": "Forest Hills",
+        "records": 3
+      },
+      {
+        "city": "Jamaica",
+        "records": 3
+      },
+      {
+        "city": "Astoria",
+        "records": 2
+      },
+      {
+        "city": "Purchase",
+        "records": 2
+      },
+      {
+        "city": "Queens",
+        "records": 2
+      },
+      {
+        "city": "Rego Park",
+        "records": 2
+      },
+      {
+        "city": "Riverdale",
+        "records": 2
+      },
+      {
+        "city": "Amherst",
+        "records": 1
+      },
+      {
+        "city": "Annandale-On-Hudson",
+        "records": 1
+      },
+      {
+        "city": "Bayside",
+        "records": 1
+      },
+      {
+        "city": "Bedford Hill",
+        "records": 1
+      },
+      {
+        "city": "Belle Harbor",
+        "records": 1
+      },
+      {
+        "city": "College Point",
+        "records": 1
+      },
+      {
+        "city": "Getzville",
+        "records": 1
+      }
+    ],
+    "PR": [
+      {
+        "city": "Bayamon",
+        "records": 19
+      },
+      {
+        "city": "Manati",
+        "records": 7
+      },
+      {
+        "city": "Mayaguez",
+        "records": 7
+      },
+      {
+        "city": "Hato Rey",
+        "records": 5
+      },
+      {
+        "city": "Juana Diaz",
+        "records": 2
+      },
+      {
+        "city": "Mercedita",
+        "records": 1
+      },
+      {
+        "city": "Rio Grande",
+        "records": 1
+      },
+      {
+        "city": "Rio Piedras",
+        "records": 1
+      },
+      {
+        "city": "San German",
+        "records": 1
+      },
+      {
+        "city": "San Sebastian",
+        "records": 1
+      },
+      {
+        "city": "Santurce",
+        "records": 1
+      }
+    ]
+  },
+  "unique_candidate_max_if_each_later_approved": 32,
+  "unresolved_distinct_state_city_pairs": 286
+}

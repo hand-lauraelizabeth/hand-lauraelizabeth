@@ -1,0 +1,57 @@
+name: Sprint 3 Census geography provenance and coverage audit
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/audit_sprint3_geography.py'
+      - '.github/workflows/college-search-sprint3-geography-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  source-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify reproducible Python syntax and existing national snapshot
+        run: |
+          python -m py_compile projects/college-career-matching/audit_sprint3_geography.py
+          python projects/college-career-matching/build_sprint2_national.py --check
+      - name: Obtain Census national archives, validate source and audit state-qualified place names
+        run: |
+          python projects/college-career-matching/audit_sprint3_geography.py
+      - name: Validate audit report invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("projects/college-career-matching/research_aggregate/s3_02_aggregate_coverage.json")
+          j = json.loads(p.read_text())
+          a = j["archives"]
+          c = j["college_city_label_coverage"]
+          assert c["school_records"] == 6243
+          assert sum(c["totals"].values()) == 6243
+          assert c["matched"] == c["totals"].get("unique_city_place_match",0)
+          for key in ("zctas", "places"):
+              m=a[key]
+              assert m["records"] > 0 and m["records"] == m["unique_geoids"] == m["valid_internal_points"]
+              assert len(m["zip_sha256"]) == 64 and len(m["text_sha256"]) == 64
+          assert p.stat().st_size < 70000
+          print("S3_02_EVIDENCE_VALID", c["matched"], c["matched_percent"], a["zctas"]["records"], a["places"]["records"])
+          PY
+      - name: Commit aggregate metadata and research report only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_02_aggregate_coverage.json projects/college-career-matching/S3_02_GEOGRAPHY_VALIDATION.md
+          if git diff --cached --quiet; then
+            echo "Research aggregates already current"
+          else
+            git commit -m "Record S3-02 validated Census archive hashes, counts and conservative UNITID-place coverage"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi

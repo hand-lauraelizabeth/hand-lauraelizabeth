@@ -1,0 +1,77 @@
+name: Sprint 3 09 verify original Scorecard extended identifiers
+on:
+  push:
+    branches:
+      - feature/college-search-sprint1-20261009
+    paths:
+      - 'projects/college-career-matching/audit_sprint3_09_identity_provenance.py'
+      - '.github/workflows/college-search-sprint3-09-identity-provenance.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  scorecard-source-identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate source script, shards, existing browser payload
+        run: |
+          python -m py_compile projects/college-career-matching/audit_sprint3_09_identity_provenance.py
+          python projects/college-career-matching/build_sprint2_national.py --check
+      - name: Download SHA-pinned original 2026 Scorecard and audit all ID fields
+        run: python projects/college-career-matching/audit_sprint3_09_identity_provenance.py
+      - name: Enforce 6243 original Scorecard identities, no invented OPEID or campus
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("projects/college-career-matching")
+          s=json.loads((p/"research_aggregate/s3_09_identity_provenance_summary.json").read_text())
+          q=json.loads((p/"research_work/s3_09_all_456_id_ledger.json").read_text())["records"]
+          assert s["national_record_count"]==s["national_source_rows_preserved"]==6243
+          assert s["six_digit_keys"]==5787 and s["eight_digit_keys"]==456
+          assert s["scorecard_projected_source_identities_hash_verified"]==6243
+          assert s["all_456_extracted_from_checked_in_source_shards"]
+          assert sum(s["classification_counts"].values())==len(q)==456
+          assert len({x["record_key"] for x in q})==456
+          assert all(x["record_key"]==x["record_key"] and len(x["record_key"])==8 for x in q)
+          assert all(x["official_ipeds_unitid_of_this_extended_record"] is None and x["legal_parent_unitid"] is None for x in q)
+          assert all(x["approved_census_place_geoid"] is None and x["approved_campus_point"] is None for x in q)
+          assert s["new_official_ipeds_unitid_crosswalk_approvals"]==0
+          assert s["new_legal_parent_relation_approvals"]==0 and s["new_geocodes_approved"]==0
+          assert s["existing_browser_gzip_bytes"]==177188
+          assert s["existing_browser_budget_limit"]==750*1024
+          assert not s["wordpress_edited"] and not s["browser_data_replaced"]
+          assert len(s["original_scorecard_bulk_source"]["recorded_source_archive_sha256"])==64
+          if s["raw_zip_downloaded_and_parsed"]:
+              assert s["all_456_original_bulk_UNITID_values_rechecked_this_run"]
+              assert s["opeid6_and_opeid8_could_be_retrieved"]
+          else:
+              assert not s["all_456_original_bulk_UNITID_values_rechecked_this_run"]
+              assert not s["opeid6_and_opeid8_could_be_retrieved"]
+              assert all(x["source_opeid8"] is None and x["source_opeid6"] is None for x in q)
+          assert s["source_manifest_shards_sha_checked"]==13
+          print("S3_09_FULL_PROVENANCE_PASS",s["classification_counts"],"original_zip_available",s["raw_zip_downloaded_and_parsed"])
+          PY
+      - name: Retain full 456-identifier source/OPEID ledger as access-controlled run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint3-09-scorecard-456-source-provenance
+          path: projects/college-career-matching/research_work/s3_09_all_456_id_ledger.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit source-hashed aggregate research and proposed schema (no site edits)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/college-career-matching/research_aggregate/s3_09_identity_provenance_summary.json projects/college-career-matching/S3_09_SOURCE_IDENTITY_REPORT.md projects/college-career-matching/S3_09_IDENTIFIER_SCHEMA.md
+          if git diff --cached --quiet; then
+            echo "S3-09 evidence unchanged"
+          else
+            git commit -m "Record verified Scorecard 456 extended UNITIDs and independent identifier schema"
+            git push origin HEAD:feature/college-search-sprint1-20261009
+          fi
