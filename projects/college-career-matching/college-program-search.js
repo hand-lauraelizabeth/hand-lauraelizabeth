@@ -15,7 +15,7 @@ var active=root.querySelector("#cs-program-active");
 var retry=root.querySelector("#cs-program-retry");
 if(!details||!query||!results||!chosen||!choice||!remove||!level||!status||!active||!retry)return;
 var list=[],notify=function(){},ready=false,loading=false,enabled=false;
-var selected="",index=new Map(),titles={},keys=[],reportedCips=new Set();
+var selected="",index=new Map(),titles={},keys=[],reportedCips=new Set(),positiveCips=new Set(),zeroOnlyCips=new Set();
 var sourceLink="https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip";
 var CIP2020_SHA="6cf0882c1f5beb94981d0a1a72285ab5cf633759f45433fb909afbfb6d6b2657";
 var C2025_SHA="555c6522ccf011d54b06520b128badb8558aba3d0038c97f231f5efaa7161183";
@@ -55,7 +55,7 @@ function rate(text,key){
    else if(term.startsWith(q))offer(68,"related");
    else if(term.includes(q)||tokenMatch(term,q))offer(57,"related");
  });
- return best?{cip:key,title:titles[key],score:best,kind:origin,reported:reportedCips.has(key)}:null;
+ return best?{cip:key,title:titles[key],score:best,kind:origin,reported:reportedCips.has(key),positive:positiveCips.has(key),zeroOnly:zeroOnlyCips.has(key)}:null;
 }
 function suggestFor(text,limit){
  var found=[];
@@ -95,11 +95,12 @@ function suggestions(){
   note.textContent="CIP "+hit.cip.slice(0,2)+"."+hit.cip.slice(2)+
      (hit.kind==="related"?" · Related subject — compare curricula":
      hit.kind==="everyday"?" · Common-language match":" · Classification match")+
-     (hit.reported?"":" · No matching 2024–25 completions");
+     (hit.reported?(hit.positive?"":hit.zeroOnly?" · Reported zero awards in 2024–25":" · 2024–25 counts unavailable"):" · No matching 2024–25 completions");
   b.append(name,note);
   b.addEventListener("click",function(){
    selected=hit.cip;query.value=hit.title;results.replaceChildren();updateLabel();
    if(!hit.reported)status.textContent="No matched 2024–25 completion records for this classification. Current offerings are unverified; check official college catalogs.";
+   else if(!hit.positive)status.textContent=hit.zeroOnly?"2024–25 historical rows report zero awards for this classification. Zero awards do not establish whether a program is offered now; check official catalogs.":"2024–25 historical rows have unavailable completion counts. Current offerings are unverified; check official catalogs.";
    else status.textContent="Field selected. Results reflect federal 2024–25 completions, not verified current offerings or credentials.";
    notify();
   });
@@ -196,15 +197,25 @@ async function load(){
    });
   }
   if(joined.size!==5658||total!==235330)throw Error("Incomplete national program index");
-  var observed=new Set();
-  joined.forEach(function(rs){rs.forEach(function(r){observed.add(r[0]);});});
-  titles=nameMap;index=joined;discoveryTerms=words;reportedCips=observed;
+  var observed=new Set(),positive=new Set(),zero=new Set(),positiveUnits=0,zeroOnlyUnits=0;
+  joined.forEach(function(rs){
+    var hasPositive=false,hasZero=false;
+    rs.forEach(function(r){
+      observed.add(r[0]);
+      if(r[3]==="reported"&&r[2]>0){positive.add(r[0]);hasPositive=true;}
+      else if(r[3]==="reported"&&r[2]===0){zero.add(r[0]);hasZero=true;}
+    });
+    if(hasPositive)positiveUnits++;
+    else if(hasZero)zeroOnlyUnits++;
+  });
+  titles=nameMap;index=joined;discoveryTerms=words;reportedCips=observed;positiveCips=positive;
+  zeroOnlyCips=new Set(Array.from(zero).filter(function(code){return !positive.has(code);}));
   keys=Object.keys(titles).sort(function(a,b){return collator.compare(titles[a],titles[b]);});
   ready=true;setEnabled(true);
-  status.textContent="Search everyday words (nurse, coding, HR), school subjects, or CIP codes; choose a suggested field. Verified historical 2024–25 completion data cover 5,658 of 6,243 colleges; the other 585 lack matched records, not necessarily active programs.";
+  status.textContent="Search everyday words (nurse, coding, HR), school subjects, or CIP codes; choose a suggested field. Historical 2024–25 completion rows cover 5,658 of 6,243 colleges: "+positiveUnits.toLocaleString("en-US")+" have positive awards and "+zeroOnlyUnits+" have only reported zero awards. The other 585 lack matched rows. None of these statuses verifies current program availability.";
   updateLabel();notify();
  }catch(e){
-  ready=false;selected="";index=new Map();titles={};keys=[];reportedCips=new Set();
+  ready=false;selected="";index=new Map();titles={};keys=[];reportedCips=new Set();positiveCips=new Set();zeroOnlyCips=new Set();
   setEnabled(false);level.value="";
   status.textContent="Historical program source could not be independently verified. Other college filters remain available.";
   retry.hidden=false;updateLabel();notify();
@@ -223,11 +234,14 @@ function cardFor(unitid){
  var box=document.createElement("div");box.className="cs-card-program";
  var heading=document.createElement("p"),b=document.createElement("strong");
  b.textContent="Reported 2024–25 completions: ";
- heading.append(b,document.createTextNode(match.length+" matching classification/award "+(match.length===1?"row":"rows")));box.appendChild(heading);
+ var positive=match.filter(function(row){return row[3]==="reported"&&row[2]>0;}).length;
+ var zero=match.filter(function(row){return row[3]==="reported"&&row[2]===0;}).length;
+ var unavailable=match.length-positive-zero;
+ heading.append(b,document.createTextNode(match.length+" matching historical classification/award "+(match.length===1?"row":"rows")+" ("+positive+" positive, "+zero+" zero, "+unavailable+" unavailable)"));box.appendChild(heading);
  match.slice(0,3).forEach(function(row){
   var p=document.createElement("p");
   var label=level.querySelector('option[value="'+row[1]+'"]');
-  p.textContent=titles[row[0]]+" · "+(label?label.textContent:"IPEDS award level "+row[1])+" · "+(row[2]===null?"count unavailable":row[2]+" awards");
+  p.textContent=titles[row[0]]+" · "+(label?label.textContent:"IPEDS award level "+row[1])+" · "+(row[2]===null?"count missing or suppressed":row[2]===0?"0 reported awards (not proof of current availability)":row[2]+" reported awards");
   box.appendChild(p);
  });
  var src=document.createElement("a");src.href=sourceLink;src.rel="noopener noreferrer";src.target="_blank";
