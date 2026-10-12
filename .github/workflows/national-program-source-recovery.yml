@@ -52,6 +52,16 @@ jobs:
             exit 1
           fi
           sha256sum source/CIPCode2020.csv | tee -a source/retrieval.txt
+          python - <<'PY'
+          import csv,pathlib
+          p=pathlib.Path('source/CIPCode2020.csv')
+          print('CIP_SOURCE_BYTES',p.stat().st_size)
+          print('CIP_SOURCE_HEAD',repr(p.read_bytes()[:350]))
+          with p.open(encoding='utf-8-sig',newline='') as f:
+              reader=csv.DictReader(f)
+              print('CIP_COLUMNS',reader.fieldnames)
+              print('CIP_FIRST_ROW',next(reader,None))
+          PY
           python projects/college-career-matching/national_ipeds_program_index.py \
             projects/college-career-matching/data/national \
             source/C2025_A.zip source/CIPCode2020.csv output
