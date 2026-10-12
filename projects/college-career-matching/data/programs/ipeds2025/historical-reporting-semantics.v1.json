@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "data_kind": "IPEDS_2024_25_HISTORICAL_FIRST_MAJOR_COMPLETIONS_AGGREGATE_AUDIT",
+  "source_manifest": "data/programs/ipeds2025/programs.manifest.v1.json",
+  "source_reporting_period": "2024-07-01 through 2025-06-30",
+  "national_institutions": 6243,
+  "institutions_with_reporting_rows": 5658,
+  "institutions_with_positive_awards": 5586,
+  "institutions_with_only_zero_count_rows": 72,
+  "program_award_rows": 235330,
+  "rows_with_positive_awards": 175342,
+  "rows_with_reported_zero_awards": 59988,
+  "cip_codes_with_reporting_rows": 1591,
+  "cip_codes_with_positive_awards": 1551,
+  "cip_codes_with_only_zero_count_rows": 40,
+  "cip_codes_without_reporting_rows": 734,
+  "current_catalog_offering_verified": false,
+  "institution_specific_credential_verified": false,
+  "professional_license_eligibility_verified": false,
+  "publication_status": "REVIEW_ONLY"
+}
