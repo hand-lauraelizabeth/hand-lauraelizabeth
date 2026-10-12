@@ -5,8 +5,8 @@ import json
 
 ROOT=Path(__file__).resolve().parents[1]
 URL="http://127.0.0.1:8766/college-search-sprint3.html"
-DATA=json.loads((ROOT/"data/sprint3/college-search-scores.v2.json").read_text())
-assert DATA["verified_band_counts"]=={"sat_complete_bands":949,"act_complete_bands":920}
+DATA=json.loads((ROOT/"data/sprint3/college-search-scores.v3.json").read_text())
+assert DATA["verified_band_counts"]=={"sat_complete_bands":1051,"act_complete_bands":965}
 
 def run(browser,width):
     page=browser.new_page(viewport={"width":width,"height":844},device_scale_factor=1)
@@ -16,9 +16,9 @@ def run(browser,width):
     page.wait_for_function("document.querySelector('#cs-result-count')?.textContent.includes('6,243 schools')",timeout=30000)
     assert page.locator("#cs-sat-low").is_enabled()
     assert page.locator("#cs-act-high").is_enabled()
-    assert page.locator("#cs-sat-band-unknown").inner_text()=="5,294"
-    assert page.locator("#cs-act-band-unknown").inner_text()=="5,323"
-    assert "949 SAT and 920 ACT institutions" in page.locator("#cs-scores-status").inner_text()
+    assert page.locator("#cs-sat-band-unknown").inner_text()=="5,192"
+    assert page.locator("#cs-act-band-unknown").inner_text()=="5,278"
+    assert "1051 SAT and 965 ACT institutions" in page.locator("#cs-scores-status").inner_text()
 
     # Filter a named school for stable category assertions; badge is a score
     # convention only and disappears on reset or when measures conflict.
@@ -39,6 +39,24 @@ def run(browser,width):
     assert page.locator(".cs-card .cs-score-source a").count()==1
     assert "Fall 2024" in page.locator(".cs-card .cs-score-source").inner_text()
 
+    # Historical fall-2023 example: never label its source as fall 2024.
+    page.locator("#cs-clear").click()
+    page.locator("#cs-name").fill("Baptist Health College Little Rock")
+    assert page.locator("#cs-result-count").inner_text().startswith("1 school")
+    assert "Historical" in page.locator(".cs-card .cs-card-scores").inner_text()
+    assert "Fall 2023" in page.locator(".cs-card .cs-card-scores").inner_text()
+    assert "reported median 18" in page.locator(".cs-card .cs-card-scores").inner_text()
+    ownACT=page.locator("#cs-own-act")
+    ownACT.fill("30")
+    assert page.locator(".cs-card .cs-admission-badge").inner_text()=="SAFETY*"
+    ownACT.fill("18")
+    assert page.locator(".cs-card .cs-admission-badge").inner_text()=="TARGET*"
+    ownACT.fill("2")
+    assert page.locator(".cs-card .cs-admission-badge").inner_text()=="REACH*"
+    assert "historical" in page.locator(".cs-card .cs-admission-badge").get_attribute("aria-label").lower()
+    ownACT.fill("")
+    assert page.locator(".cs-card .cs-admission-badge").count()==0
+
     # Range filtering counts and excludes schools with an unknown SAT average.
     page.locator("#cs-clear").click()
     assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
@@ -52,7 +70,7 @@ def run(browser,width):
     assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
     assert not page.evaluate("document.documentElement.scrollWidth>window.innerWidth+2")
     assert not errors,errors
-    print(f"SCORE_ADMISSIONS_BROWSER_PASS width={width} percentiles=949+920; categories=3; source=verified")
+    print(f"SCORE_ADMISSIONS_BROWSER_PASS width={width} percentiles=1051+965; categories=3; source=verified")
     page.close()
 
 if __name__=="__main__":
