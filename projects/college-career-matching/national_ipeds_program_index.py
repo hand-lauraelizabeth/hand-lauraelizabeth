@@ -20,7 +20,7 @@ from pathlib import Path
 
 from national_ipeds_completion_bridge import digest, national_records, normalize_cip
 
-COMPLETIONS_URL = "https://nces.ed.gov/ipeds/datacenter/data/C2025_A.zip"
+COMPLETIONS_URL = "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip"
 CIP_URL = "https://nces.ed.gov/ipeds/cipcode/resources.aspx?y=56"
 AWARD_LEVELS = {
     "1": "Undergraduate certificate: less than 1 year",
