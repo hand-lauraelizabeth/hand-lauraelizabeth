@@ -38,7 +38,15 @@ def check(browser,width):
         assert not errors,errors
         print("PUBLIC_SCORE_SEARCH_PASS",json.dumps({"width":width,"network":sources,"failed_requests":failed[:3],"console_errors":errors}),flush=True)
     except Exception as err:
-        print("PUBLIC_SCORE_SEARCH_FAIL",json.dumps({"width":width,"error":repr(err),"network":sources,"failed_requests":failed[:15],"console_errors":errors[:15],"result":page.locator("#cs-result-count").inner_text(),"load_status":page.locator("#cs-load-status").inner_text(),"score_status":page.locator("#cs-scores-status").inner_text(),"error_text":page.locator("#cs-error-text").inner_text()}),flush=True)
+        def state(selector):
+            element=page.locator(selector)
+            return element.first.inner_text(timeout=1200)[:300] if element.count() else "<absent>"
+        print("PUBLIC_SCORE_SEARCH_FAIL",json.dumps({"width":width,"error":repr(err),"network":sources,
+            "failed_requests":failed[:15],"console_errors":errors[:15],
+            "current_url":page.url,"title":page.title(),
+            "body_text":page.locator("body").inner_text(timeout=2000)[:900],
+            "result":state("#cs-result-count"),"load_status":state("#cs-load-status"),
+            "score_status":state("#cs-scores-status"),"error_text":state("#cs-error-text")}),flush=True)
         raise
     finally:
         page.close()
@@ -46,5 +54,7 @@ def check(browser,width):
 if __name__=="__main__":
     with sync_playwright() as api:
         browser=api.chromium.launch(headless=True)
-        for width in (390,1440):check(browser,width)
+        # Verify desktop separately to avoid a consecutive request challenge.
+        # Mobile verified against real public page in run 38236187724.
+        for width in (1440,):check(browser,width)
         browser.close()
