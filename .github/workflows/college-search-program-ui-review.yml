@@ -9,6 +9,7 @@ on:
       - 'projects/college-career-matching/college-search-sprint3-embed.js'
       - 'projects/college-career-matching/college-program-search.js'
       - 'projects/college-career-matching/tests/test_national_program_search_browser.py'
+      - 'projects/college-career-matching/tests/test_admissions_scores_browser.py'
   workflow_dispatch:
 permissions:
   contents: read
