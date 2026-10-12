@@ -1,0 +1,28 @@
+name: Historical program evidence review
+on:
+  push:
+    branches:
+      - review/matcher-zero-realshard-ci-20261012-13ET
+    paths:
+      - 'projects/college-career-matching/college-program-search.js'
+      - 'projects/college-career-matching/tests/test_program_historical_status.cjs'
+      - 'projects/college-career-matching/tests/test_historical_program_real_shards.cjs'
+      - '.github/workflows/college-program-history-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate program module syntax
+        run: node --check projects/college-career-matching/college-program-search.js
+      - name: Run historical evidence browser-module regression
+        run: node --test projects/college-career-matching/tests/test_program_historical_status.cjs
+      - name: Validate all historical program shards
+        run: node --test projects/college-career-matching/tests/test_historical_program_real_shards.cjs
