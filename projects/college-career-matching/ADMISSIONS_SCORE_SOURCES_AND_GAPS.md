@@ -15,6 +15,28 @@ The Scorecard release date is **2026-06-10**; test score reporting cohort is **F
 
 **Reproducible local build:** `python build_scorecard_scores_verified.py --archive /path/to/Most-Recent-Cohorts-Institution_06102026.zip --output data/sprint3/college-search-scores.v2.json`. The original 23,559,465-byte ZIP is never committed publicly. The derived overlay is 92,137 bytes raw and 16,051 bytes gzip, so combined with the national v3 gzip (259,736 bytes) the total is **275,787 bytes / 269.3 KiB**, below the 750 KiB compressed budget (768,000 bytes). The original CSV file has 6,273 rows; 30 not marked currently operating are intentionally excluded.
 
+## October 11, 2026: authoritative all-years archive incorporated
+
+Owner's existing Google Drive folder `College + Career Matcher — Official Data Sources` contains a newly uploaded **469,515,074-byte** `College_Scorecard_Raw_Data_06102026 (1).zip`. The entire ZIP was programmatically materialized and its SHA-256 verified: `bfe3add63069fea1fa61c8b910bfaef9d29baa3ae68702e6595b04d2023293a1`. It holds annual files `MERGED1996_97_PP.csv` through `MERGED2025_26_PP.csv` as well as field-of-study and crosswalk files.
+
+**New live-branch data file:** `data/sprint3/college-search-scores.v3.json` (still a review branch, **not deployed on the public WordPress page**). Based on the official fall-2024 score overlay, it backfills two recently preceding admissions cohort files **only when the corresponding SAT or ACT exam has no usable current-year field**: `MERGED2023_24_PP.csv` (fall 2023) and `MERGED2022_23_PP.csv` (fall 2022). Never combine an average from one year with percentiles from another year within the same exam. Do not fill from the 2025–26 archive file, whose admissions fields are NA. The 2017–2021 years remain longitudinal *research only* at present; Scorecard actual reported 50th percentiles are not available in those files, and SAT scale/format transitions require care.
+
+| Metric | Current-only v2 | Historical-enriched v3 |
+|---|---:|---:|
+| Institution rows with any SAT/ACT data | 1,199 | **1,247** |
+| Reported SAT average | 1,037 | **1,164** |
+| ACT composite midpoint or historical **reported ACTCM50 median** | 970 | **1,015** |
+| Complete estimated SAT total 25th/50th/75th bands | 949 | **1,051** |
+| Complete ACT composite reported 25th/50th/75th bands | 920 | **965** |
+
+**Change statistics:** 172 exam-specific additions to 146 existing/new UNITIDs; 48 newly represented schools. The fall-2023 source contributes 70 SAT and 29 ACT additions, while fall 2022 contributes 57 SAT and 16 ACT. A historically anomalous composite SAT percentile spread above 500 points is withheld from categorization; its otherwise available reported SAT average may remain visible. These are federal *reported* data, not third-party extrapolations.
+
+All v3 source entries carry provider, source dataset/file, URL, release, historical flag, cohort, and pinned source checksum. The user-facing tiles label `Historical SAT` / `Historical ACT` and the specific fall cohort; for historical ACT the reference score is **ACTCM50 (reported median)**, not the older ACTCMMID midpoint. SAFETY/TARGET/REACH* are only conventional comparisons for complete percentile sets, remain explicitly nonpredictive, and flag historical evidence in the badge accessibility label. Missing scores remain null.
+
+The all-years ZIP is **not** committed to public GitHub; `build_scorecard_history_overlay.py` reproduces the augmented dataset from the two private official ZIPs and base v2. The derived v3 overlay is **100,024 bytes raw, 17,945 bytes gzip**. Combined with the existing 259,736-byte national catalog gzip, the **277,681-byte total** remains below the 750 KiB cap. [GitHub Actions integration and mobile/desktop browser regression PASSED](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/38196856343).
+
+The WordPress **private draft 1164** references this verified v3 dataset and the current review-branch script; the public page 1044 is unchanged. The historical backfill is a **recent-cohort enrichment, not complete historical scoring**. Future work: analyze all annual observations for dedicated trend views without putting older score observations into default college matching, and research official university Common Data Set/IPEDS reports for institutions still missing percentile ranges.
+
 ## Classification method and guardrails
 
 The user may enter a SAT total (400–1600) and/or ACT composite (1–36) as an **optional reference**. School filters independently compare user-selected ranges against **SAT_AVG** and **ACTCMMID**; default-wide ranges are inactive. For classification only, if all three school percentiles exist, an applicant score lower than 25th percentile is **REACH**, 25th–75th inclusive is **TARGET**, higher than the 75th percentile is **SAFETY**. Because this is merely a score-position shorthand, all labels carry `*` linking to a prominent qualification note and are *not* admission likelihood estimates. When SAT and ACT disagree, no single combined badge appears. Badges are absent if no personal score is provided or source evidence is incomplete.
