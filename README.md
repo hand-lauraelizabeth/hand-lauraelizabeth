@@ -58,7 +58,8 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 
 ## Applied Technical Demonstrations
 
-- [Prompt Literacy Debugger](projects/prompt-literacy-debugger/) — client-side teaching tool for diagnosing task clarity, evidence boundaries, authority limits, verification, privacy, and human responsibility before a prompt is used.\n- [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
+- [Prompt Literacy Debugger](projects/prompt-literacy-debugger/) — client-side teaching tool for diagnosing task clarity, evidence boundaries, authority limits, verification, privacy, and human responsibility before a prompt is used.
+- [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](projects/ethical-ai-scenario-auditor/) — browser-based responsible-AI teaching tool for risk discovery, mitigation planning, provenance, oversight, and contestability.
 - [Audience Lifecycle & CRM Migration Planner](projects/audience-lifecycle-crm-migration/) — platform-agnostic lifecycle, data-model, migration-control, workflow, and KPI planning demonstration.
 
@@ -71,9 +72,9 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 
 - [Parent & Caregiver ELL Curriculum — Project Light + CRD Impact](case-studies/parent-caregiver-ell-curriculum/) — ten-module adult ELL curriculum architecture integrating learner, instructor, administrator, digital-literacy, assessment, and flexible-delivery layers.
 
-## Projects in Development
+## Live Tools & Ongoing Projects
 
-- [College + Career Matching Tool](projects/college-career-matching/) — rebuilding a 2017 explainable college-selection model with current data, uncertainty-aware admissions logic, college-to-career crosswalks, and user-adjustable weights.
+- [National College + Career Explorer](projects/college-career-matching/) — a live, accessible search across 6,243 institutions with cost, location, size, and optional SAT/ACT filters; source dates and uncertainty are stated explicitly.
 
 ## Research Notes
 
