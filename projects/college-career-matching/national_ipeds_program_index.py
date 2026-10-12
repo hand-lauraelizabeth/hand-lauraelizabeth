@@ -88,7 +88,11 @@ def get(row, *names):
 def cip_titles(path):
     titles = {}
     for row in source_rows(path, "CIPCode2020.csv"):
-        cip = normalize_cip(get(row, "CIPCODE", "CIPCODE2020"))
+        raw_code = get(row, "CIPCODE", "CIPCODE2020")
+        # NCES CIPCode2020.csv uses Excel text preservation, e.g. ="51.3801".
+        # Unwrap only a literal numeric code; never evaluate spreadsheet formulas.
+        formula = re.fullmatch(r'="(\d{2}\.\d{4}|\d{6}|\d{2})"', raw_code)
+        cip = normalize_cip(formula.group(1) if formula else raw_code)
         # The official classification contains 2- and 4-digit headers; skip.
         if not cip:
             continue
