@@ -39,8 +39,8 @@ jobs:
             return 1
           }
           if ! try_zip source/C2025_A.zip \
-            https://nces.ed.gov/ipeds/datacenter/data/C2025_A.zip \
-            https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip; then
+            https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip \
+            https://nces.ed.gov/ipeds/datacenter/data/C2025_A.zip; then
             echo 'BLOCKER: NCES C2025_A.zip could not be downloaded from either official URL' | tee -a source/retrieval.txt
             exit 1
           fi
@@ -52,16 +52,7 @@ jobs:
             exit 1
           fi
           sha256sum source/CIPCode2020.csv | tee -a source/retrieval.txt
-          python - <<'PY'
-          import csv,pathlib
-          p=pathlib.Path('source/CIPCode2020.csv')
-          print('CIP_SOURCE_BYTES',p.stat().st_size)
-          print('CIP_SOURCE_HEAD',repr(p.read_bytes()[:350]))
-          with p.open(encoding='utf-8-sig',newline='') as f:
-              reader=csv.DictReader(f)
-              print('CIP_COLUMNS',reader.fieldnames)
-              print('CIP_FIRST_ROW',next(reader,None))
-          PY
+          echo "NCES CIP2020 CSV received and checksum recorded" | tee -a source/retrieval.txt
           python projects/college-career-matching/national_ipeds_program_index.py \
             projects/college-career-matching/data/national \
             source/C2025_A.zip source/CIPCode2020.csv output
@@ -79,6 +70,8 @@ jobs:
           name: ipeds-program-source-recovery-${{ github.sha }}
           path: |
             source/retrieval.txt
+            source/C2025_A.zip
+            source/CIPCode2020.csv
             output/
           retention-days: 7
           if-no-files-found: warn
