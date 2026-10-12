@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Historical Program Completions — Review Preview</title>
+<style>
+:root{color-scheme:light;font-family:system-ui,sans-serif;color:#18372d;background:#f7faf7}*{box-sizing:border-box}
+body{margin:0;padding:clamp(1rem,3vw,2rem)}main{max-width:1100px;margin:auto}
+a{color:#165e48}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1c775c;outline-offset:3px}
+header,.panel,.result{background:white;border:1px solid #d3e1d9;border-radius:12px;padding:1rem;margin-bottom:1rem}
+h1{font-size:clamp(1.45rem,3vw,2.2rem);margin:.25rem 0}.eyebrow{font-weight:700;color:#25634d}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:1rem}
+label{display:block;font-weight:650}input,select,button{width:100%;font:inherit;padding:.65rem;border:1px solid #67877a;border-radius:7px;background:#fff;color:#17372d}
+button{cursor:pointer;background:#195940;color:white;border-color:#195940;font-weight:700}button:disabled{opacity:.6;cursor:wait}
+.note{border-left:5px solid #527e65;background:#eef5f0;padding:.75rem 1rem;margin:.8rem 0}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:.75rem}.result{margin:0}
+.result h3{margin:.2rem 0}.meta{font-size:.93rem;line-height:1.5}.result strong{display:block}
+#status{min-height:1.4rem}.pager{display:flex;gap:1rem;align-items:center;margin-top:1rem}.pager button{max-width:160px}
+@media(max-width:500px){body{padding:.75rem}.pager{flex-wrap:wrap}.pager button{max-width:none;flex:1}}
+</style></head><body><main id="program-evidence-preview" data-program-base="./data/programs/ipeds2025/" data-national-url="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@55fa3b7a38416fcdd6978f4e45abb3ab37398b40/projects/college-career-matching/data/sprint3/college-search-national.v3.json">
+<header><p class="eyebrow">College + Career Matcher · Unpublished review preview</p><h1>Explore historical program completions</h1>
+<p>Find federally reported six-digit instructional-program categories and award levels by institution. These are <strong>historical completions, not a list of programs currently offered</strong>.</p>
+<p><a href="https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/">Open the existing nationwide College Search</a> (unchanged).</p></header>
+<section class="panel" aria-label="Historical program evidence search">
+<div class="controls"><label for="program-query">Program title or six-digit CIP code<input id="program-query" type="search" placeholder="e.g., nursing or 51.3801" autocomplete="off"></label>
+<label for="award-level">Federal award level<select id="award-level"><option value="">All award levels</option><option value="1">Undergraduate certificate: less than 1 year</option><option value="2">Undergraduate certificate: 1 to under 2 years</option><option value="3">Associate's degree</option><option value="4">Undergraduate certificate: 2 to under 4 years</option><option value="5">Bachelor's degree</option><option value="6">Postbaccalaureate certificate</option><option value="7">Master's degree</option><option value="8">Post-master's certificate</option><option value="17">Doctor's degree: research/scholarship</option><option value="18">Doctor's degree: professional practice</option><option value="19">Doctor's degree: other</option></select></label>
+<label for="program-search">Search historical records<button id="program-search" type="button">Search historical completions</button></label></div>
+<p class="note" id="source-note">IPEDS C2025_A first-major completions, <strong>July 1, 2024–June 30, 2025</strong>; CIP titles are NCES CIP 2020 categories. An institution's historical award count does not establish current enrollment, current program availability, its advertised credential name, accreditation, or professional licensure eligibility.</p>
+<p class="meta">Sources: <a href="https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip">NCES IPEDS C2025_A</a> and <a href="https://nces.ed.gov/ipeds/cipcode/resources.aspx?y=56">NCES CIP 2020</a>. <span id="coverage">5,658 of 6,243 institutions have matched historical program records; 585 lack joined records, which does not mean they offer no programs.</span></p>
+<p id="status" role="status" aria-live="polite">Enter a program title/code or choose an award level to search.</p></section>
+<section aria-label="Historical program results"><h2 id="results-title">Results</h2><div id="program-results" class="results"></div>
+<nav class="pager" aria-label="Result pages" hidden><button id="prev" type="button">Previous</button><span id="page-label"></span><button id="next" type="button">Next</button></nav></section>
+</main><script src="./historical_program_explorer.js"></script><script>
+(function(){'use strict';
+const core=window.HistoricalProgramExplorer,main=document.getElementById('program-evidence-preview');
+const $=id=>document.getElementById(id);const btn=$('program-search'),status=$('status'),results=$('program-results'),pager=document.querySelector('.pager');
+let manifest=null,titles=null,records=null,names=null,matches=[],page=0;const perPage=24;
+function el(tag,cls,text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;}
+function render(){results.replaceChildren();const pages=Math.ceil(matches.length/perPage),shown=matches.slice(page*perPage,(page+1)*perPage);
+ for(const r of shown){const card=el('article','result');const h=el('h3','',r.institution);card.append(h);
+ card.append(el('p','meta',`UNITID ${r.unitid}${r.state?' · '+r.state:''}`));
+ card.append(el('strong','',r.cip_title));card.append(el('p','meta',`CIP 2020 ${r.cip6.slice(0,2)}.${r.cip6.slice(2)} · ${r.award_level}`));
+ card.append(el('p','meta',r.count_status==='reported'?`${r.awards_conferred} reported awards conferred in 2024–25`:'Award count missing or suppressed in 2024–25'));
+ card.append(el('p','note','Historical evidence only — current offering and exact credential name not verified.'));results.append(card);}
+ pager.hidden=pages<=1;$('prev').disabled=page===0;$('next').disabled=page>=pages-1;
+ $('page-label').textContent=pages?`Page ${page+1} of ${pages}`:'';
+ $('results-title').textContent=`${matches.length.toLocaleString()} matching historical CIP × award records`;
+}
+async function load(){if(records)return;
+ const base=new URL(main.dataset.programBase,location.href);const read=(name,sha)=>core.verifiedJSON(new URL(name,base).href,sha);
+ manifest=core.validateManifest(await (async()=>{const res=await fetch(new URL('programs.manifest.v1.json',base),{cache:'no-store'});if(!res.ok)throw Error('Manifest unavailable.');return res.json()})());
+ titles=await read(manifest.cip2020_titles.file,manifest.cip2020_titles.sha256);
+ for(const [code,title] of Object.entries(titles)){if(!/^\d{6}$/.test(code)||typeof title!=='string'||!title.trim())throw Error('CIP classification failed validation.');}
+ const select=$('award-level');if(select.options.length===1)Object.entries(manifest.award_levels).forEach(([value,label])=>{const option=el('option','',label);option.value=value;select.append(option)});
+ const seen=new Set();const shards=await Promise.all(manifest.shards.map(async s=>core.validateShard(await read(s.file,s.sha256),s,manifest,titles,seen)));
+ records=shards.flat();
+ try{const response=await fetch(main.dataset.nationalUrl,{cache:'force-cache'});if(response.ok){const d=await response.json();if(d?.source==='College Scorecard'&&d?.source_release==='2026-06-10'&&Object.keys(d.institutions||{}).length===6243)names=d.institutions;}}catch(e){/* Safe UNITID fallback, no fabricated institution names. */}
+}
+btn.addEventListener('click',async()=>{const q=$('program-query').value.trim(),award=$('award-level').value;
+ if(!q&&!award){status.textContent='Enter a program title/code or choose an award level.';return}
+ btn.disabled=true;status.textContent='Loading and verifying official historical records (on demand)…';
+ try{await load();matches=core.search(records,titles,manifest.award_levels,q,award,names);page=0;render();status.textContent=`${matches.length.toLocaleString()} historical program/award records match. Current offering status is not verified.`;}
+ catch(e){status.textContent='Source validation failed: '+e.message+' No results were shown.';matches=[];page=0;render();}
+ finally{btn.disabled=false;}});
+$('prev').addEventListener('click',()=>{if(page>0){page--;render()}});$('next').addEventListener('click',()=>{if((page+1)*perPage<matches.length){page++;render()}});
+$('program-query').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();btn.click()}});
+})();
+</script></body></html>
