@@ -13,6 +13,10 @@ for shard in MANIFEST["shards"]:
     part=json.loads((DATA_DIR/shard["file"]).read_text())
     INDEX.update(part["institutions"])
 assert len(INDEX)==5658
+TITLES=json.loads((DATA_DIR/"cip2020-titles.json").read_text())
+OBSERVED={row[0] for rows in INDEX.values() for row in rows}
+assert len(TITLES)==2325 and len(OBSERVED)==1591
+UNREPORTED_CIP=sorted(set(TITLES)-OBSERVED)[0]
 CIP="513801"
 
 def run(browser,width):
@@ -48,6 +52,17 @@ def run(browser,width):
         assert opts.count()>0,(typed,"No suggestions")
         assert "CIP "+code in opts.first.inner_text(),(typed,opts.first.inner_text())
         assert "Classification match" in opts.first.inner_text() or "Common-language match" in opts.first.inner_text()
+    # The full federal taxonomy stays searchable even when the historical
+    # IPEDS snapshot has no matched completion records for a given category.
+    query.fill("CIP "+UNREPORTED_CIP[:2]+"."+UNREPORTED_CIP[2:])
+    missing=page.locator("#cs-program-options button").first
+    assert "CIP "+UNREPORTED_CIP[:2]+"."+UNREPORTED_CIP[2:] in missing.inner_text()
+    assert "No matching 2024–25 completions" in missing.inner_text()
+    missing.click()
+    assert page.locator("#cs-result-count").inner_text().startswith("0 schools")
+    assert "Current offerings are unverified" in page.locator("#cs-program-status").inner_text()
+    page.locator("#cs-program-remove").click()
+    assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
     query.fill("UX design")
     assert page.locator("#cs-program-options button").count()>0
     assert "Related subject" in page.locator("#cs-program-options").inner_text()
