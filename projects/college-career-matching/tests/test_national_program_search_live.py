@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright
 import json
 
 URL="https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/"
-SHA="c778034b0b4b5a41c28fe176d03c7fde2c5e4e3e"
+SHA="75ba0d344ace49c30125522aafecb4285026ff8f"
 
 def run(browser,width):
     page=browser.new_page(viewport={"width":width,"height":850},device_scale_factor=1)
@@ -32,6 +32,14 @@ def run(browser,width):
         page.locator("#cs-testing-details summary").click()
         page.locator("#cs-program-details summary").click()
         page.wait_for_function("document.querySelector('#cs-program-status')?.textContent.includes('5,658 of 6,243')",timeout=90000)
+        assert page.locator("#cs-program-query").get_attribute("placeholder").find("coding")>=0
+        for plain,expected in [("nurse","51.3801"),("BSN","51.3801"),("LPN","51.3901"),
+                               ("coding","11.0201"),("HR","52.1001"),("CIP 51.3801","51.3801")]:
+            page.locator("#cs-program-query").fill(plain)
+            first=page.locator("#cs-program-options button").first.inner_text()
+            assert "CIP "+expected in first,(plain,first)
+        page.locator("#cs-program-query").fill("UX design")
+        assert "Related subject" in page.locator("#cs-program-options").inner_text()
         page.locator("#cs-program-query").fill("Registered Nursing")
         page.locator("#cs-program-options button").filter(has_text="CIP 51.3801").first.click()
         page.locator("#cs-award-level").select_option("5")
