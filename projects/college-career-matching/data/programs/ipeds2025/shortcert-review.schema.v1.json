@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/blob/review/shortcert-integrity-20261012-10ET/projects/college-career-matching/data/programs/ipeds2025/shortcert-review.schema.v1.json",
+  "title": "Historical IPEDS 2025 short-certificate review manifest",
+  "description": "Schema for source-audited AWLEVEL 20/21 review artifacts; not a current college catalog or a publication authorization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "publication_gate",
+    "current_program_offering_verified",
+    "credential_name_institution_verified",
+    "professional_license_eligibility_verified",
+    "career_linkage_authorized",
+    "source",
+    "program_identity",
+    "award_levels",
+    "supplement",
+    "counts",
+    "caveats"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "publication_gate": {
+      "const": "REVIEW_ONLY_DO_NOT_DEPLOY"
+    },
+    "current_program_offering_verified": {
+      "const": false
+    },
+    "credential_name_institution_verified": {
+      "const": false
+    },
+    "professional_license_eligibility_verified": {
+      "const": false
+    },
+    "career_linkage_authorized": {
+      "const": false
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "url",
+        "sha256",
+        "reporting_period"
+      ],
+      "properties": {
+        "url": {
+          "const": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip"
+        },
+        "sha256": {
+          "const": "555c6522ccf011d54b06520b128badb8558aba3d0038c97f231f5efaa7161183"
+        },
+        "reporting_period": {
+          "const": "2024-07-01 through 2025-06-30"
+        }
+      }
+    },
+    "program_identity": {
+      "const": [
+        "UNITID",
+        "CIP2020_6digit",
+        "AWLEVEL"
+      ]
+    },
+    "award_levels": {
+      "const": {
+        "20": "Certificate: less than 12 weeks",
+        "21": "Certificate: 12 weeks to less than 1 year"
+      }
+    },
+    "supplement": {
+      "type": "object",
+      "required": [
+        "file",
+        "bytes",
+        "sha256",
+        "gzip_bytes",
+        "gzip_sha256"
+      ],
+      "properties": {
+        "file": {
+          "const": "shortcert-review.v1.json"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "gzip_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 768000
+        },
+        "gzip_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "national_institutions",
+        "exact_six_digit_institutions",
+        "eight_digit_or_other_unmatched_keys",
+        "previous_historical_institutions",
+        "previous_six_digit_gaps",
+        "short_certificate_institutions",
+        "short_certificate_rows",
+        "reported_short_certificate_awards",
+        "recovered_six_digit_institutions",
+        "six_digit_still_without_historical_rows",
+        "proposed_six_digit_historical_coverage"
+      ],
+      "properties": {
+        "national_institutions": {
+          "const": 6243
+        },
+        "exact_six_digit_institutions": {
+          "const": 5787
+        },
+        "eight_digit_or_other_unmatched_keys": {
+          "const": 456
+        },
+        "previous_historical_institutions": {
+          "const": 5658
+        },
+        "previous_six_digit_gaps": {
+          "const": 129
+        },
+        "short_certificate_institutions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "short_certificate_rows": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reported_short_certificate_awards": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recovered_six_digit_institutions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 129
+        },
+        "six_digit_still_without_historical_rows": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 129
+        },
+        "proposed_six_digit_historical_coverage": {
+          "type": "integer",
+          "minimum": 5658,
+          "maximum": 5787
+        }
+      }
+    },
+    "caveats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    }
+  }
+}
