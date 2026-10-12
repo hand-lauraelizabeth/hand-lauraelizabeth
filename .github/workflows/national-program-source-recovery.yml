@@ -1,0 +1,74 @@
+name: Recover official national IPEDS program sources
+on:
+  push:
+    branches:
+      - feature/national-program-awards-20261012
+    paths:
+      - '.github/workflows/national-program-source-recovery.yml'
+  workflow_dispatch:
+
+jobs:
+  recover-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download and validate official NCES sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p source output
+          try_zip() {
+            local dest="$1"; shift
+            for url in "$@"; do
+              echo "Attempting official source: $url"
+              if curl --fail --location --silent --show-error --connect-timeout 8 --max-time 70 --retry 1 \
+                -H 'User-Agent: Mozilla/5.0 CollegeProgramResearch/1.0' "$url" --output "$dest" \
+                && python -c 'import sys,zipfile; assert zipfile.is_zipfile(sys.argv[1])' "$dest"; then
+                printf 'Retrieved %s from %s\n' "$dest" "$url" | tee -a source/retrieval.txt
+                sha256sum "$dest" | tee -a source/retrieval.txt
+                return 0
+              fi
+              rm -f "$dest"
+            done
+            return 1
+          }
+          if ! try_zip source/C2025_A.zip \
+            https://nces.ed.gov/ipeds/datacenter/data/C2025_A.zip \
+            https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip; then
+            echo 'BLOCKER: NCES C2025_A.zip could not be downloaded from either official URL' | tee -a source/retrieval.txt
+            exit 1
+          fi
+          if ! curl --fail --location --silent --show-error --connect-timeout 8 --max-time 70 --retry 1 \
+               -H 'User-Agent: Mozilla/5.0 CollegeProgramResearch/1.0' \
+               https://nces.ed.gov/ipeds/cipcode/Files/CIPCode2020.csv \
+               --output source/CIPCode2020.csv; then
+            echo 'BLOCKER: Official CIPCode2020.csv not reachable; no titles inferred' | tee -a source/retrieval.txt
+            exit 1
+          fi
+          sha256sum source/CIPCode2020.csv | tee -a source/retrieval.txt
+          python projects/college-career-matching/national_ipeds_program_index.py \
+            projects/college-career-matching/data/national \
+            source/C2025_A.zip source/CIPCode2020.csv output
+          python - <<'PY'
+          import json, pathlib
+          m=json.loads(pathlib.Path('output/programs.manifest.v1.json').read_text())
+          print('COUNTS',json.dumps(m['counts'],sort_keys=True))
+          print('SHARD_GZIP_BYTES',sum(x['gzip_bytes'] for x in m['shards']))
+          print('PROGRAM_EVIDENCE_HISTORICAL_ONLY',not m['current_program_offering_verified'])
+          PY
+      - name: Retain validated source report and development-only dataset
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipeds-program-source-recovery-${{ github.sha }}
+          path: |
+            source/retrieval.txt
+            output/
+          retention-days: 7
+          if-no-files-found: warn
