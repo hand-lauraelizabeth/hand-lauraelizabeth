@@ -107,7 +107,7 @@ def reported_count(raw):
     token = str(raw).strip()
     if token.upper() in KNOWN_MISSING:
         return None, "missing_or_suppressed"
-    if not re.fullmatch(r"\\d+(?:\\.0+)?", token):
+    if not re.fullmatch(r"\d+(?:\.0+)?", token):
         raise ValueError("Invalid IPEDS completion count: " + token)
     return int(float(token)), "reported"
 
@@ -135,7 +135,7 @@ def program_rows(csv_or_zip, titles, allowed_ids):
             continue
         if level not in AWARD_LEVELS:
             raise ValueError("Unexpected NCES award level: " + level)
-        if not re.fullmatch(r"\\d{6}", unitid):
+        if not re.fullmatch(r"\d{6}", unitid):
             raise ValueError("Invalid IPEDS UNITID: " + unitid)
         if cip not in titles:
             raise ValueError("CIP 2020 title missing for reported CIP " + cip)
@@ -159,7 +159,7 @@ def program_rows(csv_or_zip, titles, allowed_ids):
 
 
 def write_asset(path, payload):
-    data = (json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\\n").encode("utf-8")
+    data = (json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
     path.write_bytes(data)
     compressed = gzip.compress(data, compresslevel=9, mtime=0)
     path.with_name(path.name + ".gz").write_bytes(compressed)
@@ -223,7 +223,7 @@ def build(national_dir, completions_path, cip_path, out_dir):
             "No career or admission outcome inferred from CIP/completions alone.",
         ],
     }
-    (out_dir / "programs.manifest.v1.json").write_text(json.dumps(manifest, indent=2) + "\\n", encoding="utf-8")
+    (out_dir / "programs.manifest.v1.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return manifest
 
 
