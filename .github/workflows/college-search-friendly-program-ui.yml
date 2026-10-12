@@ -9,6 +9,7 @@ on:
       - 'projects/college-career-matching/college-program-search.js'
       - 'projects/college-career-matching/data/programs/ipeds2025/program-search-terms.v1.json'
       - 'projects/college-career-matching/tests/test_national_program_search_browser.py'
+      - 'projects/college-career-matching/tests/test_national_program_search_live.py'
       - 'projects/college-career-matching/tests/test_program_search_terms.cjs'
   workflow_dispatch:
 permissions:
@@ -58,3 +59,6 @@ jobs:
           python projects/college-career-matching/tests/test_admissions_scores_browser.py
           python projects/college-career-matching/tests/test_sprint3_city_cost_browser.py
           python projects/college-career-matching/tests/test_sprint3_net_sort_browser.py
+      - name: Read-only production browser verification (live page 1044)
+        run: |
+          python projects/college-career-matching/tests/test_national_program_search_live.py
