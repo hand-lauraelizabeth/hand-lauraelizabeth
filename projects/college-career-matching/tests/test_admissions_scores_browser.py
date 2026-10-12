@@ -27,6 +27,7 @@ def run(browser,width):
     assert "U.S. Department of Education" in page.locator(".cs-card").first.inner_text()
     entry=DATA["institutions"]["100654"]
     assert entry[2:5]==[810,930,1040] or all(isinstance(n,int) for n in entry[2:5]),entry
+    print("TEST_PANEL_DIAG",width,"open",panel.evaluate("(e)=>e.open"),"sat-visible",page.locator("#cs-own-sat").is_visible(),"program-open",page.locator("#cs-program-details").evaluate("(e)=>e.open"),flush=True)
     own=page.locator("#cs-own-sat")
     own.fill("1500")
     assert page.locator(".cs-card .cs-admission-badge").inner_text()=="SAFETY*"
