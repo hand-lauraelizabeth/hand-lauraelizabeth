@@ -11,6 +11,9 @@ on:
       - projects/college-career-matching/tests/test_admissions_scores.cjs
       - projects/college-career-matching/tests/test_admissions_scores_browser.py
       - projects/college-career-matching/data/sprint3/college-search-scores.v1.json
+      - projects/college-career-matching/data/sprint3/college-search-scores.v2.json
+      - projects/college-career-matching/data/sprint3/college-search-scores.v3.json
+      - projects/college-career-matching/build_scorecard_history_overlay.py
   workflow_dispatch:
 
 permissions:
