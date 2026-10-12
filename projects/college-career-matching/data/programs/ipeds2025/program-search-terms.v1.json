@@ -1,0 +1,731 @@
+{
+  "schema_version": "1.0",
+  "title": "Common-language discovery terms for 2020 CIP classifications",
+  "authority": "Editorial search vocabulary; program codes and titles verified against NCES CIP 2020. Search keywords are not evidence of current availability, credential titles, eligibility for licensure, or degree equivalence.",
+  "official_taxonomy_url": "https://nces.ed.gov/ipeds/cipcode/Files/CIPCode2020.csv",
+  "updated_date": "2026-10-12",
+  "terms_by_cip": {
+    "100304": {
+      "aliases": [
+        "animation",
+        "animator",
+        "motion graphics",
+        "VFX",
+        "visual effects"
+      ]
+    },
+    "110102": {
+      "aliases": [
+        "AI",
+        "artificial intelligence",
+        "machine learning",
+        "ML technology"
+      ]
+    },
+    "110103": {
+      "aliases": [
+        "IT",
+        "information technology",
+        "information tech"
+      ],
+      "related": [
+        "IT support",
+        "technical support"
+      ]
+    },
+    "110201": {
+      "aliases": [
+        "coding",
+        "computer programming",
+        "computer programmer",
+        "coding bootcamp"
+      ],
+      "related": [
+        "software development"
+      ]
+    },
+    "110204": {
+      "aliases": [
+        "game programming",
+        "video game coding",
+        "game developer"
+      ]
+    },
+    "110701": {
+      "aliases": [
+        "computer science major",
+        "CS major",
+        "comp sci",
+        "compsci"
+      ],
+      "related": [
+        "coding",
+        "software development",
+        "programming"
+      ]
+    },
+    "110801": {
+      "aliases": [
+        "web design",
+        "website design",
+        "digital media design"
+      ],
+      "related": [
+        "UX design",
+        "UI design",
+        "user experience design",
+        "user interface design",
+        "frontend web design"
+      ]
+    },
+    "110901": {
+      "aliases": [
+        "computer networking",
+        "networking",
+        "network engineering"
+      ],
+      "related": [
+        "IT"
+      ]
+    },
+    "111001": {
+      "aliases": [
+        "network administrator",
+        "systems administrator",
+        "sysadmin"
+      ]
+    },
+    "111003": {
+      "aliases": [
+        "cybersecurity",
+        "cyber security",
+        "cyber",
+        "information security",
+        "infosec",
+        "IT security",
+        "cyber security analyst"
+      ]
+    },
+    "120501": {
+      "aliases": [
+        "baking",
+        "pastry",
+        "pastry chef",
+        "baker"
+      ]
+    },
+    "120503": {
+      "aliases": [
+        "chef",
+        "culinary arts",
+        "cooking school",
+        "culinary school"
+      ]
+    },
+    "130101": {
+      "aliases": [
+        "education",
+        "education major",
+        "educational studies"
+      ],
+      "related": [
+        "teaching"
+      ]
+    },
+    "131001": {
+      "aliases": [
+        "special education teacher",
+        "special needs education",
+        "SPED"
+      ],
+      "related": [
+        "teaching"
+      ]
+    },
+    "131202": {
+      "aliases": [
+        "elementary school teacher",
+        "primary teacher",
+        "elementary education",
+        "grade school teacher"
+      ],
+      "related": [
+        "teaching"
+      ]
+    },
+    "131210": {
+      "aliases": [
+        "preschool teacher",
+        "early childhood education",
+        "early childhood teacher",
+        "pre-k education",
+        "kindergarten teacher"
+      ],
+      "related": [
+        "teaching"
+      ]
+    },
+    "140101": {
+      "aliases": [
+        "engineering",
+        "general engineering"
+      ]
+    },
+    "140501": {
+      "aliases": [
+        "biomedical engineer",
+        "bioengineering",
+        "medical engineering"
+      ]
+    },
+    "140801": {
+      "aliases": [
+        "civil engineer",
+        "civil engineering"
+      ]
+    },
+    "140903": {
+      "aliases": [
+        "software engineer",
+        "software engineering",
+        "software developer"
+      ],
+      "related": [
+        "coding"
+      ]
+    },
+    "141001": {
+      "aliases": [
+        "electrical engineering",
+        "electrical engineer",
+        "EE engineering"
+      ]
+    },
+    "141901": {
+      "aliases": [
+        "mechanical engineer",
+        "mechanical engineering",
+        "ME engineering"
+      ]
+    },
+    "190504": {
+      "aliases": [
+        "nutrition",
+        "human nutrition",
+        "nutritionist"
+      ]
+    },
+    "220001": {
+      "aliases": [
+        "pre law",
+        "pre-law",
+        "prelaw"
+      ],
+      "related": [
+        "law school preparation"
+      ]
+    },
+    "220302": {
+      "aliases": [
+        "paralegal",
+        "legal assistant",
+        "legal support"
+      ]
+    },
+    "260101": {
+      "aliases": [
+        "biology major",
+        "life sciences",
+        "general biology"
+      ],
+      "related": [
+        "premed sciences"
+      ]
+    },
+    "261302": {
+      "aliases": [
+        "marine biology",
+        "ocean biology"
+      ]
+    },
+    "301901": {
+      "aliases": [
+        "nutrition science",
+        "diet and nutrition"
+      ],
+      "related": [
+        "dietetics"
+      ]
+    },
+    "303501": {
+      "aliases": [
+        "climate science",
+        "climate studies"
+      ]
+    },
+    "307001": {
+      "aliases": [
+        "data science",
+        "data scientist",
+        "data science major"
+      ]
+    },
+    "307101": {
+      "aliases": [
+        "data analytics",
+        "data analyst",
+        "analytics major"
+      ]
+    },
+    "307102": {
+      "aliases": [
+        "business analytics",
+        "business data analyst",
+        "business intelligence"
+      ]
+    },
+    "310505": {
+      "aliases": [
+        "exercise science",
+        "kinesiology",
+        "fitness science",
+        "sports exercise"
+      ]
+    },
+    "420101": {
+      "aliases": [
+        "psych",
+        "psychology",
+        "psychology major"
+      ]
+    },
+    "430104": {
+      "aliases": [
+        "criminal justice",
+        "crime studies",
+        "criminal justice major"
+      ]
+    },
+    "430106": {
+      "aliases": [
+        "forensics",
+        "forensic science",
+        "crime scene investigator",
+        "CSI"
+      ]
+    },
+    "430107": {
+      "aliases": [
+        "police science",
+        "law enforcement",
+        "policing"
+      ]
+    },
+    "440701": {
+      "aliases": [
+        "social worker",
+        "social work",
+        "MSW"
+      ]
+    },
+    "451001": {
+      "aliases": [
+        "politics",
+        "political science",
+        "government studies",
+        "political studies"
+      ]
+    },
+    "451101": {
+      "aliases": [
+        "sociology",
+        "sociologist"
+      ]
+    },
+    "500407": {
+      "aliases": [
+        "fashion design",
+        "clothing designer",
+        "apparel design"
+      ]
+    },
+    "500408": {
+      "aliases": [
+        "interior design",
+        "interior decorator"
+      ]
+    },
+    "500409": {
+      "aliases": [
+        "graphic designer",
+        "graphics design",
+        "visual designer"
+      ],
+      "related": [
+        "UI design",
+        "UX design",
+        "visual communication"
+      ]
+    },
+    "500411": {
+      "aliases": [
+        "game design",
+        "video game design",
+        "interactive media design"
+      ]
+    },
+    "500501": {
+      "aliases": [
+        "theater major",
+        "theatre studies",
+        "acting",
+        "drama"
+      ],
+      "related": [
+        "performing arts"
+      ]
+    },
+    "500601": {
+      "aliases": [
+        "film studies",
+        "cinema studies"
+      ]
+    },
+    "500602": {
+      "aliases": [
+        "filmmaking",
+        "film production",
+        "movie production",
+        "videography",
+        "cinematography"
+      ]
+    },
+    "500903": {
+      "aliases": [
+        "music performance",
+        "instrument performance"
+      ],
+      "related": [
+        "performing arts"
+      ]
+    },
+    "510203": {
+      "aliases": [
+        "speech therapist",
+        "speech pathology",
+        "speech language pathologist",
+        "SLP"
+      ]
+    },
+    "510602": {
+      "aliases": [
+        "dental hygienist",
+        "dental hygiene"
+      ]
+    },
+    "510701": {
+      "aliases": [
+        "healthcare management",
+        "hospital administration",
+        "health services management",
+        "health care administration"
+      ]
+    },
+    "510801": {
+      "aliases": [
+        "medical assistant",
+        "medical assisting",
+        "clinical assistant"
+      ]
+    },
+    "510805": {
+      "aliases": [
+        "pharmacy tech",
+        "pharmacy technician"
+      ]
+    },
+    "510806": {
+      "aliases": [
+        "physical therapist assistant",
+        "PTA",
+        "physical therapy assistant"
+      ]
+    },
+    "510808": {
+      "aliases": [
+        "vet tech",
+        "veterinary technician",
+        "veterinary assistant",
+        "animal health technician"
+      ]
+    },
+    "510904": {
+      "aliases": [
+        "EMT",
+        "paramedic",
+        "emergency medical technician",
+        "emergency medical services"
+      ]
+    },
+    "510907": {
+      "aliases": [
+        "radiation therapist",
+        "radiation therapy",
+        "radiologic therapy"
+      ]
+    },
+    "510908": {
+      "aliases": [
+        "respiratory therapist",
+        "respiratory therapy",
+        "RT respiratory"
+      ]
+    },
+    "510911": {
+      "aliases": [
+        "x ray technician",
+        "x-ray tech",
+        "radiology tech",
+        "radiographer",
+        "radiologic technologist"
+      ]
+    },
+    "511102": {
+      "aliases": [
+        "pre med",
+        "premed",
+        "pre medical",
+        "pre-med"
+      ],
+      "related": [
+        "medical school preparation"
+      ]
+    },
+    "511104": {
+      "aliases": [
+        "pre vet",
+        "pre-vet",
+        "pre veterinary"
+      ]
+    },
+    "511105": {
+      "aliases": [
+        "pre-nursing",
+        "pre nursing"
+      ],
+      "related": [
+        "nursing prerequisites"
+      ]
+    },
+    "512001": {
+      "aliases": [
+        "pharmacist",
+        "pharmacy degree",
+        "pharmd"
+      ]
+    },
+    "512201": {
+      "aliases": [
+        "public health",
+        "population health",
+        "community health"
+      ]
+    },
+    "512306": {
+      "aliases": [
+        "occupational therapist",
+        "occupational therapy",
+        "OT"
+      ]
+    },
+    "512308": {
+      "aliases": [
+        "physical therapist",
+        "physical therapy",
+        "DPT"
+      ],
+      "related": [
+        "rehabilitation therapy"
+      ]
+    },
+    "512401": {
+      "aliases": [
+        "veterinarian",
+        "veterinary doctor",
+        "DVM",
+        "veterinary medicine"
+      ]
+    },
+    "513102": {
+      "aliases": [
+        "clinical nutrition",
+        "dietitian",
+        "registered dietitian"
+      ],
+      "related": [
+        "dietetics"
+      ]
+    },
+    "513203": {
+      "aliases": [
+        "nurse educator",
+        "nursing teacher"
+      ]
+    },
+    "513801": {
+      "aliases": [
+        "nurse",
+        "nursing major",
+        "registered nurse",
+        "RN",
+        "BSN",
+        "bachelor of science in nursing",
+        "nursing degree"
+      ],
+      "related": [
+        "patient care"
+      ]
+    },
+    "513901": {
+      "aliases": [
+        "LPN",
+        "LVN",
+        "practical nurse",
+        "vocational nurse",
+        "licensed practical nurse",
+        "licensed vocational nurse"
+      ]
+    },
+    "520201": {
+      "aliases": [
+        "business",
+        "business administration",
+        "business management",
+        "MBA",
+        "general business"
+      ],
+      "related": [
+        "entrepreneurship",
+        "business leadership"
+      ]
+    },
+    "520203": {
+      "aliases": [
+        "supply chain",
+        "logistics",
+        "operations logistics",
+        "supply chain management"
+      ]
+    },
+    "520301": {
+      "aliases": [
+        "accountant",
+        "accounting",
+        "CPA preparation"
+      ]
+    },
+    "520302": {
+      "aliases": [
+        "bookkeeping",
+        "bookkeeper"
+      ]
+    },
+    "520304": {
+      "aliases": [
+        "accounting and finance",
+        "finance and accounting"
+      ]
+    },
+    "520801": {
+      "aliases": [
+        "finance",
+        "financial analyst",
+        "finance major"
+      ]
+    },
+    "520901": {
+      "aliases": [
+        "hospitality",
+        "hotel management",
+        "hotel business",
+        "tourism management"
+      ]
+    },
+    "521001": {
+      "aliases": [
+        "HR",
+        "human resources",
+        "people operations",
+        "HR management",
+        "personnel management"
+      ]
+    },
+    "521401": {
+      "aliases": [
+        "marketing",
+        "marketer",
+        "marketing major"
+      ]
+    },
+    "521402": {
+      "aliases": [
+        "market research",
+        "marketing analytics"
+      ]
+    },
+    "521404": {
+      "aliases": [
+        "digital marketing",
+        "online marketing",
+        "social media marketing",
+        "SEO marketing"
+      ]
+    },
+    "010901": {
+      "aliases": [
+        "animal science",
+        "animal studies"
+      ],
+      "related": [
+        "working with animals"
+      ]
+    },
+    "030104": {
+      "aliases": [
+        "environmental science",
+        "environment science"
+      ],
+      "related": [
+        "environmental careers"
+      ]
+    },
+    "030103": {
+      "aliases": [
+        "environmental studies",
+        "sustainability studies"
+      ]
+    },
+    "090902": {
+      "aliases": [
+        "PR",
+        "public relations",
+        "communications PR",
+        "media relations"
+      ]
+    },
+    "090401": {
+      "aliases": [
+        "journalist",
+        "news reporting",
+        "news journalism"
+      ]
+    },
+    "090702": {
+      "aliases": [
+        "digital communications",
+        "digital media",
+        "multimedia communication"
+      ]
+    }
+  }
+}

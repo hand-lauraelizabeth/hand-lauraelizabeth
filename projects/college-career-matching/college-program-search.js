@@ -15,12 +15,54 @@ var active=root.querySelector("#cs-program-active");
 var retry=root.querySelector("#cs-program-retry");
 if(!details||!query||!results||!chosen||!choice||!remove||!level||!status||!active||!retry)return;
 var list=[],notify=function(){},ready=false,loading=false,enabled=false;
-var selected="",index=new Map(),titles={},keys=[];
+var selected="",index=new Map(),titles={},keys=[],reportedCips=new Set();
 var sourceLink="https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip";
 var CIP2020_SHA="6cf0882c1f5beb94981d0a1a72285ab5cf633759f45433fb909afbfb6d6b2657";
 var C2025_SHA="555c6522ccf011d54b06520b128badb8558aba3d0038c97f231f5efaa7161183";
 var collator=new Intl.Collator("en",{sensitivity:"base"});
-function normalize(v){return String(v||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();}
+function normalize(v){return String(v||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ");}
+var discoveryTerms={}; // editorial terms; no institutional admissions or licensing inference
+function wordStart(hay,needle){return hay.split(" ").some(function(w){return w.startsWith(needle);});}
+function tokenMatch(hay,needle){var ws=hay.split(" ");return needle.split(" ").every(function(t){return ws.some(function(w){return w.startsWith(t);});});}
+function rate(text,key){
+ var raw=String(text||"").trim(),q=normalize(raw);
+ if(q.length<2)return null;
+ var code=q.replace(/^cip /,"").replace(/ /g,"");
+ var dot=key.slice(0,2)+"."+key.slice(2);
+ var title=normalize(titles[key]),v=discoveryTerms[key]||{},primary=v.aliases||[],related=v.related||[];
+ var best=0,origin="";
+ function offer(rank,kind){if(rank>best){best=rank;origin=kind;}}
+ if(/^\d{2,6}$/.test(code)){
+   if(code===key || raw===dot || raw.toUpperCase()==="CIP "+dot)offer(180,"code");
+   else if(key.startsWith(code))offer(135,"code");
+ }
+ if(title===q)offer(160,"title");
+ else if(title.startsWith(q))offer(140,"title");
+ else if(wordStart(title,q))offer(122,"title");
+ else if(title.includes(q))offer(110,"title");
+ else if(tokenMatch(title,q))offer(90,"title");
+ primary.forEach(function(label){
+   var term=normalize(label);
+   if(term===q)offer(155,"everyday");
+   else if(term.startsWith(q))offer(132,"everyday");
+   else if(wordStart(term,q))offer(117,"everyday");
+   else if(term.includes(q))offer(100,"everyday");
+   else if(tokenMatch(term,q))offer(87,"everyday");
+ });
+ related.forEach(function(label){
+   var term=normalize(label);
+   if(term===q)offer(77,"related");
+   else if(term.startsWith(q))offer(68,"related");
+   else if(term.includes(q)||tokenMatch(term,q))offer(57,"related");
+ });
+ return best?{cip:key,title:titles[key],score:best,kind:origin,reported:reportedCips.has(key)}:null;
+}
+function suggestFor(text,limit){
+ var found=[];
+ keys.forEach(function(key){var hit=rate(text,key);if(hit)found.push(hit);});
+ found.sort(function(a,b){return b.score-a.score||Number(b.reported)-Number(a.reported)||collator.compare(a.title,b.title)||collator.compare(a.cip,b.cip);});
+ return {total:found.length,options:found.slice(0,limit||15)};
+}
 function activeFilters(){return !!(selected||level.value);}
 function rows(unitid){return (index.get(unitid)||[]).filter(function(row){
  return (!selected||row[0]===selected)&&(!level.value||row[1]===level.value);
@@ -41,20 +83,30 @@ function setEnabled(yes){
 }
 function suggestions(){
  results.replaceChildren();
- if(!ready||selected)return;
- var term=normalize(query.value);if(term.length<2)return;
- var found=0;
- keys.forEach(function(key){
-  if(!normalize(titles[key]).includes(term)&&!key.includes(term.replace(".","")))return;
-  found++;if(found>25)return;
+ if(!ready)return;
+ var typed=query.value.trim();
+ if(typed.length<2)return;
+ var matches=suggestFor(typed,15),found=matches.total;
+ matches.options.forEach(function(hit,i){
   var li=document.createElement("li"),b=document.createElement("button");
-  b.type="button";b.textContent=titles[key]+" (CIP "+key.slice(0,2)+"."+key.slice(2)+")";
+  b.type="button";b.className="cs-program-suggestion";
+  var name=document.createElement("strong");name.textContent=hit.title;
+  var note=document.createElement("span");note.className="cs-program-suggestion-meta";
+  note.textContent="CIP "+hit.cip.slice(0,2)+"."+hit.cip.slice(2)+
+     (hit.kind==="related"?" · Related subject — compare curricula":
+     hit.kind==="everyday"?" · Common-language match":" · Classification match")+
+     (hit.reported?"":" · No matching 2024–25 completions");
+  b.append(name,note);
   b.addEventListener("click",function(){
-   selected=key;query.value=titles[key];results.replaceChildren();updateLabel();notify();
+   selected=hit.cip;query.value=hit.title;results.replaceChildren();updateLabel();
+   if(!hit.reported)status.textContent="No matched 2024–25 completion records for this classification. Current offerings are unverified; check official college catalogs.";
+   else status.textContent="Field selected. Results reflect federal 2024–25 completions, not verified current offerings or credentials.";
+   notify();
   });
   li.appendChild(b);results.appendChild(li);
  });
- status.textContent=found?found.toLocaleString("en-US")+" classifications match; showing first "+Math.min(found,25)+". Choose one to filter.":"No matching classifications. Try a broader term.";
+ status.textContent=found?found.toLocaleString("en-US")+" possible fields, ordered by relevance. Showing "+Math.min(found,15)+". Choose the closest field to filter colleges.":
+   "No matching subjects found in the reported 2024–25 programs. Try a broader term, school-major name, or CIP code.";
 }
 async function verifiedJson(url,expected,signal){
  var res=await fetch(url,{credentials:"omit",signal:signal});
@@ -89,6 +141,28 @@ async function load(){
     if(!/^\d{6}$/.test(k)||typeof nameMap[k]!=="string"||!nameMap[k].trim())
       throw Error("Invalid six-digit CIP classification");
   });
+  // Curated synonyms enhance discovery; the federal taxonomy always remains
+  // authoritative and the original title/code search works if this file fails.
+  var words={};
+  try {
+    var termResponse=await fetch(base+"program-search-terms.v1.json",{signal:controller.signal,credentials:"omit"});
+    if(termResponse.ok){
+      var termPayload=await termResponse.json();
+      if(termPayload.schema_version==="1.0" &&
+         termPayload.official_taxonomy_url==="https://nces.ed.gov/ipeds/cipcode/Files/CIPCode2020.csv" &&
+         termPayload.terms_by_cip && !Array.isArray(termPayload.terms_by_cip)){
+        Object.entries(termPayload.terms_by_cip).forEach(function(entry){
+          var code=entry[0],v=entry[1];
+          if(!nameMap[code]||!v||!Array.isArray(v.aliases) ||
+            !Array.isArray(v.related||[]) ||
+            ![...v.aliases,...(v.related||[])].every(function(t){
+              return typeof t==="string"&&t.length>0&&t.length<120;
+            }))throw Error("Invalid editorial search term");
+          words[code]={aliases:v.aliases,related:v.related||[]};
+        });
+      }
+    }
+  }catch(err){words={};}
   var allowed=new Set(list.map(function(x){return x.unitid;}));
   var joined=new Map(),total=0;
   for(var i=0;i<m.shards.length;i+=4){
@@ -124,13 +198,13 @@ async function load(){
   if(joined.size!==5658||total!==235330)throw Error("Incomplete national program index");
   var observed=new Set();
   joined.forEach(function(rs){rs.forEach(function(r){observed.add(r[0]);});});
-  titles=nameMap;index=joined;
-  keys=Array.from(observed).sort(function(a,b){return collator.compare(titles[a],titles[b]);});
+  titles=nameMap;index=joined;discoveryTerms=words;reportedCips=observed;
+  keys=Object.keys(titles).sort(function(a,b){return collator.compare(titles[a],titles[b]);});
   ready=true;setEnabled(true);
-  status.textContent="Verified federal 2024–25 completions at 5,658 of 6,243 institutions. The other 585 lack matching historic evidence, not necessarily programs. Current offerings and licenses remain unverified.";
+  status.textContent="Search everyday words (nurse, coding, HR), school subjects, or CIP codes; choose a suggested field. Verified historical 2024–25 completion data cover 5,658 of 6,243 colleges; the other 585 lack matched records, not necessarily active programs.";
   updateLabel();notify();
  }catch(e){
-  ready=false;selected="";index=new Map();titles={};keys=[];
+  ready=false;selected="";index=new Map();titles={};keys=[];reportedCips=new Set();
   setEnabled(false);level.value="";
   status.textContent="Historical program source could not be independently verified. Other college filters remain available.";
   retry.hidden=false;updateLabel();notify();
@@ -161,12 +235,21 @@ function cardFor(unitid){
  return box;
 }
 details.addEventListener("toggle",function(){if(details.open)load();});
-query.addEventListener("input",suggestions);
+query.addEventListener("input",function(){
+ if(selected){selected="";updateLabel();notify();}
+ suggestions();
+});
+query.addEventListener("keydown",function(event){
+ if(event.key==="Escape"){results.replaceChildren();return;}
+ if(event.key==="ArrowDown"){
+  var first=results.querySelector("button");if(first){event.preventDefault();first.focus();}
+ }
+});
 level.addEventListener("change",function(){updateLabel();notify();});
 remove.addEventListener("click",function(){selected="";query.value="";results.replaceChildren();updateLabel();notify();query.focus();});
 retry.addEventListener("click",load);
 window.CollegeProgramSearch=Object.freeze({
  configure:function(institutions,onChange){list=institutions;notify=onChange;setEnabled(true);if(details.open)load();},
- matches:matches,cardFor:cardFor,labels:getLabels,selected:activeFilters,clear:clear,setEnabled:setEnabled
+ matches:matches,cardFor:cardFor,labels:getLabels,selected:activeFilters,clear:clear,setEnabled:setEnabled,searchSuggestions:suggestFor
 });
 }());

@@ -1,0 +1,64 @@
+name: Plain-language national program search validation
+on:
+  push:
+    branches:
+      - feature/matcher-friendly-program-search-20261012
+    paths:
+      - '.github/workflows/college-search-friendly-program-ui.yml'
+      - 'projects/college-career-matching/college-search-sprint3.html'
+      - 'projects/college-career-matching/college-program-search.js'
+      - 'projects/college-career-matching/data/programs/ipeds2025/program-search-terms.v1.json'
+      - 'projects/college-career-matching/tests/test_national_program_search_browser.py'
+      - 'projects/college-career-matching/tests/test_national_program_search_live.py'
+      - 'projects/college-career-matching/tests/test_program_search_terms.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript parser and federal term-index audit
+        run: |
+          node --check projects/college-career-matching/college-program-search.js
+          node --check projects/college-career-matching/college-search-sprint3-embed.js
+          node --test projects/college-career-matching/tests/test_program_search_terms.cjs
+          node --test projects/college-career-matching/tests/test_admissions_scores.cjs
+          node projects/college-career-matching/tests/test_sprint3_net_sort.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+      - name: Verify pinned CDN delivery for user-facing vocabulary and national datasets
+        env:
+          REV: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          root="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@${REV}/projects/college-career-matching/"
+          for file in college-program-search.js college-search-sprint3-embed.js \
+            data/programs/ipeds2025/program-search-terms.v1.json \
+            data/programs/ipeds2025/cip2020-titles.json \
+            data/programs/ipeds2025/programs.manifest.v1.json \
+            data/programs/ipeds2025/programs-00.json \
+            data/sprint3/college-search-national.v3.json \
+            data/sprint3/college-search-scores.v3.json; do
+            curl --fail --location --silent --show-error --retry 3 --retry-delay 2 --connect-timeout 8 --max-time 80 "$root$file" --output /tmp/cdn-matcher-asset
+            test -s /tmp/cdn-matcher-asset
+            echo "PINNED_CDN_OK $file"
+          done
+      - name: Real national browser QA at mobile and desktop widths
+        run: |
+          python -m http.server 8766 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/friendly-program.log 2>&1 &
+          sleep 2
+          python projects/college-career-matching/tests/test_national_program_search_browser.py
+          python projects/college-career-matching/tests/test_admissions_scores_browser.py
+          python projects/college-career-matching/tests/test_sprint3_city_cost_browser.py
+          python projects/college-career-matching/tests/test_sprint3_net_sort_browser.py
+      - name: Read-only production browser verification (live page 1044)
+        run: |
+          python projects/college-career-matching/tests/test_national_program_search_live.py
