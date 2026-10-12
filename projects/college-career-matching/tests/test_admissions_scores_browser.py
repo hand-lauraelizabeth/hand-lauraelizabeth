@@ -68,6 +68,23 @@ def run(browser,width):
     assert actual==expected,(actual,expected)
     page.locator("#cs-clear").click()
     assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
+    panel=page.locator("#cs-score-panel")
+    assert panel.get_attribute("open") is not None
+    panel.locator("summary").click()
+    assert panel.get_attribute("open") is None
+    panel.locator("summary").click()
+    assert panel.get_attribute("open") is not None
+    page.locator("#cs-name").fill("Alabama A & M University")
+    assert page.locator("#cs-active-count").inner_text()=="(1)"
+    page.reload(wait_until="domcontentloaded")
+    page.wait_for_function("document.querySelector('#cs-result-count')?.textContent.includes('1 school')",timeout=30000)
+    assert page.locator("#cs-name").input_value()=="Alabama A & M University"
+    assert page.locator("#cs-active-count").inner_text()=="(1)"
+    assert page.locator("#cs-own-sat").input_value()==""
+    page.locator("#cs-clear").click()
+    assert page.locator("#cs-active-count").inner_text()=="(0)"
+    page.reload(wait_until="domcontentloaded")
+    page.wait_for_function("document.querySelector('#cs-result-count')?.textContent.includes('6,243 schools')",timeout=30000)
     assert not page.evaluate("document.documentElement.scrollWidth>window.innerWidth+2")
     assert not errors,errors
     print(f"SCORE_ADMISSIONS_BROWSER_PASS width={width} percentiles=1051+965; categories=3; source=verified")

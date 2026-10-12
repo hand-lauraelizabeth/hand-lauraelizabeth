@@ -362,6 +362,45 @@
   var sizeUnknown = root.querySelector("#cs-size-unknown");
   var records = [], matches = [], rendered = 0;
   var loading = false;
+  var SESSION_KEY="college-search-filter-state-v1";
+  var scorePanel=root.querySelector("#cs-score-panel");
+  // Tab-scoped storage avoids retaining personal SAT/ACT scores across sessions.
+  function saveFilterSession(){
+    if(!records.length)return;
+    try{window.sessionStorage.setItem(SESSION_KEY,JSON.stringify({
+      version:1,name:nameInput.value.slice(0,120),state:stateSelect.value,sort:sortSelect.value,
+      control:controlSelect.value,locale:localeSelect.value,size:sizeSelect.value,
+      cities:Array.from(selectedCities),netMax:activeMax(netSlider),costMax:activeMax(costSlider),
+      satRange:currentSATRange(),actRange:currentACTRange(),scorePanelOpen:scorePanel.open
+    }));}catch(_){}
+  }
+  function restoreFilterSession(){
+    var saved;
+    try{saved=JSON.parse(window.sessionStorage.getItem(SESSION_KEY)||"null");}catch(_){return;}
+    if(!saved||saved.version!==1||typeof saved!=="object")return;
+    if(typeof saved.name==="string")nameInput.value=saved.name.slice(0,120);
+    [[stateSelect,saved.state],[sortSelect,saved.sort],[controlSelect,saved.control],
+     [localeSelect,saved.locale],[sizeSelect,saved.size]].forEach(function(p){
+       if(typeof p[1]==="string"&&Array.from(p[0].options).some(function(o){return o.value===p[1];}))p[0].value=p[1];
+     });
+    var known=new Set(cityCatalog.map(function(c){return c.key;}));
+    if(Array.isArray(saved.cities))saved.cities.slice(0,100).forEach(function(k){
+      if(typeof k==="string"&&known.has(k))selectedCities.add(k);
+    });
+    [[netSlider,saved.netMax],[costSlider,saved.costMax]].forEach(function(p){
+      if(Number.isInteger(p[1])&&p[1]>=0&&p[1]<=Number(p[0].max)&&p[1]%1000===0)p[0].value=String(p[1]);
+    });
+    if(scoresReady)[[saved.satRange,satLow,satHigh,400,1600,10],
+      [saved.actRange,actLow,actHigh,1,36,1]].forEach(function(p){
+      var v=p[0];
+      if(v&&Number.isInteger(v.min)&&Number.isInteger(v.max)&&v.min>=p[3]&&v.max<=p[4]&&
+        v.min<=v.max&&(v.min-p[3])%p[5]===0&&(v.max-p[3])%p[5]===0){
+        p[1].value=String(v.min);p[2].value=String(v.max);
+      }
+    });
+    if(typeof saved.scorePanelOpen==="boolean")scorePanel.open=saved.scorePanelOpen;
+    drawMoneyLabels();drawScoreLabels();redrawSelectedCities();renderCityOptions();
+  }
 
   function setControls(enabled) {
     [nameInput, stateSelect, sortSelect, controlSelect, localeSelect, sizeSelect, citySearch, netSlider, costSlider].forEach(function (element) {
@@ -513,6 +552,10 @@
     activeList.hidden = selections.length === 0;
     activeNone.hidden = selections.length !== 0;
     activeSort.textContent = "Sort: " + sortSelect.selectedOptions[0].textContent;
+    root.querySelector("#cs-active-count").textContent="("+selections.length+")";
+    var n=Number(!!satRange)+Number(!!actRange)+
+      Number(ownScore(ownSATInput,400,1600)!==null)+Number(ownScore(ownACTInput,1,36)!==null);
+    root.querySelector("#cs-score-filter-count").textContent=n?n+" active score selections":"No score filters active";
   }
   function render(append) {
     var start = append ? rendered : 0;
@@ -542,6 +585,7 @@
       satRange:currentSATRange(),actRange:currentACTRange()
     });
     render(false);
+    saveFilterSession();
   }
   function clear() {
     var defaults = resetFilterOptions();
@@ -556,6 +600,7 @@
     satLow.value=400;satHigh.value=1600;actLow.value=1;actHigh.value=36;
     ownSATInput.value="";ownACTInput.value="";drawScoreLabels();
     drawMoneyLabels();redrawSelectedCities();renderCityOptions();
+    try{window.sessionStorage.removeItem(SESSION_KEY);}catch(_){}
     applyFilters();
     nameInput.focus();
   }
@@ -593,14 +638,15 @@
       populateCostSliders();
       drawScoreLabels();
       showDataCompleteness();
-      matches = filterSchools(records, resetFilterOptions());
       rendered = 0;
-      nameInput.value = "";
-      stateSelect.value = "";
-      sortSelect.value = "name-asc";
-      controlSelect.value = "";
-      localeSelect.value = "";
-      sizeSelect.value = "";
+      ownSATInput.value="";ownACTInput.value="";
+      restoreFilterSession();
+      matches = filterSchools(records,{
+        name:nameInput.value,state:stateSelect.value,sort:sortSelect.value,
+        control:controlSelect.value,locale:localeSelect.value,size:sizeSelect.value,
+        cities:Array.from(selectedCities),netMax:activeMax(netSlider),costMax:activeMax(costSlider),
+        satRange:currentSATRange(),actRange:currentACTRange()
+      });
       section.hidden = false;
       progress.hidden = true;
       render(false);
@@ -634,5 +680,6 @@
   clearButton.addEventListener("click", clear);
   moreButton.addEventListener("click", function () { render(true); });
   retryButton.addEventListener("click", loadData);
+  scorePanel.addEventListener("toggle",saveFilterSession);
   loadData();
 }());
