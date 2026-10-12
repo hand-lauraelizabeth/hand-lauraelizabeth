@@ -1,9 +1,9 @@
 # College Search — execution status
 
 Last updated: 2026-10-12T10:31:00Z UTC
-Repository branch (this release): `feature/college-admissions-score-bands-20261011`; base development branch: `feature/college-search-sprint1-20261009`
+Repository branch (current integration): `feature/college-search-sprint1-20261009`; admissions release integrated by GitHub PR #8, merge commit `faaaa6714d31ad072a2974fdcc7596c6e3a6fd87`
 Production release: **NATIONAL SAT/ACT SCORE MATCHER LIVE** on existing WordPress page 1044 by explicit owner approval 2026-10-12. Independent mobile 390px and desktop 1440px public-site Chromium category/filter/source browser smoke PASS; physical-device QA and theme-level accessibility/performance reviews remain separate.
-WordPress production page 1044 is **PUBLISHED**; staging pages 1154 and 1164 remain **DRAFT**. GitHub PR #7 and score extension PR #8 remain Draft.
+WordPress production page 1044 is **PUBLISHED**; staging pages 1154 and 1164 remain **DRAFT**. GitHub score extension [PR #8](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/pull/8) was **MERGED** to this development branch on 2026-10-12; PR #7 remains separately open as a draft.
 
 ## Sprint 6 — public College Search SAT/ACT release (2026-10-12)
 
