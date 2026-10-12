@@ -197,7 +197,7 @@ async function load(){
   titles=nameMap;index=joined;discoveryTerms=words;
   keys=Array.from(observed).sort(function(a,b){return collator.compare(titles[a],titles[b]);});
   ready=true;setEnabled(true);
-  status.textContent="Search everyday words (nurse, coding, HR), subject names, or CIP codes. Choose a suggested field to filter 2024–25 awards. The other 585 institutions lack matched historical evidence—not necessarily current programs.";
+  status.textContent="Search everyday words (nurse, coding, HR), school subjects, or CIP codes; choose a suggested field. Verified historical 2024–25 completion data cover 5,658 of 6,243 colleges; the other 585 lack matched records, not necessarily active programs.";
   updateLabel();notify();
  }catch(e){
   ready=false;selected="";index=new Map();titles={};keys=[];
