@@ -1,0 +1,36 @@
+name: Friendly program search immutable CDN preflight
+on:
+  push:
+    branches:
+      - feature/matcher-friendly-program-search-20261012
+    paths:
+      - '.github/workflows/college-search-friendly-cdn-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify commit-pinned public delivery of original and new assets
+        env:
+          REV: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          base="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@${REV}/projects/college-career-matching/"
+          for file in \
+            college-program-search.js \
+            college-search-sprint3-embed.js \
+            data/sprint3/college-search-national.v3.json \
+            data/sprint3/college-search-scores.v3.json \
+            data/programs/ipeds2025/program-search-terms.v1.json \
+            data/programs/ipeds2025/cip2020-titles.json \
+            data/programs/ipeds2025/programs.manifest.v1.json \
+            data/programs/ipeds2025/programs-00.json; do
+             printf 'PINNED_ASSET %s ' "$file"
+             curl --fail --location --silent --show-error --retry 3 --retry-delay 2 --connect-timeout 8 --max-time 80 "$base$file" --output /tmp/matcher-pinned-data
+             test -s /tmp/matcher-pinned-data
+             echo "PASS bytes=$(wc -c </tmp/matcher-pinned-data)"
+          done
