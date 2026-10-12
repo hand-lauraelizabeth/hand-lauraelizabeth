@@ -52,4 +52,4 @@ Every resource follows the same usability model:
 
 Resources use synthetic, generic, public-domain, openly licensed, or otherwise shareable examples. Institutional examples are linked where useful and appropriate, with attribution and rights kept clear.
 
-See the repository's [Public Portfolio Publishing Checklist](../PORTFOLIO_PUBLISHING_CHECKLIST.md) for the publication standard.
+Public materials are reviewed for attribution, accessibility, rights, and confidentiality before publication.
