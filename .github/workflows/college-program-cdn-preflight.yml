@@ -1,0 +1,29 @@
+name: Preflight immutable national program assets
+on:
+  push:
+    branches:
+      - feature/matcher-program-search-ui-20261012
+    paths:
+      - '.github/workflows/college-program-cdn-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe pinned CDN assets (200 and valid MIME/body)
+        env:
+          REV: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          base="https://cdn.jsdelivr.net/gh/hand-lauraelizabeth/hand-lauraelizabeth@${REV}/projects/college-career-matching/"
+          for f in college-search-sprint3-embed.js college-program-search.js data/programs/ipeds2025/programs.manifest.v1.json data/programs/ipeds2025/cip2020-titles.json data/programs/ipeds2025/programs-00.json data/programs/ipeds2025/programs-11.json; do
+            printf 'CDN %s: ' "$f"
+            curl --fail --location --silent --show-error --retry 3 --retry-delay 2 --connect-timeout 8 --max-time 60 \
+              "$base$f" --output /tmp/program-cdn-asset
+            test -s /tmp/program-cdn-asset
+            echo "OK (bytes: $(wc -c </tmp/program-cdn-asset))"
+          done

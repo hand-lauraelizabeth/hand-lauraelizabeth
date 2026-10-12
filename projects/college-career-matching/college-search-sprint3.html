@@ -50,6 +50,15 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 #college-search .cs-card-scores .cs-score-source{font-size:.82rem;color:var(--muted)}
 #college-search .cs-card-scores .cs-score-source a{white-space:nowrap}
 #college-search .cs-admissions-note{margin:22px 0 0;padding:13px 0;border-top:1px solid var(--border);color:var(--muted);font-size:.92rem;max-width:95ch}
+
+#college-search .cs-testing-details{grid-column:1/-1;border:1px solid var(--border);border-radius:12px;background:#fff;min-width:0;overflow:hidden}
+#college-search .cs-testing-details>summary{cursor:pointer;min-height:48px;display:list-item;padding:14px 18px;font-weight:750;color:var(--green)}
+#college-search .cs-testing-details>summary:focus-visible{outline:3px solid #9c5300;outline-offset:-3px}
+#college-search .cs-testing-details[open]>summary{border-bottom:1px solid var(--border)}
+#college-search #cs-testing-active{display:block;font-size:.86rem;font-weight:500;color:var(--muted);margin-top:3px}
+#college-search .cs-testing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}
+#college-search .cs-testing-grid>.cs-score-field{grid-column:auto;min-width:0}
+@media(max-width:760px){#college-search .cs-testing-grid{grid-template-columns:minmax(0,1fr)}}
 #college-search .cs-score-field{grid-column:span 2;border:1px solid var(--border);border-radius:12px;min-width:0;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #college-search .cs-score-field legend{font-weight:750;color:var(--ink);padding:0 5px}
 #college-search .cs-score-field input[type=range]{height:38px;min-height:38px;padding:0;accent-color:var(--green);cursor:pointer}
@@ -106,15 +115,38 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 @media(max-width:760px){#college-search .cs-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}#college-search .cs-score-field{grid-column:1/-1}#college-search .cs-search-field{grid-column:1/-1}#college-search #cs-clear{grid-column:1/-1}#college-search .cs-results{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:380px){#college-search .cs-toolbar{grid-template-columns:1fr}#college-search .cs-toolbar>*{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#college-search .cs-progress[data-state="loading"]::before{animation:none}}
+
+#college-search .cs-program-details{grid-column:1/-1;border:1px solid var(--border);border-radius:12px;background:#fff;min-width:0;overflow:hidden}
+#college-search .cs-program-details>summary{cursor:pointer;min-height:48px;padding:14px 18px;font-weight:750;color:var(--green)}
+#college-search .cs-program-details>summary:focus-visible{outline:3px solid #9c5300;outline-offset:-3px}
+#college-search .cs-program-details[open]>summary{border-bottom:1px solid var(--border)}
+#college-search #cs-program-active{display:block;margin-top:3px;color:var(--muted);font-size:.85rem;font-weight:500}
+#college-search .cs-program-inside{padding:14px 18px;display:grid;gap:12px}
+#college-search .cs-program-inside label{font-weight:700;display:grid;gap:7px;min-width:0}
+#college-search .cs-program-inside input,#college-search .cs-program-inside select{max-width:100%;width:100%;min-height:44px}
+#college-search .cs-program-caveat,#college-search .cs-program-hint,#college-search .cs-program-provenance{margin:0;color:var(--muted);font-size:.89rem;line-height:1.5}
+#college-search .cs-program-caveat strong{color:var(--ink)}
+#college-search .cs-program-options{list-style:none;margin:0;padding:0;max-height:225px;overflow:auto;display:grid;gap:5px}
+#college-search .cs-program-options li{margin:0;padding:0}
+#college-search .cs-program-options button{width:100%;min-height:42px;text-align:left;background:#fff;color:var(--ink);border:1px solid var(--border);padding:8px 12px;font-size:.91rem}
+#college-search .cs-program-options button:hover,#college-search .cs-program-options button:focus-visible{border-color:var(--green);background:#edf5ef}
+#college-search .cs-program-chosen{border-left:3px solid var(--green);background:#edf5ef;padding:10px 12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#college-search .cs-program-chosen[hidden]{display:none}
+#college-search .cs-program-chosen button,#college-search #cs-program-retry{min-height:38px}
+#college-search #cs-program-status{margin:0;color:var(--muted);font-size:.9rem}
+#college-search .cs-card-program{margin:10px 0;background:#f5f8f5;border-left:3px solid #527963;padding:10px;font-size:.85rem;color:var(--ink)}
+#college-search .cs-card-program p{margin:0 0 5px}
+#college-search .cs-card-program p:last-child{margin:0}
+@media(max-width:760px){#college-search .cs-program-inside{padding:12px}}
 </style>
 </head>
 <body>
-<main id="college-search" data-src="./data/sprint3/college-search-national.v3.json" data-scores-src="./data/sprint3/college-search-scores.v3.json">
+<main id="college-search" data-src="./data/sprint3/college-search-national.v3.json" data-scores-src="./data/sprint3/college-search-scores.v3.json" data-program-base="./data/programs/ipeds2025/">
 <a class="cs-skip" href="#cs-results-heading">Skip to results</a>
 <header>
 <p class="cs-eyebrow">Data &amp; decision-making tools</p>
 <h1>College Search</h1>
-<p class="cs-intro">Explore U.S. colleges by school, state, multiple cities, institution control, campus setting, undergraduate size, average net price, annual cost, and optional SAT/ACT score ranges. Cost figures are descriptive federal averages—not individualized offers.</p>
+<p class="cs-intro">Explore U.S. colleges by school, state, multiple cities, institution control, campus setting, undergraduate size, average net price, annual cost, and optional SAT/ACT score ranges. An optional field-of-study and award-level filter uses historic IPEDS completions, not verified current program offerings. Cost figures are descriptive federal averages—not individualized offers.</p>
 </header>
 <section aria-label="Search and filter colleges">
 <div class="cs-toolbar">
@@ -167,6 +199,38 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <label class="cs-money-field" for="cs-cost-max">Annual cost (tuition + living and other expenses)
 <span class="cs-money-label">Maximum: <output id="cs-cost-output" for="cs-cost-max">Any</output></span>
 <input id="cs-cost-max" type="range" min="0" max="100000" step="1000" value="100000" disabled aria-describedby="cs-cost-missing"></label>
+<details id="cs-program-details" class="cs-program-details">
+<summary>Field of study and award level <span id="cs-program-active">Optional · historical 2024–25 completions</span></summary>
+<div class="cs-program-inside">
+<p class="cs-program-caveat"><strong>Historical program evidence, not a current program catalog.</strong> This filter identifies colleges that reported completing awards in a given subject and degree/certificate level during July 2024–June 2025. It does not confirm the program is offered now, the exact institution-named credential, or professional license eligibility.</p>
+<label for="cs-program-query">Find a field of study (2020 CIP classification)
+<input id="cs-program-query" type="search" autocomplete="off" placeholder="Search e.g., Nursing, Computer Science, CIP code" disabled aria-describedby="cs-program-status cs-program-help"></label>
+<p id="cs-program-help" class="cs-program-hint">Choose one of the suggestions to activate a field-of-study filter. Search terms alone do not change results.</p>
+<ul id="cs-program-options" class="cs-program-options" aria-label="Matching fields of study"></ul>
+<div class="cs-program-chosen" id="cs-program-chosen" hidden><span id="cs-program-choice"></span> <button type="button" id="cs-program-remove">Remove subject</button></div>
+<label for="cs-award-level">Award level
+<select id="cs-award-level" disabled>
+<option value="">Any award level</option>
+<option value="1">Undergraduate certificate (under 1 year)</option>
+<option value="2">Undergraduate certificate (1 to under 2 years)</option>
+<option value="3">Associate's degree</option>
+<option value="4">Undergraduate certificate (2 to under 4 years)</option>
+<option value="5">Bachelor's degree</option>
+<option value="6">Postbaccalaureate certificate</option>
+<option value="7">Master's degree</option>
+<option value="8">Post-master's certificate</option>
+<option value="17">Doctorate (research/scholarship)</option>
+<option value="18">Doctorate (professional practice)</option>
+<option value="19">Doctorate (other)</option>
+</select></label>
+<p id="cs-program-status" role="status" aria-live="polite">Open this section to load the optional national historical completions index.</p>
+<button id="cs-program-retry" type="button" hidden>Retry program data</button>
+<p class="cs-program-provenance">Sources: <a href="https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip" target="_blank" rel="noopener noreferrer">NCES IPEDS 2025 Completions</a> and <a href="https://nces.ed.gov/ipeds/cipcode/Files/CIPCode2020.csv" target="_blank" rel="noopener noreferrer">NCES 2020 CIP classification</a>. Records are joined by exact UNITID, CIP6, and AWLEVEL. An absent record does not establish that an institution lacks a current program.</p>
+</div>
+</details>
+<details id="cs-testing-details" class="cs-testing-details">
+<summary>Optional SAT/ACT score filters and comparisons <span id="cs-testing-active" role="status" aria-live="polite">No testing settings applied</span></summary>
+<div class="cs-testing-grid">
 <fieldset class="cs-score-field" aria-describedby="cs-sat-missing cs-scores-status">
 <legend>Optional SAT score range — reported school average</legend>
 <label for="cs-sat-low">From <output id="cs-sat-low-output" for="cs-sat-low">400</output>
@@ -187,6 +251,8 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <input type="number" id="cs-own-act" min="1" max="36" step="1" inputmode="numeric" placeholder="e.g., 28" disabled></label>
 <small class="cs-score-help">Both ends at the defaults means no ACT filter. School midpoint is a descriptive source value.</small>
 </fieldset>
+</div>
+</details>
 <button id="cs-clear" type="button" disabled>Clear</button>
 </div>
 <div id="cs-data-completeness" class="cs-coverage" aria-labelledby="cs-coverage-title" hidden>
@@ -232,11 +298,13 @@ body{margin:0;background:#f7f9f6;color:#1e332c;font-family:system-ui,-apple-syst
 <summary>About this data</summary>
 <div class="cs-about-body">
 <p>This directory uses the U.S. Department of Education’s <a href="https://collegescorecard.ed.gov/data/">College Scorecard</a> institution data snapshot dated <time datetime="2026-06-10">June 10, 2026</time>. It includes 6,243 institutions reported as operating in that source. It is not an independently verified list of every accredited U.S. institution.</p>
+<p>Optional field-of-study matching uses the <a href="https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip">2025 NCES IPEDS Completions file</a> (July 2024–June 2025) at six-digit <a href="https://nces.ed.gov/ipeds/cipcode/Files/CIPCode2020.csv">CIP 2020</a> and award-level granularity. Historical awards are not proof that a college currently accepts students into that program, awards a particular named degree such as BSN or AAS, or qualifies graduates for a professional license.</p>
 <p>SAT uses the source institution-level reported average (SAT_AVG). ACT uses the current composite midpoint (ACTCMMID), or an actual reported composite 50th percentile (ACTCM50) when filling an older gap. Score comparisons use the reported 25th, 50th, and 75th percentile section scores (SATVR25/50/75 and SATMT25/50/75), or ACT composite scores (ACTCM25/50/75). Each result card identifies its test-score source and cohort. When an exam is missing in the fall 2024 data, an earlier fall 2023 or fall 2022 source may be used, clearly marked <strong>Historical</strong>. Historical results are not necessarily representative of current admissions standards. Not every school reports scores; sliding a range excludes schools missing that metric. The optional comparison label is intentionally hidden without a personal score and verified percentile evidence. No TOEFL test-score dataset is included. School names, locations, website links, annual cost, tuition and net prices are descriptive published source figures, not quotes or admissions predictions. Tuition and fees are part of annual cost, not an additional amount. Where the source has no website address, the listing says “School website not reported.” Verify current details directly with each institution.</p>
 </div>
 </details>
 <noscript><p>This college search requires JavaScript. Enable JavaScript to search the national dataset.</p></noscript>
 </main>
+<script src="./college-program-search.js" defer></script>
 <script data-college-search src="./college-search-sprint3-embed.js" defer></script>
 </body>
 </html>

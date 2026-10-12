@@ -1,0 +1,44 @@
+name: Review national program search and filter UX
+on:
+  push:
+    branches:
+      - feature/matcher-program-search-ui-20261012
+    paths:
+      - '.github/workflows/college-search-program-ui-review.yml'
+      - 'projects/college-career-matching/college-search-sprint3.html'
+      - 'projects/college-career-matching/college-search-sprint3-embed.js'
+      - 'projects/college-career-matching/college-program-search.js'
+      - 'projects/college-career-matching/tests/test_national_program_search_browser.py'
+      - 'projects/college-career-matching/tests/test_admissions_scores_browser.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate both JavaScript controllers
+        run: |
+          node --check projects/college-career-matching/college-search-sprint3-embed.js
+          node --check projects/college-career-matching/college-program-search.js
+      - name: Validate existing admissions and price filters
+        run: |
+          node --test projects/college-career-matching/tests/test_admissions_scores.cjs
+          node projects/college-career-matching/tests/test_sprint3_net_sort.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+      - name: Test program search, source validation, mobile/desktop and all prior filters
+        run: |
+          python -m http.server 8766 --bind 127.0.0.1 --directory projects/college-career-matching >/tmp/matcher-program-server.log 2>&1 &
+          sleep 2
+          python projects/college-career-matching/tests/test_national_program_search_browser.py
+          python projects/college-career-matching/tests/test_admissions_scores_browser.py
+          python projects/college-career-matching/tests/test_sprint3_city_cost_browser.py
+          python projects/college-career-matching/tests/test_sprint3_net_sort_browser.py

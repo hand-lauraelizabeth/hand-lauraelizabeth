@@ -92,7 +92,8 @@
         (netMax === null || (record.average_net_price !== null && record.average_net_price <= netMax)) &&
         (costMax === null || (record.annual_cost !== null && record.annual_cost <= costMax)) &&
         matchesScoreRange(record.sat_avg, satRange) &&
-        matchesScoreRange(record.act_mid, actRange);
+        matchesScoreRange(record.act_mid, actRange) &&
+        (typeof window==='undefined' || !window.CollegeProgramSearch || window.CollegeProgramSearch.matches(record.unitid));
     }).sort(function (a, b) {
       // Missing average net price is always last for either price direction.
       // Ties are stable by school name and exact Scorecard source record key.
@@ -368,6 +369,7 @@
       element.disabled = !enabled;
     });
     [satLow,satHigh,actLow,actHigh,ownSATInput,ownACTInput].forEach(function(element){element.disabled=!enabled||!scoresReady;});
+    if(window.CollegeProgramSearch)window.CollegeProgramSearch.setEnabled(enabled);
     clearButton.disabled = !enabled || !hasChanges();
   }
   function hasChanges() {
@@ -376,7 +378,7 @@
       activeMax(netSlider) !== null || activeMax(costSlider) !== null ||
       currentSATRange()!==null || currentACTRange()!==null ||
       !!ownSATInput.value || !!ownACTInput.value || sortSelect.value !== "name-asc" ||
-      rendered > PAGE_SIZE;
+      (window.CollegeProgramSearch && window.CollegeProgramSearch.selected()) || rendered > PAGE_SIZE;
   }
   function showDataCompleteness() {
     var missing = countUnknowns(records);
@@ -440,6 +442,7 @@
     if(record.tuition_out_state!==null && record.tuition_out_state!==record.tuition_in_state)
       addCost("Tuition and fees — out-of-state",record.tuition_out_state);
     if(costs.childElementCount)item.appendChild(costs);
+    if(window.CollegeProgramSearch){var evidence=window.CollegeProgramSearch.cardFor(record.unitid);if(evidence)item.appendChild(evidence);}
     if(record.sat_source||record.act_source){
       var testing=document.createElement("div");
       testing.className="cs-card-scores";
@@ -503,6 +506,17 @@
     if(actRange)selections.push("ACT institution midpoint: "+actRange.min+"–"+actRange.max);
     if(ownScore(ownSATInput,400,1600)!==null)selections.push("My SAT comparison: "+ownSATInput.value);
     if(ownScore(ownACTInput,1,36)!==null)selections.push("My ACT comparison: "+ownACTInput.value);
+
+    // The collapsed testing panel always discloses active controls and preserves
+    // their values; closing the panel never resets or disables a filter.
+    var activeTestingCount = (satRange ? 1 : 0) + (actRange ? 1 : 0)
+      + (ownScore(ownSATInput,400,1600)!==null ? 1 : 0)
+      + (ownScore(ownACTInput,1,36)!==null ? 1 : 0);
+    var testingStatus = root.querySelector("#cs-testing-active");
+    if (testingStatus) testingStatus.textContent = activeTestingCount
+      ? activeTestingCount + " active testing " + (activeTestingCount===1 ? "setting" : "settings")
+      : "No testing settings applied";
+    if(window.CollegeProgramSearch)selections.push.apply(selections,window.CollegeProgramSearch.labels());
     var fragment = document.createDocumentFragment();
     selections.forEach(function (label) {
       var item = document.createElement("li");
@@ -555,6 +569,7 @@
     netSlider.value=netSlider.max;costSlider.value=costSlider.max;
     satLow.value=400;satHigh.value=1600;actLow.value=1;actHigh.value=36;
     ownSATInput.value="";ownACTInput.value="";drawScoreLabels();
+    if(window.CollegeProgramSearch)window.CollegeProgramSearch.clear();
     drawMoneyLabels();redrawSelectedCities();renderCityOptions();
     applyFilters();
     nameInput.focus();
@@ -588,6 +603,7 @@
       var payload = await response.json();
       records = validatePayload(payload);
       await loadScores(controller.signal);
+      if(window.CollegeProgramSearch)window.CollegeProgramSearch.configure(records,applyFilters);
       stateOptions();
       populateCities();
       populateCostSliders();
