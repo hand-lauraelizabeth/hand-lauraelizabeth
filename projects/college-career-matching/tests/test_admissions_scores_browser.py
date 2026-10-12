@@ -14,6 +14,14 @@ def run(browser,width):
     page.on("pageerror",lambda e:errors.append(str(e)))
     page.goto(URL,wait_until="domcontentloaded")
     page.wait_for_function("document.querySelector('#cs-result-count')?.textContent.includes('6,243 schools')",timeout=30000)
+    panel=page.locator("#cs-testing-details")
+    assert panel.count()==1
+    assert not panel.evaluate("(e)=>e.open"),"SAT/ACT panel should start collapsed"
+    assert "No testing settings applied" in page.locator("#cs-testing-active").inner_text()
+    panel.locator("summary").click()
+    assert panel.evaluate("(e)=>e.open")
+    assert page.locator("#cs-sat-low").is_visible()
+    assert page.locator("#cs-own-act").is_visible()
     assert page.locator("#cs-sat-low").is_enabled()
     assert page.locator("#cs-act-high").is_enabled()
     assert page.locator("#cs-sat-band-unknown").inner_text()=="5,192"
@@ -27,10 +35,17 @@ def run(browser,width):
     assert "U.S. Department of Education" in page.locator(".cs-card").first.inner_text()
     entry=DATA["institutions"]["100654"]
     assert entry[2:5]==[810,930,1040] or all(isinstance(n,int) for n in entry[2:5]),entry
-    print("TEST_PANEL_DIAG",width,"open",panel.evaluate("(e)=>e.open"),"sat-visible",page.locator("#cs-own-sat").is_visible(),"program-open",page.locator("#cs-program-details").evaluate("(e)=>e.open"),flush=True)
     own=page.locator("#cs-own-sat")
     own.fill("1500")
     assert page.locator(".cs-card .cs-admission-badge").inner_text()=="SAFETY*"
+    assert "1 active testing setting" in page.locator("#cs-testing-active").inner_text()
+    # Collapsing a panel never clears a personal score or its comparison result.
+    panel.locator("summary").click()
+    assert not panel.evaluate("(e)=>e.open")
+    assert page.locator(".cs-card .cs-admission-badge").inner_text()=="SAFETY*"
+    assert "1 active testing setting" in page.locator("#cs-testing-active").inner_text()
+    panel.locator("summary").click()
+    assert panel.evaluate("(e)=>e.open")
     own.fill("880")
     assert page.locator(".cs-card .cs-admission-badge").inner_text()=="TARGET*"
     own.fill("400")
