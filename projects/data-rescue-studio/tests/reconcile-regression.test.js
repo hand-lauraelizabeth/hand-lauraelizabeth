@@ -1,0 +1,15 @@
+'use strict';
+const assert = require('node:assert/strict');
+const {parseDelimited} = require('../rescue-core.js');
+const {reconcile} = require('../reconcile-core.js');
+const left = parseDelimited('key,value\na,1\nb,2\nb,3\n,4');
+const right = parseDelimited('code,value\na,10\nb,20\nc,30\n,40');
+const r = reconcile(left,right,'key','code');
+assert.equal(r.matches.length,1);
+assert.equal(r.matches[0].key,'a');
+assert.equal(r.ambiguous.length,1);
+assert.equal(r.leftOnly.length,0);
+assert.equal(r.rightOnly.length,1);
+assert.equal(r.missingLeft.length,1);
+assert.equal(r.missingRight.length,1);
+console.log('PASS: 7 reconciliation regression checks.');

@@ -8,10 +8,10 @@
   *{box-sizing:border-box}body{font:16px/1.5 system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg);margin:0}
   main{max-width:1100px;margin:auto;padding:clamp(16px,4vw,36px)}h1{font-size:clamp(1.75rem,5vw,2.5rem);line-height:1.2}h2{font-size:1.25rem}
   .panel{background:white;border:1px solid var(--edge);border-radius:12px;padding:20px;margin-top:18px}
-  p{max-width:78ch}.muted{color:var(--muted)}button,input{font:inherit}
+  p{max-width:78ch}.muted{color:var(--muted)}button,input,select{font:inherit}
   button{border:1px solid var(--forest);background:var(--forest);color:white;border-radius:7px;padding:9px 14px;cursor:pointer}
   button.secondary{color:var(--forest);background:white}button:disabled{opacity:.5;cursor:not-allowed}
-  button:focus-visible,input:focus-visible{outline:3px solid #d58b30;outline-offset:3px}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #d58b30;outline-offset:3px}
   .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:15px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
   .metric{background:#edf4ef;border-radius:8px;padding:10px}
@@ -39,28 +39,47 @@
 <p class="muted">Only the first 20 records are shown in this preview. The exported file includes all retained records.</p>
 <div class="overflow" id="table"></div>
 </section>
-<section class="panel" aria-labelledby="export"><h2 id="export">4. Export</h2>
+<section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
+<p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines.</p>
+<label for="compareFile"><strong>Second file (UTF-8 CSV or TSV, maximum 5 MB)</strong></label>
+<div><input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
+<p id="compareStatus" role="status" aria-live="polite">Open a first file above to compare.</p>
+<div class="grid">
+<div><label for="leftKey"><strong>Identifier in first file</strong></label><select id="leftKey" disabled><option value="">Choose a first file</option></select></div>
+<div><label for="rightKey"><strong>Identifier in second file</strong></label><select id="rightKey" disabled><option value="">Choose a second file</option></select></div>
+</div>
+<div class="actions">
+<button id="compareRun" disabled>Compare exact identifiers</button>
+<button class="secondary" id="compareExport" disabled>Export comparison audit CSV</button>
+<button class="secondary" id="compareClear">Clear second file</button>
+</div>
+<div id="compareMetrics" class="grid" aria-label="Reconciliation summary"></div>
+<div id="compareResults" class="overflow" aria-label="Reconciliation record preview"></div>
+<p class="muted">Preview shows at most 30 findings. The downloaded audit includes all findings, source record positions, and identifier keys, but no complete input records. Keys may be sensitive; keep your exported audit private. Spreadsheet formula precautions are imperfect.</p>
+</section>
+<section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>
 <p class="muted">Original input is not changed. Records that differ even slightly are not automatically merged.</p>
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
 <p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab. This changes those cell values and is not universally safe across spreadsheet programs. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
 <div class="actions"><button id="save" disabled>Export CSV</button></div>
 </section>
-<footer><p class="muted">Preview version: CSV/TSV and exact-duplicate analysis only. It does not yet reconcile multiple files, validate business-specific rules, or guarantee spreadsheet security.</p></footer>
-</main><script src="rescue-core.js"></script><script>
+<footer><p class="muted">Preview version: CSV/TSV inspection and exact-identifier comparison. It does not perform fuzzy matching or validate business-specific rules. Spreadsheet export precautions do not guarantee security.</p></footer>
+</main><script src="rescue-core.js"></script><script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script><script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;
-let loaded=null;
+let loaded=null, loadEpoch=0;
 const status=(message,error=false)=>{$('status').textContent=message;$('status').className=error?'error':'';};
-function clear(){
- loaded=null;$('file').value='';$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
+function clear(preserveFile=false){
+ ++loadEpoch; loaded=null;if(!preserveFile)$('file').value='';
+ window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
  $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;status('No data loaded.');
 }
 function el(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
 function quality(data,name) {
- loaded=data;const result=lib.summarize(data);
+ loaded=data;window.DataRescueCompareUI.setPrimary(data,name);const result=lib.summarize(data);
  $('metrics').replaceChildren();
  for (const [title,value] of [['Rows',result.rowCount],['Columns',result.columnCount],['Exact duplicates',result.duplicateRows.length]]) {
  const cell=el('div');cell.className='metric';cell.append(el('span',title),el('strong',value));$('metrics').append(cell);}
@@ -83,14 +102,24 @@ function preview(){
  table.append(body);$('table').replaceChildren(table);
 }
 $('file').addEventListener('change',async()=>{
- const file=$('file').files?.[0];if(!file){clear();return;}
+ const file=$('file').files?.[0];
+ if(!file){clear();return;}
+ clear(true);
+ const ticket=loadEpoch;
  if(file.size>lib.MAX_BYTES){clear();status('The selected file is larger than 5 MB.',true);return;}
  if(!/\.(csv|tsv)$/i.test(file.name)){clear();status('Choose a .csv or .tsv file.',true);return;}
- try{quality(lib.parseDelimited(await file.text(),/\.tsv$/i.test(file.name)?'\t':undefined),file.name);}
- catch(err){clear();status('Unable to open file: '+err.message,true);}
+ status('Reading first file locally…');
+ try {
+  const content=await file.text();
+  if(ticket!==loadEpoch)return;
+  quality(lib.parseDelimited(content,/\.tsv$/i.test(file.name)?'\t':undefined),file.name);
+ } catch(err){
+  if(ticket!==loadEpoch)return;
+  clear();status('Unable to open file: '+err.message,true);
+ }
 });
 $('sample').addEventListener('click',()=>{
-const demo='Name,City,Note\n"Ada L.","New York","research"\n"Sam","Boston","=1+2"\n"Sam","Boston","=1+2"\n';
+clear();const demo='Name,City,Note\n"Ada L.","New York","research"\n"Sam","Boston","=1+2"\n"Sam","Boston","=1+2"\n';
 quality(lib.parseDelimited(demo),'synthetic example');
 });
 $('reset').addEventListener('click',clear);$('dedupe').addEventListener('change',preview);

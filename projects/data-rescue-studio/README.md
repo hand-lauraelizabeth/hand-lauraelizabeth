@@ -4,7 +4,9 @@ A browser-local CSV/TSV preview and review utility for students, researchers, co
 
 **Supported in this preview:** open a UTF-8 CSV/TSV, inspect column completeness, detect exact duplicate rows without removing anything silently, preview records, optionally exclude exact duplicates from a copy, and export a CSV. The original file is not modified.
 
-**Not yet supported:** multi-file joins, fuzzy record linkage, date standardization, Excel workbook import, or domain-specific quality rules. A duplicate means an identical entire row—not evidence that two people, transactions, or organizations are the same.
+**Also supported in this review:** independently import a second UTF-8 CSV/TSV file and select one identifier column in each table. Exact, case-sensitive key comparison classifies one-to-one matches, nonmatching keys, missing keys, and ambiguous (repeated) keys. Ambiguous identifiers are never automatically merged. Export a separate audit CSV with the classification, identifier, and logical source record numbers. This file is also generated locally, and may contain sensitive identifiers.
+
+**Not yet supported:** merged/joined output tables, fuzzy record linkage, date standardization, Excel workbook import, or domain-specific quality rules. The tool does not infer that matching keys establish that two entities really are the same. A source record number counts CSV/TSV records (including the header as record 1); quoted multiline cells may span multiple physical lines. A duplicate means an identical entire row—not evidence that two people, transactions, or organizations are the same.
 
 ## Use
 
@@ -16,9 +18,13 @@ The **spreadsheet-oriented formula precaution** prefixes formula-like values wit
 
 \`\`\`bash
 node projects/data-rescue-studio/tests/rescue-core.test.js
+node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
+node projects/data-rescue-studio/tests/reconcile-core.test.js
+node projects/data-rescue-studio/tests/reconcile-regression.test.js
+node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
 \`\`\`
 
-Includes synthetic fixtures for quoted commas, embedded newlines, repeated quotes, Unicode BOM, tabs, blank values, repeated headers, exact duplicates, and malformed rows.
+Includes synthetic fixtures for quoted commas, embedded newlines, repeated quotes, Unicode BOM, tabs, blank values, repeated headers, exact duplicates, malformed rows, missing and ambiguous keys, and second-file state changes. The synthetic controller test is not a substitute for real-browser keyboard, mobile, and zoom checks.
 
 ## Sources and design references
 

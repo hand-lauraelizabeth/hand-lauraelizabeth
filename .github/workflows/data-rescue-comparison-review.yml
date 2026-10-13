@@ -1,0 +1,32 @@
+name: Data Rescue comparison review
+on:
+  push:
+    branches:
+      - review/data-rescue-comparison-ui-20261013-1935ET
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/data-rescue-comparison-review.yml"
+  pull_request:
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/data-rescue-comparison-review.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate CSV parsing, file handling and reconciliation
+        run: |
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js
+          node projects/data-rescue-studio/tests/reconcile-regression.test.js
+          node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
