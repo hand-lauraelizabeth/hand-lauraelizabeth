@@ -2,7 +2,7 @@
 
 Text Lens is a privacy-conscious, in-browser textual analysis instrument designed to support both literary interpretation and business research. It provides descriptive lexical evidence and comparative statistics; it does not infer an author's intentions, diagnose emotions, or claim that surface words establish customers' true opinions.
 
-## Implemented methods (v5, October 2026)
+## Implemented methods (v6, October 2026)
 
 | Layer | Evidence | Visualization | Interpretation limit |
 |---|---|---|---|
@@ -16,10 +16,22 @@ Text Lens is a privacy-conscious, in-browser textual analysis instrument designe
 
 **Vocabulary policy:** The embedded thematic vocabulary is independently curated; there is no redistribution of the NRC Emotion Lexicon or other restricted commercial datasets. Category memberships are transparent and adjustable through future user-defined lexicons. No categorical emotion percentages should be interpreted as probabilities.
 
+
+## Evidence register and long-form parsing (v6)
+
+- Text A and Text B each accept up to **400,000 characters**; up to 800,000 characters can be compared in two-text mode. Local text/Markdown/CSV imports enforce the same per-text cap. An existing browser-local PDF/DOCX text extraction widget is also updated to that cap; it loads external extraction libraries as necessary but does not upload documents to Text Lens. Scans still need OCR, and extracted PDF lines/pages should not be assumed accurate.
+- Sentence boundaries are determined from punctuation end stops (periods, exclamation marks, question marks) and a bounded abbreviation/initial exception list. Single line breaks, double line breaks, pagination wraps, and inserted returns **do not themselves end a sentence**. This is intentionally designed for hard-wrapped book text; punctuation in dialogue, ellipses, editorial abbreviation conventions, poetry and OCR can still be ambiguous. Both readability and contextual sentiment use the same segmentation.
+- The searchable evidence register merges sentiment and thematic cues occurring at the same token into one row. Rows include source text (A/B), imported file name or pasted origin, categorical memberships, polarity, negation, intensity and contrast adjustments, short source passage, sentence number, source line number, source-relative 1-based character offset, text-level word number and percentage position within the source.
+- When multiple local documents are concatenated, source passages are bounded by each original document. Physical source lines are based on imported line-break characters and are **not** verified printed book line numbers or PDF page coordinates.
+- Evidence register search matches term, source, sentence excerpt, polarity and category. Additional filters select Text A/B, positive/negative/thematic-only, and category. Results are paged at 40 rows; filtering and CSV export cover all cues.
+- The evidence CSV intentionally includes **short verbatim source excerpts**, unlike the default source-free analysis JSON. Users should consider permissions, confidentiality and copyright before sharing CSV. CSV cells with formula-like prefixes are escaped for safer spreadsheet import.
+- For large inputs, inline highlighting is limited to the first 60,000 characters to keep the browser responsive. The evidence index analyzes and searches the complete input; it does not apply that visual limit to cue detection.
+- All metrics are descriptive and heuristic. No author/speaker identification, aspect-target attachment, LLM inference, or machine-learned classifier has been introduced in v6.
+
 ## Research-informed next features
 
 ### P1 — Evidence inspection and calibration (highest priority)
-- Evidence register with occurrence, original passage, matched category, adjustment trigger, relative position, and optional human correction.
+- Extend the implemented evidence register with human review/correction, annotation tags, saved research annotations, passage citation anchors and per-cue provenance audit trails.
 - User-created domain lexicons and synonym mappings; versioned imports/exports with escaped strings and no automatic upload.
 - More precise negation scope, double negation, negated intensifiers, conditional statements, passive voice and discourse boundaries.
 - Human-annotated evaluation corpora across novel excerpts, criticism, service feedback, meeting notes and reports. Report precision/recall by category, stratified by genre and document length, together with disagreements and gaps.
@@ -38,7 +50,7 @@ Text Lens is a privacy-conscious, in-browser textual analysis instrument designe
 - Optional bilingual and multilingual analysis only after language-specific benchmarking; English readability, tokenization and lexicons do not transfer automatically.
 
 ### P4 — Corpus ingestion and advanced exploratory analysis
-- Local PDF text extraction using Mozilla PDF.js; local DOCX text extraction using Mammoth.js; provenance and extraction warnings for scans, footnotes, page breaks and malformed text. Avoid unlicensed dependencies and unexpected network transfers.
+- Improve the existing local PDF/DOCX extraction workflow with explicit page-span provenance, extraction diagnostics and preservation of section/table markers. PDF.js and Mammoth.js are already used by a current optional import widget; do not imply they are absent. OCR is not currently included. Avoid network transfer of source material.
 - Corpus-level thematic distribution matrix and group-wise comparisons normalized by document length, with sampling warnings.
 - Optional topic modeling or semantic grouping in separately versioned research workflows. BERTopic is a candidate *approach*, not something already running in the current client-side tool.
 - Optional export-ready charts, signed source annotations, and CSV of cue occurrences with user consent for inclusion of verbatim excerpts.
