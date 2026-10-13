@@ -10,8 +10,8 @@ assert.ok(script,'Contextual sentiment code must be included in the published HT
 test('complete Text Lens script parses',()=>assert.doesNotThrow(()=>new vm.Script(script)));
 const fragment=script.slice(script.indexOf('const SC_POS='),script.indexOf('function sentimentLabel('));
 const ctx={
- POS:new Set('good great excellent wonderful helpful happy better love useful clear success'.split(' ')),
- NEG:new Set('bad awful terrible confusing poor broken hate failure difficult'.split(' ')),
+ POS:new Set('good great excellent wonderful helpful happy better love loved useful clear success fantastic'.split(' ')),
+ NEG:new Set('bad awful terrible confusing poor broken hate hated failure difficult'.split(' ')),
  NOT:new Set("not no never without hardly barely cannot isn't wasn't don't didn't doesn't won't couldn't shouldn't".split(' ')),
  WORD_RE:/[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*/gu,
  norm:w=>w.toLowerCase().replace(/’/g,"'"),
@@ -165,7 +165,7 @@ test('quoted text is not automatically attributed to the author or narrator',()=
 test('research UI exposes the source and aspect filters and exports their provenance',()=>{
  assert.ok(html.includes('id="cueVoice"'));
  assert.ok(html.includes('id="cueAspect"'));
- assert.ok(html.includes('speaker_status'));
+ assert.ok(html.includes('source_status'));
  assert.ok(html.includes('aspect_rule'));
  assert.ok(html.includes('function aspectOverview('));
 });
