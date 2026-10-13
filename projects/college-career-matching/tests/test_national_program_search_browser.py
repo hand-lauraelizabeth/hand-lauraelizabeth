@@ -31,13 +31,46 @@ def run(browser,width):
     assert not panel.evaluate("(x)=>x.open")
     assert page.locator("#cs-program-query").is_disabled()
     assert page.locator("#cs-testing-details").count()==1
-    panel.locator("summary").click()
+    # Native details/summary must open from the keyboard without a mouse.
+    panel.locator("summary").focus()
+    panel.locator("summary").press("Enter")
+    assert panel.evaluate("(x)=>x.open"), "Keyboard Enter must expand program controls"
     page.wait_for_function("document.querySelector('#cs-program-status')?.textContent.includes('5,658 of 6,243')",timeout=90000)
     assert len(program_requests)>=15,(len(program_requests),program_requests)
     assert page.locator("#cs-program-query").is_enabled()
     # People enter familiar major names, occupations, abbreviations, and CIP codes.
     # Search suggestions are code-linked, not assertions of licenses or exact credentials.
     query=page.locator("#cs-program-query")
+    # Screen-reader announcements and instructions must remain discoverable.
+    assert page.locator("#cs-program-status").get_attribute("role")=="status"
+    assert page.locator("#cs-program-status").get_attribute("aria-live")=="polite"
+    described=query.get_attribute("aria-describedby").split()
+    assert {"cs-program-status","cs-program-help"}.issubset(set(described))
+    assert page.locator("#cs-program-options").get_attribute("aria-label")=="Matching fields of study"
+    # Common two-character abbreviations should not match incidental substrings.
+    for typed,count,first_cip in [("IT",3,"11.0103"),("AI",1,"11.0102"),("HR",1,"52.1001"),
+                                  ("PR",1,"09.0902"),("RN",1,"51.3801")]:
+        query.fill(typed)
+        options=page.locator("#cs-program-options button")
+        assert options.count()==count,(typed,options.count(),count)
+        assert "CIP "+first_cip in options.first.inner_text(),(typed,options.first.inner_text())
+    query.fill("nu")
+    assert page.locator("#cs-program-options button").count()==0
+    assert "at least three letters" in page.locator("#cs-program-status").inner_text()
+    # Reserved federal placeholders remain searchable by literal CIP, but
+    # are not selectable or presented as active school programs.
+    query.fill("Reserved")
+    assert page.locator("#cs-program-options button").count()==0
+    query.fill("CIP 12.0580")
+    reserved=page.locator("#cs-program-options button")
+    assert reserved.count()==1
+    assert reserved.first.is_disabled()
+    assert "not a field of study" in page.locator("#cs-program-status").inner_text()
+    assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
+    query.focus()
+    query.press("Tab")
+    assert not reserved.first.evaluate("(e)=>document.activeElement===e"), "Disabled reserved code received focus"
+    query.focus()
     for typed,code in [
         ("nurse","51.3801"),
         ("BSN","51.3801"),
@@ -69,7 +102,16 @@ def run(browser,width):
     # ArrowDown and Escape are usable with the keyboard.
     query.fill("nurse")
     query.press("ArrowDown")
-    assert page.locator("#cs-program-options button").first.evaluate("(e)=>document.activeElement===e")
+    first_suggestion=page.locator("#cs-program-options button").first
+    assert first_suggestion.evaluate("(e)=>document.activeElement===e")
+    first_suggestion.press("Enter")
+    assert page.locator("#cs-program-chosen").is_visible(), "Enter must select a field"
+    assert "51.3801" in page.locator("#cs-program-choice").inner_text()
+    page.locator("#cs-program-remove").focus()
+    page.locator("#cs-program-remove").press("Enter")
+    assert not page.locator("#cs-program-chosen").is_visible()
+    assert page.locator("#cs-result-count").inner_text().startswith("6,243 schools")
+    query.fill("nurse")
     query.focus()
     query.press("Escape")
     assert page.locator("#cs-program-options button").count()==0
