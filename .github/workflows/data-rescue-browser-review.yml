@@ -1,0 +1,32 @@
+name: Data Rescue real-browser review
+on:
+  push:
+    branches:
+      - review/data-rescue-browser-qa-20261013-20ET
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/data-rescue-browser-review.yml"
+permissions:
+  contents: read
+jobs:
+  chromium-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Run browser smoke checks
+        run: node projects/data-rescue-studio/tests/chromium-smoke.cjs
+      - name: Run deterministic regression checks
+        run: |
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js
+          node projects/data-rescue-studio/tests/reconcile-regression.test.js
+          node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
