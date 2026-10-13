@@ -1,0 +1,51 @@
+{
+  "unitid": "406149",
+  "institution": "Sarasota School of Massage Therapy",
+  "campus": "Sarasota, Florida",
+  "review_date": "2026-10-13",
+  "program": {
+    "name": "Massage Therapy Program",
+    "hours": 750,
+    "current_offering_evidence": true,
+    "award_type": "Diploma",
+    "exact_diploma_title": null,
+    "credential_issuer": "Sarasota School of Massage Therapy",
+    "external_licensure": "Florida massage therapist license; separate state process",
+    "licensure_automatic": false,
+    "external_exam": "MBLEx",
+    "exam_completion_automatic": false
+  },
+  "admissions": {
+    "high_school_diploma_or_ged_required": true,
+    "minimum_age": 18,
+    "interview_required": true,
+    "sat_act_requirement": "not specified on reviewed admissions page",
+    "sat_act_averages": null
+  },
+  "sources": [
+    {
+      "url": "https://sarasotaschoolofmassagetherapy.edu/massage-program/",
+      "supports": "750-hour massage therapy program"
+    },
+    {
+      "url": "https://sarasotaschoolofmassagetherapy.edu/program-descriptions/",
+      "supports": "Diploma completion award and program description"
+    },
+    {
+      "url": "https://sarasotaschoolofmassagetherapy.edu/enrollment/",
+      "supports": "Admission prerequisites and application process"
+    },
+    {
+      "url": "https://floridasmassagetherapy.gov/licensing/",
+      "supports": "Separate state massage therapist licensing pathway"
+    }
+  ],
+  "limits": [
+    "School diploma does not confer state license",
+    "Do not assign CIP6 without authoritative program mapping",
+    "Do not infer SAT/ACT optionality from silence",
+    "Verify current Florida exam route against board before publishing career eligibility",
+    "No CIP–SOC mapping"
+  ],
+  "source_year": "2026 review"
+}
