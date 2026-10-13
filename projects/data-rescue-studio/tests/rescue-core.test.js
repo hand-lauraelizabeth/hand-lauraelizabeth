@@ -21,4 +21,4 @@ assert.ok(exportCsv(parsed, true).includes('"first\nsecond"'));
 assert.throws(() => parseDelimited('a,b\n"unclosed,x'), /Unclosed/);
 assert.throws(() => parseDelimited('a,b\n1,2,3'), /No data was discarded/);
 assert.throws(() => parseDelimited('a\nfoo"bar'), /Unexpected quote/);
-console.log('PASS: 16 Data Rescue core assertions.');
+console.log('PASS: 18 Data Rescue core assertions.');
