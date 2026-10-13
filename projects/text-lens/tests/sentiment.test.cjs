@@ -10,8 +10,8 @@ assert.ok(script,'Contextual sentiment code must be included in the published HT
 test('complete Text Lens script parses',()=>assert.doesNotThrow(()=>new vm.Script(script)));
 const fragment=script.slice(script.indexOf('const SC_POS='),script.indexOf('function sentimentLabel('));
 const ctx={
- POS:new Set('good great excellent wonderful helpful happy better love useful clear success'.split(' ')),
- NEG:new Set('bad awful terrible confusing poor broken hate failure difficult'.split(' ')),
+ POS:new Set('good great excellent wonderful helpful happy better love loved useful clear success fantastic'.split(' ')),
+ NEG:new Set('bad awful terrible confusing poor broken hate hated failure difficult'.split(' ')),
  NOT:new Set("not no never without hardly barely cannot isn't wasn't don't didn't doesn't won't couldn't shouldn't".split(' ')),
  WORD_RE:/[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*/gu,
  norm:w=>w.toLowerCase().replace(/’/g,"'"),
@@ -23,7 +23,7 @@ vm.createContext(ctx);
 const segmentCode=script.slice(script.indexOf('function sentenceSegments('),script.indexOf('function median('));
 vm.runInContext(segmentCode,ctx);
 vm.runInContext(fragment,ctx);
-const evidenceCode=script.slice(script.indexOf('function evidenceFor('),script.indexOf('function evidenceFiltered('));
+const evidenceCode=script.slice(script.indexOf('const VERBS='),script.indexOf('function evidenceFiltered('));
 ctx.sourceDocs={a:[],b:[]};
 vm.runInContext(evidenceCode,ctx);
 const scores=[
@@ -125,4 +125,54 @@ test('long-form punctuation segmentation supports 400000 characters',()=>{
  assert.ok(segments.length>7000);
  assert.ok(segments[0].text.includes('\n'));
  assert.ok(segments[segments.length-1].end<=400000);
+});
+
+test('speaker attribution distinguishes explicit named speaker from unrecognized dialogue',()=>{
+ const text='Maria said, “The service was awful.”';
+ const hits=ctx.evidenceFor({t:text,W:8,affect:ctx.affectAnalyze(text),sentiment:ctx.contextualSentiment(text)},'a');
+ const row=hits.find(x=>x.term==='awful');
+ assert.equal(row.voice,'quotation');assert.equal(row.speaker,'Maria');assert.equal(row.speakerStatus,'explicit mention');
+ assert.equal(row.aspect,'service');
+ const unknown='“The service was awful.”';
+ const other=ctx.evidenceFor({t:unknown,W:5,affect:ctx.affectAnalyze(unknown),sentiment:ctx.contextualSentiment(unknown)},'a').find(x=>x.term==='awful');
+ assert.equal(other.voice,'quotation');assert.equal(other.speaker,'');assert.equal(other.speakerStatus,'unresolved');
+});
+test('reported source and unresolved pronoun are kept separate',()=>{
+ const text='According to the manager, the service was great.';
+ const rows=ctx.evidenceFor({t:text,W:8,affect:ctx.affectAnalyze(text),sentiment:ctx.contextualSentiment(text)},'a');
+ const row=rows.find(x=>x.term==='great');
+ assert.equal(row.voice,'reported');assert.equal(row.speaker,'the manager');
+ const q='“I hated the pricing,” she said.';
+ const other=ctx.evidenceFor({t:q,W:7,affect:ctx.affectAnalyze(q),sentiment:ctx.contextualSentiment(q)},'a').find(x=>x.term==='hated');
+ assert.equal(other.speaker,'');assert.equal(other.speakerMention,'she');assert.equal(other.speakerStatus,'pronoun unresolved');
+ assert.equal(other.aspect,'pricing');
+});
+test('two aspects in a contrast retain opposite sentiments',()=>{
+ const text='The staff were helpful but the wait was terrible.';
+ const rows=ctx.evidenceFor({t:text,W:10,affect:ctx.affectAnalyze(text),sentiment:ctx.contextualSentiment(text)},'a');
+ const pos=rows.find(x=>x.term==='helpful'),neg=rows.find(x=>x.term==='terrible');
+ assert.equal(pos.aspect,'staff');assert.equal(pos.polarity,'positive');
+ assert.equal(neg.aspect,'wait');assert.equal(neg.polarity,'negative');
+ assert.ok(pos.aspect!==neg.aspect);
+});
+test('quoted text is not automatically attributed to the author or narrator',()=>{
+ const text='“This is fantastic.” Death occurs later.';
+ const rows=ctx.evidenceFor({t:text,W:7,affect:ctx.affectAnalyze(text),sentiment:ctx.contextualSentiment(text)},'a');
+ const quoted=rows.find(x=>x.term==='fantastic'),mortality=rows.find(x=>x.term==='Death');
+ assert.equal(quoted.voice,'quotation');assert.equal(quoted.speaker,'');
+ assert.equal(mortality.voice,'prose');assert.equal(mortality.aspect,'');
+});
+test('research UI exposes the source and aspect filters and exports their provenance',()=>{
+ assert.ok(html.includes('id="cueVoice"'));
+ assert.ok(html.includes('id="cueAspect"'));
+ assert.ok(html.includes('source_status'));
+ assert.ok(html.includes('aspect_rule'));
+ assert.ok(html.includes('function aspectOverview('));
+});
+test('400000-character input remains indexable with heuristic voice/target fields',()=>{
+ const text=('The staff were helpful but the wait was terrible. ').repeat(8500).slice(0,400000);
+ const rows=ctx.evidenceFor({t:text,W:60000,affect:ctx.affectAnalyze(text),sentiment:ctx.contextualSentiment(text)},'a');
+ assert.ok(rows.length>8000);
+ assert.equal(rows[0].aspect,'staff');
+ assert.ok(rows[rows.length-1].from<400000);
 });

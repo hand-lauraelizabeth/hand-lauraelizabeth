@@ -2,7 +2,7 @@
 
 Text Lens is a privacy-conscious, in-browser textual analysis instrument designed to support both literary interpretation and business research. It provides descriptive lexical evidence and comparative statistics; it does not infer an author's intentions, diagnose emotions, or claim that surface words establish customers' true opinions.
 
-## Implemented methods (v6, October 2026)
+## Implemented methods (v7, October 2026)
 
 | Layer | Evidence | Visualization | Interpretation limit |
 |---|---|---|---|
@@ -27,6 +27,23 @@ Text Lens is a privacy-conscious, in-browser textual analysis instrument designe
 - The evidence CSV intentionally includes **short verbatim source excerpts**, unlike the default source-free analysis JSON. Users should consider permissions, confidentiality and copyright before sharing CSV. CSV cells with formula-like prefixes are escaped for safer spreadsheet import.
 - For large inputs, inline highlighting is limited to the first 60,000 characters to keep the browser responsive. The evidence index analyzes and searches the complete input; it does not apply that visual limit to cue detection.
 - All metrics are descriptive and heuristic. No author/speaker identification, aspect-target attachment, LLM inference, or machine-learned classifier has been introduced in v6.
+
+
+## Speaker-aware and aspect-aware exploratory evidence (v7, October 2026)
+
+Text Lens v7 extends the *existing* cue evidence register instead of introducing a separate scoring tool. For each evaluative or thematic cue, it uses a bounded, transparent rule set to assign these **suggested** distinctions:
+
+- **Voice:** directly quoted text, an explicitly reported claim (e.g., “according to the manager” / “customers reported”), or unattributed prose. Unattributed prose is intentionally *not* labeled as the narrator's opinion or the author's beliefs.
+- **Reported speaker/source:** only an adjacent explicit speech-reporting construction such as “Maria said, ‘…’” or “‘…,’ the customer replied” produces a named mention. Third-person pronouns (“he”, “she”, “they”) are recorded as *unresolved pronoun mentions*, never silently linked to named characters. Quoted phrases without a speech-reporting construction have an unknown source.
+- **Evaluated aspect:** a local, interpretable phrase pattern such as “the wait was terrible”, “staff were helpful”, “hated the pricing”, or “the wicked king”. It does not currently perform dependency parsing, entity resolution, semantic role labeling, or aspect clustering. A thematic cue such as “death” without evaluative use is **not** forced to carry an aspect.
+- **Inspection:** users can search and filter the register by voice type and whether an aspect was suggested, inspect the rule used, and view cue-count bar charts grouped by suggested aspect. The bars show positive/negative *matched cues*, not model probabilities, entity sentiment scores, or business outcome indicators.
+- **Export:** additional CSV fields for voice type, source mention, source resolution, attribution rule, candidate aspect, and local matching rule. Short source passages remain in evidence CSV by explicit user download, not in the source-free analysis JSON.
+
+**Boundaries:** straight double quotes and typographic curly double quotes are detected; single-quoted dialogue, nested dialogue, ambiguous scare quotes, unclosed quotations, long-distance speakers, discourse shifts, paraphrases without explicit reporting cues, polysemy, and cross-sentence target mentions may be unresolved or misleading. Phrase heuristics can produce false positives. Review the original source sentence, document context and genre before treating any association as substantive evidence. For book-length scientific annotation, manually labeled datasets and benchmark evaluation are still required.
+
+**Literature:** Elson & McKeown (2010), *Automatic Attribution of Quoted Speech in Literary Narrative*, https://ojs.aaai.org/index.php/AAAI/article/view/7720 ; Vishnubhotla et al. (2023), *Improving Automatic Quotation Attribution in Literary Novels*, https://aclanthology.org/2023.acl-short.64/ ; Yang & Wang (2024), *Automatic Quote Attribution in Chinese Literary Works*, https://aclanthology.org/2024.sighan-1.1/ . These studies motivate annotation and attribution, but none of their algorithms or trained models has been bundled.
+
+**Next validation:** build human-annotated literary and business samples with quote span, speaker, target, cue position and sentiment gold labels; report precision and recall separately for speaker identification and aspect assignment by type, genre, and document length. Only then consider opt-in pretrained language models to resolve ambiguous speaker identities and target associations.
 
 ## Research-informed next features
 
