@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "source_effective_date": "2026-08-24",
+  "reviewed_date": "2026-10-13",
+  "scope": "2026-27 Massachusetts Spa Tech school-issued award types and campus-specific catalog costs; not IPEDS AWLEVEL, federal net price, licensure, or current CIP offerings",
+  "sources": {
+    "catalog_index": "https://www.spatech.edu/program-catalogs",
+    "aesthetics_catalog": "https://drive.google.com/file/d/1iP0PgAu7ATiFfbhaqvVPRaILyT8NTb5w/view",
+    "massage_catalog": "https://drive.google.com/file/d/1SLzkri5O-3eDUZpuUAM7ZUOHvdeBe6Om/view",
+    "westborough_campus": "https://www.spatech.edu/spa-tech-institute-westborough-massachusetts",
+    "plymouth_campus": "https://www.spatech.edu/spa-tech-institute-plymouth-massachusetts",
+    "massachusetts_aesthetics_board": "https://www.mass.gov/info-details/how-can-i-become-a-cosmetologist-electrologist-manicurist-aesthetician-or-barber",
+    "massachusetts_massage_board": "https://www.mass.gov/how-to/apply-for-a-massage-therapy-license"
+  },
+  "award_statement": "Certificate of Completion",
+  "exact_printed_award_title_verified": false,
+  "sat_act_policy": "unknown",
+  "catalog_programs": [
+    {
+      "unitid": "445647",
+      "campus": "Westborough",
+      "program": "Aesthetics",
+      "clock_hours": 600,
+      "award": "Certificate of Completion",
+      "award_type_verified": true,
+      "award_catalog": "aesthetics_catalog",
+      "award_catalog_page": 14,
+      "campus_offering_source": "westborough_campus",
+      "catalog_price_scope": "not separately verified for Westborough; the Aesthetics catalog's $16,976.80 table is labeled Plymouth"
+    },
+    {
+      "unitid": "445647",
+      "campus": "Westborough",
+      "program": "Therapeutic Massage",
+      "clock_hours": 650,
+      "award": "Certificate of Completion",
+      "award_type_verified": true,
+      "award_catalog": "massage_catalog",
+      "award_catalog_page": 15,
+      "campus_offering_source": "westborough_campus",
+      "catalog_price_scope": "Westborough table, massage catalog p.13",
+      "tuition_usd": 11750,
+      "books_usd": 740.33,
+      "supplies_usd": 686.39,
+      "application_fee_usd": 50,
+      "published_total_usd": 13226.72
+    },
+    {
+      "unitid": "445656",
+      "campus": "Plymouth",
+      "program": "Aesthetics",
+      "clock_hours": 600,
+      "award": "Certificate of Completion",
+      "award_type_verified": true,
+      "award_catalog": "aesthetics_catalog",
+      "award_catalog_page": 14,
+      "campus_offering_source": "plymouth_campus",
+      "catalog_price_scope": "Plymouth table, aesthetics catalog p.11",
+      "tuition_usd": 13950,
+      "books_usd": 924.49,
+      "supplies_usd": 2052.31,
+      "application_fee_usd": 50,
+      "published_total_usd": 16976.8
+    },
+    {
+      "unitid": "445656",
+      "campus": "Plymouth",
+      "program": "Therapeutic Massage",
+      "clock_hours": 650,
+      "award": "Certificate of Completion",
+      "award_type_verified": true,
+      "award_catalog": "massage_catalog",
+      "award_catalog_page": 15,
+      "campus_offering_source": "plymouth_campus",
+      "catalog_price_scope": "not separately verified for Plymouth; the Therapeutic Massage catalog's $13,226.72 table is labeled Westborough"
+    },
+    {
+      "unitid": "445656",
+      "campus": "Plymouth",
+      "program": "Holistic Massage",
+      "clock_hours": 770,
+      "award": "Certificate of Completion",
+      "award_type_verified": true,
+      "award_catalog": "massage_catalog",
+      "award_catalog_page": 23,
+      "campus_offering_source": "plymouth_campus",
+      "catalog_price_scope": "Plymouth table, massage catalog p.21",
+      "tuition_usd": 13550,
+      "books_usd": 858.27,
+      "supplies_usd": 819.21,
+      "application_fee_usd": 50,
+      "published_total_usd": 15277.48
+    }
+  ],
+  "admissions": {
+    "both_campuses": "2026-27 catalogs require proof of age >=18, high-school diploma or recognized equivalent, application fee and interview; they do not explicitly classify SAT/ACT policy",
+    "sat_act_policy": "unknown",
+    "entrance_exam_inference_prohibited": true
+  },
+  "licensing": {
+    "aesthetics": "Massachusetts state guidance: 600-hour approved program, separate application and written examination; no individual license inferred from school certificate",
+    "massage": "Massachusetts state board requires individual license application, transcript and other documentation; school certificate alone is not a state license",
+    "school_specific_board_approval_independently_verified": false
+  },
+  "limitations": [
+    "Do not use these program charges as institution-level federal annual cost or net price.",
+    "Catalog is school-hosted and effective 2026-08-24; future offerings/start dates require recheck.",
+    "Certificate of Completion is the documented generic award; exact printed award titles remain unverified.",
+    "Do not infer CIP mapping, career eligibility, or test-optional/test-blind policy from these documents.",
+    "Price tables apply only to their explicitly labeled campus/program combinations."
+  ]
+}
