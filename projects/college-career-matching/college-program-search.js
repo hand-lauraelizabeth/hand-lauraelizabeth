@@ -30,13 +30,16 @@ function rate(text,key){
  var code=q.replace(/^cip /,"").replace(/ /g,"");
  var dot=key.slice(0,2)+"."+key.slice(2);
  var title=normalize(titles[key]),v=discoveryTerms[key]||{},primary=v.aliases||[],related=v.related||[];
+ if(title==="reserved"&&code!==key)return null;
  var best=0,origin="";
+ var shortQuery=q.length===2&&!/^\d{2}$/.test(q);
  function offer(rank,kind){if(rank>best){best=rank;origin=kind;}}
  if(/^\d{2,6}$/.test(code)){
    if(code===key || raw===dot || raw.toUpperCase()==="CIP "+dot)offer(180,"code");
    else if(key.startsWith(code))offer(135,"code");
  }
  if(title===q)offer(160,"title");
+ else if(shortQuery){if(title.split(" ").includes(q))offer(122,"title");}
  else if(title.startsWith(q))offer(140,"title");
  else if(wordStart(title,q))offer(122,"title");
  else if(title.includes(q))offer(110,"title");
@@ -44,6 +47,7 @@ function rate(text,key){
  primary.forEach(function(label){
    var term=normalize(label);
    if(term===q)offer(155,"everyday");
+   else if(shortQuery){if(term.split(" ").includes(q))offer(117,"everyday");}
    else if(term.startsWith(q))offer(132,"everyday");
    else if(wordStart(term,q))offer(117,"everyday");
    else if(term.includes(q))offer(100,"everyday");
@@ -52,10 +56,11 @@ function rate(text,key){
  related.forEach(function(label){
    var term=normalize(label);
    if(term===q)offer(77,"related");
+   else if(shortQuery){if(term.split(" ").includes(q))offer(57,"related");}
    else if(term.startsWith(q))offer(68,"related");
    else if(term.includes(q)||tokenMatch(term,q))offer(57,"related");
  });
- return best?{cip:key,title:titles[key],score:best,kind:origin,reported:reportedCips.has(key),positive:positiveCips.has(key),zeroOnly:zeroOnlyCips.has(key)}:null;
+ return best?{cip:key,title:titles[key],reserved:title==="reserved",score:best,kind:origin,reported:reportedCips.has(key),positive:positiveCips.has(key),zeroOnly:zeroOnlyCips.has(key)}:null;
 }
 function suggestFor(text,limit){
  var found=[];
@@ -89,10 +94,10 @@ function suggestions(){
  var matches=suggestFor(typed,15),found=matches.total;
  matches.options.forEach(function(hit,i){
   var li=document.createElement("li"),b=document.createElement("button");
-  b.type="button";b.className="cs-program-suggestion";
+  b.type="button";b.className="cs-program-suggestion";b.disabled=!!hit.reserved;
   var name=document.createElement("strong");name.textContent=hit.title;
   var note=document.createElement("span");note.className="cs-program-suggestion-meta";
-  note.textContent="CIP "+hit.cip.slice(0,2)+"."+hit.cip.slice(2)+
+  note.textContent="CIP "+hit.cip.slice(0,2)+"."+hit.cip.slice(2)+(hit.reserved?" · Reserved federal code — not a field of study":"")+
      (hit.kind==="related"?" · Related subject — compare curricula":
      hit.kind==="everyday"?" · Common-language match":" · Classification match")+
      (hit.reported?(hit.positive?"":hit.zeroOnly?" · Reported zero awards in 2024–25":" · 2024–25 counts unavailable"):" · No matching 2024–25 completions");
@@ -106,8 +111,8 @@ function suggestions(){
   });
   li.appendChild(b);results.appendChild(li);
  });
- status.textContent=found?found.toLocaleString("en-US")+" possible fields, ordered by relevance. Showing "+Math.min(found,15)+". Choose the closest field to filter colleges.":
-   "No matching subjects found in the reported 2024–25 programs. Try a broader term, school-major name, or CIP code.";
+ status.textContent=(matches.options.length&&matches.options.every(function(x){return x.reserved;}))?"This CIP code is reserved, not a defined academic field. No college-program selection is available.":found?found.toLocaleString("en-US")+" possible fields, ordered by relevance. Showing "+Math.min(found,15)+". Choose the closest field to filter colleges.":
+   "No matching subject classifications found. For partial words, enter at least three letters; two-letter abbreviations such as IT, AI, or RN and CIP prefixes are supported.";
 }
 async function verifiedJson(url,expected,signal){
  var res=await fetch(url,{credentials:"omit",signal:signal});
