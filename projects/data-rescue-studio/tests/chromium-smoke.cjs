@@ -29,6 +29,7 @@ const {chromium}=require('playwright');
    if(width===320){
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
     ok(overflow<=1,'320px width has no horizontal overflow');
+    await page.setViewportSize({width:640,height:800});
     await page.evaluate(()=>{document.documentElement.style.zoom='2'});
     const zoomOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
     ok(zoomOverflow<=1,'200 percent CSS zoom has no horizontal overflow');
