@@ -39,7 +39,11 @@ class FakeElement {
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
   'compareRun','compareExport','compareClear','leftKey','rightKey'];
 const nodes = {};
-for (const id of ids) nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' ? 'select' : 'div');
+for (const id of ids) {
+  nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' ? 'select' : 'div');
+  // The fixture must respect initial HTML disabled attributes, not merely JS defaults.
+  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport'].includes(id);
+}
 const document = {
   body: new FakeElement('body'),
   getElementById: id => {
