@@ -1,0 +1,14 @@
+'use strict';
+const assert = require('node:assert/strict');
+const { test } = require('node:test');
+const fs = require('node:fs');
+const path = require('node:path');
+const report = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/review/historical-evidence-coverage-20261013-10ET.json'), 'utf8'));
+test('national source denominator preserved', () => assert.equal(report.snapshot_records, 6243));
+test('identifier types reconcile', () => assert.equal(report.six_digit_institution_ids + report.eight_digit_extension_keys, 6243));
+test('historical candidate disposition reconciles', () => assert.equal(report.historical_observations_exact_matched + report.historical_observations_unmatched, report.historical_observations_researched));
+test('five field counts sum to accepted observations', () => assert.equal(Object.values(report.matched_field_counts).reduce((a,b)=>a+b,0), 267));
+test('locale source-year disposition reconciles', () => assert.equal(report.locale_gap_absent_in_2024_25 + report.locale_gap_in_2024_25_but_no_valid_locale, report.locale_gap_unitids));
+test('historical observations cannot become current-year values', () => assert.equal(report.current_year_values_added, 0));
+test('no production deployment', () => assert.equal(report.production_changes, 0));
+test('scope does not claim independent live readback', () => assert.match(report.data_interpretation, /not a live v3 readback/i));
