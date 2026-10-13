@@ -107,7 +107,7 @@ test('source passage and positions are available for each independent cue',()=>{
 test('file names, document-relative offsets and excerpt boundaries are preserved',()=>{
  const first='Death without punctuation',second='Evil forebodings. Hope returned.';
  ctx.sourceDocs.a=[{name:'chapter-one.txt',text:first},{name:'chapter-two.txt',text:second}];
- const text=first+'\\n\\n'+second;
+ const text=first+'\n\n'+second;
  const result={t:text,W:7,affect:ctx.affectAnalyze(text),sentiment:ctx.contextualSentiment(text)};
  const hits=ctx.evidenceFor(result,'a');
  const death=hits.find(x=>x.term.toLowerCase()==='death');
