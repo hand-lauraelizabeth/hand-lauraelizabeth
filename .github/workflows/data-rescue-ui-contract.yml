@@ -1,0 +1,26 @@
+name: Data Rescue UI contract review
+on:
+  push:
+    branches:
+      - review/data-rescue-accessible-upload-20261013
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/data-rescue-ui-contract.yml"
+  pull_request:
+    paths:
+      - "projects/data-rescue-studio/**"
+permissions:
+  contents: read
+jobs:
+  ui-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run Data Rescue regression and UI contract tests
+        run: |
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
