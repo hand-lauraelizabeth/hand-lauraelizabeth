@@ -1,0 +1,63 @@
+{
+  "institution": "Fort Myers Technical College",
+  "scope": "Admissions and career eligibility: source-backed follow-up to 24-program review",
+  "sources": {
+    "testing": "https://fortmyerstech.edu/future-students/testing-services/",
+    "practical_nursing": "https://fortmyerstech.edu/programs/health-science/practical-nursing/",
+    "professional_nursing": "https://fortmyerstech.edu/programs/health-science/professional-nursing-lpn-rn/",
+    "programs": "https://fortmyerstech.edu/future-students/find-a-program/"
+  },
+  "institutional_basic_skills": {
+    "accepted_assessment_options": [
+      "CASAS GOALS",
+      "TABE 11/12",
+      "SAT",
+      "ACT",
+      "PERT",
+      "ACCUPLACER",
+      "Next-Generation ACCUPLACER",
+      "GED 2014"
+    ],
+    "sat_act_role": "Accepted as alternatives to demonstrate basic skills; not demonstrated as mandatory college entrance tests",
+    "blank_score_policy": "Do not infer test-optional or test-blind from missing score averages",
+    "exemptions": "May apply to qualifying graduates or degree holders; individual determination required"
+  },
+  "school_award": {
+    "documented_generic_type": "Certificate of Completion",
+    "exact_program_printed_titles": null,
+    "conditions": "Completion and applicable basic skills requirements"
+  },
+  "program_specific": [
+    {
+      "name": "Practical Nursing",
+      "hours": 1350,
+      "exam_for_selection": "TEAS in person",
+      "application_window": "2027-05-03 through 2027-05-14",
+      "cohort_start": "2027-07-08",
+      "school_claims_board_approval": true,
+      "exam_for_licensure": "NCLEX-PN",
+      "license_automatically_awarded": false,
+      "license_type": "LPN"
+    },
+    {
+      "name": "Professional Nursing (LPN-RN)",
+      "hours": 900,
+      "prerequisite": "Current Florida LPN license",
+      "exam_for_selection": "TEAS in person",
+      "application_window": "2026-10-14 through 2026-10-28",
+      "cohort_start": "2027-01-07",
+      "school_issued_program_label": "Diploma in Nursing Program",
+      "accreditation_status": "NLN CNEA pre-accreditation (not full accreditation)",
+      "exam_for_licensure": "NCLEX-RN",
+      "license_automatically_awarded": false,
+      "license_type": "RN"
+    }
+  ],
+  "limitations": [
+    "School assertions of board approval not independently verified with board register",
+    "School-wide generic award does not prove exact printed program award title",
+    "No inferred CIP6 or CIP-SOC mapping",
+    "No current federal SAT/ACT mean imputed"
+  ],
+  "review_date": "2026-10-13"
+}
