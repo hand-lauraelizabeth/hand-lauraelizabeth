@@ -101,8 +101,8 @@ test('source passage and positions are available for each independent cue',()=>{
  assert.equal(hits[0].term,'Death');
  assert.equal(hits[0].char,1);
  assert.ok(hits[0].passage.includes('Death and evil'));
- assert.equal(hits.find(x=>x.term==='grief').sentence,2);
- assert.ok(hits.find(x=>x.term==='grief').line>=2);
+ assert.equal(hits.find(x=>x.term.toLowerCase()==='grief').sentence,2);
+ assert.ok(hits.find(x=>x.term.toLowerCase()==='grief').line>=2);
 });
 test('file names, document-relative offsets and excerpt boundaries are preserved',()=>{
  const first='Death without punctuation',second='Evil forebodings. Hope returned.';
