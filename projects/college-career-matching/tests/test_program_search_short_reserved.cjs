@@ -21,7 +21,7 @@ const suggest = new Function(
 
 test('federal taxonomy and editorial coverage remain intact', () => {
   assert.equal(Object.keys(titles).length, 2325);
-  assert.equal(Object.values(titles).filter(v => /^reserved\\.?$/i.test(v.trim())).length, 30);
+  assert.equal(Object.values(titles).filter(v => /^reserved\.?$/i.test(v.trim())).length, 30);
   assert.equal(Object.keys(editorial).length, 88);
 });
 test('two-character common abbreviations do not match substrings', () => {
@@ -48,7 +48,7 @@ test('reserved CIP classifications are not suggested as fields of study', () => 
   assert.equal(literal.total, 1);
   assert.equal(literal.options[0].cip, '120580');
   assert.equal(literal.options[0].reserved, true);
-  assert.match(source, /b\\.disabled=!!hit\\.reserved/);
+  assert.match(source, /b\.disabled=!!hit\.reserved/);
 });
 test('search classifications do not imply current programs or licensure', () => {
   assert.match(source, /HISTORICAL completions index/);
