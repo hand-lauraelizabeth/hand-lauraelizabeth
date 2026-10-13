@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "source_release": "2026-06-10",
+  "snapshot_kind": "national-source-v1",
+  "snapshot_records": 6243,
+  "six_digit_institution_ids": 5787,
+  "eight_digit_extension_keys": 456,
+  "historical_observations_researched": 271,
+  "historical_observations_exact_matched": 267,
+  "historical_institutions_exact_matched": 135,
+  "historical_observations_unmatched": 4,
+  "historical_institutions_unmatched": 2,
+  "matched_field_counts": {
+    "UGDS": 3,
+    "COSTT4_A": 69,
+    "COSTT4_P": 63,
+    "NPT4_PUB": 26,
+    "NPT4_PRIV": 106
+  },
+  "locale_gap_unitids": 75,
+  "locale_gap_absent_in_2024_25": 72,
+  "locale_gap_in_2024_25_but_no_valid_locale": 3,
+  "source_match_checks": [
+    "six_digit_unitid",
+    "normalized_name",
+    "state",
+    "control",
+    "target_field_is_null"
+  ],
+  "current_year_values_added": 0,
+  "production_changes": 0,
+  "source": "College Scorecard official user-provided 2026-06-10 source snapshot and earlier raw cohort files",
+  "source_url": "https://collegescorecard.ed.gov/data/",
+  "data_interpretation": "Historical evidence only; not a current filter value. Review dataset is the archived 6243-record source snapshot, not a live v3 readback."
+}
