@@ -141,7 +141,7 @@ function aspectForEvidence(t,part,cue){
  const linking=String.raw`(?:is|are|was|were|be|been|being|seems?|appears?|feels?|felt|became|becomes?|remains?|looks?|sounds?|proved|turned)`;
  const mods=String.raw`(?:(?:not|never|very|extremely|quite|rather|too|so|really|particularly|deeply|incredibly|absolutely)\s*)*`;
  let m=new RegExp(String.raw`(?:the|a|an|this|that|my|our|his|her|its|their)\s+([\p{L}][\p{L}'’-]*(?:\s+[\p{L}][\p{L}'’-]*){0,2})\s+${linking}\s*${mods}$`,'iu').exec(before);
- if(m)return{aspect:m[1].trim(),aspectRule:"Noun phrase + linking verb"};
+ if(m)return{aspect:m[1].trim().replace(/^(?:the|a|an)\s+/i,""),aspectRule:"Noun phrase + linking verb"};
  m=new RegExp(String.raw`(?:^|[,:]\s*)([A-Z][\p{L}'’-]*(?:\s+[A-Z][\p{L}'’-]*)?)\s+${linking}\s*${mods}$`,'u').exec(before);
  if(m)return{aspect:m[1],aspectRule:"Named subject + linking verb"};
  if(/^(love|loved|like|liked|enjoy|enjoyed|hate|hated|appreciated|admired|despised|feared|praised|criticized|criticised|recommended|prefer|preferred)$/i.test(t.slice(cue.from,cue.to))){
