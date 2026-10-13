@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0.0",
+  "source_year": "2026-27",
+  "source_revision": "2026-07-15",
+  "institution": {
+    "unitid": "175120",
+    "name": "Summit Academy OIC",
+    "city": "Minneapolis",
+    "state": "MN"
+  },
+  "source_url": "https://saoic.org/sites/default/files/documents/Course%20Catalog%202026-27.pdf",
+  "source_kind": "official_institutional_course_catalog",
+  "programs": [
+    {
+      "name": "Financial Services",
+      "credits": 30,
+      "terms": 2,
+      "catalog_pdf_pages": [
+        15,
+        16,
+        17
+      ],
+      "school_award_title": null,
+      "award_status": "certificate_award_type_only_exact_printed_title_unverified",
+      "licensure_eligibility": null
+    },
+    {
+      "name": "IT Specialist",
+      "credits": 30,
+      "terms": 2,
+      "catalog_pdf_pages": [
+        18,
+        19
+      ],
+      "school_award_title": null,
+      "award_status": "certificate_award_type_only_exact_printed_title_unverified",
+      "licensure_eligibility": null
+    },
+    {
+      "name": "Carpentry",
+      "credits": 30,
+      "terms": 2,
+      "catalog_pdf_pages": [
+        21
+      ],
+      "school_award_title": null,
+      "award_status": "certificate_award_type_only_exact_printed_title_unverified",
+      "licensure_eligibility": null
+    },
+    {
+      "name": "Electrician",
+      "credits": 30,
+      "terms": 2,
+      "catalog_pdf_pages": [
+        22
+      ],
+      "school_award_title": null,
+      "award_status": "certificate_award_type_only_exact_printed_title_unverified",
+      "licensure_eligibility": null
+    },
+    {
+      "name": "Medical Administrative Assistant",
+      "credits": 30,
+      "terms": 2,
+      "catalog_pdf_pages": [
+        25,
+        26
+      ],
+      "school_award_title": null,
+      "award_status": "certificate_award_type_only_exact_printed_title_unverified",
+      "licensure_eligibility": null
+    },
+    {
+      "name": "Unlicensed Dental Assistant",
+      "credits": 30,
+      "terms": 2,
+      "catalog_pdf_pages": [
+        27,
+        28
+      ],
+      "school_award_title": null,
+      "award_status": "certificate_award_type_only_exact_printed_title_unverified",
+      "licensure_eligibility": null
+    }
+  ],
+  "tuition": {
+    "amount_per_credit_usd": 283,
+    "credits_per_program": 30,
+    "derived_program_tuition_usd": 8490,
+    "books_and_lab_fees_included": true,
+    "source_pdf_page": 7,
+    "not_equivalent_to_federal_net_price": true
+  },
+  "admissions": {
+    "entrance_exam_required": true,
+    "entrance_exam_varies_by_program": true,
+    "sat_act_policy": "unknown",
+    "source_pdf_page": 5
+  },
+  "limitations": [
+    "Program names are institution-published offerings for 2026-27, not school-issued certificate titles.",
+    "No CIP2020 assignment established by this source.",
+    "No occupational licensure or union eligibility established by course title.",
+    "Do not infer SAT/ACT admissions policy from institution-specific entrance exam.",
+    "Do not use institutional tuition as average net price or annual cost of attendance."
+  ]
+}
