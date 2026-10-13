@@ -24,8 +24,14 @@ def run(browser,width):
     assert page.locator("#cs-own-act").is_visible()
     assert page.locator("#cs-sat-low").is_enabled()
     assert page.locator("#cs-act-high").is_enabled()
-    assert page.locator("#cs-sat-band-unknown").inner_text()=="5,192"
-    assert page.locator("#cs-act-band-unknown").inner_text()=="5,278"
+    expected_sat=DATA["school_count"]-sum(1 for v in DATA["institutions"].values() if all(isinstance(v[i],int) for i in (2,3,4)))
+    expected_act=DATA["school_count"]-sum(1 for v in DATA["institutions"].values() if all(isinstance(v[i],int) for i in (5,6,7)))
+    sat_display=page.locator("#cs-sat-band-unknown").inner_text()
+    act_display=page.locator("#cs-act-band-unknown").inner_text()
+    score_status=page.locator("#cs-scores-status").inner_text()
+    print(f"BAND_COVERAGE_DIAGNOSTIC width={width} SAT={sat_display!r} expected={expected_sat:,} ACT={act_display!r} expected={expected_act:,} status={score_status!r}",flush=True)
+    assert sat_display==f"{expected_sat:,}",f"SAT coverage mismatch: {sat_display!r}, expected {expected_sat:,}; {score_status}"
+    assert act_display==f"{expected_act:,}",f"ACT coverage mismatch: {act_display!r}, expected {expected_act:,}; {score_status}"
     assert "1051 SAT and 965 ACT institutions" in page.locator("#cs-scores-status").inner_text()
 
     # Filter a named school for stable category assertions; badge is a score
