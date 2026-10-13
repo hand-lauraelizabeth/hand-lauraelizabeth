@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "review_date": "2026-10-13",
+  "scope": "Source-attributed institutional program and certification evidence; not an automatic credential, licensure, or career-eligibility determination.",
+  "records": [
+    {
+      "unitid": "168573",
+      "institution": "Northwestern Technological Institute",
+      "program_name": "Climate Control Technology",
+      "marketing_name": "Heating and Cooling",
+      "program_duration": "10.5 months",
+      "school_issued_award_title": null,
+      "school_award_verification": "unverified",
+      "admissions_requirement": "High school diploma or recognized equivalent such as GED",
+      "sat_act_policy": "unknown",
+      "published_program_price_usd": 17797,
+      "price_includes": "books",
+      "professional_certification_status": "preparation_for_exams_only",
+      "professional_certification_exams": [
+        "EPA 608 Universal",
+        "R-410A",
+        "EPA 609 Auto Air",
+        "A2L Low GWP Refrigerant Safety"
+      ],
+      "professional_certifications_issued_by_school": false,
+      "license_eligibility": "not_verified",
+      "source": {
+        "url": "https://northwesterntech.edu/hvac-school-admissions-requirements-michigan/",
+        "publication_date": "2026-09-01",
+        "publisher": "Northwestern Technological Institute"
+      },
+      "note": "Registered program name is Climate Control Technology. Training for an external examination is not evidence of the award or licensure."
+    },
+    {
+      "unitid": "227298",
+      "institution": "The Ocean Corporation",
+      "program_name": "Commercial Diver Certification",
+      "program_duration": "30 weeks",
+      "school_issued_award_title": null,
+      "school_award_verification": "unverified",
+      "sat_act_policy": "not_required_to_apply",
+      "professional_certification_status": "conditional_credential_pathway",
+      "imca_card_status": "requires_qualifying_dives_with_imca_contractor_after_training",
+      "license_eligibility": "not_verified",
+      "sources": [
+        {
+          "url": "https://oceancorp.com/programs/advanced-diving/",
+          "publisher": "The Ocean Corporation",
+          "retrieved_date": "2026-10-13",
+          "supports": "IMCA card requires qualifying dives with IMCA contractor"
+        },
+        {
+          "url": "https://oceancorp.com/admissions/overview/",
+          "publisher": "The Ocean Corporation",
+          "retrieved_date": "2026-10-13",
+          "supports": "No standardized scores required to apply"
+        },
+        {
+          "url": "https://oceancorp.com/programs/commercial-diving-certification/",
+          "publisher": "The Ocean Corporation",
+          "retrieved_date": "2026-10-13",
+          "supports": "30-week commercial diving training"
+        }
+      ],
+      "note": "Do not treat the IMCA card as automatically awarded at graduation. Other institution pages use less precise graduate-certification wording; the program-specific eligibility condition governs."
+    }
+  ],
+  "guards": {
+    "historical_completions_prove_current_program": false,
+    "professional_exam_preparation_proves_award": false,
+    "professional_card_automatically_issued_at_graduation": false,
+    "school_issued_credential_verified": false,
+    "unknown_sat_act_policy_means_test_optional": false,
+    "unitid_extensions_inherit_parent_evidence": false
+  }
+}
