@@ -46,3 +46,32 @@ test('HTML-sensitive input is escaped in highlights',()=>{
 test('trajectory is generated for scored multi-sentence text',()=>{
  assert.match(ctx.sentimentTrajectory(ctx.contextualSentiment('good. bad.')),/svg/);
 });
+
+test('literary foreboding, evil, and death are independently captured',()=>{
+ const text='Death and evil forebodings haunted the house.';
+ const a=ctx.affectAnalyze(text),s=ctx.contextualSentiment(text),highlight=ctx.contextHighlightV5(text,s,a);
+ assert.ok(a.counts['Mortality & violence']>=1);
+ assert.ok(a.counts['Malevolence & betrayal']>=1);
+ assert.ok(a.counts['Foreboding & threat']>=1);
+ assert.match(highlight,/Thematic cue/);
+ assert.match(highlight,/Negative evaluative cue/);
+});
+test('mention of mortality does not force a negative attitude',()=>{
+ const s=ctx.contextualSentiment('Death is a common topic in literature.');
+ assert.equal(s.hits.length,0);
+ const a=ctx.affectAnalyze('Death is a common topic in literature.');
+ assert.equal(a.counts['Mortality & violence'],1);
+});
+test('business risk, friction and trust can be separately observed',()=>{
+ const a=ctx.affectAnalyze('Users reported delays and fraud, but praised responsive support and trust.');
+ assert.ok(a.counts['Customer friction']>=1);
+ assert.ok(a.counts['Risk & compliance']>=1);
+ assert.ok(a.counts['Trust & credibility']>=1);
+ assert.ok(a.counts['Satisfaction & support']>=1);
+});
+test('heatmap, thematic cue cloud and panel render safely',()=>{
+ const a=ctx.affectAnalyze('evil forebodings and death.');
+ assert.match(ctx.affectHeatmap(a),/affect-heatmap/);
+ assert.match(ctx.affectCloud(a),/affect-cloud/);
+ assert.match(ctx.affectPanel({affect:a}),/Literary atmosphere/);
+});
