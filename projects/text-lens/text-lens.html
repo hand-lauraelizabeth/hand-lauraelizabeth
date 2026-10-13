@@ -110,7 +110,7 @@ function compare(a,b){ if(!a.W||!b.W)return'<section class="card cmp"><h2>Compar
   while(src+1<sources.length&&sources[src].end<=cue.from)src++;
   let nextNewline=t.indexOf('\n',newlineCursor);
   while(nextNewline>=0&&nextNewline<cue.from){line++;newlineCursor=nextNewline+1;nextNewline=t.indexOf('\n',newlineCursor)}
-  const doc=sources[src],part=segments[seg]||{start:0,end:t.length},lo=Math.max(part.start,cue.from-115),hi=Math.min(part.end,cue.to+145);
+  const doc=sources[src],part=segments[seg]||{start:0,end:t.length},lo=Math.max(part.start,doc.start,cue.from-115),hi=Math.min(part.end,doc.end,cue.to+145);
   const passage=(lo>part.start?'…':'')+t.slice(lo,hi).replace(/\s+/g,' ').trim()+(hi<part.end?'…':'');
   const relative=Math.max(0,cue.from-doc.start),percent=doc.end>doc.start?relative/(doc.end-doc.start)*100:0;
   const adjustment=[cue.negated?'negated':'',cue.modifier||'',cue.contrast?'after contrast':''].filter(Boolean);
