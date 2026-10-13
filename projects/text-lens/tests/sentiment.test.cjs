@@ -45,7 +45,7 @@ for(const [input,verify] of scores){
 }
 test('HTML-sensitive input is escaped in highlights',()=>{
  const src='<script>alert(1)</script> and good';
- const out=ctx.contextHighlight(src,ctx.contextualSentiment(src));
+ const out=ctx.contextHighlightV6(src,ctx.contextualSentiment(src),ctx.affectAnalyze(src));
  assert.ok(out.includes('&lt;script&gt;'));assert.ok(!out.includes('<script>'));
 });
 test('trajectory is generated for scored multi-sentence text',()=>{
