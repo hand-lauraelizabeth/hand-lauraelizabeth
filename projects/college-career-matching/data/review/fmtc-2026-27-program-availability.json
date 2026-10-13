@@ -1,0 +1,223 @@
+{
+  "institution": "Fort Myers Technical College",
+  "source_schedule": "https://fortmyerstech.edu/wp-content/uploads/2026/08/Program-Summary-Information-Spring-2027.pdf",
+  "source_catalog": "https://fortmyerstech.edu/wp-content/uploads/2026/07/FMTC-SWFPSA-Catalog-2627.pdf",
+  "source_scope": "Spring 2027 published program summary; cost/start subject to change",
+  "programs": [
+    {
+      "name": "Automotive Collision Technology Technician",
+      "hours": 1400,
+      "fl_resident_cost_usd": 10245,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Automotive Maintenance and Light Repair Technician",
+      "hours": 600,
+      "fl_resident_cost_usd": 3249,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Biomedical Equipment Repair Technology",
+      "hours": 1140,
+      "fl_resident_cost_usd": 4519,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Carpentry",
+      "hours": 1200,
+      "fl_resident_cost_usd": 6367,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "CNC Production Specialist",
+      "hours": 600,
+      "fl_resident_cost_usd": 3946,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Cosmetology",
+      "hours": 1200,
+      "fl_resident_cost_usd": 6829,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Diesel Maintenance Technician",
+      "hours": 600,
+      "fl_resident_cost_usd": 5337,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Electricity",
+      "hours": 1200,
+      "fl_resident_cost_usd": 7396,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Electronic Technology",
+      "hours": 1400,
+      "fl_resident_cost_usd": 5705,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Heating, Ventilation, Air-Conditioning/Refrigeration (HVAC/R)",
+      "hours": 1350,
+      "fl_resident_cost_usd": 6847,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Major Appliance and Refrigeration Technician",
+      "hours": 1200,
+      "fl_resident_cost_usd": 6306,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Marine Service Technologies",
+      "hours": 1350,
+      "fl_resident_cost_usd": 9322,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Master Automotive Service Technology",
+      "hours": 1800,
+      "fl_resident_cost_usd": 10073,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Mechatronics Technology",
+      "hours": 1550,
+      "fl_resident_cost_usd": 6137,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Medical Coder/Biller (Online)",
+      "hours": 1110,
+      "fl_resident_cost_usd": 4785,
+      "next_start": "monthly",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Nursing Assistant",
+      "hours": 165,
+      "fl_resident_cost_usd": 1378,
+      "next_start": "2027-01-05; every six weeks after",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Plumbing",
+      "hours": 1080,
+      "fl_resident_cost_usd": 7394,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Practical Nursing",
+      "hours": 1350,
+      "fl_resident_cost_usd": 9340,
+      "next_start": null,
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Professional Culinary Arts & Hospitality",
+      "hours": 1200,
+      "fl_resident_cost_usd": 5834,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Professional Nursing (LPN-RN)",
+      "hours": 900,
+      "fl_resident_cost_usd": 7790,
+      "next_start": "2026-12-16",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Solar Photovoltaic System Design, Installation and Maintenance - Entry Level",
+      "hours": 600,
+      "fl_resident_cost_usd": 4378,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Specialized Career Education, Comprehensive",
+      "hours": 900,
+      "fl_resident_cost_usd": 4043,
+      "next_start": "2027-08",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Turbine Generator Maintenance, Inspection and Repair",
+      "hours": 1200,
+      "fl_resident_cost_usd": 7390,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    },
+    {
+      "name": "Welding Technology",
+      "hours": 1050,
+      "fl_resident_cost_usd": 8227,
+      "next_start": "2027-01-05",
+      "school_issued_award_exact_title": null,
+      "cip6": null
+    }
+  ],
+  "career_readiness": {
+    "program": "Practical Nursing",
+    "hours": 1350,
+    "school_reported_board_approval": "Florida Board of Nursing",
+    "examination": "NCLEX-PN",
+    "licensure_automatic": false,
+    "school_award_exact_printed_title": null,
+    "admissions": "High-school/GED transcript; competitive selection; health/background requirements; SAT/ACT policy not explicitly established",
+    "source_catalog_pdf_pages": [
+      4,
+      55,
+      56
+    ]
+  },
+  "policy": {
+    "do_not_infer_current_cohort_from_historical_completions": true,
+    "do_not_infer_cip": true,
+    "do_not_infer_sat_act_policy": true,
+    "do_not_conflate_school_award_and_license": true,
+    "do_not_substitute_program_price_for_federal_cost": true,
+    "do_not_assume_scheduled_start_guaranteed": true
+  },
+  "review_date": "2026-10-13"
+}
