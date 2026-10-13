@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "release": "2026-06-10",
+  "scope": "review_only",
+  "source": "U.S. Department of Education College Scorecard June 2026 national 13-shard projection and score overlays",
+  "source_manifest": "data/national/manifest.v1.json",
+  "score_overlay_published": "data/sprint3/college-search-scores.v3.json",
+  "score_overlay_review": "data/sprint3/college-search-scores.v4.review.json",
+  "total_records": 6243,
+  "reporting_unitid_six_digit": 5787,
+  "extension_keys_eight_digit": 456,
+  "fields": [
+    "campus_setting",
+    "undergraduate_size",
+    "average_net_price",
+    "annual_cost",
+    "sat_average",
+    "act_reference",
+    "sat_25_75",
+    "act_25_75"
+  ],
+  "published_missing": {
+    "all": [
+      531,
+      781,
+      1222,
+      1221,
+      5079,
+      5228,
+      5192,
+      5278
+    ],
+    "six_digit": [
+      75,
+      325,
+      766,
+      765,
+      4623,
+      4772,
+      4736,
+      4822
+    ],
+    "eight_digit": [
+      456,
+      456,
+      456,
+      456,
+      456,
+      456,
+      456,
+      456
+    ]
+  },
+  "review_missing": {
+    "all": [
+      531,
+      781,
+      1222,
+      1221,
+      5079,
+      5227,
+      5191,
+      5277
+    ],
+    "six_digit": [
+      75,
+      325,
+      766,
+      765,
+      4623,
+      4771,
+      4735,
+      4821
+    ],
+    "eight_digit": [
+      456,
+      456,
+      456,
+      456,
+      456,
+      456,
+      456,
+      456
+    ]
+  },
+  "join_rule": "Eight-digit extension keys are not six-digit IPEDS UNITIDs. Do not transfer parent institution observations without independent location-specific evidence.",
+  "interpretation": "Missing is not equivalent to not offered, test optional, or not applicable. No production data values changed."
+}
