@@ -1,0 +1,24 @@
+/* Run with: node projects/data-rescue-studio/tests/rescue-core.test.js */
+const assert = require('node:assert/strict');
+const {parseDelimited, summarize, withoutExactDuplicates, exportCsv, formulaRisk} = require('../rescue-core.js');
+const input = '\ufeffName,Note,Amount\r\n"Ada, L.","first\nsecond",12\r\nBob,"He said ""yes""",=1+2\r\nBob,"He said ""yes""",=1+2\r\n';
+const parsed = parseDelimited(input);
+assert.equal(parsed.rows.length, 3);
+assert.equal(parsed.rows[0][0], 'Ada, L.');
+assert.equal(parsed.rows[0][1], 'first\nsecond');
+assert.equal(parsed.rows[1][1], 'He said "yes"');
+assert.equal(summarize(parsed).duplicateRows.length, 1);
+assert.equal(withoutExactDuplicates(parsed).rows.length, 2);
+assert.deepEqual(parseDelimited('a\tb\none\ttwo').rows, [['one','two']]);
+assert.equal(parseDelimited('x,x,\n1,2,3').normalizedHeaders[1], 'x (2)');
+assert.equal(parseDelimited('a,b\n,0').rows[0][0], '');
+assert.equal(formulaRisk(' \t=SUM(A1)'), true);
+assert.equal(formulaRisk('@danger'), true);
+assert.equal(formulaRisk('hello'), false);
+assert.ok(exportCsv(parsed, true).includes('"\t=1+2"'));
+assert.ok(exportCsv(parsed, false).includes('"=1+2"'));
+assert.ok(exportCsv(parsed, true).includes('"first\nsecond"'));
+assert.throws(() => parseDelimited('a,b\n"unclosed,x'), /Unclosed/);
+assert.throws(() => parseDelimited('a,b\n1,2,3'), /No data was discarded/);
+assert.throws(() => parseDelimited('a\nfoo"bar'), /Unexpected quote/);
+console.log('PASS: 16 Data Rescue core assertions.');
