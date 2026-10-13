@@ -119,7 +119,7 @@ test('file names, document-relative offsets and excerpt boundaries are preserved
  ctx.sourceDocs.a=[];
 });
 test('long-form punctuation segmentation supports 400000 characters',()=>{
- const text='A hard-wrapped line\\ncontinued until the ending. '.replace(/\\n/g,'\n').repeat(8200).slice(0,400000);
+ const text='A hard-wrapped line\\ncontinued until the ending. '.replace(/\\n/g,'\n').repeat(8400).slice(0,400000);
  assert.equal(text.length,400000);
  const segments=ctx.sentenceSegments(text);
  assert.ok(segments.length>7000);
