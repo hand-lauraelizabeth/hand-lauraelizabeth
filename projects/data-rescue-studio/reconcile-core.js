@@ -1,3 +1,9 @@
+/* Exact-key, browser-local CSV reconciliation. No automatic merges. */
+(function(root,factory){
+ const api=factory();
+ if(typeof module!=='undefined' && module.exports) module.exports=api;
+ if(root) root.DataReconcile=api;
+})(typeof window!=='undefined'?window:null,function(){
 'use strict';
 function reconcile(left,right,leftKey,rightKey){
  const l=left.normalizedHeaders.indexOf(leftKey),r=right.normalizedHeaders.indexOf(rightKey);
@@ -23,4 +29,5 @@ function reconcile(left,right,leftKey,rightKey){
  }
  return {matches,ambiguous,leftOnly,rightOnly,missingLeft:a.missing,missingRight:b.missing};
 }
-module.exports={reconcile};
+return {reconcile};
+});
