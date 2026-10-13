@@ -1,0 +1,129 @@
+/* Data Rescue Studio — browser-local CSV/TSV utilities. No third-party dependencies. */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  if (root) root.DataRescue = api;
+})(typeof window !== 'undefined' ? window : null, function () {
+  'use strict';
+  const MAX_BYTES = 5_000_000;
+  const MAX_ROWS = 50_000;
+  const MAX_COLUMNS = 100;
+
+  function detectDelimiter(text) {
+    let quote = false, commas = 0, tabs = 0;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (c === '"') {
+        if (quote && text[i+1] === '"') { i++; continue; }
+        quote = !quote;
+      } else if (!quote) {
+        if (c === '\n' || c === '\r') break;
+        if (c === ',') commas++;
+        if (c === '\t') tabs++;
+      }
+    }
+    return tabs > commas ? '\t' : ',';
+  }
+
+  function parseDelimited(text, delimiter) {
+    if (typeof text !== 'string') throw new Error('Input must be text.');
+    if (text.length > MAX_BYTES) throw new Error('File exceeds the 5 MB text limit.');
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    if (!text.trim()) throw new Error('File contains no data.');
+    const sep = delimiter || detectDelimiter(text);
+    if (sep !== ',' && sep !== '\t') throw new Error('Only CSV and TSV are supported.');
+    const records = []; let row = [], field = '', state = 'start';
+    function pushField() { row.push(field); field = ''; state = 'start'; }
+    function pushRow() {
+      pushField();
+      if (row.length > MAX_COLUMNS) throw new Error('More than 100 columns are not supported.');
+      records.push(row); row = [];
+      if (records.length > MAX_ROWS + 1) throw new Error('More than 50,000 data rows are not supported.');
+    }
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (state === 'quoted') {
+        if (c === '"') {
+          if (text[i+1] === '"') { field += '"'; i++; }
+          else state = 'afterQuote';
+        } else if (c === '\r') {
+          if (text[i+1] === '\n') i++;
+          field += '\n';
+        } else field += c;
+      } else if (c === sep) pushField();
+      else if (c === '\n' || c === '\r') {
+        pushRow();
+        if (c === '\r' && text[i+1] === '\n') i++;
+      } else if (state === 'start' && c === '"') state = 'quoted';
+      else if (state === 'afterQuote' && (c === ' ' || c === '\t') && sep !== '\t') {
+        // Tolerate whitespace between a quoted cell and its separator.
+      } else if (state === 'afterQuote') throw new Error('Unexpected text after a closing quote near character ' + (i+1) + '.');
+      else if (c === '"') throw new Error('Unexpected quote near character ' + (i+1) + '.');
+      else { field += c; state = 'unquoted'; }
+    }
+    if (state === 'quoted') throw new Error('Unclosed quoted field.');
+    if (row.length || field !== '' || state !== 'start') pushRow();
+    if (!records.length) throw new Error('No header row found.');
+    const headers = records.shift();
+    if (headers.length > MAX_COLUMNS) throw new Error('More than 100 columns are not supported.');
+    const normalizedHeaders = [];
+    const seen = new Map();
+    const warnings = [];
+    for (let i = 0; i < headers.length; i++) {
+      const base = headers[i].trim() || ('Column ' + (i+1));
+      const id = base.toLowerCase();
+      const count = (seen.get(id) || 0) + 1; seen.set(id, count);
+      normalizedHeaders.push(count === 1 ? base : base + ' (' + count + ')');
+      if (!headers[i].trim()) warnings.push('Column ' + (i+1) + ' has a blank header.');
+      if (count > 1) warnings.push('Repeated header: ' + base + '.');
+    }
+    const data = [];
+    for (let i = 0; i < records.length; i++) {
+      if (records[i].length !== headers.length) throw new Error('Row ' + (i+2) + ' has ' + records[i].length + ' columns; expected ' + headers.length + '. No data was discarded.');
+      data.push(records[i]);
+    }
+    return { headers, normalizedHeaders, rows: data, warnings, delimiter: sep };
+  }
+
+  function summarize(parsed) {
+    const {rows, normalizedHeaders: headers} = parsed;
+    const counts = headers.map((name, column) => {
+      const values = rows.map(r => r[column]);
+      return {name, blank: values.filter(v => v.trim() === '').length,
+        unique: new Set(values).size, total: values.length};
+    });
+    const seen = new Map(), duplicateRows = [];
+    rows.forEach((row, i) => {
+      const key = JSON.stringify(row);
+      if (seen.has(key)) duplicateRows.push({row: i + 2, firstSeen: seen.get(key) + 2});
+      else seen.set(key, i);
+    });
+    return {rowCount: rows.length, columnCount: headers.length, columns: counts, duplicateRows};
+  }
+
+  function withoutExactDuplicates(parsed) {
+    const seen = new Set();
+    return {...parsed, rows: parsed.rows.filter(row => {
+      const key = JSON.stringify(row);
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    })};
+  }
+
+  function formulaRisk(value) {
+    return /^[\s\uFEFF]*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20]/u.test(String(value));
+  }
+
+  function exportCsv(parsed, spreadsheetView = true) {
+    const write = v => {
+      let s = String(v);
+      // Spreadsheet-oriented mode adds a leading tab *inside* a quoted cell.
+      // This may alter exported data; machine-readable users should disable it.
+      if (spreadsheetView && formulaRisk(s)) s = '\t' + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    };
+    return [parsed.headers, ...parsed.rows].map(row => row.map(write).join(',')).join('\r\n');
+  }
+
+  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, exportCsv, MAX_BYTES, MAX_ROWS};
+});
