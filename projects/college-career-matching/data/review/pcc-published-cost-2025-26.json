@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "scope": "review_only",
+  "unitid": "136455",
+  "institution": "Pensacola Christian College",
+  "source_registry": {
+    "pcc_cost_2025_26": {
+      "provider": "Pensacola Christian College",
+      "dataset": "Basic Cost — Annual Tuition and Costs 2025–2026",
+      "url": "https://www.pcci.edu/admissions/costs/",
+      "academic_year": "2025–2026",
+      "retrieved_date": "2026-10-13",
+      "field": "Estimated Total Cost / Yr."
+    }
+  },
+  "published_estimated_annual_cost": {
+    "amount_cents": 1752050,
+    "currency": "USD",
+    "source_id": "pcc_cost_2025_26",
+    "components_cents": {
+      "tuition": 991800,
+      "fees": 5250,
+      "books_supplies": 120000,
+      "room_board": 515000,
+      "other_living": 120000
+    },
+    "reporting_basis": "institution-published estimated student cost, not a federal Scorecard annual cost or average net price"
+  },
+  "provenance_safeguards": {
+    "replace_federal_annual_cost": false,
+    "replace_average_net_price": false,
+    "derive_net_price_from_average_scholarship": false,
+    "inherit_to_eight_digit_extensions": false,
+    "show_cohort_and_source_url": true
+  },
+  "notes": "The institution separately describes an approximately $31,700 annual institutional cost and an estimated student personal cost. Do not substitute those different concepts or infer a net price from the reported average grant."
+}
