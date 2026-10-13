@@ -6,7 +6,7 @@ const data = JSON.parse(fs.readFileSync(path.join(__dirname,'../data/review/inst
 assert.equal(data.records.length,2);
 assert.equal(new Set(data.records.map(x=>x.unitid)).size,2);
 for (const record of data.records) {
-  assert.match(record.unitid,/^\\d{6}$/);
+  assert.match(record.unitid,/^\d{6}$/);
   assert.equal(record.school_issued_award_title,null);
   assert.equal(record.school_award_verification,'unverified');
   assert.equal(record.license_eligibility,'not_verified');
