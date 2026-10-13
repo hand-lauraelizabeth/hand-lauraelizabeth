@@ -25,7 +25,7 @@ test("all 13 historical program shards satisfy pinned manifest bytes, hashes and
     assert.equal(sha256(raw), shard.sha256, shard.file);
     assert.equal(data.institutions.length, shard.institutions, shard.file);
     const n = data.institutions.reduce((sum, [id, records]) => {
-      assert.match(id, /^\\d{6}$/);
+      assert.match(id, /^\d{6}$/);
       assert.equal(ids.has(id), false, "duplicate institutional ID " + id);
       ids.add(id);
       return sum + records.length;
@@ -42,7 +42,7 @@ test("all 13 historical program shards satisfy pinned manifest bytes, hashes and
 test("real rows distinguish positive and zero historical awards without reserved CIP or short certificates", () => {
   const manifest = readJson("programs.manifest.v1.json").data;
   const titles = readJson(manifest.cip2020_titles.file).data;
-  const reserved = new Set(Object.keys(titles).filter(code => /\\breserved\\b/i.test(titles[code])));
+  const reserved = new Set(Object.keys(titles).filter(code => /\breserved\b/i.test(titles[code])));
   assert.equal(Object.keys(titles).length, 2325);
   assert.equal(reserved.size, 30);
   const observed = new Set(), positive = new Set(), zero = new Set();
