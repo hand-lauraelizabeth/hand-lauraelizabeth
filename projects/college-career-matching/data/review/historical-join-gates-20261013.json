@@ -1,0 +1,41 @@
+{
+  "scope": "Historical Scorecard evidence review; no production data mutation",
+  "observations": 267,
+  "institutions": 135,
+  "source_year_counts": {
+    "2021-22": 46,
+    "2022-23": 81,
+    "2023-24": 140
+  },
+  "field_counts": {
+    "UGDS": 3,
+    "COSTT4_A": 69,
+    "COSTT4_P": 63,
+    "NPT4_PUB": 26,
+    "NPT4_PRIV": 106
+  },
+  "qa": {
+    "invalid_or_duplicate_records": 0,
+    "checks": [
+      "six-digit UNITID",
+      "unique UNITID-field",
+      "approved federal field",
+      "public/private net-price control",
+      "numeric nonnegative value",
+      "historical-only restriction",
+      "status",
+      "current missing indicator",
+      "year scope",
+      "year-source filename"
+    ]
+  },
+  "join_policy": "Exact six-digit UNITID only; do not map 8-digit extension keys to parent institutions",
+  "display_policy": "Historical values only; never populate current filters",
+  "excluded_scope": "119 AWLEVEL 20/21 institutions still require separate institutional reconciliation",
+  "sources": [
+    "Private archived College Scorecard MERGED2021_22_PP.csv",
+    "MERGED2022_23_PP.csv",
+    "MERGED2023_24_PP.csv"
+  ],
+  "review_date": "2026-10-13"
+}
