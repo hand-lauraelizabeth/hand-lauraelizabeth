@@ -56,3 +56,8 @@ jobs:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/accessibility_axe.py
+      - name: Test keyboard workflows and browser accessibility semantics
+        env:
+          CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: python projects/responsible-ai-demo-tests/keyboard_semantics.py
