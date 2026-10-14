@@ -1,54 +1,26 @@
 # Prompt Literacy Debugger
 
-A browser-based teaching tool for diagnosing a prompt before using it.
+A self-contained browser demonstration that helps learners inspect an existing prompt across seven dimensions: task, audience/context, evidence boundaries, authority limits, output requirements, verification, and human responsibility.
 
-The tool treats prompting as **task specification**, not prompt magic. Learners examine seven dimensions:
+## Try it
 
-1. task;
-2. context and audience;
-3. evidence boundary;
-4. authority and guardrails;
-5. output contract;
-6. verification;
-7. human responsibility.
+Download this folder and open [index.html](index.html) in a modern browser. GitHub's file view displays the source code; it does not run the interactive page. No server, account, paid model or API key is needed.
 
-It then generates a rebuild scaffold that preserves the original request while making missing requirements explicit.
+## What works
 
-## Why this is different from the Evidence-Safe Prompt Lab
+- Paste or type a prompt, choose use-case, consequence and data-sensitivity context.
+- **Suggest ratings (review required)** scans for limited textual clues, assigning provisional **partial** or **missing** ratings; it **never** declares a dimension explicitly satisfied. Word matches are fallible and do not establish adequacy.
+- Review all seven ratings yourself, including **explicit**, **partial / implied**, **missing**, or **not rated**.
+- Generate a coverage map and a rebuild scaffold that explicitly carries forward all unresolved dimensions.
+- Receive human-review, privacy and escalation reminders for higher-consequence or sensitive uses.
+- Copy the resulting scaffold locally, or clear the assessment.
 
-The [Evidence-Safe Prompt Lab](../evidence-safe-prompt-lab/) helps users **compose** an evidence-conscious prompt.
+## Limitations and classroom use
 
-The Prompt Literacy Debugger helps users **inspect and diagnose** a prompt they already have. It is meant to teach why a prompt succeeds or fails, not simply provide a stronger prompt on demand.
+This tool does **not** use AI, infer the meaning of a prompt reliably, judge legal compliance, or validate external evidence. Clues are simple regular-expression matches; user review is mandatory. Compare different students' ratings to make hidden assumptions visible, then test revisions with approved systems.
 
-## Responsible-use design
+For source-to-claim **composition**, use the [Evidence-Safe Prompt Lab](../evidence-safe-prompt-lab/). For workflow risk and oversight planning, use the [Ethical AI Scenario Auditor](../ethical-ai-scenario-auditor/).
 
-The tool runs entirely in the browser. It does not call an AI API or transmit entered text.
+**Privacy:** The page has no network requests, analytics or persistent browser storage. Do not paste sensitive or restricted information into an unapproved environment even when the local page does not upload it.
 
-It also adds decision gates when a user identifies:
-- high-consequence use;
-- internal/restricted information;
-- sensitive, confidential, or identifying data.
-
-Those gates are teaching prompts, not compliance determinations.
-
-## Instructional use
-
-A useful exercise is to give a class the same vague prompt and ask learners to rate the seven dimensions independently. Compare disagreements before revealing a revised scaffold.
-
-This makes hidden assumptions visible and creates a natural discussion about:
-- what the model was actually asked to do;
-- what evidence it was allowed to rely on;
-- what could be inferred;
-- what needed verification;
-- what remained a human decision.
-
-## Framework alignment
-
-The teaching design is consistent with current AI-literacy and responsible-AI frameworks that emphasize human agency, critical evaluation, risk management, and responsible use rather than treating AI proficiency as prompt technique alone:
-
-- NIST, *Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile* (NIST AI 600-1): https://doi.org/10.6028/NIST.AI.600-1
-- UNESCO, *AI Competency Framework for Teachers* (2024): https://www.unesco.org/en/articles/ai-competency-framework-teachers
-- UNESCO, *AI Competency Framework for Students* (2024): https://www.unesco.org/en/articles/ai-competency-framework-students
-- OECD / European Commission, *Empowering Learners for the Age of AI: An AI Literacy Framework for Primary and Secondary Education* (2026): https://doi.org/10.1787/65cd27d4-en
-
-These sources inform the educational framing; the tool is not an official implementation or certification instrument for any of them.
+**Framework context:** This independently developed teaching demo draws on ideas of human agency, critical evaluation and risk management in the [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework) and [UNESCO AI Competency Frameworks](https://www.unesco.org/en/digital-education/ai-future-learning/competency-frameworks). It is not an official assessment or certification.
