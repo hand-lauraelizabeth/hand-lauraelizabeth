@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const d=JSON.parse(fs.readFileSync(process.argv[2] || new URL('../data/review/ice-nyc-2026-evidence.json',import.meta.url),'utf8'));
+assert.equal(d.unitid,'457819');
+assert.equal(d.programs.length,5);
+assert.equal(new Set(d.programs.map(p=>p.name)).size,5);
+assert.deepEqual(d.programs.map(p=>p.hours),[642,610,632,316,638]);
+assert.deepEqual(d.programs.map(p=>p.externship),[210,210,200,null,200]);
+assert.deepEqual(d.programs.map(p=>p.price),[46950,45450,41750,16500,17000]);
+assert.ok(d.programs.every(p=>p.source.startsWith('https://www.ice.edu/')));
+assert.equal(d.award_type,'Diploma');
+assert.equal(d.printed_award_title,null);
+assert.equal(d.sat_act_policy,null);
+assert.match(d.note,/No inferred CIP/);
+console.log('PASS: 11 NYC program evidence assertions');
