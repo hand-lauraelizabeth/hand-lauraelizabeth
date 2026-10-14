@@ -9,6 +9,7 @@ button,select,input{font:inherit}button{border:1px solid #255f4c;background:#255
 button:disabled{opacity:.5}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #d58b30;outline-offset:3px}
 input[type=file],select{display:block;max-width:100%;width:100%;min-width:0}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.fieldgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px}.fieldgrid>*{min-width:0}
 .overflow{max-width:100%;overflow:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd8cf;padding:7px;text-align:left}
 th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
 .muted{color:#526258}
@@ -30,12 +31,30 @@ th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
 <p id="historyStatus" role="status" aria-live="polite">No transformations yet.</p>
 <div class="overflow" id="historyLog"></div>
 <p class="muted">The manifest records step types, affected counts, and source dimensions without cell values. It is not a data backup. Redo history is replaced by new changes after undo.</p></section>
-<section aria-labelledby="output"><h2 id="output">3. Review and export</h2>
+<section aria-labelledby="comparison"><h2 id="comparison">3. Reconcile with source record positions</h2>
+<p>Compare the transformed first dataset with a second CSV or TSV using exact, case-sensitive identifiers. Matching results use original logical record numbers, even after duplicate removal. A quoted multiline cell counts as one record, not multiple text lines.</p>
+<label for="compareFile"><strong>Second UTF-8 CSV or TSV (up to 5 MB)</strong></label>
+<input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values">
+<p id="compareStatus" role="status" aria-live="polite">Open a first file above to compare.</p>
+<div class="fieldgrid">
+<div><label for="leftKey"><strong>First-file identifier</strong></label><select id="leftKey" disabled></select></div>
+<div><label for="rightKey"><strong>Second-file identifier</strong></label><select id="rightKey" disabled></select></div>
+</div>
+<div class="actions">
+<button id="compareRun" disabled>Compare identifiers</button>
+<button id="compareExport" disabled>Export source-position audit CSV</button>
+<button id="compareClear">Clear second file</button>
+</div>
+<div id="compareMetrics" class="fieldgrid" aria-label="Comparison totals"></div>
+<div id="compareResults" class="overflow" aria-label="Comparison findings"></div>
+<p class="muted">Ambiguous identifiers are never silently merged. Source record 1 is the header, and source record 2 is the first data record. The audit contains identifier keys and original record positions, not full source rows. Treat exported keys as sensitive; formula-like keys receive a spreadsheet-oriented prefix, which is not a universal safeguard.</p>
+</section>
+<section aria-labelledby="output"><h2 id="output">4. Review and export</h2>
 <p id="rowCount">Load a file to preview data.</p>
 <div class="overflow" id="preview"></div>
 <div class="actions"><button id="save" disabled>Export working-copy CSV</button></div>
 <p class="muted">Spreadsheet-oriented export adds a leading tab to formula-like cells. This changes those values and is not a complete protection against spreadsheet formula injection. Keep exports containing identifiers private.</p></section>
-</main><script src="rescue-core.js"></script><script src="history-core.js"></script><script src="history-ui.js"></script><script>
+</main><script src="rescue-core.js"></script><script src="reconcile-core.js"></script><script src="provenance-core.js"></script><script src="reconcile-ui.js"></script><script src="history-core.js"></script><script src="history-ui.js"></script><script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id),lib=window.DataRescue;
