@@ -14,5 +14,6 @@
   "professional_license_automatic": false,
   "cip6": null,
   "source_catalog": "https://csha.net/wp-content/uploads/2026/06/Catalog.pdf",
-  "source_tuition": "https://csha.net/wp-content/uploads/2026/02/TuitionAddendum1.pdf"
+  "source_tuition": "https://csha.net/wp-content/uploads/2026/02/TuitionAddendum1.pdf",
+  "admissions_min_age": 18
 }
