@@ -1,0 +1,65 @@
+{
+  "unitid": 439668,
+  "institution": "HDS Truck Driving Institute",
+  "campus": "Tucson Arizona",
+  "as_of": "2026-10-14",
+  "source_school": "https://hdstruckdrivinginstitute.com/tucson-cdl-truck-driver-training-programs/",
+  "source_state": "https://www.azjobconnection.gov/etp/public/institution_programs/",
+  "programs": [
+    {
+      "name": "Professional Truck Driver Program",
+      "hours": 730,
+      "total_cost_usd": 12995,
+      "source_id": 10024,
+      "school_award_type": "Completion Certificate",
+      "current_school_evidence": "explicit",
+      "school_award_exact_title": null,
+      "school_specific_cip": "49.0205",
+      "license_automatic": false,
+      "price_current_unverified": true
+    },
+    {
+      "name": "CLASS A CDL",
+      "hours": 160,
+      "total_cost_usd": 4995,
+      "source_id": 10022,
+      "school_award_type": null,
+      "current_school_evidence": "category",
+      "school_award_exact_title": null,
+      "school_specific_cip": "49.0205",
+      "license_automatic": false,
+      "price_current_unverified": true
+    },
+    {
+      "name": "CLASS B CDL",
+      "hours": 80,
+      "total_cost_usd": 3295,
+      "source_id": 10021,
+      "school_award_type": null,
+      "current_school_evidence": "category",
+      "school_award_exact_title": null,
+      "school_specific_cip": "49.0205",
+      "license_automatic": false,
+      "price_current_unverified": true
+    },
+    {
+      "name": "Commercial Truck Driver Program",
+      "hours": 310,
+      "total_cost_usd": 5495,
+      "source_id": 10023,
+      "school_award_type": "Completion Certificate",
+      "current_school_evidence": "unconfirmed",
+      "school_award_exact_title": null,
+      "school_specific_cip": "49.0205",
+      "license_automatic": false,
+      "price_current_unverified": true
+    }
+  ],
+  "admissions_sat_act_policy": null,
+  "notes": [
+    "State training-provider records updated in 2024 and 2025; costs are not current 2026 quotes",
+    "School-issued completion award is separate from state driver license",
+    "No career crosswalk or current enrollment assumption",
+    "Yuma branch excluded"
+  ]
+}
