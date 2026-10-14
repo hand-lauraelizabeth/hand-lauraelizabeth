@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const data=JSON.parse(readFileSync(new URL("../data/review/greene-2026-award-evidence.json",import.meta.url),"utf8"));
+assert.equal(data.unitid,"365240");
+assert.equal(data.hours,845);
+assert.equal(data.school_award,"Certificate of Completion");
+assert.equal(data.printed_award_title,null);
+assert.equal(data.future_start,null);
+assert.equal(data.sat_act_policy,null);
+assert.equal(data.state_certificate_automatic,false);
+assert.equal(data.individual_eligibility_verified,false);
+assert.equal(data.cip6,null);
+assert.ok(data.sources.length>=3);
+console.log("Greene evidence: 10 assertions passed");
