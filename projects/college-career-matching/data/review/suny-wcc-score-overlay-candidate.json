@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "purpose": "institutional descriptive SAT/ACT scores staged for later safe source-aware score overlay integration",
+  "state": "review_only",
+  "institution_unitid": "197294",
+  "source_evidence": "data/review/suny-wcc-2025-cds-sat-act-numeric.json",
+  "institution_name": "SUNY Westchester Community College",
+  "cohort": "Fall 2025 enrolled first-year degree-seeking",
+  "source_url": "https://www.sunywcc.edu/wp-content/uploads/2026/04/2025-2026-Common-Data-Set.pdf",
+  "verified_metrics": {
+    "sat_composite": {
+      "p25": 940,
+      "p50": 1170,
+      "p75": 1250,
+      "n": 45,
+      "percent_submitted_rounded": 2
+    },
+    "sat_reading_writing": {
+      "p25": 500,
+      "p50": 600,
+      "p75": 630
+    },
+    "sat_math": {
+      "p25": 440,
+      "p50": 570,
+      "p75": 630
+    },
+    "act_composite": {
+      "p25": 23,
+      "p50": 27,
+      "p75": null,
+      "n": 3,
+      "percent_submitted_rounded": 0
+    }
+  },
+  "metadata": {
+    "exact_catalog_unitid_match": true,
+    "absent_from_existing_overlay_v3": true,
+    "reporting_cohort_not_admissions_applicant_population": true,
+    "uses_tests_for_admission": false,
+    "uses_tests_for_advising": true,
+    "source_type": "institutional_common_data_set",
+    "official_sat_composite_percentiles": true,
+    "derived_sat_average": null,
+    "derived_act_midpoint": null,
+    "suitable_for_safety_target_reach": false,
+    "display_mode": "descriptive_only",
+    "missing_values_stay_null": true
+  },
+  "do_not_auto_merge_into_v3": true,
+  "reason": "Existing v3 UI infers admission categories from populated test bands; this institution explicitly does not use SAT/ACT for admissions and the submitter sample is too small.",
+  "reviewed_at": "2026-10-14"
+}
