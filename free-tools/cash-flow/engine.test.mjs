@@ -28,4 +28,20 @@ check(()=>assert.ok(exportCSV(base).includes(',-180.00,20.00,')));
 check(()=>assert.ok(!exportCSV(base).includes("'-180.00")));
 check(()=>assert.deepEqual(occurrences({date:'2100-12-31',repeat:'monthly'},'2100-12-01','2100-12-31'),['2100-12-31']));
 check(()=>assert.deepEqual(occurrences({date:'1900-01-31',repeat:'monthly'},'2100-12-01','2100-12-31'),['2100-12-31']));
+// Scenario timing shifts each occurrence independently, preserving month-end anchoring.
+const monthly={id:'rent-month-end',label:'Month-end rent',date:'2024-01-31',repeat:'monthly',cents:-100};
+const monthlyConfig={start:'2024-02-01',end:'2024-04-05',openingCents:1000,events:[monthly]};
+const monthlyShift=project({...monthlyConfig,shiftId:monthly.id,shiftDays:2});
+check(()=>assert.deepEqual(monthlyShift.days.filter(d=>d.events.length).map(d=>d.date),['2024-02-02','2024-03-02','2024-04-02']));
+check(()=>assert.equal(monthlyShift.endingCents,700));
+check(()=>assert.equal(monthly.date,'2024-01-31'));
+const monthlyEarlier=project({...monthlyConfig,start:'2024-01-29',end:'2024-03-29',shiftId:monthly.id,shiftDays:-3});
+check(()=>assert.deepEqual(monthlyEarlier.days.filter(d=>d.events.length).map(d=>d.date),['2024-02-26','2024-03-28']));
+check(()=>assert.equal(monthlyEarlier.endingCents,800));
+// A recurrence after the visible window can enter the window when shifted earlier.
+const edge=project({start:'2026-02-25',end:'2026-02-28',openingCents:0,events:[{id:'a',label:'Monthly',date:'2026-01-31',repeat:'monthly',cents:-1}],shiftId:'a',shiftDays:-1});
+check(()=>assert.deepEqual(edge.days.filter(d=>d.events.length).map(d=>d.date),['2026-02-27']));
+// User-facing year limits do not prevent internal padding across the year boundary.
+const edgeYear=project({start:'2100-12-29',end:'2100-12-31',openingCents:0,events:[{id:'x',label:'Monthly',date:'2100-11-01',repeat:'monthly',cents:-1}],shiftId:'x',shiftDays:-3});
+check(()=>assert.deepEqual(edgeYear.days.filter(d=>d.events.length).map(d=>d.date),['2100-12-29']));
 console.log(`${n} FT-04 deterministic assertions PASS`);
