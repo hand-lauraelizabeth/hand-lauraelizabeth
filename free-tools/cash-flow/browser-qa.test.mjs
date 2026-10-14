@@ -56,7 +56,7 @@ async function testBrowser(name,type){
       await page.keyboard.press('Tab');
       const current=await page.evaluate(()=>{
         const el=document.activeElement;
-        return el.tagName==='BUTTON'?el.textContent.trim():el.id;
+        return el.id||(el.tagName==='BUTTON'?el.textContent.trim():'');
       });
       if(current&&current!==visited.at(-1))visited.push(current);
     }
