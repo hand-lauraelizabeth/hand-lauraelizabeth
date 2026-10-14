@@ -75,9 +75,11 @@
     }
     message('Reading second file locally…');
     try {
-      const source = await file.text();
+      const parsed = root.DataRescueFileReader
+        ? await root.DataRescueFileReader.read(file, lib.parseDelimited)
+        : lib.parseDelimited(await file.text(), /\.tsv$/i.test(file.name) ? '\t' : undefined);
       if (thisGeneration !== generation) return;
-      second = lib.parseDelimited(source, /\.tsv$/i.test(file.name) ? '\t' : undefined);
+      second = parsed;
       secondName = file.name;
       options('rightKey', second);
       invalidate();
