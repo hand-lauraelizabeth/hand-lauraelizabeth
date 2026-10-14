@@ -26,7 +26,7 @@ table{width:100%;border-collapse:collapse;margin-top:14px}th,td{text-align:left;
 </main>
 <script>
 const qs=[["purpose","Purpose and necessity","Is the intended benefit specific, legitimate, and difficult to achieve with a less intrusive method?"],["data","Data minimization","Are inputs limited to what is necessary, with retention and secondary use considered?"],["notice","Notice / consent","Will affected people reasonably understand when AI is used and what it does?"],["bias","Bias and differential impact","Is there a plan to test performance and harms across relevant groups and contexts?"],["explain","Transparency","Can users understand the system's role, limits, and the basis for consequential outputs?"],["oversight","Human oversight","Can an accountable person meaningfully review, override, or stop the system?"],["contest","Contestability","Can affected people correct data, challenge an output, or reach a human?"],["security","Security","Are access controls, data handling, vendor risk, and misuse or attack paths addressed?"],["provenance","Provenance and evidence","Can the team trace source data, model/tool versions, prompts or instructions, and material decisions?"],["uncertainty","Uncertainty and limits","Are failure modes, confidence limits, and situations requiring non-AI handling documented?"],["monitor","Monitoring","Are outcomes, drift, incidents, complaints, and unintended effects reviewed after launch?"],["community","Affected-community perspective","Have people who bear the consequences had a meaningful role in defining success and risk?"]];
-const host=document.getElementById("questions");qs.forEach(q=>{const d=document.createElement("fieldset");d.className="item";d.innerHTML='<legend class="q">'+q[1]+'</legend><div class="note">'+q[2]+'</div><div class="answers"><label><input type="radio" name="'+q[0]+'" value="0"> Yes</label><label><input type="radio" name="'+q[0]+'" value="1"> Partial / unknown</label><label><input type="radio" name="'+q[0]+'" value="2"> No</label></div>';host.appendChild(d)});
+const host=document.getElementById("questions");qs.forEach(q=>{const d=document.createElement("fieldset");d.className="item";d.innerHTML='<legend class="q">'+q[1]+'</legend><div class="note">'+q[2]+'</div><div class="answers"><label><input type="radio" name="'+q[0]+'" value="0"> Yes (self-reported)</label><label><input type="radio" name="'+q[0]+'" value="1"> Partial / unknown</label><label><input type="radio" name="'+q[0]+'" value="2"> No</label></div>';host.appendChild(d)});
 function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
 
 const ideas={
@@ -48,7 +48,7 @@ const byId=id=>document.getElementById(id);
 function escAttr(s){return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 function assess(){
  const scenario=byId("scenario").value.trim();
- if(!scenario){byId("summary").textContent="Describe a scenario before assessing it.";return}
+ if(!scenario){wasAssessed=false;reviewPromptCurrent=false;byId("summary").textContent="Describe a scenario before assessing it.";byId("riskRegister").textContent="No current assessment.";byId("prompt").textContent="Describe a scenario and re-assess to generate a review prompt.";return}
  activeRisks=[];wasAssessed=true;let yes=0,partial=0,no=0,unanswered=0;
  qs.forEach(q=>{
   const x=document.querySelector('input[name="'+q[0]+'"]:checked'),value=x?Number(x.value):3;
@@ -67,20 +67,20 @@ function getRegister(){
 function refresh(){
  const scenario=byId("scenario").value.trim();if(!scenario||!wasAssessed){byId("status").textContent="Assess or re-assess the scenario first.";return}
  const register=getRegister();
- const lines=["RESPONSIBLE-AI WORKFLOW REVIEW — HUMAN-ASSIGNED, UNVERIFIED","","SCENARIO",scenario,"","STAGE",byId("stage").value,"","IMPACT",byId("impact").selectedOptions[0].text,"","OPEN RISKS / QUESTIONS (proposals, not completed controls)"];
+ const lines=["RESPONSIBLE-AI WORKFLOW REVIEW — HUMAN-ASSIGNED, UNVERIFIED","","SCENARIO",scenario,"","STAGE",byId("stage").value,"","IMPACT",byId("impact").selectedOptions[0].text,"","CONTROL SELF-REPORTS (YES DOES NOT ESTABLISH VERIFIED IMPLEMENTATION)",...qs.map(q=>{const answer=document.querySelector('input[name="'+q[0]+'"]:checked');return q[1]+": "+(answer?(answer.value==="0"?"Yes — self-reported":answer.value==="1"?"Partial / unknown":"No / unaddressed"):"Not assessed");}),"","OPEN RISKS / QUESTIONS (proposals, not completed controls)"];
  if(!register.length)lines.push("No gaps marked. Independently test assumptions and unrecognized risks.");
  register.forEach((r,i)=>lines.push("","AREA "+(i+1)+": "+r.name+" — "+r.status,"Risk: "+r.risk,"Mitigation: "+r.mitigation,"Owner: "+r.owner,"Evidence needed: "+r.evidence,"Oversight / contestability: "+r.route,"Status: "+r.state));
  lines.push("","INDEPENDENT REVIEW REQUIRED","Validate claims, compare a non-AI alternative, document testing and meaningful human review; determine go / revise / do-not-deploy-yet conditions. Drafted mitigations do not establish compliance or safety.");
  byId("prompt").textContent=lines.join("\n");reviewPromptCurrent=true;byId("status").textContent="Review prompt updated from the current risk register.";
 }
-["scenario","impact","stage"].forEach(id=>byId(id).addEventListener(id==="scenario"?"input":"change",()=>{wasAssessed=false;reviewPromptCurrent=false;byId("status").textContent="Scenario context changed. Re-assess to update the risk register."}));
-document.querySelectorAll('input[type="radio"]').forEach(x=>x.addEventListener("change",()=>{wasAssessed=false;reviewPromptCurrent=false;byId("status").textContent="Answers changed. Re-assess to update the risk register."}));
+["scenario","impact","stage"].forEach(id=>byId(id).addEventListener(id==="scenario"?"input":"change",()=>{wasAssessed=false;reviewPromptCurrent=false;byId("status").textContent="Scenario context changed. Re-assess to update the risk register.";byId("summary").textContent="Previous assessment is out of date.";byId("riskRegister").textContent="Re-assess to rebuild the register.";byId("prompt").textContent="Previous review prompt is out of date."}));
+document.querySelectorAll('input[type="radio"]').forEach(x=>x.addEventListener("change",()=>{wasAssessed=false;reviewPromptCurrent=false;byId("status").textContent="Answers changed. Re-assess to update the risk register.";byId("summary").textContent="Previous assessment is out of date.";byId("riskRegister").textContent="Re-assess to rebuild the register.";byId("prompt").textContent="Previous review prompt is out of date."}));
 byId("riskRegister").addEventListener("input",()=>{if(reviewPromptCurrent){reviewPromptCurrent=false;byId("status").textContent="Risk register changed. Update the review prompt before copying.";}});
 byId("riskRegister").addEventListener("change",()=>{if(reviewPromptCurrent){reviewPromptCurrent=false;byId("status").textContent="Risk register changed. Update the review prompt before copying.";}});
 byId("refresh").addEventListener("click",refresh);
 byId("export").addEventListener("click",()=>{
  if(!byId("scenario").value.trim()||!wasAssessed){byId("status").textContent="Assess or re-assess the scenario before exporting.";return}
- const report={scope:"Human-edited planning draft; no automated verification or compliance determination",scenario:byId("scenario").value.trim(),stage:byId("stage").value,impact:byId("impact").selectedOptions[0].text,risks:getRegister()};
+ const report={scope:"Human-edited planning draft; no automated verification or compliance determination",scenario:byId("scenario").value.trim(),stage:byId("stage").value,impact:byId("impact").selectedOptions[0].text,control_self_reports:Object.fromEntries(qs.map(q=>{const answer=document.querySelector('input[name="'+q[0]+'"]:checked');return [q[0],answer?(answer.value==="0"?"Yes — self-reported":answer.value==="1"?"Partial / unknown":"No / unaddressed"):"Not assessed"];})),risks:getRegister()};
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="ethical-ai-risk-register.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  byId("status").textContent="Risk register exported locally.";
 });
