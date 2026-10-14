@@ -17,7 +17,7 @@ def check(condition,label):
     assert condition,label
     checks+=1
 with sync_playwright() as playwright:
-    browser=playwright.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+    browser=playwright.chromium.launch(headless=True,executable_path='/usr/bin/chromium' if Path('/usr/bin/chromium').exists() else None,args=['--no-sandbox'])
     page=browser.new_page(viewport={'width':320,'height':700},accept_downloads=True)
     page.set_content(html)
     page.add_style_tag(content=(p/'styles.css').read_text())
