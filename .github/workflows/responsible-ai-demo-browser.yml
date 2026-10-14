@@ -61,3 +61,18 @@ jobs:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/keyboard_semantics.py
+
+      - name: Build static browser-accessible demo preview (no publishing)
+        run: python projects/responsible-ai-demo-tests/build_public_bundle.py
+      - name: Test staged static-site links and mobile navigation
+        env:
+          CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: python projects/responsible-ai-demo-tests/bundle_smoke.py
+      - name: Preserve reviewed static-site preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsible-ai-static-site-preview
+          path: dist/responsible-ai
+          if-no-files-found: error
+          retention-days: 14
