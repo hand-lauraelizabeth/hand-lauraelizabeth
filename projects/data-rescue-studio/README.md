@@ -14,6 +14,12 @@ Open \`index.html\` in a browser and select a local \`.csv\` or \`.tsv\` file, o
 
 The **spreadsheet-oriented formula precaution** prefixes formula-like values with a tab inside their CSV field. This may modify data and is **not** a universal spreadsheet-injection defense. Disable it for machine-readable exports, inspect all untrusted data, and consult [OWASP CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection). There is no cross-application perfect CSV sanitization. Nothing is uploaded to the website server by this local demo.
 
+## Local file validation
+
+Both the primary review page and the transformation/reconciliation review page validate the imported CSV/TSV **as bytes**. The file must have a `.csv` or `.tsv` extension, be at most **5,000,000 bytes** (decimal 5 MB), and decode as valid UTF-8. Invalid UTF-8 sequences and embedded NUL characters are rejected with a visible error; UTF-8 BOMs are supported. Malformed CSV/TSV rows still fail without silently discarding data. Filename extensions and browser-supplied media types do not prove that a file is safe. No file is sent to a remote server.
+
+These decisions follow [MDN's TextDecoder documentation](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/TextDecoder) for fatal decoding and the [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html) for allowlisted extensions, content validation, and size limits. The separate spreadsheet-oriented formula precaution remains **best-effort**, modifies exported values, and is not a substitute for inspecting untrusted CSVs.
+
 ## Transformation and source-position review
 
 The separate review page `history-preview.html` combines local CSV/TSV import, reversible whitespace trimming, exact duplicate removal, undo/redo, two-file exact-key comparison, and downloadable CSV and JSON evidence. Select a first-file identifier and second-file identifier, then choose **Compare identifiers**. After changing the first-file working copy, rerun the comparison. The original file is not modified.
@@ -30,6 +36,9 @@ node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
 node projects/data-rescue-studio/tests/reconcile-core.test.js
 node projects/data-rescue-studio/tests/reconcile-regression.test.js
 node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
+node projects/data-rescue-studio/tests/history-core.test.js
+node projects/data-rescue-studio/tests/provenance-core.test.js
+node projects/data-rescue-studio/tests/file-reader.test.js
 \`\`\`
 
 Includes synthetic fixtures for quoted commas, embedded newlines, repeated quotes, Unicode BOM, tabs, blank values, repeated headers, exact duplicates, malformed rows, missing and ambiguous keys, and second-file state changes. The synthetic controller test is not a substitute for real-browser keyboard, mobile, and zoom checks.
