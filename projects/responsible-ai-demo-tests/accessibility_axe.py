@@ -20,6 +20,8 @@ WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]
 TARGETS = [
  ("Live Prompt Lab", BASE + "prompt-lab/", "#prompt-lab", "prompt-lab"),
  ("Live Ethical AI Decision Lab", BASE + "ai-use-decision-lab/", "#ai-use-lab", "ai-use-lab"),
+ ("Live Teaching Statistics with R", BASE + "teaching-statistics-with-r/", "#leh-r-teaching", "leh-r-teaching"),
+ ("Live Teaching NLP with Python", BASE + "teaching-nlp-with-python/", "#leh-python-nlp", "leh-python-nlp"),
  ("Prompt Literacy Debugger", (ROOT / "projects/prompt-literacy-debugger/index.html").as_uri(), "main", None),
  ("Evidence-Safe Prompt Lab", (ROOT / "projects/evidence-safe-prompt-lab/index.html").as_uri(), "main", None),
  ("Ethical AI Scenario Auditor", (ROOT / "projects/ethical-ai-scenario-auditor/index.html").as_uri(), "main", None),
