@@ -45,7 +45,7 @@ jobs:
       - name: Install browser QA tooling and engines
         run: |
           cd free-tools/cash-flow
-          npm install --no-save --no-package-lock playwright@1.57.0
+          npm install --no-save --no-package-lock playwright@1.57.0 axe-core@4.10.3
           npx playwright install --with-deps chromium firefox webkit
       - name: HTTP-served Chromium Firefox WebKit regression checks
         run: node free-tools/cash-flow/browser-qa.test.mjs
