@@ -24,8 +24,11 @@ jobs:
           node --check free-tools/cash-flow/engine.test.mjs
           node --check free-tools/cash-flow/boundary.test.mjs
           node --check free-tools/cash-flow/occurrence-anchor-regression.test.mjs
+          node --check free-tools/cash-flow/security-accessibility.test.mjs
       - name: Engine and recurrence regressions
         run: |
           node free-tools/cash-flow/engine.test.mjs
           node free-tools/cash-flow/boundary.test.mjs
           node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
+      - name: Static CSP, accessibility and security guards
+        run: node free-tools/cash-flow/security-accessibility.test.mjs
