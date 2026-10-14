@@ -8,7 +8,7 @@ The kit combines three browser-based demonstrations:
 - [Evidence-Safe Prompt Lab](../../projects/evidence-safe-prompt-lab/) — build source-conscious prompts with support classifications, uncertainty, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) — move from abstract principles to concrete workflow risks, mitigations, owners, oversight, and contestability.
 
-All three tools run client-side and do not call an AI API.
+All three tools run client-side and do not call an AI API. To interact with them, download the respective project folder and open its `index.html` locally; GitHub directory previews show source rather than a hosted app. The Debugger offers provisional textual clues but requires human ratings; the Prompt Lab records reviewer-assigned—not independently validated—source support; the Scenario Auditor produces proposed controls, owners, tests, and appeal routes that require substantive human review.
 
 Supporting teaching resources:
 
@@ -82,7 +82,7 @@ The instructional value is not the score. It is the disagreement: learners disco
 
 Use the [Evidence-Safe Prompt Lab](../../projects/evidence-safe-prompt-lab/) to make evidence constraints visible.
 
-Support labels:
+Support labels (applied by a human reviewer; the page does not validate source contents):
 
 - **DIRECT** — the source explicitly establishes the material claim.
 - **PARTIAL** — the source supports part of the claim or supports a narrower formulation.
@@ -123,7 +123,7 @@ Grade evidence alignment rather than prose polish.
 
 ## Module 5 — Ethical AI is workflow design
 
-Use the [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) to move beyond principle lists.
+Use the [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) to move beyond principle lists by editing risk-specific mitigations, accountable owners, evidence tests, oversight, and correction or appeal pathways.
 
 Review:
 
