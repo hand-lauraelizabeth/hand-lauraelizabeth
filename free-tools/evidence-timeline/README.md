@@ -8,7 +8,7 @@ Records appear in chronological order. Matching group labels identify records th
 
 **Privacy:** Data stays in the current tab and disappears on refresh or close. The page contains no analytics or remote dependencies. This prototype accepts typed entries and JSON files exported by this tool (5,000,000-byte limit, strict UTF-8 and schema validation). Import replaces the current timeline only after confirmation. It does not read attachments or medical records.
 
-**Testing:** `node core.test.mjs` covers the original chronology; `node exact-import.test.mjs` covers exact IDs, schema and file limits. The import UI uses local files only. `python browser_smoke.py` runs 15 synthetic Chromium assertions (requires Playwright and Chromium at the configured executable path). The browser harness injects the same source files into an isolated page because the development runtime blocks local navigation; it does not verify deployment CSP, real HTTP loading, screen readers, or other browser engines.
+**Testing:** `node core.test.mjs` covers the original chronology; `node exact-import.test.mjs` covers exact IDs, schema and file limits. The import UI uses local files only. `python browser_smoke.py` runs 13 synthetic Chromium assertions (requires Playwright and Chromium at the configured executable path). The browser harness injects the same source files into an isolated page because the development runtime blocks local navigation; it does not verify deployment CSP, real HTTP loading, screen readers, or other browser engines.
 
 Accessibility review follows W3C WCAG 2.2 labels/instructions and text-error guidance: https://www.w3.org/TR/WCAG22/ . CSV risks and the limitations of mitigations are documented by OWASP: https://community.owasp.org/attacks/CSV_Injection .
 
