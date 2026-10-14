@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {occurrences,project,exportCSV} from './engine.mjs';
+let passed=0;
+const check=(name,fn)=>{fn();passed++;};
+const event=(id,date,repeat,cents)=>({id,label:id,date,repeat,cents});
+check('monthly leap-year clamping',()=>assert.deepEqual(occurrences(event('m','2024-01-31','monthly',-100),'2024-02-01','2024-04-30'),['2024-02-29','2024-03-31','2024-04-30']));
+check('monthly recurrence recovers original day after February',()=>assert.deepEqual(occurrences(event('m','2025-01-30','monthly',-100),'2025-02-01','2025-03-31'),['2025-02-28','2025-03-30']));
+check('weekly recurrence anchored to start',()=>assert.deepEqual(occurrences(event('w','2026-10-01','weekly',100),'2026-10-09','2026-10-23'),['2026-10-15','2026-10-22']));
+check('shifting monthly anchor preserves original event',()=>{const e=event('m','2024-01-31','monthly',-100);const input={start:'2024-02-01',end:'2024-04-30',openingCents:1000,events:[e]};const p=project({...input,shiftId:'m',shiftDays:1});assert.deepEqual(p.days.filter(d=>d.events.length).map(d=>d.date),['2024-02-01','2024-03-01','2024-04-01']);assert.equal(e.date,'2024-01-31');});
+check('same-day aggregation order and integer cents',()=>{const p=project({start:'2026-10-14',end:'2026-10-14',openingCents:0,events:[event('a','2026-10-14','once',101),event('b','2026-10-14','once',-100)]});assert.equal(p.days[0].changeCents,1);assert.deepEqual(p.days[0].events.map(e=>e.id),['a','b']);});
+check('CSV guards leading whitespace formula',()=>{const p=project({start:'2026-10-14',end:'2026-10-14',openingCents:0,events:[{...event('=bad','2026-10-14','once',100),label:'\t+HYPERLINK("x")'}]});const csv=exportCSV(p);assert.ok(csv.includes("\"'=bad\""));assert.ok(csv.includes("\"'\t+HYPERLINK"));});
+check('no events retains balance',()=>{const p=project({start:'2026-10-14',end:'2026-10-16',openingCents:1234,events:[]});assert.deepEqual(p.days.map(d=>d.balanceCents),[1234,1234,1234]);});
+check('duplicate event identifiers rejected',()=>assert.throws(()=>project({start:'2026-10-14',end:'2026-10-14',openingCents:0,events:[event('x','2026-10-14','once',1),event('x','2026-10-14','once',2)]}),/unique/));
+console.log(`${passed} FT-04 boundary regression assertions PASS`);
