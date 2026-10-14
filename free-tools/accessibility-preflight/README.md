@@ -18,6 +18,6 @@ The HTML preflight now flags unresolved, empty, or repeated ARIA ID references; 
 Run `python relationship.smoke.test.py` for the committed 12-case synthetic Chromium suite. It injects the module into a browser DOM and does **not** verify a deployed site's CSP or assistive-technology behavior.
 
 Additional official references (reviewed October 14, 2026):
-- [W3C WAI-ARIA 1.2, ID reference error processing](https://www.w3.org/TR/wai-aria-1.2/#mapping_additional_nd_te)
+- [W3C WAI-ARIA 1.2, ID reference error processing](https://www.w3.org/TR/wai-aria-1.2/)
 - [W3C WAI accessible names and descriptions](https://www.w3.org/WAI/ARIA/apg/practices/names-and-descriptions/)
 - [W3C WCAG 2.2, Label in Name](https://www.w3.org/WAI/WCAG22/Understanding/label-in-name)
