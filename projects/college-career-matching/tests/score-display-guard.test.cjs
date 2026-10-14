@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {describeScoreRecord}=require('../review/score-display-guard.cjs');
+const candidates={'105330':{source:'official CDS',cohort:'fall 2025',sat:{p25:1010,p75:1280,percent:3},act:{p25:19,p75:26,percent:27}},'197294':{source:'official CDS',cohort:'fall 2025',sat:{p25:940,p75:1250,percent:2},act:{p25:23,p75:null,percent:0}}};
+const baseline={'208822':[1197],'300001':[1100]};
+const view={describe:id=>candidates[id]||null,baselineEntry:id=>baseline[id]||null,canClassify:id=>id!=='208822'};
+const a=describeScoreRecord('105330',view),b=describeScoreRecord('197294',view),g=describeScoreRecord('208822',view);
+assert.equal(a.sat,'SAT 25th–75th: 1010–1280');assert.equal(a.actSubmitterPercent,27);assert.equal(a.allowScoreBasedCategory,false);assert.equal(a.admissionCategory,null);
+assert.match(b.act,/Not reported/);assert.equal(b.allowScoreBasedCategory,false);
+assert.equal(g.allowScoreBasedCategory,false);assert.equal(g.admissionCategory,null);
+assert.equal(describeScoreRecord('12240901',view),null);assert.equal(describeScoreRecord('999999',view),null);
+assert.equal(describeScoreRecord('300001',view).allowScoreBasedCategory,true);assert.equal(baseline['208822'][0],1197);
+console.log('11 display guard assertions passed');
