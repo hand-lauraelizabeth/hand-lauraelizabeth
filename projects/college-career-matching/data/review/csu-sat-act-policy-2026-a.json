@@ -1,0 +1,18 @@
+{
+  "system": "CSU",
+  "unitids": [
+    "110422",
+    "110486",
+    "110495",
+    "110510",
+    "110529",
+    "110538",
+    "110547",
+    "110556",
+    "110565",
+    "110574",
+    "110583"
+  ],
+  "policy_source": "https://www.calstate.edu/apply/freshman/getting_into_the_csu/pages/testing-requirements.aspx",
+  "numeric_scores_added": 0
+}
