@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const evidence = JSON.parse(readFileSync(new URL('../data/review/nau-2025-cds-score-candidate.json', import.meta.url), 'utf8'));
 const clone = (x) => structuredClone(x);
 const assertValid = (d) => {
-  assert.match(d.institution.unitid, /^\\d{6}$/);
+  assert.match(d.institution.unitid, /^\d{6}$/);
   assert.equal(d.institution.unitid, '105330');
   assert.equal(d.institution.present_in_pinned_national_v3, true);
   assert.equal(d.institution.absent_from_pinned_score_overlay_v3, true);
