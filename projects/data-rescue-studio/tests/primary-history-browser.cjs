@@ -1,0 +1,48 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const {pathToFileURL}=require('node:url'),{chromium}=require('playwright');
+const {parseDelimited}=require('../rescue-core.js');
+(async()=>{
+ const browser=await chromium.launch();
+ const page=await browser.newPage({viewport:{width:320,height:800},acceptDownloads:true});
+ const errors=[],network=[];let checks=0;
+ const ok=(v,label)=>{assert.ok(v,label);checks++;};
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('request',r=>{if(/^https?:/.test(r.url()))network.push(r.url());});
+ try{
+  await page.goto(pathToFileURL(path.resolve(__dirname,'../index.html')).href);
+  ok(await page.locator('#trimApply').isDisabled(),'changes disabled without source');
+  const first='ID,Name,Note\n" 1 "," Ada ",x\n1,Ada,x\n2,Bob,y\n2,Bob,y\n';
+  await page.locator('#file').setInputFiles({name:'source.csv',mimeType:'text/csv',buffer:Buffer.from(first)});
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Loaded source.csv'));
+  await page.locator('#trimColumn').selectOption('0');await page.locator('#trimApply').click();
+  await page.locator('#trimColumn').selectOption('1');await page.locator('#trimApply').click();
+  await page.locator('#removeDuplicates').click();
+  ok((await page.locator('#metrics .metric strong').first().innerText())==='2','primary summary tracks working copy');
+  ok((await page.locator('#historyStatus').innerText()).includes('3 active steps'),'history controls are wired');
+  await page.locator('#compareFile').setInputFiles({name:'other.csv',mimeType:'text/csv',buffer:Buffer.from('Code,Value\n1,ok\n2,ok\n')});
+  await page.waitForFunction(()=>document.querySelector('#compareStatus').textContent.includes('Loaded second file'));
+  await page.locator('#leftKey').selectOption('ID');await page.locator('#rightKey').selectOption('Code');
+  await page.locator('#compareRun').click();
+  ok((await page.locator('#compareMetrics .metric strong').first().innerText())==='2','two one-to-one matches');
+  const [auditDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#compareExport').click()]);
+  const audit=parseDelimited(fs.readFileSync(await auditDownload.path(),'utf8'));
+  ok(audit.rows.some(r=>r[0]==='Match'&&r[1]==='1'&&r[2]==='2'),'first original source row retained');
+  ok(audit.rows.some(r=>r[0]==='Match'&&r[1]==='2'&&r[2]==='4'),'deduped record retains source row 4');
+  await page.locator('#historyUndo').click();
+  ok((await page.locator('#metrics .metric strong').first().innerText())==='4','undo restores duplicates');
+  ok(await page.locator('#compareExport').isDisabled(),'undo invalidates stale audit');
+  const [manifestDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#historyExport').click()]);
+  const manifest=JSON.parse(fs.readFileSync(await manifestDownload.path(),'utf8'));
+  ok(manifest.appliedRevisions===2&&manifest.source.rowCount===4,'manifest source dimensions and cursor');
+  ok(!JSON.stringify(manifest).includes('Ada'),'manifest excludes cell values');
+  const [csvDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#save').click()]);
+  const exported=parseDelimited(fs.readFileSync(await csvDownload.path(),'utf8'));
+  ok(exported.rows.length===4,'working-copy CSV exports restored rows');
+  ok(errors.length===0,'no uncaught browser exceptions');
+  ok(network.length===0,'no network requests');
+  ok((await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth))<=1,'no overflow at 320px');
+  console.log('PASS: '+checks+' primary history Chromium assertions.');
+ }finally{await page.close();await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

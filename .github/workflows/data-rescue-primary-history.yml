@@ -1,0 +1,33 @@
+name: Data Rescue primary history integration review
+on:
+  push:
+    branches:
+      - review/ft03-primary-history-ci-20261014-1545
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Deterministic core and provenance regressions
+        run: |
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js
+          node projects/data-rescue-studio/tests/history-core.test.js
+          node projects/data-rescue-studio/tests/provenance-core.test.js
+          node projects/data-rescue-studio/tests/secondary-reader-guard.test.js
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Primary-page history and source-position audit
+        run: node projects/data-rescue-studio/tests/primary-history-browser.cjs
