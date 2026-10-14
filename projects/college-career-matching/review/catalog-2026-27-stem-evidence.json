@@ -1,0 +1,198 @@
+{
+  "schema_version": "catalog_evidence_review_v1",
+  "review_date": "2026-10-14",
+  "release_pin": "3abb9f458c9d0d43c857c64292dc407f3bd1e911",
+  "review_only": true,
+  "scope": "School-specific named credentials documented in official 2026-27 catalogs; no assertion of current term enrollment or CIP equivalence",
+  "national_denominators": {
+    "institutions": 6243,
+    "score_overlay": 1247,
+    "historical_ipeds_first_major_rows": 235330,
+    "historical_ipeds_campuses": 5658,
+    "official_cip_titles": 2325,
+    "historical_observed_cip": 1591
+  },
+  "records": [
+    {
+      "unitid": "216339",
+      "institution": "Temple University",
+      "program_name": "Artificial Intelligence",
+      "credential_exact": "Bachelor of Science",
+      "institution_program_code": "ST-AI-BS",
+      "catalog_plan_id": null,
+      "catalog_campuses": [
+        "Main",
+        "Japan"
+      ],
+      "campus_unitid_mapping": "Main campus institution record only; Japan campus separately listed in catalog but its UNITID association has not been verified",
+      "catalog_url": "https://bulletin.temple.edu/undergraduate/science-technology/artificial-intelligence-bs/",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    },
+    {
+      "unitid": "216339",
+      "institution": "Temple University",
+      "program_name": "Cybersecurity",
+      "credential_exact": "Bachelor of Science",
+      "institution_program_code": "ST-CYBR-BS",
+      "catalog_plan_id": null,
+      "catalog_campuses": [
+        "Main",
+        "Japan"
+      ],
+      "campus_unitid_mapping": "Main campus institution record only; Japan campus separately listed in catalog but its UNITID association has not been verified",
+      "catalog_url": "https://bulletin.temple.edu/undergraduate/science-technology/cybersecurity-bs/",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    },
+    {
+      "unitid": "216339",
+      "institution": "Temple University",
+      "program_name": "Computer Science",
+      "credential_exact": "Bachelor of Science",
+      "institution_program_code": "ST-CSCI-BS",
+      "catalog_plan_id": null,
+      "catalog_campuses": [
+        "Main",
+        "Japan"
+      ],
+      "campus_unitid_mapping": "Main campus institution record only; Japan campus separately listed in catalog but its UNITID association has not been verified",
+      "catalog_url": "https://bulletin.temple.edu/undergraduate/science-technology/computer-science-bs/",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    },
+    {
+      "unitid": "216339",
+      "institution": "Temple University",
+      "program_name": "Information Science and Technology",
+      "credential_exact": "Bachelor of Science",
+      "institution_program_code": "ST-IST-BS",
+      "catalog_plan_id": null,
+      "catalog_campuses": [
+        "Main"
+      ],
+      "campus_unitid_mapping": "Main campus institution record only; Japan campus separately listed in catalog but its UNITID association has not been verified",
+      "catalog_url": "https://bulletin.temple.edu/undergraduate/science-technology/information-science-technology-bs/",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    },
+    {
+      "unitid": "216339",
+      "institution": "Temple University",
+      "program_name": "Information Science and Technology",
+      "credential_exact": "Bachelor of Arts",
+      "institution_program_code": "ST-IST-BA",
+      "catalog_plan_id": null,
+      "catalog_campuses": [
+        "Main"
+      ],
+      "campus_unitid_mapping": "Main campus institution record only; Japan campus separately listed in catalog but its UNITID association has not been verified",
+      "catalog_url": "https://bulletin.temple.edu/undergraduate/science-technology/information-science-technology-ba/",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    },
+    {
+      "unitid": "216339",
+      "institution": "Temple University",
+      "program_name": "Computer Science and Physics",
+      "credential_exact": "Bachelor of Science",
+      "institution_program_code": "ST-CSPH-BS",
+      "catalog_plan_id": null,
+      "catalog_campuses": [
+        "Main"
+      ],
+      "campus_unitid_mapping": "Main campus institution record only; Japan campus separately listed in catalog but its UNITID association has not been verified",
+      "catalog_url": "https://bulletin.temple.edu/undergraduate/science-technology/computer-science-physics-bs/",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    },
+    {
+      "unitid": "105330",
+      "institution": "Northern Arizona University",
+      "program_name": "Environmental Sciences",
+      "credential_exact": "Bachelor of Science",
+      "institution_program_code": null,
+      "catalog_plan_id": "ENVSCBS",
+      "catalog_campuses": [
+        "Flagstaff"
+      ],
+      "campus_unitid_mapping": "Flagstaff listed; separate delivery sites and UNITIDs not mapped",
+      "campus_qualifier": "The degree page lists Flagstaff under Campus Availability, but a Biology emphasis note mentions Yuma; do not infer full Yuma program availability without further confirmation.",
+      "catalog_url": "https://catalog.nau.edu/Catalog/details?catalogYear=2627&mobile=true&plan=ENVSCBS",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    },
+    {
+      "unitid": "105330",
+      "institution": "Northern Arizona University",
+      "program_name": "Environmental and Sustainability Studies",
+      "credential_exact": "Bachelor of Science",
+      "institution_program_code": null,
+      "catalog_plan_id": "ENVSTDBSX",
+      "catalog_campuses": [
+        "Flagstaff"
+      ],
+      "campus_unitid_mapping": "Flagstaff listed; separate delivery sites and UNITIDs not mapped",
+      "campus_qualifier": null,
+      "catalog_url": "https://catalog.nau.edu/Catalog/details?catalogYear=2627&mobile=true&plan=ENVSTDBSX",
+      "catalog_year": "2026-2027",
+      "source_type": "official_institutional_catalog",
+      "evidence_status": "catalog_listed",
+      "enrollment_this_term_verified": null,
+      "admissions_to_major_verified": null,
+      "licensure_board_status": null,
+      "cip2020_code": null,
+      "cip_mapping_status": "not_mapped",
+      "career_eligibility_verified": null
+    }
+  ]
+}
