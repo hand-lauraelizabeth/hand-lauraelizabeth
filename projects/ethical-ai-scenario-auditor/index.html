@@ -43,7 +43,7 @@ const ideas={
  monitor:["Post-launch harms may persist unnoticed.","Track errors, complaints, drift and changes; define stop triggers and review cadence.","Monitoring owner"],
  community:["Affected people may be excluded from defining success and harm.","Consult affected groups and record resulting design changes.","Community liaison"]
 };
-let activeRisks=[],wasAssessed=false;
+let activeRisks=[],wasAssessed=false,reviewPromptCurrent=false;
 const byId=id=>document.getElementById(id);
 function escAttr(s){return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 function assess(){
@@ -71,10 +71,12 @@ function refresh(){
  if(!register.length)lines.push("No gaps marked. Independently test assumptions and unrecognized risks.");
  register.forEach((r,i)=>lines.push("","AREA "+(i+1)+": "+r.name+" — "+r.status,"Risk: "+r.risk,"Mitigation: "+r.mitigation,"Owner: "+r.owner,"Evidence needed: "+r.evidence,"Oversight / contestability: "+r.route,"Status: "+r.state));
  lines.push("","INDEPENDENT REVIEW REQUIRED","Validate claims, compare a non-AI alternative, document testing and meaningful human review; determine go / revise / do-not-deploy-yet conditions. Drafted mitigations do not establish compliance or safety.");
- byId("prompt").textContent=lines.join("\n");byId("status").textContent="Review prompt updated from the current risk register.";
+ byId("prompt").textContent=lines.join("\n");reviewPromptCurrent=true;byId("status").textContent="Review prompt updated from the current risk register.";
 }
-["scenario","impact","stage"].forEach(id=>byId(id).addEventListener(id==="scenario"?"input":"change",()=>{wasAssessed=false;byId("status").textContent="Scenario context changed. Re-assess to update the risk register."}));
-document.querySelectorAll('input[type="radio"]').forEach(x=>x.addEventListener("change",()=>{wasAssessed=false;byId("status").textContent="Answers changed. Re-assess to update the risk register."}));
+["scenario","impact","stage"].forEach(id=>byId(id).addEventListener(id==="scenario"?"input":"change",()=>{wasAssessed=false;reviewPromptCurrent=false;byId("status").textContent="Scenario context changed. Re-assess to update the risk register."}));
+document.querySelectorAll('input[type="radio"]').forEach(x=>x.addEventListener("change",()=>{wasAssessed=false;reviewPromptCurrent=false;byId("status").textContent="Answers changed. Re-assess to update the risk register."}));
+byId("riskRegister").addEventListener("input",()=>{if(reviewPromptCurrent){reviewPromptCurrent=false;byId("status").textContent="Risk register changed. Update the review prompt before copying.";}});
+byId("riskRegister").addEventListener("change",()=>{if(reviewPromptCurrent){reviewPromptCurrent=false;byId("status").textContent="Risk register changed. Update the review prompt before copying.";}});
 byId("refresh").addEventListener("click",refresh);
 byId("export").addEventListener("click",()=>{
  if(!byId("scenario").value.trim()||!wasAssessed){byId("status").textContent="Assess or re-assess the scenario before exporting.";return}
@@ -82,8 +84,8 @@ byId("export").addEventListener("click",()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="ethical-ai-risk-register.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  byId("status").textContent="Risk register exported locally.";
 });
-byId("clear").addEventListener("click",()=>{byId("scenario").value="";byId("impact").value="2";byId("stage").selectedIndex=0;document.querySelectorAll('input[type="radio"]').forEach(x=>x.checked=false);activeRisks=[];wasAssessed=false;byId("summary").innerHTML='<p class="note">Complete the questions and select <strong>Assess scenario</strong>.</p>';byId("riskRegister").innerHTML='<p class="note">Assess a scenario to draft a risk register.</p>';byId("prompt").textContent="The generated review prompt will appear here.";byId("status").textContent=""});
+byId("clear").addEventListener("click",()=>{byId("scenario").value="";byId("impact").value="2";byId("stage").selectedIndex=0;document.querySelectorAll('input[type="radio"]').forEach(x=>x.checked=false);activeRisks=[];wasAssessed=false;reviewPromptCurrent=false;byId("summary").innerHTML='<p class="note">Complete the questions and select <strong>Assess scenario</strong>.</p>';byId("riskRegister").innerHTML='<p class="note">Assess a scenario to draft a risk register.</p>';byId("prompt").textContent="The generated review prompt will appear here.";byId("status").textContent=""});
 document.getElementById("assess").addEventListener("click",assess);
 document.getElementById("example").addEventListener("click",()=>{document.getElementById("scenario").value="A university career-services team wants an AI assistant to summarize student intake notes and recommend follow-up resources. Staff will see the recommendation before contacting the student.";document.getElementById("impact").value="2";const vals={purpose:0,data:1,notice:1,bias:2,explain:1,oversight:0,contest:1,security:1,provenance:2,uncertainty:2,monitor:2,community:2};Object.entries(vals).forEach(e=>{const x=document.querySelector('input[name="'+e[0]+'"][value="'+e[1]+'"]');if(x)x.checked=true});assess()});
-document.getElementById("copy").addEventListener("click",async()=>{if(!wasAssessed||!document.getElementById("scenario").value.trim()||document.getElementById("prompt").textContent==="The generated review prompt will appear here."){document.getElementById("status").textContent="Assess a scenario first.";return}try{await navigator.clipboard.writeText(document.getElementById("prompt").textContent);document.getElementById("status").textContent="Review prompt copied."}catch(e){document.getElementById("status").textContent="Copy was blocked by the browser; select the prompt manually."}});
+document.getElementById("copy").addEventListener("click",async()=>{if(!wasAssessed||!reviewPromptCurrent||!document.getElementById("scenario").value.trim()){document.getElementById("status").textContent="Assess a scenario first.";return}try{await navigator.clipboard.writeText(document.getElementById("prompt").textContent);document.getElementById("status").textContent="Review prompt copied."}catch(e){document.getElementById("status").textContent="Copy was blocked by the browser; select the prompt manually."}});
 </script></body></html>
