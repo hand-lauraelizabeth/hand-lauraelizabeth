@@ -1,0 +1,21 @@
+{
+  "unitid": "365240",
+  "institution": "Greene County Career Center",
+  "program": "Peace Officer Basic Training",
+  "hours": 845,
+  "school_award": "Certificate of Completion",
+  "printed_award_title": null,
+  "school_catalog_period": "2025-07-01/2026-06-30",
+  "published_start": "2026-09-08",
+  "future_start": null,
+  "sat_act_policy": null,
+  "state_certificate_automatic": false,
+  "individual_eligibility_verified": false,
+  "cip6": null,
+  "sources": [
+    "https://www.greeneccc.com/POBT",
+    "https://www.greeneccc.com/Downloads/Ad%20Ed%20Handbook%2025-26.pdf",
+    "https://opota.ohioattorneygeneral.gov/Home/FAQ"
+  ],
+  "note": "School award and professional certification are separate. No production changes."
+}
