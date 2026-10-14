@@ -1,0 +1,42 @@
+{
+  "unitid": "373526",
+  "catalog_pdf": "https://dda.edu/wp-content/uploads/2026/09/DDA-BR-WM-Vol-35-4rd-Ed-V2-2026.09.29-FINAL.pdf",
+  "admissions": {
+    "catalog_age_by_graduation": 21,
+    "website_age_by_graduation": 18,
+    "age_conflict": "unresolved",
+    "education": "High school diploma, equivalency, OR beyond Louisiana compulsory-school age",
+    "dot_physical_and_drug_screen": true,
+    "valid_drivers_license": true,
+    "sat_act_policy": "unknown"
+  },
+  "career": {
+    "school_award": "Certificate of Completion",
+    "state_license": "Class A CDL",
+    "license_automatic": false,
+    "state_authority": "https://expresslane.la.gov/omv/drivers/commercial-driver-s-licenses-cdl/new-cdl/",
+    "federal_eldt": "https://tpr.fmcsa.dot.gov/Drivers/Applicability"
+  },
+  "schedule": {
+    "advanced_evening": "2026-10-19",
+    "advanced_day": "2026-11-02",
+    "basic": "2026-10-26",
+    "open_seats_verified": false
+  },
+  "sources": {
+    "admissions": "https://dda.edu/cdl-training/",
+    "campus": "https://dda.edu/locations/baton-rouge/",
+    "catalog_pages": [
+      24,
+      31,
+      38,
+      94
+    ]
+  },
+  "cautions": [
+    "No CIP6 inference",
+    "No CIP-SOC mapping",
+    "Do not count West Monroe as a separate institution",
+    "Do not infer test-optional from unknown SAT/ACT"
+  ]
+}
