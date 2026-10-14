@@ -1,0 +1,51 @@
+{
+  "unitid": 439668,
+  "as_of": "2026-10-14",
+  "school_program_source": "https://hdstruckdrivinginstitute.com/tucson-cdl-truck-driver-training-programs/",
+  "school_admissions_source": "https://hdstruckdrivinginstitute.com/blog/do-you-need-a-ged-or-high-school-diploma-to-start-cdl-training/",
+  "state_license_source": "https://azdot.gov/mvd/services/driver-license-ID/getting-your-commercial-driver-license",
+  "school_current_program_categories": [
+    "Professional Truck Driver Training",
+    "CDL Training Class A/B",
+    "CDL Driver Training Class B"
+  ],
+  "professional_program_current_hours": {
+    "vehicle_maintenance": 150,
+    "driver_theory_and_road": 340,
+    "externship": 240,
+    "total": 730
+  },
+  "school_general_cdl_admissions": {
+    "minimum_age": 18,
+    "drivers_license": true,
+    "physical_and_screening": true,
+    "high_school_diploma_or_ged_required": false,
+    "sat_act_policy": null,
+    "professional_program_separate_admissions_unknown": true
+  },
+  "state_licensing": {
+    "issuing_agency": "Arizona MVD",
+    "license_separate_from_school_completion": true,
+    "learner_permit_and_knowledge_testing": true,
+    "skills_testing": true,
+    "first_time_eldt_when_applicable": true,
+    "minimum_permit_hold_days": 14,
+    "minimum_intrastate_age": 18,
+    "minimum_interstate_age": 21,
+    "endorsements_require_separate_approval": true
+  },
+  "open_questions": [
+    "Exact printed completion award title",
+    "Class A and B school-issued award type",
+    "Current enrollment openings and 2026 tuition",
+    "2026 school-specific SAT/ACT admission rule",
+    "Whether state-listed 310-hour offering is still enrolling",
+    "Difference between current school Class B four-week claim and 2025 state-listed two-week course"
+  ],
+  "safeguards": [
+    "Do not imply automatic state licensure",
+    "Do not map school programs to occupations",
+    "Do not impute federal cost or SAT/ACT data",
+    "Do not merge Tucson and Yuma campus records"
+  ]
+}
