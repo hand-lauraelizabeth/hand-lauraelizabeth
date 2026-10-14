@@ -1,0 +1,55 @@
+name: FT-04 cash-flow deterministic tests
+on:
+  push:
+    branches:
+      - 'review/ft04-ci-occurrence-*'
+  pull_request:
+    paths:
+      - 'free-tools/cash-flow/**'
+      - '.github/workflows/ft04-cash-flow.yml'
+  workflow_dispatch:
+jobs:
+  cash-flow:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: |
+          node --check free-tools/cash-flow/engine.mjs
+          node --check free-tools/cash-flow/engine.test.mjs
+          node --check free-tools/cash-flow/boundary.test.mjs
+          node --check free-tools/cash-flow/occurrence-anchor-regression.test.mjs
+          node --check free-tools/cash-flow/security-accessibility.test.mjs
+          node --check free-tools/cash-flow/csv-interop-fixture.mjs
+          python3 -m py_compile free-tools/cash-flow/csv-interop-import.test.py
+      - name: Engine and recurrence regressions
+        run: |
+          node free-tools/cash-flow/engine.test.mjs
+          node free-tools/cash-flow/boundary.test.mjs
+          node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
+      - name: Static CSP, accessibility and security guards
+        run: node free-tools/cash-flow/security-accessibility.test.mjs
+      - name: Independently import synthetic CSV using Python csv
+        run: node free-tools/cash-flow/csv-interop-fixture.mjs | python3 free-tools/cash-flow/csv-interop-import.test.py
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser QA tooling and engines
+        run: |
+          cd free-tools/cash-flow
+          npm install --no-save --no-package-lock playwright@1.57.0 axe-core@4.10.3
+          npx playwright install --with-deps chromium firefox webkit
+      - name: HTTP-served Chromium Firefox WebKit regression checks
+        run: node free-tools/cash-flow/browser-qa.test.mjs
