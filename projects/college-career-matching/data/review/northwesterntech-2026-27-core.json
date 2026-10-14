@@ -1,0 +1,37 @@
+{
+  "unitid": "168573",
+  "institution": "Northwestern Technological Institute",
+  "catalog_url": "https://northwesterntech.edu/wp-content/uploads/2026/09/2026-2027-School-Catalog-June-2026.docx.pdf",
+  "catalog_published": "2026-06",
+  "program": {
+    "code": "C-100",
+    "name": "Climate Control Technology",
+    "weeks": 45,
+    "contact_hours": 720,
+    "quarter_credits": 36,
+    "school_award": "Certificate of Achievement",
+    "printed_title_verified": false,
+    "listed_total_usd": 17797
+  },
+  "admissions": {
+    "high_school_diploma_or_ged": true,
+    "sat_act_policy": "unknown"
+  },
+  "next_published_starts": [
+    "2026-10-28",
+    "2026-11-16",
+    "2026-12-02"
+  ],
+  "seats_verified": false,
+  "verified_cip6": null,
+  "career_crosswalk": null,
+  "source_pages": [
+    7,
+    8,
+    10,
+    12,
+    25,
+    41,
+    44
+  ]
+}
