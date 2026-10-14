@@ -1,0 +1,54 @@
+{
+  "review_date": "2026-10-14",
+  "institution": "Arizona State University",
+  "unitid_context": "104151",
+  "campus_join_verified": false,
+  "academic_year": "2026-2027",
+  "records": [
+    {
+      "name": "Computer Science",
+      "credential": "BS",
+      "plan": "ESCSEBS",
+      "status": "catalog_listed",
+      "locations": [
+        "Tempe",
+        "Online",
+        "ASU Local"
+      ],
+      "source": "https://degrees.asu.edu/checksheet/2026/CES/ESCSEBS/null"
+    },
+    {
+      "name": "Computer Science (Cybersecurity)",
+      "credential": "BS",
+      "plan": "ESCSEIBS",
+      "status": "catalog_listed",
+      "locations": [
+        "Tempe"
+      ],
+      "source": "https://degrees.asu.edu/checksheet/2026/CES/ESCSEIBS/null"
+    },
+    {
+      "name": "Computer Science (Artificial Intelligence)",
+      "credential": "BS",
+      "plan": "ESCSEAIBS",
+      "status": "catalog_listed",
+      "locations": [
+        "Tempe"
+      ],
+      "source": "https://degrees.asu.edu/checksheet/2026/CES/ESCSEAIBS/null"
+    },
+    {
+      "name": "Computer Science (Software Engineering)",
+      "credential": "BS",
+      "plan": "ESCSESBS",
+      "status": "catalog_listed",
+      "locations": [
+        "Tempe"
+      ],
+      "source": "https://degrees.asu.edu/checksheet/2026/CES/ESCSESBS/null"
+    }
+  ],
+  "all_cip_codes_unverified": true,
+  "all_career_licensure_unverified": true,
+  "qualification": "Concentrations are not separate credential levels; online and ASU Local offerings require separate UNITID checks."
+}
