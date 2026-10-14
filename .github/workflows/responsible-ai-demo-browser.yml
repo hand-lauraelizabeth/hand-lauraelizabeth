@@ -1,0 +1,46 @@
+name: Responsible AI demo browser checks
+
+on:
+  pull_request:
+    paths:
+      - "projects/prompt-literacy-debugger/**"
+      - "projects/evidence-safe-prompt-lab/**"
+      - "projects/ethical-ai-scenario-auditor/**"
+      - "projects/responsible-ai-demo-tests/**"
+      - ".github/workflows/responsible-ai-demo-browser.yml"
+  push:
+    branches: [main]
+    paths:
+      - "projects/prompt-literacy-debugger/**"
+      - "projects/evidence-safe-prompt-lab/**"
+      - "projects/ethical-ai-scenario-auditor/**"
+      - "projects/responsible-ai-demo-tests/**"
+      - ".github/workflows/responsible-ai-demo-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install browser-testing dependency
+        run: python -m pip install --disable-pip-version-check selenium
+      - name: Set up headless Chromium and matching ChromeDriver
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          install-chromedriver: true
+      - name: Run synthetic browser interactions and responsive checks
+        env:
+          CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: python projects/responsible-ai-demo-tests/browser_smoke.py
