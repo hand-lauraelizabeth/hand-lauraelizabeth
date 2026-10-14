@@ -1,5 +1,9 @@
+// Files are decoded in the browser. Never transmit the document to a server.
 export function bindHTMLFile(input, target, status) {
  let version=0;
+ // Typing while a File.arrayBuffer() read is pending must take precedence.
+ // Clear the file input so the same file can be deliberately selected again.
+ target.addEventListener('input',()=>{version++;input.value='';});
  input.addEventListener('change',async()=>{
   const selected=input.files?.[0];if(!selected)return;
   const current=++version;
