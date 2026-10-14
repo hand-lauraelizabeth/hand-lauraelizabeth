@@ -8,7 +8,20 @@ The kit combines three browser-based demonstrations:
 - [Evidence-Safe Prompt Lab](../../projects/evidence-safe-prompt-lab/) — build source-conscious prompts with support classifications, uncertainty, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) — move from abstract principles to concrete workflow risks, mitigations, owners, oversight, and contestability.
 
-All three tools run client-side and do not call an AI API.
+## Published companion tools and quality checks
+
+For visitors who want to use a browser-based tool without downloading source files, the portfolio also includes two **separate, published WordPress companions**:
+
+- [Prompt Lab — Prompt Literacy & Responsible AI](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-lab/): prompt specification, evidence-ledger editing, reviewer-assigned support categories, source-aware generation, and human verification planning.
+- [AI Use Decision Lab — Risk, Verification & Disclosure](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ai-use-decision-lab/): use-case decisions, risk signals, a twelve-domain ethical workflow audit, accountable owners, mitigation tests, recourse planning, and disclosure drafts.
+
+The published WordPress tools above are **separate companion tools**, not duplicates of the three standalone demonstrations. All three standalone demonstrations are **also available as collapsible, usable tools** on the [Learning & Curriculum Tools page](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/#responsible-ai-standalone-demos): [Prompt Literacy Debugger](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/#prompt-literacy-debugger-demo), [Evidence-Safe Prompt Lab](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/#evidence-safe-prompt-lab-demo), and [Ethical AI Scenario Auditor](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/#ethics-scenario-auditor). The links at the beginning of this document remain source-code folders; updates to GitHub do not automatically replace the WordPress embeds.
+
+CI runs browser interaction smoke tests for the three source demonstrations and the two published WordPress companions. It also runs a pinned `axe-core` audit for WCAG 2.0/2.1 A/AA signals on all five, including populated states of the two live tools. Separate Chromium keyboard-navigation and browser accessibility-tree checks cover focus, tabs, labeled outputs, and keyboard activation. The October 14, 2026 automated audit found zero violations in its tested states. Automated tests are not an accessibility certification: physical iOS/Android, actual assistive technologies, zoom, and comprehension still require human review.
+
+The development branch also includes a reproducible **static-site preview builder** that packages the three demonstrations into a simple browser navigation page, verifies content SHA-256 hashes, and tests the bundle on a local HTTP server. The GitHub Actions artifact is a preview for review, **not a published website**. Public hosting and links will only be listed after deployment and verification.
+
+All three tools run client-side and do not call an AI API. You can use the published browser embeds linked above, or download a GitHub project folder and open its `index.html` locally. GitHub directory previews display source files rather than runnable apps. The Debugger offers provisional textual clues but requires human ratings; the Prompt Lab records reviewer-assigned—not independently validated—source support; the Scenario Auditor produces proposed controls, owners, tests, and appeal routes that require substantive human review.
 
 Supporting teaching resources:
 
@@ -82,7 +95,7 @@ The instructional value is not the score. It is the disagreement: learners disco
 
 Use the [Evidence-Safe Prompt Lab](../../projects/evidence-safe-prompt-lab/) to make evidence constraints visible.
 
-Support labels:
+Support labels (applied by a human reviewer; the page does not validate source contents):
 
 - **DIRECT** — the source explicitly establishes the material claim.
 - **PARTIAL** — the source supports part of the claim or supports a narrower formulation.
@@ -123,7 +136,7 @@ Grade evidence alignment rather than prose polish.
 
 ## Module 5 — Ethical AI is workflow design
 
-Use the [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) to move beyond principle lists.
+Use the [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) to move beyond principle lists by editing risk-specific mitigations, accountable owners, evidence tests, oversight, and correction or appeal pathways.
 
 Review:
 

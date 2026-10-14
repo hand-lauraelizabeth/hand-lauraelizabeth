@@ -58,6 +58,8 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 
 ## Applied Technical Demonstrations
 
+These repository links open inspectable source folders. You can also use all three responsible-AI demonstrations **directly in a browser** on the [Learning & Curriculum Tools page](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/#responsible-ai-standalone-demos); expand the corresponding tool without downloading or installing anything. The WordPress embeds are deployed snapshots, not automatically synchronized to draft GitHub changes.
+
 - [Prompt Literacy Debugger](projects/prompt-literacy-debugger/) — client-side teaching tool for diagnosing task clarity, evidence boundaries, authority limits, verification, privacy, and human responsibility before a prompt is used.
 - [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](projects/ethical-ai-scenario-auditor/) — browser-based responsible-AI teaching tool for risk discovery, mitigation planning, provenance, oversight, and contestability.
