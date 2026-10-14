@@ -90,6 +90,7 @@ let loaded=null, loadEpoch=0;
 const status=(message,error=false)=>{$('status').textContent=message;$('status').className=error?'error':'';};
 function clear(preserveFile=false){
  ++loadEpoch; loaded=null;if(!preserveFile)$('file').value='';
+ window.DataRescueHistoryUI.onClear();
  window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
  $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;status('No data loaded.');
