@@ -1,0 +1,47 @@
+export function buildInterface(){
+ const root=document.getElementById('root');
+ const add=(parent,tag,text='',id='')=>{const e=document.createElement(tag);if(text)e.textContent=text;if(id)e.id=id;parent.append(e);return e;};
+ const section=(title)=>{const s=add(root,'section');add(s,'h2',title);return s;};
+ const form=(parent,id)=>{const f=add(parent,'form','',id);add(f,'div','','grid').className='grid';return f;};
+ const field=(f,label,name,opts={})=>{
+   const wrapper=add(f.firstElementChild,'label',label);
+   const control=add(wrapper,opts.select?'select':'input');
+   control.name=name;if(opts.select)control.id='expenseCategory';
+   else{control.type=opts.type||'text';control.maxLength=opts.max||500;if(opts.value!==undefined)control.value=opts.value;if(opts.mode)control.inputMode=opts.mode;}
+   control.required=opts.required!==false;
+   return control;
+ };
+ const button=(parent,text,id='')=>{const b=add(parent,'button',text,id);b.type=id?'button':'submit';return b;};
+ add(root,'p','All calculations stay in this tab. This tool does not decide grant allowability or compliance. Replace the fictional sample award.','privacyNotice').className='notice';
+ const a=form(section('1. Award'),'awardForm');
+ field(a,'Award ID','awardId',{max:120,value:'SYNTHETIC-AWARD-01'});
+ field(a,'Award name','awardName',{max:180,value:'Sample community project'});
+ field(a,'Start date','start',{type:'date',value:'2026-01-01'});
+ field(a,'End date','end',{type:'date',value:'2026-12-31'});
+ button(a,'Update award');
+ const c=form(section('2. Budget categories'),'categoryForm');
+ field(c,'Category ID','categoryId',{max:120});field(c,'Category label','label',{max:180});
+ field(c,'Planned budget ($)','budget',{mode:'decimal'});
+ field(c,'Award restriction notes','restrictionNote',{required:false});
+ button(c,'Add category');
+ const e=form(section('3. Expenditure evidence'),'expenseForm');
+ field(e,'Transaction ID','transactionId',{max:120});field(e,'Source ID','sourceId',{max:120});
+ field(e,'Date','date',{type:'date'});field(e,'Category','categoryId',{select:true});
+ field(e,'Total expense ($)','amount',{mode:'decimal'});
+ field(e,'Assigned to this award (%)','percent',{mode:'decimal',value:'100'});
+ field(e,'Allocation basis','allocationBasis',{required:false});
+ field(e,'Supporting evidence reference','evidenceRef',{required:false});
+ field(e,'Notes','note',{required:false});button(e,'Add expenditure');
+ const error=add(root,'div','','error');error.setAttribute('role','alert');error.tabIndex=-1;error.hidden=true;
+ const status=add(root,'p','','status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+ const report=section('4. Budget versus recorded allocations');
+ add(report,'p','','totals').setAttribute('aria-live','polite');
+ const table=(headers,bodyId)=>{const wrap=add(report,'div');wrap.className='scroll';const t=add(wrap,'table');const thead=add(t,'thead');const row=add(thead,'tr');for(const h of headers){const th=add(row,'th',h);th.scope='col';}add(t,'tbody','',bodyId);};
+ table(['Category','Planned','Assigned','Difference'],'budgetRows');
+ add(report,'h3','Expenditures');table(['Transaction','Source','Date','Assigned','Unassigned'],'expenseRows');
+ add(report,'h3','Items requiring human review');add(report,'ul','','reviewList');
+ add(report,'p','CSV may change formula-like text; JSON preserves entered values. Exports remain on your device.');
+ const actions=add(report,'div');actions.className='actions';
+ button(actions,'Transactions CSV','downloadTransactions');button(actions,'Budget CSV','downloadBudget');button(actions,'Evidence JSON','downloadJSON');
+ const footer=add(root,'footer');add(footer,'p','Review award terms and 2 CFR 200.302, 200.403, and 200.405; no automatic accounting determination.');
+}
