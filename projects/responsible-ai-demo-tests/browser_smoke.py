@@ -155,6 +155,8 @@ def run_auditor(driver, base):
     assert "High-consequence scenario" in field(driver, "summary").text
     assert len(driver.find_elements(By.CSS_SELECTOR, ".risk-card")) == 12
     assert "/100" not in field(driver, "summary").text
+    assert "CONTROL SELF-REPORTS" in field(driver, "prompt").text
+    assert "Purpose and necessity: Not assessed" in field(driver, "prompt").text
 
     type_in(driver, "owner-0", "Accountable program director")
     assert "Update the review prompt" in field(driver, "status").text
@@ -165,10 +167,14 @@ def run_auditor(driver, base):
     assert "Oversight / contestability" in field(driver, "prompt").text
 
     type_in(driver, "scenario", "A different fictional advising workflow.")
+    assert "Previous assessment is out of date" in field(driver, "summary").text
+    assert len(driver.find_elements(By.CSS_SELECTOR, ".risk-card")) == 0
+    assert "Previous review prompt is out of date" in field(driver, "prompt").text
     click(driver, "export")
     assert "Re-assess the scenario" in field(driver, "status").text.lower().replace("re-assess", "Re-assess")
     click(driver, "assess")
     assert "A different fictional advising workflow" in field(driver, "prompt").text
+    assert "CONTROL SELF-REPORTS" in field(driver, "prompt").text
     assert_mobile_fit(driver)
     click(driver, "clear")
     assert "Assess scenario" in field(driver, "summary").text
