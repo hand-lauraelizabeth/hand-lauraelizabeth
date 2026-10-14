@@ -1,0 +1,42 @@
+name: Data Rescue reversible history review
+on:
+  push:
+    branches:
+      - review/data-rescue-reversible-history-20261013
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/data-rescue-history-review.yml"
+permissions:
+  contents: read
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run CSV, comparison and history regressions
+        run: |
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js
+          node projects/data-rescue-studio/tests/reconcile-regression.test.js
+          node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
+          node projects/data-rescue-studio/tests/history-core.test.js
+
+  browser-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Run real-browser history interactions
+        run: node projects/data-rescue-studio/tests/history-browser.cjs
