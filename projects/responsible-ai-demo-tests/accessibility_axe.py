@@ -89,6 +89,26 @@ def main():
                 all_failures.append((name+" dynamic",interactive))
             else:
                 print("PASS",name,"dynamic controls after interaction",flush=True)
+        # Verify the actual WordPress-embedded copies as delivered to visitors.
+        driver.get("https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/")
+        WebDriverWait(driver,25).until(lambda d: d.find_elements(By.ID,"responsible-ai-standalone-demos"))
+        for anchor,name in [
+            ("ethics-scenario-auditor","Ethical AI Scenario Auditor"),
+            ("prompt-literacy-debugger-demo","Prompt Literacy Debugger"),
+            ("evidence-safe-prompt-lab-demo","Evidence-Safe Prompt Lab"),
+        ]:
+            details=driver.find_element(By.ID,anchor)
+            details.find_element(By.TAG_NAME,"summary").click()
+            driver.switch_to.frame(details.find_element(By.TAG_NAME,"iframe"))
+            WebDriverWait(driver,25).until(lambda d: name in d.find_element(By.TAG_NAME,"h1").text)
+            report=run_axe(driver,"main")
+            if report.get("error") or report.get("violations"):
+                print("FAIL published embedded",name,report,flush=True)
+                all_failures.append(("published embedded "+name,report))
+            else:
+                print("PASS published embedded",name,"automated WCAG 2.0/2.1 A/AA violations: 0",flush=True)
+            driver.switch_to.default_content()
+
         assert not all_failures, f"{len(all_failures)} accessibility regression group(s)"
     finally:
         driver.quit()
