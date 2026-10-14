@@ -1,0 +1,31 @@
+{
+  "source_file": "MERGED2025_26_PP.csv",
+  "source_rows": 6273,
+  "unique_unitids": 6273,
+  "live_rows_user_confirmed": 6243,
+  "exact_unitid_join_to_live": "not_run",
+  "locale_valid_codes_count": 5728,
+  "locale_missing_count": 541,
+  "locale_suppressed_minus3_count": 3,
+  "locale_unexpected_code_2_count": 1,
+  "sat_act_nonnull_counts": {
+    "SAT_AVG": 0,
+    "SAT_AVG_ALL": 0,
+    "ACTCMMID": 0,
+    "SATVR25": 0,
+    "SATVR75": 0,
+    "ACTCM25": 0,
+    "ACTCM75": 0
+  },
+  "priorities": [
+    "Recover official SAT/ACT score data where reported; distinguish reporting gaps from policies",
+    "Exact UNITID join for locale before applying valid codes",
+    "Keep unmatched 129 and extension 456 identity holds",
+    "Career integration only after coverage work and method approval"
+  ],
+  "guardrails": [
+    "No production overwrite",
+    "No inferred test policy",
+    "No CIP-SOC crosswalk"
+  ]
+}
