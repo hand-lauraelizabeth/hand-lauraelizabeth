@@ -14,6 +14,14 @@ Open \`index.html\` in a browser and select a local \`.csv\` or \`.tsv\` file, o
 
 The **spreadsheet-oriented formula precaution** prefixes formula-like values with a tab inside their CSV field. This may modify data and is **not** a universal spreadsheet-injection defense. Disable it for machine-readable exports, inspect all untrusted data, and consult [OWASP CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection). There is no cross-application perfect CSV sanitization. Nothing is uploaded to the website server by this local demo.
 
+## Transformation and source-position review
+
+The separate review page `history-preview.html` combines local CSV/TSV import, reversible whitespace trimming, exact duplicate removal, undo/redo, two-file exact-key comparison, and downloadable CSV and JSON evidence. Select a first-file identifier and second-file identifier, then choose **Compare identifiers**. After changing the first-file working copy, rerun the comparison. The original file is not modified.
+
+The comparison audit records **original logical CSV/TSV record numbers**, including after duplicate removal. Record 1 is the header; embedded line breaks inside quoted fields do **not** start a new logical record. Ambiguous matches and missing identifiers remain explicit and are not silently joined. A comparison key is treated as an exact string, not proof that two records describe the same entity.
+
+The operations JSON stores action types, affected-row counts, column positions, revision status and export settings, but not input cell values. It is not a backup or an authenticated record of the source file: users must keep the original file to reproduce the workflow. Audit CSVs include keys, which may be private. Spreadsheet-oriented formula prefixes can alter cell values and are not a guaranteed defense across applications. This review feature is not yet embedded in the primary `index.html` page.
+
 ## Test
 
 \`\`\`bash

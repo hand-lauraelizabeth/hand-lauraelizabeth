@@ -3,7 +3,7 @@
  'use strict';
  const $=id=>document.getElementById(id);
  const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=String(text);return x;};
- let session=null,sourceName='';
+ let session=null,sourceName='',original=null;
  function state(){return session?session.state():{canUndo:false,canRedo:false};}
  function refresh(){
   const s=state(), select=$('trimColumn');
@@ -33,6 +33,7 @@
  }
  function onLoad(parsed,name){
   session=root.DataRescueHistory.createSession(parsed);
+  original=parsed;
   sourceName=name;
   const select=$('trimColumn');select.replaceChildren();
   const placeholder=el('option','Choose a column');placeholder.value='';select.append(placeholder);
@@ -40,12 +41,13 @@
   select.value='';refresh();
  }
  function onClear(){
-  session=null;sourceName='';
+  session=null;sourceName='';original=null;
   $('trimColumn').replaceChildren();
   refresh();
  }
  function changed(message){
-  root.DataRescueRenderFromHistory(session.current(),sourceName);
+  const working=root.DataRescueProvenance?root.DataRescueProvenance.replay(original,session.manifest()):session.current();
+  root.DataRescueRenderFromHistory(working,sourceName);
   refresh();
   $('historyStatus').textContent=message+' '+session.state().cursor+' active steps.';
  }
