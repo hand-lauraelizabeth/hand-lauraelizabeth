@@ -63,5 +63,33 @@ def main():
             print("PASS SEO",json.dumps({"url":url,"title":info["title"],"description":info["description"],
                  "canonical":info["canonical"],"robots":info["robots"],"websiteCount":len(website),
                  "person":persons},ensure_ascii=False)[:4200],flush=True)
+        # Live release gate for authored teaching resources. Kept behind
+        # workflow_dispatch/main-push to avoid repeated requests during PRs.
+        base="https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/"
+        for slug,title,terms in [
+            ("teaching-statistics-with-r","Teaching Statistics with R",["Central limit theorem","Linear regression"]),
+            ("teaching-nlp-with-python","Teaching NLP with Python",["TF-IDF","Naive Bayes classifier"]),
+        ]:
+            d.get(base+slug+"/")
+            attrs=d.execute_script("""
+              const nodes=[...document.querySelectorAll('script[type="application/ld+json"]')]
+                .flatMap(el=>{try{const x=JSON.parse(el.textContent);return x['@graph']||[x]}catch(e){return []}});
+              const resources=nodes.filter(x=>x['@type']==='LearningResource');
+              const author=[...document.querySelectorAll('.lesson-byline a[href="/about/"]')]
+                 .map(el=>({text:el.innerText,href:el.href}));
+              return {resources,author,title:document.title,robots:[...document.querySelectorAll('meta[name=robots]')].map(x=>x.content)};
+            """)
+            resources=[x for x in attrs["resources"] if x.get("@id")==base+slug+"/#interactive-lesson"]
+            assert len(resources)==1,slug+": missing or duplicate lesson schema"
+            lesson=resources[0]
+            assert lesson.get("isAccessibleForFree") is True and lesson.get("inLanguage")=="en"
+            assert lesson.get("author",{}).get("@id")=="https://www.lauraelizabethhand.com/#laura-elizabeth-hand"
+            assert lesson.get("author",{}).get("alternateName")=="Laura Elizabeth"
+            assert all(t in lesson.get("teaches",[]) for t in terms)
+            assert any(link["text"]=="Laura Elizabeth Hand" for link in attrs["author"])
+            assert not any("noindex" in entry for entry in attrs["robots"])
+            print("PASS live lesson author identity",json.dumps({
+                "url":base+slug+"/","name":lesson["name"],"topics":lesson["teaches"],
+                "linked_author":attrs["author"]},ensure_ascii=False),flush=True)
     finally:d.quit()
 if __name__=="__main__":main()
