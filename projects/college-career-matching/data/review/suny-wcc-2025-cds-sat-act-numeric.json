@@ -6,7 +6,7 @@
     "state": "NY",
     "campus": "Valhalla",
     "identity_source": "https://nces.ed.gov/ipeds/DataCenter/DfrFiles/IPEDSDFR2009_197294.pdf",
-    "identity_check": "official IPEDS identifier; national-live and overlay membership not independently reconciled"
+    "identity_check": "Exact six-digit UNITID 197294 matches pinned national catalog row; 2026-10-14 reconciliation."
   },
   "source": {
     "title": "Common Data Set 2025-2026",
@@ -83,8 +83,24 @@
     "can_infer_admission_chance": false,
     "can_auto_classify_safety_target_reach": false,
     "reason": "SAT submission 45 students (2% rounded); ACT submission only 3 students (0% rounded); tests not used for admission. Descriptive statistics only.",
-    "merge_into_existing_overlay": "defer until exact live UNITID and overlay membership check",
+    "merge_into_existing_overlay": "review-only candidate; existing v3 score tuple lacks admissions-use suppression, so do not insert without source-specific descriptive-only rendering",
     "score_average_from_percentiles": null
   },
-  "reviewed_at": "2026-10-14"
+  "reviewed_at": "2026-10-14",
+  "reconciliation": {
+    "checked_at": "2026-10-14",
+    "national_catalog_path": "data/sprint3/college-search-national.v3.json",
+    "national_catalog_blob_sha": "bc6a5046fdce478462cc716c4163777b50c2f927",
+    "exact_unitid_in_national_catalog": true,
+    "national_catalog_record_count": 6243,
+    "exact_name_matches": true,
+    "existing_score_overlay_path": "data/sprint3/college-search-scores.v3.json",
+    "existing_score_overlay_blob_sha": "48b6ac1d581531d6ee68932587841de74881dff0",
+    "exact_unitid_in_existing_score_overlay": false,
+    "existing_numeric_overlay_count": 1247,
+    "new_distinct_score_evidence_candidate_count": 1,
+    "prospective_count_if_safely_integrated": 1248,
+    "current_production_overlay_count_unchanged": 1247,
+    "release_status": "review_only_not_merged_not_published"
+  }
 }
