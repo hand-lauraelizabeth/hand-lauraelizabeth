@@ -1,0 +1,24 @@
+{
+  "unitid": "406149",
+  "review_date": "2026-10-14",
+  "english": {
+    "hours": 750,
+    "source": "https://sarasotaschoolofmassagetherapy.edu/massage-program/"
+  },
+  "spanish": {
+    "hours": 750,
+    "source": "https://sarasotaschoolofmassagetherapy.edu/massage-program-spanish/",
+    "catalog": "https://sarasotaschoolofmassagetherapy.edu/wp-content/uploads/2026/08/SSMT-Catalog-26-27-Espanol-Program.pdf"
+  },
+  "admissions": {
+    "minimum_age": 18,
+    "school_award": "unknown",
+    "sat_act": "unknown",
+    "source": "https://sarasotaschoolofmassagetherapy.edu/enrollment/"
+  },
+  "next_start": "2026-11-02",
+  "cohort_language": "unknown",
+  "seats": "unknown",
+  "new_institutions": 0,
+  "new_cip6": 0
+}
