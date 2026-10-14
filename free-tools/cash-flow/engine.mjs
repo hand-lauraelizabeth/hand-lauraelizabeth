@@ -33,10 +33,10 @@ export function occurrences(event,from,to){
     let step=Math.max(0,Math.ceil((begin-first)/(7*DAY)));
     for(let t=first+step*7*DAY;t<=end;t+=7*DAY){if(t>=begin)out.push(dateString(t));}
   }else{
-    let month=0;
-    for(let s=event.date;dateUTC(s)<=end;s=monthlyDate(event.date,++month)){
-      if(dateUTC(s)>=begin)out.push(s);
-      if(month>1200)throw Error('Recurrence exceeds safe horizon.');
+    const startDate=new Date(first),beginDate=new Date(begin);
+    let month=Math.max(0,(beginDate.getUTCFullYear()-startDate.getUTCFullYear())*12+beginDate.getUTCMonth()-startDate.getUTCMonth()-1);
+    for(let s=monthlyDate(event.date,month);Date.parse(s)<=end;s=monthlyDate(event.date,++month)){
+      if(Date.parse(s)>=begin)out.push(s);
     }
   }
   return out;
