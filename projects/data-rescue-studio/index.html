@@ -95,7 +95,8 @@ function clear(preserveFile=false){
  $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;status('No data loaded.');
 }
 function el(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
-function quality(data,name) {
+function quality(data,name,fromHistory=false) {
+ if(!fromHistory)window.DataRescueHistoryUI.onLoad(data,name);
  loaded=data;window.DataRescueCompareUI.setPrimary(data,name);const result=lib.summarize(data);
  $('metrics').replaceChildren();
  for (const [title,value] of [['Rows',result.rowCount],['Columns',result.columnCount],['Exact duplicates',result.duplicateRows.length]]) {
