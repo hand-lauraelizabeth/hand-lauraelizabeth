@@ -66,7 +66,7 @@ $("addRecord").addEventListener("click",()=>{
  const r={claim:$("claim").value.trim(),source:$("sourceid").value.trim(),excerpt:$("excerpt").value.trim(),classification:$("classification").value,rationale:$("rationale").value.trim(),counter:$("counter").value.trim()};
  if(!r.claim||!r.rationale){$("ledgerStatus").textContent="Enter a claim and a support rationale before adding a record.";return}
  if(r.classification!=="NOT ESTABLISHED"&&(!r.source||!r.excerpt)){$("ledgerStatus").textContent="For direct, partial or contradicted support, provide a source ID and evidence excerpt.";return}
- records.push(r);renderRecords();$("ledgerStatus").textContent="Reviewer-assigned record added. It has not been externally verified.";
+ records.push(r);renderRecords();$("ledgerStatus").textContent="Reviewer-assigned record added; not independently verified. Regenerate the prompt to include it.";
  ["claim","sourceid","excerpt","rationale","counter"].forEach(id=>$(id).value="");$("classification").value="NOT ESTABLISHED";
 });
 $("exportRecords").addEventListener("click",()=>{
