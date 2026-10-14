@@ -1,0 +1,38 @@
+{
+  "unitid": "373526",
+  "catalog_date": "2026-07-13",
+  "catalog_pdf": "https://dda.edu/wp-content/uploads/2026/09/DDA-BR-WM-Vol-35-4rd-Ed-V2-2026.09.29-FINAL.pdf",
+  "programs": [
+    {
+      "name": "Advanced Tractor-Trailer Driver Training",
+      "hours": 600,
+      "award": "Certificate of Completion",
+      "charge_usd": 11900
+    },
+    {
+      "name": "Basic Tractor-Trailer Driver Training",
+      "hours": 160,
+      "award": "Certificate of Completion",
+      "charge_usd": null,
+      "conflicting_totals_usd": [
+        7100,
+        7200
+      ]
+    },
+    {
+      "name": "CDL Prep Tractor-Trailer Driver Training",
+      "hours": 136,
+      "award": "Certificate of Completion",
+      "charge_usd": 4900
+    }
+  ],
+  "sources_pdf_pages": [
+    12,
+    18,
+    28,
+    35,
+    38,
+    94
+  ],
+  "review_date": "2026-10-14"
+}
