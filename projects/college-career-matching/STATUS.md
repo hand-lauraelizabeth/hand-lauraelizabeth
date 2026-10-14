@@ -1,5 +1,17 @@
 # College Search — execution status
 
+## 2026-10-14 — SAT/ACT evidence backfill, SUNY Westchester Community College exact join (review only)
+
+**DONE:** Confirmed the exact six-digit UNITID `197294` for SUNY Westchester Community College, Valhalla, against the pinned 6,243-school national v3 catalog. Confirmed UNITID `197294` is absent from the pinned 1,247-school SAT/ACT v3 overlay. Reconciliation uses existing authoritative College Scorecard-derived assets; no re-download of owner-uploaded source ZIPs.
+
+**NEW staged evidence:** `data/review/suny-wcc-score-overlay-candidate.json` supplies official Common Data Set 2025–26 descriptive scores: SAT composite 25th/50th/75th **940/1170/1250**, n=45 (2% rounded); ACT 25th/50th **23/27**, 75th unreported, n=3 (0% rounded). Original institutional evidence: `data/review/suny-wcc-2025-cds-sat-act-numeric.json`. The institution reports SAT/ACT **not used for admissions** (though scores may be used for advising). Do not infer an SAT average, ACT midpoint, or safety/target/reach category.
+
+**Checks:** eight exact GitHub connector readback assertions passed (national roster, overlay absence, values, safety/null preservation). Updated `tests/suny-wcc-2025-cds-evidence.test.mjs` to assert exact membership and prevent unsupported categories; **Node/CI execution not yet established**. Review branch `review/matcher-suny-wcc-2025-cds-sat-20261014-10et`.
+
+**Totals:** published SAT/ACT overlay **1,247 / 6,243**, unchanged. One distinct source-only score candidate staged; prospective **1,248** only after separate source-aware integration and validation. No changes to production WordPress page 1044 or pinned live asset. Private Portfolio Development Backlog A232:E232 and Matcher Code Change Log A214:E214 updated.
+
+**NEXT:** Implement/validate an admissions-use eligibility gate and non-predictive display representation for source-only score records before merging candidate into a new versioned overlay. Continue additional official CDS numeric backfill, then remaining NCES locale gaps, then career integration.
+
 Last updated: 2026-10-12T10:31:00Z UTC
 Repository branch (current integration): `feature/college-search-sprint1-20261009`; admissions release integrated by GitHub PR #8, merge commit `faaaa6714d31ad072a2974fdcc7596c6e3a6fd87`
 Production release: **NATIONAL SAT/ACT SCORE MATCHER LIVE** on existing WordPress page 1044 by explicit owner approval 2026-10-12. Independent mobile 390px and desktop 1440px public-site Chromium category/filter/source browser smoke PASS; physical-device QA and theme-level accessibility/performance reviews remain separate.
