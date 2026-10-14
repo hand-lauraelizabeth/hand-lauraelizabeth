@@ -54,6 +54,11 @@ jobs:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/wordpress_live_smoke.py
+      - name: Test published R and Python lesson tabs and quizzes
+        env:
+          CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: python projects/responsible-ai-demo-tests/teaching_lessons_live_smoke.py
       - name: Install pinned accessibility audit engine
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund axe-core@4.10.3
       - name: Audit AI accessibility on live and standalone pages
