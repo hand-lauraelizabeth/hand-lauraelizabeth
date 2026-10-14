@@ -38,11 +38,17 @@
 <div id="metrics" class="grid"><p>Open a file to see a data-quality summary.</p></div>
 <div id="warnings"></div><div class="overflow" id="columns"></div>
 </section>
-<section class="panel" aria-labelledby="preview"><h2 id="preview">3. Inspect rows</h2>
+<section class="panel" aria-labelledby="operations"><h2 id="operations">3. Reversible changes</h2>
+<p>Change the local working copy; undo or redo operations without altering the source. Reconciliation preserves original logical record positions.</p>
+<label for="trimColumn">Column to trim</label><select id="trimColumn" disabled></select>
+<div class="actions"><button id="trimApply" disabled>Trim spaces</button><button id="removeDuplicates" disabled>Remove exact duplicates</button><button id="historyUndo" disabled>Undo</button><button id="historyRedo" disabled>Redo</button><button id="historyExport" disabled>Export operations JSON</button></div>
+<p id="historyStatus" role="status" aria-live="polite">No transformations yet.</p><div id="historyLog" class="overflow"></div>
+<p class="muted">The operations manifest excludes original cell values and is not a data backup.</p></section>
+<section class="panel" aria-labelledby="preview"><h2 id="preview">4. Inspect rows</h2>
 <p class="muted">Only the first 20 records are shown in this preview. The exported file includes all retained records.</p>
 <div class="overflow" id="table"></div>
 </section>
-<section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
+<section class="panel" aria-labelledby="compare"><h2 id="compare">5. Reconcile two files</h2>
 <p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines.</p>
 <label for="compareFile"><strong>Second file (UTF-8 CSV or TSV, maximum 5 MB)</strong></label>
 <div><input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
@@ -60,7 +66,7 @@
 <div id="compareResults" class="overflow" aria-label="Reconciliation record preview"></div>
 <p class="muted">Preview shows at most 30 findings. The downloaded audit includes all findings, source record positions, and identifier keys, but no complete input records. Keys may be sensitive; keep your exported audit private. Spreadsheet formula precautions are imperfect.</p>
 </section>
-<section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
+<section class="panel" aria-labelledby="export"><h2 id="export">6. Export working copy</h2>
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>
 <p class="muted">Original input is not changed. Records that differ even slightly are not automatically merged.</p>
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
@@ -68,7 +74,7 @@
 <div class="actions"><button id="save" disabled>Export CSV</button></div>
 </section>
 <footer><p class="muted">Preview version: CSV/TSV inspection and exact-identifier comparison. It does not perform fuzzy matching or validate business-specific rules. Spreadsheet export precautions do not guarantee security.</p></footer>
-</main><script src="rescue-core.js"></script><script src="file-reader.js"></script><script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script><script>
+</main><script src="rescue-core.js"></script><script src="file-reader.js"></script><script src="reconcile-core.js"></script><script src="provenance-core.js"></script><script src="reconcile-ui.js"></script><script src="history-core.js"></script><script src="history-ui.js"></script><script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;
@@ -76,7 +82,7 @@ let loaded=null, loadEpoch=0;
 const status=(message,error=false)=>{$('status').textContent=message;$('status').className=error?'error':'';};
 function clear(preserveFile=false){
  ++loadEpoch; loaded=null;if(!preserveFile)$('file').value='';
- window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
+ window.DataRescueHistoryUI.onClear();window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
  $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;status('No data loaded.');
 }
@@ -96,6 +102,8 @@ function quality(data,name) {
  t.append(tbody);$('columns').replaceChildren(t);
  $('dedupe').disabled=false;$('save').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted.');
 }
+window.DataRescueRenderFromHistory=quality;
+function load(data,name){window.DataRescueHistoryUI.onLoad(data,name);quality(data,name);}
 function preview(){
  if(!loaded)return;
  const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;
@@ -115,7 +123,7 @@ $('file').addEventListener('change',async()=>{
  try {
   const parsed=await window.DataRescueFileReader.read(file,lib.parseDelimited);
   if(ticket!==loadEpoch)return;
-  quality(parsed,file.name);
+  load(parsed,file.name);
  } catch(err){
   if(ticket!==loadEpoch)return;
   clear();status('Unable to open file: '+err.message,true);
@@ -123,7 +131,7 @@ $('file').addEventListener('change',async()=>{
 });
 $('sample').addEventListener('click',()=>{
 clear();const demo='Name,City,Note\n"Ada L.","New York","research"\n"Sam","Boston","=1+2"\n"Sam","Boston","=1+2"\n';
-quality(lib.parseDelimited(demo),'synthetic example');
+load(lib.parseDelimited(demo),'synthetic example');
 });
 $('reset').addEventListener('click',clear);$('dedupe').addEventListener('change',preview);
 $('save').addEventListener('click',()=>{
@@ -132,7 +140,9 @@ $('save').addEventListener('click',()=>{
  const csv=lib.exportCsv(active,$('sheetSafe').checked);
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  const a=el('a');a.href=url;a.download='data-rescue-reviewed.csv';document.body.append(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1000);status('CSV exported locally: '+active.rows.length+' records.');
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ window.DataRescueHistoryUI.recordExport({outputRows:active.rows.length,exportOnlyDedupe:$('dedupe').checked,spreadsheetPrecaution:$('sheetSafe').checked});
+ status('CSV exported locally: '+active.rows.length+' records.');
 });
 })();
 </script></body></html>
