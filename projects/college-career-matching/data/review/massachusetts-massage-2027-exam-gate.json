@@ -1,0 +1,18 @@
+{
+  "review_date": "2026-10-14",
+  "source": "https://www.mass.gov/doc/269-cmr-3-procedure-for-registration/download",
+  "regulation": "269 CMR 3.01(2)(i)",
+  "effective_rule": "Applications submitted after January 1, 2027 must have a passing score on an examination approved by the Massachusetts Board of Registration of Massage Therapy.",
+  "approved_exam": "MBLEx",
+  "approval_source": "https://www.mass.gov/doc/mt-minutes-11-17-25/download",
+  "approval_meeting_date": "2025-11-17",
+  "school_catalog_source": "https://drive.google.com/file/d/1SLzkri5O-3eDUZpuUAM7ZUOHvdeBe6Om/view",
+  "scope": "State-level massage therapist license application rule, not school admissions policy",
+  "individual_eligibility": "not verified",
+  "school_completion_is_license": false,
+  "sat_act_policy": "unknown",
+  "notes": [
+    "The regulatory wording says after January 1, 2027; school catalog says starting January 1. Preserve wording discrepancy.",
+    "State licensing is distinct from the school's Certificate of Completion."
+  ]
+}
