@@ -1,0 +1,37 @@
+name: Data Rescue provenance audit browser review
+on:
+  push:
+    branches:
+      - review/data-rescue-provenance-ui-20261013
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/data-rescue-provenance-browser.yml"
+permissions:
+  contents: read
+jobs:
+  provenance-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run deterministic CSV history and provenance suites
+        run: |
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js
+          node projects/data-rescue-studio/tests/reconcile-regression.test.js
+          node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
+          node projects/data-rescue-studio/tests/history-core.test.js
+          node projects/data-rescue-studio/tests/provenance-core.test.js
+      - name: Install headless Chromium for genuine browser checks
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Test review pages in Chromium with synthetic files
+        run: |
+          node projects/data-rescue-studio/tests/chromium-smoke.cjs
+          node projects/data-rescue-studio/tests/history-browser.cjs
+          node projects/data-rescue-studio/tests/provenance-browser.cjs
