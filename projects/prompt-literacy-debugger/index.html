@@ -59,12 +59,12 @@ details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}summar
 
 <h2 style="margin-top:26px">2. Diagnose the prompt</h2>
 <div id="questions"></div>
-<div class="actions"><button id="assess">Build coverage map</button><button class="secondary" id="example">Load example</button><button class="secondary" id="reset">Clear</button></div>
+<p class="note">Self-ratings are judgments, not automatic findings. You can inspect text clues first; every suggested rating requires your review.</p><div class="actions"><button class="secondary" id="clues">Suggest ratings (review required)</button><button id="assess">Build coverage map</button><button class="secondary" id="example">Load example</button><button class="secondary" id="reset">Clear</button></div>
 </section>
 
 <section class="card">
 <h2>3. Review the coverage map</h2>
-<div id="result"><p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p></div>
+<div id="clueStatus" class="status" role="status" aria-live="polite"></div><div id="result"><p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p></div>
 <h3>Rebuild scaffold</h3>
 <pre id="scaffold">A revised prompt scaffold will appear here. It preserves your original request while making missing requirements explicit.</pre>
 <div class="actions"><button id="copy">Copy scaffold</button></div><div class="status" id="status" aria-live="polite"></div>
@@ -109,19 +109,22 @@ function assess(){
  if(stakes==="high")gates.push("High consequence: require meaningful human review, documented limits, and a non-AI fallback before relying on the output.");
  if(data==="sensitive")gates.push("Sensitive/confidential data: confirm authorization, minimization, retention, and the tool's data-handling terms before entering real data.");
  if(data==="internal")gates.push("Internal data: confirm the selected tool is approved for that information and minimize what is shared.");
- const gapRows=missing.length?missing.map(x=>"<tr><td>"+esc(x)+"</td><td>Missing</td></tr>").join(""):'<tr><td colspan="2">No dimensions were marked missing.</td></tr>';
+ const gaps=dims.filter(d=>{const r=document.querySelector('input[name="'+d[0]+'"]:checked');return !r||Number(r.value)<2;}).map(d=>{const r=document.querySelector('input[name="'+d[0]+'"]:checked');return [d[1],!r?"Not rated":Number(r.value)===1?"Partial / implied":"Missing"]});
+ const gapRows=gaps.length?gaps.map(x=>"<tr><td>"+esc(x[0])+"</td><td>"+x[1]+"</td></tr>").join(""):'<tr><td colspan="2">All dimensions were rated explicit; independently check the evidence for each rating.</td></tr>';
+ const needsWork=gaps.map(x=>x[0]);
  const unansweredText=unanswered.length?'<p class="note"><strong>Unrated:</strong> '+unanswered.map(esc).join(", ")+'</p>':"";
  const gateHtml=gates.length?'<div class="result warn"><strong>Decision gate</strong><ul>'+gates.map(g=>"<li>"+esc(g)+"</li>").join("")+"</ul></div>":"";
  document.getElementById("result").innerHTML='<p><span class="pill">'+explicit+' explicit</span><span class="pill">'+partial+' partial</span><span class="pill">'+missing.length+' missing</span></p>'+unansweredText+'<table><thead><tr><th>Priority gap</th><th>Status</th></tr></thead><tbody>'+gapRows+"</tbody></table>"+gateHtml;
 
  const use=document.getElementById("usecase").selectedOptions[0].text;
- const evidenceLine=missing.includes("Evidence boundary")?"State the approved evidence or inputs. If evidence is missing, ask for it or label the gap instead of filling it from assumption.":"Preserve the evidence boundary already stated in the original prompt.";
- const boundaryLine=missing.includes("Authority and guardrails")?"State what must not be inferred, invented, disclosed, or decided by the AI.":"Preserve the original authority limits and guardrails.";
- const verifyLine=missing.includes("Verification")?"Identify which material claims, calculations, citations, or outputs require verification and how they should be checked.":"Follow the verification process already defined.";
- const humanLine=stakes==="high"?"Treat the AI output as decision support only. Name the accountable human reviewer and the point at which human approval is required.":(missing.includes("Human responsibility")?"State what remains a human judgment or approval step.":"Preserve the human-review rule already defined.");
+ const evidenceLine=needsWork.includes("Evidence boundary")?"State the approved evidence or inputs. If evidence is missing, ask for it or label the gap instead of filling it from assumption.":"Preserve the evidence boundary already stated in the original prompt.";
+ const boundaryLine=needsWork.includes("Authority and guardrails")?"State what must not be inferred, invented, disclosed, or decided by the AI.":"Preserve the original authority limits and guardrails.";
+ const verifyLine=needsWork.includes("Verification")?"Identify which material claims, calculations, citations, or outputs require verification and how they should be checked.":"Follow the verification process already defined.";
+ const humanLine=stakes==="high"?"Treat the AI output as decision support only. Name the accountable human reviewer and the point at which human approval is required.":(needsWork.includes("Human responsibility")?"State what remains a human judgment or approval step.":"Preserve the human-review rule already defined.");
  const privacyLine=data==="sensitive"?"Do not include sensitive or identifying information unless its use is authorized and necessary; minimize it before submission.":data==="internal"?"Use only information approved for the selected AI tool; minimize internal data.":"Do not introduce unnecessary personal or confidential information.";
  const scaffold=[
  "ORIGINAL REQUEST",original,"",
+ "REVIEW BEFORE USING",gaps.length?gaps.map(x=>"- "+x[0]+": "+x[1]).join("\n"):"Recheck every explicit rating against the exact prompt wording.","",
  "USE CASE",use,"",
  "TASK","Restate the task in one precise sentence. Preserve the user's actual goal rather than expanding it.","",
  "CONTEXT","State the audience, purpose, constraints, and any context that would materially change a good answer.","",
@@ -134,6 +137,22 @@ function assess(){
  ];
  document.getElementById("scaffold").textContent=scaffold.join("\n");
 }
+const textClues={
+ task:/\b(write|draft|summari[sz]e|compare|analy[sz]e|review|identify|explain|evaluate|extract|calculate|classify|recommend|create|check|assess)\b/i,
+ context:/\b(for (a|an|the|our) |audience|student|reader|customer|client|purpose|context|background)\b/i,
+ evidence:/\b(source|reference|citation|article|dataset|document|provided text|evidence|attached|excerpt)\b/i,
+ boundaries:/\b(only|do not|don't|must not|avoid|exclude|never|limit|without)\b/i,
+ output:/\b(table|list|bullet|paragraph|format|word count|json|csv|sections?|columns?)\b/i,
+ verify:/\b(verify|fact.check|double.check|cross.check|validate|independently check|confirm)\b/i,
+ human:/\b(human|reviewer|sign.off|approv|final decision|escalat|appeal|override)\b/i
+};
+document.getElementById("clues").addEventListener("click",()=>{
+ const input=document.getElementById("prompt").value.trim();
+ if(!input){document.getElementById("clueStatus").textContent="Enter the original prompt first.";return}
+ const may=[];dims.forEach(d=>{const has=textClues[d[0]].test(input);const r=document.querySelector('input[name="'+d[0]+'"][value="'+(has?1:0)+'"]');r.checked=true;if(has)may.push(d[1])});
+ document.getElementById("clueStatus").textContent="Initial suggestions only: "+may.length+" dimensions contain possible textual clues. No dimension has been confirmed explicit. Review and adjust all seven ratings, then build the map.";
+ assess();
+});
 document.getElementById("assess").addEventListener("click",assess);
 document.getElementById("example").addEventListener("click",()=>{
  document.getElementById("prompt").value="Read these sources and tell me whether my argument about AI improving healthcare decision-making is correct. Give me citations.";
@@ -142,7 +161,7 @@ document.getElementById("example").addEventListener("click",()=>{
  Object.entries(vals).forEach(([k,v])=>{const r=document.querySelector('input[name="'+k+'"][value="'+v+'"]');if(r)r.checked=true});
  assess();
 });
-document.getElementById("reset").addEventListener("click",()=>{document.getElementById("prompt").value="";document.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);document.getElementById("result").innerHTML='<p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p>';document.getElementById("scaffold").textContent="A revised prompt scaffold will appear here. It preserves your original request while making missing requirements explicit.";document.getElementById("status").textContent=""});
-document.getElementById("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(document.getElementById("scaffold").textContent);document.getElementById("status").textContent="Scaffold copied."}catch(e){document.getElementById("status").textContent="Copy was blocked; select the text manually."}});
+document.getElementById("reset").addEventListener("click",()=>{document.getElementById("prompt").value="";document.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);document.getElementById("result").innerHTML='<p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p>';document.getElementById("scaffold").textContent="A revised prompt scaffold will appear here. It preserves your original request while making missing requirements explicit.";document.getElementById("status").textContent="";document.getElementById("clueStatus").textContent="";document.getElementById("usecase").value="research";document.getElementById("stakes").value="moderate";document.getElementById("data").value="public"});
+document.getElementById("copy").addEventListener("click",async()=>{if(!document.getElementById("prompt").value.trim()||document.getElementById("scaffold").textContent.startsWith("A revised prompt scaffold")){document.getElementById("status").textContent="Build a scaffold before copying.";return}try{await navigator.clipboard.writeText(document.getElementById("scaffold").textContent);document.getElementById("status").textContent="Scaffold copied."}catch(e){document.getElementById("status").textContent="Copy was blocked; select the text manually."}});
 </script>
 </body></html>
