@@ -1,0 +1,32 @@
+{
+  "unitid": "365240",
+  "source_period": "2025-07-01 to 2026-06-30",
+  "source_url": "https://www.greeneccc.com/Downloads/Ad%20Ed%20Handbook%2025-26.pdf",
+  "program": "Peace Officer Basic Training",
+  "admissions": {
+    "minimum_age": 20,
+    "high_school_or_ged_or_college_documentation": true,
+    "valid_driver_license": true,
+    "interview": true,
+    "fitness_assessment": true,
+    "physician_clearance": true,
+    "sat_act_policy": null
+  },
+  "published_program_costs_usd": {
+    "tuition": 5798,
+    "registration": 50,
+    "lab": 898,
+    "equipment_min": 500,
+    "equipment_max": 1000
+  },
+  "current_2026_27_tuition": null,
+  "next_enrollment_start": null,
+  "source_page_numbers_pdf_1_based": [
+    7,
+    11,
+    12,
+    13
+  ],
+  "is_federal_net_price": false,
+  "notes": "Catalog ended June 2026. No newer price or admissions policy inferred."
+}
