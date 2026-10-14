@@ -1,4 +1,6 @@
-import {normalizeEvidence,exportEvidenceCSV,summary} from './core.mjs';
+import {exportEvidenceCSV,summary} from './core.mjs';
+import {normalizeExact as normalizeEvidence} from './exact-core.mjs';
+import {readExactJSON} from './json-import.mjs';
 const $ = id => document.getElementById(id);
 let records = [];
 const form=$('entry-form'), error=$('error'), list=$('records');
@@ -26,4 +28,27 @@ function download(filename,content,type){const url=URL.createObjectURL(new Blob(
 $('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportEvidenceCSV(records),'text/csv;charset=utf-8'));
 $('json').addEventListener('click',()=>download('evidence-timeline-exact.json',JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n','application/json'));
 $('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];render();$('sourceId').focus();}});
+
+const timeline=document.querySelector('[aria-labelledby="timeline-heading"]');
+const section=document.createElement('section');
+section.setAttribute('aria-labelledby','resume-heading');
+const heading=document.createElement('h2');heading.id='resume-heading';heading.textContent='Resume from a JSON export';
+const instructions=document.createElement('p');instructions.textContent='Choose a JSON file exported by this tool. Files stay in this tab. Import replaces existing records only after confirmation.';
+const label=document.createElement('label');label.htmlFor='resume-json';label.textContent='Evidence Timeline JSON file';
+const input=document.createElement('input');input.type='file';input.id='resume-json';input.accept='.json,application/json';
+const status=document.createElement('p');status.tabIndex=-1;status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+section.append(heading,instructions,label,input,status);
+timeline.before(section);
+input.addEventListener('change',async()=>{
+ const file=input.files?.[0];if(!file)return;
+ input.disabled=true;
+ try{
+   const next=await readExactJSON(file);
+   if(window.confirm('Replace '+records.length+' current records with '+next.length+' imported records? Export first if needed.')){
+     records=next;render();$('count').focus();status.textContent=next.length+' records imported locally.';
+   }else status.textContent='Import cancelled; existing records retained.';
+ }catch(e){status.textContent='Import failed: '+String(e.message||e);status.focus();}
+ finally{input.value='';input.disabled=false;}
+});
+
 render();
