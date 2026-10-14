@@ -25,6 +25,8 @@ jobs:
           node --check free-tools/cash-flow/boundary.test.mjs
           node --check free-tools/cash-flow/occurrence-anchor-regression.test.mjs
           node --check free-tools/cash-flow/security-accessibility.test.mjs
+          node --check free-tools/cash-flow/csv-interop-fixture.mjs
+          python3 -m py_compile free-tools/cash-flow/csv-interop-import.test.py
       - name: Engine and recurrence regressions
         run: |
           node free-tools/cash-flow/engine.test.mjs
@@ -32,6 +34,8 @@ jobs:
           node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
       - name: Static CSP, accessibility and security guards
         run: node free-tools/cash-flow/security-accessibility.test.mjs
+      - name: Independently import synthetic CSV using Python csv
+        run: node free-tools/cash-flow/csv-interop-fixture.mjs | python3 free-tools/cash-flow/csv-interop-import.test.py
   browser-qa:
     runs-on: ubuntu-latest
     timeout-minutes: 15
