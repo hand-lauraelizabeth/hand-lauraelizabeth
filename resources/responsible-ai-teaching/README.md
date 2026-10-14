@@ -8,6 +8,17 @@ The kit combines three browser-based demonstrations:
 - [Evidence-Safe Prompt Lab](../../projects/evidence-safe-prompt-lab/) — build source-conscious prompts with support classifications, uncertainty, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](../../projects/ethical-ai-scenario-auditor/) — move from abstract principles to concrete workflow risks, mitigations, owners, oversight, and contestability.
 
+## Published companion tools and quality checks
+
+For visitors who want to use a browser-based tool without downloading source files, the portfolio also includes two **separate, published WordPress companions**:
+
+- [Prompt Lab — Prompt Literacy & Responsible AI](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-lab/): prompt specification, evidence-ledger editing, reviewer-assigned support categories, source-aware generation, and human verification planning.
+- [AI Use Decision Lab — Risk, Verification & Disclosure](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ai-use-decision-lab/): use-case decisions, risk signals, a twelve-domain ethical workflow audit, accountable owners, mitigation tests, recourse planning, and disclosure drafts.
+
+These public companions are **not** hosted copies of the three GitHub demonstration projects above. The GitHub directories are code-and-instructions links, not clickable deployed apps.
+
+CI runs browser interaction smoke tests for the three source demonstrations and the two published WordPress companions. It also runs a pinned `axe-core` audit for WCAG 2.0/2.1 A/AA signals on all five, including populated states of the two live tools. The October 14, 2026 audit rerun returned zero automated violations. Automated tests do not constitute an accessibility certification: physical iOS/Android, zoom, keyboard-only, screen-reader, and comprehension testing remain human release checks.
+
 All three tools run client-side and do not call an AI API. To interact with them, download the respective project folder and open its `index.html` locally; GitHub directory previews show source rather than a hosted app. The Debugger offers provisional textual clues but requires human ratings; the Prompt Lab records reviewer-assigned—not independently validated—source support; the Scenario Auditor produces proposed controls, owners, tests, and appeal routes that require substantive human review.
 
 Supporting teaching resources:
