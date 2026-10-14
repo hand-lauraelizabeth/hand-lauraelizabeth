@@ -21,7 +21,7 @@ CI runs browser interaction smoke tests for the three source demonstrations and 
 
 The development branch also includes a reproducible **static-site preview builder** that packages the three demonstrations into a simple browser navigation page, verifies content SHA-256 hashes, and tests the bundle on a local HTTP server. The GitHub Actions artifact is a preview for review, **not a published website**. Public hosting and links will only be listed after deployment and verification.
 
-All three tools run client-side and do not call an AI API. To interact with them, download the respective project folder and open its `index.html` locally; GitHub directory previews show source rather than a hosted app. The Debugger offers provisional textual clues but requires human ratings; the Prompt Lab records reviewer-assigned—not independently validated—source support; the Scenario Auditor produces proposed controls, owners, tests, and appeal routes that require substantive human review.
+All three tools run client-side and do not call an AI API. You can use the published browser embeds linked above, or download a GitHub project folder and open its `index.html` locally. GitHub directory previews display source files rather than runnable apps. The Debugger offers provisional textual clues but requires human ratings; the Prompt Lab records reviewer-assigned—not independently validated—source support; the Scenario Auditor produces proposed controls, owners, tests, and appeal routes that require substantive human review.
 
 Supporting teaching resources:
 
