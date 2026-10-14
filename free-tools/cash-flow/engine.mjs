@@ -54,8 +54,17 @@ export function project({start,end,openingCents,events,shiftId=null,shiftDays=0}
     if(typeof e.label!=='string'||!e.label.trim()||e.label.length>120)throw Error('Invalid event label.');
     if(!Number.isSafeInteger(e.cents)||Math.abs(e.cents)>LIMITS.maxAbsCents)throw Error('Invalid event amount.');
     dateUTC(e.date);
-    const shifted=e.id===shiftId?{...e,date:addDays(e.date,shiftDays)}:e;
-    for(const day of occurrences(shifted,start,end)){
+    // Move individual occurrences without changing the recurring series anchor.
+    // A January 31 bill shifted one day must not become a bill due on the first
+    // of every subsequent month.
+    const moved=e.id===shiftId&&shiftDays!==0;
+    const sourceFrom=moved?addDays(start,-shiftDays):start;
+    const sourceTo=moved?addDays(end,-shiftDays):end;
+    const from=sourceFrom<'1900-01-01'?'1900-01-01':sourceFrom;
+    const to=sourceTo>'2100-12-31'?'2100-12-31':sourceTo;
+    if(from>to)continue;
+    for(const originalDay of occurrences(e,from,to)){
+      const day=moved?addDays(originalDay,shiftDays):originalDay;
       if(!byDate.has(day))byDate.set(day,[]);
       byDate.get(day).push({id:e.id,label:e.label,cents:e.cents});
     }
