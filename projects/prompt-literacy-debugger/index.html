@@ -11,7 +11,7 @@ h1{font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;margin:.35rem 0 1rem}h2{mar
 .tags{margin:.5rem 0 1.3rem}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 9px;margin:4px 5px 0 0;font-size:.82rem;background:var(--panel)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 28px rgba(24,44,35,.06)}
 label{display:block;font-weight:750;margin:14px 0 6px}textarea,select,input[type=text]{width:100%;font:inherit;padding:11px 12px;border:1px solid #afbeb5;border-radius:10px;background:#fff;color:inherit}textarea{min-height:130px;resize:vertical}
-.item{border-top:1px solid #e0e8e2;padding:13px 0}.item:first-of-type{border-top:0}.q{font-weight:800}.help,.note{color:var(--muted);font-size:.91rem}.answers{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}.answers label{margin:0;font-weight:500;display:flex;gap:6px;align-items:center}
+.item{border:0;border-top:1px solid #e0e8e2;padding:13px 0;margin:0;min-width:0}.item:first-of-type{border-top:0}.q{font-weight:800}.help,.note{color:var(--muted);font-size:.91rem}.answers{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}.answers label{margin:0;font-weight:500;display:flex;gap:6px;align-items:center}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}button{border:0;border-radius:999px;padding:11px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--accent);color:#fff}.secondary{background:var(--accent2);color:var(--ink)}
 button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #90b8a7;outline-offset:2px}
 .result{border-left:4px solid var(--accent);padding-left:14px}.warn{border-left-color:#ad7d22}.pill{display:inline-block;background:var(--accent2);border-radius:999px;padding:5px 10px;font-weight:800;margin:2px 5px 2px 0}
@@ -94,8 +94,8 @@ const dims=[
 ];
 const host=document.getElementById("questions");
 dims.forEach(d=>{
- const x=document.createElement("div");x.className="item";
- x.innerHTML='<div class="q">'+d[1]+'</div><div class="help">'+d[2]+'</div><div class="answers"><label><input type="radio" name="'+d[0]+'" value="2"> Explicit</label><label><input type="radio" name="'+d[0]+'" value="1"> Partial / implied</label><label><input type="radio" name="'+d[0]+'" value="0"> Missing</label></div>';
+ const x=document.createElement("fieldset");x.className="item";
+ x.innerHTML='<legend class="q">'+d[1]+'</legend><div class="help">'+d[2]+'</div><div class="answers"><label><input type="radio" name="'+d[0]+'" value="2"> Explicit</label><label><input type="radio" name="'+d[0]+'" value="1"> Partial / implied</label><label><input type="radio" name="'+d[0]+'" value="0"> Missing</label></div>';
  host.appendChild(x);
 });
 function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
