@@ -60,7 +60,7 @@ th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
 const $=id=>document.getElementById(id),lib=window.DataRescue;
 let epoch=0,current=null;
 function render(parsed,name){
- current=parsed;const list=$('preview');list.replaceChildren();
+ current=parsed;window.DataRescueCompareUI.setPrimary(parsed,name);const list=$('preview');list.replaceChildren();
  const table=document.createElement('table'),head=document.createElement('tr');
  parsed.normalizedHeaders.forEach(text=>{const cell=document.createElement('th');cell.textContent=text;head.append(cell);});
  table.append(head);
@@ -69,7 +69,7 @@ function render(parsed,name){
 }
 window.DataRescueRenderFromHistory=render;
 function clear(keepFile=false){
- ++epoch;current=null;window.DataRescueHistoryUI.onClear();$('save').disabled=true;
+ ++epoch;current=null;window.DataRescueHistoryUI.onClear();window.DataRescueCompareUI.setPrimary(null);$('save').disabled=true;
  $('preview').replaceChildren();$('rowCount').textContent='Load a file to preview data.';
  if(!keepFile)$('file').value='';$('loadStatus').textContent='No file loaded.';
 }
