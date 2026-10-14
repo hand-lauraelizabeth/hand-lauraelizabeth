@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const d = JSON.parse(readFileSync(new URL('../data/review/suny-wcc-2025-cds-sat-act-numeric.json', import.meta.url), 'utf8'));
+assert.equal(d.institution.unitid, '197294');
+assert.equal(d.submission.sat.count, 45);
+assert.equal(d.submission.act.count, 3);
+assert.deepEqual(d.percentiles.sat_composite, {p25:940,p50:1170,p75:1250});
+assert.equal(d.percentiles.act_composite.p75, null);
+assert.equal(d.admissions.uses_sat_act_for_admission, false);
+assert.equal(d.safety.can_auto_classify_safety_target_reach, false);
+assert.equal(d.safety.score_average_from_percentiles, null);
+assert.equal(d.safety.merge_into_existing_overlay, 'defer until exact live UNITID and overlay membership check');
+console.log('PASS: SUNY WCC 2025 CDS source evidence assertions');
