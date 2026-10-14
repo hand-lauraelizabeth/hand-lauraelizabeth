@@ -1,1 +1,28 @@
-{"unitid":"373526","catalog":"https://dda.edu/disclosure/","reviewed":"2026-10-14"}
+{
+  "unitid": "373526",
+  "source_date": "2026-07-13",
+  "review_date": "2026-10-14",
+  "official_catalog": "https://dda.edu/wp-content/uploads/2026/09/DDA-BR-WM-Vol-35-4rd-Ed-V2-2026.09.29-FINAL.pdf",
+  "official_disclosures": "https://dda.edu/disclosure/",
+  "current_campus": "https://dda.edu/locations/baton-rouge/",
+  "current_training": "https://dda.edu/cdl-training/",
+  "state_cdl": "https://expresslane.la.gov/omv/drivers/commercial-driver-s-licenses-cdl/new-cdl/",
+  "federal_eldt": "https://tpr.fmcsa.dot.gov/Drivers/Applicability",
+  "catalog_printed_pages": {
+    "programs": 12,
+    "advanced_cost": 18,
+    "advanced_starts": 24,
+    "basic_cost_conflict": 28,
+    "basic_starts": 31,
+    "prep_cost": 35,
+    "admissions": 38,
+    "certificate": 94
+  },
+  "qa": [
+    "Catalog source was reached through current school disclosure link",
+    "Basic tuition is internally inconsistent",
+    "Current training page and catalog conflict on age",
+    "State CDL issued separately from school certificate",
+    "Do not treat scheduled starts as seat availability"
+  ]
+}
