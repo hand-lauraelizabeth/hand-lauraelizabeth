@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0",
+  "institution": {
+    "unitid": "197294",
+    "name": "SUNY Westchester Community College",
+    "state": "NY",
+    "campus": "Valhalla",
+    "identity_source": "https://nces.ed.gov/ipeds/DataCenter/DfrFiles/IPEDSDFR2009_197294.pdf",
+    "identity_check": "official IPEDS identifier; national-live and overlay membership not independently reconciled"
+  },
+  "source": {
+    "title": "Common Data Set 2025-2026",
+    "url": "https://www.sunywcc.edu/wp-content/uploads/2026/04/2025-2026-Common-Data-Set.pdf",
+    "publisher": "SUNY Westchester Community College",
+    "section": "C8-C9",
+    "pages_pdf_zero_based": [
+      9,
+      10
+    ],
+    "cohort": "Fall 2025 first-time first-year enrolled degree-seeking",
+    "source_qa": "Document cover identifies 2025-2026, while internal running headers say 2024-2025; cohort text explicitly Fall 2025."
+  },
+  "submission": {
+    "sat": {
+      "count": 45,
+      "percent_rounded": 2
+    },
+    "act": {
+      "count": 3,
+      "percent_rounded": 0
+    }
+  },
+  "percentiles": {
+    "sat_composite": {
+      "p25": 940,
+      "p50": 1170,
+      "p75": 1250
+    },
+    "sat_reading_writing": {
+      "p25": 500,
+      "p50": 600,
+      "p75": 630
+    },
+    "sat_math": {
+      "p25": 440,
+      "p50": 570,
+      "p75": 630
+    },
+    "act_composite": {
+      "p25": 23,
+      "p50": 27,
+      "p75": null
+    },
+    "act_math": {
+      "p25": 21,
+      "p50": 27,
+      "p75": null
+    },
+    "act_english": {
+      "p25": 24,
+      "p50": 27,
+      "p75": null
+    },
+    "act_science": {
+      "p25": 23,
+      "p50": 28,
+      "p75": null
+    },
+    "act_reading": {
+      "p25": 22,
+      "p50": 25,
+      "p75": null
+    }
+  },
+  "admissions": {
+    "uses_sat_act_for_admission": false,
+    "uses_applicant_scores_for_academic_advising": true,
+    "source_c8a": "No",
+    "source_c8d": "Yes",
+    "future_fall_2027_specific_grid": "blank; no per-test classification inferred"
+  },
+  "safety": {
+    "can_infer_admission_chance": false,
+    "can_auto_classify_safety_target_reach": false,
+    "reason": "SAT submission 45 students (2% rounded); ACT submission only 3 students (0% rounded); tests not used for admission. Descriptive statistics only.",
+    "merge_into_existing_overlay": "defer until exact live UNITID and overlay membership check",
+    "score_average_from_percentiles": null
+  },
+  "reviewed_at": "2026-10-14"
+}
