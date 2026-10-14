@@ -1,5 +1,8 @@
 name: Responsible AI demo browser checks
 
+# Pull-request CI runs only local synthetic tests: repeated live hits can trigger
+# hosting security/rate limits. The live suite runs on main pushes or manual dispatch.
+
 on:
   pull_request:
     paths:
@@ -45,26 +48,31 @@ jobs:
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/browser_smoke.py
       - name: Test responsible-AI embeds on the published resource hub
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/wordpress_hub_embed_smoke.py
       - name: Test published WordPress AI resources (synthetic inputs)
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/wordpress_live_smoke.py
       - name: Test published R and Python lesson tabs and quizzes
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/teaching_lessons_live_smoke.py
       - name: Inspect live homepage and About SEO markup (read-only)
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/seo_live_audit.py
       - name: Audit public robots and Yoast XML sitemap discovery (read-only)
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
@@ -75,11 +83,13 @@ jobs:
         env:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
+          RUN_LIVE_SITE_CHECKS: ${{ github.event_name != 'pull_request' }}
         run: python projects/responsible-ai-demo-tests/accessibility_axe.py
       - name: Test keyboard workflows and browser accessibility semantics
         env:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
+          RUN_LIVE_SITE_CHECKS: ${{ github.event_name != 'pull_request' }}
         run: python projects/responsible-ai-demo-tests/keyboard_semantics.py
 
       - name: Build static browser-accessible demo preview (no publishing)
