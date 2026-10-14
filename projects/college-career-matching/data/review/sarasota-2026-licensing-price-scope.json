@@ -1,0 +1,26 @@
+{
+  "unitid": "406149",
+  "review_date": "2026-10-14",
+  "florida_licensing_requirements": {
+    "school_program_hours_minimum": 500,
+    "board_approved_school_required": true,
+    "official_completion_documentation_required": true,
+    "board_approved_exam_required": true,
+    "florida_laws_rules_course_hours": 10,
+    "background_screening_required": true,
+    "license_application_required": true,
+    "school_completion_automatically_grants_license": false,
+    "individual_eligibility_verified": false,
+    "source": "https://floridasmassagetherapy.gov/licensed-massage-therapist/"
+  },
+  "program_cost": {
+    "published_total_usd": 16475,
+    "tuition_usd": 16075,
+    "books_usd": 400,
+    "source_vintage": "2025-06-30",
+    "verified_current_2026_price": false,
+    "spanish_program_price": "unknown",
+    "source": "https://sarasotaschoolofmassagetherapy.edu/program-descriptions/"
+  },
+  "hold": "School-specific current board approval and exact school-issued award remain unverified"
+}
