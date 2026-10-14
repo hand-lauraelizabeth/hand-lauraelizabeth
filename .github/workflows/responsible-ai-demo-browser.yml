@@ -64,6 +64,8 @@ jobs:
           CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
           CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
         run: python projects/responsible-ai-demo-tests/seo_live_audit.py
+      - name: Audit public robots and Yoast XML sitemap discovery (read-only)
+        run: python projects/responsible-ai-demo-tests/search_discovery_audit.py
       - name: Install pinned accessibility audit engine
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund axe-core@4.10.3
       - name: Audit AI accessibility on live and standalone pages
