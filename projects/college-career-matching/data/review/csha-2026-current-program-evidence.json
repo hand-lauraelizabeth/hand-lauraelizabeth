@@ -1,1 +1,18 @@
-{"unitid":"381732","program":"650 Hour Massage Therapy Program","hours":650,"award":"Certificate of Completion","catalog_year":2026}
+{
+  "unitid": "381732",
+  "institution": "Colorado School of Healing Arts",
+  "program": "650 Hour Massage Therapy Program",
+  "hours": 650,
+  "school_award": "Certificate of Completion",
+  "printed_award_title": null,
+  "catalog_year": 2026,
+  "catalog_volume": 40,
+  "delivery": "hybrid",
+  "tuition_usd": 11050,
+  "total_program_cost_usd": 12622.98,
+  "sat_act_policy": null,
+  "professional_license_automatic": false,
+  "cip6": null,
+  "source_catalog": "https://csha.net/wp-content/uploads/2026/06/Catalog.pdf",
+  "source_tuition": "https://csha.net/wp-content/uploads/2026/02/TuitionAddendum1.pdf"
+}
