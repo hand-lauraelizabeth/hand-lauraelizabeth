@@ -1,0 +1,62 @@
+{
+  "unitid": "168573",
+  "catalog": "https://northwesterntech.edu/wp-content/uploads/2026/09/2026-2027-School-Catalog-June-2026.docx.pdf",
+  "source_pages": [
+    12,
+    43
+  ],
+  "course_count": 9,
+  "each_course_hours": 80,
+  "each_course_quarter_credits": 4,
+  "school_award": "Certificate of Completion",
+  "non_vocational": true,
+  "does_not_lead_to_initial_employment": true,
+  "courses": [
+    {
+      "code": "H-102",
+      "name": "Electrical Theory and Application",
+      "listed_total_usd": 2058
+    },
+    {
+      "code": "H-202",
+      "name": "Heating",
+      "listed_total_usd": 2058
+    },
+    {
+      "code": "H-302",
+      "name": "Air Conditioning",
+      "listed_total_usd": 2058
+    },
+    {
+      "code": "H-402",
+      "name": "Refrigeration",
+      "listed_total_usd": 2058
+    },
+    {
+      "code": "H-502",
+      "name": "Troubleshooting",
+      "listed_total_usd": 2058
+    },
+    {
+      "code": "H-602",
+      "name": "Installation",
+      "listed_total_usd": 2058
+    },
+    {
+      "code": "H-702",
+      "name": "Hydronic Heating Systems",
+      "listed_total_usd": 2036
+    },
+    {
+      "code": "H-802",
+      "name": "Property Maintenance",
+      "listed_total_usd": 2007
+    },
+    {
+      "code": "H-902",
+      "name": "Heat Pumps",
+      "listed_total_usd": 2058
+    }
+  ],
+  "note": "H-902 continuing education is one 80-hour course; vocational C-100 includes two 40-hour Heat Pumps segments."
+}
