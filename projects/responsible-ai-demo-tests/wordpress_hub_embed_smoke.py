@@ -14,6 +14,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 HUB="https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/"
 SCENARIOS=[
     ("ethics-scenario-auditor","Ethical AI Scenario Auditor",12,"scenario","assess","summary","12 not assessed"),
+    ("prompt-literacy-debugger-demo","Prompt Literacy Debugger",7,"prompt","assess","result","explicit"),
+    ("evidence-safe-prompt-lab-demo","Evidence-Safe Prompt Lab",None,"goal","generate","prompt","fictional"),
 ]
 
 def check(driver):
@@ -29,15 +31,18 @@ def check(driver):
         assert title in iframe.get_attribute("title")
         assert iframe.get_attribute("srcdoc"),f"{id_}: srcdoc missing"
         driver.switch_to.frame(iframe)
-        wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR,"#questions fieldset"))==n)
+        if n is not None:
+            wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR,"#questions fieldset"))==n)
+        else:
+            wait.until(lambda d: d.find_elements(By.ID,"goal"))
         assert title in driver.find_element(By.TAG_NAME,"h1").text
         form=driver.find_element(By.ID,field)
         form.send_keys("A fictional, public-information-only student advising scenario.")
         driver.find_element(By.ID,button).send_keys(Keys.ENTER)
-        assert expect in driver.find_element(By.ID,out).text, (
+        assert expect.lower() in driver.find_element(By.ID,out).text.lower(), (
             id_+": expected meaningful output from the embedded tool")
         driver.switch_to.default_content()
-        print("PASS published hub embed:",title,"keyboard disclosure, frame loaded, 12 controls, synthetic assessment")
+        print("PASS published hub embed:",title,"keyboard disclosure, frame loaded, synthetic interactive output")
 
     driver.set_window_size(390,780)
     assert driver.execute_script("return document.documentElement.scrollWidth <= window.innerWidth+2"), (
