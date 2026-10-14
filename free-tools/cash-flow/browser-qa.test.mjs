@@ -4,14 +4,14 @@ import {createServer} from 'node:http';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {join,dirname} from 'node:path';
-import {chromium,firefox,webkit} from 'playwright';
+import {chromium,firefox,webkit,devices} from 'playwright';
 
 const root=dirname(fileURLToPath(import.meta.url));
 const assets=new Map([
   ['/','index.html'], ['/index.html','index.html'], ['/style.css','style.css'],
-  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs']
+  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs'], ['/axe.min.js','node_modules/axe-core/axe.min.js']
 ]);
-const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8'};
+const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8'};
 const server=createServer((req,res)=>{
   const name=assets.get(new URL(req.url,'http://localhost').pathname);
   if(!name){res.writeHead(404).end('Not found');return;}
@@ -71,6 +71,11 @@ async function testBrowser(name,type){
     assert.deepEqual(actual,[['2024-03-01','-20.00'],['2024-03-31','-20.00'],['2024-05-01','-20.00']],name+': recurring shift drift');
     checks++;
     check((await page.locator('#summary').textContent()).includes('Scenario end 40.00 USD'),name+': scenario balance');
+    // Axe is served from the same origin to respect the app's restrictive CSP.
+    await page.addScriptTag({url:baseURL+'axe.min.js'});
+    const audit=await page.evaluate(async()=>await window.axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}));
+    assert.deepEqual(audit.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.map(n=>n.target)})),[],name+': automated WCAG accessibility violations');
+    checks++;
 
     const [download]=await Promise.all([
       page.waitForEvent('download'),
@@ -112,12 +117,61 @@ async function testBrowser(name,type){
     console.log(name+': PASS browser UI, keyboard, 320/640px reflow, HTTP CSP, local-only requests, CSV download ('+checks+' cumulative assertions)');
   }finally{await browser.close();}
 }
+async function testMobile(label,type,profile){
+  // Emulated device touch/viewport is not a real iOS or Android device.
+  const browser=await type.launch({headless:true});
+  try{
+    const context=await browser.newContext({...devices[profile],acceptDownloads:true});
+    const page=await context.newPage(),errors=[],offsite=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    page.on('request',request=>{if(!request.url().startsWith(baseURL)&&!request.url().startsWith('blob:'+baseURL))offsite.push(request.url());});
+    const response=await page.goto(baseURL,{waitUntil:'networkidle'});
+    check(response.status()===200,label+': served HTTP');
+    check(await page.evaluate(()=>matchMedia('(pointer: coarse)').matches),label+': emulated touch pointer');
+    const sizes=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,page:document.documentElement.scrollWidth}));
+    check(sizes.page<=sizes.viewport+1,label+': horizontal page overflow on emulated mobile');
+    check(await page.getByRole('button',{name:'Add event'}).isVisible(),label+': add button visible');
+
+    await fill(page,'start','2026-10-14');
+    await fill(page,'end','2026-10-16');
+    await fill(page,'opening','500.00');
+    await fill(page,'event-id','rent');
+    await fill(page,'event-label','Rent');
+    await fill(page,'event-amount','-200.00');
+    await fill(page,'event-date','2026-10-15');
+    await page.locator('#event-repeat').selectOption('once');
+    await page.getByRole('button',{name:'Add event'}).tap();
+    check((await page.locator('#events').textContent()).includes('Rent'),label+': touch adds event');
+    await page.getByRole('button',{name:'Calculate projection'}).tap();
+    await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Calculated 3 days'));
+    check((await page.locator('#summary').textContent()).includes('Scenario end 300.00 USD'),label+': touch calculates expected result');
+    check(await page.locator('#results tr').count()===3,label+': results visible');
+    const [download]=await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button',{name:'Export scenario CSV'}).tap()
+    ]);
+    const csv=readFileSync(await download.path(),'utf8');
+    check(csv.includes('"2026-10-15",-200.00,300.00,"rent","Rent"'),label+': touch CSV download contents');
+    await fill(page,'opening','400.00');
+    check(await page.getByRole('button',{name:'Export scenario CSV'}).isDisabled(),label+': stale export blocked after edit');
+    check(await page.locator('#results tr').count()===0,label+': stale results invalidated');
+    await page.getByRole('button',{name:'Remove rent'}).tap();
+    check((await page.locator('#events').textContent()).includes('No events added.'),label+': touch removes event');
+    check(errors.length===0,label+': no page exceptions: '+errors.join('; '));
+    check(offsite.length===0,label+': no offsite requests: '+offsite.join('; '));
+    await context.close();
+    console.log(label+': PASS touch-emulated add, calculate, download, invalidate, remove, responsive layout.');
+  }finally{await browser.close();}
+}
+
 try{
   for(const [name,browser] of [['Chromium',chromium],['Firefox',firefox],['WebKit',webkit]]){
     await testBrowser(name,browser);
   }
-  console.log(checks+' HTTP-served cross-browser FT-04 assertions PASS.');
-  console.log('Manual native browser zoom, screen-reader AT, mobile OS, and spreadsheet-app CSV reopening remain pending.');
+  await testMobile('Pixel 7 / Chromium emulation',chromium,'Pixel 7');
+  await testMobile('iPhone 13 / WebKit emulation',webkit,'iPhone 13');
+  console.log(checks+' HTTP-served browser, axe WCAG scan and mobile-emulation assertions PASS.');
+  console.log('Manual native zoom, assistive technology, physical mobile hardware, and spreadsheet-app CSV reopening remain pending.');
 }finally{
   await new Promise(resolve=>server.close(resolve));
 }
