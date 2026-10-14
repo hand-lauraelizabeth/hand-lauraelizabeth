@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const base = new URL('../data/review/', import.meta.url);
+const p = JSON.parse(readFileSync(new URL('dda-br-2026-programs.json', base)));
+const a = JSON.parse(readFileSync(new URL('dda-br-2026-admissions-licensure.json', base)));
+let n = 0;
+function check(ok, msg) { assert.ok(ok, msg); n++; }
+check(p.unitid === '373526', 'UNITID');
+check(a.unitid === p.unitid, 'same institution');
+check(p.programs.length === 3, 'three programs');
+check(new Set(p.programs.map(x => x.name)).size === 3, 'unique programs');
+check(p.programs.reduce((s,x) => s + x.hours, 0) === 896, 'hours');
+check(p.programs.every(x => x.award === 'Certificate of Completion'), 'award');
+check(p.programs.find(x => x.hours === 600).charge_usd === 11900, 'advanced price');
+check(p.programs.find(x => x.hours === 136).charge_usd === 4900, 'prep price');
+const basic = p.programs.find(x => x.hours === 160);
+check(basic.charge_usd === null, 'disputed basic charge must be null');
+check(basic.conflicting_totals_usd.join(',') === '7100,7200', 'preserve conflicting totals');
+check(a.admissions.age_conflict === 'unresolved', 'age dispute');
+check(a.admissions.sat_act_policy === 'unknown', 'SAT ACT not inferred');
+check(a.career.license_automatic === false, 'license separate');
+check(a.schedule.open_seats_verified === false, 'no invented seats');
+check(a.cautions.some(x => x.includes('CIP-SOC')), 'crosswalk excluded');
+check(a.cautions.some(x => x.includes('West Monroe')), 'affiliate caveat');
+check(p.catalog_pdf.startsWith('https://dda.edu/'), 'official catalog');
+check(a.career.state_authority.includes('expresslane.la.gov'), 'state authority');
+console.log('PASS: ' + n + ' DDA 2026 evidence assertions');
