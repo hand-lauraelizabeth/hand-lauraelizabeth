@@ -16,6 +16,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 pre{white-space:pre-wrap;word-break:break-word;background:#14211c;color:#f7fbf8;border-radius:14px;padding:18px;min-height:300px;overflow:auto}.note{font-size:.91rem;color:var(--muted)}
 .tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 9px;margin:4px 5px 0 0;font-size:.82rem;background:var(--panel)}.why{border-left:4px solid var(--accent);padding-left:14px;margin-top:18px}.ledger-entry{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:var(--panel)}.ledger-entry p{margin:5px 0;overflow-wrap:anywhere}.ledger-entry button{margin-top:8px}.status{min-height:1.4em;color:var(--accent);font-weight:700}
 @media(max-width:800px){.grid{grid-template-columns:1fr}}
+pre:focus-visible{outline:3px solid #90b8a7;outline-offset:3px}
 </style></head>
 <body><main>
 <div class="eyebrow">Applied technical demonstration · responsible AI</div>
@@ -48,7 +49,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#14211c;color:#f7fbf8;
 <div id="ledgerStatus" class="status" aria-live="polite"></div><div id="ledger" aria-live="polite"><p class="note">No reviewed evidence records yet.</p></div>
 </fieldset>
 <div class="actions"><button class="primary" id="generate">Generate prompt</button><button class="secondary" id="example">Load example</button><button class="secondary" id="clear">Clear</button></div></section>
-<section class="card"><h2>4. Inspect the prompt</h2><pre id="prompt" tabindex="0">Choose a mode and enter a goal to generate a prompt.</pre>
+<section class="card"><h2>4. Inspect the prompt</h2><pre id="prompt" tabindex="0" role="region" aria-label="Generated source-conscious prompt">Choose a mode and enter a goal to generate a prompt.</pre>
 <div class="actions"><button class="primary" id="copy">Copy prompt</button></div><div class="status" id="status" aria-live="polite"></div>
 <div class="why"><strong>Why this structure matters</strong><p class="note">A polished answer can still be poorly grounded. This workflow makes the relationship between claim and evidence visible, identifies what a source does not establish, and revises language to match the strength of support.</p></div></section></div>
 <section class="card" style="margin-top:22px"><h2>Instructional extension</h2><p>Ask learners to run the same claim through two versions: one with no evidence constraints and one generated here. Compare unsupported specificity, citation behavior, uncertainty language, and what the model treats as fact. The learning objective is not “write a better prompt”; it is to make the evidence contract visible.</p>
