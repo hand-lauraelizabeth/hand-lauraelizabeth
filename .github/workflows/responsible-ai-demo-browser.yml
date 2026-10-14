@@ -35,6 +35,8 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Compile regression scripts and release-only checks
+        run: python -m compileall -q projects/responsible-ai-demo-tests
       - name: Install browser-testing dependency
         run: python -m pip install --disable-pip-version-check selenium
       - name: Set up headless Chromium and matching ChromeDriver
