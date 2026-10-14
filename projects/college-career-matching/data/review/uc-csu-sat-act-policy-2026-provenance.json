@@ -1,0 +1,22 @@
+{
+  "verified_on": "2026-10-14",
+  "base_commit": "3abb9f458c9d0d43c857c64292dc407f3bd1e911",
+  "uc_policy": "SAT/ACT not considered for undergraduate admission decisions or scholarships; alternative minimum eligibility and placement use possible",
+  "csu_policy": "SAT/ACT not used for first-time freshman admission eligibility; placement use possible",
+  "sources": [
+    "https://admission.universityofcalifornia.edu/how-to-apply/applying-as-a-first-year/filling-out-the-application.html",
+    "https://www.calstate.edu/apply/freshman/getting_into_the_csu/pages/testing-requirements.aspx",
+    "https://www.calstate.edu/csu-system/csu-branding-standards/editorial-style-guide/Pages/campus-names.aspx"
+  ],
+  "counts": {
+    "uc": 9,
+    "csu": 22,
+    "numeric_scores_added": 0
+  },
+  "hold_unitids": [
+    "110699",
+    "111188",
+    "12240901"
+  ],
+  "no_production_changes": true
+}
