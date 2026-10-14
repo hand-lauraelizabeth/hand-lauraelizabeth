@@ -45,6 +45,8 @@ def main():
                 assert any(n.get("alternateName")=="Laura Elizabeth" and n.get("name")=="Laura Elizabeth Hand"
                            for n in persons), "Person schema missing the shorter-name identity"
                 assert any("github.com/hand-lauraelizabeth" in str(n.get("sameAs")) for n in persons), "Public profile source missing"
+                assert any(n.get("image","").endswith("/laura-elizabeth-hand-professional-profile.jpg") for n in persons), "Homepage Person image identity missing"
+                assert d.find_elements(By.LINK_TEXT,"About Laura Elizabeth →"), "Homepage lacks discoverable shortened-name About link"
             else:
                 profiles=[node for node in nodes if node.get("@type")=="ProfilePage"]
                 assert len(profiles)==1, "About page needs one valid ProfilePage identity node"
@@ -53,6 +55,9 @@ def main():
                 assert me.get("name")=="Laura Elizabeth Hand" and me.get("alternateName")=="Laura Elizabeth"
                 visible=d.execute_script("return document.body.innerText")
                 assert "also known as Laura Elizabeth" in visible, "About page doesn't show shortened name visibly"
+                assert me.get("image","").endswith("/laura-elizabeth-hand-professional-profile.jpg"), "About ProfilePage image missing"
+                assert d.find_elements(By.CSS_SELECTOR, 'a[href*="github.com/hand-lauraelizabeth"][rel~="me"]'), "About lacks linked public GitHub identity"
+                assert d.find_elements(By.CSS_SELECTOR, 'a[href*="linkedin.com/in/lauraelizabethhand"][rel~="me"]'), "About lacks linked LinkedIn identity"
                 print("PASS profile identity",json.dumps({"type":"ProfilePage","id":me.get("@id"),
                       "name":me.get("name"),"alternateName":me.get("alternateName")}),flush=True)
             print("PASS SEO",json.dumps({"url":url,"title":info["title"],"description":info["description"],
