@@ -97,6 +97,10 @@ def check_ethics(d):
         print("ETHICAL AI DIAGNOSTICS", flush=True)
         print("URL", d.current_url, flush=True)
         print("Script count", d.execute_script("return document.querySelectorAll('#ai-use-lab script').length"), flush=True)
+        print("Script lengths", d.execute_script("return Array.from(document.querySelectorAll('#ai-use-lab script')).map(x=>x.textContent.length)"), flush=True)
+        print("Script tail", d.execute_script("return Array.from(document.querySelectorAll('#ai-use-lab script')).map(x=>x.textContent.slice(-900))"), flush=True)
+        print("Script head", d.execute_script("return Array.from(document.querySelectorAll('#ai-use-lab script')).map(x=>x.textContent.slice(0,350))"), flush=True)
+        print("Script parse probe", d.execute_script("try { new Function(document.querySelector('#ai-use-lab script').textContent); return 'OK'; }catch(e) {return String(e)}"), flush=True)
         print("Question count", len(d.find_elements(By.CSS_SELECTOR, '#ethical-audit-questions fieldset')), flush=True)
         print("Console", d.get_log("browser")[-20:], flush=True)
         raise
