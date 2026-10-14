@@ -1,0 +1,39 @@
+name: Data Rescue file boundary and CSV export validation
+on:
+  push:
+    branches:
+      - review/data-rescue-file-boundary-20261013
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/data-rescue-file-boundary.yml"
+permissions:
+  contents: read
+jobs:
+  browser-and-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run deterministic CSV, history and upload hardening regressions
+        run: |
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/rescue-ui-contract.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js
+          node projects/data-rescue-studio/tests/reconcile-regression.test.js
+          node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
+          node projects/data-rescue-studio/tests/history-core.test.js
+          node projects/data-rescue-studio/tests/provenance-core.test.js
+          node projects/data-rescue-studio/tests/file-reader.test.js
+      - name: Install headless Chromium
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Exercise local upload, audit, exports and invalid files
+        run: |
+          node projects/data-rescue-studio/tests/chromium-smoke.cjs
+          node projects/data-rescue-studio/tests/history-browser.cjs
+          node projects/data-rescue-studio/tests/provenance-browser.cjs
+          node projects/data-rescue-studio/tests/file-boundary-browser.cjs
