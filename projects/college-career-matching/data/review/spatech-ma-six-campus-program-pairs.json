@@ -1,0 +1,40 @@
+{
+  "review_date": "2026-10-14",
+  "catalog_effective": "2026-08-24",
+  "campus_programs": [
+    [
+      "445647",
+      "Aesthetics",
+      600
+    ],
+    [
+      "445647",
+      "Therapeutic Massage",
+      650
+    ],
+    [
+      "445647",
+      "Holistic Massage",
+      770
+    ],
+    [
+      "445656",
+      "Aesthetics",
+      600
+    ],
+    [
+      "445656",
+      "Therapeutic Massage",
+      650
+    ],
+    [
+      "445656",
+      "Holistic Massage",
+      770
+    ]
+  ],
+  "school_award": "Certificate of Completion",
+  "source": "https://www.spatech.edu/program-catalogs",
+  "admissions_sat_act": "unknown",
+  "enrollment_availability": "unknown"
+}
