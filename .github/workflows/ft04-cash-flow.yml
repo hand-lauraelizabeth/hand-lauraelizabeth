@@ -1,0 +1,31 @@
+name: FT-04 cash-flow deterministic tests
+on:
+  push:
+    branches:
+      - 'review/ft04-ci-occurrence-*'
+  pull_request:
+    paths:
+      - 'free-tools/cash-flow/**'
+      - '.github/workflows/ft04-cash-flow.yml'
+  workflow_dispatch:
+jobs:
+  cash-flow:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: |
+          node --check free-tools/cash-flow/engine.mjs
+          node --check free-tools/cash-flow/engine.test.mjs
+          node --check free-tools/cash-flow/boundary.test.mjs
+          node --check free-tools/cash-flow/occurrence-anchor-regression.test.mjs
+      - name: Engine and recurrence regressions
+        run: |
+          node free-tools/cash-flow/engine.test.mjs
+          node free-tools/cash-flow/boundary.test.mjs
+          node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
