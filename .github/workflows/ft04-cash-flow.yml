@@ -32,3 +32,20 @@ jobs:
           node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
       - name: Static CSP, accessibility and security guards
         run: node free-tools/cash-flow/security-accessibility.test.mjs
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser QA tooling and engines
+        run: |
+          cd free-tools/cash-flow
+          npm install --no-save --no-package-lock playwright@1.57.0
+          npx playwright install --with-deps chromium firefox webkit
+      - name: HTTP-served Chromium Firefox WebKit regression checks
+        run: node free-tools/cash-flow/browser-qa.test.mjs
