@@ -26,4 +26,6 @@ check(()=>assert.ok(csvCell('\t+SUM(1)').includes("'\t+SUM")));
 check(()=>assert.ok(exportCSV(project({...config,events:[{...events[0],label:'=FORMULA'}]})).includes("'=FORMULA")));
 check(()=>assert.ok(exportCSV(base).includes(',-180.00,20.00,')));
 check(()=>assert.ok(!exportCSV(base).includes("'-180.00")));
+check(()=>assert.deepEqual(occurrences({date:'2100-12-31',repeat:'monthly'},'2100-12-01','2100-12-31'),['2100-12-31']));
+check(()=>assert.deepEqual(occurrences({date:'1900-01-31',repeat:'monthly'},'2100-12-01','2100-12-31'),['2100-12-31']));
 console.log(`${n} FT-04 deterministic assertions PASS`);
