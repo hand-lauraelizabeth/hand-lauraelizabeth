@@ -17,7 +17,7 @@ $('load-workspace').addEventListener('change',async()=>{
  const input=$('load-workspace'),file=input.files?.[0];if(!file)return;
  const generation=++workspaceReadGeneration;input.value='';
  try{
-   if(!/\\.json$/i.test(file.name)||file.size===0||file.size>WORKSPACE_MAX_BYTES)throw Error('Choose a .json workspace file of 1–1,000,000 bytes.');
+   if(!/\.json$/i.test(file.name)||file.size===0||file.size>WORKSPACE_MAX_BYTES)throw Error('Choose a .json workspace file of 1–1,000,000 bytes.');
    const bytes=new Uint8Array(await file.arrayBuffer());
    if(generation!==workspaceReadGeneration)return;
    const restored=parseWorkspaceBytes(bytes);
