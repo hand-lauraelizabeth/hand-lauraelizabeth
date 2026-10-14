@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const d=JSON.parse(readFileSync(new URL("../data/review/greene-2025-26-catalog-admissions-costs.json",import.meta.url),"utf8"));
+assert.equal(d.unitid,"365240");
+assert.equal(d.source_period,"2025-07-01 to 2026-06-30");
+assert.equal(d.admissions.minimum_age,20);
+assert.equal(d.admissions.sat_act_policy,null);
+assert.equal(d.published_program_costs_usd.tuition,5798);
+assert.equal(d.published_program_costs_usd.registration,50);
+assert.equal(d.published_program_costs_usd.lab,898);
+assert.equal(d.published_program_costs_usd.equipment_min,500);
+assert.equal(d.current_2026_27_tuition,null);
+assert.equal(d.next_enrollment_start,null);
+assert.equal(d.is_federal_net_price,false);
+console.log("Greene catalog: 11 assertions passed");
