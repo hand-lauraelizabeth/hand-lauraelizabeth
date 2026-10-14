@@ -15,5 +15,14 @@
   "cip6": null,
   "source_catalog": "https://csha.net/wp-content/uploads/2026/06/Catalog.pdf",
   "source_tuition": "https://csha.net/wp-content/uploads/2026/02/TuitionAddendum1.pdf",
-  "admissions_min_age": 18
+  "admissions_min_age": 18,
+  "admissions_high_school_or_ged": true,
+  "admissions_interview": true,
+  "recurring_start_months": [
+    1,
+    4,
+    7,
+    10
+  ],
+  "next_confirmed_start": null
 }
