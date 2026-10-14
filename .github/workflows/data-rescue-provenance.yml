@@ -1,0 +1,18 @@
+name: Data Rescue provenance tests
+on:
+  push:
+    branches: [review/data-rescue-source-row-provenance-20261013]
+permissions:
+  contents: read
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: |
+          node projects/data-rescue-studio/tests/history-core.test.js
+          node projects/data-rescue-studio/tests/provenance-core.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js
