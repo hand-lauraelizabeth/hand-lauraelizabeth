@@ -1,0 +1,33 @@
+{
+  "review_date": "2026-10-14",
+  "institution": "Arizona State University",
+  "unitid_context": "104151",
+  "campus_join_verified": false,
+  "records": [
+    {
+      "name": "Applied Computing (Cybersecurity)",
+      "credential": "BS",
+      "plan": "ASACOCBS",
+      "status": "closed_to_new_students",
+      "campus": "West Valley",
+      "source": "https://degrees.asu.edu/bachelors/major/ASU00/ASACOCBS/applied-computing-cybersecurity",
+      "note": "ASU explicitly says it no longer accepts new students."
+    },
+    {
+      "name": "Biomedical Engineering",
+      "credential": "BSE",
+      "plan": "ESBMEBSE",
+      "status": "catalog_listed",
+      "campus": "Tempe",
+      "additional_modalities": [
+        "Online",
+        "ASU Local"
+      ],
+      "source": "https://degrees.asu.edu/checksheet/2026/CES/ESBMEBSE/null",
+      "degree_source": "https://degrees.asu.edu/bachelors/major/ASU00/ESBMEBSE/biomedical-engineering",
+      "admissions_note": "Major-specific alternative criteria: SAT 1210 or ACT 24 or high-school GPA 3.00 or top 25% class rank, plus no math/science deficiencies; not general ASU testing policy."
+    }
+  ],
+  "all_cip_codes_unverified": true,
+  "all_career_licensure_unverified": true
+}
