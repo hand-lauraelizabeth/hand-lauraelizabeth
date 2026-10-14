@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {normalizeEvidence,summary,findReviewGroups,exportEvidenceCSV} from './core.mjs';
+const items=normalizeEvidence([{sourceId:'B',date:'2024-02-29',claim:'second',group:'g'},{sourceId:'A',date:'2024-02-28',claim:'first',group:'g'}]);
+assert.deepEqual(items.map(x=>x.sourceId),['A','B']);
+assert.equal(summary(items).total,2);
+assert.equal(findReviewGroups(items).length,1);
+assert.ok(exportEvidenceCSV(items).includes('sourceId,date,claim'));
+assert.throws(()=>normalizeEvidence([{sourceId:'A',date:'2025-02-29',claim:'invalid'}]));
+assert.throws(()=>normalizeEvidence([{sourceId:'A',date:'2024-01-01',claim:'x'},{sourceId:'A',date:'2024-01-02',claim:'y'}]));
+console.log('6 checks passed');
