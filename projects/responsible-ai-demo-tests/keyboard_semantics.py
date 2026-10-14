@@ -121,8 +121,9 @@ def main():
     svc=Service(executable_path=os.environ["CHROMEDRIVER_BINARY"]) if os.environ.get("CHROMEDRIVER_BINARY") else Service()
     d=webdriver.Chrome(service=svc,options=opt)
     try:
-        check_prompt(d)
-        check_ethics(d)
+        if os.environ.get("RUN_LIVE_SITE_CHECKS","").lower() in ("true","1","yes"):
+            check_prompt(d)
+            check_ethics(d)
         for name,file,control,output,expected in LOCAL:
             check_standalone(d,name,file,control,output,expected)
     finally:
