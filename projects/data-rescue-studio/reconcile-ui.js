@@ -134,7 +134,7 @@
   function compare() {
     if (!(first && second && $('leftKey').value && $('rightKey').value)) return;
     try {
-      comparison = engine.reconcile(first, second, $('leftKey').value, $('rightKey').value);
+      comparison = (engine.compare || engine.reconcile)(first, second, $('leftKey').value, $('rightKey').value);
       render(comparison);
     } catch (error) {
       invalidate();
