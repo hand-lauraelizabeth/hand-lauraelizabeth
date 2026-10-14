@@ -3,7 +3,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const lib = root.DataRescue;
-  const engine = root.DataReconcile;
+  const engine = root.DataRescueProvenance || root.DataReconcile;
   let first = null, second = null, firstName = '', secondName = '';
   let comparison = null, generation = 0;
   const el = (tag, text) => {
