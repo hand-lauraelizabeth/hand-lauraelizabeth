@@ -62,7 +62,7 @@ async function testBrowser(name,type){
     await fill(page,'shift-days','1');
     await page.locator('#calculate').focus();
     await page.keyboard.press('Enter'); // explicit keyboard activation
-    await page.getByRole('status').getByText(/Calculated 100 days/).waitFor();
+    await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Calculated 100 days'));
     check(await page.locator('#export').isEnabled(),name+': scenario CSV enabled');
     const actual=await page.locator('#results tr').evaluateAll(rows=>
       rows.map(row=>[...row.querySelectorAll('td')].map(cell=>cell.textContent))
