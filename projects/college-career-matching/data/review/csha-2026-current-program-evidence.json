@@ -25,5 +25,6 @@
     10
   ],
   "next_confirmed_start": null,
-  "state_board_independently_verified": false
+  "state_board_independently_verified": false,
+  "cip_soc": null
 }
