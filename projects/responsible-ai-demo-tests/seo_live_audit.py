@@ -32,6 +32,21 @@ def main():
                     ogTitle:meta('meta[property="og:title"]'),
                     schema:schemas};
             """)
-            print("SEO AUDIT",json.dumps(info,ensure_ascii=False)[:7500],flush=True)
+            schemas=info["schema"]
+            nodes=[node for block in schemas for node in block.get("@graph",[block])]
+            website=[node for node in nodes if "WebSite" in [node.get("@type")] if isinstance(node,dict)]
+            persons=[node for node in nodes if node.get("@type")=="Person"]
+            assert website, "Yoast WebSite schema missing"
+            assert info["canonical"] and info["canonical"][0].startswith("https://www.lauraelizabethhand.com/")
+            assert not any("noindex" in r for r in info["robots"])
+            assert "Laura Elizabeth Hand" in info["title"]
+            assert "Laura Elizabeth" in " ".join(info["description"])
+            if url.endswith(".com/"):
+                assert any(n.get("alternateName")=="Laura Elizabeth" and n.get("name")=="Laura Elizabeth Hand"
+                           for n in persons), "Person schema missing the shorter-name identity"
+                assert any("github.com/hand-lauraelizabeth" in str(n.get("sameAs")) for n in persons), "Public profile source missing"
+            print("PASS SEO",json.dumps({"url":url,"title":info["title"],"description":info["description"],
+                 "canonical":info["canonical"],"robots":info["robots"],"websiteCount":len(website),
+                 "person":persons},ensure_ascii=False)[:4200],flush=True)
     finally:d.quit()
 if __name__=="__main__":main()
