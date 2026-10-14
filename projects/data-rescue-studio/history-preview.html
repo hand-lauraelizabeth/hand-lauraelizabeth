@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Rescue | Reversible transformations preview</title>
+<style>
+:root{font:16px/1.5 system-ui;color:#203029;background:#f6f8f5}
+*{box-sizing:border-box}body{margin:0}main{max-width:900px;margin:auto;padding:clamp(16px,4vw,34px)}
+section{background:#fff;border:1px solid #bbcabc;border-radius:12px;margin:15px 0;padding:18px}
+button,select,input{font:inherit}button{border:1px solid #255f4c;background:#255f4c;color:#fff;border-radius:7px;padding:8px 12px}
+button:disabled{opacity:.5}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #d58b30;outline-offset:3px}
+input[type=file],select{display:block;max-width:100%;width:100%;min-width:0}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.overflow{max-width:100%;overflow:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd8cf;padding:7px;text-align:left}
+th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
+.muted{color:#526258}
+</style></head>
+<body><main>
+<header><h1>Data Rescue: Reversible transformations</h1>
+<p>Review-only preview. Open a CSV or TSV file locally, apply explicit operations, undo/redo them, and export a working copy or operations manifest. No account or network transfer is required.</p></header>
+<section aria-labelledby="open"><h2 id="open">1. Open a file</h2>
+<label for="file"><strong>UTF-8 CSV or TSV, up to 5 MB</strong></label>
+<input type="file" id="file" accept=".csv,.tsv,text/csv,text/tab-separated-values">
+<div class="actions"><button id="sample">Use fictional sample</button><button id="reset">Clear</button></div>
+<p id="loadStatus" role="status" aria-live="polite">No file loaded.</p></section>
+<section aria-labelledby="operations"><h2 id="operations">2. Transform</h2>
+<label for="trimColumn"><strong>Column to trim</strong></label><select id="trimColumn" disabled></select>
+<div class="actions"><button id="trimApply" disabled>Trim surrounding spaces</button>
+<button id="removeDuplicates" disabled>Remove exact duplicate rows</button>
+<button id="historyUndo" disabled>Undo last step</button><button id="historyRedo" disabled>Redo step</button>
+<button id="historyExport" disabled>Export operations JSON</button></div>
+<p id="historyStatus" role="status" aria-live="polite">No transformations yet.</p>
+<div class="overflow" id="historyLog"></div>
+<p class="muted">The manifest records step types, affected counts, and source dimensions without cell values. It is not a data backup. Redo history is replaced by new changes after undo.</p></section>
+<section aria-labelledby="output"><h2 id="output">3. Review and export</h2>
+<p id="rowCount">Load a file to preview data.</p>
+<div class="overflow" id="preview"></div>
+<div class="actions"><button id="save" disabled>Export working-copy CSV</button></div>
+<p class="muted">Spreadsheet-oriented export adds a leading tab to formula-like cells. This changes those values and is not a complete protection against spreadsheet formula injection. Keep exports containing identifiers private.</p></section>
+</main><script src="rescue-core.js"></script><script src="history-core.js"></script><script src="history-ui.js"></script><script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),lib=window.DataRescue;
+let epoch=0,current=null;
+function render(parsed,name){
+ current=parsed;const list=$('preview');list.replaceChildren();
+ const table=document.createElement('table'),head=document.createElement('tr');
+ parsed.normalizedHeaders.forEach(text=>{const cell=document.createElement('th');cell.textContent=text;head.append(cell);});
+ table.append(head);
+ parsed.rows.slice(0,15).forEach(row=>{const tr=document.createElement('tr');row.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.append(td);});table.append(tr);});
+ list.append(table);$('rowCount').textContent=parsed.rows.length+' current records; preview shows at most 15.';$('save').disabled=false;
+}
+window.DataRescueRenderFromHistory=render;
+function clear(keepFile=false){
+ ++epoch;current=null;window.DataRescueHistoryUI.onClear();$('save').disabled=true;
+ $('preview').replaceChildren();$('rowCount').textContent='Load a file to preview data.';
+ if(!keepFile)$('file').value='';$('loadStatus').textContent='No file loaded.';
+}
+function load(parsed,name){
+ window.DataRescueHistoryUI.onLoad(parsed,name);render(parsed,name);
+ $('loadStatus').textContent='Loaded '+name+' locally: '+parsed.rows.length+' records.';
+}
+$('file').addEventListener('change',async()=>{
+ const f=$('file').files&&$('file').files[0];if(!f){clear();return;}
+ clear(true);const ticket=epoch;
+ if(f.size>lib.MAX_BYTES||!(/\.(csv|tsv)$/i.test(f.name))){$('loadStatus').textContent='Choose a .csv or .tsv file under 5 MB.';return;}
+ try{const text=await f.text();if(ticket!==epoch)return;load(lib.parseDelimited(text,/\.tsv$/i.test(f.name)?'\t':undefined),f.name);}
+ catch(err){if(ticket!==epoch)return;clear();$('loadStatus').textContent='Unable to parse file: '+err.message;}
+});
+$('sample').addEventListener('click',()=>{
+ clear();load(lib.parseDelimited('ID,Name\n1, Ada \n2, Bea \n2, Bea '),'fictional example');
+});
+$('reset').addEventListener('click',()=>clear());
+$('save').addEventListener('click',()=>{
+ if(!current)return;const csv=lib.exportCsv(current,true);
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='data-rescue-working-copy.csv';document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ window.DataRescueHistoryUI.recordExport({outputRows:current.rows.length,exportOnlyDedupe:false,spreadsheetPrecaution:true});
+ $('loadStatus').textContent='Exported '+current.rows.length+' rows. The manifest records this export setting.';
+});
+})();
+</script></body></html>
