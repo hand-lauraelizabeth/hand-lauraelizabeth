@@ -1,0 +1,8 @@
+{
+  "source": "NCES EDGE 2025-26 postsecondary geocodes",
+  "requested": 75,
+  "verified": 72,
+  "nonapplicable": 3,
+  "source_url": "https://nces.ed.gov/programs/edge/Geographic/SchoolLocations",
+  "review_only": true
+}
