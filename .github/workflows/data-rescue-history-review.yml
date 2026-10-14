@@ -25,3 +25,18 @@ jobs:
           node projects/data-rescue-studio/tests/reconcile-regression.test.js
           node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
           node projects/data-rescue-studio/tests/history-core.test.js
+
+  browser-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Run real-browser history interactions
+        run: node projects/data-rescue-studio/tests/history-browser.cjs
