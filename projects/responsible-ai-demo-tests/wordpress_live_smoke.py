@@ -91,7 +91,15 @@ def check_ethics(d):
     d.get(ETHICS)
     wait = WebDriverWait(d, 20)
     wait.until(lambda x: x.find_elements(By.ID, "ai-use-lab"))
-    wait.until(lambda x: x.execute_script("return document.getElementById('ai-use-lab')?.dataset.ready") == "1")
+    try:
+        wait.until(lambda x: x.execute_script("return document.getElementById('ai-use-lab')?.dataset.ready") == "1")
+    except Exception:
+        print("ETHICAL AI DIAGNOSTICS", flush=True)
+        print("URL", d.current_url, flush=True)
+        print("Script count", d.execute_script("return document.querySelectorAll('#ai-use-lab script').length"), flush=True)
+        print("Question count", len(d.find_elements(By.CSS_SELECTOR, '#ethical-audit-questions fieldset')), flush=True)
+        print("Console", d.get_log("browser")[-20:], flush=True)
+        raise
     assert len(d.find_elements(By.CSS_SELECTOR, "#ethical-audit-questions fieldset")) == 12
     click(d, field(d, "sample-high"))
     assert field(d, "tier").text == "STOP & CHECK"
