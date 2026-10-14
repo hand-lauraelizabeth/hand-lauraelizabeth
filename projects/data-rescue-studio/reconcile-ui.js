@@ -36,9 +36,18 @@
     $('compareRun').disabled = !(first && second && $('leftKey').value && $('rightKey').value);
   }
   function setPrimary(data, name = '') {
+    const priorKey = $('leftKey').value;
     first = data;
     firstName = name;
     options('leftKey', data);
+    if (data && priorKey && data.normalizedHeaders.includes(priorKey)) $('leftKey').value = priorKey;
+    if (!data) {
+      ++generation;
+      second = null;
+      secondName = '';
+      $('compareFile').value = '';
+      options('rightKey', null);
+    }
     invalidate();
     message(data ? 'First file ready. Choose a second file and both identifier columns.' : 'Open a first file above to compare.');
   }
