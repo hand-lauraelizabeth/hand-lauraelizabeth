@@ -1,0 +1,36 @@
+{
+  "unitid": "406149",
+  "review_date": "2026-10-14",
+  "issue": "Spanish catalog published total conflicts with sum of printed subject subtotals",
+  "spanish": {
+    "claimed_total": 750,
+    "subject_subtotals": [
+      335,
+      215,
+      130,
+      55
+    ],
+    "calculated_total": 735,
+    "unexplained_difference_hours": 15,
+    "catalog": "https://sarasotaschoolofmassagetherapy.edu/wp-content/uploads/2026/08/SSMT-Catalog-26-27-Espanol-Program.pdf",
+    "printed_page": 8
+  },
+  "english": {
+    "claimed_total": 750,
+    "subject_subtotals": [
+      320,
+      201,
+      177,
+      52
+    ],
+    "calculated_total": 750,
+    "source": "https://sarasotaschoolofmassagetherapy.edu/program-descriptions/"
+  },
+  "disposition": "Hold Spanish curriculum-hour reconciliation; retain school's stated 750-hour program length but do not represent 735 subtotal as 750 verified hours.",
+  "other_holds": [
+    "Exact school-issued award unknown",
+    "SAT/ACT policy unknown",
+    "November cohort language and seats unknown",
+    "No inferred CIP6 or career eligibility"
+  ]
+}
