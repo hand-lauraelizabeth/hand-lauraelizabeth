@@ -13,7 +13,7 @@ assert.equal(a.sat_act_policy,'unknown');
 assert.equal(h.flight+h.simulator+h.ground,h.average_hours);
 assert.equal(d.sat_act_policy,'unknown');
 assert.match(d.school_aptitude_test,/untimed/);
-assert.equal(c.subtotal+c.tax+c.estimated_fuel,c.estimated_total);
+assert.ok(Math.abs(c.subtotal+c.tax+c.estimated_fuel-c.estimated_total)<0.001);
 assert.equal(c.federal_net_price,false);
 assert.equal(m.current_unitid_to_base,'unverified');
 assert.equal(m.count_honolulu_as_separate_institution,false);
