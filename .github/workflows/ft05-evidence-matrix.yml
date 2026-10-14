@@ -1,0 +1,29 @@
+name: FT-05 evidence matrix regression checks
+on:
+  push:
+    branches:
+      - 'review/ft05-race-ci-gate-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-evidence-matrix.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evidence-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check free-tools/evidence-timeline/matrix-page.mjs
+          node --check free-tools/evidence-timeline/matrix-page.test.mjs
+          node --check free-tools/evidence-timeline/matrix-import-race.test.mjs
+      - name: Synthetic controller and stale-import tests
+        run: |
+          node free-tools/evidence-timeline/matrix-page.test.mjs
+          node free-tools/evidence-timeline/matrix-import-race.test.mjs
