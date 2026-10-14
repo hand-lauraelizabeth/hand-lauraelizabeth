@@ -45,6 +45,16 @@ def main():
                 assert any(n.get("alternateName")=="Laura Elizabeth" and n.get("name")=="Laura Elizabeth Hand"
                            for n in persons), "Person schema missing the shorter-name identity"
                 assert any("github.com/hand-lauraelizabeth" in str(n.get("sameAs")) for n in persons), "Public profile source missing"
+            else:
+                profiles=[node for node in nodes if node.get("@type")=="ProfilePage"]
+                assert len(profiles)==1, "About page needs one valid ProfilePage identity node"
+                me=profiles[0].get("mainEntity",{})
+                assert me.get("@id")=="https://www.lauraelizabethhand.com/#laura-elizabeth-hand"
+                assert me.get("name")=="Laura Elizabeth Hand" and me.get("alternateName")=="Laura Elizabeth"
+                visible=d.execute_script("return document.body.innerText")
+                assert "also known as Laura Elizabeth" in visible, "About page doesn't show shortened name visibly"
+                print("PASS profile identity",json.dumps({"type":"ProfilePage","id":me.get("@id"),
+                      "name":me.get("name"),"alternateName":me.get("alternateName")}),flush=True)
             print("PASS SEO",json.dumps({"url":url,"title":info["title"],"description":info["description"],
                  "canonical":info["canonical"],"robots":info["robots"],"websiteCount":len(website),
                  "person":persons},ensure_ascii=False)[:4200],flush=True)
