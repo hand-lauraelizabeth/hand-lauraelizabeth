@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "state": "review_only",
+  "institution": {
+    "unitid": "105330",
+    "name": "Northern Arizona University",
+    "city": "Flagstaff",
+    "state": "AZ",
+    "identity_join": "exact_six_digit_UNITID",
+    "present_in_pinned_national_v3": true,
+    "absent_from_pinned_score_overlay_v3": true
+  },
+  "source": {
+    "publisher": "Northern Arizona University, Institutional Research",
+    "title": "2025-2026 Common Data Set",
+    "url": "https://in.nau.edu/wp-content/uploads/sites/129/2026/04/CDS-2025-2026.pdf",
+    "sections": [
+      "C8A",
+      "C8D",
+      "C8F",
+      "C9"
+    ],
+    "pages_pdf_zero_based": [
+      8,
+      9
+    ],
+    "cohort": "Fall 2025 first-time first-year enrolled degree-seeking",
+    "pdf_running_date": "2026-07-29",
+    "reviewed": "2026-10-14"
+  },
+  "submissions": {
+    "sat": {
+      "count": 154,
+      "percent_rounded": 3
+    },
+    "act": {
+      "count": 1239,
+      "percent_rounded": 27
+    }
+  },
+  "scores": {
+    "sat_composite": {
+      "p25": 1010,
+      "p50": 1175,
+      "p75": 1280,
+      "average": null
+    },
+    "sat_reading_writing": {
+      "p25": 520,
+      "p50": 590,
+      "p75": 650
+    },
+    "sat_math": {
+      "p25": 483,
+      "p50": 565,
+      "p75": 630
+    },
+    "act_composite": {
+      "p25": 19,
+      "p50": 23,
+      "p75": 26,
+      "average": null
+    },
+    "act_math": {
+      "p25": 18,
+      "p50": 22,
+      "p75": 26
+    },
+    "act_english": {
+      "p25": 19,
+      "p50": 22,
+      "p75": 27
+    },
+    "act_science": {
+      "p25": 19,
+      "p50": 23,
+      "p75": 25
+    },
+    "act_reading": {
+      "p25": 20,
+      "p50": 24,
+      "p75": 29
+    },
+    "act_writing": {
+      "p25": null,
+      "p50": null,
+      "p75": null
+    }
+  },
+  "admissions": {
+    "policy": "test_optional_considered_if_submitted",
+    "uses_sat_act_for_admission": true,
+    "require_sat_act_for_general_admission": false,
+    "source_comment": "Test scores are optional submissions and used on a case by case basis to enhance academic profile. Additionally, test scores are not required for scholarship consideration.",
+    "uses_test_scores_for_advising": true,
+    "program_specific_exceptions": "not_verified",
+    "policy_scope": "first_time_first_year_general_admissions",
+    "policy_year": "Fall 2027 application grid"
+  },
+  "safety": {
+    "display_mode": "descriptive_only",
+    "automatic_safety_target_reach": false,
+    "derived_sat_average": null,
+    "derived_act_average": null,
+    "allow_overwrite_existing_scores": false,
+    "auto_merge_into_pinned_overlay": false,
+    "reason": "3% SAT submission; optional tests; submitted-score distributions are not admissions probability or guaranteed eligibility."
+  },
+  "reconciliation": {
+    "national_v3_blob_sha": "bc6a5046fdce478462cc716c4163777b50c2f927",
+    "national_v3_institutions": 6243,
+    "score_v3_blob_sha": "48b6ac1d581531d6ee68932587841de74881dff0",
+    "score_v3_institutions": 1247,
+    "exact_unitid_in_national": true,
+    "exact_unitid_in_overlay": false,
+    "prospective_distinct_candidate_count": 1,
+    "live_overlay_count_unchanged": 1247
+  },
+  "do_not_infer": [
+    "test policy from missing Scorecard scores",
+    "admission chance from percentiles",
+    "SAT average from median",
+    "ACT average from median",
+    "eight-digit extension inheritance",
+    "current program availability or CIP from score report"
+  ]
+}
