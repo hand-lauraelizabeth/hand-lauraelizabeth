@@ -26,8 +26,9 @@ TOOLS = [
 ]
 
 def main() -> None:
-    if DEST == ROOT or ROOT in DEST.parents and not str(DEST).startswith(str(ROOT / "dist")):
-        raise SystemExit("Output must be an isolated dist directory, not project sources.")
+    allowed = ROOT / "dist"
+    if DEST == allowed or allowed not in DEST.parents:
+        raise SystemExit("Output must be inside the isolated dist directory, never project sources.")
     if DEST.exists():
         shutil.rmtree(DEST)
     DEST.mkdir(parents=True)
