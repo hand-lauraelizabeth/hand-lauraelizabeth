@@ -32,7 +32,7 @@ async function testBrowser(name,type){
     const page=await browser.newPage({viewport:{width:1280,height:800},acceptDownloads:true});
     const errors=[],offsite=[];
     page.on('pageerror',error=>errors.push(error.message));
-    page.on('request',request=>{if(!request.url().startsWith(baseURL))offsite.push(request.url());});
+    page.on('request',request=>{if(!request.url().startsWith(baseURL)&&!request.url().startsWith('blob:'+baseURL))offsite.push(request.url());});
     const response=await page.goto(baseURL,{waitUntil:'networkidle'});
     check(response.status()===200,name+': HTTP response failed');
     check((await page.title())==='Cash Flow & Bill Timing Simulator',name+': page title');
@@ -79,7 +79,7 @@ async function testBrowser(name,type){
     const csv=readFileSync(await download.path(),'utf8');
     check(download.suggestedFilename()==='cash-flow-scenario.csv',name+': CSV filename');
     check(csv.startsWith('"Date","Change (USD)","End-of-day balance (USD)","Event IDs","Event labels"\r\n'),name+': CSV header');
-    check(csv.includes('2024-03-31,-20.00,60.00,"rent","Rent"'),name+': CSV shifted value');
+    check(csv.includes('"2024-03-31",-20.00,60.00,"rent","Rent"'),name+': CSV shifted value');
     check(csv.endsWith('\r\n'),name+': CSV CRLF rows');
 
     // Equivalent CSS viewport widths for 200% and 400% reflow at a 1280px viewport;
