@@ -25,8 +25,8 @@ function monthlyDate(start,months){
   const last=new Date(Date.UTC(year,month,0)).getUTCDate();
   return dateString(Date.UTC(year,month-1,Math.min(d,last)));
 }
-export function occurrences(event,from,to){
-  const first=dateUTC(event.date),begin=dateUTC(from),end=dateUTC(to),out=[];
+function occurrencesWindow(event,begin,end){
+  const first=dateUTC(event.date),out=[];
   if(!['once','weekly','monthly'].includes(event.repeat))throw Error('Invalid repeat value.');
   if(event.repeat==='once'){if(first>=begin&&first<=end)out.push(event.date);return out}
   if(event.repeat==='weekly'){
@@ -41,6 +41,9 @@ export function occurrences(event,from,to){
   }
   return out;
 }
+export function occurrences(event,from,to){
+  return occurrencesWindow(event,dateUTC(from),dateUTC(to));
+}
 export function project({start,end,openingCents,events,shiftId=null,shiftDays=0}){
   const a=dateUTC(start),b=dateUTC(end),span=(b-a)/DAY+1;
   if(span<1||span>LIMITS.days)throw Error('Choose 1–366 days.');
@@ -54,8 +57,12 @@ export function project({start,end,openingCents,events,shiftId=null,shiftDays=0}
     if(typeof e.label!=='string'||!e.label.trim()||e.label.length>120)throw Error('Invalid event label.');
     if(!Number.isSafeInteger(e.cents)||Math.abs(e.cents)>LIMITS.maxAbsCents)throw Error('Invalid event amount.');
     dateUTC(e.date);
-    const shifted=e.id===shiftId?{...e,date:addDays(e.date,shiftDays)}:e;
-    for(const day of occurrences(shifted,start,end)){
+    // Shift each scheduled occurrence, not the recurring series anchor.
+    // A monthly event on the 31st must remain anchored to the 31st,
+    // even if a what-if scenario moves one payment into the next month.
+    const offset=e.id===shiftId?shiftDays:0;
+    for(const originalDay of occurrencesWindow(e,a-offset*DAY,b-offset*DAY)){
+      const day=dateString(Date.parse(originalDay)+offset*DAY);
       if(!byDate.has(day))byDate.set(day,[]);
       byDate.get(day).push({id:e.id,label:e.label,cents:e.cents});
     }
