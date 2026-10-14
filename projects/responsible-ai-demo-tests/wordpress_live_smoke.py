@@ -47,7 +47,16 @@ def check_prompt_lab(d):
     d.get(PROMPT)
     wait = WebDriverWait(d, 20)
     wait.until(lambda x: x.find_elements(By.ID, "prompt-lab"))
-    wait.until(lambda x: x.execute_script("return document.getElementById('prompt-lab')?.dataset.ready") == "1")
+    try:
+        wait.until(lambda x: x.execute_script("return document.getElementById('prompt-lab')?.dataset.ready") == "1")
+    except Exception:
+        print("PROMPT DIAGNOSTICS", flush=True)
+        print("URL", d.current_url, flush=True)
+        print("Ready attrs", d.execute_script("return document.getElementById('prompt-lab')?.outerHTML.slice(0,230)"), flush=True)
+        print("Script count", d.execute_script("return document.querySelectorAll('#prompt-lab script').length"), flush=True)
+        print("Ledger tabs", len(d.find_elements(By.CSS_SELECTOR, '#prompt-lab [data-panel="ledger"]')), flush=True)
+        print("Console", d.get_log("browser")[-20:], flush=True)
+        raise
     assert field(d, "ledger").get_attribute("hidden") is not None
     click(d, d.find_element(By.CSS_SELECTOR, '#prompt-lab button[data-panel="ledger"]'))
     wait.until(lambda x: field(x, "ledger").is_displayed())
