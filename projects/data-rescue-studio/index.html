@@ -60,7 +60,21 @@
 <div id="compareResults" class="overflow" aria-label="Reconciliation record preview"></div>
 <p class="muted">Preview shows at most 30 findings. The downloaded audit includes all findings, source record positions, and identifier keys, but no complete input records. Keys may be sensitive; keep your exported audit private. Spreadsheet formula precautions are imperfect.</p>
 </section>
-<section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
+<section class="panel" aria-labelledby="history"><h2 id="history">5. Transform and review history</h2>
+<p>Edit a working copy without changing your source file. Transformations can be undone and redone; applying a new change after undo replaces that redo branch. Reconciliation results must be rerun after changes.</p>
+<label for="trimColumn"><strong>Column to trim</strong></label><select id="trimColumn" disabled></select>
+<div class="actions">
+<button id="trimApply" disabled>Trim surrounding spaces</button>
+<button class="secondary" id="removeDuplicates" disabled>Remove exact duplicate rows</button>
+<button class="secondary" id="historyUndo" disabled>Undo last step</button>
+<button class="secondary" id="historyRedo" disabled>Redo step</button>
+<button class="secondary" id="historyExport" disabled>Export operations JSON</button>
+</div>
+<p id="historyStatus" role="status" aria-live="polite">No transformations yet.</p>
+<div class="overflow" id="historyLog"></div>
+<p class="muted">The manifest records action types, column indices, counts, applied/undone state, and export settings, not cell values. It is not a backup. Keep the original data separately; the manifest may still contain sensitive metadata. Comparison record numbers refer to the current working copy after edits.</p>
+</section>
+<section class="panel" aria-labelledby="export"><h2 id="export">6. Export working copy</h2>
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>
 <p class="muted">Original input is not changed. Records that differ even slightly are not automatically merged.</p>
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
@@ -68,7 +82,7 @@
 <div class="actions"><button id="save" disabled>Export CSV</button></div>
 </section>
 <footer><p class="muted">Preview version: CSV/TSV inspection and exact-identifier comparison. It does not perform fuzzy matching or validate business-specific rules. Spreadsheet export precautions do not guarantee security.</p></footer>
-</main><script src="rescue-core.js"></script><script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script><script>
+</main><script src="rescue-core.js"></script><script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script><script src="history-core.js"></script><script src="history-ui.js"></script><script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;
