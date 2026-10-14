@@ -1,0 +1,32 @@
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+p=Path(__file__).parent
+with sync_playwright() as w:
+ b=w.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+ page=b.new_page(accept_downloads=True,viewport={'width':320,'height':740})
+ html=(p/'index.html').read_text()
+ import re
+ html=re.sub(r'<meta http-equiv="Content-Security-Policy"[^>]*>','',html).replace('<script type="module" src="app.mjs"></script>','').replace('<link rel="stylesheet" href="style.css">','')
+ page.set_content(html)
+ page.add_style_tag(content=(p/'style.css').read_text())
+ engine=(p/'engine.mjs').read_text().replace('export const','const').replace('export function','function')
+ page.add_script_tag(content=engine)
+ workspace=(p/'workspace.mjs').read_text().replace("import {LIMITS,dateUTC,parseCents,formatCents,project} from './engine.mjs';",'').replace('export const','const').replace('export function','function')
+ page.add_script_tag(content=workspace)
+ app=(p/'app.mjs').read_text().replace("import {parseCents,formatCents,dateUTC,project,exportCSV} from './engine.mjs';",'').replace("import {serializeWorkspace,parseWorkspaceBytes,WORKSPACE_MAX_BYTES} from './workspace.mjs';",'')
+ page.add_script_tag(content=app)
+ page.locator('#event-id').fill('bill')
+ page.locator('#event-label').fill('Bill')
+ page.locator('#event-amount').fill('-25.00')
+ page.locator('#event-date').fill('2026-10-15')
+ page.locator('#event-form button').click()
+ with page.expect_download() as dl:page.locator('#save-workspace').click()
+ saved=dl.value.path().read_bytes()
+ page.locator('#load-workspace').set_input_files({'name':'bad.json','mimeType':'application/json','buffer':b'{broken'})
+ expect(page.locator('#error')).to_contain_text('malformed JSON')
+ page.once('dialog',lambda d:d.accept())
+ page.locator('#load-workspace').set_input_files({'name':'saved.json','mimeType':'application/json','buffer':saved})
+ expect(page.locator('#status')).to_contain_text('Restored 1 events')
+ assert page.locator('#export').is_disabled()
+ b.close()
+print('FT-04 workspace Chromium smoke PASS; CSP not tested')
