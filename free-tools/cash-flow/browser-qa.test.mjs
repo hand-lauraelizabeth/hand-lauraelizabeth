@@ -47,6 +47,17 @@ async function testBrowser(name,type){
     }
     await page.keyboard.press('Tab');
     check((await page.evaluate(()=>document.activeElement.id))==='start',name+': first keyboard tab target');
+    const firstFocus=await page.locator('#start').evaluate(el=>getComputedStyle(el).outlineWidth);
+    check(parseFloat(firstFocus)>=3,name+': keyboard focus indicator missing');
+    // Actual Tab key traversal: no programmatic focus changes during this check.
+    for(const expected of ['end','opening','event-id','event-label','event-amount','event-date','event-repeat','Add event','shift-id','shift-days','calculate']){
+      await page.keyboard.press('Tab');
+      const current=await page.evaluate(()=>{
+        const el=document.activeElement;
+        return el.tagName==='BUTTON'?el.textContent.trim():el.id;
+      });
+      check(current===expected,name+': Tab order should reach '+expected+', got '+current);
+    }
 
     await fill(page,'start','2024-02-01');
     await fill(page,'end','2024-05-10');
