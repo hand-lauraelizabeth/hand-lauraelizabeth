@@ -1,6 +1,7 @@
 import {checkStructure} from './structure-checks.mjs';
 import {checkContent} from './content-checks.mjs';
 import {checkControls} from './control-checks.mjs';
+import {checkRelationships} from './relationship-checks.mjs';
 import {locationFor} from './location.mjs';
 export function inspectDocument(doc) {
  const findings=[];
@@ -10,5 +11,6 @@ export function inspectDocument(doc) {
  checkStructure(doc,add);
  checkContent(doc,add);
  checkControls(doc,add);
+ checkRelationships(doc,add);
  return {format:'html-accessibility-preflight',version:1,findings};
 }
