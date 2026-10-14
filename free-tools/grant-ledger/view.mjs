@@ -2,7 +2,7 @@ export function buildInterface(){
  const root=document.getElementById('root');
  const add=(parent,tag,text='',id='')=>{const e=document.createElement(tag);if(text)e.textContent=text;if(id)e.id=id;parent.append(e);return e;};
  const section=(title)=>{const s=add(root,'section');add(s,'h2',title);return s;};
- const form=(parent,id)=>{const f=add(parent,'form','',id);add(f,'div','','grid').className='grid';return f;};
+ const form=(parent,id)=>{const f=add(parent,'form','',id);add(f,'div').className='grid';return f;};
  const field=(f,label,name,opts={})=>{
    const wrapper=add(f.firstElementChild,'label',label);
    const control=add(wrapper,opts.select?'select':'input');
