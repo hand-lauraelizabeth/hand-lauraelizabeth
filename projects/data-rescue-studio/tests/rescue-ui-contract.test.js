@@ -8,7 +8,8 @@ const checks = [
   ['local file selector', /type="file"[^>]*accept="[^"]*\.csv/.test(html)],
   ['input has visible label', /<label for="file">/.test(html)],
   ['status announced', /id="status"[^>]*role="status"/.test(html)],
-  ['file size checked before reading', html.indexOf('file.size>lib.MAX_BYTES') < html.indexOf('await file.text()')],
+  ['file size checked before reading', html.includes('file.size>lib.MAX_BYTES') && html.includes('DataRescueFileReader.read(file,lib.parseDelimited)')],
+  ['strict local byte decoder included', html.includes('<script src="file-reader.js"></script>')],
   ['input filename extension checked', /\/\\\.\(csv\|tsv\)/.test(html) || html.includes('test(file.name)')],
   ['export via local Blob', html.includes('new Blob([csv]')],
   ['object URL revoked', html.includes('URL.revokeObjectURL')],
@@ -20,4 +21,4 @@ for (const [name, ok] of checks) assert.ok(ok, name);
 assert.throws(() => core.parseDelimited('a,b\n1,2,3'), /No data was discarded/);
 assert.equal(core.parseDelimited('a,b\n"quoted, value",x').rows[0][0], 'quoted, value');
 assert.equal(core.formulaRisk('=HYPERLINK("x")'), true);
-console.log('PASS: 13 Data Rescue UI contract and malformed-input checks.');
+console.log('PASS: 14 Data Rescue UI contract and malformed-input checks.');
