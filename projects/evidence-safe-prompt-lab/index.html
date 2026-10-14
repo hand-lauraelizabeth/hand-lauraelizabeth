@@ -56,17 +56,18 @@ pre{white-space:pre-wrap;word-break:break-word;background:#14211c;color:#f7fbf8;
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const records=[];
+const records=[];let promptCurrent=false;
+function invalidatePrompt(){if(promptCurrent){promptCurrent=false;$("status").textContent="Input changed. Regenerate the prompt before copying.";}}
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 function renderRecords(){
  $("ledger").innerHTML=records.length?records.map((r,i)=>'<article class="ledger-entry"><strong>Record '+(i+1)+' — '+escapeHtml(r.classification)+'</strong><p><strong>Claim:</strong> '+escapeHtml(r.claim)+'</p><p><strong>Source:</strong> '+escapeHtml(r.source||"Not supplied")+'</p><p><strong>Evidence:</strong> '+escapeHtml(r.excerpt||"Not supplied")+'</p><p><strong>Rationale:</strong> '+escapeHtml(r.rationale)+'</p><p><strong>Counterevidence / check:</strong> '+escapeHtml(r.counter||"Not supplied")+'</p><button type="button" class="secondary" data-remove="'+i+'" aria-label="Remove evidence record '+(i+1)+'">Remove record</button></article>').join(""):'<p class="note">No reviewed evidence records yet.</p>';
- $("ledger").querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{records.splice(Number(b.dataset.remove),1);renderRecords();$("ledgerStatus").textContent="Record removed. Regenerate the prompt to reflect the change."}));
+ $("ledger").querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{records.splice(Number(b.dataset.remove),1);renderRecords();invalidatePrompt();$("ledgerStatus").textContent="Record removed. Regenerate the prompt to reflect the change."}));
 }
 $("addRecord").addEventListener("click",()=>{
  const r={claim:$("claim").value.trim(),source:$("sourceid").value.trim(),excerpt:$("excerpt").value.trim(),classification:$("classification").value,rationale:$("rationale").value.trim(),counter:$("counter").value.trim()};
  if(!r.claim||!r.rationale){$("ledgerStatus").textContent="Enter a claim and a support rationale before adding a record.";return}
  if(r.classification!=="NOT ESTABLISHED"&&(!r.source||!r.excerpt)){$("ledgerStatus").textContent="For direct, partial or contradicted support, provide a source ID and evidence excerpt.";return}
- records.push(r);renderRecords();$("ledgerStatus").textContent="Reviewer-assigned record added; not independently verified. Regenerate the prompt to include it.";
+ records.push(r);renderRecords();invalidatePrompt();$("ledgerStatus").textContent="Reviewer-assigned record added; not independently verified. Regenerate the prompt to include it.";
  ["claim","sourceid","excerpt","rationale","counter"].forEach(id=>$(id).value="");$("classification").value="NOT ESTABLISHED";
 });
 $("exportRecords").addEventListener("click",()=>{
@@ -76,7 +77,7 @@ $("exportRecords").addEventListener("click",()=>{
  $("ledgerStatus").textContent="Evidence records exported locally.";
 });
 const modeText={draft:"Draft the requested material while keeping every factual claim inside the evidence boundary.",support:"Evaluate whether the source material supports the stated claim.",audit:"Audit the draft or claim for unsupported specificity, citation problems, and overclaiming.",counter:"Act as a skeptical reviewer. Look for counterevidence, alternative explanations, and missing evidence.",teach:"Give teaching feedback that helps a learner improve evidence use without silently rewriting away the reasoning problem."};
-function build(){const goal=$("goal").value.trim();if(!goal){$("prompt").textContent="Enter a goal or claim first.";return}
+function build(){const goal=$("goal").value.trim();if(!goal){promptCurrent=false;$("prompt").textContent="Enter a goal or claim first.";return}
 const rules=[];if($("only").checked)rules.push("Use only the provided evidence for factual claims. If outside knowledge would be useful, label it as a research need rather than inserting it.");
 if($("levels").checked)rules.push("For each material claim, classify support as DIRECT, PARTIAL, CONTRADICTED, or NOT ESTABLISHED.");
 if($("uncertainty").checked)rules.push("Separate source facts, reasonable inference, and speculation. State uncertainty explicitly.");
@@ -90,9 +91,10 @@ lines.push("","REVIEWER-ASSIGNED SOURCE-TO-CLAIM RECORDS");
 if(!records.length)lines.push("No reviewer-assigned records. Do not assert support without checking the supplied sources.");
 else records.forEach((r,i)=>lines.push("RECORD "+(i+1),"Claim: "+r.claim,"Source as supplied: "+(r.source||"Not supplied"),"Passage: "+(r.excerpt||"Not supplied"),"Reviewer classification (not validated): "+r.classification,"Reasoning: "+r.rationale,"Counterevidence / verification: "+(r.counter||"Not supplied"),""));
 lines.push("For each claim, cite only supplied, traceable evidence; distinguish supplied reviewer labels from independently verified conclusions.");
-$("prompt").textContent=lines.join("\n");}
+$("prompt").textContent=lines.join("\n");promptCurrent=true;$("status").textContent="Prompt generated. Review before using.";}
+["goal","context","evidence","output","mode","only","levels","uncertainty","counterevidence","citations","privacy"].forEach(id=>{$(id).addEventListener("input",invalidatePrompt);$(id).addEventListener("change",invalidatePrompt)});
 $("generate").addEventListener("click",build);
 $("example").addEventListener("click",()=>{$("mode").value="support";$("goal").value="Assess whether a supplied source supports the claim that a technology improves provenance and integrity of healthcare data.";$("context").value="Graduate-level research writing. Revise the sentence so it is no stronger than the evidence.";$("evidence").value="Source notes: the paper describes a decentralized architecture for secure healthcare data management and discusses privacy, integrity, and cyberattack resistance. It does not test every downstream AI use case.";$("output").value="Support classification; 3–5 sentence rationale; revised claim; missing evidence; citation caution";build();});
-$("clear").addEventListener("click",()=>{["goal","context","evidence","claim","sourceid","excerpt","rationale","counter"].forEach(x=>$(x).value="");records.length=0;renderRecords();$("ledgerStatus").textContent="";$("mode").value="draft";$("classification").value="NOT ESTABLISHED";$("output").value="Concise analysis with a support classification, reasoning, revision, and verification notes";$("prompt").textContent="Choose a mode and enter a goal to generate a prompt.";$("status").textContent=""});
-$("copy").addEventListener("click",async()=>{if(!$("goal").value.trim()||$("prompt").textContent.startsWith("Choose a mode")){ $("status").textContent="Generate a prompt before copying.";return}try{await navigator.clipboard.writeText($("prompt").textContent);$("status").textContent="Prompt copied."}catch(e){$("status").textContent="Copy was blocked by the browser; select the prompt text manually."}});
+$("clear").addEventListener("click",()=>{promptCurrent=false;["goal","context","evidence","claim","sourceid","excerpt","rationale","counter"].forEach(x=>$(x).value="");records.length=0;renderRecords();$("ledgerStatus").textContent="";$("mode").value="draft";$("classification").value="NOT ESTABLISHED";$("output").value="Concise analysis with a support classification, reasoning, revision, and verification notes";["only","levels","uncertainty","counterevidence","citations"].forEach(id=>$(id).checked=true);$("privacy").checked=false;$("prompt").textContent="Choose a mode and enter a goal to generate a prompt.";$("status").textContent=""});
+$("copy").addEventListener("click",async()=>{if(!promptCurrent||!$("goal").value.trim()){ $("status").textContent="Generate a prompt before copying.";return}try{await navigator.clipboard.writeText($("prompt").textContent);$("status").textContent="Prompt copied."}catch(e){$("status").textContent="Copy was blocked by the browser; select the prompt text manually."}});
 </script></body></html>
