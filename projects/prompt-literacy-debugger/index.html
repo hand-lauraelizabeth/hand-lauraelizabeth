@@ -83,6 +83,7 @@ details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}summar
 </main>
 
 <script>
+let assessmentCurrent=false;
 const dims=[
 ["task","Task","Does the prompt state the action or question clearly enough that success can be recognized?"],
 ["context","Context and audience","Does it state who the output is for, why it is needed, or the situation that changes how the task should be handled?"],
@@ -101,7 +102,7 @@ dims.forEach(d=>{
 function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
 function assess(){
  const original=document.getElementById("prompt").value.trim();
- if(!original){document.getElementById("result").innerHTML='<p>Please enter a prompt or request first.</p>';return}
+ if(!original){assessmentCurrent=false;document.getElementById("result").innerHTML='<p>Please enter a prompt or request first.</p>';return}
  let explicit=0,partial=0,missing=[],unanswered=[];
  dims.forEach(d=>{const r=document.querySelector('input[name="'+d[0]+'"]:checked');if(!r){unanswered.push(d[1]);return}const v=Number(r.value);if(v===2)explicit++;else if(v===1)partial++;else missing.push(d[1])});
  const stakes=document.getElementById("stakes").value,data=document.getElementById("data").value;
@@ -135,7 +136,7 @@ function assess(){
  "HUMAN RESPONSIBILITY",humanLine,"",
  "FINAL CHECK","Before finalizing, distinguish source-supported facts from inference; state important uncertainty; do not fabricate citations or evidence; flag anything that requires external verification."
  ];
- document.getElementById("scaffold").textContent=scaffold.join("\n");
+ document.getElementById("scaffold").textContent=scaffold.join("\n");assessmentCurrent=true;document.getElementById("status").textContent="Assessment generated. Review before using.";
 }
 const textClues={
  task:/\b(write|draft|summari[sz]e|compare|analy[sz]e|review|identify|explain|evaluate|extract|calculate|classify|recommend|create|check|assess)\b/i,
@@ -153,6 +154,10 @@ document.getElementById("clues").addEventListener("click",()=>{
  document.getElementById("clueStatus").textContent="Initial suggestions only: "+may.length+" dimensions contain possible textual clues. No dimension has been confirmed explicit. Review and adjust all seven ratings, then build the map.";
  assess();
 });
+const markDirty=()=>{if(assessmentCurrent){assessmentCurrent=false;document.getElementById("status").textContent="Inputs changed. Build the coverage map again before copying.";}};
+document.getElementById("prompt").addEventListener("input",markDirty);
+["usecase","stakes","data"].forEach(id=>document.getElementById(id).addEventListener("change",markDirty));
+document.querySelectorAll('input[type=radio]').forEach(input=>input.addEventListener("change",markDirty));
 document.getElementById("assess").addEventListener("click",assess);
 document.getElementById("example").addEventListener("click",()=>{
  document.getElementById("prompt").value="Read these sources and tell me whether my argument about AI improving healthcare decision-making is correct. Give me citations.";
@@ -161,7 +166,7 @@ document.getElementById("example").addEventListener("click",()=>{
  Object.entries(vals).forEach(([k,v])=>{const r=document.querySelector('input[name="'+k+'"][value="'+v+'"]');if(r)r.checked=true});
  assess();
 });
-document.getElementById("reset").addEventListener("click",()=>{document.getElementById("prompt").value="";document.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);document.getElementById("result").innerHTML='<p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p>';document.getElementById("scaffold").textContent="A revised prompt scaffold will appear here. It preserves your original request while making missing requirements explicit.";document.getElementById("status").textContent="";document.getElementById("clueStatus").textContent="";document.getElementById("usecase").value="research";document.getElementById("stakes").value="moderate";document.getElementById("data").value="public"});
-document.getElementById("copy").addEventListener("click",async()=>{if(!document.getElementById("prompt").value.trim()||document.getElementById("scaffold").textContent.startsWith("A revised prompt scaffold")){document.getElementById("status").textContent="Build a scaffold before copying.";return}try{await navigator.clipboard.writeText(document.getElementById("scaffold").textContent);document.getElementById("status").textContent="Scaffold copied."}catch(e){document.getElementById("status").textContent="Copy was blocked; select the text manually."}});
+document.getElementById("reset").addEventListener("click",()=>{assessmentCurrent=false;document.getElementById("prompt").value="";document.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);document.getElementById("result").innerHTML='<p class="note">Describe the task and assess the seven prompt-literacy dimensions.</p>';document.getElementById("scaffold").textContent="A revised prompt scaffold will appear here. It preserves your original request while making missing requirements explicit.";document.getElementById("status").textContent="";document.getElementById("clueStatus").textContent="";document.getElementById("usecase").value="research";document.getElementById("stakes").value="moderate";document.getElementById("data").value="public"});
+document.getElementById("copy").addEventListener("click",async()=>{if(!assessmentCurrent||!document.getElementById("prompt").value.trim()){document.getElementById("status").textContent="Build a scaffold before copying.";return}try{await navigator.clipboard.writeText(document.getElementById("scaffold").textContent);document.getElementById("status").textContent="Scaffold copied."}catch(e){document.getElementById("status").textContent="Copy was blocked; select the text manually."}});
 </script>
 </body></html>
