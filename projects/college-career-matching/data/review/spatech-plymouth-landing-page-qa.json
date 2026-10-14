@@ -1,0 +1,9 @@
+{
+  "review_date": "2026-10-14",
+  "flag": "school landing page content mismatch",
+  "page": "https://www.spatech.edu/esthetics-school-plymouth-ma",
+  "observation": "The page path suggests aesthetics, but its visible heading and body describe Plymouth massage programs.",
+  "verified_alternative": "https://www.spatech.edu/spa-tech-institute-plymouth-massachusetts",
+  "alternative_source": "https://www.spatech.edu/program-catalogs",
+  "resolution": "Use campus program listing and official aesthetics catalog for the Aesthetics program. Do not infer that the misleading page proves an active aesthetics intake."
+}
