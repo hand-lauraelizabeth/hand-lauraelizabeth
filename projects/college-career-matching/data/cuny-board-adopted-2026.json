@@ -1,0 +1,69 @@
+{
+  "checked_on": "2026-10-15",
+  "release_effect": "review_only",
+  "system": "City University of New York",
+  "undergraduate_sat_act_policy": {
+    "classification": "test_optional",
+    "adoption_status": "adopted",
+    "adopted_on": "2026-06-29",
+    "duration": "indefinite",
+    "applicability": "general_undergraduate_admission",
+    "source_resolution": "June 2026 Board calendar proposed indefinite continuation; the June 29, 2026 official disposition confirms unanimous approval of the amendment to standardized testing requirements.",
+    "special_programs": "Individual schools may request scores for special academic programs, honors, or services; these requirements must be verified separately.",
+    "sources": [
+      {
+        "kind": "resolution_text_in_board_calendar",
+        "url": "https://www.cuny.edu/main/wp-content/uploads/sites/4/page-assets/about/trustees/meetings-of-the-board/CAL0626.pdf",
+        "locator": "Committee on Education Policy; University Policies; Amend Standardized Testing Requirements for Undergraduate Admissions"
+      },
+      {
+        "kind": "official_board_adoption",
+        "url": "https://www.cuny.edu/main/wp-content/uploads/sites/4/page-assets/about/trustees/meetings-of-the-board/DISPO062926.pdf",
+        "locator": "page 4, item 5.B.1: unanimously approved"
+      },
+      {
+        "kind": "current_admissions_guidance",
+        "url": "https://www.cuny.edu/admissions/undergraduate/new-counselor-corner/",
+        "locator": "CUNY is test optional for undergraduate admission"
+      }
+    ]
+  },
+  "hostos_new_program_board_action": {
+    "name": "Cybersecurity",
+    "credential": "Associate of Science (AS)",
+    "approval_date": "2026-06-29",
+    "status": "board_approved_establishment_only",
+    "current_catalog_listing_verified": false,
+    "currently_accepting_applications_verified": false,
+    "cip2020": null,
+    "nysed_program_code": null,
+    "source": "https://www.cuny.edu/main/wp-content/uploads/sites/4/page-assets/about/trustees/meetings-of-the-board/DISPO062926.pdf",
+    "locator": "page 3, item 5.A.3"
+  },
+  "hostos_dental_hygiene_accreditation": {
+    "credential": "AAS",
+    "cip2020": "51.0602",
+    "nysed_program_code": "00911",
+    "school_claims_coda_accreditation": true,
+    "independent_current_coda_decision_verified": false,
+    "corroboration": "2024-25 New York State Dental Association directory lists Hostos among CODA-accredited dental hygiene programs; this is not a 2026 CODA decision.",
+    "sources": [
+      "https://hostos.catalog.cuny.edu/programs/DENHYG-AAS",
+      "https://www.nysdental.org/docs/statenynewyorklibraries/default-document-library/2024---2025-directory.pdf?sfvrsn=d757ba68_2",
+      "https://coda.ada.org/find-a-program"
+    ]
+  },
+  "safeguards": {
+    "missing_sat_act_scores_do_not_determine_policy": true,
+    "no_automatic_unitid_assignment": true,
+    "no_program_current_availability_from_board_approval": true,
+    "no_individual_licensure_claim": true,
+    "no_cip_soc_crosswalk": true
+  },
+  "unchanged_national_denominators": {
+    "institutions": 6243,
+    "numeric_sat_act_overlay_institutions": 1247,
+    "historical_completion_records": 235330,
+    "cip2020_six_digit": 2325
+  }
+}
