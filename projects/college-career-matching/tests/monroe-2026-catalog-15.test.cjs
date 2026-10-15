@@ -13,7 +13,7 @@ test('review counts and unique institution-program identity',()=>{
  assert.equal(new Set(r.map(x=>x.unitid)).size,1);
 });
 test('official catalog provenance and identifiers',()=>{
- for(const x of r){assert.equal(x.unitid,'193326');assert.match(x.cip2020,/^\\d{2}\\.\\d{4}$/);assert.equal(new URL(x.catalog_url).hostname,'notes.monroecc.edu');assert.match(x.catalog_url,/MCCatPub\\.nsf/);assert.equal(x.catalog_year,null);assert.equal(x.source_accessed,'2026-10-15');assert.equal(x.nysed_registrations.every(z=>/^\\d{5}$/.test(z.code)),true);}
+ for(const x of r){assert.equal(x.unitid,'193326');assert.match(x.cip2020,/^\d{2}\.\d{4}$/);assert.equal(new URL(x.catalog_url).hostname,'notes.monroecc.edu');assert.match(x.catalog_url,/MCCatPub\.nsf/);assert.equal(x.catalog_year,null);assert.equal(x.source_accessed,'2026-10-15');assert.equal(x.nysed_registrations.every(z=>/^\d{5}$/.test(z.code)),true);}
 });
 test('distinct credentials are never collapsed by CIP',()=>{
  const p=r.filter(x=>x.cip2020==='51.0904');assert.deepEqual(new Set(p.map(x=>x.program_code)),new Set(['EM01','EM05','EM02']));
