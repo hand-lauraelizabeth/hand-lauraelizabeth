@@ -7,7 +7,7 @@ class El {
  append(...x){this.children.push(...x)}
  click(){}
 }
-const ids=['source-json','matrix-search','matrix-mode','matrix-body','matrix-status','matrix-export'];
+const ids=['source-json','matrix-search','matrix-mode','matrix-body','matrix-status','matrix-export','matrix-clear','matrix-error'];
 const els=Object.fromEntries(ids.map(id=>[id,new El()]));
 els['matrix-mode'].value='all';
 globalThis.document={getElementById:id=>els[id],createElement:tag=>new El(tag)};
