@@ -1,0 +1,12 @@
+'use strict';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const path=require('node:path');
+const audit=require(path.join(__dirname,'../review/national-extension-key-audit-20261015.json'));
+const all=audit.keys;
+const cross=all.filter(r=>r.prefix_same_state===false);
+test('pinned extension denominator is 456',()=>{assert.equal(all.length,456);assert.equal(new Set(all.map(r=>r.display_id)).size,456);});
+test('cross-state triage has 119 unique display keys',()=>{assert.equal(cross.length,119);assert.equal(new Set(cross.map(r=>r.display_id)).size,119);});
+test('cross-state keys belong to 42 candidate prefixes',()=>{assert.equal(new Set(cross.map(r=>r.prefix_candidate)).size,42);});
+test('same-state population is 337 and also remains on hold',()=>{assert.equal(all.filter(r=>r.prefix_same_state===true).length,337);assert.ok(all.every(r=>r.disposition==='HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN'));});
+test('top five candidate-prefix groups account for 57 cases',()=>{const counts=new Map();for(const r of cross)counts.set(r.prefix_candidate,(counts.get(r.prefix_candidate)||0)+1);assert.equal(['455196','475033','177065','248934','220552'].reduce((n,k)=>n+(counts.get(k)||0),0),57);});
