@@ -30,4 +30,4 @@ await upload(file('second.json',record('SECOND')));
 assert.equal(elements['matrix-error'].textContent,'');
 assert.equal(elements['matrix-body'].children[0].children[0].textContent,'SECOND');
 assert.equal(elements['source-json'].disabled,false);
-console.log('8 import error recovery assertions PASS');
+console.log('9 import error recovery assertions PASS');
