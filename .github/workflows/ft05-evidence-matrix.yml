@@ -28,6 +28,10 @@ jobs:
           node --check free-tools/evidence-timeline/matrix-a11y-contract.test.mjs
           node --check free-tools/evidence-timeline/matrix-validation-recovery.test.mjs
           node --check free-tools/evidence-timeline/core.test.mjs
+          node --check free-tools/evidence-timeline/json-import.mjs
+          node --check free-tools/evidence-timeline/exact-core.mjs
+          node --check free-tools/evidence-timeline/matrix-ui.mjs
+          node --check free-tools/evidence-timeline/core.mjs
       - name: Synthetic controller and stale-import tests
         run: |
           node free-tools/evidence-timeline/matrix-page.test.mjs
