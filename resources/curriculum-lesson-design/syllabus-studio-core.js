@@ -19,7 +19,7 @@
   const str = (x, max=5000) => String(x ?? "").slice(0,max).trim();
   const num = x => (x === "" || x === null || typeof x === "undefined") ? null :
     (typeof x === "number" || (typeof x === "string" && x.trim()!=="" && Number.isFinite(Number(x)))) ? Number(x) : NaN;
-  function fresh() { return {kind:KIND,version:1,meta:Object.fromEntries(META_FIELDS.map(k=>[k,""])),objectives:[],sessions:[],assessments:[]}; }
+  function fresh() { return {kind:KIND,version:1,meta:Object.fromEntries(META_FIELDS.map(k=>[k,""])),policyChecks:{},objectives:[],sessions:[],assessments:[]}; }
   function identifier(prefix, data) {
     const used = new Set(data.map(x=>x.id));
     let i=1; while(used.has(prefix+i)) i++;
@@ -49,6 +49,7 @@
     sections.forEach(k=>{if(state[k].length>MAX_ITEMS)throw new Error("Maximum "+MAX_ITEMS+" "+k+" per plan.");});
     const clean=fresh();
     META_FIELDS.forEach(k=>clean.meta[k]=str(state.meta[k],5000));
+    POLICY_CHECKS.forEach(([k])=>clean.policyChecks[k] = !!(state.policyChecks&&state.policyChecks[k]===true));
     clean.objectives=state.objectives.map((o,i)=>normalizeObjective(o,"O"+(i+1)));
     clean.sessions=state.sessions.map((o,i)=>normalizeSession(o,"S"+(i+1)));
     clean.assessments=state.assessments.map((o,i)=>normalizeAssessment(o,"A"+(i+1)));
@@ -153,7 +154,7 @@
       }
     }
     POLICY_CHECKS.forEach(([key,title])=>{
-      if(!d.meta.policies.toLowerCase().includes("["+key+"]"))flag("policy",title+" — include or verify locally applicable language.");
+      if(!d.policyChecks[key])flag("policy",title+" — confirm against your institution.");
     });
     if(!d.meta.resources)flag("review","List required and optional learning resources and access alternatives.");
     return {flags,gradedWeightTotal:round(sum),gradedCount:graded.length,formativeCount:d.assessments.length-graded.length,
@@ -177,5 +178,5 @@
     add("","METHOD NOTE","Planning draft generated locally. Verify institutional policies, actual dates, grade calculations, disciplinary assessment validity, accessibility, and resource availability before distribution.");
     return a.filter((v,i)=>v!==""||a[i-1]!=="").join("\n");
   }
-  return {KIND, fresh, validate, fromCanvas, alignment, review, syllabusText, identifier,normalizeObjective,normalizeSession,normalizeAssessment};
+  return {KIND, POLICY_CHECKS, fresh, validate, fromCanvas, alignment, review, syllabusText, identifier,normalizeObjective,normalizeSession,normalizeAssessment};
 });
