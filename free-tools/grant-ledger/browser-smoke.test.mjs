@@ -37,5 +37,7 @@ try {
  assert.ok((await page.locator('#expenseRows').textContent()).includes(' SRC-01 '));
  assert.equal(errors.length,0);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1),false);
- console.log('8 HTTP-served Chromium smoke assertions PASS');
+ await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1),false);
+ console.log('9 HTTP-served Chromium smoke assertions PASS');
 } finally {if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
