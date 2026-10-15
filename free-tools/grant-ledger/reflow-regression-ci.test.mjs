@@ -1,6 +1,24 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-const css=readFileSync(new URL('./styles.css',import.meta.url),'utf8');
-assert.match(css,/overflow-wrap:anywhere/);
-assert.match(css,/overflow-x:auto/);
-console.log('2 responsive-layout contract assertions PASS');
+const read = file => readFileSync(new URL(file, import.meta.url), 'utf8');
+const view=read('./view.mjs'),app=read('./app.mjs'),render=read('./render.mjs');
+const html=read('./index.html'),css=read('./styles.css');
+let n=0;
+function ok(value,description){assert.ok(value,description);n++;}
+ok(!/\binnerHTML\b|\bouterHTML\b|insertAdjacentHTML/.test(view+app+render),'No untrusted HTML insertion');
+ok(/td\.textContent=v/.test(render),'Table cells rendered as text');
+ok(/li\.textContent=/.test(render),'Review flags rendered as text');
+ok(/e\.textContent=text/.test(app),'Validation errors rendered as text');
+ok(/e\.focus\(\)/.test(app),'Validation errors receive focus');
+ok(/setAttribute\('role','alert'\)/.test(view),'Validation error alert role');
+ok(/setAttribute\('role','status'\)/.test(view),'Status announcement role');
+ok(/setAttribute\('aria-live','polite'\)/.test(view),'Non-disruptive status announcements');
+ok(/button:focus-visible/.test(css),'Visible keyboard focus');
+ok(/overflow-wrap:anywhere/.test(css),'Long content wraps');
+ok(/overflow-x:auto/.test(css),'Wide tables scroll within container');
+ok(/connect-src 'none'/.test(html),'No network connections in CSP');
+ok(/form-action 'none'/.test(html),'No form submissions in CSP');
+ok(/script-src 'self'/.test(html),'Script origin constrained in CSP');
+ok(/All calculations stay in this tab/.test(view),'Local privacy statement');
+ok(/does not decide grant allowability or compliance/.test(view),'Human decision boundary');
+console.log(n+' grant ledger security/accessibility contract assertions PASS');
