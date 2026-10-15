@@ -5,6 +5,8 @@ class Element {
   dispatch(type){return this.listeners[type]?.();}
   replaceChildren(){this.children=[];}
   append(...items){this.children.push(...items);}
+  removeAttribute(name){delete this[name];}
+  setAttribute(name,value){this[name]=String(value);}
   focus(){this.focused=true;}
 }
 const ids=['source-json','matrix-search','matrix-mode','matrix-body','matrix-status','matrix-error','matrix-export','matrix-clear'];
