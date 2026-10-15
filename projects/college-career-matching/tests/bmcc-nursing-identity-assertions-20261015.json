@@ -1,0 +1,47 @@
+{
+  "suite": "BMCC nursing plan identity",
+  "checked_on": "2026-10-15",
+  "assertions": [
+    {
+      "path": "plans[0].plan",
+      "equals": "NUR-AAS"
+    },
+    {
+      "path": "plans[1].plan",
+      "equals": "NPS-AAS"
+    },
+    {
+      "path": "plans[0].award",
+      "equals": "AAS"
+    },
+    {
+      "path": "plans[1].award",
+      "equals": "AAS"
+    },
+    {
+      "path": "plans[0].cip",
+      "equals": "51.3801"
+    },
+    {
+      "path": "plans[1].cip",
+      "equals": "51.3801"
+    },
+    {
+      "path": "plans[0].catalog_code",
+      "equals": "01093"
+    },
+    {
+      "path": "plans[1].catalog_code",
+      "equals": "40117"
+    },
+    {
+      "path": "registered_programs_inventory_dual_degree_code",
+      "equals": "40090"
+    }
+  ],
+  "negative_assertions": [
+    "Do not collapse NUR-AAS and NPS-AAS into one plan ID",
+    "Do not assign SPS BS to BMCC",
+    "Do not infer current selective admission or individual licensing eligibility"
+  ]
+}
