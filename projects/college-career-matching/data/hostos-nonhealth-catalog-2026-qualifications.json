@@ -1,0 +1,15 @@
+{
+  "catalog_year": "2026-2027",
+  "source": "https://hostos.catalog.cuny.edu/",
+  "catalog_only": true,
+  "admissions_status": "unverified",
+  "program_specific": {
+    "CSCI-AS": "Catalog description uses 'proposes'; admissions not confirmed.",
+    "CIVENGR-AS": "Hostos AS; joint route to City College of New York BE, not the same credential.",
+    "ACCTFOR-AS": "Hostos AS; joint route toward John Jay Economics BS, not the same credential.",
+    "ACCT-AAS": "Distinct AAS from ACCT-AS despite shared CIP 52.0302.",
+    "ACCT-AS": "Distinct AS from ACCT-AAS despite shared CIP 52.0302."
+  },
+  "licensure": "not inferred",
+  "historical_completions": "not joined"
+}
