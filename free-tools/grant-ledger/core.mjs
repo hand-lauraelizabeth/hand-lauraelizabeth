@@ -98,7 +98,7 @@ export function calculateLedger(award, categories, expenses) {
 function csvCell(value) {
   let text = String(value ?? '');
   // Spreadsheet-oriented precaution; a CSV consumer may strip or reinterpret this prefix.
-  if (/^[\s\uFEFF]*[=+\-@\t\r]/u.test(text)) text = `'${text}`;
+  if (/^[\s\uFEFF]*[=+\-@\t\r＝＋－＠]/u.test(text)) text = `'${text}`;
   return `"${text.replaceAll('"','""')}"`;
 }
 export function exportTransactionsCSV(result) {
