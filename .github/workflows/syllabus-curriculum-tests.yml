@@ -24,7 +24,9 @@ jobs:
         run: node --test resources/curriculum-lesson-design/tests/syllabus-core.test.cjs
       - name: Install headless browser dependency
         run: |
-          npm install --no-save --ignore-scripts playwright@1.56.1
+          npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.3
           npx playwright install --with-deps chromium
       - name: Browser interaction, responsive layout, roundtrip export and cross-tool import
         run: node resources/curriculum-lesson-design/tests/syllabus-browser.cjs
+      - name: Automated WCAG A and AA axe-core checks (desktop and mobile)
+        run: node resources/curriculum-lesson-design/tests/syllabus-accessibility.cjs
