@@ -1,3 +1,4 @@
+@import url("./validation-contrast.css");
 .matrix-scroll{max-width:100%;overflow:auto;border:1px solid #b8cec2}
 .matrix-scroll table{border-collapse:collapse;min-width:640px;width:100%}
 .matrix-scroll th,.matrix-scroll td{border:1px solid #b8cec2;padding:.5rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}
