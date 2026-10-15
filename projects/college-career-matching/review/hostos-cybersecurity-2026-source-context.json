@@ -1,0 +1,64 @@
+{
+  "checked_on": "2026-10-15",
+  "scope": "review_only",
+  "board_resolution": {
+    "name": "Cybersecurity",
+    "credential": "AS",
+    "board_approved": "2026-06-29",
+    "credits": 60,
+    "major_credits": 27,
+    "requires_NYSED_registration": true,
+    "city_tech_transfer_articulation_described": true,
+    "certification_preparation": [
+      "CompTIA A+",
+      "Network+",
+      "Security+",
+      "Linux+"
+    ],
+    "certification_award_proven": false,
+    "NCAE_C_designation_proven": false
+  },
+  "sources": {
+    "board_calendar": "https://www.cuny.edu/main/wp-content/uploads/sites/4/page-assets/about/trustees/meetings-of-the-board/CAL0626.pdf",
+    "board_disposition": "https://www.cuny.edu/main/wp-content/uploads/sites/4/page-assets/about/trustees/meetings-of-the-board/DISPO062926.pdf",
+    "catalog_directory": "https://hostos.catalog.cuny.edu/programs",
+    "historical_2023_draft": "https://hostos.cuny.edu/Hostos/media/Office-of-the-President/CAC/CyberSecurity-Summit-Booklet-06-08-23.pdf"
+  },
+  "distinct_existing_degree": {
+    "name": "Computer Science",
+    "credential": "AS",
+    "plan": "CSCI-AS",
+    "cip": "11.0701",
+    "nysed": "41070",
+    "url": "https://hostos.catalog.cuny.edu/programs/CSCI-AS"
+  },
+  "course_pages": [
+    [
+      "CST 140",
+      "https://hostos.catalog.cuny.edu/courses/1563511"
+    ],
+    [
+      "CST 220",
+      "https://hostos.catalog.cuny.edu/courses/1563121"
+    ],
+    [
+      "CST 240",
+      "https://hostos.catalog.cuny.edu/courses/1563151/general-aoYks"
+    ],
+    [
+      "CST 250",
+      "https://hostos.catalog.cuny.edu/courses/1563161"
+    ],
+    [
+      "CST 260",
+      "https://hostos.catalog.cuny.edu/courses/1563141/general-aoYks"
+    ]
+  ],
+  "course_existence_is_not_degree_availability": true,
+  "independent_NYSED_registration_proven": false,
+  "current_catalog_degree_listing_located": false,
+  "application_open_proven": false,
+  "CIP2020_for_new_degree": null,
+  "note": "Board action explicitly sends proposal to NYSED for consideration and registration; the 2023 draft, current individual course pages and Computer Science AS do not independently establish a currently offered Cybersecurity AS.",
+  "no_production_or_crosswalk_change": true
+}
