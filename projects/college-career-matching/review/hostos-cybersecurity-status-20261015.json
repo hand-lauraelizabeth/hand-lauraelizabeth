@@ -1,0 +1,13 @@
+{
+  "checked_on": "2026-10-15",
+  "status": "board_approved_pending_nysed_registration_and_current_catalog_verification",
+  "credential": "AS",
+  "institution": "Hostos Community College",
+  "board_source": "https://www.cuny.edu/main/wp-content/uploads/sites/4/page-assets/about/trustees/meetings-of-the-board/CAL0626.pdf",
+  "catalog_directory": "https://hostos.catalog.cuny.edu/programs",
+  "current_catalog_confirmed": false,
+  "nysed_registration": null,
+  "cip2020": null,
+  "admissions_open": null,
+  "production_change": false
+}
