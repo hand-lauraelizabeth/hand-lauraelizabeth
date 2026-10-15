@@ -2,7 +2,7 @@ name: FT-05 evidence matrix regression checks
 on:
   push:
     branches:
-      - 'review/ft05-race-ci-gate-*'
+      - 'review/ft05-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
