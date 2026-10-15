@@ -50,4 +50,4 @@ elements['matrix-clear'].dispatch('click');
 finish();await pending;
 assert.equal(elements['matrix-body'].children.length,0);
 assert.equal(input.getAttribute('aria-invalid'),null);
-console.log('15 synthetic import validation and recovery assertions PASS');
+console.log('17 synthetic import validation and recovery assertions PASS');
