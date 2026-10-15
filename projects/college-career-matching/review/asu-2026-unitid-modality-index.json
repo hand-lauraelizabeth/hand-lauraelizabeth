@@ -1,0 +1,91 @@
+{
+  "review_date": "2026-10-14",
+  "pinned_commit": "3abb9f458c9d0d43c857c64292dc407f3bd1e911",
+  "campus_group_unitid": "104151",
+  "digital_group_unitid": "483124",
+  "source_registry": [
+    "ASU 2026 degree search",
+    "ASU Facts at a Glance institutional reporting",
+    "Carnegie institutional identity",
+    "ASU Local official guidance"
+  ],
+  "fields": [
+    "plan_code",
+    "name",
+    "credential",
+    "physical_campus",
+    "online_offered"
+  ],
+  "records": [
+    [
+      "ESCSEBS",
+      "Computer Science",
+      "BS",
+      "Tempe",
+      1
+    ],
+    [
+      "ESCSEIBS",
+      "Computer Science (Cybersecurity)",
+      "BS",
+      "Tempe",
+      0
+    ],
+    [
+      "ESCSEAIBS",
+      "Computer Science (Artificial Intelligence)",
+      "BS",
+      "Tempe",
+      0
+    ],
+    [
+      "ESCSESBS",
+      "Computer Science (Software Engineering)",
+      "BS",
+      "Tempe",
+      0
+    ],
+    [
+      "TSSERBS",
+      "Software Engineering",
+      "BS",
+      "Polytechnic",
+      1
+    ],
+    [
+      "LADATSCIBS",
+      "Data Science",
+      "BS",
+      "Tempe",
+      1
+    ],
+    [
+      "ESBMIBS",
+      "Biomedical Informatics and Data Science",
+      "BS",
+      "Downtown Phoenix",
+      0
+    ],
+    [
+      "ESBMEBSE",
+      "Biomedical Engineering",
+      "BSE",
+      "Tempe",
+      1
+    ],
+    [
+      "ASACOCBS",
+      "Applied Computing (Cybersecurity)",
+      "BS",
+      "West Valley",
+      0
+    ]
+  ],
+  "closed_to_new_students": [
+    "ASACOCBS"
+  ],
+  "program_specific_federal_join": "PENDING",
+  "auto_join": false,
+  "verified_cip": 0,
+  "verified_licensure": 0
+}
