@@ -1,0 +1,171 @@
+{
+  "schema_version": "1.0",
+  "review_date": "2026-10-14",
+  "data_kind": "IPEDS_2024_25_HISTORICAL_FIRST_MAJOR_COMPLETIONS",
+  "pinned_release_commit": "3abb9f458c9d0d43c857c64292dc407f3bd1e911",
+  "source_manifest": "projects/college-career-matching/data/programs/ipeds2025/programs.manifest.v1.json",
+  "source_catalog_plan_review_commit": "0d89713efbf5b63e8174cce699530bf9be4f32c4",
+  "source_catalog_plan_review_path": "projects/college-career-matching/review/asu-2026-unitid-modality-index.json",
+  "source_cip_titles": "projects/college-career-matching/data/programs/ipeds2025/cip2020-titles.json",
+  "source_url": "https://nces.ed.gov/ipeds/complete-data-files/C2025_A.zip",
+  "source_reporting_period": "2024-07-01 through 2025-06-30",
+  "source_release_status": "IPEDS 2025 preliminary/provisional",
+  "national_denominators": {
+    "scorecard_institutions": 6243,
+    "historical_program_institutions": 5658,
+    "historical_cip_awlevel_rows": 235330,
+    "cip2020_six_digit_titles": 2325
+  },
+  "reviewed_catalog_plan_codes": [
+    "ESCSEBS",
+    "ESCSEIBS",
+    "ESCSEAIBS",
+    "ESCSESBS",
+    "TSSERBS",
+    "LADATSCIBS",
+    "ESBMIBS",
+    "ESBMEBSE",
+    "ASACOCBS"
+  ],
+  "catalog_plan_to_cip_mapping": {},
+  "catalog_plan_to_unitid_award_row_mapping": {},
+  "named_program_credential_verified_by_ipeds": false,
+  "current_catalog_availability_verified_by_ipeds": false,
+  "professional_license_eligibility_verified_by_ipeds": false,
+  "admissions_policy_verified_by_ipeds": false,
+  "historical_counts_not_enrollment_or_seats": true,
+  "zero_reported_awards_does_not_mean_closed": true,
+  "observations": [
+    {
+      "unitid": "104151",
+      "reporting_group": "ASU Campus Immersion",
+      "source_shard": "projects/college-career-matching/data/programs/ipeds2025/programs-00.json",
+      "source_shard_sha256": "4b6a5820eb84e0b8f95544f5073a8cf17d618bf679647ebd2c16a705f618d3a6",
+      "total_historical_cip_awlevel_rows": 492,
+      "observed_bachelors": [
+        {
+          "cip6": "110101",
+          "official_cip2020_title": "Computer and Information Sciences, General.",
+          "awlevel": "5",
+          "awards_conferred": 139,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "110701",
+          "official_cip2020_title": "Computer Science.",
+          "awlevel": "5",
+          "awards_conferred": 846,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "111003",
+          "official_cip2020_title": "Computer and Information Systems Security/Auditing/Information Assurance.",
+          "awlevel": "5",
+          "awards_conferred": 20,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "111005",
+          "official_cip2020_title": "Information Technology Project Management.",
+          "awlevel": "5",
+          "awards_conferred": 51,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "140501",
+          "official_cip2020_title": "Bioengineering and Biomedical Engineering.",
+          "awlevel": "5",
+          "awards_conferred": 136,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "140903",
+          "official_cip2020_title": "Computer Software Engineering.",
+          "awlevel": "5",
+          "awards_conferred": 53,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "303101",
+          "official_cip2020_title": "Human Computer Interaction.",
+          "awlevel": "5",
+          "awards_conferred": 28,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "307001",
+          "official_cip2020_title": "Data Science, General.",
+          "awlevel": "5",
+          "awards_conferred": 100,
+          "count_status": "reported"
+        }
+      ]
+    },
+    {
+      "unitid": "483124",
+      "reporting_group": "ASU Digital Immersion",
+      "source_shard": "projects/college-career-matching/data/programs/ipeds2025/programs-09.json",
+      "source_shard_sha256": "a028d0ee683d3f36f47c0106534b1fe4fd9dd9fa30703cc2a4fe6b9b0b729886",
+      "total_historical_cip_awlevel_rows": 243,
+      "observed_bachelors": [
+        {
+          "cip6": "110101",
+          "official_cip2020_title": "Computer and Information Sciences, General.",
+          "awlevel": "5",
+          "awards_conferred": 43,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "110701",
+          "official_cip2020_title": "Computer Science.",
+          "awlevel": "5",
+          "awards_conferred": 19,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "111003",
+          "official_cip2020_title": "Computer and Information Systems Security/Auditing/Information Assurance.",
+          "awlevel": "5",
+          "awards_conferred": 25,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "111005",
+          "official_cip2020_title": "Information Technology Project Management.",
+          "awlevel": "5",
+          "awards_conferred": 250,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "140501",
+          "official_cip2020_title": "Bioengineering and Biomedical Engineering.",
+          "awlevel": "5",
+          "awards_conferred": 0,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "140903",
+          "official_cip2020_title": "Computer Software Engineering.",
+          "awlevel": "5",
+          "awards_conferred": 151,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "303101",
+          "official_cip2020_title": "Human Computer Interaction.",
+          "awlevel": "5",
+          "awards_conferred": 42,
+          "count_status": "reported"
+        },
+        {
+          "cip6": "307001",
+          "official_cip2020_title": "Data Science, General.",
+          "awlevel": "5",
+          "awards_conferred": 133,
+          "count_status": "reported"
+        }
+      ]
+    }
+  ],
+  "interpretation": "These eight CIP2020 classifications are historical bachelor-level reporting cells for each federal reporting group. They are not matched to any of the nine ASU named degree plans. Neither a positive nor zero count proves current catalog availability, degree-plan equivalence, licensing, or admissions eligibility."
+}
