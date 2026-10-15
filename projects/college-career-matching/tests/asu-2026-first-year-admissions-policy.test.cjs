@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');
+const data=require('../review/asu-2026-first-year-admissions-policy.json');
+assert.equal(data.records.length,8);
+assert.equal(data.records.filter(x=>x.policy_category.startsWith('engineering')).length,6);
+assert.equal(data.records.filter(x=>x.policy_category==='general_university').length,2);
+assert.ok(data.records.every(x=>x.test_submission_required===false));
+assert.ok(data.records.every(x=>x.cip2020_code===null && x.reporting_unitid_join===null));
+assert.ok(data.records.every(x=>x.degree_page.includes(x.plan_code)));
+assert.ok(!data.records.some(x=>x.plan_code==='ASACOCBS'));
+console.log('ASU admissions evidence tests passed');
