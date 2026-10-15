@@ -1,0 +1,12 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const d = JSON.parse(fs.readFileSync(path.join(__dirname,'../review/laguardia-2026-catalog-credentials.json'),'utf8'));
+const byPlan = Object.fromEntries(d.programs.map(p=>[p.plan_code,p]));
+test('catalog provenance and institution',()=>{assert.equal(d.catalog_year,'2026-2027');assert.equal(d.unitid,190628);assert.equal(d.programs.length,6);assert.equal(new Set(d.programs.map(p=>p.plan_code)).size,6);});
+test('exact credential names and NYSED identifiers',()=>{assert.deepEqual(Object.fromEntries(d.programs.map(p=>[p.plan_code,p.nysed_program_code])),{'CYBER-AAS':'01073','CYBER-CERT':'37279','CMPSC-AS':'82352','CMPTH-AAS':'85082','NRS-AAS':'84391','PRNRS-CERT':'29011'});});
+test('CIP is not credential identity',()=>{assert.equal(byPlan['CYBER-AAS'].cip2020,'11.1003');assert.equal(byPlan['CYBER-CERT'].cip2020,'11.1003');assert.notEqual(byPlan['CYBER-AAS'].award_code,byPlan['CYBER-CERT'].award_code);});
+test('nursing pathways stay distinct',()=>{assert.equal(byPlan['NRS-AAS'].cip2020,'51.3801');assert.equal(byPlan['PRNRS-CERT'].cip2020,'51.3901');assert.notEqual(byPlan['NRS-AAS'].award_code,byPlan['PRNRS-CERT'].award_code);});
+test('every catalog record is sourced without admissions or licensure inference',()=>{for(const p of d.programs){assert.equal(p.catalog_listing_confirmed,true);assert.equal(p.accepting_applications,null);assert.equal(p.individual_licensure_eligibility,null);assert.match(p.catalog_url,/^https:\/\/laguardia\.catalog\.cuny\.edu\/programs\//);assert.match(p.cip2020,/^\d{2}\.\d{4}$/);assert.match(p.nysed_program_code,/^\d{5}$/);}});
+test('no production or career joins',()=>{assert.equal(d.production_change,false);assert.equal(d.career_crosswalk_created,false);});
