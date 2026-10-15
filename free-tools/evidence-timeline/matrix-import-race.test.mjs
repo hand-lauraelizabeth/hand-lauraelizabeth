@@ -38,4 +38,4 @@ els['matrix-search'].value='OLD';els['matrix-search'].dispatch('input');
 assert.equal(els['matrix-body'].children.length,0);
 els['matrix-search'].value='NEW';els['matrix-search'].dispatch('input');
 assert.equal(els['matrix-body'].children.length,1);
-console.log('6 stale-import race checks PASS');
+console.log('8 stale-import race checks PASS');
