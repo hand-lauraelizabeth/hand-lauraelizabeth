@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "unitid": "190628",
+  "records": [
+    {
+      "unitid": "190628",
+      "plan_code": "MSRT-AAS",
+      "program_name": "Music Recording Technology",
+      "credential": "AAS",
+      "cip2020": "10.0203",
+      "nysed_code": "31387",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/MSRT-AAS",
+      "source_note": "New source verified 2026-10-15"
+    },
+    {
+      "unitid": "190628",
+      "plan_code": "NMDTH-AAS",
+      "program_name": "New Media Technology",
+      "credential": "AAS",
+      "cip2020": "11.0899",
+      "nysed_code": "26880",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/NMDTH-AAS",
+      "source_note": "New source verified 2026-10-15"
+    },
+    {
+      "unitid": "190628",
+      "plan_code": "NRS-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "84391",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/NRS-AAS"
+    },
+    {
+      "unitid": "190628",
+      "plan_code": "PRNRS-CERT",
+      "program_name": "Practical Nursing Certificate",
+      "credential": "CERTGE30",
+      "cip2020": "51.3901",
+      "nysed_code": "29011",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/PRNRS-CERT"
+    }
+  ]
+}

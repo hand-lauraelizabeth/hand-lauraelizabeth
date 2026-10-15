@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_status": "catalog_listed_not_intake_verified",
+  "unitid": "190673",
+  "records": [
+    {
+      "unitid": "190673",
+      "plan_code": "BA-AAS",
+      "program_name": "Accounting",
+      "credential": "AAS",
+      "cip2020": "52.0302",
+      "nysed_code": "01524",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/BA-AAS"
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "BM-AAS",
+      "program_name": "Management",
+      "credential": "AAS",
+      "cip2020": "52.1401",
+      "nysed_code": "01525",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/BM-AAS"
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "CSS-AS",
+      "program_name": "Computer Science and Information Security",
+      "credential": "AS",
+      "cip2020": "11.0701",
+      "nysed_code": "38822",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/CSS-AS",
+      "source_note": "Partner John Jay registration 38823 is not a Queensborough credential."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "CT-AAS",
+      "program_name": "Computer Engineering Technology",
+      "credential": "AAS",
+      "cip2020": "15.1201",
+      "nysed_code": "01528",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/CT-AAS",
+      "source_note": "Catalog reports ETAC/ABET accreditation; independent accreditation status not checked."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "CYB-AAS",
+      "program_name": "Cybersecurity",
+      "credential": "AAS",
+      "cip2020": "11.1003",
+      "nysed_code": "42386",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/CYB-AAS"
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "EM-AAS",
+      "program_name": "Internet and Information Technology",
+      "credential": "AAS",
+      "cip2020": "11.0103",
+      "nysed_code": "25539",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/EM-AAS"
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "EN-CERT",
+      "program_name": "Internet and Information Technology",
+      "credential": "Certificate",
+      "cip2020": "11.1006",
+      "nysed_code": "25538",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/EN-CERT",
+      "source_note": "Different credential and CIP from EM-AAS despite shared program name."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "ET-AAS",
+      "program_name": "Electronic Engineering Technology",
+      "credential": "AAS",
+      "cip2020": "15.0303",
+      "nysed_code": "01532",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/ET-AAS",
+      "source_note": "Catalog reports ETAC/ABET accreditation; independent accreditation status not checked."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "MA-AAS",
+      "program_name": "Medical Assistant",
+      "credential": "AAS",
+      "cip2020": "51.0801",
+      "nysed_code": "32494",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/MA-AAS",
+      "source_note": "Medical assisting credential does not establish independent professional licensing."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "ME-AAS",
+      "program_name": "Music Production",
+      "credential": "AAS",
+      "cip2020": "10.0203",
+      "nysed_code": "83188",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/ME-AAS",
+      "source_note": "Different named credential from LaGuardia Music Recording Technology, same CIP."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "MO-CERT",
+      "program_name": "Medical Office Assistant",
+      "credential": "Certificate",
+      "cip2020": "51.0701",
+      "nysed_code": "81316",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/MO-CERT",
+      "source_note": "Separate credential from Medical Assistant AAS."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "NH-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "34693",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/NH-AAS",
+      "source_note": "Hunter-Bellevue BS is a distinct partner credential; clinical admission is selective."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "NPS-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "37062",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/NPS-AAS",
+      "source_note": "CUNY SPS BS is a distinct partner credential; do not conflate with BMCC NPS-AAS."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "NS-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "01513",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/NS-AAS",
+      "source_note": "Selective clinical admission; catalog inconsistently references NEX and PAX entrance tests; current test name requires direct confirmation."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "NY-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "36043",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/NY-AAS",
+      "source_note": "York College BS is a distinct partner credential; clinical admission is selective."
+    },
+    {
+      "unitid": "190673",
+      "plan_code": "SF-AS",
+      "program_name": "Science for Forensics",
+      "credential": "AS",
+      "cip2020": "43.0406",
+      "nysed_code": "32347",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/SF-AS",
+      "source_note": "John Jay BS is a distinct partner credential."
+    }
+  ]
+}

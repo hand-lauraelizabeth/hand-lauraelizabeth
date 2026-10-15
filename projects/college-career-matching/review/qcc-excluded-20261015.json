@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "status": "excluded",
+  "records": [
+    {
+      "unitid": "190673",
+      "plan_code": "NP-AAS",
+      "program_name": "Nursing - Pre-Clinical Sequence",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "00000",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://qcc.catalog.cuny.edu/programs/NP-AAS",
+      "source_note": "NYSED 00000 / Undeclared Health; pre-clinical sequence is not independently established as a registered degree. Exclude from credential index.",
+      "quarantine_reason": "NYSED 00000 / Undeclared Health; pre-clinical sequence is not independently established as a registered degree. Exclude from credential index."
+    }
+  ]
+}

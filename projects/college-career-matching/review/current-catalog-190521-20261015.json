@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_status": "catalog_listed_not_intake_verified",
+  "unitid": "190521",
+  "records": [
+    {
+      "unitid": "190521",
+      "plan_code": "CIS-AAS",
+      "program_name": "Computer Information Systems",
+      "credential": "AAS",
+      "cip2020": "11.0101",
+      "nysed_code": "91517",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/CIS-AAS"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "CNT-AAS",
+      "program_name": "Computer Network Technology",
+      "credential": "AAS",
+      "cip2020": "11.0101",
+      "nysed_code": "91518",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/CNT-AAS"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "CSC-AS",
+      "program_name": "Computer Science",
+      "credential": "AS",
+      "cip2020": "11.0701",
+      "nysed_code": "92040",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/CSC-AS"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "CYB-CERT",
+      "program_name": "Cybersecurity",
+      "credential": "CERTGE30",
+      "cip2020": "11.1003",
+      "nysed_code": "42790",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/CYB-CERT"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "GIS-AS",
+      "program_name": "Geographic Information Science",
+      "credential": "AS",
+      "cip2020": "45.0702",
+      "nysed_code": "36021",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/GIS-AS"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "HIC-CERT",
+      "program_name": "Health Informatics",
+      "credential": "CERTGE30",
+      "cip2020": "51.2706",
+      "nysed_code": "36821",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/HIC-CERT"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "HIT-AAS",
+      "program_name": "Health Information Technology",
+      "credential": "AAS",
+      "cip2020": "51.0707",
+      "nysed_code": "01094",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/HIT-AAS"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "LPN-CERT",
+      "program_name": "Practical Nursing",
+      "credential": "CERTGE30",
+      "cip2020": "51.3999",
+      "nysed_code": "42785",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/LPN-CERT"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "MMD-AS",
+      "program_name": "Multimedia Programming and Design",
+      "credential": "AS",
+      "cip2020": "11.0801",
+      "nysed_code": "21882",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/MMD-AS"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "NUR-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "01093",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/NUR-AAS"
+    },
+    {
+      "unitid": "190521",
+      "plan_code": "RTT-AAS",
+      "program_name": "Respiratory Therapy",
+      "credential": "AAS",
+      "cip2020": "51.0908",
+      "nysed_code": "01096",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/RTT-AAS",
+      "source_note": "New source verified 2026-10-15"
+    }
+  ]
+}

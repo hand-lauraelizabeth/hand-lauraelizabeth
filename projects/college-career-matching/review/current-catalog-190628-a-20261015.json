@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "unitid": "190628",
+  "records": [
+    {
+      "unitid": "190628",
+      "plan_code": "CMPSC-AS",
+      "program_name": "Computer Science",
+      "credential": "AS",
+      "cip2020": "11.0701",
+      "nysed_code": "82352",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/CMPSC-AS"
+    },
+    {
+      "unitid": "190628",
+      "plan_code": "CMPTH-AAS",
+      "program_name": "Computer Technology",
+      "credential": "AAS",
+      "cip2020": "47.0104",
+      "nysed_code": "85082",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/CMPTH-AAS"
+    },
+    {
+      "unitid": "190628",
+      "plan_code": "CYBER-AAS",
+      "program_name": "Cybersecurity",
+      "credential": "AAS",
+      "cip2020": "11.1003",
+      "nysed_code": "01073",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/CYBER-AAS"
+    },
+    {
+      "unitid": "190628",
+      "plan_code": "CYBER-CERT",
+      "program_name": "Cybersecurity",
+      "credential": "CERTLT30",
+      "cip2020": "11.1003",
+      "nysed_code": "37279",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/CYBER-CERT"
+    },
+    {
+      "unitid": "190628",
+      "plan_code": "ENRGTC-AAS",
+      "program_name": "Energy Technician",
+      "credential": "AAS",
+      "cip2020": "15.1701",
+      "nysed_code": "37860",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://laguardia.catalog.cuny.edu/programs/ENRGTC-AAS",
+      "source_note": "New source verified 2026-10-15"
+    }
+  ]
+}

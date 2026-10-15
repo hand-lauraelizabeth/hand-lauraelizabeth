@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_status": "catalog_listed_not_intake_verified",
+  "unitid": "190585",
+  "records": [
+    {
+      "unitid": "190585",
+      "plan_code": "ACCT-AAS",
+      "program_name": "Accounting",
+      "credential": "AAS",
+      "cip2020": "52.0302",
+      "nysed_code": "00908",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/ACCT-AAS",
+      "source_note": "NYSED as published: 00908 - ACCT-AAS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "ACCT-AS",
+      "program_name": "Accounting",
+      "credential": "AS",
+      "cip2020": "52.0302",
+      "nysed_code": "32630",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/ACCT-AS",
+      "source_note": "NYSED as published: 32630 - ACCT-AS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "ACCTFOR-AS",
+      "program_name": "Accounting for Forensic Accounting",
+      "credential": "AS",
+      "cip2020": "52.0301",
+      "nysed_code": "33416",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/ACCTFOR-AS",
+      "source_note": "NYSED as published: 33416 - ECOHOST-BS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "BUSMGT-AS",
+      "program_name": "Business Management",
+      "credential": "AS",
+      "cip2020": "52.0201",
+      "nysed_code": "83164",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/BUSMGT-AS",
+      "source_note": "NYSED as published: 83164 - BUSMGT-AS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "CIVENGR-AS",
+      "program_name": "Civil Engineering Science",
+      "credential": "AS",
+      "cip2020": "14.0801",
+      "nysed_code": "29493",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/CIVENGR-AS",
+      "source_note": "NYSED as published: 29493 - CVLEH-BE"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "CSCI-AS",
+      "program_name": "Computer Science",
+      "credential": "AS",
+      "cip2020": "11.0701",
+      "nysed_code": "41070",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/CSCI-AS",
+      "source_note": "NYSED as published: 41070 - CSCI-AS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "DD-AAS",
+      "program_name": "Digital Design and Animation",
+      "credential": "AAS",
+      "cip2020": "10.0304",
+      "nysed_code": "32620",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/DD-AAS",
+      "source_note": "NYSED as published: 32620 - DD-AAS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "DENHYG-AAS",
+      "program_name": "Dental Hygiene",
+      "credential": "AAS",
+      "cip2020": "51.0602",
+      "nysed_code": "00911",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/DENHYG-AAS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "GAME-AAS",
+      "program_name": "Game Design",
+      "credential": "AAS",
+      "cip2020": "50.0411",
+      "nysed_code": "34999",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/GAME-AAS",
+      "source_note": "NYSED as published: 34999 - GAME-AAS"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "LPN-CERT",
+      "program_name": "Practical Nursing",
+      "credential": "Certificate",
+      "cip2020": "51.3901",
+      "nysed_code": "22104",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/LPN-CERT/general-aoYks"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "NURS-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "83183",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/NURS-AAS/general-aoYks"
+    },
+    {
+      "unitid": "190585",
+      "plan_code": "XRAY-AAS",
+      "program_name": "Radiologic Technology",
+      "credential": "AAS",
+      "cip2020": "51.0907",
+      "nysed_code": "00913",
+      "catalog_year": "2026-2027",
+      "catalog_url": "https://hostos.catalog.cuny.edu/programs/XRAY-AAS"
+    }
+  ]
+}

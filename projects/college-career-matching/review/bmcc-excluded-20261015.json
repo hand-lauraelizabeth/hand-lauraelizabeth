@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "status": "excluded",
+  "records": [
+    {
+      "unitid": "190521",
+      "plan_code": "NPS-AAS",
+      "program_name": "Nursing",
+      "credential": "AAS",
+      "cip2020": "51.3801",
+      "nysed_code": "40117",
+      "catalog_year": "2025-2026",
+      "catalog_url": "https://bmcc.catalog.cuny.edu/programs/NPS-AAS",
+      "source_note": "Catalog 40117 conflicts with inventory 40090; do not merge or infer current intake.",
+      "quarantine_reason": "Catalog 40117 conflicts with inventory 40090; do not merge or infer current intake."
+    }
+  ]
+}
