@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_as_of": "2026-10-15",
+  "dataset_kind": "institutional_catalog_review",
+  "publication_status": "review_only_not_live",
+  "source_priority": "Official institution catalogs; catalog year preserved per record",
+  "review_coverage": {
+    "institutional_plan_records": 48,
+    "institutions": 4,
+    "distinct_cip2020_codes": 31,
+    "excluded_candidates": 2
+  },
+  "accepted_files": [
+    "current-catalog-190521-20261015.json",
+    "current-catalog-190585-20261015.json",
+    "current-catalog-190628-a-20261015.json",
+    "current-catalog-190628-b-20261015.json",
+    "current-catalog-190673-20261015.json"
+  ],
+  "excluded_files": [
+    "bmcc-excluded-20261015.json",
+    "qcc-excluded-20261015.json"
+  ],
+  "use_limits": {
+    "catalog_listed": "Institution catalog documents a named academic plan and credential; does not verify current application intake.",
+    "cip2020": "Classification of instructional program, not a unique credential or licensing determination.",
+    "ipeds_historical": "Past completions are historical evidence, not current offering verification.",
+    "admissions_policy": "Never infer testing requirements from absent SAT/ACT scores.",
+    "professional_licensure": "Do not infer board approval or individual eligibility from degree name or CIP.",
+    "career_crosswalk": "Not approved or implemented."
+  },
+  "excluded_identity_notes": "BMCC NPS-AAS registration-number discrepancy and Queensborough NP-AAS NYSED 00000 are kept out of accepted results."
+}
