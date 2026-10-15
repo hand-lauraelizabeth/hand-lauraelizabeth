@@ -29,3 +29,4 @@ jobs:
           node free-tools/evidence-timeline/matrix-page.test.mjs
           node free-tools/evidence-timeline/matrix-import-race.test.mjs
           node free-tools/evidence-timeline/matrix-import-error.test.mjs
+          node free-tools/evidence-timeline/matrix-reset.test.mjs
