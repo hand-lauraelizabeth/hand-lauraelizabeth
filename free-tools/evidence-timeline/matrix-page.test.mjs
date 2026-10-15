@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 class El {
-  constructor(tag=''){this.tag=tag;this.children=[];this.listeners={};this.value='';this.files=[];this.disabled=false;this.textContent='';}
+  constructor(tag=''){this.tag=tag;this.children=[];this.listeners={};this.value='';this.files=[];this.disabled=false;this.textContent='';this.attributes={};}
+  setAttribute(name,value){this.attributes[name]=String(value)}
+  removeAttribute(name){delete this.attributes[name]}
+  getAttribute(name){return this.attributes[name]??null}
   addEventListener(type,fn){this.listeners[type]=fn}
   dispatch(type){return this.listeners[type]?.()}
   replaceChildren(){this.children=[]}
   append(...items){this.children.push(...items)}
   click(){if(this.tag==='a')globalThis.downloaded={url:this.href,name:this.download}}
 }
-const ids=['source-json','matrix-search','matrix-mode','matrix-body','matrix-status','matrix-export'];
+const ids=['source-json','matrix-search','matrix-mode','matrix-body','matrix-status','matrix-export','matrix-clear','matrix-error'];
 const elements=Object.fromEntries(ids.map(id=>[id,new El()]));
 elements['matrix-mode'].value='all';
 globalThis.document={getElementById:id=>elements[id],createElement:tag=>new El(tag)};
