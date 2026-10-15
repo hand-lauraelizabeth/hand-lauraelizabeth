@@ -58,7 +58,7 @@
 var app=document.getElementById("leh-raid");if(!app||app.dataset.ready)return;app.dataset.ready="1";
 function el(id){return app.querySelector("#"+id)}
 var items=[];
-function t(s){return String(s||"").trim()} function today(){return new Date().toISOString().slice(0,10)}
+function t(s){return String(s||"").trim()} function today(){var d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function ndate(s){return s&&/^\d{4}-\d{2}-\d{2}$/.test(s)?s:""}
 function current(it){return it.status!=="Resolved"}
 function late(it){return current(it)&&ndate(it.due)&&it.due<today()}
