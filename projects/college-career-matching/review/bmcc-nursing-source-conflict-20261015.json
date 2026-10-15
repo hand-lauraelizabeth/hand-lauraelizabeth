@@ -1,0 +1,60 @@
+{
+  "checked_on": "2026-10-15",
+  "topic": "BMCC Nursing plan identity and cross-institution credential safeguards",
+  "institution_unitid": 190521,
+  "source_evidence": [
+    {
+      "type": "current BMCC catalog",
+      "plan": "NUR-AAS",
+      "award": "AAS",
+      "cip": "51.3801",
+      "nysed": "01093",
+      "url": "https://bmcc.catalog.cuny.edu/programs/NUR-AAS"
+    },
+    {
+      "type": "current BMCC catalog",
+      "plan": "NPS-AAS",
+      "award": "AAS",
+      "cip": "51.3801",
+      "nysed": "40117",
+      "url": "https://bmcc.catalog.cuny.edu/programs/NPS-AAS"
+    },
+    {
+      "type": "BMCC registered-program inventory",
+      "name": "Nursing/Dual Degree with CUNY School of Professional Studies",
+      "award": "AAS",
+      "nysed": "40090",
+      "url": "https://bmcc.catalog.cuny.edu/registered-programs"
+    },
+    {
+      "type": "current BMCC scholarship eligible program list",
+      "plans": [
+        "NUR-AAS",
+        "NPS-AAS"
+      ],
+      "url": "https://www.bmcc.cuny.edu/admissions/nys-reconnect/"
+    },
+    {
+      "type": "archived SPS catalog",
+      "plan": "NBMC-BS",
+      "award": "BS",
+      "nysed": "40117",
+      "url": "https://sps-archived-2022-2023.catalog.cuny.edu/programs/NBMC-BS"
+    },
+    {
+      "type": "current SPS catalog",
+      "plan": "NBMC-BS",
+      "award": "BS",
+      "url": "https://sps.catalog.cuny.edu/programs/NBMC-BS"
+    }
+  ],
+  "interpretation": {
+    "confirmed": "BMCC catalog lists two distinct Nursing AAS plan codes sharing CIP 51.3801; both appear on BMCC's current scholarship eligible list.",
+    "unresolved": "BMCC NPS-AAS catalog displays NYSED 40117; BMCC registered-program inventory displays dual-degree 40090; archived SPS NBMC-BS displays 40117. Do not assume these are identical registrations.",
+    "credential_guard": "SPS BS belongs to SPS, not BMCC. Two BMCC plan codes do not imply two distinct award levels.",
+    "admissions_guard": "Neither scholarship eligibility nor catalog listing proves admission to the selective nursing program.",
+    "licensure_guard": "No individual licensing eligibility established."
+  },
+  "review_only": true,
+  "production_change": false
+}
