@@ -49,4 +49,4 @@ assert.equal(elements['matrix-body'].children.length,0);
 assert.equal(elements['matrix-export'].disabled,true);
 assert.equal(elements['matrix-clear'].disabled,true);
 assert.match(elements['matrix-status'].textContent,/reset/);
-console.log('18 local reset and pending-import regression assertions PASS');
+console.log('17 local reset and pending-import regression assertions PASS');
