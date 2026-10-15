@@ -27,6 +27,18 @@ upload.addEventListener('change',async()=>{
   }catch(e){if(sequence===importSequence){const message='Import failed: '+String(e.message||e)+'. Existing records remain available.';if(error)error.textContent=message;else status.textContent=message;}}
   finally{if(sequence===importSequence){upload.disabled=false;upload.value='';clearButton.disabled=!records.length;}}
 });
+clearButton.addEventListener('click',()=>{
+  if(!records.length && !upload.disabled)return;
+  if(!confirm('Reset this evidence view?'))return;
+  ++importSequence;
+  records=[];matched=[];
+  upload.disabled=false;upload.value='';
+  search.value='';mode.value='all';
+  if(error)error.textContent='';
+  render();
+  status.textContent='Evidence view reset. Choose a new JSON export.';
+  upload.focus();
+});
 search.addEventListener('input',render);
 mode.addEventListener('change',render);
 exportButton.addEventListener('click',()=>{
