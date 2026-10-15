@@ -1,0 +1,27 @@
+{
+  "checked_on": "2026-10-15",
+  "institution": "BMCC",
+  "plans": [
+    {
+      "plan": "NUR-AAS",
+      "award": "AAS",
+      "cip": "51.3801",
+      "catalog_code": "01093"
+    },
+    {
+      "plan": "NPS-AAS",
+      "award": "AAS",
+      "cip": "51.3801",
+      "catalog_code": "40117"
+    }
+  ],
+  "registered_programs_inventory_dual_degree_code": "40090",
+  "status": "unresolved code conflict",
+  "source_urls": [
+    "https://bmcc.catalog.cuny.edu/programs/NUR-AAS",
+    "https://bmcc.catalog.cuny.edu/programs/NPS-AAS",
+    "https://bmcc.catalog.cuny.edu/registered-programs",
+    "https://www.bmcc.cuny.edu/admissions/nys-reconnect/"
+  ],
+  "notes": "Catalog listings are not proof of selective nursing admissions or individual licensure eligibility."
+}
