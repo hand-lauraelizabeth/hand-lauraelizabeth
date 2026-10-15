@@ -2,7 +2,7 @@ import {readExactJSON} from './json-import.mjs';
 import {filterEvidenceRows,renderEvidenceRows} from './matrix-ui.mjs';
 import {exportEvidenceCSV} from './core.mjs';
 const $=id=>document.getElementById(id);
-const upload=$('source-json'),search=$('matrix-search'),mode=$('matrix-mode'),body=$('matrix-body'),status=$('matrix-status'),error=$('matrix-error'),exportButton=$('matrix-export');
+const upload=$('source-json'),search=$('matrix-search'),mode=$('matrix-mode'),body=$('matrix-body'),status=$('matrix-status'),error=$('matrix-error'),exportButton=$('matrix-export'),clearButton=$('matrix-clear');
 let records=[],matched=[];
 let importSequence=0; // Ignore stale async reads after a newer selection.
 function render(){
@@ -10,11 +10,13 @@ function render(){
   renderEvidenceRows(body,matched);
   status.textContent=records.length?matched.length+' of '+records.length+' records match; first '+Math.min(250,matched.length)+' displayed.':'Choose an evidence JSON export.';
   exportButton.disabled=!matched.length;
+  clearButton.disabled=!records.length && !upload.disabled;
 }
 upload.addEventListener('change',async()=>{
   const file=upload.files?.[0];if(!file)return;
   const sequence=++importSequence;
   upload.disabled=true;
+  clearButton.disabled=false;
   try{
     const next=await readExactJSON(file);
     if(sequence!==importSequence)return;
@@ -23,7 +25,7 @@ upload.addEventListener('change',async()=>{
       records=next;render();
     }
   }catch(e){if(sequence===importSequence){const message='Import failed: '+String(e.message||e)+'. Existing records remain available.';if(error)error.textContent=message;else status.textContent=message;}}
-  finally{if(sequence===importSequence){upload.disabled=false;upload.value='';}}
+  finally{if(sequence===importSequence){upload.disabled=false;upload.value='';clearButton.disabled=!records.length;}}
 });
 search.addEventListener('input',render);
 mode.addEventListener('change',render);
