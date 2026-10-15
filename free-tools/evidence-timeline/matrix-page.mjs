@@ -24,7 +24,7 @@ upload.addEventListener('change',async()=>{
     if(!records.length||confirm('Replace current evidence records?')){
       records=next;render();
     }
-  }catch(e){if(sequence===importSequence){const message='Import failed: '+String(e.message||e)+'. Existing records remain available.';if(error)error.textContent=message;else status.textContent=message;}}
+  }catch(e){if(sequence===importSequence){const message='Import failed: '+String(e.message||e)+'. Existing records remain available.';upload.setAttribute('aria-invalid','true');if(error)error.textContent=message;else status.textContent=message;}}
   finally{if(sequence===importSequence){upload.disabled=false;upload.value='';clearButton.disabled=!records.length;}}
 });
 clearButton.addEventListener('click',()=>{
