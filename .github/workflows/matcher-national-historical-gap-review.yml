@@ -1,0 +1,17 @@
+name: Matcher historical evidence gap review
+on:
+  push:
+    branches:
+      - review/matcher-129-historical-join-gaps-20261015-18et
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test projects/college-career-matching/tests/test_national_no_completions_20261015.cjs

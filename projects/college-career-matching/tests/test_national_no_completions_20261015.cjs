@@ -1,0 +1,10 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const r=p=>JSON.parse(fs.readFileSync(path.join(__dirname,'..',p),'utf8'));
+const d=r('review/national-six-digit-no-completions-20261015.json');
+const shards=(prefix,field)=>Array.from({length:13},(_,i)=>r(prefix+String(i).padStart(2,'0')+'.json')[field]).flat();
+const n=shards('data/national/national-','records');
+const p=shards('data/programs/ipeds2025/programs-','institutions');
+const ids=new Set(p.map(x=>x[0]));
+const six=n.filter(x=>/^\d{6}$/.test(x[0])),missing=six.filter(x=>!ids.has(x[0]));
+test('source counts and exact anti-join',()=>{assert.equal(n.length,6243);assert.equal(six.length,5787);assert.equal(ids.size,5658);assert.equal(missing.length,129);assert.deepEqual(d.institutions.map(x=>x.unitid).sort(),missing.map(x=>x[0]).sort())});
+test('no unsupported inference',()=>{assert.ok(d.institutions.every(x=>x.cause_of_absence==='NOT_DETERMINED'&&x.current_program_offering==='NOT_DETERMINED'))});
