@@ -1,0 +1,327 @@
+{
+  "schema_version": "1.0.0",
+  "publication_status": "review_only_not_live",
+  "dataset_kind": "institution_specific_credential_evidence",
+  "institution": {
+    "name": "Monroe Community College",
+    "unitid": "193326",
+    "system": "SUNY",
+    "location": "Rochester area, New York",
+    "unitid_join": "requires_match_against_pinned_national_UNITID_file_before_any_integration"
+  },
+  "source_policy": {
+    "catalog_year": "Catalog pages do not display an edition year; null is intentional. Source accessed 2026-10-15, not a claim that the curriculum was revised in 2026.",
+    "application": "A link labeled Apply to this Major is not evidence of current intake or a particular admissions deadline.",
+    "licensure": "Neither curriculum nor certification preparation establishes licensing board approval or individual eligibility.",
+    "program_identity": "MCC program code and NYSED registration must be retained separately; IN01 lists separate Brighton and Downtown registration numbers.",
+    "historical_completions": "Never substitute IPEDS historical completions for current catalog offerings.",
+    "admissions_test_policy": "No SAT/ACT requirement inferred from missing score data.",
+    "career_crosswalk": "Not approved or implemented."
+  },
+  "records": [
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "SG01",
+      "program_name": "Surgical Technology",
+      "credential": "AAS",
+      "cip2020": "51.0909",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "37273"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-CareerPrograms/658FE9961D9735AE85258D25004BC948?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "competitive_admission",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "DH01",
+      "program_name": "Dental Hygiene",
+      "credential": "AAS",
+      "cip2020": "51.0602",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "01229"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-CareerPrograms/85257AD8006BB39D852576F0005546CD?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "competitive_admission",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "EM01",
+      "program_name": "Paramedic",
+      "credential": "AAS",
+      "cip2020": "51.0904",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "21706"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-CareerPrograms/85257AD8006BB39D852576F000503F63?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "competitive_admission",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "EM05",
+      "program_name": "Paramedic",
+      "credential": "Certificate",
+      "cip2020": "51.0904",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "33241"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-Programs/FF5F82EE969138498525842E00465A12?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "competitive_admission",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "IN01",
+      "program_name": "Network & Security Administration",
+      "credential": "AAS",
+      "cip2020": "11.0901",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "37194"
+        },
+        {
+          "campus": "DCC",
+          "code": "37193"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-Programs/85257AD8006BB39D85257D1100463F82?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_listed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "CS01",
+      "program_name": "Computer Science",
+      "credential": "AS",
+      "cip2020": "11.0701",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "82312"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-TransferPrograms/43B816F9687C078B85258DCD007663FD?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_listed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "CP01",
+      "program_name": "Computer Systems Technology",
+      "credential": "AAS",
+      "cip2020": "15.1201",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "85365"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-Programs/C2B241F767D764BA85258DCD00767030?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "DA01",
+      "program_name": "Dental Assisting",
+      "credential": "Certificate",
+      "cip2020": "51.0601",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "21311"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-Programs/C69D7E8405439BEC8525842E004659CF?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "DA03",
+      "program_name": "Dental Assisting Rapid Track - D.A.R.T.",
+      "credential": "Certificate",
+      "cip2020": "51.0601",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "31856"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-CertificatePrograms/85257AD8006BB39D8525737200690535?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "HS01",
+      "program_name": "Health Studies",
+      "credential": "AS",
+      "cip2020": "51.9999",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "28560"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-TransferPrograms/85257AD8006BB39D852575C200657085?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "CI02",
+      "program_name": "Management Information Systems",
+      "credential": "AS",
+      "cip2020": "11.0401",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "87429"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-TransferPrograms/85257AD8006BB39D852578BD004D349E?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "EN01",
+      "program_name": "Engineering Science",
+      "credential": "AS",
+      "cip2020": "14.0102",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "01211"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-TransferPrograms/85257AD8006BB39D852586870073D5A5?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "BU01",
+      "program_name": "Business Administration",
+      "credential": "AS",
+      "cip2020": "52.0201",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "01210"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-TransferPrograms/A58AE59FC24300D085258DCD004E1300?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "IT01",
+      "program_name": "Information Technology",
+      "credential": "AS",
+      "cip2020": "11.0103",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "28194"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-Programs/85257AD8006BB39D852578BC006ABB08?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    },
+    {
+      "unitid": "193326",
+      "institution": "Monroe Community College",
+      "program_code": "EM02",
+      "program_name": "Emergency Medical Services",
+      "credential": "Certificate",
+      "cip2020": "51.0904",
+      "nysed_registrations": [
+        {
+          "campus": "BRI",
+          "code": "21707"
+        }
+      ],
+      "catalog_url": "https://notes.monroecc.edu/etsdbs/MCCatPub.nsf/OnlineCatalog-CertificatePrograms/0E97915F543CC33D85258DCD0073331A?Catalog=&OpenDocument=",
+      "source_accessed": "2026-10-15",
+      "catalog_year": null,
+      "evidence_status": "current_online_catalog_listing_intake_not_verified",
+      "admissions_qualification": "entrance_requirements_not_assessed",
+      "professional_licensure": "not_independently_verified"
+    }
+  ]
+}
