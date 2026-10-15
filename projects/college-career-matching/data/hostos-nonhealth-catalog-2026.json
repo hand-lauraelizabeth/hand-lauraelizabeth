@@ -1,0 +1,85 @@
+{
+  "catalog_year": "2026-2027",
+  "institution": "Hostos Community College",
+  "records": [
+    {
+      "plan": "CSCI-AS",
+      "name": "Computer Science",
+      "credential": "AS",
+      "cip": "11.0701",
+      "nysed": "41070 - CSCI-AS",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/CSCI-AS",
+      "admission_status": "unverified"
+    },
+    {
+      "plan": "GAME-AAS",
+      "name": "Game Design",
+      "credential": "AAS",
+      "cip": "50.0411",
+      "nysed": "34999 - GAME-AAS",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/GAME-AAS",
+      "admission_status": "unverified"
+    },
+    {
+      "plan": "DD-AAS",
+      "name": "Digital Design and Animation",
+      "credential": "AAS",
+      "cip": "10.0304",
+      "nysed": "32620 - DD-AAS",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/DD-AAS",
+      "admission_status": "unverified"
+    },
+    {
+      "plan": "CIVENGR-AS",
+      "name": "Civil Engineering Science",
+      "credential": "AS",
+      "cip": "14.0801",
+      "nysed": "29493 - CVLEH-BE",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/CIVENGR-AS",
+      "admission_status": "unverified"
+    },
+    {
+      "plan": "ACCT-AAS",
+      "name": "Accounting",
+      "credential": "AAS",
+      "cip": "52.0302",
+      "nysed": "00908 - ACCT-AAS",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/ACCT-AAS",
+      "admission_status": "unverified"
+    },
+    {
+      "plan": "ACCT-AS",
+      "name": "Accounting",
+      "credential": "AS",
+      "cip": "52.0302",
+      "nysed": "32630 - ACCT-AS",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/ACCT-AS",
+      "admission_status": "unverified"
+    },
+    {
+      "plan": "ACCTFOR-AS",
+      "name": "Accounting for Forensic Accounting",
+      "credential": "AS",
+      "cip": "52.0301",
+      "nysed": "33416 - ECOHOST-BS",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/ACCTFOR-AS",
+      "admission_status": "unverified"
+    },
+    {
+      "plan": "BUSMGT-AS",
+      "name": "Business Management",
+      "credential": "AS",
+      "cip": "52.0201",
+      "nysed": "83164 - BUSMGT-AS",
+      "catalog": "https://hostos.catalog.cuny.edu/programs/BUSMGT-AS",
+      "admission_status": "unverified"
+    }
+  ],
+  "limitations": {
+    "historical_completions": "not joined",
+    "licensure": "not inferred",
+    "test_policy": "not inferred",
+    "dual_admission": "partner degree is distinct",
+    "cip_soc": "not mapped"
+  }
+}
