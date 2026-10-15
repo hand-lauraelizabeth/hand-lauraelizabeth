@@ -16,6 +16,8 @@ upload.addEventListener('change',async()=>{
   const file=upload.files?.[0];if(!file)return;
   const sequence=++importSequence;
   upload.disabled=true;
+  upload.removeAttribute('aria-invalid');
+  if(error)error.textContent='';
   clearButton.disabled=false;
   try{
     const next=await readExactJSON(file);
@@ -33,6 +35,7 @@ clearButton.addEventListener('click',()=>{
   ++importSequence;
   records=[];matched=[];
   upload.disabled=false;upload.value='';
+  upload.removeAttribute('aria-invalid');
   search.value='';mode.value='all';
   if(error)error.textContent='';
   render();
