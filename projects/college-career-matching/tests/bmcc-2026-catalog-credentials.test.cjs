@@ -1,0 +1,13 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const data = JSON.parse(fs.readFileSync(path.join(__dirname,'../review/bmcc-2026-catalog-credentials.json'),'utf8'));
+test('institution and catalog provenance remain exact',()=>{assert.equal(data.unitid,190521);assert.equal(data.catalog_year,'2025-2026');assert.equal(data.programs.length,10);assert.match(data.catalog_year_source,/^https:\/\/bmcc\.catalog\.cuny\.edu\/$/);});
+test('every credential has unique institutional identifiers and official link',()=>{const plans=new Set(),nysed=new Set();for(const p of data.programs){assert.match(p.cip2020,/^\d{2}\.\d{4}$/);assert.match(p.nysed_program_code,/^\d{5}$/);assert.equal(p.catalog_url,'https://bmcc.catalog.cuny.edu/programs/'+p.plan_code);assert.equal(p.catalog_listing_confirmed,true);assert.equal(p.accepting_applications,null);assert.equal(p.individual_licensure_eligibility,null);assert.equal(p.independent_accreditation_status,null);assert.ok(!plans.has(p.plan_code));assert.ok(!nysed.has(p.nysed_program_code));plans.add(p.plan_code);nysed.add(p.nysed_program_code);}});
+test('institution-specific practical nursing CIP must not be inferred from another college',()=>{const p=data.programs.find(x=>x.plan_code==='LPN-CERT');assert.equal(p.cip2020,'51.3999');assert.equal(p.nysed_program_code,'42785');});
+test('two distinct BMCC programs share 11.0101',()=>{const a=data.programs.filter(p=>p.cip2020==='11.0101');assert.deepEqual(a.map(p=>p.plan_code).sort(),['CIS-AAS','CNT-AAS']);assert.equal(new Set(a.map(p=>p.nysed_program_code)).size,2);});
+test('RN and practical nursing are separate pathways',()=>{assert.equal(data.programs.find(p=>p.plan_code==='NUR-AAS').cip2020,'51.3801');assert.equal(data.programs.find(p=>p.plan_code==='LPN-CERT').cip2020,'51.3999');});
+test('historical completions, licensure and application availability are not asserted',()=>{assert.equal(data.production_change,false);assert.equal(data.career_crosswalk_created,false);assert.ok(data.programs.every(p=>p.accepting_applications===null&&p.individual_licensure_eligibility===null));assert.ok(data.qualifications.some(q=>q.topic==='nursing_multiple_plans'));});
+test('coverage denominators are ten plan records and nine CIP classes',()=>{assert.equal(data.programs.length,10);assert.equal(new Set(data.programs.map(p=>p.cip2020)).size,9);});
