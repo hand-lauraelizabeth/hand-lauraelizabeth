@@ -1,0 +1,4349 @@
+{
+  "schema_version": "1.0",
+  "review_date": "2026-10-15",
+  "publication_scope": "review_only",
+  "pinned_national_commit": "3abb9f458c9d0d43c857c64292dc407f3bd1e911",
+  "source": "data/national/manifest.v1.json and 13 pinned national shards",
+  "counts": {
+    "eight_digit_display_keys": 456,
+    "prefix_candidates_in_national": 456,
+    "prefix_candidates_same_state": 337,
+    "distinct_prefix_candidates": 180
+  },
+  "by_state": {
+    "FL": 63,
+    "IN": 41,
+    "CA": 36,
+    "AZ": 22,
+    "TX": 22,
+    "GA": 20,
+    "NY": 20,
+    "MN": 19,
+    "PR": 19,
+    "PA": 18,
+    "VA": 16,
+    "IL": 13,
+    "OH": 13,
+    "MI": 12,
+    "NC": 9,
+    "WA": 9,
+    "NJ": 8,
+    "TN": 8,
+    "AL": 7,
+    "AR": 7,
+    "LA": 7,
+    "MO": 6,
+    "OK": 6,
+    "CT": 5,
+    "KS": 5,
+    "MA": 5,
+    "MS": 5,
+    "UT": 4,
+    "CO": 3,
+    "DE": 3,
+    "ME": 3,
+    "SC": 3,
+    "WI": 3,
+    "DC": 2,
+    "ID": 2,
+    "KY": 2,
+    "RI": 2,
+    "MD": 1,
+    "MH": 1,
+    "MT": 1,
+    "ND": 1,
+    "NE": 1,
+    "NV": 1,
+    "OR": 1,
+    "VI": 1
+  },
+  "by_prefix_candidate": {
+    "102368": 4,
+    "104151": 15,
+    "106351": 1,
+    "107220": 4,
+    "107725": 1,
+    "110468": 6,
+    "111638": 2,
+    "114585": 1,
+    "116439": 1,
+    "117104": 1,
+    "117520": 1,
+    "118912": 1,
+    "119173": 1,
+    "121628": 1,
+    "122409": 1,
+    "122658": 1,
+    "122931": 1,
+    "124292": 1,
+    "125091": 1,
+    "126012": 1,
+    "126979": 1,
+    "129154": 1,
+    "130174": 5,
+    "130907": 2,
+    "132471": 1,
+    "135081": 16,
+    "135522": 2,
+    "136826": 1,
+    "138309": 4,
+    "139621": 2,
+    "145707": 4,
+    "147369": 2,
+    "149532": 1,
+    "150853": 2,
+    "150987": 19,
+    "151111": 2,
+    "153366": 1,
+    "154688": 1,
+    "154925": 3,
+    "155353": 1,
+    "156310": 5,
+    "160612": 4,
+    "160995": 1,
+    "161253": 1,
+    "161572": 1,
+    "168847": 4,
+    "169080": 1,
+    "169479": 4,
+    "172963": 1,
+    "173203": 1,
+    "173559": 3,
+    "173735": 5,
+    "173911": 1,
+    "173957": 3,
+    "174473": 2,
+    "175014": 4,
+    "175263": 1,
+    "175573": 2,
+    "176017": 1,
+    "176239": 2,
+    "176628": 1,
+    "177065": 13,
+    "179812": 1,
+    "180179": 1,
+    "184092": 1,
+    "185572": 1,
+    "189088": 12,
+    "189565": 1,
+    "189583": 2,
+    "189592": 1,
+    "190044": 1,
+    "190503": 2,
+    "190549": 1,
+    "193858": 1,
+    "194578": 1,
+    "194763": 1,
+    "198570": 1,
+    "199759": 3,
+    "199980": 1,
+    "201469": 2,
+    "203030": 1,
+    "203067": 2,
+    "203544": 1,
+    "204176": 1,
+    "209409": 1,
+    "210368": 1,
+    "210784": 1,
+    "211307": 2,
+    "212878": 4,
+    "213163": 1,
+    "214290": 2,
+    "214379": 1,
+    "215974": 1,
+    "216083": 1,
+    "220394": 1,
+    "220552": 6,
+    "227979": 3,
+    "228723": 1,
+    "230597": 2,
+    "231554": 2,
+    "231785": 2,
+    "233684": 3,
+    "233842": 1,
+    "236610": 1,
+    "236939": 5,
+    "237437": 1,
+    "242972": 26,
+    "243665": 1,
+    "243780": 11,
+    "248934": 15,
+    "260929": 1,
+    "366623": 1,
+    "373216": 1,
+    "373696": 1,
+    "376695": 1,
+    "377272": 1,
+    "377281": 2,
+    "384306": 1,
+    "385619": 4,
+    "408844": 2,
+    "418296": 4,
+    "419183": 1,
+    "423120": 2,
+    "427991": 2,
+    "428170": 1,
+    "434821": 1,
+    "440989": 3,
+    "443766": 1,
+    "443784": 1,
+    "444732": 1,
+    "446288": 1,
+    "446525": 4,
+    "447847": 1,
+    "448673": 3,
+    "449463": 1,
+    "449700": 4,
+    "450571": 1,
+    "450988": 1,
+    "451282": 1,
+    "451750": 1,
+    "454865": 2,
+    "454917": 1,
+    "455196": 18,
+    "455381": 1,
+    "457633": 1,
+    "458919": 3,
+    "458973": 2,
+    "459204": 5,
+    "461713": 1,
+    "461829": 1,
+    "475033": 17,
+    "475705": 1,
+    "476629": 1,
+    "480657": 1,
+    "480790": 1,
+    "480921": 1,
+    "481003": 1,
+    "481331": 1,
+    "481526": 1,
+    "482246": 2,
+    "483258": 1,
+    "483799": 1,
+    "483878": 1,
+    "484002": 2,
+    "484862": 1,
+    "485111": 7,
+    "486169": 1,
+    "488396": 1,
+    "488916": 1,
+    "490054": 1,
+    "490106": 2,
+    "491464": 1,
+    "491589": 1,
+    "491756": 2,
+    "491783": 1,
+    "493628": 1,
+    "493822": 1,
+    "494250": 1,
+    "495013": 3,
+    "496645": 1
+  },
+  "keys": [
+    {
+      "display_id": "10236802",
+      "display_name": "Troy University-Montgomery Campus",
+      "state": "AL",
+      "prefix_candidate": "102368",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10236803",
+      "display_name": "Troy University-Dothan Campus",
+      "state": "AL",
+      "prefix_candidate": "102368",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10236808",
+      "display_name": "Troy University-Online",
+      "state": "AL",
+      "prefix_candidate": "102368",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10236809",
+      "display_name": "Troy University-Support Sites",
+      "state": "GA",
+      "prefix_candidate": "102368",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415101",
+      "display_name": "Arizona State University-West Valley",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415102",
+      "display_name": "Arizona State University-Polytechnic",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415103",
+      "display_name": "Arizona State University-Downtown Phoenix",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415104",
+      "display_name": "Arizona State University - Tucson",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415106",
+      "display_name": "Arizona State University - The Gila Valley",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415107",
+      "display_name": "Arizona State University - Yuma",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415108",
+      "display_name": "Arizona State University - Pinal",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415109",
+      "display_name": "Arizona State University - Cochise",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415110",
+      "display_name": "Arizona State University - Yavapai",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415111",
+      "display_name": "Arizona State University - Pima",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415112",
+      "display_name": "Arizona State University - Washington D.C.",
+      "state": "DC",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415113",
+      "display_name": "Arizona State University - Northeastern Arizona",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415114",
+      "display_name": "Arizona State University - Mesa City Center",
+      "state": "AZ",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415115",
+      "display_name": "Arizona State University - ASU California Center - Broadway",
+      "state": "CA",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10415116",
+      "display_name": "Arizona State University - ASU California Center - Grand",
+      "state": "CA",
+      "prefix_candidate": "104151",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10635101",
+      "display_name": "Arkansas Technical School",
+      "state": "AR",
+      "prefix_candidate": "106351",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10722001",
+      "display_name": "Career Academy of Hair Design-Siloam Springs",
+      "state": "AR",
+      "prefix_candidate": "107220",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10722002",
+      "display_name": "Career Academy of Hair Design-Rogers",
+      "state": "AR",
+      "prefix_candidate": "107220",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10722003",
+      "display_name": "Career Academy of Hair Design-Fayetteville",
+      "state": "AR",
+      "prefix_candidate": "107220",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10722004",
+      "display_name": "Career Academy of Hair Design - Fort Smith",
+      "state": "AR",
+      "prefix_candidate": "107220",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "10772501",
+      "display_name": "University of Arkansas Community College at Hope - Texarkana",
+      "state": "AR",
+      "prefix_candidate": "107725",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11046801",
+      "display_name": "Alliant International University-Fresno",
+      "state": "CA",
+      "prefix_candidate": "110468",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11046802",
+      "display_name": "Alliant International University-Los Angeles",
+      "state": "CA",
+      "prefix_candidate": "110468",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11046803",
+      "display_name": "Alliant International University-San Francisco Bay Area",
+      "state": "CA",
+      "prefix_candidate": "110468",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11046804",
+      "display_name": "Alliant International University-Irvine",
+      "state": "CA",
+      "prefix_candidate": "110468",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11046805",
+      "display_name": "Alliant International University-Sacramento",
+      "state": "CA",
+      "prefix_candidate": "110468",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11046806",
+      "display_name": "Alliant International University - Phoenix",
+      "state": "AZ",
+      "prefix_candidate": "110468",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11163801",
+      "display_name": "Casa Loma College - Nashville",
+      "state": "TN",
+      "prefix_candidate": "111638",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11163802",
+      "display_name": "Casa Loma College -  Aurora",
+      "state": "CO",
+      "prefix_candidate": "111638",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11458501",
+      "display_name": "San Jose Campus",
+      "state": "CA",
+      "prefix_candidate": "114585",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11643901",
+      "display_name": "IDEA at ATEP",
+      "state": "CA",
+      "prefix_candidate": "116439",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11710401",
+      "display_name": "Life Pacific University-Virginia",
+      "state": "VA",
+      "prefix_candidate": "117104",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11752001",
+      "display_name": "Life Chiropractic College West - Bellevue University",
+      "state": "NE",
+      "prefix_candidate": "117520",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11891201",
+      "display_name": "MiraCosta College - San Elijo Campus",
+      "state": "CA",
+      "prefix_candidate": "118912",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "11917301",
+      "display_name": "Mount Saint Mary's University - Doheny Campus",
+      "state": "CA",
+      "prefix_candidate": "119173",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12162801",
+      "display_name": "RAND School of Public Policy - Virginia",
+      "state": "VA",
+      "prefix_candidate": "121628",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12240901",
+      "display_name": "San Diego State University-Imperial Valley Campus",
+      "state": "CA",
+      "prefix_candidate": "122409",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12265801",
+      "display_name": "San Joaquin Delta College",
+      "state": "CA",
+      "prefix_candidate": "122658",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12293101",
+      "display_name": "Jesuit School of Theology of Santa Clara University",
+      "state": "CA",
+      "prefix_candidate": "122931",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12429201",
+      "display_name": "Thomas Aquinas College - New England",
+      "state": "MA",
+      "prefix_candidate": "124292",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12509101",
+      "display_name": "Victor Valley Community College - Aviation Technology",
+      "state": "CA",
+      "prefix_candidate": "125091",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12601201",
+      "display_name": "Wright Institute (The) -",
+      "state": "CA",
+      "prefix_candidate": "126012",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12697901",
+      "display_name": "Denver Seminary - Washington DC",
+      "state": "MD",
+      "prefix_candidate": "126979",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "12915401",
+      "display_name": "Goodwin University - Bridgeport Campus",
+      "state": "CT",
+      "prefix_candidate": "129154",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13017403",
+      "display_name": "Porter and Chester Institute of Waterbury",
+      "state": "CT",
+      "prefix_candidate": "130174",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13017405",
+      "display_name": "Porter and Chester Institute of Worcester",
+      "state": "MA",
+      "prefix_candidate": "130174",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13017408",
+      "display_name": "Porter and Chester Institute - Brockton",
+      "state": "MA",
+      "prefix_candidate": "130174",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13017409",
+      "display_name": "Porter and Chester Institute - Chicopee",
+      "state": "MA",
+      "prefix_candidate": "130174",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13017410",
+      "display_name": "Porter and Chester Institute - New London",
+      "state": "CT",
+      "prefix_candidate": "130174",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13090701",
+      "display_name": "Delaware Technical Community College-Owens",
+      "state": "DE",
+      "prefix_candidate": "130907",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13090702",
+      "display_name": "Delaware Technical Community College-Stanton/Wilmington",
+      "state": "DE",
+      "prefix_candidate": "130907",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13247101",
+      "display_name": "Barry University Law School",
+      "state": "FL",
+      "prefix_candidate": "132471",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508101",
+      "display_name": "Keiser University-Melbourne",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508102",
+      "display_name": "Keiser University-Tallahassee",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508103",
+      "display_name": "Keiser University-Daytona",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508104",
+      "display_name": "Keiser University-Lakeland",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508105",
+      "display_name": "Keiser University- Miami",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508106",
+      "display_name": "Keiser University-Orlando",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508107",
+      "display_name": "Keiser University-Sarasota",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508108",
+      "display_name": "Keiser University-Jacksonville",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508109",
+      "display_name": "Keiser University-Tampa",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508110",
+      "display_name": "Keiser University-Pembroke Pines",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508111",
+      "display_name": "Keiser University-Port St Lucie",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508112",
+      "display_name": "Keiser University-West Palm Beach",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508113",
+      "display_name": "Keiser University-Ft Myers",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508114",
+      "display_name": "Keiser University -  Clearwater",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508115",
+      "display_name": "Keiser University - New Port Richey",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13508116",
+      "display_name": "Keiser University - Residential (Flagship)",
+      "state": "FL",
+      "prefix_candidate": "135081",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13552201",
+      "display_name": "Maynard A. Traviss Technical College - Central Florida Aerospace Academy",
+      "state": "FL",
+      "prefix_candidate": "135522",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13552202",
+      "display_name": "Traviss Technical College - ATCFO",
+      "state": "FL",
+      "prefix_candidate": "135522",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13682601",
+      "display_name": "Miami Lakes Educational Center and Technical College -",
+      "state": "FL",
+      "prefix_candidate": "136826",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13830901",
+      "display_name": "Rasmussen University-Central Pasco",
+      "state": "FL",
+      "prefix_candidate": "138309",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13830902",
+      "display_name": "Rasmussen University-Fort Myers",
+      "state": "FL",
+      "prefix_candidate": "138309",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13830903",
+      "display_name": "Rasmussen University-Tampa/Brandon",
+      "state": "FL",
+      "prefix_candidate": "138309",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13830905",
+      "display_name": "Rasmussen University-North Orlando",
+      "state": "FL",
+      "prefix_candidate": "138309",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13962101",
+      "display_name": "East Georgia State College - Statesboro",
+      "state": "GA",
+      "prefix_candidate": "139621",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "13962102",
+      "display_name": "East Georgia State College - Augusta",
+      "state": "GA",
+      "prefix_candidate": "139621",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "14570701",
+      "display_name": "Illinois Eastern Community Colleges-Olney Central College",
+      "state": "IL",
+      "prefix_candidate": "145707",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "14570702",
+      "display_name": "Illinois Eastern Community Colleges-Frontier Community College",
+      "state": "IL",
+      "prefix_candidate": "145707",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "14570703",
+      "display_name": "Illinois Eastern Community Colleges-Lincoln Trail College",
+      "state": "IL",
+      "prefix_candidate": "145707",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "14570704",
+      "display_name": "Illinois Eastern Community Colleges-Wabash Valley College",
+      "state": "IL",
+      "prefix_candidate": "145707",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "14736901",
+      "display_name": "Moody Theological Seminary and Graduate School--Michigan",
+      "state": "MI",
+      "prefix_candidate": "147369",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "14736903",
+      "display_name": "Moody Bible Institute - Spokane",
+      "state": "WA",
+      "prefix_candidate": "147369",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "14953201",
+      "display_name": "Triton College - Intl Union of Operating Engr Local 399 Trning Fac.",
+      "state": "IL",
+      "prefix_candidate": "149532",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15085301",
+      "display_name": "PJ's College of Cosmetology- Brownsburg",
+      "state": "IN",
+      "prefix_candidate": "150853",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15085303",
+      "display_name": "PJ's College of Cosmetology- Jeffersonville",
+      "state": "IN",
+      "prefix_candidate": "150853",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098701",
+      "display_name": "Ivy Tech Community College-South Bend/Elkhart",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098702",
+      "display_name": "Ivy Tech Community College-Columbus",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098703",
+      "display_name": "Ivy Tech Community College-Muncie",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098704",
+      "display_name": "Ivy Tech Community College-Kokomo",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098705",
+      "display_name": "Ivy Tech Community College-Lafayette",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098706",
+      "display_name": "Ivy Tech Community College-Fort Wayne",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098707",
+      "display_name": "Ivy Tech Community College-Sellersburg",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098708",
+      "display_name": "Ivy Tech Community College-Evansville",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098709",
+      "display_name": "Ivy Tech Community College-Terre Haute",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098710",
+      "display_name": "Ivy Tech Community College-Richmond",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098711",
+      "display_name": "Ivy Tech Community College-Lake County",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098712",
+      "display_name": "Ivy Tech Community College-Madison",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098713",
+      "display_name": "Ivy Tech Community College-Bloomington",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098714",
+      "display_name": "Ivy Tech Community College-Indianapolis",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098715",
+      "display_name": "Ivy Tech Community College-Marion",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098716",
+      "display_name": "Ivy Tech Community College-Valparaiso",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098717",
+      "display_name": "Ivy Tech Community College-Lawrenceburg",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098718",
+      "display_name": "Ivy Tech Community College-Hamilton County",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15098719",
+      "display_name": "Ivy Tech Community College-Anderson",
+      "state": "IN",
+      "prefix_candidate": "150987",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15111101",
+      "display_name": "Indiana University Fort Wayne",
+      "state": "IN",
+      "prefix_candidate": "151111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15111102",
+      "display_name": "Indiana University Columbus",
+      "state": "IN",
+      "prefix_candidate": "151111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15336601",
+      "display_name": "Graceland University - Independence",
+      "state": "MO",
+      "prefix_candidate": "153366",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15468801",
+      "display_name": "Baker University School of Nursing",
+      "state": "KS",
+      "prefix_candidate": "154688",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15492501",
+      "display_name": "Coffeyville Technical Campus",
+      "state": "KS",
+      "prefix_candidate": "154925",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15492502",
+      "display_name": "Columbus Technical Campus",
+      "state": "KS",
+      "prefix_candidate": "154925",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15492503",
+      "display_name": "Coffeyville Community College - EMS Building",
+      "state": "KS",
+      "prefix_candidate": "154925",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15535301",
+      "display_name": "Old Town Barber College - KC",
+      "state": "MO",
+      "prefix_candidate": "155353",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15631001",
+      "display_name": "PJ's College of Cosmetology- Greenfield",
+      "state": "IN",
+      "prefix_candidate": "156310",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15631002",
+      "display_name": "PJ's College of Cosmetology- Muncie",
+      "state": "IN",
+      "prefix_candidate": "156310",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15631003",
+      "display_name": "PJ's College of Cosmetology- Indianapolis",
+      "state": "IN",
+      "prefix_candidate": "156310",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15631004",
+      "display_name": "PJ's College of Cosmetology- Plainfield",
+      "state": "IN",
+      "prefix_candidate": "156310",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "15631005",
+      "display_name": "PJ's College of Cosmetology- Louisville",
+      "state": "KY",
+      "prefix_candidate": "156310",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16061201",
+      "display_name": "Southeastern Louisiana University - EBR Parish School System Prof Dev",
+      "state": "LA",
+      "prefix_candidate": "160612",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16061202",
+      "display_name": "Southeastern Louisiana University - St Amant High School",
+      "state": "LA",
+      "prefix_candidate": "160612",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16061203",
+      "display_name": "Southeastern Louisiana University - Destrahan High School",
+      "state": "LA",
+      "prefix_candidate": "160612",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16061204",
+      "display_name": "Southeastern Louisiana University - Albert Cammon Middle School",
+      "state": "LA",
+      "prefix_candidate": "160612",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16099501",
+      "display_name": "Beal University",
+      "state": "ME",
+      "prefix_candidate": "160995",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16125301",
+      "display_name": "University of Maine - Machias",
+      "state": "ME",
+      "prefix_candidate": "161253",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16157202",
+      "display_name": "Unity Environmental University - Unity",
+      "state": "ME",
+      "prefix_candidate": "161572",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16884704",
+      "display_name": "Baker College of Cadillac",
+      "state": "MI",
+      "prefix_candidate": "168847",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16884706",
+      "display_name": "Baker College of Jackson",
+      "state": "MI",
+      "prefix_candidate": "168847",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16884707",
+      "display_name": "Baker College of Muskegon",
+      "state": "MI",
+      "prefix_candidate": "168847",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16884710",
+      "display_name": "Baker College - Royal Oak Campus",
+      "state": "MI",
+      "prefix_candidate": "168847",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16908001",
+      "display_name": "Calvin University - Handlon Campus",
+      "state": "MI",
+      "prefix_candidate": "169080",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16947903",
+      "display_name": "Davenport University-Warren Location",
+      "state": "MI",
+      "prefix_candidate": "169479",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16947904",
+      "display_name": "Davenport University-Kalamazoo Location",
+      "state": "MI",
+      "prefix_candidate": "169479",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16947905",
+      "display_name": "Davenport University-Lansing Location",
+      "state": "MI",
+      "prefix_candidate": "169479",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "16947907",
+      "display_name": "Davenport University-Midland Location",
+      "state": "MI",
+      "prefix_candidate": "169479",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17296301",
+      "display_name": "Anoka-Ramsey Community College-Cambridge Campus",
+      "state": "MN",
+      "prefix_candidate": "172963",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17320301",
+      "display_name": "Central Lakes College-Staples Campus",
+      "state": "MN",
+      "prefix_candidate": "173203",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17355901",
+      "display_name": "M State - Detroit Lakes Campus",
+      "state": "MN",
+      "prefix_candidate": "173559",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17355902",
+      "display_name": "M State - Moorhead Campus",
+      "state": "MN",
+      "prefix_candidate": "173559",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17355903",
+      "display_name": "M State - Wadena Campus",
+      "state": "MN",
+      "prefix_candidate": "173559",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17373501",
+      "display_name": "Minnesota North College - Itasca",
+      "state": "MN",
+      "prefix_candidate": "173735",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17373502",
+      "display_name": "Minnesota North College - Mesabi Range Virginia",
+      "state": "MN",
+      "prefix_candidate": "173735",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17373503",
+      "display_name": "Minnesota North College - Mesabi Range Eveleth",
+      "state": "MN",
+      "prefix_candidate": "173735",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17373504",
+      "display_name": "Minnesota North College - Rainy River",
+      "state": "MN",
+      "prefix_candidate": "173735",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17373505",
+      "display_name": "Minnesota North College - Vermilion",
+      "state": "MN",
+      "prefix_candidate": "173735",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17391101",
+      "display_name": "South Central College-Faribault",
+      "state": "MN",
+      "prefix_candidate": "173911",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17395701",
+      "display_name": "Mayo Clinic College of Medicine and Science - Florida",
+      "state": "FL",
+      "prefix_candidate": "173957",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17395702",
+      "display_name": "Mayo Clinic College of Medicine and Science - Arizona",
+      "state": "AZ",
+      "prefix_candidate": "173957",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17395703",
+      "display_name": "Mayo Clinic College of Medicine and Science - Arizona",
+      "state": "AZ",
+      "prefix_candidate": "173957",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17447301",
+      "display_name": "Northland Community and Technical College - East Grand Forks",
+      "state": "MN",
+      "prefix_candidate": "174473",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17447302",
+      "display_name": "Northland Community and Technical College - Aerospace",
+      "state": "MN",
+      "prefix_candidate": "174473",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17501401",
+      "display_name": "Rasmussen University-Bloomington",
+      "state": "MN",
+      "prefix_candidate": "175014",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17501402",
+      "display_name": "Rasmussen University-Eagan",
+      "state": "MN",
+      "prefix_candidate": "175014",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17501403",
+      "display_name": "Rasmussen University-Mankato",
+      "state": "MN",
+      "prefix_candidate": "175014",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17501406",
+      "display_name": "Rasmussen University-Hennepin/Anoka",
+      "state": "MN",
+      "prefix_candidate": "175014",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17526301",
+      "display_name": "Minnesota State CollegeSoutheast-Red Wing Campus",
+      "state": "MN",
+      "prefix_candidate": "175263",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17557301",
+      "display_name": "Copiah-Lincoln Community College Simpson County Center",
+      "state": "MS",
+      "prefix_candidate": "175573",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17557302",
+      "display_name": "Copiah-Lincoln Community College-Natchez Campus",
+      "state": "MS",
+      "prefix_candidate": "175573",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17601701",
+      "display_name": "University of Mississippi Medical Center",
+      "state": "MS",
+      "prefix_candidate": "176017",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17623901",
+      "display_name": "Pearl River Community College-Forrest County Campus",
+      "state": "MS",
+      "prefix_candidate": "176239",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17623902",
+      "display_name": "PRCC Hancock Aviation Aerospace Workforce Academy",
+      "state": "MS",
+      "prefix_candidate": "176239",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17662801",
+      "display_name": "Avila University -  Arizona",
+      "state": "AZ",
+      "prefix_candidate": "176628",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706501",
+      "display_name": "Columbia College - Redstone Arsenal",
+      "state": "AL",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706504",
+      "display_name": "Columbia College - NAS Jacksonville",
+      "state": "FL",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706508",
+      "display_name": "Columbia College - Fort Leonard Wood",
+      "state": "MO",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706510",
+      "display_name": "Columbia College - Lake Ozark",
+      "state": "MO",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706512",
+      "display_name": "Columbia College - Fort Worth",
+      "state": "TX",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706515",
+      "display_name": "Columbia College - Naval Station Everett/Marysville",
+      "state": "WA",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706523",
+      "display_name": "Columbia College - Fort Stewart",
+      "state": "GA",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706524",
+      "display_name": "Columbia College - Hunter Army Airfield",
+      "state": "GA",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706527",
+      "display_name": "Columbia College - Whidbey Island",
+      "state": "WA",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706530",
+      "display_name": "Columbia College - Fort Sill",
+      "state": "OK",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706532",
+      "display_name": "Columbia College - San Diego",
+      "state": "CA",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706546",
+      "display_name": "Columbia College - Denver",
+      "state": "CO",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17706547",
+      "display_name": "Columbia College - Whiteman AFB",
+      "state": "MO",
+      "prefix_candidate": "177065",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "17981201",
+      "display_name": "Kansas City University-Joplin",
+      "state": "MO",
+      "prefix_candidate": "179812",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18017901",
+      "display_name": "City College Montana State University Billings",
+      "state": "MT",
+      "prefix_candidate": "180179",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18409201",
+      "display_name": "American Institute",
+      "state": "NJ",
+      "prefix_candidate": "184092",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18557201",
+      "display_name": "Monmouth University -  Monmouth Park Corporate Center",
+      "state": "NJ",
+      "prefix_candidate": "185572",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908801",
+      "display_name": "Bard College - Holyoke Microcollege",
+      "state": "MA",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908802",
+      "display_name": "Bard College - Coxsackie Correctional Facility",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908803",
+      "display_name": "Bard College - Eastern NY Correctional Facility",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908804",
+      "display_name": "Bard College - Fishkill Correctional Facility",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908805",
+      "display_name": "Bard College - Green Haven Correctional Facility",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908806",
+      "display_name": "Bard College - Taconic Correctional Facility",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908807",
+      "display_name": "Bard College - Woodbourne Correctional Facility",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908808",
+      "display_name": "Bard College - BHSEC Newark",
+      "state": "NJ",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908809",
+      "display_name": "Bard College - Brooklyn Public Library",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908811",
+      "display_name": "Bard College - New York Public Library Countee Cullen Branch",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908812",
+      "display_name": "Bard College - Bard Globalization and International Affairs Program",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18908814",
+      "display_name": "Bard College - Albion Correctional Facility",
+      "state": "NY",
+      "prefix_candidate": "189088",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18956501",
+      "display_name": "Bryant & Stratton College-Syracuse",
+      "state": "NY",
+      "prefix_candidate": "189565",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18958301",
+      "display_name": "Bryant & Stratton College-Amherst",
+      "state": "NY",
+      "prefix_candidate": "189583",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18958302",
+      "display_name": "Bryant & Stratton College-Southtowns",
+      "state": "NY",
+      "prefix_candidate": "189583",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "18959201",
+      "display_name": "Bryant & Stratton College-Henrietta",
+      "state": "NY",
+      "prefix_candidate": "189592",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19004401",
+      "display_name": "Clarkson University Capital Region Campus",
+      "state": "NY",
+      "prefix_candidate": "190044",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19050301",
+      "display_name": "Culinary Institute of America at Greystone",
+      "state": "CA",
+      "prefix_candidate": "190503",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19050302",
+      "display_name": "Culinary Institute of America San Antonio",
+      "state": "TX",
+      "prefix_candidate": "190503",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19054901",
+      "display_name": "CUNY Brooklyn College - Feirstein Graduate School of Cinema",
+      "state": "NY",
+      "prefix_candidate": "190549",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19385801",
+      "display_name": "NYSMedical&Dental Assistants - American Institute of Clinical Massage",
+      "state": "ID",
+      "prefix_candidate": "193858",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19457801",
+      "display_name": "Pratt Manhattan-A Division of Pratt Institute",
+      "state": "NY",
+      "prefix_candidate": "194578",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19476301",
+      "display_name": "Rabbinical Seminary of America-Ma'yan HaTorah",
+      "state": "NY",
+      "prefix_candidate": "194763",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19857001",
+      "display_name": "Gaston College",
+      "state": "NC",
+      "prefix_candidate": "198570",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19975901",
+      "display_name": "Southeastern Baptist Theological Seminary-Nash County Extension Center",
+      "state": "NC",
+      "prefix_candidate": "199759",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19975902",
+      "display_name": "Southeastern Baptist Theological Seminary-Wake County Extension Center",
+      "state": "NC",
+      "prefix_candidate": "199759",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19975903",
+      "display_name": "Southeastern Baptist Theological Seminary - Lowell Correctional Institution",
+      "state": "FL",
+      "prefix_candidate": "199759",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "19998001",
+      "display_name": "Winston - Salem Barber School - Satellite",
+      "state": "NC",
+      "prefix_candidate": "199980",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20146901",
+      "display_name": "Bryant & Stratton College-Akron",
+      "state": "OH",
+      "prefix_candidate": "201469",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20146902",
+      "display_name": "Bryant & Stratton College-Solon",
+      "state": "OH",
+      "prefix_candidate": "201469",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20303001",
+      "display_name": "Adult & Community Education Columbus City Schools - Fort Hayes Career",
+      "state": "OH",
+      "prefix_candidate": "203030",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20306701",
+      "display_name": "Hebrew Union College-Jewish Institute of Religion-Cincinnati",
+      "state": "OH",
+      "prefix_candidate": "203067",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20306702",
+      "display_name": "Hebrew Union College-Jewish Institute of Religion-Los Angeles",
+      "state": "CA",
+      "prefix_candidate": "203067",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20354401",
+      "display_name": "Kettering College - Ollie Davis Medical Arts and Education Center",
+      "state": "OH",
+      "prefix_candidate": "203544",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20417601",
+      "display_name": "Mount Carmel College of Nursing - Fairfield",
+      "state": "OH",
+      "prefix_candidate": "204176",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "20940901",
+      "display_name": "Bushnell University - Roseburg Campus",
+      "state": "OR",
+      "prefix_candidate": "209409",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21036801",
+      "display_name": "Western Seminary-San Jose",
+      "state": "CA",
+      "prefix_candidate": "210368",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21078401",
+      "display_name": "The Beauty Institute",
+      "state": "PA",
+      "prefix_candidate": "210784",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21130701",
+      "display_name": "Bucks County Community College-Upper Bucks Campus",
+      "state": "PA",
+      "prefix_candidate": "211307",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21130702",
+      "display_name": "Bucks County Community College-Gene and Marlene Epstein Campus at Lower Bucks",
+      "state": "PA",
+      "prefix_candidate": "211307",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21287801",
+      "display_name": "Harrisburg Area Community College-Lancaster",
+      "state": "PA",
+      "prefix_candidate": "212878",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21287802",
+      "display_name": "Harrisburg Area Community College-Gettysburg",
+      "state": "PA",
+      "prefix_candidate": "212878",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21287803",
+      "display_name": "Harrisburg Area Community College-Lebanon",
+      "state": "PA",
+      "prefix_candidate": "212878",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21287804",
+      "display_name": "Harrisburg Area Community College-York",
+      "state": "PA",
+      "prefix_candidate": "212878",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21316301",
+      "display_name": "UPMC Jameson School of Nursing - UPMC Hamot",
+      "state": "PA",
+      "prefix_candidate": "213163",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21429001",
+      "display_name": "New Castle School of Trades",
+      "state": "PA",
+      "prefix_candidate": "214290",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21429002",
+      "display_name": "New Castle School of Trades - East Liverpool Campus",
+      "state": "OH",
+      "prefix_candidate": "214290",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21437901",
+      "display_name": "Northampton County Area Community College-Monroe",
+      "state": "PA",
+      "prefix_candidate": "214379",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21597401",
+      "display_name": "UPMC Shadyside - at UPMC Harrisburg",
+      "state": "PA",
+      "prefix_candidate": "215974",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "21608301",
+      "display_name": "South Hills School of Business and Technology-Altoona",
+      "state": "PA",
+      "prefix_candidate": "216083",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22039402",
+      "display_name": "Tennessee College of Applied Technology-Jacksboro",
+      "state": "TN",
+      "prefix_candidate": "220394",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22055202",
+      "display_name": "South College-Asheville",
+      "state": "NC",
+      "prefix_candidate": "220552",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22055203",
+      "display_name": "South College-Nashville",
+      "state": "TN",
+      "prefix_candidate": "220552",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22055204",
+      "display_name": "South College-Atlanta",
+      "state": "GA",
+      "prefix_candidate": "220552",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22055205",
+      "display_name": "South College - Indianapolis",
+      "state": "IN",
+      "prefix_candidate": "220552",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22055206",
+      "display_name": "South College - Orlando",
+      "state": "FL",
+      "prefix_candidate": "220552",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22055207",
+      "display_name": "South College -  Pittsburgh",
+      "state": "PA",
+      "prefix_candidate": "220552",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22797901",
+      "display_name": "San Jacinto College-North Campus",
+      "state": "TX",
+      "prefix_candidate": "227979",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22797902",
+      "display_name": "San Jacinto College-South Campus",
+      "state": "TX",
+      "prefix_candidate": "227979",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22797903",
+      "display_name": "San Jacinto Community College District - Generation Park Campus",
+      "state": "TX",
+      "prefix_candidate": "227979",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "22872301",
+      "display_name": "Texas A & M University Health Science Center",
+      "state": "TX",
+      "prefix_candidate": "228723",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23059701",
+      "display_name": "Snow College-Richfield Campus",
+      "state": "UT",
+      "prefix_candidate": "230597",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23059702",
+      "display_name": "Snow College -  Central Utah Correctional Facility",
+      "state": "UT",
+      "prefix_candidate": "230597",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23155401",
+      "display_name": "Bluefield College - Edward Via College of Osteopathic Medicine",
+      "state": "VA",
+      "prefix_candidate": "231554",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23155402",
+      "display_name": "Bluefield University - Edward Via College - Auburn",
+      "state": "AL",
+      "prefix_candidate": "231554",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23178501",
+      "display_name": "Bryant & Stratton College-Richmond",
+      "state": "VA",
+      "prefix_candidate": "231785",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23178502",
+      "display_name": "Bryant & Stratton College-Hampton",
+      "state": "VA",
+      "prefix_candidate": "231785",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23368401",
+      "display_name": "Strayer University-Alexandria Campus",
+      "state": "VA",
+      "prefix_candidate": "233684",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23368410",
+      "display_name": "Strayer University-Newport News Campus",
+      "state": "VA",
+      "prefix_candidate": "233684",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23368411",
+      "display_name": "Strayer University-Virginia Beach Campus",
+      "state": "VA",
+      "prefix_candidate": "233684",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23384201",
+      "display_name": "Union Presbyterian Seminary-Charlotte",
+      "state": "NC",
+      "prefix_candidate": "233842",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23661002",
+      "display_name": "Shoreline Community College - Dental Hygiene",
+      "state": "WA",
+      "prefix_candidate": "236610",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23693901",
+      "display_name": "Washington State University-Vancouver",
+      "state": "WA",
+      "prefix_candidate": "236939",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23693902",
+      "display_name": "Washington State University-Spokane",
+      "state": "WA",
+      "prefix_candidate": "236939",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23693903",
+      "display_name": "Washington State University-Tri Cities",
+      "state": "WA",
+      "prefix_candidate": "236939",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23693904",
+      "display_name": "Washington State University - Everett Campus",
+      "state": "WA",
+      "prefix_candidate": "236939",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23693905",
+      "display_name": "Washington State University - Global Campus",
+      "state": "WA",
+      "prefix_candidate": "236939",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "23743701",
+      "display_name": "Ameritas College -  South Bay Correctional Facility",
+      "state": "FL",
+      "prefix_candidate": "237437",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297201",
+      "display_name": "NUC University - Arecibo",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297202",
+      "display_name": "NUC University - Rio Grande",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297203",
+      "display_name": "NUC University - Ponce",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297204",
+      "display_name": "NUC University - Caguas",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297205",
+      "display_name": "NUC University - Mayaguez",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297206",
+      "display_name": "NUC University - South Florida",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297207",
+      "display_name": "NUC University - Florida Technical College - Lakeland",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297208",
+      "display_name": "NUC University - Florida Technical College - Deland",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297209",
+      "display_name": "NUC University - Florida Technical College - Kissimmee",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297210",
+      "display_name": "NUC University - Florida Technical College - Pembroke Pines",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297211",
+      "display_name": "NUC University - Florida Technical College - Cutler Bay",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297212",
+      "display_name": "NUC University - IBC Technical Division - Ponce",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297213",
+      "display_name": "NUC University - IBC Technical Division - Mayaguez",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297214",
+      "display_name": "NUC University - IBC Technical Division - Guayama",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297216",
+      "display_name": "NUC University - IBC Technical Division - Manati",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297217",
+      "display_name": "NUC University - IBC Technical Division - Los Colobos",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297219",
+      "display_name": "NUC University - IBC Technical Division - Aguadilla",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297220",
+      "display_name": "NUC University - IBC Technical Division - Caguas",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297221",
+      "display_name": "NUC University - IBC Technical Division - Arecibo",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297222",
+      "display_name": "NUC University - IBC Technical Division - Escorial",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297223",
+      "display_name": "NUC University - IBC Technical Division - Bayamon",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297224",
+      "display_name": "NUC University - IBC Technical Division - Yauco",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297225",
+      "display_name": "NUC University - Florida Technical College - Orlando",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297226",
+      "display_name": "NUC University - Florida Technical College - Tampa",
+      "state": "FL",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297227",
+      "display_name": "NUC University - CCU - Caguas",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24297231",
+      "display_name": "NUC University - CCU - Bayamon",
+      "state": "PR",
+      "prefix_candidate": "242972",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24366501",
+      "display_name": "University of the Virgin Islands-Albert A. Sheen",
+      "state": "VI",
+      "prefix_candidate": "243665",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378001",
+      "display_name": "Purdue University - Purdue Polytechnic Anderson",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378002",
+      "display_name": "Purdue University - Purdue Polytechnic Indianapolis",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378003",
+      "display_name": "Purdue University - Purdue Polytechnic South Bend",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378004",
+      "display_name": "Purdue University - Purdue Polytechnic New Albany",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378006",
+      "display_name": "Purdue University - Purdue Polytechnic Columbus",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378007",
+      "display_name": "Purdue University - Purdue Polytechnic Kokomo",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378008",
+      "display_name": "Purdue University - Purdue Polytechnic Richmond",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378009",
+      "display_name": "Purdue University - Purdue Polytechnic Lafayette",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378010",
+      "display_name": "Purdue University - Purdue Polytechnic Vincennes",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378011",
+      "display_name": "Purdue University - Westgate Academy",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24378012",
+      "display_name": "Purdue University -  Indianapolis",
+      "state": "IN",
+      "prefix_candidate": "243780",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893401",
+      "display_name": "ECPI University-Newport News",
+      "state": "VA",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893402",
+      "display_name": "ECPI University-Greensboro",
+      "state": "NC",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893403",
+      "display_name": "ECPI University-Charlotte",
+      "state": "NC",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893404",
+      "display_name": "ECPI University-Greenville",
+      "state": "SC",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893405",
+      "display_name": "ECPI University-Manassas",
+      "state": "VA",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893406",
+      "display_name": "ECPI University-Charleston",
+      "state": "SC",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893407",
+      "display_name": "ECPI University-Raleigh",
+      "state": "NC",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893408",
+      "display_name": "ECPI University-Columbia",
+      "state": "SC",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893410",
+      "display_name": "ECPI University-Culinary Institute of Virginia",
+      "state": "VA",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893411",
+      "display_name": "ECPI University-Virginia Beach Health Sciences",
+      "state": "VA",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893413",
+      "display_name": "ECPI University-Innsbrook",
+      "state": "VA",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893414",
+      "display_name": "ECPI University-Richmond West",
+      "state": "VA",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893415",
+      "display_name": "ECPI University - Roanoke",
+      "state": "VA",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893416",
+      "display_name": "ECPI University - Orlando",
+      "state": "FL",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "24893418",
+      "display_name": "ECPI University - San Antonio",
+      "state": "TX",
+      "prefix_candidate": "248934",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "26092901",
+      "display_name": "Paul Mitchell The School Boise -Paul Mitchell The School Coeur d'Alene",
+      "state": "ID",
+      "prefix_candidate": "260929",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "36662301",
+      "display_name": "Northwest Technology Center-Fairview",
+      "state": "OK",
+      "prefix_candidate": "366623",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "37321601",
+      "display_name": "Pivot Point Academy -  Wahl Barber Academy",
+      "state": "IL",
+      "prefix_candidate": "373216",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "37369601",
+      "display_name": "Rob Roy Academy - Woonsocket",
+      "state": "RI",
+      "prefix_candidate": "373696",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "37669501",
+      "display_name": "College of the Marshall Islands - Kwajalein Campus",
+      "state": "MH",
+      "prefix_candidate": "376695",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "37727201",
+      "display_name": "Nuvani Institute-Uvalde",
+      "state": "TX",
+      "prefix_candidate": "377272",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "37728101",
+      "display_name": "Nuvani Institute-Del Rio",
+      "state": "TX",
+      "prefix_candidate": "377281",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "37728103",
+      "display_name": "Nuvani Institute-South Campus",
+      "state": "TX",
+      "prefix_candidate": "377281",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "38430601",
+      "display_name": "Acupuncture and Integrative Medicine College Berkeley - Austin",
+      "state": "TX",
+      "prefix_candidate": "384306",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "38561901",
+      "display_name": "Everglades University-Orlando",
+      "state": "FL",
+      "prefix_candidate": "385619",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "38561902",
+      "display_name": "Everglades University-Sarasota",
+      "state": "FL",
+      "prefix_candidate": "385619",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "38561903",
+      "display_name": "Everglades University - Tampa",
+      "state": "FL",
+      "prefix_candidate": "385619",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "38561904",
+      "display_name": "Everglades University - Miami",
+      "state": "FL",
+      "prefix_candidate": "385619",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "40884401",
+      "display_name": "Florida National University-South Campus",
+      "state": "FL",
+      "prefix_candidate": "408844",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "40884402",
+      "display_name": "Florida National University Training Center",
+      "state": "FL",
+      "prefix_candidate": "408844",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "41829601",
+      "display_name": "Indian Capital Technology Center-Sallisaw",
+      "state": "OK",
+      "prefix_candidate": "418296",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "41829602",
+      "display_name": "Indian Capital Technology Center-Stilwell",
+      "state": "OK",
+      "prefix_candidate": "418296",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "41829603",
+      "display_name": "Indian Capital Technology Center-Tahlequah",
+      "state": "OK",
+      "prefix_candidate": "418296",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "41829604",
+      "display_name": "Indian Capital Technology Center School  District Number 4 - Coweta",
+      "state": "OK",
+      "prefix_candidate": "418296",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "41918301",
+      "display_name": "Central California School of Continuing Education -",
+      "state": "CA",
+      "prefix_candidate": "419183",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "42312001",
+      "display_name": "Compu-Med Vocational Careers Corp",
+      "state": "FL",
+      "prefix_candidate": "423120",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "42312002",
+      "display_name": "Compu-Med Vocational Careers - Dallas",
+      "state": "TX",
+      "prefix_candidate": "423120",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "42799101",
+      "display_name": "Osceola Technical College - St. Cloud Campus",
+      "state": "FL",
+      "prefix_candidate": "427991",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "42799102",
+      "display_name": "Osceola Technical College - Poinciana Campus",
+      "state": "FL",
+      "prefix_candidate": "427991",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "42817001",
+      "display_name": "Southeastern College-Miami Lakes",
+      "state": "FL",
+      "prefix_candidate": "428170",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "43482101",
+      "display_name": "Blue Cliff College",
+      "state": "LA",
+      "prefix_candidate": "434821",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44098901",
+      "display_name": "Career Schools of Texas - Branch Campus #1",
+      "state": "TX",
+      "prefix_candidate": "440989",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44098902",
+      "display_name": "Career Schools of Texas - Branch Campus #2",
+      "state": "TX",
+      "prefix_candidate": "440989",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44098904",
+      "display_name": "Career Schools of Texas - Branch Campus #5",
+      "state": "TX",
+      "prefix_candidate": "440989",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44376602",
+      "display_name": "Strayer University-Shelby Oaks Campus",
+      "state": "TN",
+      "prefix_candidate": "443766",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44378403",
+      "display_name": "Strayer University-Center City Campus",
+      "state": "PA",
+      "prefix_candidate": "443784",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44473201",
+      "display_name": "Leston College -",
+      "state": "PR",
+      "prefix_candidate": "444732",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44628801",
+      "display_name": "Paul Mitchell The School Great Lakes - Sarasota",
+      "state": "FL",
+      "prefix_candidate": "446288",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44652501",
+      "display_name": "SAE Institute of Technology-New York",
+      "state": "NY",
+      "prefix_candidate": "446525",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44652502",
+      "display_name": "SAE Institute of Technology-Atlanta",
+      "state": "GA",
+      "prefix_candidate": "446525",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44652503",
+      "display_name": "SAE Institute of Technology-Miami",
+      "state": "FL",
+      "prefix_candidate": "446525",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44652504",
+      "display_name": "SAE Institute of Technology-Chicago",
+      "state": "IL",
+      "prefix_candidate": "446525",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44784701",
+      "display_name": "Aviator College of Aeronautical Science & Technology -  Kissimmee",
+      "state": "FL",
+      "prefix_candidate": "447847",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44867301",
+      "display_name": "Rasmussen University-Aurora",
+      "state": "IL",
+      "prefix_candidate": "448673",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44867302",
+      "display_name": "Rasmussen University-Romeoville/Joliet",
+      "state": "IL",
+      "prefix_candidate": "448673",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44867303",
+      "display_name": "Rasmussen University-Mokena/Tinley Park",
+      "state": "IL",
+      "prefix_candidate": "448673",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44946301",
+      "display_name": "Academy Di Capelli -",
+      "state": "CT",
+      "prefix_candidate": "449463",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44970001",
+      "display_name": "Dayton School of Medical Massage-Lima",
+      "state": "OH",
+      "prefix_candidate": "449700",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44970002",
+      "display_name": "Cincinnati School of Medical Massage",
+      "state": "OH",
+      "prefix_candidate": "449700",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44970003",
+      "display_name": "Cleveland Institute of Medical Massage",
+      "state": "OH",
+      "prefix_candidate": "449700",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "44970004",
+      "display_name": "Columbus School of Medical Massage",
+      "state": "OH",
+      "prefix_candidate": "449700",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45057102",
+      "display_name": "Rasmussen University-Wausau",
+      "state": "WI",
+      "prefix_candidate": "450571",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45098801",
+      "display_name": "Coastline Beauty College - Hemet",
+      "state": "CA",
+      "prefix_candidate": "450988",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45128201",
+      "display_name": "Elevate Salon Institute",
+      "state": "MI",
+      "prefix_candidate": "451282",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45175002",
+      "display_name": "Bryant & Stratton College-Racine",
+      "state": "WI",
+      "prefix_candidate": "451750",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45486501",
+      "display_name": "Cambridge College of Healthcare & Technology",
+      "state": "GA",
+      "prefix_candidate": "454865",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45486502",
+      "display_name": "Cambridge College of Healthcare & Technology - Miami Gardens",
+      "state": "FL",
+      "prefix_candidate": "454865",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45491701",
+      "display_name": "Celebrity School of Beauty - Hialeah",
+      "state": "FL",
+      "prefix_candidate": "454917",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519601",
+      "display_name": "Jersey College - Tampa",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519602",
+      "display_name": "Jersey College - Ewing",
+      "state": "NJ",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519603",
+      "display_name": "Jersey College - Jacksonville",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519604",
+      "display_name": "Jersey College - Fort Lauderdale",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519605",
+      "display_name": "Jersey College - Largo",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519606",
+      "display_name": "Jersey College - Port Charlotte",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519607",
+      "display_name": "Jersey College - Fort Wayne",
+      "state": "IN",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519608",
+      "display_name": "Jersey College - Brooksville",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519609",
+      "display_name": "Jersey College - Naples",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519610",
+      "display_name": "Jersey College - Cleveland",
+      "state": "TN",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519611",
+      "display_name": "Jersey College - Melbourne",
+      "state": "FL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519612",
+      "display_name": "Jersey College - Scranton",
+      "state": "PA",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519613",
+      "display_name": "Jersey College - Tucson",
+      "state": "AZ",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519614",
+      "display_name": "Jersey College - Knoxville",
+      "state": "TN",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519615",
+      "display_name": "Jersey College - Jenkintown",
+      "state": "PA",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519616",
+      "display_name": "Jersey College - Mesa",
+      "state": "AZ",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519617",
+      "display_name": "Jersey College - Dothan",
+      "state": "AL",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45519618",
+      "display_name": "Jersey College - York",
+      "state": "PA",
+      "prefix_candidate": "455196",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45538101",
+      "display_name": "Utah County Campus",
+      "state": "UT",
+      "prefix_candidate": "455381",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45763301",
+      "display_name": "L'esprit Academy - Southfield",
+      "state": "MI",
+      "prefix_candidate": "457633",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45891902",
+      "display_name": "Strayer University-Morrow Campus",
+      "state": "GA",
+      "prefix_candidate": "458919",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45891905",
+      "display_name": "Strayer University-Lithonia Campus",
+      "state": "GA",
+      "prefix_candidate": "458919",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45891907",
+      "display_name": "Strayer University-Augusta Campus",
+      "state": "GA",
+      "prefix_candidate": "458919",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45897303",
+      "display_name": "Strayer University-Northwest Houston",
+      "state": "TX",
+      "prefix_candidate": "458973",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45897306",
+      "display_name": "Strayer University-North Dallas",
+      "state": "TX",
+      "prefix_candidate": "458973",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45920401",
+      "display_name": "Unitek College - San Jose",
+      "state": "CA",
+      "prefix_candidate": "459204",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45920402",
+      "display_name": "Unitek College - Sacramento",
+      "state": "CA",
+      "prefix_candidate": "459204",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45920403",
+      "display_name": "Unitek College - Concord",
+      "state": "CA",
+      "prefix_candidate": "459204",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45920404",
+      "display_name": "Unitek College - Bakersfield",
+      "state": "CA",
+      "prefix_candidate": "459204",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "45920405",
+      "display_name": "Unitek College - Reno",
+      "state": "NV",
+      "prefix_candidate": "459204",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "46171301",
+      "display_name": "Pure Aesthetics Natural Skincare School -  Arizona Holistic Institute",
+      "state": "AZ",
+      "prefix_candidate": "461713",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "46182901",
+      "display_name": "Cinta Aveda Institute - San Jose",
+      "state": "CA",
+      "prefix_candidate": "461829",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503301",
+      "display_name": "Relay Graduate School of Education - Newark",
+      "state": "NJ",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503302",
+      "display_name": "Relay Graduate School of Education - New Orleans",
+      "state": "LA",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503303",
+      "display_name": "Relay Graduate School of Education - Delaware",
+      "state": "DE",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503304",
+      "display_name": "Relay Graduate School of Education - Memphis",
+      "state": "TN",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503305",
+      "display_name": "Relay Graduate School of Education - Houston",
+      "state": "TX",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503306",
+      "display_name": "Relay Graduate School of Education - Chicago",
+      "state": "IL",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503307",
+      "display_name": "Relay Graduate School of Education - Baton Rouge",
+      "state": "LA",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503308",
+      "display_name": "Relay Graduate School of Education - Philadelphia & Camden",
+      "state": "PA",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503309",
+      "display_name": "Relay Graduate School of Education - Denver",
+      "state": "CO",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503310",
+      "display_name": "Relay Graduate School of Education - Nashville",
+      "state": "TN",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503311",
+      "display_name": "Relay Graduate School of Education - San Antonio",
+      "state": "TX",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503312",
+      "display_name": "Relay Graduate School of Education - Dallas-Fort Worth",
+      "state": "TX",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503313",
+      "display_name": "Relay Graduate School of Education - Washington D.C",
+      "state": "DC",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503314",
+      "display_name": "Relay Graduate School of Education - Atlanta",
+      "state": "GA",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503315",
+      "display_name": "Relay Graduate School of Education - California",
+      "state": "CA",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503316",
+      "display_name": "Relay Graduate School of Education - Indiana",
+      "state": "IN",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47503317",
+      "display_name": "Relay Graduate School of Education - Connecticut",
+      "state": "CT",
+      "prefix_candidate": "475033",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47570501",
+      "display_name": "Annenberg School of Nursing -  Los Angeles",
+      "state": "CA",
+      "prefix_candidate": "475705",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "47662901",
+      "display_name": "Salon Institute - Columbus Campus",
+      "state": "OH",
+      "prefix_candidate": "476629",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48065701",
+      "display_name": "Rasmussen University - Overland Park",
+      "state": "KS",
+      "prefix_candidate": "480657",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48079001",
+      "display_name": "Rocky Vista University - Utah",
+      "state": "UT",
+      "prefix_candidate": "480790",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48092101",
+      "display_name": "Designer Barber & Stylist School -",
+      "state": "AR",
+      "prefix_candidate": "480921",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48100301",
+      "display_name": "MT Training Center - Humble",
+      "state": "TX",
+      "prefix_candidate": "481003",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48133101",
+      "display_name": "Sharp Edgez Barber Institute - Buffalo",
+      "state": "NY",
+      "prefix_candidate": "481331",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48152601",
+      "display_name": "Chrysm Institute of Esthetics (The) - Hampton",
+      "state": "VA",
+      "prefix_candidate": "481526",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48224601",
+      "display_name": "Lynnes Welding Training - Ramsey",
+      "state": "MN",
+      "prefix_candidate": "482246",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48224602",
+      "display_name": "Lynnes Welding Training-Bismarck",
+      "state": "ND",
+      "prefix_candidate": "482246",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48325801",
+      "display_name": "Networks Barber College",
+      "state": "IL",
+      "prefix_candidate": "483258",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48379901",
+      "display_name": "East-West Healing Arts Institute - Milwaukee",
+      "state": "WI",
+      "prefix_candidate": "483799",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48387801",
+      "display_name": "Bay Area Medical Academy - San Jose Satellite Location",
+      "state": "CA",
+      "prefix_candidate": "483878",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48400201",
+      "display_name": "High Desert Medical College - Bakerfield",
+      "state": "CA",
+      "prefix_candidate": "484002",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48400202",
+      "display_name": "High Desert Medical College - Temecula",
+      "state": "CA",
+      "prefix_candidate": "484002",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48486201",
+      "display_name": "University of West Los Angeles - Chatsworth",
+      "state": "CA",
+      "prefix_candidate": "484862",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48511103",
+      "display_name": "Georgia Military College - Valdosta",
+      "state": "GA",
+      "prefix_candidate": "485111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48511104",
+      "display_name": "Georgia Military College - Augusta",
+      "state": "GA",
+      "prefix_candidate": "485111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48511105",
+      "display_name": "Georgia Military College - Fairburn",
+      "state": "GA",
+      "prefix_candidate": "485111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48511106",
+      "display_name": "Georgia Military College - Robins",
+      "state": "GA",
+      "prefix_candidate": "485111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48511107",
+      "display_name": "Georgia Military College - Columbus",
+      "state": "GA",
+      "prefix_candidate": "485111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48511109",
+      "display_name": "Georgia Military College - Madison",
+      "state": "GA",
+      "prefix_candidate": "485111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48511112",
+      "display_name": "Georgia Military College - Dublin",
+      "state": "GA",
+      "prefix_candidate": "485111",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48616901",
+      "display_name": "American College of Barbering - Florence",
+      "state": "KY",
+      "prefix_candidate": "486169",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48839601",
+      "display_name": "Phipps Academy of Barbering - Bradley",
+      "state": "IL",
+      "prefix_candidate": "488396",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "48891601",
+      "display_name": "Alabama School of Nail Technology & Cosmetology - Saraland",
+      "state": "AL",
+      "prefix_candidate": "488916",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49005401",
+      "display_name": "HCI College - Fort Lauderdale Campus",
+      "state": "FL",
+      "prefix_candidate": "490054",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49010601",
+      "display_name": "Virginia University of Integrative Medicine - New Jersey",
+      "state": "NJ",
+      "prefix_candidate": "490106",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49010602",
+      "display_name": "Virginia University of Integrative Medicine - Georgia",
+      "state": "GA",
+      "prefix_candidate": "490106",
+      "prefix_in_national": true,
+      "prefix_same_state": false,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49146401",
+      "display_name": "ABC Adult School - Cabrillo Lane",
+      "state": "CA",
+      "prefix_candidate": "491464",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49158901",
+      "display_name": "Mystros Barber Academy - Missouri City",
+      "state": "TX",
+      "prefix_candidate": "491589",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49175601",
+      "display_name": "Urban Barber College - San Jose",
+      "state": "CA",
+      "prefix_candidate": "491756",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49175602",
+      "display_name": "Urban Barber College -  Modesto",
+      "state": "CA",
+      "prefix_candidate": "491756",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49178301",
+      "display_name": "Wilton Simpson Technical College",
+      "state": "FL",
+      "prefix_candidate": "491783",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49362801",
+      "display_name": "Pro Beauty Academy (The) -  Kenilworth",
+      "state": "NJ",
+      "prefix_candidate": "493628",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49382201",
+      "display_name": "College Unbound - Newport/Aquidneck Island",
+      "state": "RI",
+      "prefix_candidate": "493822",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49425001",
+      "display_name": "Valley College - Fairlawn - School of Nursing",
+      "state": "OH",
+      "prefix_candidate": "494250",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49501301",
+      "display_name": "Western Maricopa Education Center - Southwest Campus",
+      "state": "AZ",
+      "prefix_candidate": "495013",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49501302",
+      "display_name": "Western Maricopa Education Center - Northeast Campus",
+      "state": "AZ",
+      "prefix_candidate": "495013",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49501303",
+      "display_name": "Western Maricopa Education Center - Northwest Campus",
+      "state": "AZ",
+      "prefix_candidate": "495013",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    },
+    {
+      "display_id": "49664501",
+      "display_name": "Burlington County Institute of Technology - Adult Education -",
+      "state": "NJ",
+      "prefix_candidate": "496645",
+      "prefix_in_national": true,
+      "prefix_same_state": true,
+      "disposition": "HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN"
+    }
+  ],
+  "rule": "Do not coerce any eight-digit display key to a six-digit UNITID, a parent campus, a completion record, or a geocode without independently verified official identity evidence."
+}

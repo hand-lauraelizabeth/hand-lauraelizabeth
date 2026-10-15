@@ -1,0 +1,24 @@
+name: Matcher national identity join review
+on:
+  push:
+    branches:
+      - review/matcher-national-unitid-join-evidence-20261015-17et
+    paths:
+      - 'projects/college-career-matching/review/current-catalog-98-unitid-join-20261015.json'
+      - 'projects/college-career-matching/review/national-extension-key-audit-20261015.json'
+      - 'projects/college-career-matching/tests/test_catalog_national_join_20261015.cjs'
+      - '.github/workflows/matcher-national-join-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  identity-join:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run pinned-data identity regression
+        run: node --test projects/college-career-matching/tests/test_catalog_national_join_20261015.cjs
