@@ -1,0 +1,10 @@
+'use strict';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const audit=require('../review/national-extension-key-audit-20261015.json');
+const selected=['242972','446525','156310','130174','104151','173957','190503'];
+const expected={'242972':8,'446525':4,'156310':4,'130174':3,'104151':3,'173957':3,'190503':2};
+const rows=audit.keys.filter(x=>!x.prefix_same_state && selected.includes(x.prefix_candidate));
+test('27 held cross-state keys across seven prefixes',()=>{assert.equal(rows.length,27);assert.equal(new Set(rows.map(x=>x.display_id)).size,27);assert.deepEqual(Object.fromEntries(selected.map(p=>[p,rows.filter(x=>x.prefix_candidate===p).length])),expected);});
+test('all 27 remain held with no inferred parent',()=>{assert.ok(rows.every(x=>x.disposition==='HOLD_NO_AUTOMATIC_PARENT_OR_PROGRAM_JOIN'));});
+test('original national denominator unchanged',()=>{assert.equal(audit.keys.length,456);assert.equal(audit.keys.filter(x=>x.prefix_same_state===false).length,119);});
