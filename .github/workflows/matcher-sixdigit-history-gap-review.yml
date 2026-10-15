@@ -1,0 +1,17 @@
+name: Matcher six-digit no-history evidence QA
+on:
+  push:
+    branches:
+      - 'review/matcher-sixdigit-history-gap-*'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test projects/college-career-matching/tests/test_six_digit_history_gap_20261015.cjs

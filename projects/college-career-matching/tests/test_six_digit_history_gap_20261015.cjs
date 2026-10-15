@@ -1,0 +1,13 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'..'),load=p=>JSON.parse(fs.readFileSync(path.join(root,p),'utf8'));
+const nat=load('data/national/manifest.v1.json'),pm=load('data/programs/ipeds2025/programs.manifest.v1.json');
+const rows=nat.shards.flatMap(s=>load('data/national/'+s.file).records);
+const hist=pm.shards.flatMap(s=>load('data/programs/ipeds2025/'+s.file).institutions);
+const report=load('review/six-digit-without-joined-completions-20261015.json');
+test('pinned universes and row counts',()=>{assert.equal(rows.length,6243);assert.equal(new Set(rows.map(r=>r[0])).size,6243);assert.equal(hist.length,5658);assert.equal(hist.reduce((n,r)=>n+r[1].length,0),235330);});
+test('exact six-digit gap is 129 and all missing rows are enumerated',()=>{const have=new Set(hist.map(r=>r[0]));const expected=rows.filter(r=>/^[0-9]{6}$/.test(r[0])&&!have.has(r[0])).map(r=>r[0]).sort();assert.equal(expected.length,129);assert.deepEqual(report.institutions.map(r=>r.unitid),expected);});
+test('eight-digit records remain unjoined',()=>{assert.equal(rows.filter(r=>/^[0-9]{8}$/.test(r[0])).length,456);assert.equal(report.institutions.filter(r=>r.unitid.length!==6).length,0);});
+test('no invented causes or present-tense program claims',()=>{for(const r of report.institutions){assert.equal(r.absence_reason,'UNDETERMINED');assert.equal(r.current_program_availability,'NOT_INFERRED');assert.equal(r.institution_identity_join,'EXACT_SIX_DIGIT_UNITID');}});
+test('all descriptive counts reconcile to 129',()=>{for(const o of Object.values(report.descriptive_counts))assert.equal(Object.values(o).reduce((a,b)=>a+b,0),129);assert.equal(report.counts.unmatchedSix,129);assert.equal(report.counts.unmatchedAll,585);});
+test('prefix candidates never establish parent identity',()=>{const e=rows.filter(r=>/^[0-9]{8}$/.test(r[0]));const counts=new Map();for(const r of e){const p=r[0].slice(0,6);counts.set(p,(counts.get(p)||0)+1);}for(const r of report.institutions)assert.equal(r.eight_digit_prefix_matches,counts.get(r.unitid)||0);});
