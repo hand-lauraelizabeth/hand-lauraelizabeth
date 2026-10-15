@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 class Element {
-  constructor(tag=''){this.tag=tag;this.children=[];this.listeners={};this.value='';this.files=[];this.disabled=false;this.textContent='';}
+  constructor(tag=''){this.tag=tag;this.children=[];this.listeners={};this.value='';this.files=[];this.disabled=false;this.textContent='';this.attributes={};}
+  setAttribute(name,value){this.attributes[name]=String(value)}
+  removeAttribute(name){delete this.attributes[name]}
+  getAttribute(name){return this.attributes[name]??null}
   addEventListener(type,fn){this.listeners[type]=fn}
   dispatch(type){return this.listeners[type]?.()}
   replaceChildren(){this.children=[]}
   append(...items){this.children.push(...items)}
 }
-const ids=['source-json','matrix-search','matrix-mode','matrix-body','matrix-status','matrix-error','matrix-export'];
+const ids=['source-json','matrix-search','matrix-mode','matrix-body','matrix-status','matrix-error','matrix-export','matrix-clear'];
 const elements=Object.fromEntries(ids.map(id=>[id,new Element()]));
 elements['matrix-mode'].value='all';
 globalThis.document={getElementById:id=>elements[id],createElement:tag=>new Element(tag)};
