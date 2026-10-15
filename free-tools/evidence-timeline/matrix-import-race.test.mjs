@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 class El {
  constructor(tag=''){this.tag=tag;this.children=[];this.listeners={};this.value='';this.files=[];this.disabled=false;this.textContent='';}
+ setAttribute(k,v){this[k]=v}
+ removeAttribute(k){delete this[k]}
  addEventListener(k,f){this.listeners[k]=f}
  dispatch(k){return this.listeners[k]?.()}
  replaceChildren(){this.children=[]}
