@@ -7,4 +7,5 @@ assert.equal(findReviewGroups(items).length,1);
 assert.ok(exportEvidenceCSV(items).includes('sourceId,date,claim'));
 assert.throws(()=>normalizeEvidence([{sourceId:'A',date:'2025-02-29',claim:'invalid'}]));
 assert.throws(()=>normalizeEvidence([{sourceId:'A',date:'2024-01-01',claim:'x'},{sourceId:'A',date:'2024-01-02',claim:'y'}]));
-console.log('6 checks passed');
+assert.equal(exportEvidenceCSV(items).split(String.fromCharCode(13,10)).length,4);
+console.log('7 core checks passed');
