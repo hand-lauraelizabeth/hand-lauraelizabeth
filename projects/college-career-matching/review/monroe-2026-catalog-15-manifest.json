@@ -27,5 +27,17 @@
   "prior_review_institutions": 4,
   "review_institutions_if_combined": 5,
   "production_change": false,
-  "source_note": "All links are institution-owned catalog pages surfaced during 2026-10-15 research; 15 distinct program-code pages. Catalog edition year not asserted. Link-by-link HTTP audit and admissions cycle checks remain separate."
+  "source_note": "All links are institution-owned catalog pages surfaced during 2026-10-15 research; 15 distinct program-code pages. Catalog edition year not asserted. Link-by-link HTTP audit and admissions cycle checks remain separate.",
+  "combined_distinct_cip2020": 38,
+  "new_distinct_cip2020_vs_prior": 7,
+  "new_cip2020_codes": [
+    "11.0401",
+    "11.0901",
+    "14.0102",
+    "51.0601",
+    "51.0904",
+    "51.0909",
+    "51.9999"
+  ],
+  "coverage_denominator_note": "63 review-layer institutional program plans at 5 UNITIDs; 38 distinct CIP classifications. These counts are not the 6,243-school production universe."
 }
