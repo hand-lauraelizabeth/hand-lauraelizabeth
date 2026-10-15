@@ -34,4 +34,16 @@ The resources are newly authored tools that translate recurring curriculum-desig
 
 The objective prompts draw on course- and unit-level learning objectives, cognitive processes, and observable performance. The planning workflow extends through transfer, access, and instructor handoff. No entered information is sent to a server. Browser storage is available only when explicitly selected; exported files remain under the user's control.
 
+## Syllabus & Assessment Alignment Builder
+
+[Open the browser-based Syllabus & Assessment Alignment Builder](syllabus-assessment-builder.html). This standalone HTML resource helps plan a course from learning objectives through weekly practice, assessment evidence, and student-facing syllabus language. It works without an account; no entered information is sent to a server.
+
+- Import learning objectives, session descriptions, and ungraded evidence from a [Curriculum Planning Canvas](interactive-canvas.html) JSON export, or begin a new plan.
+- Map objectives to multiple sessions and formative or graded assessments; review missing alignment and feedback steps.
+- Check entered grade percentages against 100% and compare entered weekly independent-work estimates against a user-defined threshold.
+- Review important syllabus requirements without generating or claiming to verify institutional policy text.
+- Export an editable JSON plan or a readable draft syllabus (.txt), and print the draft for review.
+
+Use the draft as a starting point: confirm institutional policies, course-specific assessment validity, accessible materials, and final dates before distribution.
+
 [Back to Tools & Templates](../README.md)

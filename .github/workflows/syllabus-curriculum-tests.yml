@@ -1,0 +1,32 @@
+name: Syllabus and curriculum browser tests
+on:
+  push:
+    branches:
+      - feature/syllabus-assessment-builder-20261015
+  pull_request:
+    paths:
+      - 'resources/curriculum-lesson-design/**'
+      - '.github/workflows/syllabus-curriculum-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Core regression tests
+        run: node --test resources/curriculum-lesson-design/tests/syllabus-core.test.cjs
+      - name: Install headless browser dependency
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.3
+          npx playwright install --with-deps chromium
+      - name: Browser interaction, responsive layout, roundtrip export and cross-tool import
+        run: node resources/curriculum-lesson-design/tests/syllabus-browser.cjs
+      - name: Automated WCAG A and AA axe-core checks (desktop and mobile)
+        run: node resources/curriculum-lesson-design/tests/syllabus-accessibility.cjs
