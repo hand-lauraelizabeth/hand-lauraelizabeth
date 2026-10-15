@@ -32,6 +32,7 @@ jobs:
           node --check free-tools/evidence-timeline/exact-core.mjs
           node --check free-tools/evidence-timeline/matrix-ui.mjs
           node --check free-tools/evidence-timeline/core.mjs
+          node --check free-tools/evidence-timeline/exact-source-csv.test.mjs
       - name: Synthetic controller and stale-import tests
         run: |
           node free-tools/evidence-timeline/matrix-page.test.mjs
@@ -41,3 +42,6 @@ jobs:
           node free-tools/evidence-timeline/matrix-a11y-contract.test.mjs
           node free-tools/evidence-timeline/matrix-validation-recovery.test.mjs
           node free-tools/evidence-timeline/core.test.mjs
+          node free-tools/evidence-timeline/exact-source-csv.test.mjs
+      - name: Independent CSV cross-parser interoperability
+        run: python3 free-tools/evidence-timeline/csv-python-roundtrip.test.py
