@@ -1,0 +1,460 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Syllabus & Assessment Alignment Builder · Laura Elizabeth Hand</title></head><body><style>
+#leh-syllabus{--green:#173b30;--green2:#29654f;--ink:#27382e;--muted:#586b5d;--line:#d5e1d8;--soft:#f3f7f3;--pale:#e7efe9;--warning:#81551f;max-width:1120px;margin:0 auto;padding:20px 12px 60px;font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+#leh-syllabus *{box-sizing:border-box}#leh-syllabus .shell{border:1px solid var(--line);border-radius:20px;background:#fff;padding:clamp(18px,4vw,44px)}
+#leh-syllabus h1,#leh-syllabus h2,#leh-syllabus h3{color:var(--green)!important;line-height:1.19!important}
+#leh-syllabus h1{font:700 clamp(34px,5vw,56px)/1.08 Georgia,serif!important;margin:0 0 14px!important}
+#leh-syllabus h2{font:700 27px/1.2 Georgia,serif!important;margin:0 0 12px!important}
+#leh-syllabus h3{font-size:18px!important;margin:0 0 9px!important}
+#leh-syllabus p{margin:0 0 12px}#leh-syllabus .kicker{text-transform:uppercase;letter-spacing:.11em;font-size:12px;font-weight:800;color:var(--green2)}
+#leh-syllabus .lead{font-size:18px;color:var(--muted);max-width:850px}#leh-syllabus .small{font-size:13.5px;color:var(--muted)}
+#leh-syllabus .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+#leh-syllabus .panel{border:1px solid var(--line);border-radius:13px;padding:21px;margin:17px 0;background:#fff}
+#leh-syllabus .soft{background:var(--soft)}#leh-syllabus .section{border-top:1px solid var(--line);padding-top:28px;margin-top:27px}
+#leh-syllabus .actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}
+#leh-syllabus label{display:block;margin:12px 0 5px;font-weight:700}
+#leh-syllabus input[type=text],#leh-syllabus input[type=number],#leh-syllabus textarea,#leh-syllabus select,#leh-syllabus input[type=file]{width:100%;max-width:100%;border:1px solid #a7bbaa;border-radius:8px;background:#fff;color:var(--ink);font:inherit;padding:10px 11px}
+#leh-syllabus textarea{resize:vertical;min-height:84px}
+#leh-syllabus button{cursor:pointer;border:1px solid #688975;background:#fff;color:var(--green);border-radius:9px;font:700 14px/1.3 system-ui;padding:10px 14px}
+#leh-syllabus button.primary{background:var(--green);color:#fff;border-color:var(--green)}
+#leh-syllabus button:hover{background:var(--pale)}#leh-syllabus button.primary:hover{background:#315a46}
+#leh-syllabus button:focus-visible,#leh-syllabus textarea:focus-visible,#leh-syllabus select:focus-visible,#leh-syllabus input:focus-visible{outline:3px solid #81ae91;outline-offset:3px}
+#leh-syllabus .checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 13px}
+#leh-syllabus .check{display:flex;align-items:flex-start;gap:8px;font-size:14px;font-weight:500;margin:6px 0}
+#leh-syllabus .check input{flex:0 0 18px;width:18px;height:18px;margin:2px 0 0;accent-color:#235d48}
+#leh-syllabus .item{border:1px solid var(--line);border-radius:11px;padding:16px;margin:10px 0;overflow-wrap:anywhere}
+#leh-syllabus .itemheading{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+#leh-syllabus .item p{font-size:14px}#leh-syllabus .tiny{color:var(--muted);font-size:13px}
+#leh-syllabus .pill{display:inline-block;padding:4px 9px;border-radius:99px;background:var(--pale);font-size:12px;font-weight:800;color:var(--green)}
+#leh-syllabus .flag{margin:8px 0;border-left:4px solid #b57f34;background:#fff7ec;padding:10px 14px;font-size:14px}
+#leh-syllabus .ok{margin:8px 0;border-left:4px solid var(--green2);background:#edf7ee;padding:10px 14px;font-size:14px}
+#leh-syllabus .stats{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+#leh-syllabus .stat{padding:10px 14px;background:var(--soft);border-radius:10px;min-width:133px}
+#leh-syllabus .stat strong{display:block;color:var(--green);font-size:25px}
+#leh-syllabus .scroll{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:12px}
+#leh-syllabus table{border-collapse:collapse;min-width:670px;width:100%;font-size:14px}
+#leh-syllabus td,#leh-syllabus th{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+#leh-syllabus th{background:var(--soft);color:var(--green)}
+#leh-syllabus pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:16px;max-height:430px;overflow:auto;font:13px/1.55 ui-monospace,monospace}
+#leh-syllabus .status{min-height:20px;color:var(--green2);font-weight:700;font-size:14px}
+#leh-syllabus .nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}#leh-syllabus .nav a{border:1px solid var(--line);padding:8px 12px;border-radius:8px}
+#leh-syllabus a{color:#215d47;text-decoration:underline;text-underline-offset:3px}
+#leh-syllabus .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#leh-syllabus [hidden]{display:none!important}
+@media(max-width:760px){#leh-syllabus .grid,#leh-syllabus .checklist{grid-template-columns:1fr}#leh-syllabus .shell{padding:20px 16px}}
+@media print{#leh-syllabus form,#leh-syllabus button,#leh-syllabus input[type=file],#leh-syllabus .nav{display:none!important}#leh-syllabus .shell{border:0}#leh-syllabus pre{max-height:none}#leh-syllabus .grid{grid-template-columns:1fr}}
+</style>
+<div id="leh-syllabus"><div class="shell">
+<p class="kicker">Curriculum and instructional design / Interactive resource</p>
+<h1>Syllabus & Assessment Alignment Builder</h1>
+<p class="lead">Plan a course around what learners should be able to do. Link every objective to instructional practice and evidence of learning; then review grading, workload, resources, and the syllabus information students need.</p>
+<p class="small">This local-first planning tool has no account, analytics, or AI connection. Entries remain in the active browser session unless you download them. Avoid entering protected student data. Institutional policies and disciplinary requirements must be checked independently.</p>
+<nav class="nav" aria-label="Sections"><a href="#sy-course">Course</a><a href="#sy-outcomes">Objectives</a><a href="#sy-sequence">Sequence</a><a href="#sy-assessment">Assessments</a><a href="#sy-review">Review & export</a></nav>
+<section id="sy-course" class="section" aria-labelledby="sy-course-title"><h2 id="sy-course-title">1. Course context</h2>
+<div class="grid"><div class="panel">
+<label for="sy-course-name">Course or program name</label><input id="sy-course-name" type="text" data-meta="course" placeholder="e.g., Reasoning with Evidence">
+<label for="sy-code">Course code (optional)</label><input id="sy-code" type="text" data-meta="code">
+<label for="sy-term">Term or delivery period</label><input id="sy-term" type="text" data-meta="term">
+<label for="sy-learners">Learners and prerequisite knowledge</label><textarea id="sy-learners" data-meta="audience"></textarea>
+<label for="sy-purpose">Course purpose and authentic work</label><textarea id="sy-purpose" data-meta="description"></textarea>
+<label for="sy-format">Delivery format and modality</label><textarea id="sy-format" data-meta="format"></textarea>
+</div><div class="panel soft">
+<label for="sy-facilitator">Instructor or facilitator</label><input id="sy-facilitator" type="text" data-meta="instructor">
+<label for="sy-contact">Contact, availability, and office hours</label><textarea id="sy-contact" data-meta="contact"></textarea>
+<label for="sy-resources">Required/optional materials and access alternatives</label><textarea id="sy-resources" data-meta="resources"></textarea>
+<label for="sy-workload">Independent-work hours threshold per week (optional)</label><input id="sy-workload" type="number" min="0.5" max="168" step="0.5" data-meta="hoursCap" placeholder="e.g., 6">
+<p class="small">The review compares entered preparation hours for sessions with identical week labels. It does not estimate workload from readings or assignments.</p>
+<label for="sy-notes">Schedule notes and exceptions</label><textarea id="sy-notes" data-meta="scheduleNotes"></textarea>
+</div></div></section>
+<section id="sy-outcomes" class="section" aria-labelledby="sy-objectives-title"><h2 id="sy-objectives-title">2. Learning objectives</h2>
+<p>Use an observable action and the knowledge, reasoning, or skill learners should demonstrate. You can import an existing <a href="https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/blob/feature/curriculum-canvas-wordpress-20261014/resources/curriculum-lesson-design/interactive-canvas.html">Curriculum Planning Canvas</a> JSON export instead of retyping objectives.</p>
+<div class="grid"><form class="panel" id="sy-objective-form"><label for="sy-objective-text">Observable learning objective</label><textarea id="sy-objective-text" required maxlength="1500" placeholder="Learners will be able to compare sources using explicit evidence criteria."></textarea><div class="actions"><button type="submit" class="primary" id="sy-objective-submit">Add objective</button><button type="button" id="sy-objective-cancel" hidden>Cancel edit</button></div></form>
+<div class="panel"><h3>Recorded objectives</h3><div id="sy-objective-list" aria-live="polite">No objectives added.</div></div></div></section>
+<section id="sy-sequence" class="section" aria-labelledby="sy-sequence-title"><h2 id="sy-sequence-title">3. Weekly and session sequence</h2>
+<p>Plan readings, practice, and skills before assigning graded work. Weeks and sessions can have more than one objective.</p>
+<div class="grid"><form class="panel" id="sy-session-form">
+<div class="grid"><div><label for="sy-session-week">Week/session identifier</label><input id="sy-session-week" type="text" required maxlength="80" placeholder="Week 1"></div><div><label for="sy-session-hours">Independent-work hours</label><input id="sy-session-hours" type="number" min="0" max="168" step="0.25" placeholder="Optional"></div></div>
+<label for="sy-session-topic">Topic or guiding question</label><input id="sy-session-topic" type="text" required maxlength="250">
+<label for="sy-session-reading">Readings and materials</label><textarea id="sy-session-reading"></textarea>
+<label for="sy-session-activity">What will learners practice or produce?</label><textarea id="sy-session-activity" required></textarea>
+<fieldset class="panel soft"><legend>Learning objectives supported by this session</legend><div id="sy-session-mapping" class="checklist"></div></fieldset>
+<div class="actions"><button type="submit" class="primary" id="sy-session-submit">Add session</button><button type="button" id="sy-session-cancel" hidden>Cancel edit</button></div>
+</form><div class="panel"><h3>Course sequence</h3><div id="sy-session-list" aria-live="polite">No sessions added.</div></div></div></section>
+<section id="sy-assessment" class="section" aria-labelledby="sy-assessment-title"><h2 id="sy-assessment-title">4. Assessments and feedback</h2>
+<p>Distinguish formative evidence and feedback from grade-bearing assessment. State what is submitted or demonstrated—not merely an assessment name.</p>
+<div class="grid"><form class="panel" id="sy-assessment-form">
+<label for="sy-assessment-title-input">Assessment title</label><input id="sy-assessment-title-input" type="text" required maxlength="250">
+<div class="grid"><div><label for="sy-assessment-type">Assessment purpose</label><select id="sy-assessment-type"><option value="Formative">Formative / ungraded</option><option value="Graded">Graded</option></select></div><div><label for="sy-assessment-weight">Contribution to final grade (%)</label><input id="sy-assessment-weight" type="number" min="0" max="100" step="0.01" disabled placeholder="Ungraded"></div></div>
+<label for="sy-assessment-week">Expected timing</label><input id="sy-assessment-week" type="text" maxlength="80" placeholder="Week 3">
+<label for="sy-assessment-evidence">What observable evidence demonstrates the objective?</label><textarea id="sy-assessment-evidence" required></textarea>
+<label for="sy-assessment-feedback">Feedback and opportunity to use it</label><textarea id="sy-assessment-feedback"></textarea>
+<fieldset class="panel soft"><legend>Learning objectives assessed</legend><div id="sy-assessment-mapping" class="checklist"></div></fieldset>
+<div class="actions"><button type="submit" class="primary" id="sy-assessment-submit">Add assessment</button><button type="button" id="sy-assessment-cancel" hidden>Cancel edit</button></div>
+</form><div class="panel"><h3>Assessment plan</h3><div id="sy-assessment-list" aria-live="polite">No assessments added.</div></div></div></section>
+<section class="section" aria-labelledby="sy-policy-title"><h2 id="sy-policy-title">5. Institutional requirements and accessibility</h2>
+<p>Use the checklist to record what you have verified. It does not supply institutional policies or certify a syllabus as compliant.</p>
+<div class="grid"><div class="panel"><h3>Verification checklist</h3><div id="sy-policy-checks" class="checklist"></div></div><div class="panel soft"><label for="sy-policies">Applicable policy wording and source references</label><textarea id="sy-policies" data-meta="policies" placeholder="Use wording from your institution and link the source when appropriate."></textarea><p class="small">Consider accommodations, academic integrity, late/make-up work, grading, religious observance, accessible course materials, and permitted AI use. Do not paste private student records.</p></div></div></section>
+<section id="sy-review" class="section" aria-labelledby="sy-review-title"><h2 id="sy-review-title">6. Alignment review and exports</h2>
+<div class="stats" id="sy-stats" aria-live="polite"></div><div class="grid"><div class="panel"><h3>Review flags</h3><p class="small">The checks detect missing mappings, incomplete assessment evidence, grading-weight arithmetic, and entered workload thresholds. They cannot judge disciplinary accuracy or certify accessibility.</p><div id="sy-flags"></div></div>
+<div class="panel soft"><h3>Export and import</h3><div class="actions"><button class="primary" type="button" id="sy-export-json">Export editable JSON</button><button type="button" id="sy-export-text">Export draft syllabus (.txt)</button><button type="button" id="sy-copy">Copy syllabus</button><button type="button" id="sy-print">Print</button></div>
+<label for="sy-import">Open a previously exported syllabus plan or curriculum canvas (.json)</label><input id="sy-import" type="file" accept=".json,application/json">
+<p class="small">Import replaces the working plan after confirmation. The source file is read locally, with a 400 KB size limit. Export a backup first.</p>
+<div class="actions"><button type="button" id="sy-sample">Load synthetic example</button><button type="button" id="sy-clear">Clear working plan</button></div><p class="status" id="sy-status" role="status" aria-live="polite"></p></div></div>
+<h3>Objective-to-practice-to-assessment matrix</h3><div class="scroll"><table><thead><tr><th scope="col">Objective</th><th scope="col">Instruction and practice</th><th scope="col">Evidence and assessment</th></tr></thead><tbody id="sy-matrix"></tbody></table></div>
+<h3 style="margin-top:20px!important">Student-facing draft syllabus</h3><pre id="sy-syllabus" tabindex="0" aria-label="Draft syllabus text"></pre>
+<p class="small">Method: backward design and alignment among learning outcomes, practice, feedback, and assessment. References: <a href="https://www.cmu.edu/teaching/designteach/syllabus/checklist/">Carnegie Mellon Eberly Center syllabus checklist</a>; <a href="https://www.cmu.edu/teaching/designteach/syllabus/newcourse/assessments.html">CMU assessment planning</a>; <a href="https://teaching.cornell.edu/teaching-resources/preparing-teach/designing-your-course/write-course-syllabus/create-student">Cornell student-centered syllabus guidance</a>. This is an independent planning aid by Laura Elizabeth Hand, not endorsed by these institutions.</p>
+</section>
+</div></div><script>/* Syllabus & Assessment Alignment Builder — client-side, no network calls.
+   Independent educational planning resource by Laura Elizabeth Hand. */
+(function (host, factory) {
+  const api = factory();
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  if (host) host.LEHSyllabusCore = api;
+})(typeof window !== "undefined" ? window : null, function () {
+  "use strict";
+  const KIND = "leh-syllabus-studio", MAX_ITEMS = 100;
+  const META_FIELDS = ["course","code","term","audience","description","format","resources","instructor","contact","policies","hoursCap","scheduleNotes"];
+  const POLICY_CHECKS = [
+    ["access","Accessibility and accommodations: verify official institutional language"],
+    ["integrity","Academic integrity and collaboration expectations"],
+    ["late","Late and make-up work expectations"],
+    ["ai","AI-assisted work permissions and documentation"],
+    ["grading","Grading and reassessment expectations"],
+    ["contact","Communication channels and response expectations"]
+  ];
+  const str = (x, max=5000) => String(x ?? "").slice(0,max).trim();
+  const num = x => (x === "" || x === null || typeof x === "undefined") ? null :
+    (typeof x === "number" || (typeof x === "string" && x.trim()!=="" && Number.isFinite(Number(x)))) ? Number(x) : NaN;
+  function fresh() { return {kind:KIND,version:1,meta:Object.fromEntries(META_FIELDS.map(k=>[k,""])),policyChecks:{},objectives:[],sessions:[],assessments:[]}; }
+  function identifier(prefix, data) {
+    const used = new Set(data.map(x=>x.id));
+    let i=1; while(used.has(prefix+i)) i++;
+    return prefix+i;
+  }
+  function uniqueIds(xs) {
+    return [...new Set(Array.isArray(xs) ? xs.filter(x=>typeof x==="string" && x) : [])];
+  }
+  function normalizeObjective(o,id) {
+    return {id:str(o.id||id,40),text:str(o.text||o.sentence||o.label,1500),source:str(o.source||"authored",80)};
+  }
+  function normalizeSession(s,id) {
+    return {id:str(s.id||id,40),week:str(s.week,80),topic:str(s.topic,250),activity:str(s.activity,1500),
+      reading:str(s.reading,1500),hours:num(s.hours),objectiveIds:uniqueIds(s.objectiveIds)};
+  }
+  function normalizeAssessment(a,id) {
+    return {id:str(a.id||id,40),title:str(a.title,250),type:a.type==="Formative"?"Formative":"Graded",
+      week:str(a.week,80),weight:num(a.weight),evidence:str(a.evidence,1500),feedback:str(a.feedback,1500),
+      objectiveIds:uniqueIds(a.objectiveIds)};
+  }
+  function validate(state) {
+    if (!state || state.kind !== KIND || state.version!==1 || !state.meta ||
+      !Array.isArray(state.objectives) || !Array.isArray(state.sessions) || !Array.isArray(state.assessments)) {
+      throw new Error("Unsupported syllabus plan format.");
+    }
+    const sections=["objectives","sessions","assessments"];
+    sections.forEach(k=>{if(state[k].length>MAX_ITEMS)throw new Error("Maximum "+MAX_ITEMS+" "+k+" per plan.");});
+    const clean=fresh();
+    META_FIELDS.forEach(k=>clean.meta[k]=str(state.meta[k],5000));
+    POLICY_CHECKS.forEach(([k])=>clean.policyChecks[k] = !!(state.policyChecks&&state.policyChecks[k]===true));
+    clean.objectives=state.objectives.map((o,i)=>normalizeObjective(o,"O"+(i+1)));
+    clean.sessions=state.sessions.map((o,i)=>normalizeSession(o,"S"+(i+1)));
+    clean.assessments=state.assessments.map((o,i)=>normalizeAssessment(o,"A"+(i+1)));
+    for(const key of sections) {
+      const ids=clean[key].map(x=>x.id);
+      if(new Set(ids).size!==ids.length||ids.some(x=>!x||!(/^[A-Za-z][A-Za-z0-9_-]{0,39}$/.test(x)))) {
+        throw new Error("Duplicate or invalid "+key+" identifiers.");
+      }
+    }
+    const validObjectives=new Set(clean.objectives.map(x=>x.id));
+    [...clean.sessions,...clean.assessments].forEach(entry=>{
+      if(entry.objectiveIds.some(id=>!validObjectives.has(id)))throw new Error("A mapped objective does not exist: "+entry.id);
+    });
+    clean.sessions.forEach(s=>{if(s.hours!==null&&(!Number.isFinite(s.hours)||s.hours<0||s.hours>168))
+      throw new Error("Invalid preparation hours for "+s.id);});
+    clean.assessments.forEach(a=>{
+      if(a.weight!==null&&(!Number.isFinite(a.weight)||a.weight<0||a.weight>100))throw new Error("Invalid grading weight for "+a.id);
+      if(a.type==="Formative"&&a.weight!==null&&a.weight!==0)throw new Error("Formative assessments cannot carry a grading weight.");
+    });
+    return clean;
+  }
+  function fromCanvas(raw) {
+    if(!raw || raw.format!=="leh-curriculum-canvas" || raw.version!==1 ||
+       !raw.fields || !Array.isArray(raw.objectives) || !Array.isArray(raw.modules))
+      throw new Error("Not an exported Curriculum Planning Canvas (version 1).");
+    if(raw.objectives.length>MAX_ITEMS||raw.modules.length>MAX_ITEMS)throw new Error("Canvas contains too many entries.");
+    const data=fresh(), f=raw.fields;
+    data.meta.course=str(f.title);data.meta.audience=str(f.audience);
+    data.meta.description=str(f.task); data.meta.format=str(f.format);
+    data.meta.resources=str(f.access ? "Access considerations: "+f.access : "");
+    data.objectives=raw.objectives.map((o,i)=>normalizeObjective({text:o.sentence||["Learners will be able to",o.verb,o.knowledge].join(" "),source:"curriculum-canvas"},"O"+(i+1)));
+    data.sessions=raw.modules.map((m,i)=>{
+      const mapped=Number(m.target);
+      const objectiveIds=Number.isInteger(mapped)&&mapped>=1&&mapped<=data.objectives.length?["O"+mapped]:[];
+      return normalizeSession({id:"S"+(i+1),week:"Session "+(i+1),topic:m.name,
+        activity:m.activity,reading:"",hours:null,objectiveIds},"S"+(i+1));
+    });
+    // The canvas has practice/assessment evidence per module, but not graded work.
+    // Preserve that evidence as ungraded formative records without inventing grading percentages.
+    raw.modules.forEach((m,i)=>{
+      if(!str(m.evidence))return;
+      const target=data.sessions[i].objectiveIds;
+      data.assessments.push(normalizeAssessment({id:"A"+(data.assessments.length+1),
+        title:str(m.name)||"Session "+(i+1),type:"Formative",week:"Session "+(i+1),weight:null,
+        evidence:m.evidence,feedback:str(f.feedback),objectiveIds:target},"A"+(data.assessments.length+1)));
+    });
+    data.meta.scheduleNotes="Imported from Curriculum Planning Canvas. Verify all dates, requirements, assignments, and institution-specific policies before using with students.";
+    return validate(data);
+  }
+  function alignment(state) {
+    const d=validate(state), result=[];
+    for(const o of d.objectives) {
+      const sessions=d.sessions.filter(s=>s.objectiveIds.includes(o.id));
+      const assessments=d.assessments.filter(a=>a.objectiveIds.includes(o.id));
+      result.push({id:o.id,objective:o.text,sessions:sessions.map(s=>s.id),
+        assessments:assessments.map(a=>a.id),
+        practice:sessions.some(s=>!!s.activity),
+        evidence:assessments.some(a=>!!a.evidence)});
+    }
+    return result;
+  }
+  function review(state) {
+    const d=validate(state), flags=[];
+    function flag(type,message){flags.push({type,message});}
+    if(!d.meta.course)flag("missing","Add the course or workshop title.");
+    if(!d.meta.audience)flag("missing","Describe learners and starting conditions.");
+    if(!d.objectives.length)flag("missing","Add at least one measurable learning objective.");
+    if(!d.sessions.length)flag("missing","Add the course or session sequence.");
+    if(!d.assessments.length)flag("missing","Add assessment evidence.");
+    const map=alignment(d);
+    map.forEach(m=>{
+      if(!m.sessions.length)flag("alignment",m.id+" has no linked session or practice.");
+      if(!m.practice)flag("alignment",m.id+" has no described instructional activity.");
+      if(!m.assessments.length)flag("alignment",m.id+" has no linked assessment.");
+      if(!m.evidence)flag("alignment",m.id+" has no described assessment evidence.");
+    });
+    d.sessions.forEach(s=>{
+      if(!s.objectiveIds.length)flag("alignment",s.id+" has no mapped objective.");
+      if(!s.topic)flag("missing",s.id+" needs a topic.");
+      if(!s.activity)flag("missing",s.id+" needs a learning activity.");
+    });
+    d.assessments.forEach(a=>{
+      if(!a.objectiveIds.length)flag("alignment",a.id+" has no mapped objective.");
+      if(!a.evidence)flag("missing",a.id+" needs evidence/assessment criteria.");
+      if(!a.feedback)flag("review",a.id+" needs a feedback or review plan.");
+      if(a.type==="Graded"&&a.weight===null)flag("grade",a.id+" needs a grading weight.");
+      if(a.type==="Formative"&&a.weight===null){} // expected: no grade
+    });
+    const graded=d.assessments.filter(a=>a.type==="Graded");
+    const allWeighted=graded.every(a=>a.weight!==null);
+    const sum=graded.reduce((n,a)=>n+(a.weight||0),0);
+    if(graded.length && allWeighted && Math.abs(sum-100)>0.001)
+      flag("grade","Grading weights total "+round(sum)+"%, not 100%.");
+    if(!graded.length)flag("review","No graded assessments. Confirm whether this is an intentionally ungraded learning experience.");
+    const cap=num(d.meta.hoursCap);
+    if(cap!==null) {
+      if(!Number.isFinite(cap)||cap<=0||cap>168)flag("workload","Enter a realistic positive hours-per-week threshold, or leave it blank.");
+      else {
+        const weeks=new Map();
+        d.sessions.forEach(s=>{if(s.week&&s.hours!==null)weeks.set(s.week,(weeks.get(s.week)||0)+s.hours)});
+        weeks.forEach((hours,week)=>{if(hours>cap)flag("workload",week+" has "+round(hours)+" estimated independent-work hours (threshold "+round(cap)+").");});
+      }
+    }
+    POLICY_CHECKS.forEach(([key,title])=>{
+      if(!d.policyChecks[key])flag("policy",title+" — confirm against your institution.");
+    });
+    if(!d.meta.resources)flag("review","List required and optional learning resources and access alternatives.");
+    return {flags,gradedWeightTotal:round(sum),gradedCount:graded.length,formativeCount:d.assessments.length-graded.length,
+      objectives:d.objectives.length,aligned:map.filter(m=>m.practice&&m.evidence).length,matrix:map};
+  }
+  function round(x){return Math.round(x*100)/100;}
+  function syllabusText(state) {
+    const d=validate(state),a=[],add=(...x)=>a.push(...x);
+    add("COURSE PLAN / DRAFT SYLLABUS",d.meta.course||"[Course title required]",d.meta.code?("Course code: "+d.meta.code):"",d.meta.term?("Term: "+d.meta.term):"");
+    add("","PURPOSE & LEARNERS",d.meta.description||"[Course purpose not entered]",d.meta.audience||"[Learner context not entered]");
+    add("","FORMAT & CONTACT",d.meta.format||"[Delivery format not entered]",d.meta.instructor||"[Instructor / facilitator not entered]",d.meta.contact||"[Contact and availability not entered]");
+    add("","LEARNING OUTCOMES");
+    d.objectives.forEach(o=>add(o.id+". "+o.text));
+    add("","EVALUATION & ASSESSMENT");
+    d.assessments.forEach(x=>add(x.title+" ["+x.type+"]"+(x.weight!==null?" — "+x.weight+"%":""),"Timing: "+(x.week||"Not scheduled"),"Evidence: "+(x.evidence||"Not specified"),"Feedback: "+(x.feedback||"Not specified"),"Aligned outcomes: "+(x.objectiveIds.join(", ")||"Not mapped")));
+    add("","WEEKLY / SESSION OUTLINE");
+    d.sessions.forEach(x=>add((x.week||"Unscheduled")+" — "+(x.topic||"Untitled session"),"Practice: "+(x.activity||"Not specified"),"Resources: "+(x.reading||"Not specified"),"Aligned outcomes: "+(x.objectiveIds.join(", ")||"Not mapped"),"Estimated independent work: "+(x.hours===null?"Not estimated":x.hours+" hours")));
+    add("","LEARNING MATERIALS & ACCESS",d.meta.resources||"[Materials and alternatives not entered]");
+    add("","POLICIES — REVIEW AGAINST YOUR INSTITUTION",d.meta.policies||"[Institutional policies not supplied. Do not assume a generic sample meets institutional requirements.]");
+    add("","SCHEDULE NOTES",d.meta.scheduleNotes||"[No additional notes]");
+    add("","METHOD NOTE","Planning draft generated locally. Verify institutional policies, actual dates, grade calculations, disciplinary assessment validity, accessibility, and resource availability before distribution.");
+    return a.filter((v,i)=>v!==""||a[i-1]!=="").join("\n");
+  }
+  return {KIND, POLICY_CHECKS, fresh, validate, fromCanvas, alignment, review, syllabusText, identifier,normalizeObjective,normalizeSession,normalizeAssessment};
+});</script><script>
+(function(){
+"use strict";
+const root=document.getElementById("leh-syllabus"),api=window.LEHSyllabusCore;
+if(!root||!api||root.dataset.active==="true")return;
+root.dataset.active="true"; const get=id=>root.querySelector("#"+id);
+let state=api.fresh(),editing={objective:null,session:null,assessment:null};
+const all=sel=>[...root.querySelectorAll(sel)];
+function node(tag,text,className){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e}
+function note(msg){get("sy-status").textContent=msg}
+function readMeta(){all("[data-meta]").forEach(el=>state.meta[el.dataset.meta]=el.value);
+ all("[data-policy]").forEach(el=>state.policyChecks[el.dataset.policy]=el.checked);
+}
+function fillMeta(){all("[data-meta]").forEach(el=>el.value=state.meta[el.dataset.meta]||"");
+ all("[data-policy]").forEach(el=>el.checked=!!state.policyChecks[el.dataset.policy]);}
+function clearForm(which){const f=get("sy-"+which+"-form");f.reset();editing[which]=null;
+ const b=get("sy-"+which+"-submit");b.textContent=which==="objective"?"Add objective":which==="session"?"Add session":"Add assessment";
+ get("sy-"+which+"-cancel").hidden=true;if(which==="assessment")changeType();
+ buildMaps();}
+function buildMaps(selectedSession=[],selectedAssessment=[]){
+ for(const [elId,selected] of [["sy-session-mapping",selectedSession],["sy-assessment-mapping",selectedAssessment]]){
+ const wrapper=get(elId);wrapper.replaceChildren();
+ if(!state.objectives.length){wrapper.append(node("p","Add at least one objective first.","small"));continue;}
+ state.objectives.forEach(o=>{
+ const label=node("label",undefined,"check"),box=document.createElement("input"),name=node("span",o.id+" · "+o.text);
+ box.type="checkbox";box.value=o.id;box.checked=selected.includes(o.id);
+ label.append(box,name);wrapper.append(label);
+ });
+ }
+}
+function chosen(parent){return [...get(parent).querySelectorAll("input:checked")].map(x=>x.value)}
+function editBtn(text,fn){const b=node("button",text);b.type="button";b.addEventListener("click",fn);return b}
+function card(title,meta,lines,edit,remove){
+ const el=node("article",undefined,"item"),head=node("div",undefined,"itemheading"),t=node("div");t.append(node("h3",title),node("span",meta,"pill"));
+ const buttons=node("div",undefined,"actions");
+ buttons.append(editBtn("Edit",edit),editBtn("Remove",remove));head.append(t,buttons);el.append(head);
+ lines.forEach(([name,value])=>{const p=node("p");p.append(node("strong",name+": "),node("span",value||"Not entered"));el.append(p)});
+ return el;
+}
+function renderObjectives(){
+ const host=get("sy-objective-list");host.replaceChildren();
+ if(!state.objectives.length)host.append(node("p","No objectives added.","small"));
+ state.objectives.forEach(o=>host.append(card(o.id,o.source,[["Outcome",o.text]],()=>{
+  editing.objective=o.id;get("sy-objective-text").value=o.text;get("sy-objective-submit").textContent="Save objective";
+  get("sy-objective-cancel").hidden=false;get("sy-objective-text").focus();
+ },()=>{
+  if(!confirm("Remove "+o.id+" and its mappings from sessions and assessments?"))return;
+  state.objectives=state.objectives.filter(x=>x.id!==o.id);
+  [...state.sessions,...state.assessments].forEach(x=>x.objectiveIds=x.objectiveIds.filter(id=>id!==o.id));
+  clearForm("objective");render();
+ })));
+}
+function renderSessions(){
+ const host=get("sy-session-list");host.replaceChildren();
+ if(!state.sessions.length)host.append(node("p","No sessions added.","small"));
+ state.sessions.forEach(s=>host.append(card(s.week||s.id,s.id,[["Topic",s.topic],["Activity",s.activity],["Readings",s.reading],
+ ["Estimated preparation",s.hours===null?"Not entered":s.hours+" hours"],["Objectives",s.objectiveIds.join(", ")]],()=>{
+  editing.session=s.id;get("sy-session-week").value=s.week;get("sy-session-hours").value=s.hours===null?"":s.hours;
+  get("sy-session-topic").value=s.topic;get("sy-session-reading").value=s.reading;get("sy-session-activity").value=s.activity;
+  buildMaps(s.objectiveIds);get("sy-session-submit").textContent="Save session";get("sy-session-cancel").hidden=false;get("sy-session-topic").focus();
+ },()=>{if(!confirm("Remove "+s.id+"?"))return;state.sessions=state.sessions.filter(x=>x.id!==s.id);clearForm("session");render()})));
+}
+function renderAssessments(){
+ const host=get("sy-assessment-list");host.replaceChildren();
+ if(!state.assessments.length)host.append(node("p","No assessments added.","small"));
+ state.assessments.forEach(a=>host.append(card(a.title,a.id+" · "+a.type,
+ [["Timing",a.week],["Grade weight",a.weight===null?"Not assigned":a.weight+"%"],["Evidence",a.evidence],
+ ["Feedback",a.feedback],["Objectives",a.objectiveIds.join(", ")]],()=>{
+  editing.assessment=a.id;get("sy-assessment-title-input").value=a.title;
+  get("sy-assessment-type").value=a.type;changeType();
+  get("sy-assessment-weight").value=a.weight===null?"":a.weight;
+  get("sy-assessment-week").value=a.week;get("sy-assessment-evidence").value=a.evidence;
+  get("sy-assessment-feedback").value=a.feedback;buildMaps([],a.objectiveIds);
+  get("sy-assessment-submit").textContent="Save assessment";get("sy-assessment-cancel").hidden=false;get("sy-assessment-title-input").focus();
+ },()=>{if(!confirm("Remove "+a.id+"?"))return;state.assessments=state.assessments.filter(x=>x.id!==a.id);
+ clearForm("assessment");render()})));
+}
+function changeType(){const grade=get("sy-assessment-type").value==="Graded",weight=get("sy-assessment-weight");
+ weight.disabled=!grade;weight.required=grade;if(!grade){weight.value="";weight.placeholder="Ungraded"}else weight.placeholder="Required, 0–100";}
+get("sy-assessment-type").addEventListener("change",changeType);
+function renderReview(){
+ readMeta();let report;
+ try{report=api.review(state)}catch(e){note("Review error: "+e.message);return}
+ const stats=get("sy-stats");stats.replaceChildren();
+ for(const [value,label] of [[report.objectives,"Outcomes"],[report.aligned,"Aligned"],[report.gradedWeightTotal+"%","Graded total"],[report.flags.length,"Open checks"]]){
+ const box=node("div",undefined,"stat");box.append(node("strong",value),node("span",label));stats.append(box)}
+ const flags=get("sy-flags");flags.replaceChildren();
+ if(!report.flags.length)flags.append(node("p","Structural checks complete. Confirm disciplinary accuracy, institutional policies, and accessibility independently.","ok"));
+ report.flags.forEach(x=>flags.append(node("p",x.message,"flag")));
+ const tbody=get("sy-matrix");tbody.replaceChildren();
+ if(!report.matrix.length){const tr=node("tr"),td=node("td","Add objectives to view alignment.");td.colSpan=3;tr.append(td);tbody.append(tr)}
+ report.matrix.forEach(m=>{const tr=node("tr");
+ const o=node("th",m.id+" · "+m.objective);o.scope="row";
+ tr.append(o,node("td",m.sessions.join(", ")||"Not linked"),node("td",m.assessments.join(", ")||"Not linked"));tbody.append(tr)});
+ get("sy-syllabus").textContent=api.syllabusText(state);
+}
+function render(){renderObjectives();renderSessions();renderAssessments();buildMaps();renderReview()}
+function makePolicyList(){const host=get("sy-policy-checks");
+ api.POLICY_CHECKS.forEach(([key,title])=>{const label=node("label",undefined,"check"),box=node("input"),text=node("span",title);
+ box.type="checkbox";box.dataset.policy=key;box.addEventListener("change",renderReview);label.append(box,text);host.append(label)})}
+get("sy-objective-form").addEventListener("submit",e=>{
+ e.preventDefault();const text=get("sy-objective-text").value.trim();if(!text){note("Describe an objective.");return}
+ if(editing.objective){state.objectives.find(o=>o.id===editing.objective).text=text}
+ else{if(state.objectives.length>=100){note("100-objective limit.");return}
+ state.objectives.push(api.normalizeObjective({text,source:"authored"},api.identifier("O",state.objectives)))}
+ clearForm("objective");render();note("Objective saved.")});
+get("sy-session-form").addEventListener("submit",e=>{
+ e.preventDefault();
+ const hours=get("sy-session-hours").value; const v={week:get("sy-session-week").value,topic:get("sy-session-topic").value,
+ activity:get("sy-session-activity").value,reading:get("sy-session-reading").value,hours:hours===""?null:Number(hours),objectiveIds:chosen("sy-session-mapping")};
+ try{const previous=editing.session, id=previous||api.identifier("S",state.sessions),record=api.normalizeSession(v,id);
+ if(previous)state.sessions[state.sessions.findIndex(x=>x.id===id)]=record;
+ else{if(state.sessions.length>=100)throw Error("100-session limit.");state.sessions.push(record)}
+ state=api.validate(state);clearForm("session");render();note("Session saved.");
+ }catch(err){note(err.message)}});
+get("sy-assessment-form").addEventListener("submit",e=>{
+ e.preventDefault();const weight=get("sy-assessment-weight").value;
+ const v={title:get("sy-assessment-title-input").value,type:get("sy-assessment-type").value,
+ week:get("sy-assessment-week").value,weight:weight===""?null:Number(weight),
+ evidence:get("sy-assessment-evidence").value,feedback:get("sy-assessment-feedback").value,
+ objectiveIds:chosen("sy-assessment-mapping")};
+ try{const previous=editing.assessment,id=previous||api.identifier("A",state.assessments);
+ const record=api.normalizeAssessment(v,id);
+ if(previous)state.assessments[state.assessments.findIndex(x=>x.id===id)]=record;
+ else{if(state.assessments.length>=100)throw Error("100-assessment limit.");state.assessments.push(record)}
+ state=api.validate(state);clearForm("assessment");render();note("Assessment saved.")
+ }catch(err){note(err.message)}});
+["objective","session","assessment"].forEach(k=>get("sy-"+k+"-cancel").addEventListener("click",()=>clearForm(k)));
+all("[data-meta]").forEach(el=>el.addEventListener("input",renderReview));
+function down(filename,mime,contents){const b=new Blob([contents],{type:mime}),url=URL.createObjectURL(b),a=document.createElement("a");
+ a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+get("sy-export-json").addEventListener("click",()=>{try{readMeta();down("syllabus-alignment-plan.json","application/json",JSON.stringify(api.validate(state),null,2));note("Editable JSON exported.")}catch(e){note(e.message)}});
+get("sy-export-text").addEventListener("click",()=>{try{readMeta();down("draft-syllabus.txt","text/plain;charset=utf-8",api.syllabusText(state));note("Draft syllabus exported.")}catch(e){note(e.message)}});
+get("sy-copy").addEventListener("click",()=>{readMeta();
+ if(!navigator.clipboard||!navigator.clipboard.writeText){note("Copy unavailable; select the draft syllabus text.");return}
+ navigator.clipboard.writeText(api.syllabusText(state)).then(()=>note("Draft copied."),()=>note("Clipboard access denied; select the text instead."))});
+get("sy-print").addEventListener("click",()=>{renderReview();window.print()});
+get("sy-import").addEventListener("change",function(){
+ const file=this.files&&this.files[0];this.value="";if(!file)return;
+ if(file.size>400000){note("Import exceeds 400 KB limit.");return}
+ const reader=new FileReader();reader.onerror=()=>note("Unable to read file.");
+ reader.onload=()=>{let obj;try{
+ obj=JSON.parse(reader.result);
+ const prepared=obj.format==="leh-curriculum-canvas"?api.fromCanvas(obj):api.validate(obj);
+ if(!confirm("Replace your current working plan with this file? Export a backup first if needed."))return;
+ state=prepared;["objective","session","assessment"].forEach(clearForm);fillMeta();render();note("Plan imported. Verify sequence, grade weights, and local policies.");
+ }catch(e){note("Import rejected: "+e.message)}};
+ reader.readAsText(file);
+});
+get("sy-clear").addEventListener("click",()=>{
+ if(!confirm("Clear this browser-session plan? Export it first if needed."))return;
+ state=api.fresh();["objective","session","assessment"].forEach(clearForm);fillMeta();render();note("Plan cleared.")});
+get("sy-sample").addEventListener("click",()=>{
+ if(!confirm("Replace the current plan with a synthetic example?"))return;
+ const d=api.fresh();
+ d.meta={...d.meta,course:"Reasoning with evidence",code:"DEMO-101",term:"Example term",
+ audience:"Adult learners preparing to make evidence-based project decisions",
+ description:"Evaluate two options and make a supported decision under practical constraints.",
+ format:"Three live sessions with asynchronous preparation",resources:"Provided sample briefs and accessible text worksheets",
+ policies:"Example only: replace with policies from the relevant institution.",hoursCap:"4"};
+ d.objectives=[
+ api.normalizeObjective({text:"Learners will compare two competing proposals using consistent criteria."},"O1"),
+ api.normalizeObjective({text:"Learners will justify a recommendation using documented evidence and uncertainty."},"O2")];
+ d.sessions=[
+ api.normalizeSession({week:"Week 1",topic:"Question and criteria",activity:"Identify criteria and critique one sample",reading:"Scenario brief",hours:2,objectiveIds:["O1"]},"S1"),
+ api.normalizeSession({week:"Week 2",topic:"Evidence appraisal",activity:"Compare proposals in a structured worksheet",reading:"Two source summaries",hours:3,objectiveIds:["O1","O2"]},"S2"),
+ api.normalizeSession({week:"Week 3",topic:"Recommendation and revision",activity:"Present a reasoned decision and revise after feedback",reading:"Review rubric",hours:2,objectiveIds:["O2"]},"S3")];
+ d.assessments=[
+ api.normalizeAssessment({title:"Comparison draft",type:"Formative",week:"Week 2",evidence:"Completed criteria matrix",feedback:"Peer and instructor comments on the comparison",objectiveIds:["O1"]},"A1"),
+ api.normalizeAssessment({title:"Decision memo",type:"Graded",week:"Week 3",weight:100,evidence:"A recommendation with evidence, uncertainty, and an alternative",feedback:"Rubric with revision notes",objectiveIds:["O1","O2"]},"A2")];
+ state=api.validate(d);["objective","session","assessment"].forEach(clearForm);fillMeta();render();note("Synthetic example loaded. Institutional policy checks remain open.")});
+makePolicyList();render();
+})();
+</script></body></html>
