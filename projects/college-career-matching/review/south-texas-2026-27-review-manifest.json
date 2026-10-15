@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "status": "review_only_not_live",
+  "institution": "South Texas College",
+  "unitid": "409315",
+  "unitid_source": "https://nces.ed.gov/ipeds/institution-profile/409315",
+  "catalog_year": "2026-2027",
+  "records": 35,
+  "distinct_cip": 23,
+  "source_detail_links": 34,
+  "roster_only": 1,
+  "credential_codes": {
+    "CERT": "Certificate",
+    "AAS": "Associate of Applied Science",
+    "AA": "Associate of Arts",
+    "AS": "Associate of Science",
+    "BS": "Bachelor of Science"
+  },
+  "source_accessed": "2026-10-15",
+  "join_note": "Editorial review IDs are not institution-issued program IDs. Match UNITID against pinned national data before any integration.",
+  "evidence_limits": [
+    "Catalog listing does not verify active intake or current-cycle deadlines.",
+    "CIP classification does not imply equivalent credentials, RN/LVN licensing, or career eligibility.",
+    "Do not infer SAT/ACT test policy from missing score overlays.",
+    "Do not infer licensing board approval from institutional prose.",
+    "No CIP-SOC crosswalk is authorized."
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "publication_status": "review_only_not_live",
+  "unitid": "409315",
+  "institution": "South Texas College",
+  "catalog_edition": "2026-2027",
+  "source_accessed": "2026-10-15",
+  "program_specific_policies": [
+    {
+      "scope": "Associate Degree Nursing competitive-entry program",
+      "source_url": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/associate-degree-nursing/",
+      "evidence": "Catalog requires HESI A2 English Language Composite, Anatomy & Physiology science and Math at 75% or higher, minimum cumulative GPA 3.0, and specified prerequisite grades of B or better.",
+      "exam": "HESI A2",
+      "minimum_exam_percent": 75,
+      "minimum_cumulative_gpa": 3,
+      "application_deadline": null,
+      "deadline_status": "not_verified_for_current_cycle",
+      "exclusions": "Not general college SAT/ACT policy; cannot be assigned to RN-to-BSN, Vocational Nursing or other allied health programs."
+    },
+    {
+      "scope": "Medical Assistant Technology certificate and AAS",
+      "source_url": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/selective-programs/medical-assistant-technology/",
+      "evidence": "Catalog states selective program, minimum cumulative GPA 2.5 for courses completed at STC, program application and additional requirements.",
+      "exam": null,
+      "minimum_cumulative_gpa": 2.5,
+      "application_deadline": null,
+      "deadline_status": "not_verified_for_current_cycle",
+      "exclusions": "Not a campus-wide GPA or standardized-test requirement; Medical Office Specialist certificate requires separate applicability review."
+    },
+    {
+      "scope": "Respiratory Therapy AAS",
+      "source_url": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/respiratory-therapy/",
+      "evidence": "Catalog states selective competitive entry and a relative deadline described as the last Friday in May of the current year; no specific cycle has been independently checked.",
+      "exam": null,
+      "minimum_cumulative_gpa": null,
+      "application_deadline": null,
+      "deadline_status": "relative_rule_only_cycle_unverified",
+      "exclusions": "Do not compute or advertise an application date for 2026 or 2027 without checking the program's current intake announcement."
+    }
+  ],
+  "policy_use_limits": {
+    "no_sat_act_inference": true,
+    "no_licensure_claim": true,
+    "no_current_cycle_deadline_claim": true,
+    "no_generalization_to_other_programs": true
+  }
+}

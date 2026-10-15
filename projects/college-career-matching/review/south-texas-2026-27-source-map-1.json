@@ -1,0 +1,19 @@
+{
+  "catalog_roster_url": "https://catalog.southtexascollege.edu/programs/",
+  "catalog_year": "2026-2027",
+  "source_accessed": "2026-10-15",
+  "detail_urls": {
+    "ai": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-math-science-bachelor-programs/artificial-intelligence/",
+    "cyber": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-math-science-bachelor-programs/cybersecurity/",
+    "adn": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/associate-degree-nursing/",
+    "bsn": "https://catalog.southtexascollege.edu/baccalaureate-degrees/bsn-rn-to-bsn/",
+    "sono": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/diagnostic-imaging/diagnostic-sonography/",
+    "ems": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/selective-programs/emergency-medical-technology/",
+    "vn": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/vocational-nursing/",
+    "ma": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/selective-programs/medical-assistant-technology/",
+    "resp": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/respiratory-therapy/",
+    "electric": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-business-technology/electrician-technology/",
+    "weld": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-business-technology/welding/",
+    "psych": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-social-behavioral-sciences/psychology/"
+  }
+}

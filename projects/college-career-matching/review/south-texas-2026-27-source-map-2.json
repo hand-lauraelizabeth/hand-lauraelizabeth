@@ -1,0 +1,19 @@
+{
+  "catalog_roster_url": "https://catalog.southtexascollege.edu/programs/",
+  "catalog_year": "2026-2027",
+  "source_accessed": "2026-10-15",
+  "detail_urls": {
+    "eng": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-math-science-bachelor-programs/engineering/",
+    "hit": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/selective-programs/health-information-technology/",
+    "paralegal": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-business-technology/paralegal/",
+    "social": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-social-behavioral-sciences/social-work/",
+    "rad": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/diagnostic-imaging/rad-tech/",
+    "pta": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/competitive-entry/physical-therapist-assistant/",
+    "pharmacy": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-nursing-allied-health/selective-programs/pharmacy-technology/",
+    "cs": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-math-science-bachelor-programs/computer-science/",
+    "construction": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-business-technology/construction-management/",
+    "math": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-math-science-bachelor-programs/mathematics/",
+    "inter": "https://catalog.southtexascollege.edu/certificate-associate-degrees/division-math-science-bachelor-programs/interdisciplinary-science/",
+    "roster_only": null
+  }
+}
