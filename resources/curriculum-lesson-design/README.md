@@ -28,4 +28,10 @@ Use the [Curriculum / Workshop QA & Outline Builder](../curriculum-workshop-qa/)
 
 The resources are newly authored tools that translate recurring curriculum-design methods into reusable planning frameworks.
 
+## Interactive resource
+
+[Curriculum Planning Canvas — browser-based HTML](interactive-canvas.html) adds editable learner context, a measurable learning-objective builder, objective-to-session mapping, practice and assessment evidence, alignment checks, and JSON export/import. Download the HTML file and open it in a modern browser; the tool requires no account or external service.
+
+The objective prompts draw on course- and unit-level learning objectives, cognitive processes, and observable performance. The planning workflow extends through transfer, access, and instructor handoff. No entered information is sent to a server. Browser storage is available only when explicitly selected; exported files remain under the user's control.
+
 [Back to Tools & Templates](../README.md)
