@@ -23,7 +23,9 @@ jobs:
           node --check free-tools/evidence-timeline/matrix-page.mjs
           node --check free-tools/evidence-timeline/matrix-page.test.mjs
           node --check free-tools/evidence-timeline/matrix-import-race.test.mjs
+          node --check free-tools/evidence-timeline/matrix-import-error.test.mjs
       - name: Synthetic controller and stale-import tests
         run: |
           node free-tools/evidence-timeline/matrix-page.test.mjs
           node free-tools/evidence-timeline/matrix-import-race.test.mjs
+          node free-tools/evidence-timeline/matrix-import-error.test.mjs
