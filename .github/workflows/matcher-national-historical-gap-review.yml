@@ -14,4 +14,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test projects/college-career-matching/tests/test_national_no_completions_20261015.cjs
+      - run: node --test projects/college-career-matching/tests/test_national_no_completions*.cjs
