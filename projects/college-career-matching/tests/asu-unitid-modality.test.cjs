@@ -1,0 +1,11 @@
+'use strict';
+const a=require('node:assert/strict');
+const d=require('../review/asu-2026-unitid-modality-index.json');
+a.equal(d.records.length,9);
+a.equal(new Set(d.records.map(x=>x[0])).size,9);
+a.equal(d.records.filter(x=>x[4]===1).length,4);
+a.equal(d.campus_group_unitid,'104151');
+a.equal(d.digital_group_unitid,'483124');
+a.equal(d.auto_join,false);
+a.deepEqual(d.closed_to_new_students,['ASACOCBS']);
+console.log('7 checks passed');
