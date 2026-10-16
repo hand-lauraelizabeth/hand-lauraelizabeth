@@ -53,7 +53,7 @@ const document = {
   createElement: tag => new FakeElement(tag)
 };
 const blobs = [], downloads = [];
-const win = {DataRescue: rescue, DataReconcile: engine};
+const win = {DataRescue: rescue, DataReconcile: engine, DataRescueFileReader: {read: async(file,parse)=>parse(await file.text())}};
 const ctx = {window:win, document,
   Blob,
   URL: {createObjectURL(blob){blobs.push(blob);return 'blob:synthetic-' + blobs.length;},
