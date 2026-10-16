@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'review/nyc311-integrated-disclosure-*'
+      - 'review/nyc311-source-audit-*'
     paths:
       - 'projects/nyc311-operations-intelligence/**'
       - '.github/workflows/nyc311-disclosure-tests.yml'
