@@ -1,0 +1,17 @@
+name: Curriculum canvas keyboard contract
+on:
+  pull_request:
+    paths:
+      - 'resources/curriculum-lesson-design/interactive-canvas.html'
+      - 'resources/curriculum-lesson-design/canvas-keyboard-contract.test.cjs'
+      - '.github/workflows/curriculum-canvas-keyboard.yml'
+  workflow_dispatch:
+jobs:
+  keyboard-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node resources/curriculum-lesson-design/canvas-keyboard-contract.test.cjs
