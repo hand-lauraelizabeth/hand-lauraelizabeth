@@ -31,6 +31,12 @@ def ingest(source, output, *, as_of, min_cell=10, expected_rows=None):
     as_of_day = dt.date.fromisoformat(as_of)
     if not isinstance(min_cell, int) or isinstance(min_cell, bool) or min_cell < 2:
         raise ValueError("min_cell must be an integer >= 2")
+    # Validate the full API schema before auditing request identifiers.
+    with source.open(encoding="utf-8-sig", newline="") as f:
+        header = next(csv.reader(f), [])
+    missing = REQUIRED - set(header)
+    if missing:
+        raise ValueError("Missing API columns: " + ", ".join(sorted(missing)))
     # Fail closed before aggregation rather than counting duplicate requests.
     audit = audit_snapshot(source, expected_rows=expected_rows)
     if (audit["missing_unique_key"] or audit["duplicate_unique_key"]
