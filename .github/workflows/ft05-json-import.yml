@@ -1,0 +1,21 @@
+name: FT-05 JSON import regression
+on:
+  push:
+    branches:
+      - 'review/ft05-json-import-error-recovery-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-json-import.yml'
+permissions:
+  contents: read
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check free-tools/evidence-timeline/json-import-security.test.mjs
+      - run: node free-tools/evidence-timeline/json-import-security.test.mjs
