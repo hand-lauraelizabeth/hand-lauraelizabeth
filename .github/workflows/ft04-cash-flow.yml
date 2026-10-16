@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'review/ft04-ci-occurrence-*'
+      - 'review/ft04-unicode-ci-*'
   pull_request:
     paths:
       - 'free-tools/cash-flow/**'
@@ -21,6 +22,7 @@ jobs:
       - name: Validate JavaScript syntax
         run: |
           node --check free-tools/cash-flow/engine.mjs
+          node --check free-tools/cash-flow/fullwidth-csv.test.mjs
           node --check free-tools/cash-flow/engine.test.mjs
           node --check free-tools/cash-flow/boundary.test.mjs
           node --check free-tools/cash-flow/occurrence-anchor-regression.test.mjs
@@ -32,6 +34,7 @@ jobs:
           node free-tools/cash-flow/engine.test.mjs
           node free-tools/cash-flow/boundary.test.mjs
           node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
+          node free-tools/cash-flow/fullwidth-csv.test.mjs
       - name: Static CSP, accessibility and security guards
         run: node free-tools/cash-flow/security-accessibility.test.mjs
       - name: Independently import synthetic CSV using Python csv
