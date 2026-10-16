@@ -1,5 +1,8 @@
 name: FT-05 evidence timeline regression
 on:
+  push:
+    branches:
+      - 'review/ft05-ci-push-gate-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
