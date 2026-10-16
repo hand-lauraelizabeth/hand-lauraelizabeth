@@ -1,0 +1,21 @@
+name: FT-05 evidence timeline regression
+on:
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-evidence-regression.yml'
+permissions:
+  contents: read
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Core test
+        run: node free-tools/evidence-timeline/core.test.mjs
+      - name: Exact source and CSV test
+        run: node free-tools/evidence-timeline/exact-source-csv.test.mjs
