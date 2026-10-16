@@ -1,0 +1,27 @@
+name: Data Rescue async file selection regression
+on:
+  push:
+    branches:
+      - review/ft02-async-selection-race-20261016-0834
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/data-rescue-async-race.yml'
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/data-rescue-async-race.yml'
+permissions:
+  contents: read
+jobs:
+  race-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check projects/data-rescue-studio/tests/async-selection-race-browser.cjs
+      - run: npm install --no-save playwright@1.55.1
+      - run: npx playwright install --with-deps chromium
+      - run: node projects/data-rescue-studio/tests/async-selection-race-browser.cjs
