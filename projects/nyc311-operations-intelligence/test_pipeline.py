@@ -1,4 +1,4 @@
-"""Deterministic contract checks; these are fixture tests, not live-source processing."""
+"""Synthetic integration regression tests for NYC 311 disclosure."""
 import csv
 import json
 import tempfile
@@ -21,8 +21,8 @@ class TestPipeline(unittest.TestCase):
                 ["6","2026-01-10T09:00:00.000","","","Noise","","Open"],
             ]
             with inp.open("w",newline="",encoding="utf-8") as f:
-                w = csv.writer(f); w.writerow(FIELDS); w.writerows(rows)
-            obj = ingest(inp,out,as_of="2026-10-15",min_cell=2)
+                w=csv.writer(f);w.writerow(FIELDS);w.writerows(rows)
+            obj=ingest(inp,out,as_of="2026-10-15",min_cell=2)
             self.assertEqual(obj["quality"]["rows_read"],6)
             self.assertEqual(obj["quality"]["valid_records"],4)
             self.assertEqual(obj["quality"]["missing_or_invalid_created_date"],1)
@@ -30,14 +30,18 @@ class TestPipeline(unittest.TestCase):
             self.assertEqual(obj["quality"]["closure_before_creation"],1)
             self.assertEqual(obj["quality"]["small_cells_suppressed"],2)
             self.assertEqual(obj["aggregates"][0]["requests"],2)
-            self.assertEqual(obj["aggregates"][0]["closed_with_valid_interval"],1)
+            self.assertNotIn("closed_with_valid_interval",obj["aggregates"][0])
+            saved=json.loads(out.read_text())
+            self.assertNotIn("quality",saved)
             self.assertNotIn("incident_address",out.read_text())
-            self.assertEqual(json.loads(out.read_text())["source_sha256"],obj["source_sha256"])
+            self.assertEqual(saved["source_sha256"],obj["source_sha256"])
     def test_required_columns(self):
         with tempfile.TemporaryDirectory() as tmp:
-            inp, out = Path(tmp)/"invalid.csv", Path(tmp)/"result.json"
+            inp,out=Path(tmp)/"invalid.csv",Path(tmp)/"result.json"
             inp.write_text("unique_key,created_date\n1,2026-01-01\n")
             with self.assertRaisesRegex(ValueError,"Missing API columns"):
                 ingest(inp,out,as_of="2026-10-15")
             self.assertFalse(out.exists())
-if __name__ == "__main__": unittest.main()
+
+if __name__ == "__main__":
+    unittest.main()
