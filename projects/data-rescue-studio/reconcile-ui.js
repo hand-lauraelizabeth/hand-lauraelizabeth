@@ -15,6 +15,8 @@
     const node = $('compareStatus');
     node.textContent = text;
     node.className = error ? 'error' : '';
+    $('compareFile').setAttribute('aria-invalid', error ? 'true' : 'false');
+    if (error) node.focus();
   }
   function options(selectId, data) {
     const select = $(selectId);
