@@ -9,6 +9,8 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const ui = fs.readFileSync(path.join(root, 'reconcile-ui.js'), 'utf8');
 const rescue = require('../rescue-core.js');
 const engine = require('../reconcile-core.js');
+const reader = require('../file-reader.js');
+const bytes = text => new TextEncoder().encode(text).buffer;
 
 class FakeElement {
   constructor(tag='div') {
@@ -34,6 +36,7 @@ class FakeElement {
     }
   }
   click() { this.clicked = true; }
+  focus() { this.focused = true; }
   remove() {}
 }
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
@@ -53,7 +56,7 @@ const document = {
   createElement: tag => new FakeElement(tag)
 };
 const blobs = [], downloads = [];
-const win = {DataRescue: rescue, DataReconcile: engine};
+const win = {DataRescue: rescue, DataReconcile: engine, DataRescueFileReader: reader};
 const ctx = {window:win, document,
   Blob,
   URL: {createObjectURL(blob){blobs.push(blob);return 'blob:synthetic-' + blobs.length;},
@@ -72,7 +75,7 @@ async function run() {
   check(nodes.compareRun.disabled,'compare disabled before second upload');
   check(nodes.leftKey.options.length===3,'first select has placeholder and both headings');
   const secondSource='Ref,Cost\n1,10\n2,20\n4,40\n,Missing';
-  nodes.compareFile.files=[{name:'second.csv',size:secondSource.length,text:async()=>secondSource}];
+  nodes.compareFile.files=[{name:'second.csv',size:secondSource.length,arrayBuffer:async()=>bytes(secondSource)}];
   await nodes.compareFile.handlers.change();
   check(!nodes.rightKey.disabled,'second identifier select enabled');
   check(nodes.compareRun.disabled,'compare disabled until identifiers selected');
@@ -100,18 +103,19 @@ async function run() {
   check(nodes.compareExport.disabled,'clear revokes stale audit');
   // Replacing a file mid-read must ignore the older async completion.
   let finishRead;
-  nodes.compareFile.files=[{name:'slow.csv',size:100,text:()=>new Promise(resolve=>finishRead=resolve)}];
+  nodes.compareFile.files=[{name:'slow.csv',size:100,arrayBuffer:()=>new Promise(resolve=>finishRead=resolve)}];
   const pending=nodes.compareFile.handlers.change();
   nodes.compareClear.handlers.click();
-  finishRead('Ref,Cost\n1,10');
+  finishRead(bytes('Ref,Cost\n1,10'));
   await pending;
   check(nodes.rightKey.disabled,'stale async file read ignored after clear');
   check(!nodes.compareStatus.textContent.includes('Loaded second file'),'stale file never shown as loaded');
-  nodes.compareFile.files=[{name:'payload.exe',size:10,text:async()=> 'x'}];
+  nodes.compareFile.files=[{name:'payload.exe',size:10,arrayBuffer:async()=>bytes('x')}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.className==='error','invalid extension produces error');
   check(nodes.compareRun.disabled,'invalid file cannot be compared');
-  nodes.compareFile.files=[{name:'oversized.csv',size:rescue.MAX_BYTES+1,text:async()=> {throw Error('should not read');}}];
+  check(nodes.compareStatus.focused === true,'invalid file error receives keyboard focus');
+  nodes.compareFile.files=[{name:'oversized.csv',size:rescue.MAX_BYTES+1,arrayBuffer:async()=> {throw Error('should not read');}}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.textContent.includes('larger than 5 MB'),'size rejected before read');
   win.DataRescueCompareUI.setPrimary(null);
@@ -119,14 +123,14 @@ async function run() {
   const riskFirst=rescue.parseDelimited('ID\n=1+2');
   const riskSecond=rescue.parseDelimited('ID\n=1+2');
   win.DataRescueCompareUI.setPrimary(riskFirst,'one.csv');
-  nodes.compareFile.files=[{name:'two.csv',size:8,text:async()=> 'ID\n=1+2'}];
+  nodes.compareFile.files=[{name:'two.csv',size:8,arrayBuffer:async()=>bytes('ID\n=1+2')}];
   await nodes.compareFile.handlers.change();
   nodes.leftKey.value='ID';nodes.rightKey.value='ID';
   nodes.leftKey.handlers.change();nodes.rightKey.handlers.change();
   nodes.compareRun.handlers.click();nodes.compareExport.handlers.click();
   const riskCsv=await blobs[1].text();
   check(riskCsv.includes('"\t=1+2"'),'spreadsheet-oriented export mitigates formula-like key');
-  check(html.includes('<script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
+  check(['rescue-core.js','file-reader.js','reconcile-core.js','provenance-core.js','reconcile-ui.js'].every((name,i,list)=>html.indexOf('<script src="'+name+'"></script>')>=0 && (i===0 || html.indexOf('<script src="'+list[i-1]+'"></script>')<html.indexOf('<script src="'+name+'"></script>'))),'required scripts loaded in dependency order');
   check(html.includes('DataRescueCompareUI.setPrimary(data,name)'),'first-file load feeds reconciliation UI');
   check(html.includes('DataRescueCompareUI.setPrimary(null)'),'clearing first file invalidates comparison');
   check(html.includes('const ticket=loadEpoch') && html.includes('if(ticket!==loadEpoch)return'),'stale first file reads guarded');
