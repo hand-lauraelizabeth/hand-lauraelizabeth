@@ -1,0 +1,36 @@
+'use strict';
+const {test,expect}=require('@playwright/test');
+const path=require('node:path');
+const url='file://'+path.join(__dirname,'interactive-canvas.html');
+test('keyboard tabs, 200% zoom, synthetic plan and export',async({page})=>{
+ await page.goto(url);
+ const tabs=page.getByRole('tab');
+ await expect(tabs).toHaveCount(4);
+ await tabs.nth(0).focus();
+ await page.keyboard.press('ArrowRight');
+ await expect(tabs.nth(1)).toHaveAttribute('aria-selected','true');
+ await expect(tabs.nth(1)).toBeFocused();
+ await page.keyboard.press('End');
+ await expect(tabs.nth(3)).toBeFocused();
+ await page.keyboard.press('Home');
+ await expect(tabs.nth(0)).toBeFocused();
+ await page.evaluate(()=>{document.documentElement.style.zoom='2'});
+ await tabs.nth(0).click();
+ page.once('dialog',dialog=>dialog.accept());
+ await page.getByRole('button',{name:'Load synthetic example'}).click();
+ await expect(page.locator('#lc-title')).toHaveValue('Evaluating a project proposal');
+ await tabs.nth(3).click();
+ await expect(page.locator('#lc-total')).toContainText('90 minutes');
+ const downloadPromise=page.waitForEvent('download');
+ await page.getByRole('button',{name:'Export JSON'}).click();
+ const download=await downloadPromise;
+ expect(download.suggestedFilename()).toBe('curriculum-planning-canvas.json');
+ await expect(page.locator('#lc-status')).toContainText('exported');
+});
+test('mobile narrow viewport does not create page-level horizontal overflow',async({page})=>{
+ await page.setViewportSize({width:375,height:812});
+ await page.goto(url);
+ await expect(page.getByRole('tab')).toHaveCount(4);
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+ expect(overflow).toBeLessThanOrEqual(1);
+});
