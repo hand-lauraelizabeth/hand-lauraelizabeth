@@ -14,7 +14,8 @@ import re
 import tempfile
 from pathlib import Path
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import Request
+from source_transport import read_json_with_retries
 
 ENDPOINT = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
 FIELDS = ("unique_key", "created_date", "closed_date", "agency", "complaint_type", "borough", "status")
@@ -24,11 +25,7 @@ def fetch_json(params):
     token = os.getenv("SOCRATA_APP_TOKEN")
     if token:
         headers["X-App-Token"] = token
-    with urlopen(Request(ENDPOINT + "?" + urlencode(params), headers=headers), timeout=45) as response:
-        data = json.load(response)
-    if not isinstance(data, list):
-        raise ValueError("Expected a source JSON array")
-    return data
+    return read_json_with_retries(Request(ENDPOINT + "?" + urlencode(params), headers=headers))
 
 def month_bounds(month):
     if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):

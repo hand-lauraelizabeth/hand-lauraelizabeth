@@ -43,3 +43,9 @@ Source: [NYC Open Data dataset dictionary](https://data.cityofnewyork.us/Social-
 ## Monthly export scope validation
 
 The source dataset defines `created_date` as a **floating timestamp**. The keyset exporter checks every returned date against the requested calendar month's inclusive start and exclusive next-month boundary; malformed, timezone-qualified and out-of-scope rows fail the entire export before either final file is created. This checks the records actually received, not completeness of the City's mutable dataset. The private manifest records the rule. Independent synthetic tests cover both boundaries and rejection cases. Source: [NYC Open Data field dictionary](https://data.cityofnewyork.us/resource/erm2-nwe9), [Socrata pagination documentation](https://dev.socrata.com/docs/paging.html); reviewed 2026-10-16. A real September 2026 bulk extract is still pending.
+
+## Rate limits and transient API failures
+
+The monthly exporter retries read-only requests only for transient network failures and HTTP 429, 500, 502, 503 or 504 responses. At most two retries follow the initial request. It honors numeric or dated `Retry-After` instructions up to 30 seconds and stops when the server asks for a longer wait; permanent HTTP failures and invalid JSON fail immediately. A retry does not make a mutable dataset immutable. The exporter continues to enforce count reconciliation, strict key ordering and file hashing before accepting the export.
+
+The optional application-token header is supported by the existing exporter, but no credentials or request-level records are committed. Sources: [Socrata application tokens and throttling](https://dev.socrata.com/docs/app-tokens), [HTTP 429](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429) (reviewed 2026-10-16). The transport tests use synthetic responses. The official September 2026 export remains outstanding.
