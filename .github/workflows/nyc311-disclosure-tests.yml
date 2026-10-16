@@ -8,6 +8,7 @@ on:
       - 'review/nyc311-source-failclosed-*'
       - 'review/nyc311-disclosure-viewer-model-*'
       - 'review/nyc311-accessible-viewer-*'
+      - 'review/nyc311-keyset-export-*'
     paths:
       - 'projects/nyc311-operations-intelligence/**'
       - '.github/workflows/nyc311-disclosure-tests.yml'

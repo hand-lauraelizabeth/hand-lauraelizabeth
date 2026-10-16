@@ -1,0 +1,5 @@
+*.csv
+*.csv.manifest.json
+private/
+*.sqlite3
+__pycache__/
