@@ -75,9 +75,9 @@
     }
     message('Reading second file locally…');
     try {
-      const parsed = root.DataRescueFileReader
-        ? await root.DataRescueFileReader.read(file, lib.parseDelimited)
-        : lib.parseDelimited(await file.text(), /\.tsv$/i.test(file.name) ? '\t' : undefined);
+      if (!root.DataRescueFileReader || typeof root.DataRescueFileReader.read !== 'function')
+        throw Error('Strict local file reader is unavailable. Reload the page before importing.');
+      const parsed = await root.DataRescueFileReader.read(file, lib.parseDelimited);
       if (thisGeneration !== generation) return;
       second = parsed;
       secondName = file.name;
