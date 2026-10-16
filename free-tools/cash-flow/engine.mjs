@@ -83,7 +83,7 @@ export function project({start,end,openingCents,events,shiftId=null,shiftDays=0}
   return {days,minimumCents:minimum,minimumDate:minDate,endingCents:balance,openingCents,assumption:'End-of-day netting only; actual settlement timing, fees, and availability are not modeled.'};
 }
 // Defensive spreadsheet export: textual IDs/labels are escaped, not treated as spreadsheet formulas.
-export function csvCell(value,numeric=false){const s=String(value);if(numeric&&/^-?\d+\.\d{2}$/.test(s))return s;const guarded=/^[\s\uFEFF]*[=+@\-\t\r]/u.test(s)?"'"+s:s;return '"'+guarded.replaceAll('"','""')+'"'}
+export function csvCell(value,numeric=false){const s=String(value);if(numeric&&/^-?\d+\.\d{2}$/.test(s))return s;const guarded=/^[\s\uFEFF]*[=+@\-\t\r＝＋－＠]/u.test(s)?"'"+s:s;return '"'+guarded.replaceAll('"','""')+'"'}
 export function exportCSV(result){
   const rows=[['Date','Change (USD)','End-of-day balance (USD)','Event IDs','Event labels']];
   for(const day of result.days)rows.push([day.date,formatCents(day.changeCents),formatCents(day.balanceCents),day.events.map(e=>e.id).join(' | '),day.events.map(e=>e.label).join(' | ')]);
