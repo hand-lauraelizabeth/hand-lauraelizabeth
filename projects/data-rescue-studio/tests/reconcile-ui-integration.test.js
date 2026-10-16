@@ -130,7 +130,7 @@ async function run() {
   nodes.compareRun.handlers.click();nodes.compareExport.handlers.click();
   const riskCsv=await blobs[1].text();
   check(riskCsv.includes('"\t=1+2"'),'spreadsheet-oriented export mitigates formula-like key');
-  check(html.includes('<script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
+  check(['rescue-core.js','file-reader.js','reconcile-core.js','provenance-core.js','reconcile-ui.js'].every((name,i,list)=>html.indexOf('<script src="'+name+'"></script>')>=0 && (i===0 || html.indexOf('<script src="'+list[i-1]+'"></script>')<html.indexOf('<script src="'+name+'"></script>'))),'required scripts loaded in dependency order');
   check(html.includes('DataRescueCompareUI.setPrimary(data,name)'),'first-file load feeds reconciliation UI');
   check(html.includes('DataRescueCompareUI.setPrimary(null)'),'clearing first file invalidates comparison');
   check(html.includes('const ticket=loadEpoch') && html.includes('if(ticket!==loadEpoch)return'),'stale first file reads guarded');
