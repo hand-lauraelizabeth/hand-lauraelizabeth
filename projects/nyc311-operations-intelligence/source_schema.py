@@ -1,5 +1,9 @@
 """Fail-closed metadata preflight for the official NYC 311 Socrata dataset.
 
+The 2026-10-16 live metadata identifies created_date and closed_date as
+calendar_date. The SODA API still serializes them as date-time strings.
+
+
 Only public dataset metadata is requested; no service-request records are read.
 """
 import hashlib
@@ -11,8 +15,8 @@ DATASET_ID = "erm2-nwe9"
 METADATA_URL = "https://data.cityofnewyork.us/api/views/erm2-nwe9"
 REQUIRED_TYPES = {
     "unique_key": "text",
-    "created_date": "floating_timestamp",
-    "closed_date": "floating_timestamp",
+    "created_date": "calendar_date",
+    "closed_date": "calendar_date",
     "agency": "text",
     "complaint_type": "text",
     "borough": "text",

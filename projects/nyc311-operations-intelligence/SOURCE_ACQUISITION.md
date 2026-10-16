@@ -8,7 +8,7 @@ From this directory, run:
 
     python source_export.py --month 2026-09 --output private/nyc311-2026-09-20261016.csv
 
-The command queries the exact month using source floating timestamps,
+The command queries the exact month using source calendar_date fields\n(serialized as local date-time strings),
 selects seven non-location fields, pages by strictly increasing unique_key,
 and reconciles counts before and after retrieval. It refuses repeated or
 out-of-order keys, truncated pages, changed counts and existing outputs.

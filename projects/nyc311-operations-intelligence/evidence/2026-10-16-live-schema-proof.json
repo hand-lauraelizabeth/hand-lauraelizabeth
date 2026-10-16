@@ -1,0 +1,18 @@
+{
+  "dataset_id": "erm2-nwe9",
+  "verified_date": "2026-10-16",
+  "source_url": "https://data.cityofnewyork.us/api/views/erm2-nwe9",
+  "source_response_field": "columns[].dataTypeName",
+  "required_column_types": {
+    "agency": "text",
+    "borough": "text",
+    "closed_date": "calendar_date",
+    "complaint_type": "text",
+    "created_date": "calendar_date",
+    "status": "text",
+    "unique_key": "text"
+  },
+  "sample_source_url": "https://data.cityofnewyork.us/resource/erm2-nwe9.json?%24limit=1",
+  "sample_created_date": "2026-10-14T01:54:42.000",
+  "note": "Official metadata and one non-sensitive date-time example observed 2026-10-16; not a full monthly source export or raw-file checksum."
+}

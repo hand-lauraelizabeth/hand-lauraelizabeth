@@ -28,6 +28,30 @@ class SourceSchemaTests(unittest.TestCase):
         self.assertEqual(len(first["required_column_types"]), 7)
         self.assertEqual(len(first["required_schema_sha256"]), 64)
 
+    def test_official_2026_calendar_date_schema(self):
+        # Independently observed at the official /api/views/erm2-nwe9 endpoint
+        # on 2026-10-16; this is a pinned metadata fixture, not a live fetch.
+        observed = {
+            "unique_key": "text",
+            "created_date": "calendar_date",
+            "closed_date": "calendar_date",
+            "agency": "text",
+            "complaint_type": "text",
+            "borough": "text",
+            "status": "text",
+        }
+        self.assertEqual(REQUIRED_TYPES, observed)
+        metadata = {"id": "erm2-nwe9", "columns": [
+            {"fieldName": key, "dataTypeName": value}
+            for key, value in observed.items()
+        ]}
+        result = validate_schema(metadata)
+        self.assertEqual(result["required_column_types"], dict(sorted(observed.items())))
+        # Fail closed on a genuinely changed date type.
+        metadata["columns"][1]["dataTypeName"] = "floating_timestamp"
+        with self.assertRaisesRegex(ValueError, "Unexpected.*created_date"):
+            validate_schema(metadata)
+
     def test_wrong_dataset_rejected(self):
         value = valid_metadata()
         value["id"] = "unrelated"
