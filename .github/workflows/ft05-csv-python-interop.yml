@@ -1,0 +1,26 @@
+name: FT-05 independent CSV interoperability
+on:
+  push:
+    branches:
+      - 'review/ft05-python-csv-interop-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-csv-python-interop.yml'
+permissions:
+  contents: read
+jobs:
+  csv-python-interop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate fixture and importer syntax
+        run: |
+          node --check free-tools/evidence-timeline/csv-python-fixture.mjs
+          python3 -m py_compile free-tools/evidence-timeline/csv-python-import.test.py
+      - name: Independent Python CSV parser import
+        run: node free-tools/evidence-timeline/csv-python-fixture.mjs | python3 free-tools/evidence-timeline/csv-python-import.test.py
