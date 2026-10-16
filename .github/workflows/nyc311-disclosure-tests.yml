@@ -3,12 +3,7 @@ name: NYC 311 disclosure tests
 on:
   push:
     branches:
-      - 'review/nyc311-integrated-disclosure-*'
-      - 'review/nyc311-source-audit-*'
-      - 'review/nyc311-source-failclosed-*'
-      - 'review/nyc311-disclosure-viewer-model-*'
-      - 'review/nyc311-accessible-viewer-*'
-      - 'review/nyc311-keyset-export-*'
+      - 'review/nyc311-*'
     paths:
       - 'projects/nyc311-operations-intelligence/**'
       - '.github/workflows/nyc311-disclosure-tests.yml'
