@@ -26,11 +26,14 @@ jobs:
           node --check free-tools/evidence-timeline/exact-source-csv.test.mjs
           node --check free-tools/evidence-timeline/legacy-exact-regression.test.mjs
           node --check free-tools/evidence-timeline/legacy-boundary-regression.test.mjs
+          node --check free-tools/evidence-timeline/csv-roundtrip.test.mjs
       - name: Core test
         run: node free-tools/evidence-timeline/core.test.mjs
       - name: Exact source and CSV test
         run: node free-tools/evidence-timeline/exact-source-csv.test.mjs
       - name: Legacy exact-source regression
         run: node free-tools/evidence-timeline/legacy-exact-regression.test.mjs
+      - name: Synthetic CSV roundtrip regression
+        run: node free-tools/evidence-timeline/csv-roundtrip.test.mjs
       - name: Boundary and CSV regression
         run: node free-tools/evidence-timeline/legacy-boundary-regression.test.mjs
