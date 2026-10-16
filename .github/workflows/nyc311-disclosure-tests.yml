@@ -1,0 +1,30 @@
+name: NYC 311 disclosure tests
+
+on:
+  push:
+    branches:
+      - 'review/nyc311-integrated-disclosure-*'
+    paths:
+      - 'projects/nyc311-operations-intelligence/**'
+      - '.github/workflows/nyc311-disclosure-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: projects/nyc311-operations-intelligence
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run deterministic contract and integration tests
+        run: python -m unittest discover -p 'test_*.py' -v
