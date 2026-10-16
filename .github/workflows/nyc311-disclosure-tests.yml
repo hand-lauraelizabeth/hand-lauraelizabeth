@@ -5,6 +5,7 @@ on:
     branches:
       - 'review/nyc311-integrated-disclosure-*'
       - 'review/nyc311-source-audit-*'
+      - 'review/nyc311-source-failclosed-*'
     paths:
       - 'projects/nyc311-operations-intelligence/**'
       - '.github/workflows/nyc311-disclosure-tests.yml'
