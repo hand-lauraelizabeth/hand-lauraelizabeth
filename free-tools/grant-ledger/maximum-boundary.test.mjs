@@ -32,4 +32,4 @@ assert.equal(json.schema,'grant-ledger-review-v1');
 assert.equal(json.expenses.length,MAX_EXPENSES);
 assert.throws(()=>calculateLedger(award,categories,[...expenses,expenses[0]]),/Too many expenses/);
 assert.throws(()=>calculateLedger(award,[...categories,categories[0]],expenses),/Too many budget categories/);
-console.log('17 synthetic maximum-boundary assertions passed');
+console.log('18 synthetic maximum-boundary assertions passed');
