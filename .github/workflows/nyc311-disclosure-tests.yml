@@ -6,6 +6,7 @@ on:
       - 'review/nyc311-integrated-disclosure-*'
       - 'review/nyc311-source-audit-*'
       - 'review/nyc311-source-failclosed-*'
+      - 'review/nyc311-disclosure-viewer-model-*'
     paths:
       - 'projects/nyc311-operations-intelligence/**'
       - '.github/workflows/nyc311-disclosure-tests.yml'
@@ -30,3 +31,5 @@ jobs:
           python-version: '3.12'
       - name: Run deterministic contract and integration tests
         run: python -m unittest discover -p 'test_*.py' -v
+      - name: Test disclosure-safe viewer model
+        run: node --test private-staging/test_model.mjs
