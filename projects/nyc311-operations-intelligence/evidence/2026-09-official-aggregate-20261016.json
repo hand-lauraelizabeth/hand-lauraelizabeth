@@ -1,0 +1,20 @@
+{
+  "dataset_id": "erm2-nwe9",
+  "month": "2026-09",
+  "verified_date": "2026-10-16",
+  "total": 323627,
+  "distinct_ids": 323627,
+  "borough_counts": {
+    "BROOKLYN": 105704,
+    "QUEENS": 80443,
+    "MANHATTAN": 64994,
+    "BRONX": 59212,
+    "STATEN ISLAND": 12876,
+    "Unspecified": 398
+  },
+  "source_urls": [
+    "https://data.cityofnewyork.us/resource/erm2-nwe9.json?$select=count(*)%20as%20total,count(distinct%20unique_key)%20as%20distinct_ids&$where=created_date%20%3E%3D%20%272026-09-01T00:00:00%27%20and%20created_date%20%3C%20%272026-10-01T00:00:00%27",
+    "https://data.cityofnewyork.us/resource/erm2-nwe9.json?$select=borough,count(*)%20as%20n&$where=created_date%20%3E%3D%20%272026-09-01T00:00:00%27%20and%20created_date%20%3C%20%272026-10-01T00:00:00%27&$group=borough&$order=n%20DESC"
+  ],
+  "note": "Source counts reflect mutable NYC Open Data records observed on 2026-10-16. This is aggregate evidence, not a raw-file checksum."
+}
