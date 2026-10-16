@@ -40,6 +40,20 @@ def month_bounds(month):
     end = dt.date(year + (number == 12), number % 12 + 1, 1)
     return start.isoformat() + "T00:00:00", end.isoformat() + "T00:00:00"
 
+def validate_created_date(value, start, end):
+    """Require source floating timestamps inside the requested half-open month."""
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("Missing or invalid required created_date")
+    try:
+        timestamp = dt.datetime.fromisoformat(value.strip())
+    except ValueError as exc:
+        raise ValueError("Invalid source created_date timestamp") from exc
+    if timestamp.tzinfo is not None:
+        raise ValueError("Timezone-qualified created_date in floating timestamp dataset")
+    if not (dt.datetime.fromisoformat(start) <= timestamp < dt.datetime.fromisoformat(end)):
+        raise ValueError("Source created_date outside requested month")
+    return timestamp
+
 def acquire(month, output_csv, *, transport=fetch_json, page_size=5000,
             max_rows=500000, expected_count=None, now=None):
     if type(page_size) is not int or not 1 <= page_size <= 5000:
@@ -93,8 +107,7 @@ def acquire(month, output_csv, *, transport=fetch_json, page_size=5000,
                     key = row["unique_key"]
                     if not isinstance(key, str) or not re.fullmatch(r"[0-9]+", key):
                         raise ValueError("Invalid numeric-text unique_key")
-                    if not isinstance(row["created_date"], str) or not row["created_date"].strip():
-                        raise ValueError("Missing or invalid required created_date")
+                    validate_created_date(row["created_date"], start, end)
                     if previous_key is not None and key <= previous_key:
                         raise ValueError("Source keys repeated or out of order")
                     normalized = {}
@@ -125,6 +138,7 @@ def acquire(month, output_csv, *, transport=fetch_json, page_size=5000,
             "dataset_id": "erm2-nwe9", "source_endpoint": ENDPOINT,
             "month": month, "where": where, "selected_fields": list(FIELDS),
             "paging": "unique_key ASC (strict numeric-text key ordering)",
+            "created_date_scope": "Validated each floating timestamp within [month start, next month start); timezone-qualified, invalid and out-of-month records rejected",
             "source_count_before": before, "source_count_after": after,
             "rows_exported": total, "page_size": page_size, "sha256": digest,
             "source_bytes": partial.stat().st_size,

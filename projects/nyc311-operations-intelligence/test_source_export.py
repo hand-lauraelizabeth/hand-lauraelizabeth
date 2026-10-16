@@ -136,4 +136,37 @@ class ExportTests(unittest.TestCase):
                 acquire('2026-09', output, transport=nested, page_size=2)
             self.assertFalse(output.exists())
 
+    def test_reject_out_of_month_invalid_and_timezone_dates(self):
+        for label, bad_date in (
+            ("before", "2026-08-31T23:59:59"),
+            ("after", "2026-10-01T00:00:00"),
+            ("invalid", "2026-09-99T12:00:00"),
+            ("timezone", "2026-09-01T12:00:00Z"),
+        ):
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as d:
+                output = Path(d) / "out.csv"
+                row = fake_row("1")
+                row["created_date"] = bad_date
+                def fetch(params):
+                    return [{"total": "1"}] if params.get("$select") == "count(*) as total" else [row]
+                with self.assertRaisesRegex(ValueError, "outside requested month|Invalid source created_date|Timezone-qualified"):
+                    acquire("2026-09", output, transport=fetch, page_size=2)
+                self.assertFalse(output.exists())
+                self.assertFalse(output.with_suffix(".csv.manifest.json").exists())
+
+    def test_month_boundaries_inclusive_exclusive_and_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            output = Path(d) / "out.csv"
+            first = fake_row("1")
+            first["created_date"] = "2026-09-01T00:00:00"
+            last = fake_row("2")
+            last["created_date"] = "2026-09-30T23:59:59.999"
+            def fetch(params):
+                if params.get("$select") == "count(*) as total":
+                    return [{"total": "2"}]
+                return [first, last]
+            manifest = acquire("2026-09", output, transport=fetch, page_size=3)
+            self.assertEqual(manifest["rows_exported"], 2)
+            self.assertIn("Validated each floating timestamp", manifest["created_date_scope"])
+
 if __name__ == '__main__': unittest.main()
