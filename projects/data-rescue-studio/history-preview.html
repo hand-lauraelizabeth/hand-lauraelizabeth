@@ -19,9 +19,9 @@ th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
 <p>Review-only preview. Open a CSV or TSV file locally, apply explicit operations, undo/redo them, and export a working copy or operations manifest. No account or network transfer is required.</p></header>
 <section aria-labelledby="open"><h2 id="open">1. Open a file</h2>
 <label for="file"><strong>UTF-8 CSV or TSV, up to 5 MB</strong></label>
-<input type="file" id="file" accept=".csv,.tsv,text/csv,text/tab-separated-values">
+<input type="file" id="file" aria-describedby="loadStatus" aria-invalid="false" accept=".csv,.tsv,text/csv,text/tab-separated-values">
 <div class="actions"><button id="sample">Use fictional sample</button><button id="reset">Clear</button></div>
-<p id="loadStatus" role="status" aria-live="polite">No file loaded.</p></section>
+<p id="loadStatus" role="status" aria-live="polite" tabindex="-1">No file loaded.</p></section>
 <section aria-labelledby="operations"><h2 id="operations">2. Transform</h2>
 <label for="trimColumn"><strong>Column to trim</strong></label><select id="trimColumn" disabled></select>
 <div class="actions"><button id="trimApply" disabled>Trim surrounding spaces</button>
@@ -58,7 +58,7 @@ th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
 (function(){
 'use strict';
 const $=id=>document.getElementById(id),lib=window.DataRescue;
-let epoch=0,current=null;
+let epoch=0,current=null;function uploadStatus(message,error=false){$('loadStatus').textContent=message;$('file').setAttribute('aria-invalid',error?'true':'false');if(error)$('loadStatus').focus();}
 function render(parsed,name){
  current=parsed;window.DataRescueCompareUI.setPrimary(parsed,name);const list=$('preview');list.replaceChildren();
  const table=document.createElement('table'),head=document.createElement('tr');
@@ -71,18 +71,18 @@ window.DataRescueRenderFromHistory=render;
 function clear(keepFile=false){
  ++epoch;current=null;window.DataRescueHistoryUI.onClear();window.DataRescueCompareUI.setPrimary(null);$('save').disabled=true;
  $('preview').replaceChildren();$('rowCount').textContent='Load a file to preview data.';
- if(!keepFile)$('file').value='';$('loadStatus').textContent='No file loaded.';
+ if(!keepFile)$('file').value='';uploadStatus('No file loaded.');
 }
 function load(parsed,name){
  window.DataRescueHistoryUI.onLoad(parsed,name);render(parsed,name);
- $('loadStatus').textContent='Loaded '+name+' locally: '+parsed.rows.length+' records.';
+ uploadStatus('Loaded '+name+' locally: '+parsed.rows.length+' records.');
 }
 $('file').addEventListener('change',async()=>{
  const f=$('file').files&&$('file').files[0];if(!f){clear();return;}
  clear(true);const ticket=epoch;
- if(f.size>lib.MAX_BYTES||!(/\.(csv|tsv)$/i.test(f.name))){$('loadStatus').textContent='Choose a .csv or .tsv file under 5 MB.';return;}
+ if(f.size>lib.MAX_BYTES||!(/\.(csv|tsv)$/i.test(f.name))){uploadStatus('Choose a .csv or .tsv file under 5 MB.',true);return;}
  try{const data=await window.DataRescueFileReader.read(f,lib.parseDelimited);if(ticket!==epoch)return;load(data,f.name);}
- catch(err){if(ticket!==epoch)return;clear();$('loadStatus').textContent='Unable to parse file: '+err.message;}
+ catch(err){if(ticket!==epoch)return;clear();uploadStatus('Unable to parse file: '+err.message,true);}
 });
 $('sample').addEventListener('click',()=>{
  clear();load(lib.parseDelimited('ID,Name\n1, Ada \n2, Bea \n2, Bea '),'fictional example');
