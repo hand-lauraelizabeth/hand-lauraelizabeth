@@ -83,4 +83,57 @@ class ExportTests(unittest.TestCase):
                 acquire('2026-09',output,transport=truncated,page_size=2)
             self.assertFalse(output.exists())
 
+    def test_nullable_soda_fields_are_normalized_and_counted(self):
+        # SODA JSON omits empty fields on otherwise valid open requests.
+        with tempfile.TemporaryDirectory() as d:
+            output = Path(d) / 'sparse.csv'
+            first = fake_row('1')
+            first.pop('closed_date')
+            first.pop('agency')
+            second = fake_row('2')
+            second['closed_date'] = None
+            second.pop('status')
+            def sparse(params):
+                if params.get('$select') == 'count(*) as total':
+                    return [{'total': '2'}]
+                return [first, second]
+            manifest = acquire('2026-09', output, transport=sparse, page_size=3,
+                               expected_count=2)
+            with output.open(newline='') as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0]['closed_date'], '')
+            self.assertEqual(rows[0]['agency'], '')
+            self.assertEqual(rows[1]['status'], '')
+            self.assertEqual(manifest['null_or_omitted_optional_fields'],
+                             {'agency': 1, 'closed_date': 2, 'status': 1})
+            self.assertEqual(manifest['rows_exported'], 2)
+
+    def test_missing_required_date_rejects_entire_export(self):
+        with tempfile.TemporaryDirectory() as d:
+            output = Path(d) / 'invalid.csv'
+            row = fake_row('1')
+            row.pop('created_date')
+            def missing(params):
+                if params.get('$select') == 'count(*) as total':
+                    return [{'total': '1'}]
+                return [row]
+            with self.assertRaisesRegex(ValueError, 'Missing required source fields'):
+                acquire('2026-09', output, transport=missing, page_size=2)
+            self.assertFalse(output.exists())
+            self.assertFalse(output.with_suffix('.csv.manifest.json').exists())
+
+    def test_nontext_optional_field_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            output = Path(d) / 'invalid.csv'
+            row = fake_row('1')
+            row['borough'] = {'unexpected': 'nested'}
+            def nested(params):
+                if params.get('$select') == 'count(*) as total':
+                    return [{'total': '1'}]
+                return [row]
+            with self.assertRaisesRegex(ValueError, 'Non-text source field'):
+                acquire('2026-09', output, transport=nested, page_size=2)
+            self.assertFalse(output.exists())
+
 if __name__ == '__main__': unittest.main()

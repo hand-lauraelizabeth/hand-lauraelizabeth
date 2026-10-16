@@ -4,6 +4,7 @@ The public repository contains no request-level records. A count-reconciled
 export is still not an immutable source snapshot.
 """
 import argparse
+from collections import Counter
 import csv
 import datetime as dt
 import hashlib
@@ -71,6 +72,7 @@ def acquire(month, output_csv, *, transport=fetch_json, page_size=5000,
         raise FileExistsError("Output already exists; use a versioned filename")
     output.parent.mkdir(parents=True, exist_ok=True)
     total, previous_key = 0, None
+    missing_optional = Counter()
     with tempfile.TemporaryDirectory(prefix="nyc311-source-", dir=output.parent) as directory:
         partial = Path(directory) / "export.csv"
         with partial.open("w", encoding="utf-8", newline="") as handle:
@@ -83,15 +85,31 @@ def acquire(month, output_csv, *, transport=fetch_json, page_size=5000,
                 if not isinstance(rows, list) or len(rows) > page_size:
                     raise ValueError("Unexpected source page")
                 for row in rows:
-                    if not isinstance(row, dict) or not set(FIELDS).issubset(row):
-                        raise ValueError("Missing source fields")
+                    # SODA JSON omits nullable columns rather than returning null.
+                    # Keep identity and created_date mandatory; normalize optional
+                    # missing/null values to empty CSV cells for downstream QA.
+                    if not isinstance(row, dict) or not {"unique_key", "created_date"}.issubset(row):
+                        raise ValueError("Missing required source fields")
                     key = row["unique_key"]
                     if not isinstance(key, str) or not re.fullmatch(r"[0-9]+", key):
                         raise ValueError("Invalid numeric-text unique_key")
+                    if not isinstance(row["created_date"], str) or not row["created_date"].strip():
+                        raise ValueError("Missing or invalid required created_date")
                     if previous_key is not None and key <= previous_key:
                         raise ValueError("Source keys repeated or out of order")
+                    normalized = {}
+                    for field in FIELDS:
+                        value = row.get(field)
+                        if value is None:
+                            if field in ("unique_key", "created_date"):
+                                raise ValueError("Null required source field")
+                            missing_optional[field] += 1
+                            value = ""
+                        if not isinstance(value, str):
+                            raise ValueError("Non-text source field: " + field)
+                        normalized[field] = value
                     previous_key = key
-                    writer.writerow({field: row[field] if row[field] is not None else "" for field in FIELDS})
+                    writer.writerow(normalized)
                     total += 1
                     if total > max_rows or total > before:
                         raise ValueError("Page exceeds source count")
@@ -110,6 +128,7 @@ def acquire(month, output_csv, *, transport=fetch_json, page_size=5000,
             "source_count_before": before, "source_count_after": after,
             "rows_exported": total, "page_size": page_size, "sha256": digest,
             "source_bytes": partial.stat().st_size,
+            "null_or_omitted_optional_fields": dict(sorted(missing_optional.items())),
             "retrieved_utc": when.astimezone(dt.timezone.utc).isoformat(),
             "limitations": "Mutable source; matching counts do not prove immutable content or independent completeness. Raw CSV and manifest are private."
         }

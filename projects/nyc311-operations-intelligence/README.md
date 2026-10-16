@@ -32,3 +32,10 @@ Closure is an administrative state, **not** independent evidence that a conditio
 ## Next validation
 
 Run the audit on a dated, pinned official export and reconcile its scope and row count against the City's source query. Only then evaluate duration distributions, request-type comparability, and a keyboard-accessible, responsive visualization in private staging. No production WordPress pages or College + Career Matcher data are modified by this work.
+
+
+## Monthly API acquisition: nullable fields
+
+The official `erm2-nwe9` dataset identifies `unique_key` as text and `closed_date` as a timestamp that may be empty for an open request. The SODA JSON API can omit empty properties. The monthly keyset exporter therefore requires nonblank `unique_key` and `created_date` but preserves missing or null optional columns as empty CSV cells. Its **private** manifest counts normalized optional values by field. Unexpected nested/non-text values still fail closed; the offline audit decides whether the resulting date/status combinations are usable.
+
+Source: [NYC Open Data dataset dictionary](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2020-to-Present/erm2-nwe9/about_data); [Socrata SODA API](https://dev.socrata.com/docs/endpoints). Verified 2026-10-16. This change has synthetic regression coverage, not yet an official September 2026 CSV run.
