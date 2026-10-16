@@ -15,6 +15,7 @@
     const node = $('compareStatus');
     node.textContent = text;
     node.className = error ? 'error' : '';
+    if (error) node.focus();
   }
   function options(selectId, data) {
     const select = $(selectId);
@@ -75,9 +76,9 @@
     }
     message('Reading second file locally…');
     try {
-      const parsed = root.DataRescueFileReader
-        ? await root.DataRescueFileReader.read(file, lib.parseDelimited)
-        : lib.parseDelimited(await file.text(), /\.tsv$/i.test(file.name) ? '\t' : undefined);
+      if (!root.DataRescueFileReader || typeof root.DataRescueFileReader.read !== 'function')
+        throw new Error('Secure local file reader unavailable. Reload this page before importing.');
+      const parsed = await root.DataRescueFileReader.read(file, lib.parseDelimited);
       if (thisGeneration !== generation) return;
       second = parsed;
       secondName = file.name;
