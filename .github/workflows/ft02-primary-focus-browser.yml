@@ -1,0 +1,21 @@
+name: FT02 primary upload focus browser review
+on:
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft02-primary-focus-browser.yml'
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node projects/data-rescue-studio/first-file-a11y-contract.test.cjs
+      - run: npm install --no-save playwright@1.55.1
+      - run: npx playwright install --with-deps chromium
+      - run: node projects/data-rescue-studio/tests/primary-upload-focus-browser.cjs
