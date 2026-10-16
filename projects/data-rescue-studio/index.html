@@ -23,6 +23,7 @@
   th,td{border:1px solid #cbd8cf;text-align:left;padding:9px 10px;white-space:pre-wrap;vertical-align:top}
   th{background:#e6efe9}td{max-width:320px;overflow-wrap:anywhere}caption{text-align:left;font-weight:600;margin-bottom:6px}
   #status{font-weight:600}#status.error{color:#a02d24}#notes li{margin:4px 0}
+  #status:focus,#compareStatus:focus{outline:3px solid #d58b30;outline-offset:3px}
   @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
@@ -32,7 +33,7 @@
 <label for="file"><strong>Choose a UTF-8 CSV or TSV (maximum 5 MB)</strong></label>
 <div><input id="file" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
 <div class="actions"><button class="secondary" id="sample">Try synthetic example</button><button class="secondary" id="reset">Clear</button></div>
-<p id="status" role="status" aria-live="polite">No data loaded.</p>
+<p id="status" role="status" aria-live="polite" tabindex="-1">No data loaded.</p>
 </section>
 <section class="panel" aria-labelledby="report"><h2 id="report">2. Review quality</h2>
 <div id="metrics" class="grid"><p>Open a file to see a data-quality summary.</p></div>
@@ -52,7 +53,7 @@
 <p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines.</p>
 <label for="compareFile"><strong>Second file (UTF-8 CSV or TSV, maximum 5 MB)</strong></label>
 <div><input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
-<p id="compareStatus" role="status" aria-live="polite">Open a first file above to compare.</p>
+<p id="compareStatus" role="status" aria-live="polite" tabindex="-1">Open a first file above to compare.</p>
 <div class="grid">
 <div><label for="leftKey"><strong>Identifier in first file</strong></label><select id="leftKey" disabled><option value="">Choose a first file</option></select></div>
 <div><label for="rightKey"><strong>Identifier in second file</strong></label><select id="rightKey" disabled><option value="">Choose a second file</option></select></div>
@@ -79,7 +80,7 @@
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;
 let loaded=null, loadEpoch=0;
-const status=(message,error=false)=>{$('status').textContent=message;$('status').className=error?'error':'';};
+const status=(message,error=false)=>{const node=$('status');node.textContent=message;node.className=error?'error':'';if(error)node.focus();};
 function clear(preserveFile=false){
  ++loadEpoch; loaded=null;if(!preserveFile)$('file').value='';
  window.DataRescueHistoryUI.onClear();window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
