@@ -15,3 +15,6 @@ jobs:
         with:
           node-version: '22'
       - run: node resources/curriculum-lesson-design/canvas-keyboard-contract.test.cjs
+      - run: npm install --no-save @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test resources/curriculum-lesson-design/canvas-browser.spec.cjs --reporter=line
