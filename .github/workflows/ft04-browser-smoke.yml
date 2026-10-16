@@ -1,0 +1,20 @@
+name: FT-04 served browser smoke
+on:
+  pull_request:
+    paths:
+      - 'free-tools/cash-flow/**'
+      - '.github/workflows/ft04-browser-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.55.1
+      - run: npx playwright install --with-deps chromium
+      - run: node free-tools/cash-flow/browser-smoke.cjs
