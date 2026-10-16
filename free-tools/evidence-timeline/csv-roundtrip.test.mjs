@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {normalizeEvidence,exportEvidenceCSV} from './core.mjs';
+const rows=normalizeEvidence([{sourceId:' ID, "one" ',date:'2026-10-16',claim:'Line one\nLine two',group:'＝group'},{sourceId:'cafe\u0301',date:'2026-10-15',claim:'＋SUM(1,2)',status:'disputed',kind:'inference'}]);
+const csv=exportEvidenceCSV(rows);
+assert.ok(csv.startsWith('sourceId,date,claim,status,kind,group\r\n'));
+assert.ok(csv.endsWith('\r\n'));
+assert.ok(csv.includes('" ID, ""one"" "'));
+assert.ok(csv.includes('"Line one\nLine two"'));
+assert.ok(csv.includes('"\u0027＋SUM(1,2)"'));
+assert.ok(csv.includes('"\u0027＝group"'));
+assert.ok(csv.includes('"cafe\u0301"'));
+assert.equal((csv.match(/\r\n/g)||[]).length,3);
+console.log('PASS: 8 synthetic CSV checks');
