@@ -6,7 +6,7 @@ let records = [];
 const form=$('entry-form'), error=$('error'), list=$('records');
 const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=String(value);return e;};
 function showError(message,field){error.textContent=message;error.hidden=false; if(field){const input=$(field);input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby','error');}error.focus();}
-function clearError(){error.hidden=true;error.textContent='';for(const field of form.elements)if(field.removeAttribute)field.removeAttribute('aria-invalid');}
+function clearError(){error.hidden=true;error.textContent='';for(const field of form.elements)if(field.removeAttribute){field.removeAttribute('aria-invalid');field.removeAttribute('aria-describedby');}}
 function render(){
   list.replaceChildren();const report=summary(records);$('count').textContent=report.total+' '+(report.total===1?'record':'records')+' (date order).';
   $('groups').textContent=report.reviewGroups.length?report.reviewGroups.map(g=>'Review group '+g.group+': '+g.sourceIds.join(', ')).join(' · '):'No related-record groups to review.';
