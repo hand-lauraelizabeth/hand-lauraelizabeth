@@ -7,6 +7,7 @@ on:
       - 'review/nyc311-source-audit-*'
       - 'review/nyc311-source-failclosed-*'
       - 'review/nyc311-disclosure-viewer-model-*'
+      - 'review/nyc311-accessible-viewer-*'
     paths:
       - 'projects/nyc311-operations-intelligence/**'
       - '.github/workflows/nyc311-disclosure-tests.yml'
@@ -31,5 +32,7 @@ jobs:
           python-version: '3.12'
       - name: Run deterministic contract and integration tests
         run: python -m unittest discover -p 'test_*.py' -v
-      - name: Test disclosure-safe viewer model
-        run: node --test private-staging/test_model.mjs
+      - name: Test disclosure-safe viewer and interface contracts
+        run: node --test private-staging/test_*.mjs
+      - name: Check viewer JavaScript syntax
+        run: node --check private-staging/app.mjs

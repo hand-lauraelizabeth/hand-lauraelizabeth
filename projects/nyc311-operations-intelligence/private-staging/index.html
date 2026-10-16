@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NYC 311 | Public Service Operations | Private Preview</title>
+<style>
+:root{color-scheme:light;--ink:#172d28;--muted:#40584e;--sage:#25594d;--line:#b9ccc1;--paper:#f6f8f5}
+*{box-sizing:border-box}html{scroll-behavior:auto}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,sans-serif}
+main{max-width:1100px;margin:auto;padding:clamp(1rem,3vw,2.5rem)}h1{font-size:clamp(1.65rem,4vw,2.5rem);line-height:1.2}h2{font-size:1.25rem}p{max-width:75ch}
+.eyebrow{font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--sage);font-weight:750}
+.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:1.2rem;margin:1rem 0}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:1rem}.controls>div{min-width:0}input[type=file]{min-width:0;max-width:100%}
+label{display:block;font-weight:650;margin-bottom:.35rem}select,input,button{font:inherit;min-height:44px;width:100%;border:1px solid #668174;border-radius:6px;padding:.5rem;background:white;color:var(--ink)}
+button{background:var(--sage);color:white;cursor:pointer;font-weight:650}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #aa6b12;outline-offset:3px}
+button.secondary{background:white;color:var(--sage)}.actions{display:flex;gap:.75rem;flex-wrap:wrap}.actions button{width:auto}
+.note{color:var(--muted);font-size:.93rem;overflow-wrap:anywhere}.status{border-left:4px solid var(--sage);padding:.6rem 1rem;background:#e9f2ed;overflow-wrap:anywhere}
+.status.error{border-color:#9d3131;background:#fff0ed}.barlist{list-style:none;margin:0;padding:0}
+.barrow{display:grid;grid-template-columns:minmax(100px,220px) minmax(0,1fr) auto;gap:.7rem;align-items:center;margin:.6rem 0}
+.track{background:#e4ebe5;border-radius:5px;height:17px;overflow:hidden}.fill{background:var(--sage);height:100%}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:620px}caption{text-align:left;font-weight:600;padding:.35rem 0 .8rem}
+th,td{text-align:left;padding:.65rem;border-bottom:1px solid var(--line)}th{background:#edf3ee}td.num{text-align:right;font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}a{color:#174e44;text-underline-offset:.15em}
+@media(max-width:570px){.barrow{grid-template-columns:minmax(0,1fr) auto}.track{grid-column:1/-1;grid-row:2}.panel{padding:.85rem}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style></head><body><main id="main">
+<p class="eyebrow">Private preview · Not published findings</p><h1>NYC 311 · Public Service Operations</h1>
+<p>Explore request patterns in disclosure-screened aggregates. Closure is an administrative status, not proof that an issue was resolved. Withheld small cells are excluded, so displayed counts are not complete citywide totals.</p>
+<section class="panel" aria-labelledby="load-title"><h2 id="load-title">Load an aggregate file</h2>
+<p class="note">Choose a local <code>public_aggregates.json</code> produced by the disclosure-gated pipeline. The file is processed in your browser, without uploading it.</p>
+<div class="controls"><div><label for="file">Disclosure-safe JSON</label><input id="file" type="file" accept=".json,application/json" aria-describedby="file-help"></div></div>
+<p id="file-help" class="note">Maximum 8 MB. Raw requests and private quality reports are rejected.</p>
+<div class="actions"><button id="demo" type="button" class="secondary">Try synthetic demonstration</button><button id="clear" type="button" class="secondary">Clear data</button></div>
+<p id="status" class="status" role="status" aria-live="polite">No dataset loaded.</p>
+<p id="provenance" class="note" hidden></p></section>
+<section class="panel" aria-labelledby="filter-title"><h2 id="filter-title">Explore released cells</h2>
+<div class="controls"><div><label for="month">Month</label><select id="month"><option value="">All displayed months</option></select></div>
+<div><label for="borough">Borough</label><select id="borough"><option value="">All displayed boroughs</option></select></div>
+<div><label for="agency">Agency</label><select id="agency"><option value="">All displayed agencies</option></select></div>
+<div><label for="query">Problem contains</label><input id="query" type="search" placeholder="e.g., noise"></div>
+<div><label for="sort">Sort cells</label><select id="sort"><option value="count">Request count (high–low)</option><option value="name">Problem (A–Z)</option></select></div></div>
+<div class="actions"><button id="reset" type="button" class="secondary">Reset filters</button></div>
+<p id="result-count" aria-live="polite">Load data to explore results.</p>
+<p id="empty" class="note" hidden>No released cells match these filters. Try resetting them.</p></section>
+<section class="panel" aria-labelledby="chart-title"><h2 id="chart-title">Most frequent problems among matching released cells</h2>
+<p class="note">Bars sum only the currently matching, previously released cells. These are not source totals or adjusted rates.</p>
+<ol id="bars" class="barlist" aria-label="Problem frequency among matching released cells"></ol></section>
+<section class="panel" aria-labelledby="table-title"><h2 id="table-title">Released aggregate cells</h2>
+<div class="tablewrap" tabindex="0" role="region" aria-label="Scrollable aggregate results table"><table><caption id="table-caption">No data loaded</caption><thead><tr><th scope="col">Month</th><th scope="col">Borough</th><th scope="col">Agency</th><th scope="col">Problem</th><th scope="col">Requests in cell</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<p class="note">Source: <a href="https://data.cityofnewyork.us/d/erm2-nwe9" rel="noopener noreferrer">NYC Open Data, 311 Service Requests from 2020 to Present</a>. No agency rankings, rate denominators, or case-mix adjustments are implied. Private preview; official source-export verification pending.</p>
+</main><script type="module" src="./app.mjs"></script></body></html>
