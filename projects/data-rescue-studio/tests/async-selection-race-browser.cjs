@@ -34,7 +34,7 @@ const {chromium}=require('playwright');
    await choose('#file','clear-late.csv','ID,Value\nlate,stale');
    await page.locator('#reset').click();
    await complete(2);
-   check((await page.locator(status).innerText()).includes('No file'),html+': reset invalidates pending primary read');
+   check((await page.locator(status).innerText()).includes(html==='index.html'?'No data loaded.':'No file loaded.'),html+': reset invalidates pending primary read');
    check(await page.locator('#save').isDisabled(),html+': stale primary read cannot reenable export');
    await choose('#file','sample-late.csv','ID,Value\nlate,stale');
    await page.locator('#sample').click();
