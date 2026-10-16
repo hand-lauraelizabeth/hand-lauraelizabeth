@@ -1,0 +1,20 @@
+name: FT02 upload accessibility checks
+on:
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft02-upload-errors.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node projects/data-rescue-studio/tests/upload-error-accessibility.test.js
+      - run: node projects/data-rescue-studio/tests/strict-reader-ui.test.js
+      - run: node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
