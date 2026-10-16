@@ -15,8 +15,14 @@
     const node = $('compareStatus');
     node.textContent = text;
     node.className = error ? 'error' : '';
-    if (typeof $('compareFile').setAttribute === 'function') $('compareFile').setAttribute('aria-invalid', error ? 'true' : 'false');
-    if (error && typeof node.focus === 'function') node.focus();
+    if (typeof $('compareFile').setAttribute === 'function') {
+      $('compareFile').setAttribute('aria-describedby', 'compareStatus');
+      $('compareFile').setAttribute('aria-invalid', error ? 'true' : 'false');
+    }
+    if (error) {
+      node.tabIndex = -1;
+      if (typeof node.focus === 'function') node.focus();
+    }
   }
   function options(selectId, data) {
     const select = $(selectId);
