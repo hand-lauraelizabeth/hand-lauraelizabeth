@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Evidence &amp; Timeline Builder — Local Review</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header><p class="eyebrow">Free tools · Review prototype</p><h1>Evidence &amp; Timeline Builder</h1><p>Organize records by date and source ID. Mark what a record says separately from your interpretation.</p></header>
+<main id="main">
+<section class="notice" aria-labelledby="privacy-heading"><h2 id="privacy-heading">Privacy and limits</h2><p>Entries stay in this browser tab. Nothing is uploaded, saved to an account, or stored after you close or reload this page. Export before leaving. This tool does not establish facts or make legal, medical, or financial determinations.</p><p>Dates are calendar dates only; exact times and time zones are not supported in this version. Related records are flagged for review, not automatically labeled contradictory.</p></section>
+<section aria-labelledby="entry-heading"><h2 id="entry-heading">Add a record</h2><p>Fields marked * are required. Use an identifier from your own source material; do not paste private records into a public issue or bug report.</p>
+<form id="entry-form" novalidate>
+<div class="grid">
+<div><label for="sourceId">Source ID *</label><input id="sourceId" name="sourceId" maxlength="120" required autocomplete="off"><p class="hint">A unique identifier you control; preserved in exports.</p></div>
+<div><label for="date">Record date * (YYYY-MM-DD)</label><input id="date" name="date" type="date" required></div>
+<div><label for="kind">Evidence type *</label><select id="kind" name="kind"><option value="source">Source record</option><option value="observation">Observation</option><option value="inference">Inference</option></select></div>
+<div><label for="status">Review status *</label><select id="status" name="status"><option value="reported">Reported (not independently verified)</option><option value="corroborated">Corroborated (user-assigned)</option><option value="disputed">Disputed (user-assigned)</option><option value="unresolved">Unresolved</option></select></div>
+<div><label for="group">Related-record group (optional)</label><input id="group" name="group" maxlength="120" autocomplete="off"><p class="hint">Matching group labels flag records for manual comparison.</p></div>
+</div>
+<div><label for="claim">What does this record say? *</label><textarea id="claim" name="claim" maxlength="20000" rows="4" required></textarea></div>
+<p id="error" class="error" role="alert" tabindex="-1" hidden></p>
+<button type="submit">Add record</button>
+</form></section>
+<section aria-labelledby="timeline-heading"><h2 id="timeline-heading">Chronology</h2><label for="review-filter">Filter chronology by review status</label><select id="review-filter"><option value="all">All statuses</option><option value="reported">Reported</option><option value="corroborated">Corroborated</option><option value="disputed">Disputed</option><option value="unresolved">Unresolved</option></select><p id="review-summary">Reported: 0 · Corroborated: 0 · Disputed: 0 · Unresolved: 0. Statuses are user-assigned.</p><p id="count" role="status" aria-live="polite">0 records.</p><p id="groups">No related-record groups to review.</p><ol id="records" aria-label="Chronological evidence records"></ol><p id="empty">No records yet. Add a record to build your timeline.</p>
+<div class="actions"><button id="csv" type="button" disabled>Export spreadsheet CSV</button><button id="json" type="button" disabled>Export exact JSON</button><button id="clear" type="button" disabled>Clear all records</button></div>
+<p class="hint">Filtering changes only the visible chronology. Both exports include all records, including those hidden by the current filter.</p><p class="hint">CSV export adds a precautionary apostrophe to some formula-like values. This changes those exported values and is not a universal guarantee across spreadsheet applications or after re-saving. Exact JSON retains original field values; treat either file as sensitive.</p>
+</section>
+</main><footer><p>Local-only review prototype · Not a finding or determination</p></footer>
+</body></html>
