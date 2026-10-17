@@ -2,6 +2,7 @@ import {exportEvidenceCSV,summary} from './core.mjs';
 import {normalizeExact as normalizeEvidence} from './exact-core.mjs';
 import {readExactJSON} from './json-import.mjs';
 import {createImportFeedback} from './import-feedback.mjs';
+import {previewReplacement, replacementConfirmation} from './replacement-preview.mjs';
 const $ = id => document.getElementById(id);
 let records = [];
 const form=$('entry-form'), error=$('error'), list=$('records');
@@ -43,10 +44,13 @@ timeline.before(section);
 input.addEventListener('change',async()=>{
  const file=input.files?.[0];if(!file)return;
  importFeedback.begin();
+ const initialRecords=records;
  input.disabled=true;
  try{
    const next=await readExactJSON(file);
-   if(window.confirm('Replace '+records.length+' current records with '+next.length+' imported records? Export first if needed.')){
+   if(records!==initialRecords) throw Error('Records changed while reading the file. Choose the file again to review the current records.');
+   const impact=previewReplacement(records,next);
+   if(window.confirm(replacementConfirmation(impact))){
      records=next;render();$('count').focus();importFeedback.announce(next.length+' records imported locally.');
    }else importFeedback.announce('Import cancelled; existing records retained.');
  }catch(e){importFeedback.fail(String(e.message||e));}
