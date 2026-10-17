@@ -36,11 +36,13 @@ jobs:
       - name: Install Chromium browser regression dependencies
         run: |
           python -m pip install playwright==1.57.0
-          python -m playwright install --with-deps chromium
+          python -m playwright install --with-deps chromium firefox webkit
       - name: Check browser test syntax
         run: python -m py_compile free-tools/evidence-timeline/browser-10k-basic.py
       - name: Run HTTP module and CSP regression
         run: python free-tools/evidence-timeline/browser-http-csp-smoke.py
+      - name: Run cross-browser HTTP/CSP and browser zoom checks
+        run: python free-tools/evidence-timeline/browser-cross-engine.py
       - name: Run synthetic 10k-record Chromium regression
         run: |
           CHROMIUM_BIN="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" python free-tools/evidence-timeline/browser-10k-basic.py
