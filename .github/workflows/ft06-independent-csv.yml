@@ -1,4 +1,4 @@
-name: FT-06 independent CSV and JSON interoperability
+name: FT-06 grant ledger cross-language and allocation checks
 on:
   pull_request:
     paths:
@@ -6,7 +6,7 @@ on:
       - '.github/workflows/ft06-independent-csv.yml'
   push:
     branches:
-      - 'review/ft06-independent-oracle-ci-20261017-1434'
+      - 'review/ft06-allocation-gates-ci-20261017-1630'
     paths:
       - 'free-tools/grant-ledger/**'
       - '.github/workflows/ft06-independent-csv.yml'
@@ -14,9 +14,9 @@ on:
 permissions:
   contents: read
 jobs:
-  python-csv-oracle:
+  cross-language-and-allocation:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,5 +25,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Verify CSV and JSON with independent Python parser
+      - name: Verify independent CSV and JSON parser
         run: python3 free-tools/grant-ledger/csv-reader-independent.test.py
+      - name: Verify deterministic BigInt allocation properties
+        run: node free-tools/grant-ledger/allocation-property.test.mjs
+      - name: Verify CSV export structure
+        run: node free-tools/grant-ledger/csv-export-smoke.test.mjs
