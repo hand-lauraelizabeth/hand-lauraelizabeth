@@ -6,7 +6,7 @@ on:
       - '.github/workflows/ft06-independent-csv.yml'
   push:
     branches:
-      - 'review/ft06-allocation-gates-ci-20261017-1630'
+      - 'review/ft06-review-flags-ci-20261017-1730'
     paths:
       - 'free-tools/grant-ledger/**'
       - '.github/workflows/ft06-independent-csv.yml'
@@ -31,3 +31,5 @@ jobs:
         run: node free-tools/grant-ledger/allocation-property.test.mjs
       - name: Verify CSV export structure
         run: node free-tools/grant-ledger/csv-export-smoke.test.mjs
+      - name: Verify review flags, exact IDs and NUL rejection
+        run: node free-tools/grant-ledger/review-flags.test.mjs
