@@ -1,4 +1,5 @@
 """HTTP-served Chromium smoke test for actual module loading and CSP."""
+import json
 from contextlib import contextmanager
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -30,6 +31,7 @@ def main():
         errors = []
         violations = []
         requests = []
+        page.add_init_script("document.addEventListener('securitypolicyviolation', e => window.__cspViolation = (window.__cspViolation || 0) + 1)")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on("console", lambda msg: violations.append(msg.text) if "Content Security Policy" in msg.text else None)
         page.on("request", lambda request: requests.append(request.url))
@@ -48,12 +50,18 @@ def main():
         with page.expect_download() as download:
             page.locator("#json").click()
         assert download.value.suggested_filename.endswith(".json")
+        exported = json.loads(Path(download.value.path()).read_text(encoding="utf-8"))
+        assert len(exported["records"]) == 1
+        assert exported["records"][0]["sourceId"] == "000123"
         assert not errors, errors
         assert not violations, violations
+        assert page.evaluate('window.__cspViolation || 0') == 0
         assert all(request.startswith(url.rsplit("/", 1)[0] + "/") for request in requests), requests
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.evaluate("document.documentElement.style.fontSize = '32px'")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         browser.close()
-    print("PASS: 11 HTTP-served Chromium module/CSP/local-only/filter/export/reflow assertions")
+    print("PASS: 14 HTTP-served Chromium module/CSP/local-only/filter/export/reflow assertions")
 
 if __name__ == "__main__":
     main()
