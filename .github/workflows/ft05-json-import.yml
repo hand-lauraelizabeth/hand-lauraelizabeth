@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'review/ft05-json-import-error-recovery-*'
+      - 'review/ft05-json-import-ci-boundaries-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
@@ -17,5 +18,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check free-tools/evidence-timeline/json-import-security.test.mjs
-      - run: node free-tools/evidence-timeline/json-import-security.test.mjs
+      - name: Validate importer and tests
+        run: |
+          node --check free-tools/evidence-timeline/json-import.mjs
+          node --check free-tools/evidence-timeline/json-import-security.test.mjs
+          node --check free-tools/evidence-timeline/json-file-decode.test.mjs
+          node --check free-tools/evidence-timeline/json-utf8.test.mjs
+          node --check free-tools/evidence-timeline/json-file-boundaries.test.mjs
+      - name: Run JSON import regression suite
+        run: |
+          node free-tools/evidence-timeline/json-import-security.test.mjs
+          node free-tools/evidence-timeline/json-file-decode.test.mjs
+          node free-tools/evidence-timeline/json-utf8.test.mjs
+          node free-tools/evidence-timeline/json-file-boundaries.test.mjs
