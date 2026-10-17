@@ -22,7 +22,7 @@ assert.ok(result.review.every(flag=>flag.categoryId==='CAT-01'));
 assert.ok(result.review.some(flag=>flag.sourceId==='=REF-001'));
 assert.ok(result.review.some(flag=>flag.transactionId==='' && flag.sourceId===''));
 const csv=exportReviewCSV(result);
-assert.ok(csv.startsWith('transactionId,sourceId,categoryId,flag\r\n'));
+assert.ok(csv.startsWith('"transactionId","sourceId","categoryId","flag"\r\n'));
 assert.ok(csv.includes("'=REF-001"));
 assert.ok(csv.includes('TX-0001'));
 assert.ok(csv.endsWith('\r\n'));
