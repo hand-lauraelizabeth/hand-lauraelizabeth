@@ -19,7 +19,7 @@
 <div><label for="sourceId">Source ID *</label><input id="sourceId" name="sourceId" maxlength="120" required autocomplete="off"><p class="hint">A unique identifier you control; preserved in exports.</p></div>
 <div><label for="date">Record date * (YYYY-MM-DD)</label><input id="date" name="date" type="date" required></div>
 <div><label for="kind">Evidence type *</label><select id="kind" name="kind"><option value="source">Source record</option><option value="observation">Observation</option><option value="inference">Inference</option></select></div>
-<div><label for="status">Review status *</label><select id="status" name="status"><option value="reported">Reported (not independently verified)</option><option value="corroborated">Corroborated (user-assigned)</option><option value="disputed">Disputed (user-assigned)</option><option value="unresolved">Unresolved</option></select></div>
+<div><label for="status">Review status *</label><select id="status" name="status"><option value="reported">Reported</option><option value="corroborated">Corroborated</option><option value="disputed">Disputed</option><option value="unresolved">Unresolved</option></select><p class="hint">Statuses are assigned by you: reported does not mean verified; corroborated and disputed are not independent findings.</p></div>
 <div><label for="group">Related-record group (optional)</label><input id="group" name="group" maxlength="120" autocomplete="off"><p class="hint">Matching group labels flag records for manual comparison.</p></div>
 </div>
 <div><label for="claim">What does this record say? *</label><textarea id="claim" name="claim" maxlength="20000" rows="4" required></textarea></div>

@@ -8,3 +8,9 @@ html,body{min-width:0;max-width:100%}header,main,footer,section{min-width:0;over
 
 /* WebKit file chooser's internal label can exceed the 320px layout box. */
 input[type=file]{width:100%;max-width:100%;min-width:0;overflow:hidden}
+
+/* Safari/WebKit select controls can expose intrinsic option text beyond their grid track. */
+@media(max-width:620px){.grid{grid-template-columns:minmax(0,1fr)}.grid>div{min-width:0;max-width:100%}.grid select{width:100%;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}}
+
+/* WebKit's native date field has an intrinsic minimum wider than a 320px form cell. */
+@media(max-width:620px){.grid input[type=date]{width:100%;min-width:0;max-width:100%;overflow:hidden;-webkit-appearance:none;appearance:none}}
