@@ -8,3 +8,6 @@ html,body{min-width:0;max-width:100%}header,main,footer,section{min-width:0;over
 
 /* WebKit intrinsic form-control and flex sizing at narrow viewports. */
 @media(max-width:620px){.grid,.actions,.record dl{min-width:0;max-width:100%}.grid>*{min-width:0;max-width:100%}input[type=date],input[type=text],input[type=url],select,textarea{min-width:0;width:100%;max-width:100%;-webkit-appearance:none;appearance:none}input[type=date]{min-height:44px}.record dl{display:block}.record dd{overflow-wrap:anywhere}}
+
+/* Keep WebKit native control decoration inside the available inline size. */
+@media(max-width:620px){input[type=date]{padding-inline:.2rem;border-width:1px}select{padding-inline:.2rem}section,.record{max-width:100%}body{width:100%}}
