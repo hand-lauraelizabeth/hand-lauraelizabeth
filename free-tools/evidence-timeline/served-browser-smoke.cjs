@@ -15,11 +15,20 @@ const server=createServer(async (req,res)=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const browser=await chromium.launch();
   try {
-    const page=await browser.newPage();
+    const page=await browser.newPage({viewport:{width:320,height:700}});
     const response=await page.goto('http://127.0.0.1:'+server.address().port+'/index.html');
     assert.equal(response.status(),200);
     assert.equal(await page.locator('#resume-json').count(),1);
     assert.equal(await page.locator('#csv').isDisabled(),true);
-    console.log('PASS: 3 served FT-05 browser checks');
+    await page.locator('#sourceId').fill('000123');
+    await page.locator('#date').fill('2026-01-02');
+    await page.locator('#status').selectOption('disputed');
+    await page.locator('#claim').fill('Synthetic evidence only');
+    await page.locator('#entry-form button[type=submit]').click();
+    assert.equal(await page.locator('#records li').count(),1);
+    await page.locator('#review-filter').selectOption('reported');
+    assert.equal(await page.locator('#records li').count(),0);
+    assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+    console.log('PASS: 6 served FT-05 browser checks');
   } finally {await browser.close();server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;server.close();});
