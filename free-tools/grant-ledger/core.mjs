@@ -76,10 +76,10 @@ export function calculateLedger(award, categories, expenses) {
     const note = boundedText(e.note ?? '', 'Note', 500, false);
     const assignedCents = Math.floor((totalCents * allocationBps + 5000) / 10000);
     const unassignedCents = totalCents - assignedCents;
-    if (date < start || date > end) review.push({transactionId, flag:'Date outside award period'});
-    if (allocationBps > 0 && allocationBps < 10000 && !allocationBasis.trim()) review.push({transactionId, flag:'Partial allocation lacks documented basis'});
-    if (!evidenceRef.trim()) review.push({transactionId, flag:'Supporting evidence reference missing'});
-    if (allocationBps === 0) review.push({transactionId, flag:'No amount assigned to this award'});
+    if (date < start || date > end) review.push({transactionId, sourceId, categoryId, flag:'Date outside award period'});
+    if (allocationBps > 0 && allocationBps < 10000 && !allocationBasis.trim()) review.push({transactionId, sourceId, categoryId, flag:'Partial allocation lacks documented basis'});
+    if (!evidenceRef.trim()) review.push({transactionId, sourceId, categoryId, flag:'Supporting evidence reference missing'});
+    if (allocationBps === 0) review.push({transactionId, sourceId, categoryId, flag:'No amount assigned to this award'});
     totalExpenseCents += totalCents;
     totalAssignedCents += assignedCents;
     totals.set(categoryId, totals.get(categoryId) + assignedCents);
@@ -88,7 +88,7 @@ export function calculateLedger(award, categories, expenses) {
   const lines = normalizedCategories.map(c => {
     const actualCents = totals.get(c.categoryId);
     const differenceCents = c.budgetCents - actualCents;
-    if (differenceCents < 0) review.push({transactionId:'', flag:`Budget comparison: ${c.categoryId} exceeds planned amount`});
+    if (differenceCents < 0) review.push({transactionId:'', sourceId:'', categoryId:c.categoryId, flag:`Budget comparison: ${c.categoryId} exceeds planned amount`});
     return {...c,actualCents,differenceCents};
   });
   return {award:{awardId,awardName,start,end},lines,expenses:normalizedExpenses,
@@ -108,6 +108,11 @@ export function exportTransactionsCSV(result) {
 export function exportBudgetCSV(result) {
   const cols=['awardId','categoryId','label','budgetCents','actualCents','differenceCents','restrictionNote'];
   return [cols.map(csvCell).join(','),...result.lines.map(l=>cols.map(c=>csvCell(c==='awardId'?result.award.awardId:l[c])).join(','))].join('\r\n')+'\r\n';
+}
+/** Export all review flags with explicit provenance. Empty source/transaction IDs identify budget-level flags. */
+export function exportReviewCSV(result) {
+  const cols=['transactionId','sourceId','categoryId','flag'];
+  return [cols.map(csvCell).join(','),...result.review.map(flag=>cols.map(col=>csvCell(flag[col])).join(','))].join('\r\n')+'\r\n';
 }
 export function exportJSON(result) {
   return JSON.stringify({schema:'grant-ledger-review-v1',...result},null,2)+'\n';
