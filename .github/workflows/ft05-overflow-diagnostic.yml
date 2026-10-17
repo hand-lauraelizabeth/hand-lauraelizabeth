@@ -1,0 +1,28 @@
+name: FT-05 overflow diagnostics
+on:
+  push:
+    branches:
+      - 'review/ft05-webkit-diagnostic-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/browser_overflow_diagnostic.py'
+      - '.github/workflows/ft05-overflow-diagnostic.yml'
+permissions:
+  contents: read
+jobs:
+  cross-engine-overflow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned Playwright browsers
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium firefox webkit
+      - name: Check diagnostic syntax
+        run: python -m py_compile free-tools/evidence-timeline/browser_overflow_diagnostic.py
+      - name: Diagnose internal scroll overflow at 320, 375 and 1280px
+        run: python free-tools/evidence-timeline/browser_overflow_diagnostic.py
