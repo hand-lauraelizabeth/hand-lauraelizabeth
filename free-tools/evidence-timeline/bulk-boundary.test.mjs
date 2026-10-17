@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {performance} from 'node:perf_hooks';
+import {normalizeExact} from './exact-core.mjs';
+import {exportEvidenceCSV,summary} from './core.mjs';
+import {filterReviewRows,reviewStatusSummary} from './review-filter.mjs';
+const N=10000;
+const input=Array.from({length:N},(_,i)=>({sourceId:`${i}`.padStart(6,'0'),date:`2026-10-${String(i%28+1).padStart(2,'0')}`,claim:`Synthetic note ${i}`,status:['reported','corroborated','disputed','unresolved'][i%4],kind:'source',group:`G-${i%25}`}));
+const snapshot=JSON.stringify(input);
+const start=performance.now();
+const rows=normalizeExact(input);
+const elapsed=performance.now()-start;
+let checks=0;
+assert.equal(rows.length,N);checks++;
+assert.equal(new Set(rows.map(r=>r.sourceId)).size,N);checks++;
+assert.equal(rows[0].date,'2026-10-01');checks++;
+assert.equal(JSON.stringify(input),snapshot);checks++;
+assert.equal(summary(rows).total,N);checks++;
+assert.equal(summary(rows).reviewGroups.length,25);checks++;
+for(const status of ['reported','corroborated','disputed','unresolved']) {
+ const visible=filterReviewRows(rows,status);
+ assert.equal(visible.length,N/4);checks++;
+ assert.ok(visible.every(r=>r.status===status));checks++;
+}
+assert.match(reviewStatusSummary(rows),/Unresolved: 2500/);checks++;
+const csv=exportEvidenceCSV(rows);
+assert.equal(csv.split('\r\n').length,N+2);checks++;
+assert.ok(csv.includes('"000000"'));checks++;
+assert.ok(csv.includes('"009999"'));checks++;
+assert.throws(()=>normalizeExact([...input,input[0]]),/10000/);checks++;
+const bad=input.map(r=>({...r}));bad[9999].sourceId='000000';
+assert.throws(()=>normalizeExact(bad),/duplicate/i);checks++;
+console.log(`PASS: ${checks} 10,000-record limit, exact-ID, summary and export checks; normalization ${elapsed.toFixed(1)}ms (local, not benchmark)`);
