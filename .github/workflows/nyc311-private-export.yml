@@ -1,0 +1,22 @@
+name: NYC 311 private exporter regression
+on:
+  push:
+    branches:
+      - 'review/nyc311-export-ci-*'
+    paths:
+      - 'projects/nyc311-operations-intelligence/**'
+      - '.github/workflows/nyc311-private-export.yml'
+  workflow_dispatch:
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run offline NYC 311 regression suite
+        working-directory: projects/nyc311-operations-intelligence
+        run: python -m unittest discover -v -p 'test_*.py'
