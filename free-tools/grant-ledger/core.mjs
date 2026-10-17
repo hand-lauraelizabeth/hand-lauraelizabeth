@@ -6,7 +6,7 @@ export const MAX_EXPENSES = 500;
 export const MAX_MONEY_CENTS = 999_999_999_99;
 
 function boundedText(value, field, max = 500, required = true) {
-  if (typeof value !== 'string' || value.length > max || (required && !value.trim())) {
+  if (typeof value !== 'string' || value.length > max || value.includes('\u0000') || (required && !value.trim())) {
     throw new Error(`${field}: ${required ? 'enter' : 'use'} text of at most ${max} characters`);
   }
   return value; // Preserve identifiers exactly; do not trim.
