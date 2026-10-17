@@ -36,8 +36,8 @@ def main():
             assert not errors, (name, errors)
             assert not external, (name, external)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), (name, "320px reflow")
-            # Browser-level zoom: Chromium via CDP; Firefox/WebKit rely on CSS-pixel
-            # enlarged text simulation, which is NOT equivalent to native browser zoom.
+            # CDP page-scale emulation is not equivalent to manual browser UI zoom.
+            # Enlarged root text is a separate automated reflow proxy.
             if name == "chromium":
                 cdp = page.context.new_cdp_session(page)
                 cdp.send("Emulation.setPageScaleFactor", {"pageScaleFactor": 2})
