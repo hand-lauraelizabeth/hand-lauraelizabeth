@@ -4,6 +4,7 @@ on:
     branches:
       - 'review/ft05-bulk-ci-*'
       - 'review/ft05-http-csp-ci-*'
+      - 'review/ft05-http-csp-hardening-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
