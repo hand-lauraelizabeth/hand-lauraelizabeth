@@ -5,3 +5,6 @@
 
 /* Reflow at narrow widths and enlarged text without clipping controls. */
 html,body{min-width:0;max-width:100%}header,main,footer,section{min-width:0;overflow-wrap:anywhere}input,select,textarea,button{min-width:0}button{white-space:normal;overflow-wrap:anywhere}@media(max-width:620px){header,main,footer{padding-left:.5rem;padding-right:.5rem}section{padding:.5rem;margin:1rem 0}input,select,textarea{padding:.35rem;max-width:100%}.record{padding:.5rem}.actions{min-width:0}}
+
+/* WebKit intrinsic form-control and flex sizing at narrow viewports. */
+@media(max-width:620px){.grid,.actions,.record dl{min-width:0;max-width:100%}.grid>*{min-width:0;max-width:100%}input[type=date],input[type=text],input[type=url],select,textarea{min-width:0;width:100%;max-width:100%;-webkit-appearance:none;appearance:none}input[type=date]{min-height:44px}.record dl{display:block}.record dd{overflow-wrap:anywhere}}
