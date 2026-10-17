@@ -38,6 +38,16 @@ try:
                       }).filter(x => x.right > innerWidth + 0.5 || x.left < -0.5 || x.scrollWidth > x.clientWidth + 1)
                         .sort((a,b) => (b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,20)
                     })""")
+                    if engine == "webkit" and width == 320:
+                        children = page.evaluate("""() => [...document.querySelectorAll('#entry-form .grid > div')].map((e,i) => ({
+                          index:i, label:e.querySelector('label')?.textContent, childWidth:e.clientWidth,
+                          childScroll:e.scrollWidth, fields:[...e.querySelectorAll('input,select')].map(f => ({
+                            id:f.id, type:f.type, width:f.getBoundingClientRect().width,
+                            scroll:f.scrollWidth, client:f.clientWidth, intrinsic:f.getAttribute('size'),
+                            appearance:getComputedStyle(f).appearance, overflow:getComputedStyle(f).overflowX
+                          }))
+                        }))""")
+                        print(json.dumps({"engine":engine,"width":width,"gridChildren":children},ensure_ascii=False))
                     print(json.dumps({"engine":engine,"width":width,**report},ensure_ascii=False))
                     if report["documentWidth"] > width + 1:
                         failures.append(f"{engine} {width}px document={report['documentWidth']}px")
