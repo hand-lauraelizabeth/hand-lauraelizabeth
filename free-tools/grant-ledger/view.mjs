@@ -42,6 +42,6 @@ export function buildInterface(){
  add(report,'h3','Items requiring human review');add(report,'ul','','reviewList');
  add(report,'p','CSV may change formula-like text; JSON preserves entered values. Exports remain on your device.');
  const actions=add(report,'div');actions.className='actions';
- button(actions,'Transactions CSV','downloadTransactions');button(actions,'Budget CSV','downloadBudget');button(actions,'Evidence JSON','downloadJSON');
+ button(actions,'Transactions CSV','downloadTransactions');button(actions,'Budget CSV','downloadBudget');button(actions,'Review flags CSV','downloadReview');button(actions,'Evidence JSON','downloadJSON');
  const footer=add(root,'footer');add(footer,'p','Review award terms and 2 CFR 200.302, 200.403, and 200.405; no automatic accounting determination.');
 }
