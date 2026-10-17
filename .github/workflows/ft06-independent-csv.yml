@@ -1,0 +1,29 @@
+name: FT-06 independent CSV and JSON interoperability
+on:
+  pull_request:
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-independent-csv.yml'
+  push:
+    branches:
+      - 'review/ft06-independent-oracle-ci-20261017-1434'
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-independent-csv.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  python-csv-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify CSV and JSON with independent Python parser
+        run: python3 free-tools/grant-ledger/csv-reader-independent.test.py
