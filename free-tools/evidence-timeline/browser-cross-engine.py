@@ -35,7 +35,7 @@ def main():
             assert page.locator("#records li").count() == 1, (name, "record")
             assert not errors, (name, errors)
             assert not external, (name, external)
-            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), (name, "320px reflow")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), (name, "320px reflow", page.evaluate("""() => ({scroll:document.documentElement.scrollWidth, width:innerWidth, offenders:[...document.querySelectorAll("body *")].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,10).map(e=>({tag:e.tagName,id:e.id,right:Math.round(e.getBoundingClientRect().right)}))})"""))
             # CDP page-scale emulation is not equivalent to manual browser UI zoom.
             # Enlarged root text is a separate automated reflow proxy.
             if name == "chromium":
