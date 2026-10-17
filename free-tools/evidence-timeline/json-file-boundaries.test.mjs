@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readExactJSON, SCHEMA, MAX_BYTES} from './json-import.mjs';
+const json=JSON.stringify({schema:SCHEMA,records:[]});
+const valid=new TextEncoder().encode(json);
+const file=(name,bytes,declared=bytes.byteLength)=>({name,size:declared,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)});
+let checks=0;
+const reject=async(f,pattern)=>{await assert.rejects(()=>readExactJSON(f),pattern);checks++;};
+assert.deepEqual(await readExactJSON(file('synthetic.JSON',valid)),[]);checks++;
+await reject(file('synthetic.csv',valid),/JSON export/);
+await reject(file('synthetic.json',valid,MAX_BYTES+1),/exceeds/);
+await reject(file('synthetic.json',new Uint8Array(MAX_BYTES+1),1),/exceeds/);
+await reject(file('synthetic.json',new TextEncoder().encode(json+'\u0000')),/NUL/);
+await reject(file('synthetic.json',new TextEncoder().encode('{"schema":"wrong","records":[]}')),/schema/);
+await reject(file('synthetic.json',new TextEncoder().encode('not JSON')),/syntax/);
+await reject(file('synthetic.json',Uint8Array.from([0xc3,0x28])),/UTF-8/);
+console.log('PASS: '+checks+' synthetic JSON file boundary checks');
