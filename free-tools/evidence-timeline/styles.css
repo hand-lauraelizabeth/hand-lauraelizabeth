@@ -11,3 +11,6 @@ html,body{min-width:0;max-width:100%}header,main,footer,section{min-width:0;over
 
 /* Keep WebKit native control decoration inside the available inline size. */
 @media(max-width:620px){input[type=date]{padding-inline:.2rem;border-width:1px}select{padding-inline:.2rem}section,.record{max-width:100%}body{width:100%}}
+
+/* Prevent WebKit form descendants from contributing intrinsic inline overflow. */
+@media(max-width:620px){#entry-form,#entry-form>*,#entry-form .grid,#entry-form .grid>*,#entry-form input,#entry-form select,#entry-form textarea{box-sizing:border-box;min-width:0;max-width:100%;width:100%}#entry-form .grid{grid-template-columns:minmax(0,1fr)}#entry-form input[type=date]{display:block;overflow:clip}#entry-form select{overflow:hidden;text-overflow:ellipsis}}
