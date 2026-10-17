@@ -1,4 +1,4 @@
-"""Cross-engine HTTP smoke and browser zoom checks (not native AT validation)."""
+"""Cross-engine HTTP, keyboard, and reflow smoke (not native AT or browser UI zoom)."""
 from contextlib import contextmanager
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -28,6 +28,12 @@ def main():
             response = page.goto(url, wait_until="networkidle")
             assert response.status == 200, (name, "HTTP")
             assert page.locator("#sourceId").is_visible(), (name, "module")
+            page.keyboard.press("Tab")
+            assert page.evaluate("document.activeElement.classList.contains('skip')"), (name, "skip link first in keyboard order")
+            page.keyboard.press("Enter")
+            assert page.evaluate("location.hash === '#main'"), (name, "skip link target")
+            assert page.locator("#sourceId").get_attribute("required") is not None, (name, "required field")
+            assert page.locator("#error").get_attribute("role") == "alert", (name, "error alert semantics")
             page.locator("#sourceId").fill("000123")
             page.locator("#date").fill("2026-10-17")
             page.locator("#claim").fill("Synthetic cross-browser record")
