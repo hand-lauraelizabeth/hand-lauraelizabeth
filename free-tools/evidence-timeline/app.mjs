@@ -3,6 +3,7 @@ import {normalizeExact as normalizeEvidence} from './exact-core.mjs';
 import {readExactJSON} from './json-import.mjs';
 import {createImportFeedback} from './import-feedback.mjs';
 import {previewReplacement, replacementConfirmation} from './replacement-preview.mjs';
+import {filterReviewRows, reviewStatusSummary} from './review-filter.mjs';
 const $ = id => document.getElementById(id);
 let records = [];
 const form=$('entry-form'), error=$('error'), list=$('records');
@@ -10,13 +11,18 @@ const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=Strin
 function showError(message,field){error.textContent=message;error.hidden=false; if(field){const input=$(field);input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby','error');}error.focus();}
 function clearError(){error.hidden=true;error.textContent='';for(const field of form.elements)if(field.removeAttribute){field.removeAttribute('aria-invalid');field.removeAttribute('aria-describedby');}}
 function render(){
-  list.replaceChildren();const report=summary(records);$('count').textContent=report.total+' '+(report.total===1?'record':'records')+' (date order).';
+  list.replaceChildren();const report=summary(records);
+  const selected=$('review-filter').value;const visible=filterReviewRows(records,selected);
+  $('count').textContent=selected==='all' ? report.total+' '+(report.total===1?'record':'records')+' (date order).' : 'Showing '+visible.length+' of '+report.total+' records (date order).';
+  $('review-summary').textContent=reviewStatusSummary(records);
   $('groups').textContent=report.reviewGroups.length?report.reviewGroups.map(g=>'Review group '+g.group+': '+g.sourceIds.join(', ')).join(' · '):'No related-record groups to review.';
-  $('empty').hidden=records.length>0;
-  for(const r of records){const item=text('li','');item.className='record';item.append(text('h3',r.sourceId+' — '+r.date));item.append(text('p',r.claim));const details=text('p','Type: '+r.kind+' · Status: '+r.status+(r.group?' · Group: '+r.group:''));item.append(details);const remove=text('button','Remove '+r.sourceId);remove.type='button';remove.setAttribute('aria-label','Remove record '+r.sourceId);remove.addEventListener('click',()=>{records=records.filter(x=>x.sourceId!==r.sourceId);render();$('count').focus();});item.append(remove);list.append(item);}
+  $('empty').hidden=visible.length>0;
+  $('empty').textContent=records.length===0 ? 'No records yet. Add a record to build your timeline.' : 'No records match this review status. Choose All statuses to see the complete timeline.';
+  for(const r of visible){const item=text('li','');item.className='record';item.append(text('h3',r.sourceId+' — '+r.date));item.append(text('p',r.claim));const details=text('p','Type: '+r.kind+' · Status: '+r.status+(r.group?' · Group: '+r.group:''));item.append(details);const remove=text('button','Remove '+r.sourceId);remove.type='button';remove.setAttribute('aria-label','Remove record '+r.sourceId);remove.addEventListener('click',()=>{records=records.filter(x=>x.sourceId!==r.sourceId);render();$('count').focus();});item.append(remove);list.append(item);}
   for(const id of ['csv','json','clear'])$(id).disabled=records.length===0;
 }
 $('count').tabIndex=-1;
+$('review-filter').addEventListener('change',render);
 form.addEventListener('submit',event=>{
   event.preventDefault();clearError();
   const data=Object.fromEntries(new FormData(form).entries());
@@ -29,7 +35,7 @@ form.addEventListener('submit',event=>{
 function download(filename,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 $('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportEvidenceCSV(records),'text/csv;charset=utf-8'));
 $('json').addEventListener('click',()=>download('evidence-timeline-exact.json',JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n','application/json'));
-$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];render();$('sourceId').focus();}});
+$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];$('review-filter').value='all';render();$('sourceId').focus();}});
 
 const timeline=document.querySelector('[aria-labelledby="timeline-heading"]');
 const section=document.createElement('section');
