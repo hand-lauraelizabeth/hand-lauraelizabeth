@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'review/ft05-bulk-ci-*'
+      - 'review/ft05-http-csp-ci-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
