@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {normalizeExact} from './exact-core.mjs';
+import {exportEvidenceCSV} from './core.mjs';
+let n=0;
+const eq=(a,b)=>{assert.equal(a,b);n++;};
+const ok=v=>{assert.ok(v);n++;};
+const fails=f=>{assert.throws(f);n++;};
+const rec=(sourceId,extra={})=>({sourceId,date:'2026-10-15',claim:'Synthetic record',status:'reported',kind:'source',group:'',...extra});
+const records=normalizeExact([rec(' ID ',{claim:'  preserved text\nsecond line ',group:' G '}),rec('ID'),rec('Ω-01')]);
+eq(records.length,3);
+eq(records[0].sourceId,' ID ');
+eq(records[1].sourceId,'ID');
+eq(records[2].sourceId,'Ω-01');
+eq(records[0].claim,'  preserved text\nsecond line ');
+eq(records[0].group,' G ');
+fails(()=>normalizeExact([rec('X'),rec('X')]));
+fails(()=>normalizeExact([rec('  ')]));
+fails(()=>normalizeExact([rec('X',{group:'a'.repeat(121)})]));
+fails(()=>normalizeExact([rec('X',{claim:'a'.repeat(20001)})]));
+const csv=exportEvidenceCSV(records);
+ok(csv.includes('"  preserved text\nsecond line "'));
+ok(csv.includes('"Ω-01"'));
+ok(csv.endsWith('\r\n'));
+for(const prefix of ['=','+','-','@',' =','\t@','\r=','\uFEFF=']){
+  const result=exportEvidenceCSV([rec('SAFE',{claim:prefix+'1+2'})]);
+  ok(result.includes('"\''+prefix+'1+2"'));
+}
+const escaped=exportEvidenceCSV([rec('X',{claim:'line 1,\nline "2"'})]);
+ok(escaped.includes('"line 1,\nline ""2"""'));
+const dangerous=exportEvidenceCSV([rec(' =HYPERLINK("url")')]);
+ok(dangerous.includes('"\' =HYPERLINK(""url"")"'));
+console.log(n+' exact-source and CSV safety assertions PASS');

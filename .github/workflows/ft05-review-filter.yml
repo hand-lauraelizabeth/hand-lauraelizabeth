@@ -1,0 +1,22 @@
+name: FT-05 review status filter
+on:
+  push:
+    branches:
+      - 'review/ft05-status-filter-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+permissions:
+  contents: read
+jobs:
+  node-review-filter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check free-tools/evidence-timeline/review-filter.mjs
+      - run: node --check free-tools/evidence-timeline/app.mjs
+      - run: node free-tools/evidence-timeline/review-filter-smoke.test.mjs
+      - run: node free-tools/evidence-timeline/review-filter-property.test.mjs

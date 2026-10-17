@@ -1,0 +1,39 @@
+name: FT-05 evidence timeline regression
+on:
+  push:
+    branches:
+      - 'review/ft05-ci-push-gate-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-evidence-regression.yml'
+permissions:
+  contents: read
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate exact-source module and regression syntax
+        run: |
+          node --check free-tools/evidence-timeline/core.mjs
+          node --check free-tools/evidence-timeline/exact-core.mjs
+          node --check free-tools/evidence-timeline/core.test.mjs
+          node --check free-tools/evidence-timeline/exact-source-csv.test.mjs
+          node --check free-tools/evidence-timeline/legacy-exact-regression.test.mjs
+          node --check free-tools/evidence-timeline/legacy-boundary-regression.test.mjs
+          node --check free-tools/evidence-timeline/csv-roundtrip.test.mjs
+      - name: Core test
+        run: node free-tools/evidence-timeline/core.test.mjs
+      - name: Exact source and CSV test
+        run: node free-tools/evidence-timeline/exact-source-csv.test.mjs
+      - name: Legacy exact-source regression
+        run: node free-tools/evidence-timeline/legacy-exact-regression.test.mjs
+      - name: Synthetic CSV roundtrip regression
+        run: node free-tools/evidence-timeline/csv-roundtrip.test.mjs
+      - name: Boundary and CSV regression
+        run: node free-tools/evidence-timeline/legacy-boundary-regression.test.mjs

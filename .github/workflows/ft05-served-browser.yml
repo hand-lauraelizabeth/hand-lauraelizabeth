@@ -1,0 +1,28 @@
+name: FT-05 HTTP-served browser accessibility checks
+on:
+  push:
+    branches:
+      - 'review/ft05-form-error-a11y-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-served-browser.yml'
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Chromium and Playwright
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Verify browser test syntax
+        run: python -m py_compile free-tools/evidence-timeline/browser_a11y_http.py
+      - name: Run HTTP-served browser regression
+        run: python free-tools/evidence-timeline/browser_a11y_http.py

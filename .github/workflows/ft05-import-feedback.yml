@@ -1,0 +1,23 @@
+name: FT-05 import feedback regression
+on:
+  push:
+    branches:
+      - 'review/ft05-import-error-feedback-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/import-feedback*'
+      - 'free-tools/evidence-timeline/app.mjs'
+      - '.github/workflows/ft05-import-feedback.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check free-tools/evidence-timeline/import-feedback.mjs
+      - run: node --check free-tools/evidence-timeline/app.mjs
+      - run: node free-tools/evidence-timeline/import-feedback.test.mjs

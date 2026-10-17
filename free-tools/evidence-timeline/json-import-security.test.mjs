@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {parseExactJSON,SCHEMA} from './json-import.mjs';
+const row=id=>({sourceId:id,date:'2026-10-16',claim:'Synthetic',status:'reported',kind:'source',group:''});
+const doc=rows=>JSON.stringify({schema:SCHEMA,records:rows});
+assert.equal(parseExactJSON(doc([row(' ID ')]))[0].sourceId,' ID ');
+assert.equal(parseExactJSON('\uFEFF'+doc([row('cafe\u0301')]))[0].sourceId,'cafe\u0301');
+assert.equal(parseExactJSON(doc([row('ID'),row(' ID ')])).length,2);
+assert.throws(()=>parseExactJSON(doc([row('ID'),row('ID')])));
+assert.throws(()=>parseExactJSON(JSON.stringify({schema:SCHEMA,records:[],extra:true})));
+assert.throws(()=>parseExactJSON(JSON.stringify({schema:SCHEMA,records:[{...row('ID'),extra:1}]})));
+assert.throws(()=>parseExactJSON(JSON.stringify({schema:SCHEMA,records:[{sourceId:'ID'}]})));
+assert.throws(()=>parseExactJSON('not JSON'));
+console.log('PASS: 8 exact JSON import checks');
