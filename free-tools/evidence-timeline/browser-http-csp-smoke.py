@@ -59,7 +59,7 @@ def main():
         assert all(request.startswith(url.rsplit("/", 1)[0] + "/") for request in requests), requests
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         page.evaluate("document.documentElement.style.fontSize = '32px'")
-        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), page.evaluate("""() => [...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1).slice(0, 8).map(e => ({tag:e.tagName,id:e.id,right:Math.round(e.getBoundingClientRect().right)}))""")
         browser.close()
     print("PASS: 14 HTTP-served Chromium module/CSP/local-only/filter/export/reflow assertions")
 
