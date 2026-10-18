@@ -1,0 +1,27 @@
+{
+  "dataset_id": "erm2-nwe9",
+  "period": "2026-09",
+  "verification_date": "2026-10-18",
+  "verification_scope": "live_API_aggregate_only",
+  "source": "https://data.cityofnewyork.us/d/erm2-nwe9",
+  "total_rows": 323628,
+  "distinct_keys": 323628,
+  "nonnull_keys": 323628,
+  "borough_counts": {
+    "BRONX": 59212,
+    "BROOKLYN": 105705,
+    "MANHATTAN": 64994,
+    "QUEENS": 80443,
+    "STATEN ISLAND": 12876,
+    "Unspecified": 398
+  },
+  "source_query_urls": {
+    "summary": "https://data.cityofnewyork.us/resource/erm2-nwe9.json?%24select=count(*)%20as%20n%2Ccount(distinct%20unique_key)%20as%20distinct_keys%2Ccount(unique_key)%20as%20nonnull_keys&%24where=created_date%20%3E%3D%20'2026-09-01T00%3A00%3A00'%20AND%20created_date%20%3C%20'2026-10-01T00%3A00%3A00'",
+    "borough": "https://data.cityofnewyork.us/resource/erm2-nwe9.json?%24select=borough%2Ccount(*)%20as%20n%2Ccount(distinct%20unique_key)%20as%20distinct_keys&%24where=created_date%20%3E%3D%20'2026-09-01T00%3A00%3A00'%20AND%20created_date%20%3C%20'2026-10-01T00%3A00%3A00'&%24group=borough&%24order=borough&%24limit=100",
+    "month": "https://data.cityofnewyork.us/resource/erm2-nwe9.json?%24select=date_trunc_ym(created_date)%20as%20month%2Ccount(*)%20as%20n&%24where=created_date%20%3E%3D%20'2026-09-01T00%3A00%3A00'%20AND%20created_date%20%3C%20'2026-10-01T00%3A00%3A00'&%24group=month&%24order=month"
+  },
+  "full_csv_reconciled": false,
+  "csv_source_sha256": null,
+  "publication_authorized": false,
+  "notes": "Live SoQL query responses cross-checked independently by borough, identifier counts, and calendar month. Mutable live API results are not an immutable CSV snapshot or a source-bound release artifact."
+}
