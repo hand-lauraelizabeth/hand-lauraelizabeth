@@ -10,4 +10,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test free-tools/housing-ledger/housing-core.test.mjs
+      - run: node free-tools/housing-ledger/housing-core.test.mjs
+      - run: node free-tools/housing-ledger/housing-ui-contract.test.mjs
