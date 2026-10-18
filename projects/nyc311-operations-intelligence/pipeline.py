@@ -11,6 +11,9 @@ import datetime as dt
 import hashlib
 import json
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+NYC_TZ = ZoneInfo("America/New_York")
 
 REQUIRED = {"unique_key", "created_date", "closed_date", "agency", "complaint_type", "borough", "status"}
 BOROUGHS = {"BRONX", "BROOKLYN", "MANHATTAN", "QUEENS", "STATEN ISLAND"}
@@ -19,7 +22,10 @@ SOURCE_URL = "https://data.cityofnewyork.us/d/erm2-nwe9"
 def dateparse(s):
     s = (s or "").strip()
     if not s: return None
-    try: return dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
+    try:
+        parsed = dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
+        # Offset-free timestamps are interpreted as New York local time; repeated DST hours are ambiguous.
+        return parsed.replace(tzinfo=NYC_TZ) if parsed.tzinfo is None else parsed.astimezone(NYC_TZ)
     except ValueError: return None
 
 def normalize(s):
@@ -46,7 +52,7 @@ def ingest(source, output, *, as_of, min_cell=10):
             if not key: counts["missing_unique_key"] += 1
             if not created: counts["missing_or_invalid_created_date"] += 1; continue
             if created.date() > as_of_day: counts["created_after_as_of"] += 1; continue
-            if finished and (finished < created): counts["closure_before_creation"] += 1
+            if finished and (finished.astimezone(dt.timezone.utc) < created.astimezone(dt.timezone.utc)): counts["closure_before_creation"] += 1
             borough = normalize(row["borough"]).upper()
             agency = normalize(row["agency"])
             problem = normalize(row["complaint_type"])
@@ -56,7 +62,7 @@ def ingest(source, output, *, as_of, min_cell=10):
             group = (created.date().strftime("%Y-%m"), borough, agency, problem)
             grouped[group] += 1
             counts["valid_records"] += 1
-            if normalize(row["status"]).casefold() == "closed" and finished and finished >= created:
+            if normalize(row["status"]).casefold() == "closed" and finished and finished.astimezone(dt.timezone.utc) >= created.astimezone(dt.timezone.utc):
                 closed[group] += 1
     # Display-safe threshold; totals kept separately so small cells are not misreported as zero.
     records = [dict(month=m, borough=b, agency=a, problem=p, requests=n,
