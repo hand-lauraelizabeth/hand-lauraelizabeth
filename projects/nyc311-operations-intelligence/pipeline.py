@@ -65,17 +65,33 @@ def ingest(source, output, *, as_of, min_cell=10):
             if normalize(row["status"]).casefold() == "closed" and finished and finished.astimezone(dt.timezone.utc) >= created.astimezone(dt.timezone.utc):
                 closed[group] += 1
     # Display-safe threshold; totals kept separately so small cells are not misreported as zero.
-    records = [dict(month=m, borough=b, agency=a, problem=p, requests=n,
-                    closed_with_valid_interval=closed[(m,b,a,p)])
-               for (m,b,a,p),n in sorted(grouped.items()) if n >= min_cell]
+    # Closure is a subset of requests. Protect both the subset and its
+    # complement; otherwise a displayed total can expose a small subgroup.
+    # Thresholds below 10 are supported only for internal synthetic tests.
+    records = []
+    for (m, b, a, p), n in sorted(grouped.items()):
+        if n < min_cell:
+            continue
+        closure_n = closed[(m, b, a, p)]
+        suppress_closure = min_cell >= 10 and (
+            closure_n < min_cell or n - closure_n < min_cell
+        )
+        records.append(dict(
+            month=m, borough=b, agency=a, problem=p, requests=n,
+            closed_with_valid_interval=None if suppress_closure else closure_n,
+            closure_count_suppressed=suppress_closure,
+        ))
     counts["small_cells_suppressed"] = sum(1 for n in grouped.values() if n < min_cell)
     payload = {
         "source": SOURCE_URL,
         "dataset_id": "erm2-nwe9", "snapshot_as_of": as_of,
         "source_sha256": digest.hexdigest(), "source_bytes": source.stat().st_size,
+        "publication_authorized": False,
         "rules": {"grain":"month × borough × agency × original API complaint_type",
                   "display_minimum_cell_count":min_cell,
+                  "test_only_threshold":min_cell < 10,
                   "closure":"closed status AND nonnegative valid close interval; not proof of resolution",
+                  "closure_suppression":"With minimum >=10, suppress closure counts if either closure or nonclosure subgroup is below the minimum; null means withheld, not zero.",
                   "privacy":"No record-level coordinates, addresses, ZIP codes, or details exported",
                   "limitations":"No distinct-identifier check, no rate/exposure denominators, no case-mix-adjusted agency comparisons."},
         "quality": dict(counts), "aggregates": records
@@ -89,7 +105,7 @@ def main():
     p.add_argument("--as-of", required=True, help="snapshot date YYYY-MM-DD")
     p.add_argument("--min-cell", type=int, default=10)
     a = p.parse_args()
-    if a.min_cell < 1: p.error("--min-cell must be positive")
+    if a.min_cell < 10: p.error("--min-cell must be at least 10 for CLI outputs")
     result = ingest(a.input_csv, a.output_json, as_of=a.as_of, min_cell=a.min_cell)
     print(json.dumps({"quality":result["quality"],"public_cells":len(result["aggregates"])}))
 if __name__ == "__main__": main()
