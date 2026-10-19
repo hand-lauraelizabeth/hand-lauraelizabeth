@@ -1,2 +1,8 @@
 @import "./controls.css";
-*{box-sizing:border-box}body{margin:0;overflow-wrap:anywhere}main{padding:.5rem}
+*,*::before,*::after{box-sizing:border-box}
+html{overflow-wrap:anywhere}
+main{width:min(100%,74rem);margin-inline:auto;padding:clamp(1rem,3vw,2rem);min-width:0}
+.ft15-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:1rem;align-items:stretch}
+.ft15-card{min-width:0;padding:1.15rem;background:var(--surface);border:1px solid var(--line);border-radius:.75rem;box-shadow:0 2px 10px rgb(15 53 37 / .055)}
+.ft15-card p{overflow-wrap:anywhere}
+@media(max-width:36rem){main{padding:1rem}.ft15-card{padding:1rem}}
