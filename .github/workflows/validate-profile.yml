@@ -8,6 +8,7 @@ on:
       - "resources/**/*.xlsx"
       - "resources/**/*.docx"
       - "scripts/check_local_markdown_links.py"
+      - "scripts/check_live_tool_entrypoints.py"
       - "scripts/validate_office_resources.py"
       - "scripts/check_name_consistency.py"
       - "scripts/validate_college_career_sources.py"
@@ -23,6 +24,7 @@ on:
       - "resources/**/*.xlsx"
       - "resources/**/*.docx"
       - "scripts/check_local_markdown_links.py"
+      - "scripts/check_live_tool_entrypoints.py"
       - "scripts/validate_office_resources.py"
       - "scripts/check_name_consistency.py"
       - "scripts/validate_college_career_sources.py"
@@ -50,6 +52,8 @@ jobs:
         run: python -m pip install --disable-pip-version-check pandas selenium
       - name: Validate local Markdown links
         run: python scripts/check_local_markdown_links.py
+      - name: Require browser interfaces for public tools
+        run: python scripts/check_live_tool_entrypoints.py
       - name: Validate Office resource packages
         run: python scripts/validate_office_resources.py
       - name: Enforce full public name
