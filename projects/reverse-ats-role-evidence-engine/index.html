@@ -520,5 +520,15 @@ $('#ats-export').addEventListener('click',()=>{
  $('#ats-message').textContent='Audit CSV exported locally; it may contain details from your inputs.';
 });
 
+
+/* Send only content height to the embedding portfolio page, never candidate text. */
+function atsReportHeight(){
+ if(window.parent===window)return;
+ try{window.parent.postMessage({type:'leh-reverse-ats-height',height:Math.ceil(document.documentElement.scrollHeight)+24},'*')}catch(_e){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',atsReportHeight,{once:true});
+else atsReportHeight();
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(atsReportHeight).observe(document.body);
+
 </script>
 </body></html>
