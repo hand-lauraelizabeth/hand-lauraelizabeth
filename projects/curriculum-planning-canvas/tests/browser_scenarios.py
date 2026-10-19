@@ -35,6 +35,13 @@ scriptCount:document.querySelectorAll('#leh-canvas-app script').length,
 cssFallback:[...document.querySelectorAll('#leh-canvas-app style')].some(s=>s.textContent.includes(':not([data-ready=')),
 panelCount:document.querySelectorAll('#lc-objectives').length};""",panel,tab)
             print("CANVAS LIVE DIAGNOSTIC",label,tab,diagnostics,flush=True)
+            try:
+                served=driver.execute_async_script("""const done=arguments[arguments.length-1];
+fetch(location.href,{cache:'no-store'}).then(r=>r.text()).then(t=>{
+ const a=t.split('\\n');done({total:a.length,around:a.slice(475,485).map((line,i)=>((i+476)+': '+line).slice(0,700))});
+}).catch(e=>done({error:String(e)}));""")
+                print("SERVED PAGE SCRIPT LINES",served,flush=True)
+            except Exception as ex: print("SOURCE INSPECTION ERROR",str(ex),flush=True)
             try: print("BROWSER CONSOLE",driver.get_log("browser")[-10:],flush=True)
             except Exception: pass
             raise
