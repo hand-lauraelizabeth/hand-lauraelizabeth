@@ -476,7 +476,7 @@ function atsAction(row){
 function atsQuoteCSV(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
 function atsRender(){
  const raw=$('#job').value.trim(),cand=$('#candidate').value.trim(),out=$('#ats-results'),status=$('#ats-message');
- if(!raw){status.textContent='Paste a job description before running the audit.';$('#job').focus();return}
+ if(!raw||!lines(raw).length){status.textContent='Paste a job description with at least one complete requirement or responsibility before running the audit.';$('#job').focus();return}
  analyze();
  const rows=DATA.filter(x=>x.type!=='context');
  const visible=rows.filter(x=>['strong','visible'].includes(x.ev.status));
