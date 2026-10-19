@@ -4,11 +4,13 @@ from __future__ import annotations
 import os
 import socket
 import threading
+import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -19,26 +21,41 @@ class Quiet(SimpleHTTPRequestHandler):
     def log_message(self,*args): pass
 
 def click_tab(driver, tab_id):
-    """Use a real pointer click after placing the tab clear of fixed site navigation.
+    """Click a real tab despite asynchronous WordPress sticky-header reflow.
 
-    Anchored panels on WordPress can scroll the tablist under Divi's sticky
-    header. Selenium's default automatic scrolling may then click the header
-    instead of the visible tab. Centering is positioning, not a JS click.
+    The header can change position *after* scrollIntoView's initial hit test
+    and before Selenium dispatches the pointer click. Retry only genuine
+    interception after scrolling into a stable region below the header.
+    Never bypass hit testing with a JavaScript click.
     """
-    tab = driver.find_element(By.ID, tab_id)
-    driver.execute_script(
-        "arguments[0].scrollIntoView({block:'center',inline:'nearest'});", tab
-    )
-    def center_is_clickable(d):
-        return d.execute_script(
-            """const e=arguments[0],r=e.getBoundingClientRect();
-            const x=r.left+r.width/2,y=r.top+r.height/2;
-            const hit=document.elementFromPoint(x,y);
-            return r.width>0 && r.height>0 && y>0 && y<innerHeight &&
-                   (hit===e || e.contains(hit));""", tab
+    for attempt in range(5):
+        tab = driver.find_element(By.ID, tab_id)
+        driver.execute_script(
+            """const tab=arguments[0],rect=tab.getBoundingClientRect();
+            document.documentElement.style.scrollBehavior='auto';
+            const absoluteTop=window.scrollY+rect.top;
+            const target=Math.max(0, absoluteTop-Math.max(140,innerHeight*0.3));
+            window.scrollTo({top:target,behavior:'instant'});""", tab
         )
-    WebDriverWait(driver, 8).until(center_is_clickable)
-    tab.click()
+        time.sleep(0.2)
+        try:
+            WebDriverWait(driver, 6).until(
+                lambda d: d.execute_script(
+                    """const e=arguments[0],r=e.getBoundingClientRect();
+                    const x=r.left+r.width/2,y=r.top+r.height/2;
+                    const hit=document.elementFromPoint(x,y);
+                    return r.width>0 && r.height>0 && y>=100 && y<innerHeight &&
+                           (hit===e || e.contains(hit));""", tab
+                )
+            )
+            tab.click()
+            return
+        except ElementClickInterceptedException:
+            if attempt == 4:
+                raise
+            # An animated site header can still move between the hit test
+            # and the real pointer click; reposition and retry.
+            continue
 
 def run_site(driver,url,label):
     driver.get(url)
