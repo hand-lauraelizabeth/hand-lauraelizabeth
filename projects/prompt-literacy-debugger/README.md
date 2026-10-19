@@ -1,5 +1,7 @@
 # Prompt Literacy Debugger
 
+**[Use Prompt Literacy Debugger interactively](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-literacy-debugger/)** — Opens the working browser interface; no source checkout or installation required.
+
 A browser-based teaching tool for diagnosing a prompt before using it.
 
 The tool treats prompting as **task specification**, not prompt magic. Learners examine seven dimensions:
