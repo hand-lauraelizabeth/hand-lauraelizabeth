@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Role Evidence Engine — v2.4</title>
+<title>Reverse ATS / Role Evidence Studio — v2.5</title>
 <style>
 :root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -21,7 +21,7 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <body>
 <header>
   <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
-  <h1>Role Evidence Engine <span style="font-size:.42em;font-weight:600">v2.4</span></h1>
+  <h1>Reverse ATS · Role Evidence Studio <span style="font-size:.42em;font-weight:600">v2.5</span></h1>
   <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
 </header>
 <main>
@@ -38,6 +38,53 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 </section>
 </div>
 
+<section class="panel ats-review" id="reverse-ats-audit" style="margin-top:18px" aria-labelledby="ats-heading">
+  <p class="muted" style="text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:800">Reverse ATS / Applicant-view audit</p>
+  <h2 id="ats-heading">What would a reviewer be able to see?</h2>
+  <p>Compare the full posting with the evidence you supplied above. Distinguish required qualifications, visible skills, missing or ambiguous proof, and application questions that must be answered on the employer's actual form.</p>
+  <div class="grid">
+    <div>
+      <label for="ats-workflow"><strong>Review lens</strong></label>
+      <select id="ats-workflow" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px">
+        <option value="general">General applicant screening</option>
+        <option value="workday">Workday: skills visibility and parsing</option>
+        <option value="greenhouse">Greenhouse: structured review</option>
+      </select>
+      <p class="muted" style="font-size:12px">These are documentation-informed lenses, not replicas of employer settings or proprietary scoring algorithms.</p>
+    </div>
+    <div>
+      <label for="ats-record"><strong>Type of candidate material</strong></label>
+      <select id="ats-record" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px">
+        <option value="mixed">Mixed evidence / portfolio</option>
+        <option value="resume">Plain-text résumé extract</option>
+      </select>
+      <p class="muted" style="font-size:12px">Text checks cannot test whether a particular DOCX or PDF file parses correctly in a specific ATS.</p>
+    </div>
+  </div>
+  <details style="margin:14px 0">
+    <summary><strong>Application screening questions — user confirmation only</strong></summary>
+    <p class="muted" style="font-size:13px">Employers may ask eligibility questions beyond the résumé. Choose a status only after checking the actual posting and your circumstances. These selections do not determine eligibility.</p>
+    <div class="grid">
+      <label>Work-authorization question
+        <select id="ats-workauth" style="display:block;width:100%;padding:9px"><option value="unknown">Not reviewed</option><option value="confirmed">I reviewed the exact question and can answer it</option><option value="review">I need to review this question</option></select>
+      </label>
+      <label>Location / work arrangement
+        <select id="ats-location" style="display:block;width:100%;padding:9px"><option value="unknown">Not reviewed</option><option value="confirmed">I reviewed the location requirement</option><option value="review">I need to verify the location requirement</option></select>
+      </label>
+      <label>Required credential or license
+        <select id="ats-credential" style="display:block;width:100%;padding:9px"><option value="unknown">Not reviewed</option><option value="confirmed">I reviewed and can document the stated credential</option><option value="review">I need to verify the credential requirement</option></select>
+      </label>
+    </div>
+  </details>
+  <div class="row"><button class="btn" type="button" id="ats-run">Run reverse ATS audit</button><button class="btn ghost" type="button" id="ats-export" disabled>Export audit CSV</button><span id="ats-message" role="status" aria-live="polite" class="muted"></span></div>
+  <div id="ats-results" aria-live="polite" style="margin-top:16px"><p class="muted">Paste a posting and relevant candidate material above, then run the audit. You can start with the fictional sample job and candidate.</p></div>
+  <details style="margin:14px 0">
+    <summary><strong>How this audit relates to real applicant tracking systems</strong></summary>
+    <p>Workday documents résumé parsing, a configurable Candidate Skills Match feature, and greater weighting for required skills; its documented similarity score does <em>not</em> evaluate total years of experience or skill recency. Greenhouse documents recruiter review, structured interview scorecards, optional AI-powered matching, and employer-controlled criteria. Both systems vary by employer configuration. A candidate cannot infer the employer's actual ranking, filtering, or reasons for a hiring decision from this tool.</p>
+    <p><a href="https://doc.workday.com/admin-guide/en-us/human-capital-management/recruiting/candidates/candidate-skills-match/bmj1604095304483.html" target="_blank" rel="noopener">Workday: Candidate Skills Match</a> · <a href="https://doc.workday.com/admin-guide/en-us/human-capital-management/recruiting/candidates/set-up-prospects-and-candidates/hdc1552497830785.html" target="_blank" rel="noopener">Workday: résumé parsing</a> · <a href="https://support.greenhouse.io/hc/en-us/articles/4414777492891-Scorecard-overview" target="_blank" rel="noopener">Greenhouse: structured scorecards</a> · <a href="https://support.greenhouse.io/hc/en-us/articles/33043749845403-Greenhouse-AI-features" target="_blank" rel="noopener">Greenhouse: AI features</a>.</p>
+    <p class="muted">This is a locally executed evidence-visibility and application-review aid—not a proprietary ATS score, an eligibility assessment, or a prediction of interviews.</p>
+  </details>
+</section>
 <div class="panel" style="margin-top:12px">
 <h3>Shared candidate profile</h3>
 <p class="muted">Transfer reviewed evidence to Career Discovery & Tracking without copying work. Private, anonymize-only, and do-not-use nodes are excluded from transfers. An exported JSON file may still contain personal information; keep it private.</p>
@@ -391,6 +438,86 @@ $('#profileImport').addEventListener('change',async e=>{
     const p=checkedProfile(JSON.parse(await file.text()));
     if(applyCandidateProfile(p))profileMessage('Imported candidate profile; other workspace content was not changed.');
   }catch(err){profileMessage('Import failed: '+err.message)}finally{e.target.value=''}
+});
+
+
+/* Reverse ATS application-facing audit: complements the source-aware evidence graph. */
+let ATS_EXPORT_ROWS=[];
+const atsEsc=s=>esc(String(s==null?'':s));
+function atsReadableCandidate(text){
+ const source=$('#ats-record').value;
+ const resume=source==='resume'?text:(text.match(/\[resume\]([\s\S]*?)(?:\[(?:portfolio|document|public|user)\]|$)/i)||[])[1]||'';
+ if(!resume.trim())return '<p class="muted">Résumé structure not assessed: candidate input is currently mixed evidence. Select “Plain-text résumé extract” or use a [resume] section to assess visible headings and contact cues.</p>';
+ const checks=[
+  ['Recognizable experience section',/\b(?:professional experience|work experience|employment history|experience)\b/i.test(resume)],
+  ['Education / training section',/\b(?:education|academic background|qualifications)\b/i.test(resume)],
+  ['Date cues',/\b(?:19|20)\d{2}\b/.test(resume)],
+  ['Skills or methods section',/\b(?:skills|technical skills|tools|methods|technologies)\b/i.test(resume)],
+  ['Email contact cue',/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(resume)]
+ ];
+ return '<p class="muted">Plain-text structure checks, not a file-parser test:</p><ul>'+checks.map(([t,ok])=>'<li><strong>'+atsEsc(ok?'Visible':'Review')+':</strong> '+atsEsc(t)+'</li>').join('')+'</ul><p class="muted">Check the real upload for logical reading order, legible section headings, selectable text, and accurate parsed fields. Avoid relying on text inside images or complex layout. An absent heading here does not establish ATS failure.</p>';
+}
+function atsWorkflowLens(mode){
+ if(mode==='workday')return 'Workday documentation describes résumé parsing and optional skills similarity based on job-requisition and application skills, with required skills weighted more heavily. Years of experience and recency are not part of its documented Skills Match calculation. Actual employer configuration is unknown.';
+ if(mode==='greenhouse')return 'Greenhouse documentation describes recruiter review, structured scorecards, configurable job criteria, and optional AI-assisted talent matching. A posting alone does not reveal the employer’s scorecard settings or screening rules.';
+ return 'Recruiters and ATS products use varying approaches, including application questions, parsed documents, structured review, and optional matching. No universal ATS score exists.';
+}
+function atsAction(row){
+ const support=reviewedSupport(row.ev);
+ if(row.ev.confidentiality==='do-not-use'||support==='blocked for external use')return 'Do not disclose this evidence. Find an approved, public-safe example.';
+ if(row.hard_check&&/unresolved|not visible|does not yet support|not clearly supported/i.test(row.hard_check))return 'Resolve the explicit requirement using reviewed dates, credential evidence, or documented tool experience.';
+ if(row.ev.status==='strong'||row.ev.status==='visible'){
+  if(support==='verified'||support==='source-corroborated')return 'Make the relevant evidence easy to locate in the application; retain accurate scope and source references.';
+  return 'Visible but not independently verified here: confirm source, chronology, authority, and current proficiency before strengthening a claim.';
+ }
+ if(row.ev.status==='partial')return 'Recover a clearer example with context, actual responsibility, methods, outcome, and defensible dates.';
+ return 'No persuasive evidence surfaced in the supplied material. Check for genuine experience before adding wording; never insert unsupported keywords.';
+}
+function atsQuoteCSV(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
+function atsRender(){
+ const raw=$('#job').value.trim(),cand=$('#candidate').value.trim(),out=$('#ats-results'),status=$('#ats-message');
+ if(!raw||!lines(raw).length){status.textContent='Paste a job description with at least one complete requirement or responsibility before running the audit.';$('#job').focus();return}
+ analyze();
+ const rows=DATA.filter(x=>x.type!=='context');
+ const visible=rows.filter(x=>['strong','visible'].includes(x.ev.status));
+ const corroborated=rows.filter(x=>['verified','source-corroborated'].includes(reviewedSupport(x.ev)));
+ const notVisible=rows.filter(x=>x.ev.status==='not visible');
+ const partial=rows.filter(x=>x.ev.status==='partial');
+ const required=rows.filter(x=>x.type==='hard');
+ const unanswered=['ats-workauth','ats-location','ats-credential'].filter(id=>$('#'+id).value!=='confirmed').length;
+ const mode=$('#ats-workflow').value;
+ const high=rows.filter(x=>x.type==='hard'||x.type==='tool'||x.type==='scope');
+ const prioritized=[...high,...rows.filter(x=>!high.includes(x))].slice(0,24);
+ const head='<div class="stats">'+[
+ [rows.length,'classified requirements and signals'],
+ [required.length,'explicit hard requirements'],
+ [visible.length,'visible in supplied evidence'],
+ [corroborated.length,'source-corroborated or verified matches']
+ ].map(([v,label])=>'<div class="stat"><b>'+v+'</b><span>'+label+'</span></div>').join('')+'</div>';
+ const alert='<div class="signal"><strong>Interpretation:</strong> '+atsEsc(atsWorkflowLens(mode))+'<br><strong>Application questions:</strong> '+atsEsc(unanswered===0?'Three categories reviewed; confirm answers on the real employer application.':unanswered+' categories not confirmed. Review the exact employer application before submitting.')+'</div>';
+ const missing='<p><strong>'+notVisible.length+'</strong> requirements/signals not visible; <strong>'+partial.length+'</strong> have partial textual evidence. This does not establish that the underlying capabilities are absent.</p>';
+ const format='<details style="margin-top:12px"><summary><strong>Résumé readability and parsing readiness</strong></summary>'+atsReadableCandidate(cand)+'</details>';
+ const header='<h3>Requirement-by-requirement visibility and next actions</h3><p class="muted">These rows are heuristic; evidence must be reviewed by a person. Displaying a term does not prove depth, recency, or authority.</p><div style="overflow-x:auto"><table><thead><tr><th scope="col">Requirement</th><th scope="col">Type</th><th scope="col">Visible evidence</th><th scope="col">Recommended next action</th></tr></thead><tbody>';
+ const body=prioritized.map(x=>{
+ const visibility=x.ev.status+(x.ev.source?' · '+x.ev.source:'');
+ const provenance=reviewedSupport(x.ev);
+ const detail=atsAction(x);
+ return '<tr><td style="min-width:190px">'+atsEsc(x.text)+'</td><td>'+atsEsc(x.type)+'</td><td>'+atsEsc(visibility)+'<br><span class="muted">'+atsEsc(provenance)+'</span></td><td style="min-width:220px">'+atsEsc(detail)+'</td></tr>';
+ }).join('');
+ out.innerHTML=head+alert+missing+format+header+body+'</tbody></table></div>'+(rows.length>24?'<p class="muted">Showing the first 24 prioritized rows; export CSV for the complete review.</p>':'');
+ ATS_EXPORT_ROWS=rows.map(x=>({requirement:x.text,type:x.type,visibility:x.ev.status,provenance:reviewedSupport(x.ev),hard_condition:x.hard_check||'',next_action:atsAction(x)}));
+ $('#ats-export').disabled=false;
+ status.textContent='Audit created in this browser. Review the source-aware evidence graph below before revising claims.';
+}
+$('#ats-run').addEventListener('click',atsRender);
+$('#ats-export').addEventListener('click',()=>{
+ if(!ATS_EXPORT_ROWS.length)return;
+ const cols=['requirement','type','visibility','provenance','hard_condition','next_action'];
+ const csv=[cols.join(','),...ATS_EXPORT_ROWS.map(row=>cols.map(k=>atsQuoteCSV(row[k])).join(','))].join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download='reverse-ats-evidence-audit.csv';link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ $('#ats-message').textContent='Audit CSV exported locally; it may contain details from your inputs.';
 });
 
 </script>
