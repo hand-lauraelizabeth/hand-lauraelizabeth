@@ -1,5 +1,7 @@
 # Standards Check: browser-based reteach grouping tool
 
+**[Use Standards Check interactively](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/)** — Opens the working browser interface; no source checkout or installation required.
+
 A lightweight JavaScript tool for turning standards-level assessment results into actionable reteach groups.
 
 ## What it does
@@ -25,14 +27,10 @@ Aggregate scores can hide which specific concepts need attention. The tool keeps
 
 ## Run it
 
-Open `index.html` in any modern browser.
+[Open the interactive browser version](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/), or download `index.html` and open it locally.
 
 The demonstration uses sample data so the full workflow can be inspected without exposing learner information.
 
-## Next extensions
+## Current boundaries
 
-- CSV paste/import
-- Exportable reteach groups
-- Additional accessibility testing
-- Saved thresholds and class configurations
-- Usability/timing evaluation
+This browser demonstration uses generated sample results and an adjustable mastery threshold. It does not import actual learner records, store classroom configurations, or export reteaching groups. Treat the suggested groupings as a planning aid to review against learners' actual work, not a diagnosis of learning needs.

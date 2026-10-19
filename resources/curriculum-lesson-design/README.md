@@ -2,7 +2,9 @@
 
 Reusable instructional-design resources for moving from learner context and authentic performance to aligned practice, assessment, transfer, and iteration.
 
-## Prepared resource
+## Planning resources
+
+[Open the interactive Curriculum Planning Canvas](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/) to work through learner context, measurable objectives, sequencing, evidence, and export in your browser.
 
 - [Design Around a Real Decision — Curriculum Planning Canvas](Design_Around_a_Real_Decision_Curriculum_Planning_Canvas.md)
 - [Parent & Caregiver ELL Program Architecture Checklist](Parent_Caregiver_ELL_Program_Architecture_Checklist.md)
