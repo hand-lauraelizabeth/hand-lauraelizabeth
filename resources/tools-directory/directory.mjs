@@ -10,7 +10,7 @@ export function validateCatalog(rows=TOOLS){
   if(t.status==='live'||t.status==='preview'){
    if(typeof t.url!=='string')throw Error('Available tool must have URL');
    const u=new URL(t.url);
-   if(u.protocol!=='https:'||u.hostname!=='www.lauraelizabethhand.com'||u.username||u.password||u.hash)throw Error('Unapproved tool URL');
+   if(u.origin!=='https://www.lauraelizabethhand.com'||!u.pathname.startsWith('/resources/')||u.username||u.password||u.search||u.hash)throw Error('Unapproved tool URL');
   }else if(t.url)throw Error('Unreleased tool cannot have a link');
  }
  return true;
