@@ -2,6 +2,8 @@
 
 The College + Career Matching Tool keeps source retrieval separate from recommendation scoring. The ingestion prototype can be run with the Python standard library; no project-specific package install is required.
 
+**Two distinct implementations:** The [published national College Search directory](https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/) reads a pinned, browser-local federal-data export (6,243 institution records in the June 2026 snapshot). The optional service-backed recommendation architecture documented below uses synthetic fixtures until its separate data, validation, and human activation requirements are met. A fixture-mode service does **not** mean the published national directory contains fictional institutions.
+
 ## List configured sources
 
 ```bash
@@ -198,7 +200,7 @@ The `[live-bls-smoke]` path is therefore intended for an environment from which 
 
 ## Product snapshot release-readiness path
 
-Before replacing the public explorer's synthetic fixture with an authoritative product snapshot, generate an observation-only profile:
+Before replacing the experimental service-backed explorer's synthetic fixture with an authoritative product snapshot, generate an observation-only profile:
 
 ```bash
 python projects/college-career-matching/product_snapshot_release_profile.py \\
@@ -220,11 +222,11 @@ python projects/college-career-matching/product_snapshot_activation_bundle.py \\
   --output /path/to/activation_review_bundle.json
 ```
 
-That bundle still sets `production_authorized: false`; the public explorer remains in fixture mode until a separate human activation decision is recorded.
+That bundle still sets `production_authorized: false`; the service-backed recommendation prototype remains in fixture mode until a separate human activation decision is recorded.
 
-## Browser runtime and deployment switch
+## Experimental service runtime and deployment switch
 
-The public explorer is fixture-first. Generate a runtime config with no activation record to make that state explicit:
+The service-backed explorer prototype is fixture-first. Generate a runtime config with no activation record to make that state explicit:
 
 ```bash
 python projects/college-career-matching/service_runtime_config.py \\
@@ -290,11 +292,11 @@ docker run --rm -p 8080:8080 --env-file service-deployment.env \\
   college-career-service
 ```
 
-Use `service-deployment.example.env` as a template. Do not set `CCX_ACTIVATION_RECORD` until an exact production authorization record exists. The current public portfolio explorer therefore remains fixture mode.
+Use `service-deployment.example.env` as a template. Do not set `CCX_ACTIVATION_RECORD` until an exact production authorization record exists. The optional recommendation service therefore remains in fixture mode; this is distinct from the live, static-data national directory.
 
 ## Synthetic HTTP staging
 
-Before pointing the public explorer at any hosted service, exercise the deployment boundary with fictional data.
+Before connecting the experimental service-backed interface to any hosted service, exercise the deployment boundary with fictional data.
 
 Build a deterministic fictional snapshot and manifest:
 
@@ -311,7 +313,7 @@ The repository's HTTP smoke test launches the real `service_host.py` on localhos
 python projects/college-career-matching/staging_http_smoke.py
 ```
 
-CI runs this smoke test after the synthetic regression suite. Passing staging smoke tests do not authorize production or imply that the public explorer should leave fixture mode.
+CI runs this smoke test after the synthetic regression suite. Passing staging smoke tests do not authorize production or imply that the recommendation service prototype should leave fixture mode.
 
 ## Non-public browser staging harness
 
