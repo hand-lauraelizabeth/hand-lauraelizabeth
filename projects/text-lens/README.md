@@ -1,5 +1,7 @@
 # Text Lens
 
+**[Use Text Lens interactively](https://www.lauraelizabethhand.com/resources/research-writing-tools/text-lens/)** — Opens the working browser interface; no source checkout or installation required.
+
 **Current standalone version:** 3.5
 
 Text Lens is a browser-only text-analysis tool for research, writing, and digital-humanities workflows.
