@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curriculum Planning Canvas | Laura Elizabeth Hand</title>
+<meta name="description" content="Build measurable learning objectives, sequence activities and assessments, and export a curriculum plan.">
+</head>
+<body>
+<div id="leh-canvas-app">
+<style>
+#leh-canvas-app{--ink:#21362d;--forest:#173a2e;--sage:#eaf1eb;--line:#d3dfd7;--muted:#586d62;--cream:#fafbf8;max-width:1120px;margin:auto;padding:20px 15px 60px;color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+#leh-canvas-app *{box-sizing:border-box}
+#leh-canvas-app .lc-shell{padding:clamp(18px,4vw,42px);background:#fff;border:1px solid var(--line);border-radius:20px}
+#leh-canvas-app h1,#leh-canvas-app h2,#leh-canvas-app h3{color:var(--forest)!important;line-height:1.15!important}
+#leh-canvas-app h1{font:700 clamp(34px,5vw,55px)/1.06 Georgia,serif!important;margin:0 0 14px!important}
+#leh-canvas-app h2{font:700 27px/1.2 Georgia,serif!important;margin:0 0 12px!important}
+#leh-canvas-app h3{font-size:17px!important;margin:0 0 8px!important}
+#leh-canvas-app p{margin:0 0 12px}
+#leh-canvas-app .lc-kicker{text-transform:uppercase;letter-spacing:.1em;font-weight:800;font-size:12px;color:#2d6349}
+#leh-canvas-app .lc-lead{font-size:18px;color:var(--muted);max-width:860px}
+#leh-canvas-app .lc-nav{display:flex;flex-wrap:wrap;gap:8px;margin:25px 0;padding-bottom:15px;border-bottom:1px solid var(--line)}
+#leh-canvas-app .lc-nav a[role="tab"]{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:10px 15px;border:1px solid #719381;border-radius:9px;background:#fff;color:var(--forest);font-size:15px;font-weight:700;text-decoration:none;cursor:pointer;text-align:center}
+#leh-canvas-app .lc-nav a[role="tab"]:hover{background:var(--sage)}
+#leh-canvas-app .lc-nav a[aria-selected=true]{background:var(--forest);color:#fff}
+#leh-canvas-app .lc-nav a[role="tab"]:focus-visible{outline:3px solid #73a38b;outline-offset:3px}
+#leh-canvas-app .lc-guidance{margin:4px 0 16px;border:1px solid #cbdcd2;border-radius:9px;background:#f6f9f6;padding:0 12px}
+#leh-canvas-app .lc-guidance summary{cursor:pointer;padding:9px 0;color:#244f3d;font-size:14px;font-weight:700}
+#leh-canvas-app .lc-guidance p{font-size:14px;line-height:1.55;margin:0 0 12px;color:#33483d}
+
+#leh-canvas-app button{cursor:pointer;border:1px solid #719381;border-radius:9px;padding:10px 15px;background:#fff;color:var(--forest);font-size:15px;font-weight:700}
+#leh-canvas-app button:hover{background:var(--sage)}
+#leh-canvas-app button{min-height:44px;min-width:44px;line-height:1.35}
+#leh-canvas-app .lc-actions,#leh-canvas-app .lc-nav{row-gap:10px}
+#leh-canvas-app button[aria-selected=true],#leh-canvas-app button.lc-primary{background:var(--forest);border-color:var(--forest);color:#fff}
+#leh-canvas-app button:focus-visible,#leh-canvas-app input:focus-visible,#leh-canvas-app select:focus-visible,#leh-canvas-app textarea:focus-visible{outline:3px solid #73a38b;outline-offset:3px}
+#leh-canvas-app .lc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+#leh-canvas-app .lc-card{border:1px solid var(--line);border-radius:13px;padding:20px;margin-bottom:18px;background:#fff}
+#leh-canvas-app .lc-soft{background:var(--cream)}
+#leh-canvas-app label{display:block;margin:12px 0 5px;font-weight:700;color:var(--ink)}
+#leh-canvas-app input[type=text],#leh-canvas-app input[type=number],#leh-canvas-app textarea,#leh-canvas-app select{display:block;width:100%;border:1px solid #a8bbb0;border-radius:8px;padding:10px 12px;background:#fff;color:var(--ink);font:inherit}
+#leh-canvas-app textarea{min-height:86px;resize:vertical}
+#leh-canvas-app .lc-note{font-size:14px;color:var(--muted)}
+#leh-canvas-app .lc-fieldset{border:0;padding:0;margin:0}
+#leh-canvas-app .lc-actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}
+#leh-canvas-app .lc-preview{padding:18px;border-radius:10px;background:var(--sage);border-left:4px solid #2d6349;white-space:pre-wrap;overflow-wrap:anywhere}
+#leh-canvas-app .lc-item{border:1px solid var(--line);border-radius:11px;padding:15px;margin:12px 0}
+#leh-canvas-app .lc-itemhead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+#leh-canvas-app .lc-warn{border-left:4px solid #ad7534;background:#fff9f1;padding:11px 14px;margin:8px 0}
+#leh-canvas-app .lc-ok{border-left:4px solid #2d6349;background:#eef5ef;padding:11px 14px;margin:8px 0}
+#leh-canvas-app .lc-status{min-height:22px;font-size:14px;color:#2d6349;font-weight:700}
+#leh-canvas-app pre{white-space:pre-wrap;word-break:break-word;max-height:420px;overflow:auto;padding:18px;background:#f4f6f3;border:1px solid var(--line);border-radius:10px;font:13px/1.5 ui-monospace,monospace}
+#leh-canvas-app .lc-hidden{display:none}
+#leh-canvas-app:not([data-ready="1"]):has([role="tabpanel"]:target) [role="tabpanel"]{display:none!important}
+#leh-canvas-app:not([data-ready="1"]):has([role="tabpanel"]:target) [role="tabpanel"]:target{display:block!important}
+#leh-canvas-app .lc-pill{display:inline-block;background:var(--sage);padding:4px 10px;border-radius:30px;font-size:13px;margin:4px 4px 5px 0}
+#leh-canvas-app a{color:#1f624a;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:750px){#leh-canvas-app .lc-grid{grid-template-columns:1fr}#leh-canvas-app .lc-shell{padding:20px 16px}#leh-canvas-app .lc-nav [role="tab"]{flex:1 1 42%}}
+@media print{#leh-canvas-app .lc-nav,#leh-canvas-app .lc-actions,#leh-canvas-app button,#leh-canvas-app input[type=file]{display:none!important}#leh-canvas-app .lc-hidden{display:block!important}#leh-canvas-app .lc-shell{border:0}#leh-canvas-app pre{max-height:none}}
+</style>
+<div class="lc-shell">
+<p class="lc-kicker">Learning design / Interactive planning resource</p>
+<h1>Curriculum Planning Canvas</h1>
+<p class="lc-lead">Design around what learners need to do, not merely what an instructor intends to cover. Define authentic performance, build measurable objectives, sequence practice, and check whether assessments provide evidence of learning.</p>
+<p class="lc-note">Works in your browser. No entries are submitted to this website or an AI service. Nothing is saved unless you select “Save in this browser” or export a file. Avoid entering confidential learner information.</p>
+<div class="lc-nav" role="tablist" aria-label="Planning sections">
+<a role="tab" href="#lc-context" id="lc-tab-context" aria-controls="lc-context" aria-selected="true" data-panel="context">1. Learning context</a>
+<a role="tab" href="#lc-objectives" id="lc-tab-objectives" aria-controls="lc-objectives" aria-selected="false" data-panel="objectives">2. Objectives</a>
+<a role="tab" href="#lc-sequence" id="lc-tab-sequence" aria-controls="lc-sequence" aria-selected="false" data-panel="sequence">3. Sequence & evidence</a>
+<a role="tab" href="#lc-review" id="lc-tab-review" aria-controls="lc-review" aria-selected="false" data-panel="review">4. Review & export</a>
+</div>
+<section role="tabpanel" id="lc-context" aria-labelledby="lc-tab-context">
+<div class="lc-grid">
+<div class="lc-card"><h2>Learning context</h2>
+<label for="lc-title">Course, workshop, or program title</label><input id="lc-title" type="text" data-field="title" placeholder="e.g., Evidence-informed project decisions">
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Title and scope</summary><p>Name the actual learning experience, not a broad subject. Example: “90-minute workshop: Making defensible project recommendations,” rather than “Project Management.”</p></details>
+<label for="lc-audience">Learners and starting conditions</label><textarea id="lc-audience" data-field="audience" placeholder="Experience, prior knowledge, goals, likely differences, and what is known versus assumed"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Learner analysis</summary><p>Example: “12 new program coordinators; mixed Excel experience; comfortable discussing risk, less practiced in turning constraints into decision criteria.” Separate observed needs from assumptions.</p></details>
+<label for="lc-format">Delivery format and constraints</label><textarea id="lc-format" data-field="format" placeholder="Time, modality, technology, staffing, and learning environment"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Real delivery constraints</summary><p>Example: “90-minute virtual workshop, one facilitator, captioned slides, accessible worksheet, chat-based pairs, and a 10-minute independent task.” Be realistic about time.</p></details>
+<label for="lc-access">Access and inclusion</label><textarea id="lc-access" data-field="access" placeholder="Available alternatives, accessible materials, language supports, and unnecessary data to avoid"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Accessibility and options</summary><p>Example: “Provide a tagged-text project brief, an accessible criteria table, high-contrast visuals, transcripts, and written participation options. Never rely on color alone.”</p></details>
+</div>
+<div class="lc-card"><h2>Design around the real task</h2>
+<label for="lc-task">What will a learner do, decide, create, or solve?</label><textarea id="lc-task" data-field="task" placeholder="A concrete action in an authentic setting"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Authentic performance</summary><p>Strong: “Select one of two program designs and defend the choice using budget, risk, and beneficiary needs.” Weak: “Understand program strategy.”</p></details>
+<label for="lc-value">Why does this matter outside class?</label><textarea id="lc-value" data-field="value" placeholder="Who uses the outcome, and what are the consequences of errors?"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Purpose outside the classroom</summary><p>Example: “The recommendation goes to a director who must allocate staff capacity. Unexamined assumptions could create cost overruns or exclude participants.”</p></details>
+<label for="lc-success">Evidence of competent performance</label><textarea id="lc-success" data-field="success" placeholder="What observable work or action would persuade you?"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Observable evidence</summary><p>Example: “A one-page decision memo with a comparison table, a recommendation, two acknowledged uncertainties, and an explanation of tradeoffs.”</p></details>
+<label for="lc-criteria">Success criteria</label><textarea id="lc-criteria" data-field="criteria" placeholder="What standard distinguishes sufficient from excellent performance?"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Quality standards</summary><p>Example: “Uses at least three explicit criteria; cites the provided evidence correctly; addresses two risks; identifies the condition that would change the recommendation.”</p></details>
+</div>
+</div>
+<div class="lc-card lc-soft"><h2>Backward-design trace</h2><p>Authentic task → evidence of success → necessary knowledge and skills → supported practice → independent performance → feedback and revision → transfer.</p>
+<div class="lc-actions"><a class="lc-primary" href="#lc-objectives" style="display:inline-flex;align-items:center;background:#173a2e;color:#fff;text-decoration:none;padding:11px 16px;border-radius:9px;font-weight:700">Build objectives →</a><button type="button" id="lc-demo">Load synthetic example</button></div>
+</div>
+</section>
+<section role="tabpanel" id="lc-objectives" class="lc-hidden" aria-labelledby="lc-tab-objectives">
+<div class="lc-grid">
+<div class="lc-card"><h2>Write a learning objective</h2><p>Use the context, an observable cognitive action, the knowledge or skill to be demonstrated, and the evidence that will show success.</p>
+<label for="lc-level">Cognitive process</label><select id="lc-level"><option value="Remember">Remember — identify, list, recall</option><option value="Understand">Understand — explain, summarize, classify</option><option value="Apply">Apply — use, calculate, demonstrate</option><option value="Analyze">Analyze — compare, distinguish, interpret</option><option value="Evaluate">Evaluate — justify, critique, assess</option><option value="Create">Create — design, develop, formulate</option></select>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Choose a cognitive process</summary><p>Choose the level of performance the learner must demonstrate, not the sophistication of the topic. “Evaluate” fits defending a decision using criteria; “Remember” fits identifying terminology.</p></details>
+<label for="lc-verb">Observable verb</label><input type="text" id="lc-verb" placeholder="e.g., compare">
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Use an observable action</summary><p>Strong verbs include identify, compare, calculate, diagnose, justify, design. Avoid unobservable outcomes such as know, appreciate, become familiar with, or understand.</p></details>
+<label for="lc-knowledge">Knowledge or skill to demonstrate</label><textarea id="lc-knowledge" placeholder="e.g., two project options using explicit risk and benefit criteria"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Specify the content or skill</summary><p>Strong: “two program-delivery options using cost, access, and risk criteria.” Too broad: “the topic” or “leadership skills.”</p></details>
+<label for="lc-condition">Relevant conditions (optional)</label><input type="text" id="lc-condition" placeholder="e.g., given a brief and a constraints table">
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Set a meaningful condition</summary><p>Example: “given two fictional project briefs, a budget ceiling, and an accessibility checklist.” Include resources and constraints that matter to authentic performance.</p></details>
+<label for="lc-measure">How will you assess it?</label><textarea id="lc-measure" placeholder="e.g., a justified comparison with a decision and supporting evidence"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Define the assessment artifact</summary><p>Example: “A recommendation memo scored against a four-part rubric: evidence, criteria, risks, and decision rationale.” An attendance poll alone is not adequate evidence of this outcome.</p></details>
+<label for="lc-practice">What practice prepares learners?</label><textarea id="lc-practice" placeholder="e.g., annotate one worked comparison, then review a peer example"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Make practice match the assessment</summary><p>Example: “First annotate a model comparison, then critique a flawed one in pairs, then independently decide a new case.” Give corrective feedback before the final attempt.</p></details>
+<div class="lc-actions"><button type="button" class="lc-primary" id="lc-add-objective">Add objective</button></div>
+</div>
+<div class="lc-card lc-soft"><h2>Objective preview</h2><div class="lc-preview" id="lc-obj-preview" aria-live="polite">Students will be able to…</div>
+<h3 style="margin-top:20px!important">Writing checks</h3><div id="lc-obj-flags" class="lc-note">Choose a verb and describe the performance to see checks.</div>
+<p class="lc-note">Cognitive levels are planning prompts, not a universal ranking of rigor. A lower-level action can be appropriate when it is part of a coherent sequence.</p>
+</div></div>
+<div class="lc-card"><h2>Objectives in this plan</h2><div id="lc-objective-list" aria-live="polite"><p>No objectives added yet.</p></div></div>
+</section>
+<section role="tabpanel" id="lc-sequence" class="lc-hidden" aria-labelledby="lc-tab-sequence">
+<div class="lc-card"><h2>Practice and assessment sequence</h2>
+<p>Move from noticing and interpretation toward supported practice, independent performance, and transfer. Each step should contribute to at least one objective.</p>
+<details class="lc-guidance"><summary>Example three-session sequence and alignment check</summary><p><strong>20 minutes:</strong> interpret a fictional project brief and identify decision criteria; evidence: annotated criteria table. <strong>30 minutes:</strong> compare two options in pairs and receive targeted feedback; evidence: tradeoff matrix. <strong>40 minutes:</strong> independently recommend an option on a new scenario; evidence: decision memo. Link each session to the outcome it supports and include a genuine assessment, not just attendance.</p></details>
+<div id="lc-module-list"></div>
+<button type="button" id="lc-add-module">+ Add module or session</button>
+<p id="lc-total" class="lc-note" aria-live="polite"></p>
+</div>
+<div class="lc-grid">
+<div class="lc-card"><h2>Feedback and transfer</h2>
+<label for="lc-feedback">What feedback can be acted on before the final assessment?</label><textarea id="lc-feedback" data-field="feedback"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Make feedback actionable</summary><p>Example: “After a peer-review round, learners revise one unsupported assertion and add one missing risk to their memo.” Specify when feedback occurs and what it can change.</p></details>
+<label for="lc-transfer">Where will the learner apply this independently?</label><textarea id="lc-transfer" data-field="transfer"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Plan an independent transfer task</summary><p>Example: “Apply the same comparison criteria to a new case with different budget and staffing constraints, without a worked example.”</p></details>
+<label for="lc-prereq">Prerequisites and planned support</label><textarea id="lc-prereq" data-field="prereq"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Check prerequisites without excluding learners</summary><p>Example: “Ask learners to interpret a short evidence table before the workshop. Provide a one-page primer for those unfamiliar with cost and risk language.”</p></details>
+</div>
+<div class="lc-card"><h2>Instructor handoff and revision</h2>
+<label for="lc-handoff">What must a new facilitator know?</label><textarea id="lc-handoff" data-field="handoff"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Write usable facilitator instructions</summary><p>Example: “Distribute accessible briefs before the workshop; reserve 15 minutes for independent justification; do not replace the final task with lecture.”</p></details>
+<label for="lc-owner">Maintenance owner and review frequency</label><input id="lc-owner" type="text" data-field="owner">
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Name accountability</summary><p>Example: “Program lead; review each term and when source requirements change.” A person's role is more durable than their name alone.</p></details>
+<label for="lc-revise">Evidence that should inform the next revision</label><textarea id="lc-revise" data-field="revise"></textarea>
+<details class="lc-guidance"><summary>Guidance &amp; worked example: Define a revision trigger</summary><p>Example: “If learners consistently omit limitations, revise the model and add a targeted comparison exercise; document the change after two deliveries.”</p></details>
+</div></div>
+</section>
+<section role="tabpanel" id="lc-review" class="lc-hidden" aria-labelledby="lc-tab-review">
+<div class="lc-grid"><div class="lc-card"><h2>Alignment review</h2><p class="lc-note">These are completeness and wording checks, not a substitute for discipline-specific or accessibility review.</p><details class="lc-guidance"><summary>What a strong alignment review looks like</summary><p>Trace every objective to an activity, an observable assessment, and explicit success criteria. For the project-decision example, “justify a recommendation” is assessed by a decision memo—not attendance or recall alone. Identify objectives with no assessment, unsupported final tasks, missing transfer opportunities, and access barriers. Review the output as a professional, not an automated accreditation or quality score.</p></details><div id="lc-qa" aria-live="polite"></div></div>
+<div class="lc-card lc-soft"><h2>Take your plan with you</h2><p>Export a structured JSON file for later editing, copy a readable planning brief, or print the summary. Imports replace the working plan after confirmation.</p>
+<div class="lc-actions"><button type="button" class="lc-primary" id="lc-export">Export JSON</button><button type="button" id="lc-copy">Copy brief</button><button type="button" id="lc-print">Print</button></div>
+<label for="lc-import">Import a previously exported JSON file</label><input type="file" id="lc-import" accept=".json,application/json">
+<div class="lc-actions"><button type="button" id="lc-save">Save in this browser</button><button type="button" id="lc-load">Restore browser save</button><button type="button" id="lc-clear">Clear working plan</button></div>
+<p class="lc-note">Browser saving is device-specific, may be cleared by your browser, and should not be used for sensitive data. Export a file if you need a durable record.</p><p class="lc-status" id="lc-status" role="status"></p>
+</div></div>
+<h2>Planning brief</h2><pre id="lc-brief" tabindex="0" aria-label="Planning brief"></pre>
+</section>
+<div class="lc-card lc-soft"><h3>Method and sources</h3><p>The canvas draws on authentic performance, backward design, assessment alignment, and the iterative planning work documented in <a href="https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/blob/main/resources/curriculum-lesson-design/Design_Around_a_Real_Decision_Curriculum_Planning_Canvas.md">the original curriculum canvas</a>. The objectives section uses an observable action, a knowledge dimension, and revision checks, informed by the Columbia learning-objective exercise undertaken during advanced teaching-and-learning work. It is also consistent with <a href="https://www.cmu.edu/teaching/designteach/syllabus/newcourse/learningobjectives.html">CMU's alignment guidance</a>.</p><p class="lc-note">The tool is an independent educational resource by Laura Elizabeth Hand. It is not a credential, certification, or automatic assessment of course quality.</p></div>
+</div>
+<script src="app.js" defer></script>
+</div>
+</body></html>
