@@ -6,6 +6,8 @@ I work at the intersection of **data, learning, research, and technology**, buil
 
 [Portfolio](https://www.lauraelizabethhand.com/) · [Tools & Templates](https://www.lauraelizabethhand.com/resources/) · [Publications](https://www.lauraelizabethhand.com/publications/) · [LinkedIn](https://www.linkedin.com/in/lauraelizabethhand)
 
+**[Browse projects and open the working demonstrations](projects/)** — interactive browser tools with direct links, source code, and reproducible research samples. GitHub's file viewer displays code; use each project's live-tool link to interact with it.
+
 ## Featured Repositories
 
 ### [Learning Analytics Portfolio](https://github.com/hand-lauraelizabeth/learning-analytics-portfolio)
