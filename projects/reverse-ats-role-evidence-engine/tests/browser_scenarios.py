@@ -37,6 +37,7 @@ def run():
   assert "Years of experience and recency" in driver.find_element(By.ID,"ats-results").text
   Select(driver.find_element(By.ID,"ats-record")).select_by_value("resume")
   click(driver,wait,"ats-run")
+  driver.find_element(By.CSS_SELECTOR,"#ats-results details summary").click()
   assert "Plain-text structure checks" in driver.find_element(By.ID,"ats-results").text
   Select(driver.find_element(By.ID,"ats-workflow")).select_by_value("greenhouse")
   click(driver,wait,"ats-run")
