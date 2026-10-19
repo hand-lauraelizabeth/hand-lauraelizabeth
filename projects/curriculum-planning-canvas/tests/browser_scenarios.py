@@ -25,7 +25,19 @@ def run_site(driver,url,label):
     for tab,panel in [("lc-tab-objectives","lc-objectives"),("lc-tab-sequence","lc-sequence"),
                       ("lc-tab-review","lc-review"),("lc-tab-context","lc-context")]:
         driver.find_element(By.ID,tab).click()
-        wait.until(lambda d:d.find_element(By.ID,panel).is_displayed())
+        try:
+            wait.until(lambda d:d.find_element(By.ID,panel).is_displayed())
+        except Exception:
+            diagnostics=driver.execute_script("""const r=document.getElementById('leh-canvas-app'),p=document.getElementById(arguments[0]),t=document.getElementById(arguments[1]);
+return {url:location.href,ready:r?.dataset.ready,hash:location.hash,panelClass:p?.className,
+panelDisplay:p?getComputedStyle(p).display:null,tabSelected:t?.getAttribute('aria-selected'),
+scriptCount:document.querySelectorAll('#leh-canvas-app script').length,
+cssFallback:[...document.querySelectorAll('#leh-canvas-app style')].some(s=>s.textContent.includes(':not([data-ready=')),
+panelCount:document.querySelectorAll('#lc-objectives').length};""",panel,tab)
+            print("CANVAS LIVE DIAGNOSTIC",label,tab,diagnostics,flush=True)
+            try: print("BROWSER CONSOLE",driver.get_log("browser")[-10:],flush=True)
+            except Exception: pass
+            raise
         assert driver.find_element(By.ID,tab).get_attribute("href").endswith("#"+panel)
     guide=driver.find_element(By.CSS_SELECTOR,"#lc-context details.lc-guidance")
     guide.find_element(By.TAG_NAME,"summary").click()
