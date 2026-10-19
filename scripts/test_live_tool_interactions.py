@@ -77,6 +77,7 @@ def check(driver,name,url,key,source):
             wait.until(lambda d:d.find_element(By.ID,"goal").get_attribute("value")=="")
         elif name=="ethical-ai-scenario-auditor":
             text_contains(driver,"summary","attention index")
+            assert "university career-services" in driver.find_element(By.ID,"scenario").get_attribute("value")
         else:
             assert driver.find_element(By.ID,"goal").get_attribute("value")
             assert driver.find_element(By.ID,"audience").get_attribute("value")
