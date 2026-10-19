@@ -15,7 +15,7 @@ These projects combine working browser tools, inspectable source code, and resea
 | Ethical AI Scenario Auditor | [Review an AI workflow](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ethical-ai-scenario-auditor/) | [Risk and oversight methodology](ethical-ai-scenario-auditor/) |
 | Audience Lifecycle & CRM Migration Planner | [Map an audience lifecycle](https://www.lauraelizabethhand.com/resources/project-operations-tools/audience-lifecycle-crm-migration-planner/) | [Workflow, migration and data-contract prototype](audience-lifecycle-crm-migration/) |
 
-The [interactive Curriculum Planning Canvas](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/) is available alongside its [downloadable method](../resources/curriculum-lesson-design/Design_Around_a_Real_Decision_Curriculum_Planning_Canvas.md).
+[Curriculum Planning Canvas](curriculum-planning-canvas/) offers the [interactive browser tool](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/), [inspectable source and browser tests](curriculum-planning-canvas/), and a [downloadable planning method](../resources/curriculum-lesson-design/Design_Around_a_Real_Decision_Curriculum_Planning_Canvas.md).
 
 ## Reproducible analysis and applied work
 
