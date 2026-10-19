@@ -12,6 +12,7 @@ import tempfile
 
 from pipeline import ingest
 from reconcile_september_csv import reconcile
+from privacy_schema import assert_approved_payload_fields
 
 PERIOD = '2026-09'
 MIN_CELL = 10
@@ -34,6 +35,8 @@ def build(csv_path, evidence_path, output_path, *, expected_sha256=None):
     with tempfile.TemporaryDirectory(prefix='nyc311-review-', dir=output_path.parent) as scratch:
         scratch_file = Path(scratch) / 'aggregate.json'
         payload = ingest(csv_path, scratch_file, as_of=evidence['verification_date'], min_cell=MIN_CELL)
+        # Validate upstream fields and value shapes before any export transformation.
+        assert_approved_payload_fields(payload)
         if (payload.get('publication_authorized') is not False
             or payload.get('source_sha256') != audit['csv_sha256']
             or payload.get('dataset_id') != audit['dataset_id']
