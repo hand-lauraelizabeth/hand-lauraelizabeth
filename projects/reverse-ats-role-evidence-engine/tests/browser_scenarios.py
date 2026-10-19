@@ -95,6 +95,17 @@ def run():
   driver.get(f"http://127.0.0.1:{port}/career-discovery-tracker.html")
   click(driver,wait,"profileLoad")
   assert driver.execute_script("return JSON.parse(localStorage.getItem('rt.track'))")[first_id]["s"]=="Applied"
+  # Embedded use: send layout height only, never candidate or application text.
+  driver.get(f"http://127.0.0.1:{port}/index.html")
+  driver.execute_script("""window.__atsHeights=[];
+window.addEventListener('message',event=>{
+ if(event.data?.type==='leh-reverse-ats-height')window.__atsHeights.push(event.data);
+});
+const f=document.createElement('iframe');f.id='ats-embedded-smoke';f.src='/index.html';document.body.appendChild(f);""")
+  wait.until(lambda d:len(d.execute_script("return window.__atsHeights"))>0)
+  heights=driver.execute_script("return window.__atsHeights")
+  assert heights[0]["height"]>600 and set(heights[0])=={"type","height"}
+  print("PASS embedded Reverse ATS autosizing: bounded height-only message")
   print("PASS Shared candidate profile: verified evidence transfer, same-origin browser storage, round-trip, application state preservation")
 
   print("PASS Role Evidence Engine browser scenarios: requirement matrix, evidence nodes, chronology, hard conditions, human review, claim guardrail")
