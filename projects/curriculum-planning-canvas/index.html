@@ -50,8 +50,8 @@
 #leh-canvas-app .lc-status{min-height:22px;font-size:14px;color:#2d6349;font-weight:700}
 #leh-canvas-app pre{white-space:pre-wrap;word-break:break-word;max-height:420px;overflow:auto;padding:18px;background:#f4f6f3;border:1px solid var(--line);border-radius:10px;font:13px/1.5 ui-monospace,monospace}
 #leh-canvas-app .lc-hidden{display:none}
-#leh-canvas-app:has([role="tabpanel"]:target) [role="tabpanel"]{display:none!important}
-#leh-canvas-app:has([role="tabpanel"]:target) [role="tabpanel"]:target{display:block!important}
+#leh-canvas-app:not([data-ready="1"]):has([role="tabpanel"]:target) [role="tabpanel"]{display:none!important}
+#leh-canvas-app:not([data-ready="1"]):has([role="tabpanel"]:target) [role="tabpanel"]:target{display:block!important}
 #leh-canvas-app .lc-pill{display:inline-block;background:var(--sage);padding:4px 10px;border-radius:30px;font-size:13px;margin:4px 4px 5px 0}
 #leh-canvas-app a{color:#1f624a;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:750px){#leh-canvas-app .lc-grid{grid-template-columns:1fr}#leh-canvas-app .lc-shell{padding:20px 16px}#leh-canvas-app .lc-nav [role="tab"]{flex:1 1 42%}}
