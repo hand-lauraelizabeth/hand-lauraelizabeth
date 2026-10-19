@@ -2,7 +2,7 @@
 
 Reusable tools built from Laura Elizabeth Hand's research, teaching, project-management, curriculum, analytics, career-readiness, and decision-support methods.
 
-**Current release:** v1.0.0 · October 1, 2026 · [Release notes](RELEASE_NOTES.md) · [Release manifest](manifest.json)
+**Downloadable templates, v1.0.0 (October 1, 2026):** [Release notes](RELEASE_NOTES.md) · [File manifest](manifest.json). For newer browser-based activities, see the [interactive tools on my website](https://www.lauraelizabethhand.com/resources/).
 
 <table>
 <tr>
