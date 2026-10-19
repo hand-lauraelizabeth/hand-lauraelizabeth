@@ -58,6 +58,8 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 
 ## Applied Technical Demonstrations
 
+- [Curriculum Planning Canvas](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/) — interactive, browser-local workspace for learning objectives, lesson sequencing, assessment alignment, and export.
+
 - [Prompt Literacy Debugger](projects/prompt-literacy-debugger/) — client-side teaching tool for diagnosing task clarity, evidence boundaries, authority limits, verification, privacy, and human responsibility before a prompt is used.
 - [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
 - [Ethical AI Scenario Auditor](projects/ethical-ai-scenario-auditor/) — browser-based responsible-AI teaching tool for risk discovery, mitigation planning, provenance, oversight, and contestability.
@@ -68,6 +70,8 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 
 ## Selected Case Studies
 
+- [From a Million Records to an Executive View](https://www.lauraelizabethhand.com/datastories/million-records-executive-operational-analytics/) — methods for turning a multiyear operational dataset into inspectable workbook analysis and leadership-facing Power BI reporting, without publishing confidential source records.
+
 - [Adult ESOL Learning System — Columbia Community Impact](case-studies/community-impact-adult-esol-learning-system/) — 40-lesson Level 6 curriculum architecture, instructor enablement, assessment, handoff, and multi-site adult-learning operations.
 
 - [Parent & Caregiver ELL Curriculum — Project Light + CRD Impact](case-studies/parent-caregiver-ell-curriculum/) — ten-module adult ELL curriculum architecture integrating learner, instructor, administrator, digital-literacy, assessment, and flexible-delivery layers.
@@ -77,6 +81,8 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 - [National College + Career Explorer](projects/college-career-matching/) — a live, accessible search across 6,243 institutions with cost, location, size, and optional SAT/ACT filters; source dates and uncertainty are stated explicitly.
 
 ## Research Notes
+
+- [Salomé in Translation: Textual Authority and Relational Language](https://www.lauraelizabethhand.com/research-writing/salome-translation-textual-authority/) — Wilde's French play, early English translations, pronoun choices, biblical diction, and the authority of editions.
 
 - [What Happens When an Epic Refuses to Name Its Dead?](research-notes/alice-notley-descent-of-alette/) — Alice Notley, naming, punctuation, feminist katabasis, and the bridge from close reading to computational analysis.
 
