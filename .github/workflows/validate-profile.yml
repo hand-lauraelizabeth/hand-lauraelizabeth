@@ -9,6 +9,7 @@ on:
       - "resources/**/*.docx"
       - "scripts/check_local_markdown_links.py"
       - "scripts/check_live_tool_entrypoints.py"
+      - "scripts/test_live_tool_interactions.py"
       - "scripts/validate_office_resources.py"
       - "scripts/check_name_consistency.py"
       - "scripts/validate_college_career_sources.py"
@@ -26,6 +27,7 @@ on:
       - "resources/**/*.docx"
       - "scripts/check_local_markdown_links.py"
       - "scripts/check_live_tool_entrypoints.py"
+      - "scripts/test_live_tool_interactions.py"
       - "scripts/validate_office_resources.py"
       - "scripts/check_name_consistency.py"
       - "scripts/validate_college_career_sources.py"
@@ -86,6 +88,8 @@ jobs:
         env:
           LEH_LIVE_CANVAS_URL: https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/
         run: python projects/curriculum-planning-canvas/tests/browser_scenarios.py
+      - name: Test five published interactive tool workflows
+        run: python scripts/test_live_tool_interactions.py
       - name: Live CIP-SOC ingestion smoke test
         if: contains(github.event.head_commit.message, '[live-source-smoke]')
         run: python scripts/college_career_ingest.py --source cip_soc_crosswalk_2020_2018 --output-dir "${{ runner.temp }}/college-career-smoke"
