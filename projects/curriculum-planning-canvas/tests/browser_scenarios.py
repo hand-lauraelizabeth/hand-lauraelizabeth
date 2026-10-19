@@ -41,7 +41,7 @@ def run_site(driver,url,label):
     driver.find_element(By.ID,"lc-demo").click()
     wait.until(lambda d:d.switch_to.alert)
     driver.switch_to.alert.accept()  # Replacing entered work must require confirmation.
-    wait.until(lambda d:"Synthetic example" in d.find_element(By.ID,"lc-status").text)
+    wait.until(lambda d:"Synthetic example" in d.find_element(By.ID,"lc-status").get_attribute("textContent"))
     driver.find_element(By.ID,"lc-tab-sequence").click()
     wait.until(lambda d:d.find_element(By.CSS_SELECTOR,"#lc-module-list .lc-module").is_displayed())
     assert len(driver.find_elements(By.CSS_SELECTOR,"#lc-module-list .lc-module"))==3
