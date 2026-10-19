@@ -29,10 +29,6 @@ Open `index.html` in any modern browser.
 
 The demonstration uses sample data so the full workflow can be inspected without exposing learner information.
 
-## Next extensions
+## Current boundaries
 
-- CSV paste/import
-- Exportable reteach groups
-- Additional accessibility testing
-- Saved thresholds and class configurations
-- Usability/timing evaluation
+This browser demonstration uses generated sample results and an adjustable mastery threshold. It does not import actual learner records, store classroom configurations, or export reteaching groups. Treat the suggested groupings as a planning aid to review against learners' actual work, not a diagnosis of learning needs.
