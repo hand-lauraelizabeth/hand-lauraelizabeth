@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {TOOLS} from './catalog.mjs';
+const source=readFileSync(new URL('./app.mjs',import.meta.url),'utf8');
+const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const css=['styles.css','layout.css','controls.css','focus.css'].map(f=>readFileSync(new URL('./'+f,import.meta.url),'utf8')).join('\n');
+assert.match(source,/Open '\+tool\.title/, 'links have unique accessible names');
+assert.match(source,/\.textContent=text/, 'untrusted strings are rendered as text');
+assert.match(html,/<main id="ft15-directory">/, 'main landmark');
+assert.match(html,/<p id="tool-count" role="status" aria-live="polite">/, 'live result count');
+assert.match(html,/<a class="skip" href="#ft15-directory">/, 'skip navigation');
+assert.match(css,/:focus-visible/, 'visible focus');
+assert.match(css,/prefers-reduced-motion/, 'motion preference');
+assert.match(css,/minmax\(min\(100%, 17rem\), 1fr\)/, 'responsive cards');
+assert.equal(TOOLS.filter(t=>t.status==='live').length,6);
+assert.ok(TOOLS.every(t=>t.status!=='development'||!t.url));
+console.log('FT-15 accessible design contract: 10/10 passed');
