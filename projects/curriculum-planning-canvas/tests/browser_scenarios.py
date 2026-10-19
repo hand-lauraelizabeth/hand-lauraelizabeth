@@ -18,13 +18,35 @@ DIR=Path(__file__).resolve().parents[1]
 class Quiet(SimpleHTTPRequestHandler):
     def log_message(self,*args): pass
 
+def click_tab(driver, tab_id):
+    """Use a real pointer click after placing the tab clear of fixed site navigation.
+
+    Anchored panels on WordPress can scroll the tablist under Divi's sticky
+    header. Selenium's default automatic scrolling may then click the header
+    instead of the visible tab. Centering is positioning, not a JS click.
+    """
+    tab = driver.find_element(By.ID, tab_id)
+    driver.execute_script(
+        "arguments[0].scrollIntoView({block:'center',inline:'nearest'});", tab
+    )
+    def center_is_clickable(d):
+        return d.execute_script(
+            """const e=arguments[0],r=e.getBoundingClientRect();
+            const x=r.left+r.width/2,y=r.top+r.height/2;
+            const hit=document.elementFromPoint(x,y);
+            return r.width>0 && r.height>0 && y>0 && y<innerHeight &&
+                   (hit===e || e.contains(hit));""", tab
+        )
+    WebDriverWait(driver, 8).until(center_is_clickable)
+    tab.click()
+
 def run_site(driver,url,label):
     driver.get(url)
     wait=WebDriverWait(driver,18)
     wait.until(lambda d:d.find_element(By.ID,"lc-tab-objectives").is_displayed())
     for tab,panel in [("lc-tab-objectives","lc-objectives"),("lc-tab-sequence","lc-sequence"),
                       ("lc-tab-review","lc-review"),("lc-tab-context","lc-context")]:
-        driver.find_element(By.ID,tab).click()
+        click_tab(driver,tab)
         try:
             wait.until(lambda d:d.find_element(By.ID,panel).is_displayed())
         except Exception:
@@ -52,22 +74,22 @@ fetch(location.href,{cache:'no-store'}).then(r=>r.text()).then(t=>{
     title=driver.find_element(By.ID,"lc-title")
     title.clear()
     title.send_keys("Independent curriculum browser test")
-    driver.find_element(By.ID,"lc-tab-objectives").click()
+    click_tab(driver,"lc-tab-objectives")
     wait.until(lambda d:d.find_element(By.ID,"lc-objectives").is_displayed())
     assert len(driver.find_elements(By.CSS_SELECTOR,"#lc-objectives details.lc-guidance"))>=6
-    driver.find_element(By.ID,"lc-tab-context").click()
+    click_tab(driver,"lc-tab-context")
     assert driver.find_element(By.ID,"lc-title").get_attribute("value")=="Independent curriculum browser test"
     driver.find_element(By.ID,"lc-demo").click()
     wait.until(lambda d:d.switch_to.alert)
     driver.switch_to.alert.accept()  # Replacing entered work must require confirmation.
     wait.until(lambda d:"Synthetic example" in d.find_element(By.ID,"lc-status").get_attribute("textContent"))
-    driver.find_element(By.ID,"lc-tab-sequence").click()
+    click_tab(driver,"lc-tab-sequence")
     wait.until(lambda d:d.find_element(By.CSS_SELECTOR,"#lc-module-list .lc-module").is_displayed())
     assert len(driver.find_elements(By.CSS_SELECTOR,"#lc-module-list .lc-module"))==3
-    driver.find_element(By.ID,"lc-tab-review").click()
+    click_tab(driver,"lc-tab-review")
     wait.until(lambda d:d.find_element(By.ID,"lc-review").is_displayed())
     assert driver.find_element(By.ID,"lc-brief").text.strip()
-    driver.find_element(By.ID,"lc-tab-context").click()
+    click_tab(driver,"lc-tab-context")
     driver.find_element(By.ID,"lc-tab-context").send_keys(Keys.ARROW_RIGHT)
     wait.until(lambda d:d.find_element(By.ID,"lc-objectives").is_displayed())
     print("PASS",label,"tabs, keyboard, examples, persistence, sequence and review")
@@ -89,10 +111,10 @@ def main():
         # No-JavaScript anchor navigation is an independent safety net.
         driver.execute_cdp_cmd("Emulation.setScriptExecutionDisabled",{"value":True})
         driver.get(local)
-        driver.find_element(By.ID,"lc-tab-objectives").click()
+        click_tab(driver,"lc-tab-objectives")
         WebDriverWait(driver,10).until(lambda d:d.find_element(By.ID,"lc-objectives").is_displayed())
         assert not driver.find_element(By.ID,"lc-context").is_displayed()
-        driver.find_element(By.ID,"lc-tab-review").click()
+        click_tab(driver,"lc-tab-review")
         WebDriverWait(driver,10).until(lambda d:d.find_element(By.ID,"lc-review").is_displayed())
         print("PASS without JavaScript: objectives and review remain reachable")
         driver.execute_cdp_cmd("Emulation.setScriptExecutionDisabled",{"value":False})
