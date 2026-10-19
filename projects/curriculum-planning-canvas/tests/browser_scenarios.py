@@ -10,7 +10,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -39,7 +39,7 @@ def click_tab(driver, tab_id):
         )
         time.sleep(0.2)
         try:
-            WebDriverWait(driver, 6).until(
+            WebDriverWait(driver, 2).until(
                 lambda d: d.execute_script(
                     """const e=arguments[0],r=e.getBoundingClientRect();
                     const x=r.left+r.width/2,y=r.top+r.height/2;
@@ -50,11 +50,23 @@ def click_tab(driver, tab_id):
             )
             tab.click()
             return
-        except ElementClickInterceptedException:
+        except (ElementClickInterceptedException, TimeoutException) as exc:
+            info = driver.execute_script(
+                """const e=arguments[0],r=e.getBoundingClientRect();
+                const x=r.left+r.width/2,y=r.top+r.height/2;
+                const hit=document.elementFromPoint(x,y);
+                return {attempt:arguments[1],tab:arguments[2],url:location.href,
+                top:r.top,bottom:r.bottom,scrollY:window.scrollY,
+                scrollHeight:document.documentElement.scrollHeight,
+                viewportHeight:innerHeight,hitTag:hit?.tagName,
+                hitId:hit?.id,hitText:(hit?.textContent||'').slice(0,65),
+                headerTop:document.getElementById('et-top-navigation')?.getBoundingClientRect().top};""",
+                tab, attempt + 1, tab_id
+            )
+            print("CANVAS POINTER DIAGNOSTIC", type(exc).__name__, info, flush=True)
             if attempt == 4:
                 raise
-            # An animated site header can still move between the hit test
-            # and the real pointer click; reposition and retry.
+            # The live header may animate into the hit target. Reposition.
             continue
 
 def run_site(driver,url,label):
