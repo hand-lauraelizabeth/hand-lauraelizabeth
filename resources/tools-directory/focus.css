@@ -1,1 +1,4 @@
-:focus-visible{outline:3px solid #005b4d}
+:focus-visible{outline:3px solid #a44615;outline-offset:3px}
+.skip{position:absolute;left:.75rem;top:-10rem;z-index:10;padding:.5rem .85rem;background:#fff;color:#164636}
+.skip:focus{top:.75rem}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:0s!important}}
