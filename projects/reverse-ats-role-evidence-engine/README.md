@@ -4,6 +4,8 @@ An interactive, evidence-centered career decision workspace. It helps people exp
 
 **[Use the interactive website tool](https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/)**
 
+[Read the design and evidence method](ROLE_EVIDENCE_METHOD.md) for the reasoning behind requirement mapping, verification, confidentiality, and claim-strength controls.
+
 ## Two active workspaces
 
 ### Role Evidence Analysis
