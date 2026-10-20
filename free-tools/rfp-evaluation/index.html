@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>RFP Evaluation Matrix | Browser-local comparison</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to evaluator</a>
+<header><div class="shell"><p class="eyebrow">Free tools · procurement</p><h1>RFP Evaluation Matrix</h1><p>Compare documented proposals using explicit criteria and reviewer evidence. Nothing is uploaded or stored by this page.</p></div></header>
+<main class="shell" id="main" tabindex="-1">
+<p class="notice">This is a decision-support worksheet, not an automated award or eligibility decision. Missing scores, missing evidence, and declared conflicts require human review. Enter only information you are authorized to use.</p>
+<div class="actions"><label class="file-label" for="reopen-json">Reopen a saved JSON workspace</label><input id="reopen-json" type="file" accept=".json,application/json" aria-describedby="reopen-help"><p id="reopen-help">Local JSON only; maximum 5 MB. Existing entries are replaced only after validation. Saved results are recalculated rather than trusted.</p></div>
+<section id="import-preview" class="notice" aria-labelledby="import-preview-title" aria-describedby="import-preview-summary" hidden>
+<h2 id="import-preview-title">Review workspace replacement</h2>
+<p id="import-preview-summary"></p>
+<p>Your current entries will be replaced only if you confirm. Keep current entries or press Escape to cancel. Imported scores are recalculated from the source records.</p>
+<div class="actions"><button type="button" id="confirm-reopen">Replace current entries</button><button type="button" id="cancel-reopen">Keep current entries</button></div>
+</section>
+<form id="matrix-form" novalidate>
+<section aria-labelledby="criteria-title"><div class="section-head"><h2 id="criteria-title" tabindex="-1">1. Criteria</h2><button type="button" id="add-criterion">Add criterion</button></div><p>Weights must total 100. Cite the requirement or source for each criterion.</p><div id="criteria-list" class="rows"></div></section>
+<section aria-labelledby="vendors-title"><div class="section-head"><h2 id="vendors-title">2. Vendors</h2><button type="button" id="add-vendor">Add vendor</button></div><p>Use stable identifiers. A conflict status of “none” means it was reviewed, not assumed.</p><div id="vendors-list" class="rows"></div></section>
+<section aria-labelledby="ratings-title"><div class="section-head"><h2 id="ratings-title">3. Ratings and evidence</h2><button type="button" id="add-rating">Add rating</button></div><p>Scores are whole numbers 0–5; leave blank when unknown. Evidence references should identify the supporting source.</p><div id="ratings-list" class="rows"></div></section>
+<div class="actions"><button type="submit" class="primary">Evaluate proposals</button><button type="button" id="reset-form">Clear all entries</button></div>
+</form>
+<section id="reset-preview" class="notice" aria-labelledby="reset-preview-title" aria-describedby="reset-preview-summary" hidden>
+<h2 id="reset-preview-title">Confirm clearing entries</h2>
+<p id="reset-preview-summary"></p>
+<p>This cannot be undone in this browser session. You can keep the current entries or press Escape to cancel.</p>
+<div class="actions"><button type="button" id="confirm-reset">Yes, clear all entries</button><button type="button" id="cancel-reset">Keep current entries</button></div>
+</section>
+<div id="error" class="error" role="alert" tabindex="-1" hidden></div>
+<div id="status" role="status" aria-live="polite"></div>
+<section aria-labelledby="results-title" id="results-section" hidden><h2 id="results-title">Review results</h2><p id="result-summary"></p><div class="table-scroll"><table><caption>Proposal comparison; scores withheld when required evidence is incomplete</caption><thead><tr><th scope="col">Vendor ID</th><th scope="col">Name</th><th scope="col">Score</th><th scope="col">Price</th><th scope="col">Review flags</th></tr></thead><tbody id="result-body"></tbody></table></div><div class="actions"><button type="button" id="download-json">Download complete JSON</button><button type="button" id="download-matrix">Download comparison CSV</button><button type="button" id="download-evidence">Download entered ratings CSV</button><button type="button" id="download-coverage">Download full evidence coverage CSV</button></div><p class="notice">The coverage CSV includes every vendor–criterion pair, with vendor conflict status, exact price cents or an explicit missing-price flag, and outstanding evidence issues. CSV downloads are blocked if any exported cell could execute as a spreadsheet formula. JSON retains exact identifiers and text. Review exports before sharing.</p></section>
+</main>
+<template id="criterion-template"><fieldset class="entry"><legend>Criterion</legend><div class="grid"><label>Criterion ID<input data-field="id" maxlength="100" required autocomplete="off"></label><label>Label<input data-field="label" maxlength="200" required></label><label>Weight (0–100)<input data-field="weight" type="text" inputmode="numeric" pattern="(0|[1-9][0-9]{0,2})" required></label><label>Source reference<input data-field="sourceRef" maxlength="300"></label><label class="checkbox"><input data-field="mandatory" type="checkbox"> Mandatory criterion</label></div><button type="button" data-remove>Remove criterion</button></fieldset></template>
+<template id="vendor-template"><fieldset class="entry"><legend>Vendor</legend><div class="grid"><label>Vendor ID<input data-field="id" maxlength="100" required autocomplete="off"></label><label>Vendor name<input data-field="name" maxlength="200" required></label><label>Price in dollars (optional)<input data-field="price" inputmode="decimal" placeholder="1200.00"></label><label>Conflict-of-interest review<select data-field="conflict"><option value="unreviewed">Not reviewed</option><option value="none">Reviewed: none</option><option value="declared">Conflict declared</option></select></label></div><button type="button" data-remove>Remove vendor</button></fieldset></template>
+<template id="rating-template"><fieldset class="entry"><legend>Rating</legend><div class="grid"><label>Vendor ID<input data-field="vendorId" maxlength="100" required></label><label>Criterion ID<input data-field="criterionId" maxlength="100" required></label><label>Score (0–5, blank = missing)<input data-field="score" inputmode="numeric" maxlength="1"></label><label>Evidence reference<input data-field="evidenceRef" maxlength="300"></label><label>Reviewer<input data-field="reviewer" maxlength="120"></label><label>Review note<input data-field="note" maxlength="1000"></label></div><button type="button" data-remove>Remove rating</button></fieldset></template>
+</body></html>
