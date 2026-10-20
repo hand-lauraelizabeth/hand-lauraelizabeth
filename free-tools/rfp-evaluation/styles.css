@@ -27,3 +27,5 @@ td, th { border: 1px solid #adbbb3; padding: .7rem; text-align: left; }
 h1, h2, p, td, th, button, .entry, .error, #status, .skip { overflow-wrap: anywhere; }
 .actions > input[type=file] { flex: 1 1 100%; min-width: 0; max-width: 100%; }
 @media (max-width: 480px) { .shell { width: calc(100% - 1.25rem); } .actions button { flex: 1 1 100%; } }
+.actions > .file-label, .actions > p { flex: 1 1 100%; min-width: 0; }
+.actions > .file-label { overflow-wrap: anywhere; }
