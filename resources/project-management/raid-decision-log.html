@@ -1,0 +1,87 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RAID & Decision Log · Laura Elizabeth Hand</title></head><body>
+<div id="leh-raid">
+<style>
+#leh-raid{--ink:#20372d;--green:#173b2e;--line:#cfdfd4;--soft:#f4f8f4;--muted:#51675a;color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;max-width:1120px;margin:0 auto;padding:20px}
+#leh-raid *{box-sizing:border-box}#leh-raid .box{border:1px solid var(--line);border-radius:18px;background:#fff;padding:clamp(18px,4vw,38px)}
+#leh-raid h1,#leh-raid h2,#leh-raid h3{color:var(--green);line-height:1.17}#leh-raid h1{font:700 clamp(35px,5vw,53px)/1.05 Georgia,serif;margin:0 0 14px}#leh-raid h2{font:700 26px/1.2 Georgia,serif}
+#leh-raid .kicker{color:#2b614a;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+#leh-raid .lede{font-size:18px;max-width:840px;color:var(--muted)}#leh-raid .small{font-size:14px;color:var(--muted)}
+#leh-raid .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+#leh-raid .card{border:1px solid var(--line);background:#fff;border-radius:12px;padding:17px;margin:18px 0}
+#leh-raid .muted{background:var(--soft)}
+#leh-raid label{display:block;font-weight:700;margin:12px 0 5px}#leh-raid input,#leh-raid select,#leh-raid textarea{width:100%;padding:9px 11px;color:var(--ink);background:#fff;font:inherit;border:1px solid #a4b6aa;border-radius:7px}
+#leh-raid textarea{min-height:84px;resize:vertical}
+#leh-raid button{background:#fff;color:var(--green);border:1px solid #698774;border-radius:9px;padding:9px 14px;font:700 15px system-ui;cursor:pointer}
+#leh-raid button.primary{background:var(--green);color:#fff}
+#leh-raid button:focus-visible,#leh-raid input:focus-visible,#leh-raid select:focus-visible,#leh-raid textarea:focus-visible{outline:3px solid #81ad8e;outline-offset:3px}
+#leh-raid .actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+#leh-raid .item{border:1px solid var(--line);padding:16px;border-radius:12px;margin:12px 0}
+#leh-raid .itemhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+#leh-raid .type{display:inline-block;padding:3px 9px;background:var(--soft);border-radius:99px;font-size:13px;font-weight:800}
+#leh-raid .alert{border-left:4px solid #b57f39;padding:10px 12px;background:#fff8ed}
+#leh-raid .good{border-left:4px solid #2b6b50;padding:10px 12px;background:#eaf5ec}
+#leh-raid .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#leh-raid .stats{display:flex;flex-wrap:wrap;gap:10px;margin:15px 0}
+#leh-raid .stat{background:var(--soft);border-radius:10px;padding:10px 15px;min-width:130px}
+#leh-raid .stat strong{display:block;font-size:24px;color:var(--green)}
+#leh-raid a{color:#205c45;text-decoration:underline}
+@media(max-width:700px){#leh-raid .grid{grid-template-columns:1fr}#leh-raid .box{padding:17px}}
+@media print{#leh-raid button,#leh-raid form,#leh-raid input[type=file]{display:none!important}#leh-raid .box{border:0}}
+</style>
+<div class="box">
+<p class="kicker">Project governance / Browser-based working register</p><h1>RAID & Decision Log</h1>
+<p class="lede">Keep risks, assumptions, issues, dependencies, and decisions together, with explicit ownership and next actions. Filter the register, identify overdue items, and export a record for reporting or handoff.</p>
+<p class="small">Entries stay in this browser session until exported. This page does not send project information to a server or AI system. Use synthetic or approved public information in examples.</p>
+<div class="grid"><form id="rd-form" class="card">
+<h2>Add an item</h2>
+<label for="rd-kind">Type</label><select id="rd-kind" required><option>Risk</option><option>Assumption</option><option>Issue</option><option>Dependency</option><option>Decision</option></select>
+<label for="rd-title">Short description</label><input id="rd-title" required maxlength="220" placeholder="e.g., Legal review may delay release">
+<label for="rd-detail">Context and evidence</label><textarea id="rd-detail" placeholder="What is known, what remains uncertain, and supporting context"></textarea>
+<label for="rd-owner">Accountable owner</label><input id="rd-owner" required placeholder="Role or approved name">
+<div class="grid"><div><label for="rd-due">Review or decision date</label><input id="rd-due" type="date"></div>
+<div><label for="rd-status-input">Status</label><select id="rd-status-input"><option>Open</option><option>In progress</option><option>Escalated</option><option>Resolved</option></select></div></div>
+<div class="grid" id="rd-risk-only"><div><label for="rd-prob">Probability (1–5)</label><select id="rd-prob"><option value="1">1 · Rare</option><option value="2">2 · Unlikely</option><option value="3" selected>3 · Possible</option><option value="4">4 · Likely</option><option value="5">5 · Almost certain</option></select></div><div><label for="rd-impact">Impact (1–5)</label><select id="rd-impact"><option value="1">1 · Minor</option><option value="2">2 · Low</option><option value="3" selected>3 · Moderate</option><option value="4">4 · High</option><option value="5">5 · Critical</option></select></div></div>
+<label for="rd-action">Mitigation, next action, or rationale</label><textarea id="rd-action" placeholder="What happens next, and what decision must be made?"></textarea>
+<button class="primary" type="submit">Add to register</button>
+</form>
+<div class="card muted"><h2>Working principles</h2><p><strong>Risk:</strong> something uncertain that could affect the work. Record probability, impact, response, and owner.</p><p><strong>Assumption:</strong> an unverified belief that needs confirmation.</p><p><strong>Issue:</strong> an event already occurring and requiring a response.</p><p><strong>Dependency:</strong> work that waits on another team, resource, or approval.</p><p><strong>Decision:</strong> what was selected, by whom, why, and what changes as a result.</p><p class="small">Scores prioritize discussion, not truth. A probability–impact product is ordinal and should not be interpreted as a calculated likelihood or monetary exposure.</p>
+<div class="stats"><div class="stat"><strong id="rd-open">0</strong>Active items</div><div class="stat"><strong id="rd-overdue">0</strong>Overdue</div><div class="stat"><strong id="rd-unowned">0</strong>Without owner</div></div>
+<p class="small">Define escalation thresholds and review cadence with the project team. Resolved entries remain available for lessons learned.</p></div></div>
+<div class="card"><div class="grid"><div><h2>Register</h2><label for="rd-filter">Filter by type</label><select id="rd-filter"><option>All</option><option>Risk</option><option>Assumption</option><option>Issue</option><option>Dependency</option><option>Decision</option></select></div><div><label for="rd-filter-status">Filter by status</label><select id="rd-filter-status"><option>All</option><option>Open</option><option>In progress</option><option>Escalated</option><option>Resolved</option></select></div></div>
+<div class="actions"><button id="rd-example" type="button">Load example</button><button id="rd-csv" type="button">Export CSV</button><button id="rd-json" type="button">Export JSON</button><button id="rd-print" type="button">Print</button><button id="rd-clear" type="button">Clear all</button></div>
+<p class="small" role="status" aria-live="polite" id="rd-message"></p><div id="rd-list" aria-live="polite"></div></div>
+<div class="card muted"><h3>Method</h3><p>Designed as a low-administration companion to the <a href="https://www.lauraelizabethhand.com/resources/project-operations-tools/">Project Management Control Center</a>. For background, see PMI's discussion of <a href="https://www.pmi.org/blog/blog-posts/2026/09/09/17/49/risk-structure-breakdown-ai">risk registers and source-oriented risk breakdown structures</a> and <a href="https://www.pmi.org/blog/stakeholder-management-raci">responsibility and stakeholder accountability</a>. This is an independent planning aid, not PMI-endorsed material.</p></div>
+</div></div>
+<script>
+(function(){
+"use strict";
+var app=document.getElementById("leh-raid");if(!app||app.dataset.ready)return;app.dataset.ready="1";
+function el(id){return app.querySelector("#"+id)}
+var items=[];
+function t(s){return String(s||"").trim()} function today(){var d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
+function ndate(s){return s&&/^\d{4}-\d{2}-\d{2}$/.test(s)?s:""}
+function current(it){return it.status!=="Resolved"}
+function late(it){return current(it)&&ndate(it.due)&&it.due<today()}
+function message(s){el("rd-message").textContent=s}
+function score(it){return it.kind==="Risk"?Number(it.prob||1)*Number(it.impact||1):null}
+function safeId(){return String(Date.now())+"-"+String(Math.floor(Math.random()*100000))}
+function textNode(parent,tag,text){var x=document.createElement(tag);x.textContent=text;parent.appendChild(x);return x}
+function row(k,v,p){textNode(p,"p",k+": "+(v||"Not specified"))}
+function render(){var filter=el("rd-filter").value,status=el("rd-filter-status").value;el("rd-open").textContent=items.filter(current).length;el("rd-overdue").textContent=items.filter(late).length;el("rd-unowned").textContent=items.filter(function(i){return current(i)&&!t(i.owner)}).length;var list=el("rd-list");list.innerHTML="";var visible=items.filter(function(x){return (filter==="All"||x.kind===filter)&&(status==="All"||x.status===status)});if(!visible.length){textNode(list,"p","No items match the current filters.");return}
+visible.forEach(function(it){var d=document.createElement("article");d.className="item";var h=document.createElement("div");h.className="itemhead";var div=document.createElement("div");textNode(div,"span",it.kind).className="type";textNode(div,"h3",it.title);h.appendChild(div);var b=document.createElement("button");b.type="button";b.textContent="Remove";b.addEventListener("click",function(){if(window.confirm("Remove this entry from the current session?")){items=items.filter(function(x){return x.id!==it.id});render()}});h.appendChild(b);d.appendChild(h);
+row("Owner",it.owner,d);row("Status",it.status,d);row("Review date",it.due,d);if(it.kind==="Risk")row("Probability × impact (prioritization only)",score(it)+"/25",d);row("Context",it.detail,d);row("Action or decision rationale",it.action,d);
+if(late(it))textNode(d,"p","Past review date — confirm owner and next action.").className="alert";
+var label=document.createElement("label");label.textContent="Update status";var select=document.createElement("select");["Open","In progress","Escalated","Resolved"].forEach(function(v){var o=document.createElement("option");o.textContent=v;o.value=v;if(v===it.status)o.selected=true;select.appendChild(o)});select.setAttribute("aria-label","Update status for "+it.title);select.addEventListener("change",function(){it.status=this.value;render()});label.appendChild(select);d.appendChild(label);list.appendChild(d)})}
+el("rd-kind").addEventListener("change",function(){el("rd-risk-only").hidden=this.value!=="Risk"});
+el("rd-form").addEventListener("submit",function(e){e.preventDefault();var it={id:safeId(),kind:el("rd-kind").value,title:t(el("rd-title").value),detail:t(el("rd-detail").value),owner:t(el("rd-owner").value),due:el("rd-due").value,status:el("rd-status-input").value,prob:Number(el("rd-prob").value),impact:Number(el("rd-impact").value),action:t(el("rd-action").value)};if(!it.title||!it.owner){message("Title and owner are required.");return}items.push(it);this.reset();el("rd-risk-only").hidden=false;message("Item added.");render();el("rd-title").focus()});
+["rd-filter","rd-filter-status"].forEach(function(x){el(x).addEventListener("change",render)});
+el("rd-example").addEventListener("click",function(){if(items.length&&!window.confirm("Append two synthetic examples to this register?"))return;items.push({id:safeId(),kind:"Risk",title:"Review may delay planned release",detail:"Approval timing is uncertain",owner:"Project lead",due:"",status:"Open",prob:3,impact:4,action:"Confirm reviewer availability and prepare alternate schedule."},{id:safeId(),kind:"Decision",title:"Use a staged pilot before rollout",detail:"Stakeholders selected a limited test to reduce operational exposure",owner:"Sponsor",due:"",status:"Resolved",prob:1,impact:1,action:"Record approval date and pilot success criteria."});render();message("Two synthetic entries added.")});
+function file(name,content,type){var url=URL.createObjectURL(new Blob([content],{type:type})),a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(url)},1500)}
+function csvCell(x){return '"'+String(x==null?"":x).replace(/"/g,'""').replace(/^[=+\-@\t\r]/,"'$&")+'"'}
+el("rd-csv").addEventListener("click",function(){var cols=["kind","title","detail","owner","due","status","prob","impact","action"],rows=[cols.map(csvCell).join(",")];items.forEach(function(i){rows.push(cols.map(function(c){return csvCell(i[c])}).join(","))});file("raid-decision-log.csv",rows.join("\r\n"),"text/csv");message("CSV exported.")});
+el("rd-json").addEventListener("click",function(){file("raid-decision-log.json",JSON.stringify({format:"leh-raid",version:1,items:items},null,2),"application/json");message("JSON exported.")});
+el("rd-print").addEventListener("click",function(){window.print()});
+el("rd-clear").addEventListener("click",function(){if(!items.length)return;if(window.confirm("Clear all entries from the current session? Export a copy first if needed.")){items=[];render();message("Register cleared.")}});
+render();
+})();
+</script></body></html>
