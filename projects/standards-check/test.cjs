@@ -51,7 +51,7 @@ function importCsv(csv){$("csv").value=csv;$("analyze").click();assert.equal($("
  $("exportPlan").click();assert.match(output,/Inspect sources and retest/);
  $("exportRoster").click();assert.match(output,/'=SUM\(1\+1\)/);assert.match(output,/Gather evidence/);
  const file={size:80,text:async()=>("learner_id,Geometry\nL9,4\n")};
- await $("file").fire("change",{target:{files:[file]}});
+ await $("file").fire("change",{files:[file]});
  assert.match($("csv").value,/Geometry/);
  $("analyze").click();assert.match($("source").textContent,/wide-format/);
  $("reset").click();assert.equal($("results").hidden,true);
