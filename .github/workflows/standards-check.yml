@@ -1,0 +1,23 @@
+name: Standards Check browser-local regression
+on:
+  pull_request:
+    paths:
+      - "projects/standards-check/**"
+      - ".github/workflows/standards-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "projects/standards-check/**"
+      - ".github/workflows/standards-check.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run Standards Check regression tests
+        run: node projects/standards-check/test.cjs
