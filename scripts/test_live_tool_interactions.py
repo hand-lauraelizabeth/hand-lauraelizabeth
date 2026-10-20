@@ -67,7 +67,7 @@ def check(driver,name,url,key,source):
         assert driver.find_element(By.ID,"exportPlan").is_displayed()
         assert driver.find_element(By.ID,"exportRoster").is_displayed()
         with tempfile.NamedTemporaryFile(mode="w",suffix=".csv",encoding="utf-8",delete=False) as tmp:
-            tmp.write("learner_id,assessment_date,Fractions,Writing\\nL901,2026-10-10,1,3\\nL902,2026-10-10,,4\\n")
+            tmp.write("learner_id,assessment_date,Fractions,Writing\nL901,2026-10-10,1,3\nL902,2026-10-10,,4\n")
             csv_path=tmp.name
         try:
             driver.find_element(By.ID,"file").send_keys(csv_path)
