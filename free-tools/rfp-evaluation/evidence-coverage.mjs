@@ -1,6 +1,12 @@
 /** Browser-local, source-conscious evidence coverage. Human review is required. */
 import {evaluateMatrix} from './core.mjs';
 
+// Source/evidence references must contain a visible letter, number, punctuation,
+// or symbol. Format controls, separators and isolated combining marks do not
+// constitute evidence. Original identifiers and reference text are unchanged.
+export const hasVisibleReference = value =>
+ typeof value === 'string' && /[\p{L}\p{N}\p{P}\p{S}]/u.test(value);
+
 export function evaluateWithProvenance(input){
  if(!input || !Array.isArray(input.criteria)) throw Error('Invalid criteria');
  for(const criterion of input.criteria){
@@ -8,10 +14,14 @@ export function evaluateWithProvenance(input){
    throw Error('Mandatory must be a boolean');
  }
  const result=evaluateMatrix(input);
- const sourceMissing=result.criteria.some(c=>!c.sourceRef.trim());
- return {...result,comparisons:result.comparisons.map(v=>({
-  ...v,scorePercent:sourceMissing?null:v.scorePercent
- }))};
+ const missingSources=result.criteria.filter(c=>!hasVisibleReference(c.sourceRef));
+ return {...result,comparisons:result.comparisons.map(v=>{
+  const invisibleEvidence=v.detail.filter(d=>d.score!==null&&!hasVisibleReference(d.evidenceRef));
+  const flags=[...v.reviewFlags];
+  for(const c of missingSources)if(c.sourceRef.trim())flags.push('Criterion source visually empty: '+c.id);
+  for(const d of invisibleEvidence)if(d.evidenceRef.trim())flags.push('Evidence reference visually empty: '+d.criterionId);
+  return {...v,scorePercent:missingSources.length||invisibleEvidence.length?null:v.scorePercent,reviewFlags:flags};
+ })};
 }
 
 const csvCell=value=>{
@@ -44,8 +54,8 @@ export function exportEvidenceCoverageCSV(saved){
   if(v.priceCents===null)vendorIssues.push('Price not supplied; compare separately');
   if(!r)issues.push('Rating record missing');
   if(!r||r.score===null)issues.push('Score missing');
-  if(!r?.evidenceRef?.trim())issues.push('Evidence reference missing');
-  if(!c.sourceRef.trim())issues.push('Criterion source missing');
+  if(!hasVisibleReference(r?.evidenceRef))issues.push('Evidence reference missing');
+  if(!hasVisibleReference(c.sourceRef))issues.push('Criterion source missing');
   if(c.mandatory&&r?.score!=null&&r.score<3)issues.push('Mandatory criterion requires human review');
   const row=[v.id,v.conflict,v.priceCents??'',vendorIssues.join('; '),c.id,r?.score??'',r?.evidenceRef??'',r?.note??'',r?.reviewer??'',c.sourceRef,String(c.mandatory),issues.join('; ')];
   lines.push(row.map(csvCell).join(','));
