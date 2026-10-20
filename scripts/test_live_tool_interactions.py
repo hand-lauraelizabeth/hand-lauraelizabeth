@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Synthetic-input browser checks for five live and versioned portfolio tools."""
-import os,socket,threading,time
+import os,socket,threading,time,tempfile
 from pathlib import Path
 from functools import partial
 from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 ROOT=Path(__file__).resolve().parents[1]
 BASE="https://www.lauraelizabethhand.com/resources/"
 TOOLS=[
-("standards-check","projects/standards-check/index.html",BASE+"learning-curriculum-tools/standards-check/","cutoff"),
+("standards-check","projects/standards-check/index.html",BASE+"learning-curriculum-tools/standards-check/","sample"),
 ("prompt-literacy-debugger","projects/prompt-literacy-debugger/index.html",BASE+"learning-curriculum-tools/prompt-literacy-debugger/","example"),
 ("evidence-safe-prompt-lab","projects/evidence-safe-prompt-lab/index.html",BASE+"learning-curriculum-tools/evidence-safe-prompt-lab/","example"),
 ("ethical-ai-scenario-auditor","projects/ethical-ai-scenario-auditor/index.html",BASE+"learning-curriculum-tools/ethical-ai-scenario-auditor/","example"),
@@ -50,15 +50,36 @@ def check(driver,name,url,key,source):
     enter_app(driver,key)
     wait=WebDriverWait(driver,12)
     if name=="standards-check":
-        assert len(driver.find_elements(By.CSS_SELECTOR,"#scoreTable tr"))==9
-        assert len(driver.find_elements(By.CSS_SELECTOR,"#groups .group"))==4
-        cutoff=driver.find_element(By.ID,"cutoff")
-        assert cutoff.get_attribute("value")=="3"
-        cutoff.send_keys(Keys.ARROW_RIGHT)
-        wait.until(lambda d:d.find_element(By.ID,"cutoffValue").text.strip()=="4")
-        text_contains(driver,"groups","Std 1 reteach")
-        driver.find_element(By.ID,"refresh").click()
-        assert len(driver.find_elements(By.CSS_SELECTOR,"#scoreTable tr"))==9
+        assert driver.find_element(By.ID,"file").get_attribute("type")=="file"
+        assert driver.find_element(By.ID,"cutoff").get_attribute("value")=="75"
+        driver.find_element(By.ID,"sample").click()
+        wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#matrix tbody tr"))==8)
+        assert len(driver.find_elements(By.CSS_SELECTOR,"#standards .threshold"))==3
+        assert len(driver.find_elements(By.CSS_SELECTOR,"#groups .card"))==3
+        text_contains(driver,"source","8 learner IDs")
+        text_contains(driver,"quality","evidence")
+        old_groups=driver.find_element(By.ID,"groups").text
+        threshold=driver.find_element(By.CSS_SELECTOR,"#standards .threshold")
+        threshold.clear()
+        threshold.send_keys("100")
+        threshold.send_keys(Keys.TAB)
+        wait.until(lambda d:d.find_element(By.ID,"groups").text!=old_groups)
+        assert driver.find_element(By.ID,"exportPlan").is_displayed()
+        assert driver.find_element(By.ID,"exportRoster").is_displayed()
+        with tempfile.NamedTemporaryFile(mode="w",suffix=".csv",encoding="utf-8",delete=False) as tmp:
+            tmp.write("learner_id,assessment_date,Fractions,Writing\\nL901,2026-10-10,1,3\\nL902,2026-10-10,,4\\n")
+            csv_path=tmp.name
+        try:
+            driver.find_element(By.ID,"file").send_keys(csv_path)
+            wait.until(lambda d:"L901" in d.find_element(By.ID,"csv").get_attribute("value"))
+            driver.find_element(By.ID,"analyze").click()
+            text_contains(driver,"source","2 learner IDs")
+            assert len(driver.find_elements(By.CSS_SELECTOR,"#matrix tbody tr"))==2
+            assert "Collect evidence" in driver.find_element(By.ID,"groups").text
+        finally:
+            os.unlink(csv_path)
+        driver.find_element(By.ID,"reset").click()
+        wait.until(lambda d:not d.find_element(By.ID,"results").is_displayed())
     else:
         driver.find_element(By.ID,"example").click()
         expected={
