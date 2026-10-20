@@ -72,7 +72,8 @@ def check(driver,name,url,key,source):
         try:
             driver.find_element(By.ID,"file").send_keys(csv_path)
             wait.until(lambda d:"L901" in d.find_element(By.ID,"csv").get_attribute("value"))
-            driver.find_element(By.ID,"analyze").click()
+            # Keyboard activation avoids click interception during WordPress iframe resizing.
+            driver.find_element(By.ID,"analyze").send_keys(Keys.ENTER)
             text_contains(driver,"source","2 learner IDs")
             assert len(driver.find_elements(By.CSS_SELECTOR,"#matrix tbody tr"))==2
             assert "Collect evidence" in driver.find_element(By.ID,"groups").text
