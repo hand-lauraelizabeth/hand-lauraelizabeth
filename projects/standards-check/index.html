@@ -1,71 +1,169 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Standards Check — Reteach Grouping Tool</title>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Standards Check | Evidence to Instruction Planner</title>
 <style>
-:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#14262b;background:#f4f7f8}
-*{box-sizing:border-box}body{margin:0}.wrap{max-width:900px;margin:auto;padding:2rem 1rem 4rem}
-h1{margin-bottom:.25rem}.lede{color:#4d6268;max-width:70ch}
-.controls{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin:1.25rem 0}
-button{background:#315c4b;color:white;border:0;border-radius:.4rem;padding:.6rem 1rem;font-weight:700;cursor:pointer}
-button:focus-visible,input:focus-visible{outline:3px solid #b86e00;outline-offset:2px}
-.table-wrap{overflow-x:auto;background:#fff;border:1px solid #ccd7d4;border-radius:.5rem}
-table{border-collapse:collapse;width:100%;min-width:560px}th,td{padding:.65rem;text-align:center;border-bottom:1px solid #e2e8e6}th:first-child,td:first-child{text-align:left}
-.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;margin-top:1rem}
-.group{background:#fff;border:1px solid #ccd7d4;border-radius:.5rem;padding:1rem}.group strong{display:block;margin-bottom:.35rem}
-.note{border-left:4px solid #315c4b;padding:.75rem 1rem;background:#fff;margin-top:1.5rem}
-</style>
-</head>
-<body>
-<main class="wrap">
-<h1>Standards Check</h1>
-<p class="lede">A browser-based demonstration of standards-level reteach grouping. Sample names and scores are generated locally; no learner data is collected or transmitted.</p>
-
-<div class="controls">
-<label for="cutoff"><strong>Mastery cutoff:</strong> <output id="cutoffValue">3</output> of 4</label>
-<input id="cutoff" type="range" min="1" max="4" value="3">
-<button id="refresh" type="button">Load new sample class</button>
-</div>
-
-<div class="table-wrap"><table id="scoreTable"></table></div>
-<section aria-labelledby="groupsHeading">
-<h2 id="groupsHeading">Reteach groups</h2>
-<div id="groups" class="groups" aria-live="polite"></div>
-</section>
-
-<div class="note"><strong>Design choice:</strong> grouping is based on the standard that needs reteaching, not total score. The prototype is instructional-design evidence, not a claim of measured classroom impact.</div>
-</main>
+:root{font:16px/1.5 system-ui,sans-serif;color:#203a30;background:#f6f9f7;--ink:#183d2e;--sage:#285e49;--border:#cadace}
+*{box-sizing:border-box}body{margin:0}main{max-width:1100px;margin:auto;padding:22px 16px 65px}h1{font:700 clamp(2rem,4vw,2.8rem)/1.15 Georgia,serif;margin:0 0 .6rem}h2{font-size:1.4rem;margin:0 0 .5rem}h3{font-size:1.05rem;margin:0 0 .5rem}p{margin:.5rem 0 1rem}.intro{max-width:76ch;color:#466453}.eyebrow{text-transform:uppercase;font-size:.77rem;letter-spacing:.1em;color:var(--sage);font-weight:800;margin-bottom:8px}.panel{background:white;border:1px solid var(--border);border-radius:11px;padding:18px;margin-top:18px}.step{font-size:.77rem;letter-spacing:.08em;font-weight:800;text-transform:uppercase;color:var(--sage);margin-bottom:6px}.notice{background:#eef6f0;border-left:4px solid var(--sage);padding:10px 13px;margin:12px 0}.warning{background:#fff7e6;border-left:4px solid #aa771e;padding:11px 13px;margin:12px 0}.error{color:#a22e27}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}.field{min-width:0}.field p,.hint{font-size:.87rem;color:#557161}label{display:block;font-weight:700;margin-bottom:5px}input,textarea,button{font:inherit}input[type=number],input[type=file],textarea{padding:9px;border:1px solid #9dbbad;border-radius:6px;width:100%;background:#fff;color:#183d2e}input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #b47a27;outline-offset:2px}textarea{min-height:117px;resize:vertical;font:13px/1.5 ui-monospace,Consolas,monospace}button{background:var(--sage);color:white;border:1px solid var(--sage);border-radius:6px;padding:9px 13px;font-weight:700;cursor:pointer}button.secondary{background:white;color:var(--sage)}.actions{display:flex;flex-wrap:wrap;gap:9px;margin:13px 0}.table-wrap{overflow:auto;max-height:540px;border:1px solid var(--border);border-radius:8px}table{border-collapse:collapse;min-width:630px;width:100%}th,td{padding:9px;border-bottom:1px solid #e1ebe4;text-align:left;font-size:.88rem;vertical-align:top}thead th{background:#eff6f1}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}.metrics,.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:11px}.metric,.card{border:1px solid var(--border);border-radius:8px;padding:13px;background:#fafcfb}.metric strong{display:block;font-size:1.45rem;color:var(--ink)}.metric span{font-size:.82rem;color:#557161}.card p{margin:7px 0}.card textarea{min-height:70px;font-family:inherit}.bar{background:#e0ebe3;border-radius:9px;height:8px;overflow:hidden;margin-top:6px}.bar b{background:#42805b;display:block;height:100%}.bad{color:#9b3c27;font-weight:700}.good{color:#2d6f4c;font-weight:700}.muted{color:#597365}details{margin:10px 0}summary{cursor:pointer;font-weight:650}.lead{font-size:.9rem;color:#4f6e5b}.inline-num{max-width:85px!important}#results[hidden]{display:none}footer{font-size:.82rem;color:#51695b;margin:16px 0}@media(max-width:560px){.panel{padding:13px}main{padding:14px 9px 60px}}@media print{#entry,.actions,.noprint{display:none!important}main{max-width:100%;padding:0}.panel,.card{break-inside:avoid}textarea{border:none}}
+</style></head>
+<body><main><div class="eyebrow">Learning & curriculum · assessment decision support</div><h1>Standards Check</h1>
+<p class="intro">Import standards-level assessments, identify who needs instruction or a new assessment, prioritize reteaching, and compare scores across dates. Every recommendation can be reviewed before the plan is exported.</p>
+<div class="notice"><strong>Local processing:</strong> Your CSV is read in this browser tab. The tool does not transmit or store assessment records. Use learner codes rather than names, and follow institutional data-handling requirements.</div>
+<section class="panel" id="entry"><div class="step">1 · Load evidence</div><h2>Use your own assessment data</h2><div class="grid">
+<div class="field"><label for="file">Choose CSV file</label><input id="file" type="file" accept=".csv,text/csv"><p>Export Excel or Google Sheets as CSV; up to 2 MB.</p></div>
+<div class="field"><label for="max">Default possible points</label><input id="max" type="number" min=".01" step=".25" value="4"><p>Wide-format scores use this maximum. Long format can specify a maximum per row.</p></div>
+<div class="field"><label for="cutoff">Default mastery (%)</label><input id="cutoff" type="number" min="1" max="100" value="75"><p>Change individual standards' thresholds below.</p></div>
+<div class="field"><label for="capacity">Small-group capacity</label><input id="capacity" type="number" min="1" max="12" value="4"><p>Split reteaching rosters into groups of this size.</p></div></div>
+<details><summary>CSV layouts and example columns</summary><p><strong>Wide format:</strong> <code>learner_id,assessment_date,Fractions,Argument writing</code>. Each standard has its own column; a blank score means no evidence. Repeating a learner with a different date enables progress comparison.</p><p><strong>Long format:</strong> <code>learner_id,standard,score,max_score,assessment_date</code>. The last two columns are optional. Student ID aliases: <code>student_id</code>, <code>student</code>, <code>learner</code>, or <code>name</code>. Dates must be YYYY-MM-DD. Only valid scores from 0 through their maximum are analyzed.</p></details>
+<label for="csv">Or paste CSV</label><textarea id="csv" spellcheck="false" placeholder="learner_id,assessment_date,Fractions,Argument writing&#10;L001,2026-09-10,2,3&#10;L002,2026-09-10,4,1"></textarea>
+<div class="actions"><button id="analyze" type="button">Analyze data</button><button class="secondary" id="sample" type="button">Explore fictional class</button><button class="secondary" id="template" type="button">Download CSV template</button><button class="secondary" id="reset" type="button">Clear</button></div>
+<p id="message" role="status" aria-live="polite">Add a CSV or load the fictional example.</p></section>
+<div id="results" hidden><section class="panel"><div class="step">2 · Assess evidence</div><h2>Standards and coverage</h2><p id="source" class="hint"></p><div id="metrics" class="metrics"></div><div id="quality" aria-live="polite"></div>
+<p class="hint">Mastery rates exclude missing or invalid scores. A missing score is not a zero. Counts use each learner's latest assessment for each standard, with date-aware comparisons where dates exist.</p>
+<div class="table-wrap"><table><thead><tr><th>Standard</th><th>Threshold</th><th class="num">Scored</th><th class="num">Below</th><th class="num">Mastered</th><th>Mastery rate</th><th class="num">No evidence</th></tr></thead><tbody id="standards"></tbody></table></div><div id="priority"></div></section>
+<section class="panel"><div class="step">3 · Act on findings</div><h2>Reteaching groups and missing evidence</h2><p class="hint">Groups are provisional. Inspect actual work for misconceptions, choose an appropriate instructional response, and collect a comparable check afterward. Missing scores generate an assessment queue rather than a reteaching label.</p><div id="groups" class="cards"></div></section>
+<section class="panel"><div class="step">4 · Recheck learning</div><h2>Progress and learner review</h2><p id="trendNote" class="hint"></p><div id="trend" class="metrics"></div><details><summary>See score changes across dated assessments</summary><div class="table-wrap"><table><thead><tr><th>Learner</th><th>Standard</th><th>Previous</th><th>Latest</th><th>Change</th></tr></thead><tbody id="changes"></tbody></table></div></details>
+<h3>Latest evidence matrix</h3><div class="field noprint" style="max-width:360px"><label for="learnerFilter">Find a learner ID</label><input id="learnerFilter" type="text" placeholder="Filter by learner code" autocomplete="off"></div><p id="matrixCount" class="hint"></p><div class="table-wrap"><table id="matrix"></table></div></section>
+<section class="panel"><div class="step">5 · Export follow-up</div><h2>Take the plan into your workflow</h2><p class="hint">Export both an instructor plan (including editable notes) and a learner-standard follow-up roster. Spreadsheet-safe CSV cells prevent formula interpretation of learner-supplied text.</p><div class="actions"><button id="exportPlan" type="button">Download instructional plan</button><button id="exportRoster" type="button" class="secondary">Download follow-up roster</button><button id="print" type="button" class="secondary">Print plan</button></div></section></div>
+<footer>Scores are normalized as score ÷ possible points × 100. Score changes are descriptive and do not establish the effect of instruction. This tool cannot determine assessment validity, learning disabilities, accommodations, or the cause of an error.</footer></main>
 <script>
-const standards=["Std 1","Std 2","Std 3","Std 4"];
-const sampleNames=["Amara","Ben","Carlos","Dina","Eli","Farah","Gus","Hana"];
-let data=[];
-
-function loadSample(){
-  data=sampleNames.map(name=>({
-    name,
-    scores:standards.map(()=>Math.floor(Math.random()*5))
-  }));
-  render();
+(function(){
+"use strict";
+const el=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sample="learner_id,assessment_date,Fractions,Argument writing,Data interpretation\nL001,2026-09-10,1,3,2\nL002,2026-09-10,2,1,3\nL003,2026-09-10,4,3,4\nL004,2026-09-10,1,,1\nL005,2026-09-10,2,2,3\nL006,2026-09-10,3,4,2\nL007,2026-09-10,2,1,4\nL008,2026-09-10,4,3,3\nL001,2026-10-10,3,3,3\nL002,2026-10-10,3,2,3\nL003,2026-10-10,4,4,4\nL004,2026-10-10,2,,2\nL005,2026-10-10,3,3,3\nL006,2026-10-10,3,4,3\nL007,2026-10-10,2,2,4\nL008,2026-10-10,4,3,4\n";
+const template="learner_id,assessment_date,Fractions,Argument writing,Data interpretation\nL001,2026-09-10,2,3,1\nL002,2026-09-10,4,1,3\nL003,2026-09-10,,2,4\n";
+let observations=[],issues=[],overrides={},notes={},summary="",ready=false;
+const label=s=>String(s).trim().toLowerCase().replace(/[\s-]+/g,"_");
+function parseCsv(input){
+ let rows=[],row=[],val="",q=false,closed=false;input=String(input).replace(/^\uFEFF/,"");
+ for(let i=0;i<input.length;i++){const ch=input[i];
+  if(q){if(ch==='"'&&input[i+1]==='"'){val+='"';i++;}else if(ch==='"'){q=false;closed=true;}else val+=ch;}
+  else if(ch==='"'){if(val.trim()!==""||closed)throw Error("Malformed quote in CSV");q=true;}
+  else if(ch===","){row.push(val);val="";closed=false;}
+  else if(ch==="\r"||ch==="\n"){if(ch==="\r"&&input[i+1]==="\n")i++;row.push(val);if(row.some(x=>x.trim()))rows.push(row);row=[];val="";closed=false;}
+  else{if(closed&&!/\s/.test(ch))throw Error("Text after a quoted value");val+=ch;}
+ }
+ if(q)throw Error("Unclosed CSV quote");row.push(val);if(row.some(x=>x.trim()))rows.push(row);return rows;
 }
-
+function parseInput(text){
+ if(new Blob([text]).size>2097152)throw Error("CSV exceeds 2 MB.");const rows=parseCsv(text);
+ if(rows.length<2)throw Error("CSV needs headings and at least one data row.");
+ if(rows.length>12001)throw Error("Limit imports to 12,000 data rows.");
+ const h=rows.shift().map(x=>x.trim()),a=h.map(label);
+ if(new Set(a).size!==a.length)throw Error("Duplicate column headers.");
+ const id=a.findIndex(x=>["learner_id","student_id","student","learner","name","id"].includes(x)),di=a.findIndex(x=>["assessment_date","date","test_date"].includes(x)),si=a.findIndex(x=>["standard","skill","objective"].includes(x)),sc=a.findIndex(x=>["score","points","result"].includes(x)),mi=a.findIndex(x=>["max_score","possible_points","points_possible"].includes(x));
+ if(id<0)throw Error("Include learner_id or student_id.");
+ if((si<0)!==(sc<0))throw Error("Long format requires both standard and score columns.");
+ const long=si>=0,other=h.map((name,i)=>({name,i})).filter(x=>x.i!==id&&x.i!==di&&x.i!==mi);
+ if(!long&&!other.length)throw Error("No standard columns found.");
+ const base=Number(el("max").value);if(!Number.isFinite(base)||base<=0)throw Error("Default maximum must be positive.");
+ let records=[],warnings=[],unique=new Set(),students=new Set(),standards=new Set();
+ rows.forEach((cells,k)=>{
+  const rowNo=k+2;
+  if(cells.length!==h.length){warnings.push("Row "+rowNo+": incorrect number of columns; ignored.");return;}
+  const learner=cells[id].trim(),date=di<0?"":cells[di].trim();
+  if(!learner||learner.length>100){warnings.push("Row "+rowNo+": missing or oversized learner ID; ignored.");return;}
+  if(date&&(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date+"T00:00:00Z"))||new Date(date+"T00:00:00Z").toISOString().slice(0,10)!==date)){warnings.push("Row "+rowNo+": invalid date; ignored.");return;}
+  let max=base;if(mi>=0&&cells[mi].trim())max=Number(cells[mi]);
+  if(!Number.isFinite(max)||max<=0){warnings.push("Row "+rowNo+": invalid maximum score; ignored.");return;}
+  const fields=long?[{name:cells[si].trim(),value:cells[sc]}]:other.map(x=>({name:x.name,value:cells[x.i]}));
+  fields.forEach(f=>{
+   if(!f.name){warnings.push("Row "+rowNo+": blank standard; ignored.");return;}
+   const key=JSON.stringify([learner,f.name,date]);
+   if(unique.has(key)){warnings.push("Row "+rowNo+": duplicate learner, standard and date; kept first.");return;}
+   let num=null;if(f.value.trim()!==""){num=Number(f.value.trim());if(!Number.isFinite(num)||num<0||num>max){warnings.push("Row "+rowNo+" / "+f.name+": invalid score; ignored.");return;}}
+   unique.add(key);students.add(learner);standards.add(f.name);records.push({id:learner,s:f.name,date,score:num,max,pct:num===null?null:100*num/max});
+  });
+ });
+ if(!records.length)throw Error("No valid assessment records found.");
+ if(students.size>2000||standards.size>50)throw Error("Limit to 2,000 learners and 50 standards.");
+ return {records,warnings,format:long?"long":"wide",rowCount:rows.length};
+}
+function settings(){
+ let m=Number(el("cutoff").value),c=Number(el("capacity").value);
+ if(!Number.isFinite(m)||m<1||m>100)throw Error("Mastery must be from 1 to 100%.");
+ if(!Number.isInteger(c)||c<1||c>12)throw Error("Group capacity must be from 1 to 12.");
+ return {m,c};
+}
+const pct=n=>Math.round(n*10)/10;
+function compute(){
+ const cfg=settings(),ids=[...new Set(observations.map(x=>x.id))].sort(),names=[...new Set(observations.map(x=>x.s))].sort(),history=new Map();
+ observations.forEach(o=>{const k=JSON.stringify([o.id,o.s]);if(!history.has(k))history.set(k,[]);history.get(k).push(o);});
+ const latest=new Map(),trends=[];
+ history.forEach((items,k)=>{
+  items.sort((a,b)=>a.date.localeCompare(b.date));latest.set(k,items[items.length-1]);
+  const dated=items.filter(x=>x.date&&x.pct!==null);
+  if(dated.length>=2){const prev=dated[dated.length-2],now=dated[dated.length-1];trends.push({id:now.id,s:now.s,prev,now,diff:now.pct-prev.pct});}
+ });
+ const stats=names.map(s=>{
+  const t=overrides[s]===undefined?cfg.m:overrides[s],valid=[],missing=[];
+  ids.forEach(id=>{const r=latest.get(JSON.stringify([id,s]));if(!r||r.pct===null)missing.push(id);else valid.push(r);});
+  const below=valid.filter(r=>r.pct<t).sort((a,b)=>a.pct-b.pct||a.id.localeCompare(b.id));
+  return {s,t,valid,below,missing,mastered:valid.length-below.length,rate:valid.length?100*(valid.length-below.length)/valid.length:null};
+ }).sort((a,b)=>b.below.length-a.below.length||b.missing.length-a.missing.length||a.s.localeCompare(b.s));
+ return {cfg,ids,stats,latest,trends};
+}
+function metric(value,label){return '<div class="metric"><strong>'+esc(value)+'</strong><span>'+esc(label)+'</span></div>';}
 function render(){
-  const cutoff=Number(document.getElementById("cutoff").value);
-  document.getElementById("cutoffValue").textContent=cutoff;
-  const head="<tr><th>Student</th>"+standards.map(s=>"<th>"+s+"</th>").join("")+"</tr>";
-  const rows=data.map(row=>"<tr><td>"+row.name+"</td>"+row.scores.map(v=>"<td>"+v+"</td>").join("")+"</tr>").join("");
-  document.getElementById("scoreTable").innerHTML=head+rows;
-
-  document.getElementById("groups").innerHTML=standards.map((standard,i)=>{
-    const names=data.filter(row=>row.scores[i] < cutoff).map(row=>row.name);
-    return "<div class='group'><strong>"+standard+" reteach</strong>"+(names.length?names.join(", "):"No one in this sample")+"</div>";
-  }).join("");
+ if(!ready)return;let b;
+ try{b=compute();}catch(e){el("message").textContent=e.message;el("message").className="error";return;}
+ const total=b.ids.length*b.stats.length,scored=b.stats.reduce((v,s)=>v+s.valid.length,0),below=b.stats.reduce((v,s)=>v+s.below.length,0);
+ el("source").textContent=summary+" · "+b.ids.length+" learner IDs · latest assessment per standard";
+ el("metrics").innerHTML=metric(b.ids.length,"Learners")+metric(b.stats.length,"Standards")+metric(scored+"/"+total,"Latest valid scores")+metric(below,"Below-threshold flags")+metric(b.trends.length,"Dated comparisons");
+ let alerts=[];
+ if(issues.length)alerts.push(issues.length+" row-level import warning(s); check the underlying CSV.");
+ if(scored<total)alerts.push((total-scored)+" learner-standard pairs have no valid latest evidence.");
+ if(observations.some(r=>!r.date))alerts.push("Undated records cannot establish progress order.");
+ if(b.stats.some(s=>s.valid.length/b.ids.length<.5))alerts.push("One or more standards have less than 50% assessment coverage.");
+ el("quality").innerHTML=alerts.length?'<div class="warning"><strong>Evidence checks</strong><ul>'+alerts.map(v=>'<li>'+esc(v)+'</li>').join("")+'</ul>'+(issues.length?'<details><summary>View import warnings</summary><ul>'+issues.slice(0,70).map(v=>'<li>'+esc(v)+'</li>').join("")+'</ul></details>':'')+'</div>':'<div class="notice">No formatting or score-range errors detected. Assessment quality still needs educator review.</div>';
+ el("standards").innerHTML=b.stats.map((s,i)=>'<tr><th scope="row">'+esc(s.s)+'</th><td><input class="threshold inline-num" aria-label="Mastery threshold for '+esc(s.s)+'" type="number" min="1" max="100" data-s="'+esc(s.s)+'" value="'+s.t+'"> %</td><td class="num">'+s.valid.length+'</td><td class="num">'+s.below.length+'</td><td class="num">'+s.mastered+'</td><td>'+(s.rate===null?"Not assessed":pct(s.rate)+"%")+'<div class="bar" role="img" aria-label="'+(s.rate===null?"No scored evidence":pct(s.rate)+" percent mastery")+'"><b style="width:'+(s.rate||0)+'%"></b></div></td><td class="num">'+s.missing.length+'</td></tr>').join("");
+ const top=b.stats.find(s=>s.below.length);
+ el("priority").innerHTML=top?'<div class="notice"><strong>Instructional starting point: '+esc(top.s)+'</strong><p>'+top.below.length+' of '+top.valid.length+' assessed learners are below the '+top.t+'% threshold; '+top.missing.length+' need evidence. Review misconceptions and prerequisites before selecting an intervention. Prioritization is based on below-threshold counts, not assumed causes.</p></div>':'<div class="notice">No scored learners fall below the current thresholds. Review missing scores and task rigor.</div>';
+ el("groups").innerHTML=b.stats.map((s,i)=>{
+  let groups=[];for(let n=0;n<s.below.length;n+=b.cfg.c)groups.push(s.below.slice(n,n+b.cfg.c));
+  return '<article class="card"><h3>'+esc(s.s)+'</h3><p class="bad">'+s.below.length+' to review / reteach</p>'+
+   (groups.length?groups.map((items,g)=>'<p><strong>Group '+(g+1)+':</strong> '+items.map(x=>esc(x.id)+' ('+pct(x.pct)+'%)').join(", ")+'</p>').join(""):'<p>No scored learners below this threshold.</p>')+
+   (s.missing.length?'<p><strong>Collect evidence:</strong> '+s.missing.map(esc).join(", ")+'</p>':'')+
+   '<p class="hint">Examine actual work → model the target concept → practice with feedback → give a comparable exit ticket.</p>'+
+   '<label for="note'+i+'">Intervention and evidence note</label><textarea class="teacher-note" id="note'+i+'" data-s="'+esc(s.s)+'" placeholder="Misconception observed; next lesson; date and assessment to recheck">'+esc(notes[s.s]||"")+'</textarea></article>';
+ }).join("");
+ el("trendNote").textContent=b.trends.length?b.trends.length+" learner-standard comparisons have two or more dated, valid scores. Score changes are descriptive, not causal.":"Include repeated dated assessments to see pre/post score changes. Undated assessments are excluded from trend comparisons.";
+ el("trend").innerHTML=metric(b.trends.filter(t=>t.diff>0).length,"Scores improved")+metric(b.trends.filter(t=>t.diff===0).length,"Scores unchanged")+metric(b.trends.filter(t=>t.diff<0).length,"Scores declined");
+ el("changes").innerHTML=b.trends.map(x=>'<tr><td>'+esc(x.id)+'</td><td>'+esc(x.s)+'</td><td>'+pct(x.prev.pct)+'% ('+esc(x.prev.date)+')</td><td>'+pct(x.now.pct)+'% ('+esc(x.now.date)+')</td><td>'+(x.diff>0?'+':'')+pct(x.diff)+' points</td></tr>').join("")||'<tr><td colspan="5">No comparable dated scores yet.</td></tr>';
+ const matching=b.ids.filter(id=>id.toLowerCase().includes(el("learnerFilter").value.trim().toLowerCase()));el("matrixCount").textContent="Showing "+Math.min(150,matching.length)+" of "+matching.length+" matching learner IDs. Download the CSV for the complete follow-up roster.";el("matrix").innerHTML='<thead><tr><th>Learner ID</th>'+b.stats.map(s=>'<th>'+esc(s.s)+'</th>').join("")+'</tr></thead><tbody>'+matching.slice(0,150).map(id=>'<tr><th scope="row">'+esc(id)+'</th>'+b.stats.map(s=>{const r=b.latest.get(JSON.stringify([id,s.s])),p=r?r.pct:null;return '<td class="'+(p===null?"muted":p<s.t?"bad":"good")+'">'+(p===null?"No evidence":pct(p)+"%")+'</td>';}).join("")+'</tr>').join("")+'</tbody>';
 }
-
-document.getElementById("cutoff").addEventListener("input",render);
-document.getElementById("refresh").addEventListener("click",loadSample);
-loadSample();
-</script>
-</body>
-</html>
+function cell(value){
+ let s=String(value===null||value===undefined?"":value);if(/^[=+\-@\t\r]/.test(s))s="'"+s;
+ return '"'+s.replace(/"/g,'""')+'"';
+}
+function download(name,rows){
+ const blob=new Blob(["\uFEFF"+rows.map(r=>r.map(cell).join(",")).join("\r\n")+"\r\n"],{type:"text/csv;charset=utf-8"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+function exportTable(kind){
+ if(!ready)return;const b=compute();let rows;
+ if(kind==="plan"){
+  rows=[["standard","mastery_threshold_percent","assessed","below_threshold","mastered","mastery_rate_percent","no_evidence","priority_order","teacher_note","suggested_next_step"]];
+  b.stats.forEach((s,i)=>rows.push([s.s,s.t,s.valid.length,s.below.length,s.mastered,s.rate===null?"":pct(s.rate),s.missing.length,i+1,notes[s.s]||"","Inspect work; targeted practice; comparable exit ticket"]));
+ }else{
+  rows=[["learner_id","standard","status","latest_date","raw_score","max_score","percent","threshold_percent","group_number"]];
+  b.stats.forEach(s=>{
+   s.below.forEach((r,i)=>rows.push([r.id,s.s,"Review / reteach",r.date,r.score,r.max,pct(r.pct),s.t,Math.floor(i/b.cfg.c)+1]));
+   s.missing.forEach(id=>{const r=b.latest.get(JSON.stringify([id,s.s]));rows.push([id,s.s,"Gather evidence",r?r.date:"",r&&r.score!==null?r.score:"",r?r.max:"","",s.t,""]);});
+  });
+ }
+ download("standards-"+kind+"-"+new Date().toISOString().slice(0,10)+".csv",rows);
+}
+function analyze(){
+ try{settings();const out=parseInput(el("csv").value);observations=out.records;issues=out.warnings;overrides={};notes={};summary=out.format+"-format CSV · "+out.rowCount+" source rows · "+observations.length+" valid observations";ready=true;el("results").hidden=false;render();el("message").className="";el("message").textContent="Analysis ready. Review import warnings and evidence coverage.";}
+ catch(e){el("message").className="error";el("message").textContent=e.message;}
+}
+el("analyze").addEventListener("click",analyze);
+el("sample").addEventListener("click",()=>{el("file").value="";el("csv").value=sample;el("max").value=4;el("cutoff").value=75;el("capacity").value=4;analyze();el("message").textContent="Loaded a fictional class with two dates and intentionally missing scores.";});
+el("file").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;if(f.size>2097152){el("message").className="error";el("message").textContent="File exceeds 2 MB.";return;}try{el("csv").value=await f.text();el("message").className="";el("message").textContent="Read locally: "+f.name+". Select Analyze data.";}catch(_){el("message").textContent="File could not be read.";}});
+el("template").addEventListener("click",()=>download("standards-template.csv",template.trim().split("\n").map(x=>x.split(","))));
+el("reset").addEventListener("click",()=>{el("csv").value="";el("file").value="";observations=[];issues=[];overrides={};notes={};ready=false;el("results").hidden=true;el("message").className="";el("message").textContent="Workspace cleared. No records saved.";});
+el("cutoff").addEventListener("change",render);el("capacity").addEventListener("change",render);el("learnerFilter").addEventListener("input",render);
+el("standards").addEventListener("change",e=>{if(!e.target.matches(".threshold"))return;const v=Number(e.target.value);if(!Number.isFinite(v)||v<1||v>100){el("message").className="error";el("message").textContent="Threshold must be between 1% and 100%.";return;}overrides[e.target.dataset.s]=v;el("message").className="";el("message").textContent="Recomputed groups with revised standard threshold.";render();});
+el("groups").addEventListener("input",e=>{if(e.target.matches(".teacher-note"))notes[e.target.dataset.s]=e.target.value;});
+el("exportPlan").addEventListener("click",()=>exportTable("plan"));el("exportRoster").addEventListener("click",()=>exportTable("roster"));el("print").addEventListener("click",()=>window.print());
+})();
+</script></body></html>
