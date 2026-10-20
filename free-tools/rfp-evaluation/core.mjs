@@ -23,9 +23,9 @@ return {schema:'rfp-evaluation-v1',criteria:cs,vendors:vs,ratings:rs,comparisons
 // Block suspect values rather than claiming universal formula neutralization.
 const formulaLike = value => {
  const s=String(value??'').normalize('NFKC');
- const trimmed=s.replace(/^[\p{Cf}\s\uFEFF]+/u,'');
+ const trimmed=s.replace(/^[\p{Cf}\p{M}\s\uFEFF]+/u,'');
  return /^[=+@-]/u.test(trimmed)
-   || /[,;"'\t\r\n][\p{Cf}\s\uFEFF]*[=+@-]/u.test(s)
+   || /[,;"'\t\r\n][\p{Cf}\p{M}\s\uFEFF]*[=+@-]/u.test(s)
    || /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(s);
 };
 const cell=v=>{const s=String(v??'');if(formulaLike(s))throw Error('CSV export blocked: potentially executable spreadsheet content. Use JSON for exact, lossless data.');return '"'+s.replaceAll('"','""')+'"'};
