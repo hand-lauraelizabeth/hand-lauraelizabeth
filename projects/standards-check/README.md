@@ -1,36 +1,33 @@
-# Standards Check: browser-based reteach grouping tool
+# Standards Check — Assessment to Instruction Planner
 
-**[Use Standards Check interactively](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/)** — Opens the working browser interface; no source checkout or installation required.
+**[Use the interactive WordPress interface](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/)** · [Inspect source](index.html)
 
-A lightweight JavaScript tool for turning standards-level assessment results into actionable reteach groups.
+An install-free, browser-local JavaScript planner for turning standards-level evidence into responsible next steps. Import your own CSV exported from Excel or Google Sheets, or explore a fictional two-date class.
 
-## What it does
+## Import formats
 
-- Applies an adjustable mastery threshold
-- Identifies learners below the threshold for each standard
-- Groups learners by the concept that needs reteaching rather than by total score
-- Runs locally in a browser with no installation
+- Wide: learner_id, assessment_date, Fractions, Argument writing (each standard as a separate column).
+- Long: learner_id, standard, score, max_score, assessment_date.
+- max_score and assessment_date are optional in long format. The default maximum is editable.
+- learner_id aliases: student_id, student, learner, name and id.
+- A blank score means missing evidence, not zero. Repeated dated learner-standard observations allow descriptive progress comparisons.
 
-## Why this design
+## Outputs
 
-Aggregate scores can hide which specific concepts need attention. The tool keeps the interface aligned to the instructional decision: **what needs reteaching, and who needs it?**
+- Row-level import warnings for bad identifiers, duplicate learner-standard-date keys, invalid scores, incorrect column counts, and malformed dates.
+- Coverage, mastery and below-threshold counts by standard using latest available records.
+- Editable per-standard mastery rules and maximum small-group size.
+- Prioritized reteaching rosters, separate missing-evidence queues, editable educator notes and targeted evidence-check prompts.
+- Searchable latest-evidence matrix, dated score changes, two spreadsheet-compatible CSV exports and print view.
 
-## Technical implementation
+## Privacy and evidence limits
 
-- Vanilla JavaScript
-- DOM manipulation
-- Responsive browser interface
-- Adjustable range input
-- Dynamic table rendering
-- Standards-level filtering and grouping
-- Local sample-data generation
+The application reads data in its browser tab without transmitting or persisting learner records. Use pseudonymous identifiers and institutional data-management standards. It is a planning aid, not a psychometric instrument: scores alone cannot diagnose misconceptions, accessibility needs or learner conditions. Score gains cannot be attributed to instruction without an appropriate evaluation design. Review actual learner work before acting.
 
-## Run it
+## Run and test
 
-[Open the interactive browser version](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/), or download `index.html` and open it locally.
+Open index.html locally in a browser, or run the Node.js regression suite:
 
-The demonstration uses sample data so the full workflow can be inspected without exposing learner information.
+    node projects/standards-check/test.cjs
 
-## Current boundaries
-
-This browser demonstration uses generated sample results and an adjustable mastery threshold. It does not import actual learner records, store classroom configurations, or export reteaching groups. Treat the suggested groupings as a planning aid to review against learners' actual work, not a diagnosis of learning needs.
+The tests run in GitHub Actions for relevant pull requests. Manual release gates remain: actual Chromium/Firefox/WebKit behavior, screen-reader navigation, browser zoom, and reopening exported CSV files in Excel and Google Sheets.
