@@ -58,9 +58,16 @@ export function reviewFlags(workspace) {
   ]})).filter(x=>x.flags.length);
 }
 const safeCell=v=>{
-  let s=String(v??'');
-  // Precaution for spreadsheet software; escaping changes the exported value.
-  if (/^[\s\uFEFF]*[=+@\-\t\r]/u.test(s)) s="'"+s;
+  const s=String(v??'');
+  const normalized=s.normalize('NFKC');
+  const leading=normalized.replace(/^[\p{Cf}\p{M}\s\uFEFF]+/u,'');
+  // Fail closed: spreadsheet applications may discard escaping on reopening or resaving.
+  // JSON remains lossless, preserving exact IDs and original strings.
+  if (/[\u061C\u200E\u200F\u202A-\u202E\u2066-\u206F\u0085\u2028\u2029]/u.test(normalized)
+    || /^[=+@-]/u.test(leading)
+    || /[,;"'\t\r\n][\p{Cf}\p{M}\s\uFEFF]*[=+@-]/u.test(normalized)
+    || /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(normalized))
+    throw new Error('CSV export blocked: potentially executable or misleading spreadsheet content. Use JSON to preserve exact records.');
   return '"'+s.replaceAll('"','""')+'"';
 };
 export function exportCSV(workspace) {
