@@ -12,7 +12,9 @@ const date = (v, label, required=false) => {
   text(v,10,label,required);
   if (!v && !required) return v;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) throw new Error(`Invalid ${label}`);
-  const [y,m,d]=v.split('-').map(Number), dt=new Date(Date.UTC(y,m-1,d));
+  const [y,m,d]=v.split('-').map(Number), dt=new Date(0);
+  dt.setUTCHours(0,0,0,0);
+  dt.setUTCFullYear(y,m-1,d);
   if (dt.getUTCFullYear()!==y || dt.getUTCMonth()!==m-1 || dt.getUTCDate()!==d) throw new Error(`Invalid ${label}`);
   return v;
 };
