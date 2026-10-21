@@ -1,0 +1,22 @@
+name: AI Workflow Navigator tests
+on:
+  push:
+    paths:
+      - 'projects/ai-workflow-decision-navigator/**'
+      - '.github/workflows/ai-workflow-navigator.yml'
+  pull_request:
+    paths:
+      - 'projects/ai-workflow-decision-navigator/**'
+      - '.github/workflows/ai-workflow-navigator.yml'
+permissions:
+  contents: read
+jobs:
+  navigator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run dependency-free navigator tests
+        run: node --test projects/ai-workflow-decision-navigator/tests/smoke.test.mjs
