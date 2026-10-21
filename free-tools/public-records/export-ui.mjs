@@ -10,6 +10,7 @@ export function bindExports(getState,say){
     save('public-records-workspace.json','application/json',exportJSON(getState()));say('JSON downloaded.');
   });
   document.getElementById('save-csv').addEventListener('click',()=>{
-    save('public-records-workspace.csv','text/csv;charset=utf-8',exportCSV(getState()));say('CSV downloaded.');
+    try {save('public-records-workspace.csv','text/csv;charset=utf-8',exportCSV(getState()));say('CSV downloaded.');}
+    catch(error){say('CSV unavailable: '+error.message+'; your data is unchanged. Use JSON to retain exact values.');}
   });
 }
