@@ -96,7 +96,8 @@ function chooseCustom({goal,cat,tools=[],freq,pattern,outcome,scope,risk}) {
 
 test("code parses and all 29 software entries are present", () => {
   assert.doesNotThrow(() => new Function(script));
-  const entries = [...html.matchAll(/(?:name:|"name":)"[^"]+",feature:/g)];
+  const list = html.match(/const apps=\[([\s\S]*?)\];/)?.[1] || "";
+  const entries = [...list.matchAll(/\["[^"]+","[^"]+"\]/g)];
   assert.equal(entries.length, 29);
 });
 
