@@ -88,7 +88,7 @@ const q=[
 ];
 const referenceReviewed="October 21, 2026";
 const featureCost={excel:"included",word:"included",powerpoint:"included",outlook:"included",sheets:"limited",docs:"included",gmail:"included",drive:"included",asana:"paid",trello:"limited",chatgpt:"varies",gemini:"varies",copilot:"paid",powerauto:"varies",zapier:"limited",gforms:"included",msforms:"varies",airtable:"limited",notion:"limited",monday:"paid",slack:"paid",hubspot:"varies",make:"limited",powerbi:"limited",looker:"limited",canva:"limited",sharepoint:"varies",teams:"varies",wordpress:"varies"};
-const featureCostText={included:"Built-in capability to check in software you already have",limited:"Free core function or a limited free allowance",paid:"This feature generally requires a qualifying paid plan",varies:"Depends on your account, edition, or exact feature"};
+const featureCostText={included:"Built-in capability to check in software you already have",limited:"Free core function or a limited free allowance",paid:"Advanced automation or AI requires a qualifying paid plan; some basic functions may be free",varies:"Depends on your account, edition, or exact feature"};
 const taskSignals={excel:/spreadsheet|csv|formula|workbook|duplicates|pivot|cells/i,sheets:/sheet|rows|spreadsheet|csv/i,word:/letter|mail merge|document|proposal|template/i,outlook:/inbox|email|calendar|follow.up/i,gmail:/gmail|inbox|email|labels/i,asana:/project|assign|task|deadline/i,trello:/kanban|cards|board|task/i,gforms:/survey|poll|form|questionnaire|responses/i,msforms:/survey|poll|form|questionnaire|responses/i,airtable:/database|table|form|records/i,notion:/notes|wiki|database|templates/i,powerbi:/dashboard|power bi|metrics|visual|analytics|report/i,looker:/dashboard|visual|charts|reports/i,hubspot:/crm|leads|prospects|contacts|pipeline/i,make:/integrat|sync|connect|trigger/i,powerauto:/integrat|sync|connect|trigger|automat/i,wordpress:/website|webpage|blog|form|public page/i,canva:/graphic|poster|flyer|slide|presentation/i,slack:/slack|channel|message|notify/i,monday:/board|project|assignment/i,sharepoint:/documents|intranet|list|records/i,teams:/meeting|team|notify|collaborat/i};
 const defaults={goal:"",cat:"data",apps:[],freq:"once",pattern:"mixed",outcome:"report",scope:"one",risk:"routine"};
 let state={...defaults,apps:[]},step=0,lastPlan="";
@@ -123,7 +123,7 @@ function bestTools(){let all=rankedTools(),selected=all.filter(x=>state.apps.inc
 function decide(){
  const st=state,hasNative=kb.some(x=>st.apps.includes(x.id)&&relevant(x)&&!["chatgpt","gemini","copilot","zapier","make"].includes(x.id));
  const basicPublic=/(form|survey|poll|quiz|questionnaire|signup|registration|dashboard|chart|report)/i.test(st.goal);
- const specialBuild=/(custom algorithm|calculator|interactive simulation|bespoke portal|multi.user portal|proprietary tool)/i.test(st.goal);
+ const specialBuild=/(custom algorithm|calculator|interactive simulation|bespoke portal|multi.user portal|proprietary tool|compare tailored|personalized report|reusable report|conditional results|custom calculation)/i.test(st.goal);
  if(st.outcome==="interface")return basicPublic&&!specialBuild?"existing":"custom";
  if(st.freq!=="once"&&st.pattern==="judgment"&&st.scope==="many"&&st.outcome==="act")return st.risk==="high"?"library":"agent";
  if(st.freq==="trigger"&&st.pattern==="same")return "automate";
