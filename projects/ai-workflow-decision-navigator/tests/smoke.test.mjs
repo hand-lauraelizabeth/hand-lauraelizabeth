@@ -178,3 +178,57 @@ test("public form example includes response access check", () => {
   assert.match(panel.textContent,/Google Forms/);
   assert.match(panel.textContent,/permission/);
 });
+
+test("comparison defaults to a suggested option and a different simpler approach",() => {
+  for (const label of ["Clean a weekly spreadsheet","Draft similar documents","Route new requests","Review complex requests","Build a public service"]) {
+    const d=chooseExample(label);
+    assert.ok(d.ids["compare-a"],"first choice exists for "+label);
+    assert.ok(d.ids["compare-b"],"second choice exists for "+label);
+    assert.notEqual(d.ids["compare-a"].value,d.ids["compare-b"].value,"alternatives initially differ");
+    const cards=nodes(d.ids.pane,n=>n.className==="compare-card");
+    assert.equal(cards.length,2);
+    assert.ok(cards.every(c=>c.textContent.includes("Maintenance")&&c.textContent.includes("Additional costs")));
+    assert.ok(cards.every(c=>c.textContent.includes("When this approach is insufficient")));
+  }
+});
+test("comparison change re-renders and persists in decision export",() => {
+ const d=chooseExample("Clean a weekly spreadsheet");
+ const a=d.ids["compare-a"],b=d.ids["compare-b"];
+ a.value="agent";a.emit("change");
+ b.value="custom";b.emit("change");
+ const cards=nodes(d.ids.pane,n=>n.className==="compare-card");
+ assert.match(cards[0].textContent,/Pilot a supervised agent/);
+ assert.match(cards[1].textContent,/Build a focused custom tool/);
+ const download=nodes(d.ids.pane,n=>n.tag==="button"&&n.textContent.includes("Download decision brief"))[0];
+ download.click();
+ assert.match(d.downloadPayloads[0],/SIDE-BY-SIDE COMPARISON/);
+ assert.match(d.downloadPayloads[0],/VERSUS/);
+ assert.match(d.downloadPayloads[0],/Ongoing care/);
+});
+test("payback estimate only uses entered assumptions and does not invent a dollar ROI",() => {
+ const d=chooseExample("Route new requests");
+ const out=nodes(d.ids.pane,n=>n.className==="estimate-output")[0];
+ assert.match(out.textContent,/Not estimated/);
+ for(const [id,value] of [["est-count","40"],["est-min","6"],["est-setup","12"],["est-maint","1"],["est-fee","35"]]){
+   d.ids[id].value=value;d.ids[id].emit("input");
+ }
+ assert.match(out.textContent,/4 hours\/month/);
+ assert.match(out.textContent,/3 hours\/month/);
+ assert.match(out.textContent,/4 months/);
+ assert.match(out.textContent,/\$35\/month/);
+ assert.match(out.textContent,/excluded from time-only payback/);
+ const download=nodes(d.ids.pane,n=>n.tag==="button"&&n.textContent.includes("Download decision brief"))[0];
+ download.click();
+ assert.match(d.downloadPayloads[0],/OPTIONAL CAPACITY ESTIMATE/);
+ assert.match(d.downloadPayloads[0],/4 hours\/month/);
+});
+test("unfavorable and invalid time assumptions never display positive recovery",() => {
+ const d=chooseExample("Route new requests");
+ for(const [id,value] of [["est-count","5"],["est-min","1"],["est-setup","12"],["est-maint","3"]]){
+   d.ids[id].value=value;d.ids[id].emit("input");
+ }
+ const out=nodes(d.ids.pane,n=>n.className==="estimate-output")[0];
+ assert.match(out.textContent,/not demonstrated/);
+ d.ids["est-maint"].value="-1";d.ids["est-maint"].emit("input");
+ assert.match(out.textContent,/Use valid numbers/);
+});
