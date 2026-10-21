@@ -1,0 +1,20 @@
+name: FT-05 evidence matrix review checks
+on:
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-matrix-review.yml'
+  workflow_dispatch:
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check free-tools/evidence-timeline/matrix-page.mjs
+      - run: node free-tools/evidence-timeline/review-matrix.test.mjs
+      - run: node free-tools/evidence-timeline/matrix-page.test.mjs

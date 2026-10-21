@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {buildEvidenceMatrix} from './review-matrix.mjs';
+const records=[{sourceId:'B',date:'2026-10-14',group:'same'},{sourceId:'A',date:'2026-10-13',group:'same'},{sourceId:'C',date:'2026-10-12',group:''}];
+const before=JSON.stringify(records);
+const rows=buildEvidenceMatrix(records);
+assert.deepEqual(rows.map(r=>r.sourceId),['A','B','C']);
+assert.deepEqual(rows.map(r=>r.relatedCount),[2,2,0]);
+assert.equal(rows[0].reviewFlag,'Compare manually');
+assert.equal(JSON.stringify(records),before);
+assert.deepEqual(buildEvidenceMatrix([]),[]);
+console.log('5 review matrix assertions PASS');

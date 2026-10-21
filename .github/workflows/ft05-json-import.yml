@@ -1,0 +1,33 @@
+name: FT-05 JSON import regression
+on:
+  push:
+    branches:
+      - 'review/ft05-json-import-error-recovery-*'
+      - 'review/ft05-json-import-ci-boundaries-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-json-import.yml'
+permissions:
+  contents: read
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate importer and tests
+        run: |
+          node --check free-tools/evidence-timeline/json-import.mjs
+          node --check free-tools/evidence-timeline/json-import-security.test.mjs
+          node --check free-tools/evidence-timeline/json-file-decode.test.mjs
+          node --check free-tools/evidence-timeline/json-utf8.test.mjs
+          node --check free-tools/evidence-timeline/json-file-boundaries.test.mjs
+      - name: Run JSON import regression suite
+        run: |
+          node free-tools/evidence-timeline/json-import-security.test.mjs
+          node free-tools/evidence-timeline/json-file-decode.test.mjs
+          node free-tools/evidence-timeline/json-utf8.test.mjs
+          node free-tools/evidence-timeline/json-file-boundaries.test.mjs

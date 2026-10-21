@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {normalizeEvidence,exportEvidenceCSV,summary} from './core.mjs';
+const rec=(sourceId,extra={})=>({sourceId,date:'2026-10-16',claim:'Synthetic',...extra});
+let checks=0;
+const eq=(actual,expected)=>{assert.deepEqual(actual,expected);checks++;};
+const rejects=(rows)=>{assert.throws(()=>normalizeEvidence(rows));checks++;};
+const input=[rec('ID'),rec(' ID '),rec('caf\u00e9'),rec('cafe\u0301')];
+const normalized=normalizeEvidence(input);
+eq(normalized.length,4);
+eq(new Set(normalized.map(r=>r.sourceId)).size,4);
+eq(input[1].sourceId,' ID ');
+eq(normalized.find(r=>r.sourceId===' ID ').claim,'Synthetic');
+rejects([rec(' ID '),rec(' ID ')]);
+rejects([rec('ID',{group:'g'.repeat(121)})]);
+rejects([rec('ID',{claim:' '.repeat(4)})]);
+rejects([rec('ID',{date:'2026-02-29'})]);
+rejects([rec('ID',{status:'verified'})]);
+rejects([rec('ID',{kind:'opinion'})]);
+rejects([rec(123)]);
+rejects(Array.from({length:10001},(_,i)=>rec(String(i))));
+const preserved=normalizeEvidence([rec(' X ',{claim:'  line one\nline two  ',group:' G '})])[0];
+eq(preserved.claim,'  line one\nline two  ');
+eq(preserved.group,' G ');
+eq(summary(normalized).total,4);
+for(const prefix of ['＝','＋','－','＠']){
+  const csv=exportEvidenceCSV([rec(prefix+'1',{claim:prefix+'SUM(1,2)',group:prefix+'2'})]);
+  assert.ok(csv.includes('"\''+prefix+'1"'));
+  assert.ok(csv.includes('"\''+prefix+'SUM(1,2)"'));
+  assert.ok(csv.includes('"\''+prefix+'2"'));
+  checks+=3;
+}
+const quoted=exportEvidenceCSV([rec('a,b',{claim:'a"b\nsecond line'})]);
+assert.ok(quoted.includes('"a,b"'));checks++;
+assert.ok(quoted.includes('"a""b\nsecond line"'));checks++;
+assert.ok(quoted.endsWith('\r\n'));checks++;
+console.log(`${checks} exact-source boundary and CSV checks PASS`);

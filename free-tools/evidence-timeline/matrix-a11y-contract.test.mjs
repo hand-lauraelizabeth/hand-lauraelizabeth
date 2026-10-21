@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const html=readFileSync(new URL('./matrix-page.html',import.meta.url),'utf8');
+const script=readFileSync(new URL('./matrix-page.mjs',import.meta.url),'utf8');
+const check=(pattern,label)=>assert.match(html,pattern,label);
+check(/<label for="source-json">Import evidence JSON<\/label>/,'Upload label');
+check(/id="source-json"[^>]*aria-describedby="matrix-import-help matrix-error"/,'Error association');
+check(/id="matrix-import-help"/,'Visible import guidance');
+check(/id="matrix-error" role="alert"/,'Error announcement');
+check(/id="matrix-status" role="status"/,'Result announcement');
+check(/role="region"[^>]*aria-label="Evidence records"[^>]*tabindex="0"/,'Focusable scroll region');
+check(/<caption>Evidence review<\/caption>/,'Table caption');
+check(/id="matrix-export" aria-describedby="matrix-export-note"/,'Export caution association');
+check(/id="matrix-clear"[^>]*aria-describedby="matrix-clear-note"/,'Reset privacy warning association');
+assert.match(script,/upload\.focus\(\)/,'Keyboard focus returns after reset');
+assert.match(script,/if\(sequence!==importSequence\)return/,'Stale reads are rejected');
+assert.doesNotMatch(html,/<script(?![^>]*src=)[^>]*>/,'No inline scripts');
+console.log('12 evidence matrix accessibility contract assertions PASS');
