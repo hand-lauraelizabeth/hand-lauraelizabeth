@@ -27,8 +27,9 @@ export function evaluateWithProvenance(input){
 const csvCell=value=>{
  const s=String(value??'');
  const normalized=s.normalize('NFKC');
- const leading=normalized.replace(/^[\p{Cf}\s\uFEFF]+/u,'');
- if(/^[=+@-]/u.test(leading)||/[,;"'\t\r\n][\p{Cf}\s\uFEFF]*[=+@-]/u.test(normalized)||/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(normalized))
+ if(/[\u202A-\u202E\u2066-\u2069]/u.test(s))throw Error('CSV export blocked: explicit bidirectional formatting controls. Use JSON for lossless data.');
+ const leading=normalized.replace(/^[\p{Cf}\p{M}\s\uFEFF]+/u,'');
+ if(/^[=+@-]/u.test(leading)||/[,;"'\t\r\n][\p{Cf}\p{M}\s\uFEFF]*[=+@-]/u.test(normalized)||/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(normalized))
   throw Error('CSV export blocked: potentially executable spreadsheet content. Use JSON for exact, lossless data.');
  return '"'+s.replaceAll('"','""')+'"';
 };
