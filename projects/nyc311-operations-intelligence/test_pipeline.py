@@ -30,7 +30,8 @@ class TestPipeline(unittest.TestCase):
             self.assertEqual(obj["quality"]["closure_before_creation"],1)
             self.assertEqual(obj["quality"]["small_cells_suppressed"],2)
             self.assertEqual(obj["aggregates"][0]["requests"],2)
-            self.assertEqual(obj["aggregates"][0]["closed_with_valid_interval"],1)
+            self.assertIsNone(obj["aggregates"][0]["closed_with_valid_interval"])
+            self.assertTrue(obj["aggregates"][0]["closure_suppressed"])
             self.assertNotIn("incident_address",out.read_text())
             self.assertEqual(json.loads(out.read_text())["source_sha256"],obj["source_sha256"])
     def test_required_columns(self):
@@ -40,4 +41,68 @@ class TestPipeline(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"Missing API columns"):
                 ingest(inp,out,as_of="2026-10-15")
             self.assertFalse(out.exists())
+
+    def test_safe_closure_and_complement(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"fixture.csv", Path(tmp)/"result.json"
+            rows = [
+                [str(i), "2026-09-10T10:00:00", "2026-09-10T11:00:00" if i <= 2 else "",
+                 "DOT", "Pothole", "Queens", "Closed" if i <= 2 else "Open"]
+                for i in range(1, 5)
+            ]
+            with inp.open("w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f); writer.writerow(FIELDS); writer.writerows(rows)
+            obj = ingest(inp, out, as_of="2026-09-30", min_cell=2)
+            self.assertEqual(len(obj["aggregates"]), 1)
+            self.assertEqual(obj["aggregates"][0]["closed_with_valid_interval"], 2)
+            self.assertFalse(obj["aggregates"][0]["closure_suppressed"])
+
+    def test_dst_fold_order_uses_utc(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"fixture.csv", Path(tmp)/"result.json"
+            rows = [
+                ["1", "2026-11-01T01:30:00-04:00", "2026-11-01T01:15:00-05:00",
+                 "DOT", "Pothole", "Queens", "Closed"],
+                ["2", "2026-11-01T01:30:00-04:00", "2026-11-01T01:15:00-05:00",
+                 "DOT", "Pothole", "Queens", "Closed"],
+                ["3", "2026-11-01T01:15:00-05:00", "2026-11-01T01:30:00-04:00",
+                 "DOT", "Pothole", "Queens", "Closed"],
+                ["4", "2026-11-01T12:00:00-05:00", "", "DOT", "Pothole", "Queens", "Open"],
+                ["5", "2026-11-01T12:00:00-05:00", "", "DOT", "Pothole", "Queens", "Open"],
+            ]
+            with inp.open("w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f); writer.writerow(FIELDS); writer.writerows(rows)
+            obj = ingest(inp, out, as_of="2026-11-30", min_cell=2)
+            self.assertEqual(obj["quality"]["closure_before_creation"], 1)
+            self.assertEqual(obj["aggregates"][0]["requests"], 5)
+            self.assertEqual(obj["aggregates"][0]["closed_with_valid_interval"], 2)
+
+    def test_utc_month_boundary_is_local_september(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"fixture.csv", Path(tmp)/"result.json"
+            rows = [
+                ["1", "2026-10-01T01:30:00+00:00", "", "DOT", "Pothole", "Queens", "Open"],
+                ["2", "2026-09-30T21:30:00-04:00", "", "DOT", "Pothole", "Queens", "Open"],
+            ]
+            with inp.open("w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f); writer.writerow(FIELDS); writer.writerows(rows)
+            obj = ingest(inp, out, as_of="2026-09-30", min_cell=2)
+            self.assertEqual(obj["quality"]["valid_records"], 2)
+            self.assertEqual(obj["aggregates"][0]["month"], "2026-09")
+            self.assertEqual(obj["aggregates"][0]["requests"], 2)
+            self.assertIsNone(obj["aggregates"][0]["closed_with_valid_interval"])
+
+    def test_naive_dst_gap_and_fold_are_not_closure_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"fixture.csv", Path(tmp)/"result.json"
+            rows = [
+                ["1", "2026-03-08T02:30:00", "2026-03-08T03:30:00", "DOT", "Pothole", "Queens", "Closed"],
+                ["2", "2026-11-01T01:30:00", "2026-11-01T02:30:00", "DOT", "Pothole", "Queens", "Closed"],
+            ]
+            with inp.open("w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f); writer.writerow(FIELDS); writer.writerows(rows)
+            obj = ingest(inp, out, as_of="2026-11-30", min_cell=1)
+            self.assertEqual(obj["quality"]["ambiguous_or_nonexistent_created_date"], 2)
+            self.assertTrue(all(row["closed_with_valid_interval"] is None for row in obj["aggregates"]))
+
 if __name__ == "__main__": unittest.main()
