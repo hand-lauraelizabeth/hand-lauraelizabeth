@@ -56,9 +56,28 @@ The prompt library generates three task-specific prompts based on the user's goa
 
 The implementation remains browser-local and dependency-free. Existing prompt tools remain separately available through the [Prompt Lab](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-lab/) and [Evidence-Safe Prompt Lab](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/evidence-safe-prompt-lab/).
 
+## Side-by-side approach comparison and time-based setup estimate
+
+The results include an optional six-approach comparison. Visitors choose any two paths to contrast:
+
+- **Setup work** — what needs to be configured or built before the first usable result.
+- **Potential additional charges** — qualitative plan and licensing considerations, *not* invented prices or guaranteed entitlements.
+- **Maintenance** — who owns updating templates, integrations, evaluations, security, and support.
+- **Human oversight** — verification and accountability appropriate to each approach.
+- **Evidence of a real gap** — the failed trial or persistent need that could justify a more complex option.
+
+An optional calculator lets visitors enter **their own** monthly repetitions, estimated minutes saved per task, one-time setup hours, monthly maintenance hours, and an optional monthly additional software expense. It shows:
+
+- Gross monthly hours potentially saved = repetitions × minutes saved ÷ 60.
+- Net monthly hours after maintenance = gross savings − maintenance hours.
+- Time-based payback in months = setup hours ÷ net monthly hours, only where net hours are positive.
+- User-entered software charge separately, never converted into a fabricated monetary return.
+
+All fields start blank; no benchmark productivity claims or vendor pricing are implied. The estimator excludes error rates, review overhead beyond entered maintenance, business outcomes, and risk. It is a planning aid, not proof of savings. The current comparison and entered assumptions are included in the copied/downloaded brief. Native accessible labels and text-based results supplement visual styling.
+
 ## Regression testing
 
-Run `node --test projects/ai-workflow-decision-navigator/tests/smoke.test.mjs` from the repository root. The dependency-free tests cover the five example decision paths, 29-program catalog count, standard-form versus bespoke-interface routing, a high-consequence guardrail, required task entry, three-stage prompt coverage, worked-example selection, and decision-brief export. A scoped GitHub Actions workflow runs the tests on relevant push and pull-request changes.
+Run `node --test projects/ai-workflow-decision-navigator/tests/smoke.test.mjs` from the repository root. The dependency-free tests cover the five example decision paths, 29-program catalog count, standard-form versus bespoke-interface routing, a high-consequence guardrail, required task entry, three-stage prompt coverage, worked-example selection, decision-brief export, side-by-side comparison changes, and positive/negative time-payback cases. A scoped GitHub Actions workflow runs the tests on relevant push and pull-request changes.
 
 Browser-specific keyboard, screen-reader, zoom, touch, Firefox/WebKit, and export/clipboard testing remains an independent release requirement; simulated DOM tests do not replace native interaction testing.
 
