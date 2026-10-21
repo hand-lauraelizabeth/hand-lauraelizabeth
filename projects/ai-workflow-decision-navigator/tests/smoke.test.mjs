@@ -41,9 +41,11 @@ function start() {
   document.body = new Element("body", document);
   for (const id of ["pane","error","status","count","progress-label","fill","back","next","reset"])
     document.ids[id] = new Element("div", document);
-  const navigator = { clipboard: { writeText: async () => {} } };
+  document.clipboardWrites = [];
+  document.downloadPayloads = [];
+  const navigator = { clipboard: { writeText: async (value) => { document.clipboardWrites.push(value); } } };
   const URL = { createObjectURL: () => "blob:test", revokeObjectURL: () => {} };
-  class Blob {}
+  class Blob { constructor(parts) { document.downloadPayloads.push(parts.join("")); } }
   new Function("document","navigator","URL","Blob","setTimeout",script)(
     document,navigator,URL,Blob,() => {}
   );
@@ -134,4 +136,45 @@ test("cannot proceed without a task",() => {
   d.ids.next.click();
   assert.match(d.ids.error.textContent,/Add a short task description/);
   assert.equal(d.ids.count.textContent,"Question 1 of 6");
+});
+
+test("every example returns an accessible worked example and three reusable prompts", () => {
+  for (const label of ["Clean a weekly spreadsheet","Draft similar documents","Route new requests","Review complex requests","Build a public service"]) {
+    const d=chooseExample(label);
+    assert.equal(nodes(d.ids.pane,n=>n.className==="worked-example").length,1,label);
+    const texts=nodes(d.ids.pane,n=>n.className==="prompt").map(n=>n.value);
+    assert.equal(texts.length,3,label);
+    assert.ok(texts.every(text=>text.includes("Do not invent")||text.includes("Do not")||text.includes("never claim")),label);
+    assert.equal(nodes(d.ids.pane,n=>n.textContent==="Copy all three prompts").length,1,label);
+  }
+});
+
+test("worked example selector changes its steps and downloaded brief", () => {
+  const d=chooseExample("Clean a weekly spreadsheet");
+  const selector=d.ids["worked-pick"];
+  assert.ok(selector);
+  selector.value="form"; selector.emit("change");
+  const panel=nodes(d.ids.pane,n=>n.className==="worked-example")[0];
+  assert.match(panel.textContent,/Google Forms \+ Sheets/);
+  const download=nodes(d.ids.pane,n=>n.tag==="button"&&n.textContent.includes("Download decision brief"))[0];
+  assert.ok(download);
+  download.click();
+  assert.equal(d.downloadPayloads.length,1);
+  assert.match(d.downloadPayloads[0],/Collect requests with Google Forms \+ Sheets/);
+  assert.match(d.downloadPayloads[0],/REUSABLE PROMPTS/);
+  assert.match(d.downloadPayloads[0],/Verify before scaling/);
+});
+
+test("agent recipe forbids immediate external actions", () => {
+  const d=chooseExample("Review complex requests");
+  const prompts=nodes(d.ids.pane,n=>n.className==="prompt").map(n=>n.value);
+  assert.match(prompts[1],/suggestion-only pilot/);
+  assert.match(prompts[1],/prohibited actions/);
+});
+
+test("public form example includes response access check", () => {
+  const d=chooseCustom({goal:"Create a public registration form",cat:"service",tools:["gforms"],freq:"repeat",pattern:"same",outcome:"interface",scope:"one",risk:"routine"});
+  const panel=nodes(d.ids.pane,n=>n.className==="worked-example")[0];
+  assert.match(panel.textContent,/Google Forms/);
+  assert.match(panel.textContent,/permission/);
 });
