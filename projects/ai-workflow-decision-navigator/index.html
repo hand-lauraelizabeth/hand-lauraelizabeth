@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Workflow Decision Navigator | Laura Elizabeth Hand</title>
+<style>
+:root{--ink:#1c2b24;--green:#285b49;--dark:#183a2e;--sage:#e7f0eb;--paper:#f8faf8;--line:#c9d8ce;--muted:#526258;--white:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:990px;margin:auto;padding:28px 18px 56px}h1,h2{font-family:Georgia,serif;color:var(--dark);letter-spacing:-.018em}h1{font-size:clamp(30px,4vw,42px);line-height:1.13;margin:8px 0 10px}h2{font-size:clamp(24px,3vw,30px);line-height:1.2;margin:0 0 12px}h3{font-size:18px;margin:13px 0 5px;color:var(--dark)}
+p{margin:0 0 13px}.eyebrow{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--green)}.lead{font-size:17px;color:var(--muted);max-width:760px}.frame{border:1px solid var(--line);border-radius:17px;background:var(--white);padding:clamp(18px,4vw,30px);box-shadow:0 8px 30px rgba(25,61,44,.05);margin-top:22px}.progress{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);font-weight:700}.track{height:8px;background:#e7eeea;border-radius:9px;margin:10px 0 28px;overflow:hidden}.fill{height:100%;width:16.7%;background:var(--green);border-radius:9px;transition:width .2s}.help{color:var(--muted);font-size:15px}.examples{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.examples button{background:var(--sage);color:var(--dark);border-color:var(--line)}label.field{display:block;font-weight:750;margin:17px 0 7px}
+textarea,select{font:inherit;width:100%;background:white;color:var(--ink);border:1px solid #a6bcb0;border-radius:9px;padding:12px;min-height:96px}select{min-height:47px}button{min-height:44px;font:inherit;font-weight:700;border-radius:9px;cursor:pointer;padding:9px 15px;border:1px solid var(--green);background:#fff;color:var(--green)}button.primary{background:var(--green);color:white}button:disabled{opacity:.45;cursor:not-allowed}button:hover:not(:disabled){filter:brightness(.96)}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #88b9a5;outline-offset:3px}
+.choices,.tools{display:grid;gap:10px;margin:20px 0}.choices{grid-template-columns:repeat(2,minmax(0,1fr))}.tools{grid-template-columns:repeat(3,minmax(0,1fr))}.choice{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:11px;padding:13px;background:#fff;cursor:pointer;min-height:65px}.choice:has(input:checked){background:var(--sage);border:2px solid var(--green);padding:12px}.choice input{margin-top:4px;accent-color:var(--green);width:18px;height:18px;flex:none}.choice strong{display:block;line-height:1.3}.choice small{display:block;font-size:13px;color:var(--muted);line-height:1.5;margin-top:3px}.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:23px;padding-top:17px;border-top:1px solid var(--line)}.navright{display:flex;gap:9px;flex-wrap:wrap}
+.notice{padding:11px 13px;border-left:4px solid var(--green);background:var(--sage);border-radius:5px;margin:14px 0}.notice.warn{background:#fff7eb;border-left-color:#9a6831}.notice p{margin:0}.error{color:#9c3f33;font-weight:700;min-height:1.5em} .mini{font-size:13px;color:var(--muted)}.recommend{background:var(--sage);border:1px solid #bbd3c5;border-radius:14px;padding:20px;margin:16px 0 22px}.recommend h2{margin:4px 0}.pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:800;background:var(--green);color:white;margin-bottom:4px}.pathrow{display:grid;grid-template-columns:32px 1fr;gap:11px;padding:11px 0;border-top:1px solid var(--line)}.pathrow b{font-size:14px}.pathrow p{font-size:14px;color:var(--muted);margin:1px 0}.circle{width:27px;height:27px;background:#e5eee9;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800}.pathrow.pick .circle{background:var(--green);color:white}.resultgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{border:1px solid var(--line);border-radius:12px;padding:18px;background:white;margin:12px 0}.panel ul,.panel ol{padding-left:22px;margin:9px 0 5px}.panel li{margin:7px 0}.kb{border-top:1px solid var(--line);padding:12px 0}.kb:first-of-type{border-top:0}.kb a,a{color:#225844;text-decoration:underline;text-underline-offset:2px}.prompt{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;border:1px solid var(--line);border-radius:10px;padding:13px;background:#f5f8f6;width:100%;min-height:170px;color:var(--ink)}details{padding:11px 0;border-top:1px solid var(--line)}summary{font-weight:800;color:var(--green);cursor:pointer}.actionbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.footer{border-top:1px solid var(--line);padding-top:16px;margin-top:25px;color:var(--muted);font-size:14px}
+@media(max-width:740px){.choices,.resultgrid{grid-template-columns:1fr}.tools{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px 35px}}@media(max-width:410px){.tools{grid-template-columns:1fr}.frame{padding:16px}.navright{width:100%}.navright button{flex:1}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fill{transition:none}}
+</style></head>
+<body><main>
+<p class="eyebrow">Free interactive decision guide · technology & workflow design</p>
+<h1>AI Workflow Decision Navigator</h1>
+<p class="lead">Describe a task in ordinary language. This guide helps you decide whether to use software you already have, a prompt, an automation, an agent, or a new tool—and shows you where to start.</p>
+<p class="mini">No account or payment required. Answers are evaluated in this browser, not sent to an AI model or stored by this tool.</p>
+<section class="frame" aria-label="Guided decision tool">
+ <div class="progress"><span id="count">Question 1 of 6</span><span id="progress-label">Getting started</span></div><div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+ <div id="pane" aria-live="polite"></div>
+ <div class="error" id="error" role="alert"></div>
+ <div class="nav"><button id="back" type="button">← Back</button><div class="navright"><button id="reset" type="button">Start over</button><button class="primary" id="next" type="button">Continue →</button></div></div>
+ <div id="status" class="mini" role="status" aria-live="polite"></div>
+</section>
+<p class="footer">This is a workflow-planning aid, not an AI service or a product-purchase recommendation. Vendor plans, employer permissions, security rules, and feature availability change. Verify them before connecting data or granting an automation access.</p>
+</main>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const apps=[
+["excel","Excel"],["word","Word"],["powerpoint","PowerPoint"],["outlook","Outlook"],
+["sheets","Google Sheets"],["docs","Google Docs"],["gmail","Gmail"],["drive","Google Drive"],
+["asana","Asana"],["trello","Trello"],["chatgpt","ChatGPT"],["gemini","Gemini"],
+["copilot","Microsoft Copilot"],["powerauto","Power Automate"],["zapier","Zapier"]
+];
+const examples=[
+{label:"Clean a weekly spreadsheet",goal:"Combine weekly registration spreadsheets, remove duplicates, and update a summary.",cat:"data",apps:["excel"],freq:"repeat",pattern:"same",outcome:"report",scope:"one",risk:"routine"},
+{label:"Draft similar documents",goal:"Create consistent workshop descriptions from approved outlines.",cat:"writing",apps:["word","chatgpt"],freq:"repeat",pattern:"mixed",outcome:"report",scope:"one",risk:"routine"},
+{label:"Route new requests",goal:"When a request arrives, create a task, assign an owner, and notify the team.",cat:"workflow",apps:["asana","outlook"],freq:"trigger",pattern:"same",outcome:"act",scope:"many",risk:"routine"},
+{label:"Review complex requests",goal:"Review incoming requests across email and task systems, suggest the right response and owner, and prepare drafts for approval.",cat:"workflow",apps:["outlook","asana","chatgpt"],freq:"trigger",pattern:"judgment",outcome:"act",scope:"many",risk:"routine"},
+{label:"Build a public service",goal:"Let website visitors enter their own information, compare tailored options, and export a reusable report.",cat:"service",apps:[],freq:"repeat",pattern:"mixed",outcome:"interface",scope:"many",risk:"routine"}
+];
+const kb=[
+{id:"excel",cats:["data","workflow"],name:"Excel",feature:"Power Query, formulas, tables, and PivotTables",how:"Try Data → Get Data (Power Query) to combine, clean, and refresh files without rebuilding each report.",gate:"Often available in existing Excel editions; specific connectors, sharing, and automation vary.",url:"https://support.microsoft.com/en-us/excel/about-power-query-in-excel"},
+{id:"sheets",cats:["data","workflow"],name:"Google Sheets",feature:"QUERY/FILTER formulas, pivot tables, recorded macros, Apps Script",how:"Try Extensions → Macros → Record macro for repeated steps; Apps Script can run scheduled or triggered workflows.",gate:"Check Apps Script execution and daily quotas; access and permissions still apply.",url:"https://support.google.com/docs/answer/7665004"},
+{id:"word",cats:["writing","outreach"],name:"Word",feature:"Templates, Quick Parts, mail merge",how:"Try a reusable Word template or Insert → Quick Parts; use Mailings → Start Mail Merge for batches of personalized documents.",gate:"Capabilities depend on Word version, platform, and mail setup.",url:"https://support.microsoft.com/en-us/word/use-mail-merge-for-bulk-email-letters-labels-and-envelopes"},
+{id:"powerpoint",cats:["writing","service"],name:"PowerPoint",feature:"Themes, layouts, Slide Master, reuse slides",how:"Build a consistent template with View → Slide Master before asking AI to create each deck.",gate:"Check desktop/web feature differences.",url:"https://support.microsoft.com/en-us/powerpoint"},
+{id:"outlook",cats:["outreach","writing","workflow"],name:"Outlook",feature:"Rules, templates, Quick Parts",how:"Use inbox rules for predictable routing and reusable text for repeat messages; require review before external sending.",gate:"Rule and template functionality varies by Outlook version and organization.",url:"https://support.microsoft.com/en-us/word/quick-parts"},
+{id:"gmail",cats:["outreach","workflow"],name:"Gmail",feature:"Filters, labels, templates",how:"Use Gmail settings for templates and filters before commissioning a new triage app.",gate:"Some send/merge features require specific Workspace editions.",url:"https://support.google.com/mail/answer/6579"},
+{id:"docs",cats:["writing","research"],name:"Google Docs",feature:"Document templates and collaborative editing",how:"Start from a shared template with consistent sections and an approval checklist.",gate:"Check Workspace permissions and optional paid AI features.",url:"https://support.google.com/docs/"},
+{id:"drive",cats:["research","workflow"],name:"Google Drive",feature:"Folders, access controls, document organization",how:"Organize source documents, permissions, and naming before building a search or summarization workflow.",gate:"Do not expose restricted files to a public AI service without authorization.",url:"https://support.google.com/drive/"},
+{id:"asana",cats:["project","workflow"],name:"Asana",feature:"Tasks and boards; rules on qualifying paid plans",how:"Start with projects and templates; if you need automatic assignments, check Rules in a qualifying Asana plan.",gate:"Automated rules are not included in the $0 Personal plan. Confirm your current tier.",url:"https://asana.com/pricing"},
+{id:"trello",cats:["project","workflow"],name:"Trello",feature:"Boards, cards, checklists, templates",how:"Start with board and card templates; check your plan's automation limits before using Butler automation.",gate:"Automation allowances vary by plan.",url:"https://trello.com/pricing"},
+{id:"chatgpt",cats:["writing","research","data","outreach","workflow"],name:"ChatGPT",feature:"Drafting, explanation, structured prompting, data assistance",how:"Try a bounded prompt, verify its output, then save a tested prompt for repeated tasks.",gate:"Scheduled tasks and custom GPT creation have eligibility restrictions. GPT setup is not model training.",url:"https://help.openai.com/en/articles/8554397-creating-a-gpt"},
+{id:"gemini",cats:["writing","research","data"],name:"Gemini",feature:"Prompt-based drafting, synthesis, explanation",how:"Use a source-bounded prompt; verify outputs against original documents.",gate:"Workspace integrations and advanced features depend on plan and permissions.",url:"https://support.google.com/gemini/"},
+{id:"copilot",cats:["writing","data","outreach"],name:"Microsoft Copilot",feature:"AI assistance within supported Microsoft applications",how:"Check whether AI-assisted drafting or analysis is already enabled in your Microsoft environment.",gate:"Copilot availability and data access depend on licenses and admin settings.",url:"https://learn.microsoft.com/en-us/copilot/"},
+{id:"powerauto",cats:["workflow","outreach","project","data"],name:"Power Automate",feature:"Triggered, scheduled, and button flows with connectors",how:"Prototype a trigger → condition → action flow using a standard connector and a test account.",gate:"Select Microsoft 365 plans include standard flows; premium connectors and other features can cost extra.",url:"https://learn.microsoft.com/en-us/power-platform/admin/power-automate-licensing/faqs"},
+{id:"zapier",cats:["workflow","outreach","project"],name:"Zapier",feature:"Two-step trigger/action workflows on Free",how:"Test one trigger and one action before adding branching, complex steps, or new subscriptions.",gate:"As of August 2026 Free includes 100 tasks/month and two-step Zaps; check live limits.",url:"https://help.zapier.com/hc/en-us/articles/32337438839565-What-s-included-in-Zapier-s-Free-plan"}
+];
+const cats=[["data","Clean, combine, or analyze information"],["writing","Write, edit, or create content"],["project","Organize projects and tasks"],["research","Research or summarize sources"],["outreach","Manage messages or follow-ups"],["workflow","Move work between people or systems"],["service","Build something others can use"]];
+const q=[
+{head:"What are you trying to accomplish?",help:"A sentence is enough. You can also try an example.",type:"intro"},
+{head:"Which tools do you already have?",help:"Select any you can access. If you're unsure, leave everything blank—we'll suggest where to check.",type:"tools"},
+{head:"How often does this task happen?",help:"This helps determine whether it's worth creating a repeatable process.",key:"freq",type:"radio",opts:[["once","Once or occasionally","You do it only when needed."],["repeat","Regularly","You repeat it each week, month, or project."],["trigger","Whenever something happens","For example, a new email or form submission."]]},
+{head:"How similar are the steps each time?",help:"Think about whether clear rules can describe the work.",key:"pattern",type:"radio",opts:[["same","Almost always the same","A checklist or formula could describe each step."],["mixed","A stable process, but the content changes","A human reviews or adapts the result."],["judgment","The steps depend on context","Choosing what to do requires assessing changing information."]]},
+{head:"What should the final result be?",help:"Choose the closest match.",key:"outcome",type:"radio",opts:[["report","A document, summary, analysis, or recommendation","A person reads and uses it."],["record","An updated spreadsheet, record, or project","The output is saved in an existing tool."],["act","A task, email, notification, or other action","A system needs to do something."],["interface","A new screen or application others can use","People need to interact with it themselves."]]},
+{head:"Where does the information live, and how sensitive is it?",help:"These answers help flag integration and oversight needs.",type:"final"}
+];
+const defaults={goal:"",cat:"data",apps:[],freq:"once",pattern:"mixed",outcome:"report",scope:"one",risk:"routine"};
+let state={...defaults,apps:[]},step=0,lastPlan="";
+function elt(tag,attrs,text){let e=document.createElement(tag);Object.entries(attrs||{}).forEach(([k,v])=>{if(k==="class")e.className=v;else e.setAttribute(k,v)});if(text!==undefined)e.textContent=text;return e}
+function add(tag,attrs,text,to=$("pane")){let e=elt(tag,attrs,text);to.appendChild(e);return e}
+function radios(key,opts,to){let wrap=add("div",{class:"choices"},undefined,to);opts.forEach(([val,label,desc])=>{let lbl=add("label",{class:"choice"},undefined,wrap);let input=add("input",{type:"radio",name:key,value:val},undefined,lbl);input.checked=state[key]===val;input.addEventListener("change",()=>{state[key]=val});let s=add("span",{},undefined,lbl);add("strong",{},label,s);if(desc)add("small",{},desc,s)});return wrap}
+function render(){
+let pane=$("pane");pane.replaceChildren();$("status").textContent="";$("error").textContent="";
+$("back").disabled=step===0;$("next").textContent=step===5?"Show my recommendation →":step===6?"Start a new decision":"Continue →";
+$("count").textContent=step===6?"Your recommendation":"Question "+(step+1)+" of 6";$("progress-label").textContent=step===6?"Decision complete":"Choose the closest answer";$("fill").style.width=((Math.min(step+1,6)/6)*100)+"%";
+if(step===6){result();return}
+let v=q[step];add("h2",{},v.head);add("p",{class:"help"},v.help);
+if(v.type==="intro"){
+ let ex=add("div",{class:"examples"});examples.forEach(x=>{let b=add("button",{type:"button"},x.label,ex);b.addEventListener("click",()=>{state={...x,apps:[...x.apps]};render()})});
+ add("label",{class:"field",for:"goal"},"Describe your task");let ta=add("textarea",{id:"goal",placeholder:"Example: Each Friday, combine several spreadsheets and send a summary."});ta.value=state.goal;ta.addEventListener("input",()=>{state.goal=ta.value});
+ add("label",{class:"field",for:"category"},"What kind of work is this?");let sel=add("select",{id:"category"});cats.forEach(([v,t])=>{let op=add("option",{value:v},t,sel);op.selected=state.cat===v});sel.addEventListener("change",()=>state.cat=sel.value);
+}else if(v.type==="tools"){
+ let wrap=add("div",{class:"tools"});apps.forEach(([key,name])=>{let lab=add("label",{class:"choice"},undefined,wrap),inp=add("input",{type:"checkbox",value:key},undefined,lab);inp.checked=state.apps.includes(key);inp.addEventListener("change",()=>{state.apps=inp.checked?[...state.apps,key]:state.apps.filter(x=>x!==key)});add("span",{},name,lab)});
+ add("p",{class:"mini"},"Having an application does not guarantee access to its paid automation or AI features.");
+}else if(v.type==="radio"){radios(v.key,v.opts)}
+else {add("h3",{},"Where are the inputs and outputs?");radios("scope",[["one","Mostly in one program","For example, a spreadsheet or Word document."],["many","Spread across several programs","For example, Gmail, Asana, and Sheets."],["unknown","I'm not sure","We'll identify the systems during testing."]]);
+ add("h3",{},"What happens if the result is wrong?");radios("risk",[["routine","A normal error is easy to correct","Drafts, planning, exploratory work."],["private","Private or restricted information is involved","Personal, student, client, employee, or internal data."],["high","It could materially affect someone's opportunities or rights","Health, employment, education, finance, access, or safety."]])}
+}
+function bestTools(){const chosen=kb.filter(x=>x.cats.includes(state.cat)&&state.apps.includes(x.id));return chosen.length?chosen.slice(0,4):kb.filter(x=>x.cats.includes(state.cat)).slice(0,3)}
+function decide(){
+ let st=state, hasNative=bestTools().some(x=>st.apps.includes(x.id)&&!["chatgpt","gemini","copilot","zapier"].includes(x.id));
+ if(st.outcome==="interface")return "custom";
+ if(st.freq!=="once"&&st.pattern==="judgment"&&st.scope==="many"&&st.outcome==="act")return st.risk==="high"?"library":"agent";
+ if(st.freq==="trigger"&&st.pattern==="same")return "automate";
+ if(st.freq==="repeat"&&st.pattern==="same"&&st.scope==="many"&&st.outcome==="act")return "automate";
+ if(st.freq==="repeat"&&st.pattern==="same"&&st.scope==="one"&&hasNative)return "existing";
+ if(st.freq==="repeat"&&st.pattern!=="same"&&st.outcome==="report")return "library";
+ if(st.freq!=="once"&&(st.outcome==="act"||st.outcome==="record")&&st.pattern==="same")return "automate";
+ if((st.cat==="writing"||st.cat==="research")&&st.freq==="once")return "prompt";
+ if(st.freq==="once"&&hasNative&&st.pattern==="same")return "existing";
+ if(st.freq!=="once"&&st.pattern==="judgment")return "library";
+ if(st.freq!=="once")return "library";
+ if(hasNative&&(st.cat==="data"||st.cat==="project"||st.cat==="workflow"))return "existing";
+ return "prompt";
+}
+const paths=[
+["existing","Use an existing feature","Check whether a feature you already have can complete the task."],
+["prompt","Use one well-structured prompt","A human makes a request, checks the response, and finishes the work."],
+["library","Use a reusable prompt workflow","Save tested instructions and checkpoints for repeat use."],
+["automate","Automate predictable steps","Use a trigger, conditions, and actions instead of repetitive manual work."],
+["agent","Pilot a supervised agent","Configure an AI system to choose between steps under clear limits."],
+["custom","Build a focused custom tool","Create a new interface only after validating unmet needs."]
+];
+const steps={
+existing:["Open the strongest relevant application shown below.","Try the named built-in feature using a small, non-sensitive example.","Check accuracy and whether the result is repeatable.","Only move to prompts or automation if that feature leaves a meaningful gap."],
+prompt:["Describe the desired output, audience, and constraints in one prompt.","Supply approved source material and examples, without exposing restricted data.","Review claims, calculations, quotations, and formatting yourself.","If the same request recurs, test and save the prompt in a library."],
+library:["Run a small sample with the reusable prompt below.","Save the approved input format, prompt, expected output, and review checklist.","Run three varied examples; compare quality and corrections needed.","Use automation only if a repetitive handoff remains after the prompt is stable."],
+automate:["Write the rule as WHEN → IF → THEN, including exception handling.","Try native rules, Power Automate, Sheets macros/Apps Script, or a low-volume integration already available.","Run test cases including duplicates, missing fields, failed actions, and retries.","Activate only after checking permissions, license limits, logging, and human approval for external actions."],
+agent:["First test whether a series of prompts plus ordinary automation is sufficient.","Define the agent's allowed systems, data, actions, escalation rules, and owner.","Start in suggestion-only mode on representative test cases.","Grant limited actions only after evaluation; require human sign-off for external or consequential actions."],
+custom:["Write down the specific capability absent from existing tools and templates.","Prototype one complete interaction using sample or synthetic data.","Test with real prospective users, including people unfamiliar with the technology.","Estimate security, accessibility, hosting, maintenance, and operational costs before expanding."]
+};
+function promptText(){
+const goal=state.goal.trim();
+return "TASK\n"+goal+"\n\nCONTEXT\nUse only material I am authorized to share. Ask for missing context instead of guessing.\n\nOUTPUT\nProduce a clear, usable first version of the requested result. Structure it so someone can review and edit it.\n\nREQUIREMENTS\n- Distinguish source-supported facts from assumptions.\n- Do not fabricate facts, references, calculations, or completed actions.\n- Flag missing inputs and uncertainty.\n- Do not send, publish, modify external records, or contact anyone.\n- Identify what a human must verify before use.\n\nREVIEW\nList the main checks needed for accuracy, privacy, and permissions.";
+}
+function addList(items,ordered,to){let list=add(ordered?"ol":"ul",{},undefined,to);items.forEach(s=>add("li",{},s,list))}
+function result(){
+const tier=decide(),chosen=paths.find(x=>x[0]===tier);
+let rec=add("div",{class:"recommend"});add("span",{class:"pill"},"Suggested starting point",rec);add("h2",{},chosen[1],rec);
+add("p",{},chosen[2],rec);
+if(state.risk!=="routine"){let w=add("div",{class:"notice warn"},undefined,rec);add("strong",{},"Review required before implementation.",w);add("p",{},state.risk==="private"?"Restricted information: verify organizational approval, permitted systems, retention, access, and data-sharing terms before using AI or integrations.":"Consequential task: keep a named human accountable for decisions, testing, correction, and approval. Do not use autonomous decisions about people.",w)}
+if(tier==="agent")add("p",{class:"mini"},"An agent usually means configuration, tools, instructions, and evaluations—not training a new model from scratch.",rec);
+if(tier==="custom")add("p",{class:"mini"},"Building a new tool is a hypothesis to validate, not a recommendation to begin with a large development project.",rec);
+add("h3",{},"How the six options compare");
+paths.forEach(([id,title,desc],i)=>{let row=add("div",{class:"pathrow"+(id===tier?" pick":"")}),round=add("span",{class:"circle"},String(i+1),row),rest=add("div",{},undefined,row);
+add("b",{},title+(id===tier?" — recommended first":""),rest);
+let note=id===tier?"Best fit for the answers provided.":id==="existing"?"Check for native features before adding technology.":id==="prompt"?"Useful for a one-time or test request.":id==="library"?"Useful when the task recurs but still needs review.":id==="automate"?"Better when steps and triggers can be defined reliably.":id==="agent"?"Only if context-sensitive, multistep work justifies oversight costs.":"Only if there is an enduring gap or a user-facing interface is needed.";
+add("p",{},note,rest)});
+let grid=add("div",{class:"resultgrid"}),p1=add("section",{class:"panel"},undefined,grid);add("h3",{},"Your first four steps",p1);addList(steps[tier],true,p1);
+let p2=add("section",{class:"panel"},undefined,grid);add("h3",{},"Relevant features to try",p2);
+let suggestions=bestTools(),selected=suggestions.some(x=>state.apps.includes(x.id));
+if(!selected)add("p",{class:"mini"},"You didn't select a matching app. These are options to check, not confirmed entitlements.",p2);
+suggestions.forEach(x=>{let row=add("div",{class:"kb"},undefined,p2);add("strong",{},x.name+" — "+x.feature,row);add("p",{},x.how,row);add("p",{class:"mini"},"Plan check: "+x.gate,row);let a=add("a",{href:x.url,target:"_blank",rel:"noopener noreferrer"},"Official guidance ↗",row)});
+if(!suggestions.length)add("p",{},"Identify a current tool before deciding on new software.",p2);
+let sec=add("section",{class:"panel"});add("h3",{},"A prompt you can test or save",sec);add("p",{class:"mini"},"Use this to test whether standard prompting is enough—even when the main recommendation is a tool or automation.",sec);
+let box=add("textarea",{class:"prompt",readonly:"",id:"prompt"},undefined,sec);box.value=promptText();
+let actions=add("div",{class:"actionbar"},undefined,sec);
+let cp=add("button",{type:"button"},"Copy sample prompt",actions);cp.addEventListener("click",()=>copy(box.value));
+let link=add("a",{href:"https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-lab/",target:"_blank",rel:"noopener noreferrer"},"Open the Prompt Lab ↗",actions);
+let details=add("details",{},undefined,sec);add("summary",{},"What about the next level?",details);add("p",{},"Move to the next level only after you can show that the simpler approach falls short on reliability, time, permissions, throughput, or required user experience. Evaluate total setup and maintenance effort—not just a subscription price.",details);
+let bar=add("div",{class:"actionbar"}),copyPlan=add("button",{type:"button"},"Copy decision brief",bar),download=add("button",{type:"button"},"Download decision brief (.txt)",bar);
+lastPlan="AI WORKFLOW DECISION BRIEF\nTask: "+state.goal.trim()+"\nCategory: "+cats.find(x=>x[0]===state.cat)[1]+"\nTools selected: "+(state.apps.map(x=>apps.find(y=>y[0]===x)[1]).join(", ")||"Not specified")+"\nFrequency: "+state.freq+"\nPredictability: "+state.pattern+"\nOutput: "+state.outcome+"\nSystems: "+state.scope+"\nRisk: "+state.risk+"\n\nRECOMMENDATION\n"+chosen[1]+"\n"+chosen[2]+"\n\nFIRST STEPS\n"+steps[tier].map((x,i)=>(i+1)+". "+x).join("\n")+"\n\nFEATURES TO CHECK\n"+suggestions.map(x=>x.name+": "+x.feature+" — "+x.how+" Plan check: "+x.gate+" "+x.url).join("\n")+"\n\nSAMPLE PROMPT\n"+promptText()+"\n\nReminder: Confirm current licensing, permissions, privacy and review requirements. No decision was executed by this guide.";
+copyPlan.addEventListener("click",()=>copy(lastPlan));download.addEventListener("click",()=>{let b=new Blob([lastPlan],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(b),a=document.createElement("a");a.href=url;a.download="ai-workflow-decision-brief.txt";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$("status").textContent="Decision brief prepared for download."});
+add("p",{class:"mini"},"The recommendation is a screening assessment based on your answers, not an inspection of your accounts or a guarantee that a vendor feature is included in your plan.");
+}
+async function copy(s){try{await navigator.clipboard.writeText(s);$("status").textContent="Copied.";return}catch(e){}let a=elt("textarea",{style:"position:fixed;left:-9999px"});a.value=s;document.body.appendChild(a);a.select();try{document.execCommand("copy");$("status").textContent="Copied (or select text manually if your browser blocked clipboard access)."}catch(e){$("status").textContent="Copy blocked. Select the text manually."}a.remove()}
+$("next").addEventListener("click",()=>{if(step===6){state={...defaults,apps:[]};step=0;render();return}if(step===0&&!state.goal.trim()){$("error").textContent="Add a short task description or choose an example."; $("goal").focus();return}step++;render();$("pane").scrollIntoView({block:"start",behavior:"auto"})});
+$("back").addEventListener("click",()=>{if(step>0){step--;render();$("pane").scrollIntoView({block:"start",behavior:"auto"})}});
+$("reset").addEventListener("click",()=>{state={...defaults,apps:[]};step=0;render()});
+render();
+})();
+</script>
+<script>(function(){function send(){parent.postMessage({type:"leh-tool-height",id:"leh-ai-workflow-decision-navigator",height:Math.ceil(document.documentElement.scrollHeight)+30},"*")}addEventListener("load",send);if(typeof ResizeObserver!=="undefined")new ResizeObserver(send).observe(document.body);send()})()</script>
+</body></html>
