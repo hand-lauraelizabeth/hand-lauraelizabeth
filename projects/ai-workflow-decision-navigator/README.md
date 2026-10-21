@@ -37,9 +37,28 @@ Checked against vendor documentation on October 21, 2026. Limits are illustrativ
 
 The rule engine handles standard surveys/forms and existing dashboards as possible native-software solutions even when visitors ask for a public interface. Complex interactive calculators, bespoke portals, and tailored output generators remain candidates for custom development after simpler approaches are evaluated. High-consequence automated decisions receive explicit human-review guidance.
 
+## Worked examples and reusable prompts
+
+The result view now includes eight selectable, realistic examples, using fictional inputs or public sample content:
+
+- Combine recurring spreadsheets with Excel Power Query
+- Route survey/registration results from Google Forms to Sheets
+- Standardize document descriptions through a reusable prompt sequence
+- Summarize one supplied source with evidence boundaries
+- Convert routine intake requests to deterministic trigger/condition/action rules
+- Create a filtered Power BI report without custom dashboard development
+- Evaluate a suggestion-only request-review agent before granting any access
+- Test whether a small interactive calculator justifies custom development
+
+Each explains **what to start with, four practical steps, the expected result, what to verify, a licensing or privacy caution, and an official guide or related free portfolio resource**. These are guided exercises, not claims that this site ran an automation in the visitor's accounts.
+
+The prompt library generates three task-specific prompts based on the user's goal and recommendation: **scope the work → perform a controlled trial → verify before scaling**. Visitors can copy each step or all three; their chosen worked example and prompt series are included in the downloadable decision brief. The prompts explicitly prohibit invented actions and consequential releases without human review. Prompts are templates; they do not retrain a model or take actions.
+
+The implementation remains browser-local and dependency-free. Existing prompt tools remain separately available through the [Prompt Lab](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-lab/) and [Evidence-Safe Prompt Lab](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/evidence-safe-prompt-lab/).
+
 ## Regression testing
 
-Run `node --test projects/ai-workflow-decision-navigator/tests/smoke.test.mjs` from the repository root. The dependency-free tests cover the five example decision paths, 29-program catalog count, standard-form versus bespoke-interface routing, a high-consequence guardrail, and required task entry. A scoped GitHub Actions workflow runs the tests on relevant push and pull-request changes.
+Run `node --test projects/ai-workflow-decision-navigator/tests/smoke.test.mjs` from the repository root. The dependency-free tests cover the five example decision paths, 29-program catalog count, standard-form versus bespoke-interface routing, a high-consequence guardrail, required task entry, three-stage prompt coverage, worked-example selection, and decision-brief export. A scoped GitHub Actions workflow runs the tests on relevant push and pull-request changes.
 
 Browser-specific keyboard, screen-reader, zoom, touch, Firefox/WebKit, and export/clipboard testing remains an independent release requirement; simulated DOM tests do not replace native interaction testing.
 
