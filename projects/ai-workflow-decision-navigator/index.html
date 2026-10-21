@@ -6,10 +6,10 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:990px;margin:auto;padding:28px 18px 56px}h1,h2{font-family:Georgia,serif;color:var(--dark);letter-spacing:-.018em}h1{font-size:clamp(30px,4vw,42px);line-height:1.13;margin:8px 0 10px}h2{font-size:clamp(24px,3vw,30px);line-height:1.2;margin:0 0 12px}h3{font-size:18px;margin:13px 0 5px;color:var(--dark)}
 p{margin:0 0 13px}.eyebrow{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--green)}.lead{font-size:17px;color:var(--muted);max-width:760px}.frame{border:1px solid var(--line);border-radius:17px;background:var(--white);padding:clamp(18px,4vw,30px);box-shadow:0 8px 30px rgba(25,61,44,.05);margin-top:22px}.progress{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);font-weight:700}.track{height:8px;background:#e7eeea;border-radius:9px;margin:10px 0 28px;overflow:hidden}.fill{height:100%;width:16.7%;background:var(--green);border-radius:9px;transition:width .2s}.help{color:var(--muted);font-size:15px}.examples{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.examples button{background:var(--sage);color:var(--dark);border-color:var(--line)}label.field{display:block;font-weight:750;margin:17px 0 7px}
-textarea,select{font:inherit;width:100%;background:white;color:var(--ink);border:1px solid #a6bcb0;border-radius:9px;padding:12px;min-height:96px}select{min-height:47px}button{min-height:44px;font:inherit;font-weight:700;border-radius:9px;cursor:pointer;padding:9px 15px;border:1px solid var(--green);background:#fff;color:var(--green)}button.primary{background:var(--green);color:white}button:disabled{opacity:.45;cursor:not-allowed}button:hover:not(:disabled){filter:brightness(.96)}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #88b9a5;outline-offset:3px}
+textarea,select{font:inherit;width:100%;background:white;color:var(--ink);border:1px solid #a6bcb0;border-radius:9px;padding:12px;min-height:96px}select{min-height:47px}button{min-height:44px;font:inherit;font-weight:700;border-radius:9px;cursor:pointer;padding:9px 15px;border:1px solid var(--green);background:#fff;color:var(--green)}button.primary{background:var(--green);color:white}button:disabled{opacity:.45;cursor:not-allowed}button:hover:not(:disabled){filter:brightness(.96)}button:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #88b9a5;outline-offset:3px}
 .choices,.tools{display:grid;gap:10px;margin:20px 0}.choices{grid-template-columns:repeat(2,minmax(0,1fr))}.tools{grid-template-columns:repeat(3,minmax(0,1fr))}.choice{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:11px;padding:13px;background:#fff;cursor:pointer;min-height:65px}.choice:has(input:checked){background:var(--sage);border:2px solid var(--green);padding:12px}.choice input{margin-top:4px;accent-color:var(--green);width:18px;height:18px;flex:none}.choice strong{display:block;line-height:1.3}.choice small{display:block;font-size:13px;color:var(--muted);line-height:1.5;margin-top:3px}.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:23px;padding-top:17px;border-top:1px solid var(--line)}.navright{display:flex;gap:9px;flex-wrap:wrap}
-.notice{padding:11px 13px;border-left:4px solid var(--green);background:var(--sage);border-radius:5px;margin:14px 0}.notice.warn{background:#fff7eb;border-left-color:#9a6831}.notice p{margin:0}.error{color:#9c3f33;font-weight:700;min-height:1.5em} .mini{font-size:13px;color:var(--muted)}.recommend{background:var(--sage);border:1px solid #bbd3c5;border-radius:14px;padding:20px;margin:16px 0 22px}.recommend h2{margin:4px 0}.pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:800;background:var(--green);color:white;margin-bottom:4px}.pathrow{display:grid;grid-template-columns:32px 1fr;gap:11px;padding:11px 0;border-top:1px solid var(--line)}.pathrow b{font-size:14px}.pathrow p{font-size:14px;color:var(--muted);margin:1px 0}.circle{width:27px;height:27px;background:#e5eee9;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800}.pathrow.pick .circle{background:var(--green);color:white}.resultgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{border:1px solid var(--line);border-radius:12px;padding:18px;background:white;margin:12px 0}.panel ul,.panel ol{padding-left:22px;margin:9px 0 5px}.panel li{margin:7px 0}.kb{border-top:1px solid var(--line);padding:12px 0}.kb:first-of-type{border-top:0}.kb a,a{color:#225844;text-decoration:underline;text-underline-offset:2px}.prompt{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;border:1px solid var(--line);border-radius:10px;padding:13px;background:#f5f8f6;width:100%;min-height:170px;color:var(--ink)}.worked-example{border:1px solid var(--line);border-radius:10px;background:#f8faf8;padding:16px;margin:15px 0}.worked-example h3{margin-top:0}.worked-example a{display:inline-block;margin-top:6px}details{padding:11px 0;border-top:1px solid var(--line)}summary{font-weight:800;color:var(--green);cursor:pointer}.actionbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.footer{border-top:1px solid var(--line);padding-top:16px;margin-top:25px;color:var(--muted);font-size:14px}
-@media(max-width:740px){.choices,.resultgrid{grid-template-columns:1fr}.tools{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px 35px}}@media(max-width:410px){.tools{grid-template-columns:1fr}.frame{padding:16px}.navright{width:100%}.navright button{flex:1}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fill{transition:none}}
+.notice{padding:11px 13px;border-left:4px solid var(--green);background:var(--sage);border-radius:5px;margin:14px 0}.notice.warn{background:#fff7eb;border-left-color:#9a6831}.notice p{margin:0}.error{color:#9c3f33;font-weight:700;min-height:1.5em} .mini{font-size:13px;color:var(--muted)}.recommend{background:var(--sage);border:1px solid #bbd3c5;border-radius:14px;padding:20px;margin:16px 0 22px}.recommend h2{margin:4px 0}.pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:800;background:var(--green);color:white;margin-bottom:4px}.pathrow{display:grid;grid-template-columns:32px 1fr;gap:11px;padding:11px 0;border-top:1px solid var(--line)}.pathrow b{font-size:14px}.pathrow p{font-size:14px;color:var(--muted);margin:1px 0}.circle{width:27px;height:27px;background:#e5eee9;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800}.pathrow.pick .circle{background:var(--green);color:white}.resultgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{border:1px solid var(--line);border-radius:12px;padding:18px;background:white;margin:12px 0}.panel ul,.panel ol{padding-left:22px;margin:9px 0 5px}.panel li{margin:7px 0}.kb{border-top:1px solid var(--line);padding:12px 0}.kb:first-of-type{border-top:0}.kb a,a{color:#225844;text-decoration:underline;text-underline-offset:2px}.prompt{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;border:1px solid var(--line);border-radius:10px;padding:13px;background:#f5f8f6;width:100%;min-height:170px;color:var(--ink)}.compare-selects,.compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.compare-card{padding:15px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}.compare-card h4{margin:0 0 12px;font-size:17px;color:var(--dark)}.compare-card strong{display:block;font-size:13px;color:var(--dark)}.compare-card p{font-size:14px;margin:3px 0 14px}.estimate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}.estimate-grid .field{font-size:13px}.estimate-grid input{font:inherit;width:100%;min-width:0;min-height:44px;padding:8px 10px;border:1px solid #a6bcb0;border-radius:8px}.estimate-output{padding:12px;background:var(--sage);border-radius:9px;margin-top:14px}.worked-example{border:1px solid var(--line);border-radius:10px;background:#f8faf8;padding:16px;margin:15px 0}.worked-example h3{margin-top:0}.worked-example a{display:inline-block;margin-top:6px}details{padding:11px 0;border-top:1px solid var(--line)}summary{font-weight:800;color:var(--green);cursor:pointer}.actionbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.footer{border-top:1px solid var(--line);padding-top:16px;margin-top:25px;color:var(--muted);font-size:14px}
+@media(max-width:740px){.choices,.resultgrid,.compare-selects,.compare-grid{grid-template-columns:1fr}.tools{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px 35px}}@media(max-width:410px){.tools,.estimate-grid{grid-template-columns:1fr}.frame{padding:16px}.navright{width:100%}.navright button{flex:1}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fill{transition:none}}
 </style></head>
 <body><main>
 <p class="eyebrow">Free interactive decision guide · technology & workflow design</p>
@@ -251,6 +251,51 @@ const paths=[
 ["agent","Pilot a supervised agent","Configure an AI system to choose between steps under clear limits."],
 ["custom","Build a focused custom tool","Create a new interface only after validating unmet needs."]
 ];
+
+const approachCost={
+ existing:{
+ setup:"Usually light: locate and configure a feature, check the output, document its use.",
+ fees:"Often no new fee if the required feature is in your existing edition; verify platform and licensing.",
+ upkeep:"Maintain the source data, permissions, and any templates or formulas.",
+ review:"Review representative results and edge cases; someone remains responsible for accuracy.",
+ gap:"After a realistic test, a required input, output, permission, scale, or workflow step still cannot be supported."},
+ prompt:{
+ setup:"Usually light: write one bounded request and test a representative output.",
+ fees:"No new subscription may be needed if an approved prompt-capable service is already available; confirm limits.",
+ upkeep:"Someone supplies context and checks each output every time.",
+ review:"Verify sources, numbers, omissions, and claims before use.",
+ gap:"Repeated requests need consistent structure, persistent examples, or quality controls that one prompt cannot maintain."},
+ library:{
+ setup:"Moderate: test several examples, save input rules, prompts, and a review checklist.",
+ fees:"No added charge may be necessary when using already-approved tools; account limits may apply.",
+ upkeep:"Update templates as requirements and sources change; keep a human reviewer.",
+ review:"Compare multiple cases against an agreed rubric; track exceptions and corrections.",
+ gap:"The sequence works reliably, but people still repeat a predictable trigger, transfer, or handoff at meaningful volume."},
+ automate:{
+ setup:"Moderate to high: configure triggers, actions, tests, permissions, recovery, and logs.",
+ fees:"May need a paid plan, premium connector, or volume allowance; check each selected tool.",
+ upkeep:"Monitor failed runs, usage limits, changing fields, and ownership.",
+ review:"Test missing fields, duplicates, permission failures, retries, and approvals before enabling real actions.",
+ gap:"The procedure cannot be described reliably as rules because each case requires changing context or judgment."},
+ agent:{
+ setup:"High: define instructions, scope, tools, evaluations, escalation, access, and rollback.",
+ fees:"Model use, tools, integrations, and supervision can introduce usage or subscription charges.",
+ upkeep:"Evaluate outcomes and drift, review escalations, audit access, and maintain guardrails.",
+ review:"Pilot without write/send access; require approval for external or consequential actions.",
+ gap:"A supervised test shows meaningful improvement over rules and reusable prompts, with safety, reliability, and cost justified."},
+ custom:{
+ setup:"Usually high: requirements, prototype, engineering, security, accessible design, testing, and deployment.",
+ fees:"Hosting, maintenance, security, development, and licensed components can create recurring costs.",
+ upkeep:"Own the code, data lifecycle, accessibility, compatibility, defects, and support.",
+ review:"Reconcile outputs with independent expected results and test with novice users.",
+ gap:"Document a persistent, validated requirement that standard tools and a small integration cannot meet."}
+};
+function comparisonBrief(a,b){
+const s=id=>{const v=approachCost[id],name=paths.find(p=>p[0]===id)[1];return name+"\nSetup: "+v.setup+"\nNew costs: "+v.fees+"\nOngoing care: "+v.upkeep+"\nVerification: "+v.review+"\nMove beyond this option when: "+v.gap;};
+return s(a)+"\n\nVERSUS\n\n"+s(b);
+}
+function formatHours(x){return Math.round(x*100)/100;}
+
 const steps={
 existing:["Open the strongest relevant application shown below.","Try the named built-in feature using a small, non-sensitive example.","Check accuracy and whether the result is repeatable.","Only move to prompts or automation if that feature leaves a meaningful gap."],
 prompt:["Describe the desired output, audience, and constraints in one prompt.","Supply approved source material and examples, without exposing restricted data.","Review claims, calculations, quotations, and formatting yourself.","If the same request recurs, test and save the prompt in a library."],
@@ -277,6 +322,84 @@ paths.forEach(([id,title,desc],i)=>{let row=add("div",{class:"pathrow"+(id===tie
 add("b",{},title+(id===tier?" — recommended first":""),rest);
 let note=id===tier?"Best fit for the answers provided.":id==="existing"?"Check for native features before adding technology.":id==="prompt"?"Useful for a one-time or test request.":id==="library"?"Useful when the task recurs but still needs review.":id==="automate"?"Better when steps and triggers can be defined reliably.":id==="agent"?"Only if context-sensitive, multistep work justifies oversight costs.":"Only if there is an enduring gap or a user-facing interface is needed.";
 add("p",{},note,rest)});
+
+let comp=add("section",{class:"panel",id:"compare-options"});
+add("h3",{},"Compare practical approaches",comp);
+add("p",{class:"help"},"Compare the suggested approach with a simpler alternative or any of the six options. Effort and cost descriptions are planning guidance, not measured vendor prices or delivery estimates.",comp);
+let compSelects=add("div",{class:"compare-selects"},undefined,comp);
+function comparePicker(id,label,initial){
+ let slot=add("div",{},undefined,compSelects);
+ add("label",{class:"field",for:id},label,slot);
+ let sel=add("select",{id},undefined,slot);
+ paths.forEach(x=>add("option",{value:x[0]},x[1],sel));
+ sel.value=initial;
+ return sel;
+}
+const fallback={existing:"prompt",prompt:"existing",library:"prompt",automate:"library",agent:"automate",custom:"existing"};
+let compareA=comparePicker("compare-a","First approach",tier);
+let compareB=comparePicker("compare-b","Compare against",fallback[tier]);
+let compareResult=add("div",{class:"compare-grid","aria-live":"polite"},undefined,comp);
+let compareNote=add("p",{class:"mini"},undefined,comp);
+function showComparison(){
+ compareResult.replaceChildren();
+ for(const id of [compareA.value,compareB.value]){
+  const v=approachCost[id],title=paths.find(x=>x[0]===id)[1];
+  const card=add("div",{class:"compare-card"},undefined,compareResult);
+  add("h4",{},title,card);
+  for(const [heading,answer] of [["Setup effort",v.setup],["Additional costs",v.fees],["Maintenance",v.upkeep],["Human review",v.review],["When this approach is insufficient",v.gap]]){
+   add("strong",{},heading,card);
+   add("p",{},answer,card);
+  }
+ }
+ compareNote.textContent=compareA.value===compareB.value?
+  "Choose two different approaches to see their trade-offs.":
+  "A more complex option must pass a real test against the simpler one before it is justified. Higher complexity does not automatically mean better results.";
+}
+compareA.addEventListener("change",()=>{showComparison();refreshBrief()});
+compareB.addEventListener("change",()=>{showComparison();refreshBrief()});
+showComparison();
+let estimate=add("details",{class:"estimate"},undefined,comp);
+add("summary",{},"Optional: estimate time saved and setup payback",estimate);
+add("p",{class:"mini"},"Enter your own assumptions. The calculator does not make vendor-price or time-saving claims; it measures time only and does not convert hours to money.",estimate);
+let estFields=add("div",{class:"estimate-grid"},undefined,estimate);
+const estConfig=[
+ ["est-count","Times the task repeats per month", "1"],
+ ["est-min","Minutes saved each time", "0.5"],
+ ["est-setup","One-time setup hours", "0.5"],
+ ["est-maint","Monthly maintenance hours", "0.5"],
+ ["est-fee","Extra software cost per month ($, optional)", "0.01"]
+];
+const estInputs={};
+estConfig.forEach(([id,label,increment])=>{
+ let slot=add("div",{},undefined,estFields);
+ add("label",{class:"field",for:id},label,slot);
+ let input=add("input",{id,type:"number",min:"0",step:increment,inputmode:"decimal",placeholder:"Enter your estimate"},undefined,slot);
+ estInputs[id]=input;
+ input.addEventListener("input",()=>{refreshEstimate();refreshBrief()});
+});
+let estOutput=add("p",{class:"estimate-output",role:"status","aria-live":"polite"},"Enter the first four values to calculate a time-based estimate.",estimate);
+function computeEstimate(){
+ const required=["est-count","est-min","est-setup","est-maint"];
+ if(required.some(id=>estInputs[id].value.trim()===""))return null;
+ const vals=required.map(id=>Number(estInputs[id].value));
+ if(vals.some(v=>!Number.isFinite(v)||v<0))return {error:"Use valid numbers of zero or more."};
+ const feeText=estInputs["est-fee"].value.trim();
+ const fee=feeText===""?null:Number(feeText);
+ if(fee!==null&&(!Number.isFinite(fee)||fee<0))return {error:"Software cost must be zero or more."};
+ const gross=vals[0]*vals[1]/60,net=gross-vals[3];
+ return {gross,net,setup:vals[2],fee,payback:net>0?vals[2]/net:null};
+}
+function estimateBrief(){
+ const val=computeEstimate();
+ if(!val)return "Not estimated: the required inputs were not supplied.";
+ if(val.error)return "Not estimated: "+val.error;
+ return "Potential gross capacity recovered: "+formatHours(val.gross)+" hours/month. After estimated monthly maintenance: "+formatHours(val.net)+" hours/month. "+
+ (val.net>0?"Time-only setup recovery: approximately "+formatHours(val.payback)+" months.":"Time-only setup recovery is not demonstrated by these assumptions.")+
+ (val.fee===null?" Incremental software cost not supplied.":" Assumed extra software charge: $"+formatHours(val.fee)+"/month, excluded from time-only payback.")+
+ " No quality, approval, security, or pricing benefits were assumed.";
+}
+function refreshEstimate(){estOutput.textContent=estimateBrief();}
+
 let grid=add("div",{class:"resultgrid"}),p1=add("section",{class:"panel"},undefined,grid);add("h3",{},"Your first four steps",p1);addList(steps[tier],true,p1);
 let p2=add("section",{class:"panel"},undefined,grid);add("h3",{},"Relevant features and cost checks",p2);
 let suggestions=bestTools(),selected=suggestions.some(x=>state.apps.includes(x.id));
@@ -318,7 +441,7 @@ add("a",{href:"https://www.lauraelizabethhand.com/resources/learning-curriculum-
 let details=add("details",{},undefined,sec);add("summary",{},"What about the next level?",details);add("p",{},"Move to the next level only after you can show that the simpler approach falls short on reliability, time, permissions, throughput, or required user experience. Evaluate total setup and maintenance effort—not just a subscription price.",details);
 let bar=add("div",{class:"actionbar"}),copyPlan=add("button",{type:"button"},"Copy decision brief",bar),download=add("button",{type:"button"},"Download decision brief (.txt)",bar);
 function refreshBrief(){
-lastPlan="AI WORKFLOW DECISION BRIEF\nTask: "+state.goal.trim()+"\nCategory: "+cats.find(x=>x[0]===state.cat)[1]+"\nTools selected: "+(state.apps.map(x=>apps.find(y=>y[0]===x)[1]).join(", ")||"Not specified")+"\nFrequency: "+state.freq+"\nPredictability: "+state.pattern+"\nOutput: "+state.outcome+"\nSystems: "+state.scope+"\nRisk: "+state.risk+"\n\nRECOMMENDATION\n"+chosen[1]+"\n"+chosen[2]+"\n\nFIRST STEPS\n"+steps[tier].map((x,i)=>(i+1)+". "+x).join("\n")+"\n\nFEATURES TO CHECK\n"+suggestions.map(x=>x.name+": "+x.feature+" — "+x.how+" Cost: "+featureCostText[featureCost[x.id]||"varies"]+"; plan check: "+x.gate+" "+x.url).join("\n")+"\n\nWORKED EXAMPLE\n"+exampleBrief(chosenWorked)+"\n\nREUSABLE PROMPTS\n"+sequenceBrief(promptSequence)+"\n\nReminder: Confirm licensing, privacy, and review requirements. No decision was executed by this guide.";
+lastPlan="AI WORKFLOW DECISION BRIEF\nTask: "+state.goal.trim()+"\nCategory: "+cats.find(x=>x[0]===state.cat)[1]+"\nTools selected: "+(state.apps.map(x=>apps.find(y=>y[0]===x)[1]).join(", ")||"Not specified")+"\nFrequency: "+state.freq+"\nPredictability: "+state.pattern+"\nOutput: "+state.outcome+"\nSystems: "+state.scope+"\nRisk: "+state.risk+"\n\nRECOMMENDATION\n"+chosen[1]+"\n"+chosen[2]+"\n\nFIRST STEPS\n"+steps[tier].map((x,i)=>(i+1)+". "+x).join("\n")+"\n\nFEATURES TO CHECK\n"+suggestions.map(x=>x.name+": "+x.feature+" — "+x.how+" Cost: "+featureCostText[featureCost[x.id]||"varies"]+"; plan check: "+x.gate+" "+x.url).join("\n")+"\n\nSIDE-BY-SIDE COMPARISON\n"+comparisonBrief(compareA.value,compareB.value)+"\n\nOPTIONAL CAPACITY ESTIMATE\n"+estimateBrief()+"\n\nWORKED EXAMPLE\n"+exampleBrief(chosenWorked)+"\n\nREUSABLE PROMPTS\n"+sequenceBrief(promptSequence)+"\n\nReminder: Confirm licensing, privacy, and review requirements. No decision was executed by this guide.";
 }
 refreshBrief();
 copyPlan.addEventListener("click",()=>copy(lastPlan));download.addEventListener("click",()=>{let b=new Blob([lastPlan],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(b),a=document.createElement("a");a.href=url;a.download="ai-workflow-decision-brief.txt";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$("status").textContent="Decision brief prepared for download."});
