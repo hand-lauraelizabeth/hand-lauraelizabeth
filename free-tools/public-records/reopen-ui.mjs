@@ -17,6 +17,7 @@ export function bindReopen(getState,setState,say) {
       setState(records);
       say('Imported '+records.requests.length+' requests and '+records.events.length+' events from JSON.');
     }catch(error){
+      if(current!==serial || input.files?.[0]!==file)return;
       say('Import rejected: '+error.message+'. Existing records were kept.');
     }finally {
       if(current===serial)input.value='';
