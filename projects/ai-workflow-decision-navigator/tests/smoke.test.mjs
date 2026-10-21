@@ -208,7 +208,7 @@ test("comparison change re-renders and persists in decision export",() => {
 test("payback estimate only uses entered assumptions and does not invent a dollar ROI",() => {
  const d=chooseExample("Route new requests");
  const out=nodes(d.ids.pane,n=>n.className==="estimate-output")[0];
- assert.match(out.textContent,/Not estimated/);
+ assert.match(out.textContent,/Enter the first four values/);
  for(const [id,value] of [["est-count","40"],["est-min","6"],["est-setup","12"],["est-maint","1"],["est-fee","35"]]){
    d.ids[id].value=value;d.ids[id].emit("input");
  }
