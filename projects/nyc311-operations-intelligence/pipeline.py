@@ -11,6 +11,10 @@ import datetime as dt
 import hashlib
 import json
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+NYC = ZoneInfo('America/New_York')
+UTC = dt.timezone.utc
 
 REQUIRED = {"unique_key", "created_date", "closed_date", "agency", "complaint_type", "borough", "status"}
 BOROUGHS = {"BRONX", "BROOKLYN", "MANHATTAN", "QUEENS", "STATEN ISLAND"}
@@ -21,6 +25,19 @@ def dateparse(s):
     if not s: return None
     try: return dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
     except ValueError: return None
+
+def nyc_timestamp(value):
+    """Return NYC-local datetime and whether the instant is unambiguous."""
+    if value is None:
+        return None, False
+    if value.tzinfo is not None:
+        return value.astimezone(NYC), True
+    first = value.replace(tzinfo=NYC, fold=0)
+    second = value.replace(tzinfo=NYC, fold=1)
+    roundtrip = first.astimezone(UTC).astimezone(NYC).replace(tzinfo=None)
+    if roundtrip != value or first.utcoffset() != second.utcoffset():
+        return first, False
+    return first, True
 
 def normalize(s):
     return " ".join((s or "").strip().split())
@@ -41,12 +58,16 @@ def ingest(source, output, *, as_of, min_cell=10):
         for row in reader:
             counts["rows_read"] += 1
             key = normalize(row["unique_key"])
-            created = dateparse(row["created_date"])
-            finished = dateparse(row["closed_date"])
+            created, created_reliable = nyc_timestamp(dateparse(row["created_date"]))
+            finished, finished_reliable = nyc_timestamp(dateparse(row["closed_date"]))
             if not key: counts["missing_unique_key"] += 1
             if not created: counts["missing_or_invalid_created_date"] += 1; continue
             if created.date() > as_of_day: counts["created_after_as_of"] += 1; continue
-            if finished and (finished < created): counts["closure_before_creation"] += 1
+            if not created_reliable: counts["ambiguous_or_nonexistent_created_date"] += 1
+            if finished and not finished_reliable: counts["ambiguous_or_nonexistent_closed_date"] += 1
+            interval_reliable = bool(finished and created_reliable and finished_reliable)
+            valid_interval = bool(interval_reliable and finished.astimezone(UTC) >= created.astimezone(UTC))
+            if interval_reliable and not valid_interval: counts["closure_before_creation"] += 1
             borough = normalize(row["borough"]).upper()
             agency = normalize(row["agency"])
             problem = normalize(row["complaint_type"])
@@ -56,12 +77,20 @@ def ingest(source, output, *, as_of, min_cell=10):
             group = (created.date().strftime("%Y-%m"), borough, agency, problem)
             grouped[group] += 1
             counts["valid_records"] += 1
-            if normalize(row["status"]).casefold() == "closed" and finished and finished >= created:
+            if normalize(row["status"]).casefold() == "closed" and valid_interval:
                 closed[group] += 1
     # Display-safe threshold; totals kept separately so small cells are not misreported as zero.
-    records = [dict(month=m, borough=b, agency=a, problem=p, requests=n,
-                    closed_with_valid_interval=closed[(m,b,a,p)])
-               for (m,b,a,p),n in sorted(grouped.items()) if n >= min_cell]
+    records = []
+    for (m,b,a,p), n in sorted(grouped.items()):
+        if n < min_cell:
+            continue
+        c = closed[(m,b,a,p)]
+        # Reporting c and n also reports its complement n-c.
+        closure_safe = c >= min_cell and n - c >= min_cell
+        records.append(dict(month=m, borough=b, agency=a, problem=p,
+                            requests=n,
+                            closed_with_valid_interval=c if closure_safe else None,
+                            closure_suppressed=not closure_safe))
     counts["small_cells_suppressed"] = sum(1 for n in grouped.values() if n < min_cell)
     payload = {
         "source": SOURCE_URL,
@@ -69,8 +98,8 @@ def ingest(source, output, *, as_of, min_cell=10):
         "source_sha256": digest.hexdigest(), "source_bytes": source.stat().st_size,
         "rules": {"grain":"month × borough × agency × original API complaint_type",
                   "display_minimum_cell_count":min_cell,
-                  "closure":"closed status AND nonnegative valid close interval; not proof of resolution",
-                  "privacy":"No record-level coordinates, addresses, ZIP codes, or details exported",
+                  "closure":"closed status AND nonnegative UTC-ordered close interval; ambiguous/nonexistent naive NYC DST timestamps excluded; not proof of resolution",
+                  "privacy":"No record-level coordinates, addresses, ZIP codes, or details exported; closure counts and complements below display minimum suppressed",
                   "limitations":"No distinct-identifier check, no rate/exposure denominators, no case-mix-adjusted agency comparisons."},
         "quality": dict(counts), "aggregates": records
     }
