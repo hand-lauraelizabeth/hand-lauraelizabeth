@@ -50,7 +50,7 @@ export function validateWorkspace(value) {
 export const emptyWorkspace=()=>({version:1,requests:[],events:[]});
 export function chronology(workspace) {
   const data=validateWorkspace(workspace);
-  return [...data.events].sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
+  return [...data.events].sort((a,b)=>a.date < b.date ? -1 : a.date > b.date ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
 export function reviewFlags(workspace) {
   const w=validateWorkspace(workspace);
