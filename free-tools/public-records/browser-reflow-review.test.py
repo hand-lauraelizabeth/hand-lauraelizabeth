@@ -5,6 +5,7 @@ Run: python -m pip install playwright && python -m playwright install chromium
 
 This exercises rendered CSS and keyboard focus in an isolated document.
 It does not establish HTTP-served CSP, native browser zoom, or screen-reader support.
+Set FT09_BROWSER to chromium, firefox, or webkit to choose the browser engine.
 """
 from pathlib import Path
 import re
@@ -24,7 +25,10 @@ class ReflowReview(unittest.TestCase):
         html = html.replace('<script type="module" src="app.mjs"></script>', '')
         with sync_playwright() as playwright:
             browser_path = os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE')
-            browser = playwright.chromium.launch(headless=True, **({'executable_path': browser_path} if browser_path else {}))
+            browser_name = os.environ.get('FT09_BROWSER', 'chromium')
+            if browser_name not in ('chromium', 'firefox', 'webkit'):
+                raise ValueError('FT09_BROWSER must be chromium, firefox, or webkit')
+            browser = getattr(playwright, browser_name).launch(headless=True, **({'executable_path': browser_path} if browser_path and browser_name == 'chromium' else {}))
             try:
                 for width in (320, 375, 1280):
                     with self.subTest(width=width):
