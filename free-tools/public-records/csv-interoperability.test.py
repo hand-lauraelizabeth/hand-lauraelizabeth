@@ -126,4 +126,7 @@ class CSVInteroperability(unittest.TestCase):
                 self.assertEqual(json.loads(preserved['json']), payload, label)
 
 if __name__ == '__main__':
+    test_count = unittest.defaultTestLoader.loadTestsFromTestCase(CSVInteroperability).countTestCases()
+    if test_count < 3:
+        raise SystemExit(f'Expected at least 3 interoperability tests, found {test_count}')
     unittest.main(verbosity=2)
