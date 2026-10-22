@@ -2,7 +2,7 @@
 const jurisdictions = new Set(['federal','state','local','other']);
 const stages = new Set(['draft','submitted','acknowledged','processing','responded','closed','unknown']);
 const eventKinds = new Set(['submitted','acknowledged','agency-message','clarification','response','appeal','note']);
-const headers = ['recordType','requestId','eventId','date','jurisdiction','agency','stage','kind','sourceId','description'];
+const headers = ['recordType','requestId','eventId','date','jurisdiction','agency','stage','kind','sourceId','description','agencyTrackingId'];
 const text = (v, max, label, required=false) => {
   if (typeof v !== 'string' || v.length > max || (required && !v.trim())) throw new Error(`Invalid ${label}`);
   if (v.includes('\0')) throw new Error(`Invalid ${label}`);
@@ -76,8 +76,8 @@ const safeCell=v=>{
 export function exportCSV(workspace) {
   const w=validateWorkspace(workspace);
   const rows=[headers];
-  for (const r of w.requests) rows.push(['request',r.id,'',r.submittedOn,r.jurisdiction,r.agency,r.stage,'',r.agencyTrackingId,r.description]);
-  for (const e of chronology(w)) rows.push(['event',e.requestId,e.id,e.date,'','','',e.kind,e.sourceId,e.description]);
+  for (const r of w.requests) rows.push(['request',r.id,'',r.submittedOn,r.jurisdiction,r.agency,r.stage,'','',r.description,r.agencyTrackingId]);
+  for (const e of chronology(w)) rows.push(['event',e.requestId,e.id,e.date,'','','',e.kind,e.sourceId,e.description,'']);
   return rows.map(row=>row.map(safeCell).join(',')).join('\r\n')+'\r\n';
 }
 export function exportJSON(workspace) {return JSON.stringify(validateWorkspace(workspace),null,2)+'\n';}
