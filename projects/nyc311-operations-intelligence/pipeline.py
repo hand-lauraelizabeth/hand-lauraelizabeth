@@ -27,6 +27,13 @@ def normalize(s):
 
 def ingest(source, output, *, as_of, min_cell=10):
     source = Path(source)
+    destination = Path(output)
+    # Reject identical files and aliases before opening either path.
+    # resolve() detects path and symlink aliases; samefile() detects hardlinks.
+    if source.resolve() == destination.resolve() or (
+        destination.exists() and source.samefile(destination)
+    ):
+        raise ValueError("Input CSV and output JSON must refer to distinct files")
     as_of_day = dt.date.fromisoformat(as_of)
     digest = hashlib.sha256()
     with source.open("rb") as binary:
