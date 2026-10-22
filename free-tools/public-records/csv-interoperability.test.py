@@ -37,6 +37,8 @@ import { exportCSV, exportJSON } from './free-tools/public-records/core.mjs';
 const input = JSON.parse(process.argv[1]);
 if (process.argv[2] === 'positive') {
   process.stdout.write(JSON.stringify({ csv: exportCSV(input), json: exportJSON(input) }));
+} else if (process.argv[2] === 'json') {
+  process.stdout.write(JSON.stringify({ json: exportJSON(input) }));
 } else {
   try { exportCSV(input); process.stdout.write(JSON.stringify({ blocked: false })); }
   catch (error) { process.stdout.write(JSON.stringify({ blocked: true, message: error.message })); }
@@ -97,6 +99,31 @@ class CSVInteroperability(unittest.TestCase):
                 result = run_core('negative', payload)
                 self.assertTrue(result['blocked'], repr(value))
                 self.assertIn('CSV export blocked', result['message'])
+
+    def test_formula_risks_in_identifiers_and_metadata_are_blocked_without_json_loss(self):
+        # CSV export must check every user-controlled column, not just descriptions.
+        cases = [
+            ('request ID', 'requests', 0, 'id', '=2+2'),
+            ('event ID', 'events', 0, 'id', '+SUM(1,2)'),
+            ('agency', 'requests', 0, 'agency', '＝2+2'),
+            ('agency tracking ID', 'requests', 0, 'agencyTrackingId', '@SUM(1,2)'),
+            ('request description', 'requests', 0, 'description', 'note\n=2+2'),
+            ('event source ID', 'events', 0, 'sourceId', '\t=2+2'),
+            ('event description', 'events', 0, 'description', 'note,=2+2'),
+        ]
+        for label, collection, index, field, unsafe in cases:
+            with self.subTest(field=label):
+                payload = json.loads(json.dumps(FIXTURE))
+                payload[collection][index][field] = unsafe
+                if label == 'request ID':
+                    for event in payload['events']:
+                        if event['requestId'] == 'REQ-00001':
+                            event['requestId'] = unsafe
+                blocked = run_core('negative', payload)
+                self.assertTrue(blocked['blocked'], label)
+                self.assertIn('CSV export blocked', blocked['message'])
+                preserved = run_core('json', payload)
+                self.assertEqual(json.loads(preserved['json']), payload, label)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
