@@ -64,15 +64,17 @@ class CSVInteroperability(unittest.TestCase):
         self.assertEqual(json.loads(exported['json']), FIXTURE)
         rows = list(csv.reader(io.StringIO(exported['csv'], newline=''), strict=True))
         self.assertEqual(len(rows), 5)
-        self.assertTrue(all(len(row) == 10 for row in rows))
+        self.assertTrue(all(len(row) == 11 for row in rows))
         self.assertEqual(rows[0], ['recordType', 'requestId', 'eventId', 'date',
                                    'jurisdiction', 'agency', 'stage', 'kind',
-                                   'sourceId', 'description'])
+                                   'sourceId', 'description', 'agencyTrackingId'])
         self.assertEqual([row[1] for row in rows[1:3]], ['REQ-00001', 'REQ-00A2'])
         self.assertEqual([row[2] for row in rows[3:]], ['EVT-0001', 'EVT-0002'])
         self.assertEqual([row[8] for row in rows[3:]], ['SRC-00008', 'SRC-00007'])
         self.assertEqual(rows[1][9], 'Records, "as filed"\nSecond line')
-        self.assertEqual(rows[1][8], '000019')
+        self.assertEqual(rows[1][8], '')
+        self.assertEqual(rows[1][10], '000019')
+        self.assertEqual(rows[3][10], '')
         self.assertEqual(rows[2][5], 'Café Records Unit')
         with tempfile.TemporaryDirectory() as directory:
             first = Path(directory) / 'first.xlsx'
