@@ -40,4 +40,22 @@ class TestPipeline(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"Missing API columns"):
                 ingest(inp,out,as_of="2026-10-15")
             self.assertFalse(out.exists())
+class TestInputOutputIsolation(unittest.TestCase):
+    def test_source_is_not_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "source.csv"
+            source.write_text(",".join(FIELDS) + "\\n1,2026-09-01T10:00:00,,DOT,Pothole,Queens,Open\\n")
+            original = source.read_bytes()
+            with self.assertRaisesRegex(ValueError, "distinct files"):
+                ingest(source, source, as_of="2026-09-30")
+            self.assertEqual(source.read_bytes(), original)
+
+    def test_separate_destination(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "output.json"
+            source.write_text(",".join(FIELDS) + "\\n1,2026-09-01T10:00:00,,DOT,Pothole,Queens,Open\\n")
+            result = ingest(source, output, as_of="2026-09-30")
+            self.assertEqual(result["quality"]["rows_read"], 1)
+            self.assertTrue(output.exists())
+
 if __name__ == "__main__": unittest.main()
