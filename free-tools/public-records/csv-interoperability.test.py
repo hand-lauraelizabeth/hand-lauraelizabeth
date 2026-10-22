@@ -90,6 +90,44 @@ class CSVInteroperability(unittest.TestCase):
             reopened.close()
             self.assertEqual(workbook_rows(second), rows)
 
+    def test_named_column_consumers_fail_closed_on_legacy_and_ragged_schemas(self):
+        # CSV consumers must select columns by verified header, never positional guessing.
+        expected = ['recordType', 'requestId', 'eventId', 'date', 'jurisdiction',
+                    'agency', 'stage', 'kind', 'sourceId', 'description',
+                    'agencyTrackingId']
+        exported = run_core('positive', FIXTURE)['csv']
+        def checked_rows(csv_text):
+            reader = csv.DictReader(io.StringIO(csv_text, newline=''), strict=True)
+            if reader.fieldnames != expected:
+                raise ValueError('Unsupported CSV schema; do not infer source identifiers')
+            rows = list(reader)
+            if any(None in row or None in row.values() for row in rows):
+                raise ValueError('Inconsistent CSV field count')
+            return rows
+
+        rows = checked_rows(exported)
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(rows[0]['recordType'], 'request')
+        self.assertEqual(rows[0]['sourceId'], '')
+        self.assertEqual(rows[0]['agencyTrackingId'], '000019')
+        self.assertEqual(rows[2]['recordType'], 'event')
+        self.assertEqual(rows[2]['sourceId'], 'SRC-00008')
+        self.assertEqual(rows[2]['agencyTrackingId'], '')
+        legacy = list(csv.reader(io.StringIO(exported, newline=''), strict=True))
+        legacy = [row[:-1] for row in legacy]
+        with self.assertRaisesRegex(ValueError, 'Unsupported CSV schema'):
+            checked_rows(self._encode_rows(legacy))
+        with self.assertRaisesRegex(ValueError, 'Inconsistent CSV field count'):
+            checked_rows(self._encode_rows([expected, ['request']]))
+        with self.assertRaisesRegex(ValueError, 'Inconsistent CSV field count'):
+            checked_rows(self._encode_rows([expected, ['event'] + [''] * 11]))
+
+    @staticmethod
+    def _encode_rows(rows):
+        output = io.StringIO(newline='')
+        csv.writer(output, lineterminator='\r\n').writerows(rows)
+        return output.getvalue()
+
     def test_spreadsheet_formula_payloads_fail_closed(self):
         unsafe = ['=2+2', '+SUM(1,2)', '-1+2', '@SUM(1,2)',
                   '\t=HYPERLINK("https://example.invalid")',
@@ -129,6 +167,6 @@ class CSVInteroperability(unittest.TestCase):
 
 if __name__ == '__main__':
     test_count = unittest.defaultTestLoader.loadTestsFromTestCase(CSVInteroperability).countTestCases()
-    if test_count < 3:
-        raise SystemExit(f'Expected at least 3 interoperability tests, found {test_count}')
+    if test_count < 4:
+        raise SystemExit(f'Expected at least 4 interoperability tests, found {test_count}')
     unittest.main(verbosity=2)
