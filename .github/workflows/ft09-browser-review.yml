@@ -1,0 +1,23 @@
+name: FT-09 browser layout and keyboard review
+on:
+  push:
+    branches:
+      - 'review/ft09-browser-ci-*'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-reflow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+      - name: Run FT-09 responsive layout and keyboard tests
+        run: python free-tools/public-records/browser-reflow-review.test.py
