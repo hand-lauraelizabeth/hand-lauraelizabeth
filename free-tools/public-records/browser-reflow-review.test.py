@@ -8,6 +8,7 @@ It does not establish HTTP-served CSP, native browser zoom, or screen-reader sup
 """
 from pathlib import Path
 import re
+import os
 import unittest
 from playwright.sync_api import sync_playwright
 
@@ -22,7 +23,8 @@ class ReflowReview(unittest.TestCase):
         html = html.replace('<link rel="stylesheet" href="styles.css">', '<style>' + css + '</style>')
         html = html.replace('<script type="module" src="app.mjs"></script>', '')
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
+            browser_path = os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE')
+            browser = playwright.chromium.launch(headless=True, **({'executable_path': browser_path} if browser_path else {}))
             try:
                 for width in (320, 375, 1280):
                     with self.subTest(width=width):
