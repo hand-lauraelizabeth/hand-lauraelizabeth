@@ -215,5 +215,82 @@ class HttpCspReview(unittest.TestCase):
             finally:
                 browser.close()
 
+
+    def test_csv_boundary_inputs_are_blocked_without_mutating_json(self):
+        """Synthetic Unicode, delimiter, and control-character cases exercise actual downloads."""
+        import csv
+        import io
+        import json
+        engine = os.environ.get('FT09_BROWSER', 'chromium')
+        if engine not in ('chromium', 'firefox', 'webkit'):
+            raise ValueError('Unsupported browser engine')
+        risky = [
+            '=1+1',
+            '  +SUM(1,1)',
+            '\u200b=HYPERLINK("x","y")',
+            '\uff1dSUM(1,1)',
+            '\t@SUM(1)',
+            'note,\n=HYPERLINK("x","y")',
+            'note;=1+1',
+            'note"=1+1',
+            'note\u202evisible',
+            'note\u2066visible',
+            'note\u0001control',
+        ]
+        safe = [
+            'follow-up completed',
+            'name@example.org',
+            'Résumé — 日本語',
+            'Quote "this", with newline\nand preserved evidence',
+        ]
+        with sync_playwright() as pw:
+            browser = getattr(pw, engine).launch(headless=True)
+            try:
+                with serve() as url:
+                    for candidate in risky + safe:
+                        with self.subTest(candidate=repr(candidate)):
+                            page = browser.new_page(accept_downloads=True)
+                            try:
+                                self.assertEqual(page.goto(url, wait_until='networkidle').status, 200)
+                                request = {'id':'REQ-00007','jurisdiction':'federal',
+                                           'agency':'Example agency','stage':'draft',
+                                           'submittedOn':'','agencyTrackingId':'0000987',
+                                           'description':candidate}
+                                payload = json.dumps({'version':1,'requests':[request],'events':[]},
+                                                     ensure_ascii=False).encode('utf-8')
+                                page.locator('#open-json').set_input_files({
+                                    'name':'synthetic.json','mimeType':'application/json',
+                                    'buffer':payload})
+                                page.locator('#status').get_by_text('Imported 1 requests and 0 events',
+                                                                   exact=False).wait_for()
+                                downloads = []
+                                page.on('download', lambda item: downloads.append(item))
+                                if candidate in risky:
+                                    page.locator('#save-csv').click()
+                                    page.locator('#status').get_by_text('CSV unavailable',
+                                                                       exact=False).wait_for()
+                                    page.wait_for_timeout(100)
+                                    self.assertEqual(downloads, [],
+                                                     'Risky cell unexpectedly downloaded')
+                                    self.assertIn('REQ-00007', page.locator('#requests').inner_text())
+                                    with page.expect_download() as saved:
+                                        page.locator('#save-json').click()
+                                    reopened = json.loads(saved.value.path().read_text(encoding='utf-8'))
+                                    self.assertEqual(reopened['requests'][0], request)
+                                else:
+                                    with page.expect_download() as saved:
+                                        page.locator('#save-csv').click()
+                                    rows = list(csv.DictReader(io.StringIO(
+                                        saved.value.path().read_text(encoding='utf-8'), newline=''),
+                                        strict=True))
+                                    self.assertEqual(len(rows), 1)
+                                    self.assertEqual(rows[0]['description'], candidate)
+                                    self.assertEqual(rows[0]['requestId'], 'REQ-00007')
+                                    self.assertEqual(rows[0]['agencyTrackingId'], '0000987')
+                            finally:
+                                page.close()
+            finally:
+                browser.close()
+
 if __name__ == '__main__':
     unittest.main()
