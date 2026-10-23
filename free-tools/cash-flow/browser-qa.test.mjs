@@ -146,7 +146,16 @@ async function testBrowser(name,type){
     const controlLabel='Invoice\u007Ftext';
     await fill(page,'event-id','00009');
     await fill(page,'event-label',controlLabel);
-    check(await page.locator('#event-label').inputValue()===controlLabel,name+': control fixture reached browser input unchanged');
+    // Firefox may filter DEL from keyboard-like input. Simulate an imported
+    // untrusted value through the DOM setter so all engines test the same
+    // export boundary rather than their differing text-entry sanitizers.
+    if(await page.locator('#event-label').inputValue()!==controlLabel){
+      await page.locator('#event-label').evaluate((el,value)=>{
+        el.value=value;
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+      },controlLabel);
+    }
+    check(await page.locator('#event-label').inputValue()===controlLabel,name+': synthetic imported control value preserved in DOM input');
     await fill(page,'event-amount','-1.00');
     await fill(page,'event-date','2026-10-23');
     await page.getByRole('button',{name:'Add event'}).click();
