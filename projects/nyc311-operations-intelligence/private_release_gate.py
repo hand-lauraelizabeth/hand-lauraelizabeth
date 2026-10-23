@@ -121,7 +121,8 @@ def main(argv=None):
         evidence = (_read_strict_json(a.marginal_evidence_json)
                     if a.marginal_evidence_json else None)
         result = audit_release(candidate, previous=previous, evidence=evidence)
-    except (OSError, UnicodeError, ValueError, TypeError):
+    except (OSError, UnicodeError, ValueError, TypeError,
+            RecursionError, ArithmeticError):
         result = {'status': 'HOLD', 'manual_review_required': True,
                   'release_authorized': False, 'codes': ['INPUT_READ_OR_PARSE_FAILED_CLOSED']}
     target = Path(a.report)
