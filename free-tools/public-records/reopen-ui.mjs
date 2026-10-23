@@ -17,6 +17,8 @@ export function bindReopen(getState,setState,say) {
     if(!file)return;
     const current=++serial;
     resetImportError();
+    input.setAttribute('aria-busy','true');
+    say('Reading saved workspace locally…');
     try {
       const records=await readWorkspaceFile(file);
       if(current!==serial || input.files?.[0]!==file)return;
@@ -31,7 +33,10 @@ export function bindReopen(getState,setState,say) {
       if(current!==serial || input.files?.[0]!==file)return;
       reportImportError('Import rejected: '+error.message+'. Existing records were kept.');
     }finally {
-      if(current===serial)input.value='';
+      if(current===serial){
+        input.value='';
+        input.setAttribute('aria-busy','false');
+      }
     }
   });
 }
