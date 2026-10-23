@@ -4,6 +4,7 @@ Use only synthetic or independently cleared marginal evidence. The output
 contains redacted risk codes, never record-level data, marginal values or labels.
 """
 import argparse
+import hashlib
 import json
 import math
 from decimal import Decimal
@@ -101,6 +102,37 @@ def _read_strict_json(path):
                       parse_float=_parse_finite_float)
 
 
+def _source_binding_codes(candidate, csv_path):
+    """Compare bytes with the candidate's claim; never attest official origin."""
+    if csv_path is None:
+        return ['SOURCE_CSV_NOT_SUPPLIED']
+    if (type(candidate) is not dict or
+            type(candidate.get('source_bytes')) is not int or
+            candidate['source_bytes'] < 1 or
+            type(candidate.get('source_sha256')) is not str or
+            len(candidate['source_sha256']) != 64 or
+            any(c not in '0123456789abcdef' for c in candidate['source_sha256'])):
+        return ['SOURCE_CSV_BINDING_FAILED']
+    digest = hashlib.sha256()
+    size = 0
+    try:
+        with Path(csv_path).open('rb') as source:
+            while True:
+                chunk = source.read(1024 * 1024)
+                if not chunk:
+                    break
+                size += len(chunk)
+                digest.update(chunk)
+    except (OSError, ValueError):
+        return ['SOURCE_CSV_READ_FAILED_CLOSED']
+    if size != candidate['source_bytes'] or digest.hexdigest() != candidate['source_sha256']:
+        return ['SOURCE_CSV_BINDING_FAILED']
+    # Equality to a self-reported digest is NOT authentication of the origin,
+    # time window, unique_key grain or official export parameters.
+    return ['SOURCE_CSV_BYTES_MATCH_CANDIDATE_CLAIM',
+            'SOURCE_ORIGIN_NOT_AUTHENTICATED']
+
+
 def _aliases_source(report, source):
     """Prevent an output report from replacing any input, even via aliases."""
     output, original = Path(report), Path(source)
@@ -117,10 +149,11 @@ def main(argv=None):
     parser.add_argument('candidate_json')
     parser.add_argument('--previous-json')
     parser.add_argument('--marginal-evidence-json', help='synthetic or cleared evidence only')
+    parser.add_argument('--source-csv', help='private source CSV to stream-hash; origin still unverified')
     parser.add_argument('--report', required=True)
     a = parser.parse_args(argv)
     sources = [p for p in (a.candidate_json, a.previous_json,
-                           a.marginal_evidence_json) if p is not None]
+                           a.marginal_evidence_json, a.source_csv) if p is not None]
     if any(_aliases_source(a.report, source) for source in sources):
         print('HOLD: report destination aliases a source; source preserved')
         return 2
@@ -130,6 +163,8 @@ def main(argv=None):
         evidence = (_read_strict_json(a.marginal_evidence_json)
                     if a.marginal_evidence_json else None)
         result = audit_release(candidate, previous=previous, evidence=evidence)
+        result['codes'] = sorted(set(result['codes']) |
+                                 set(_source_binding_codes(candidate, a.source_csv)))
     except (OSError, UnicodeError, ValueError, TypeError,
             RecursionError, ArithmeticError):
         result = {'status': 'HOLD', 'manual_review_required': True,
