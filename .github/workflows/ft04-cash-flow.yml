@@ -24,6 +24,7 @@ jobs:
           node --check free-tools/cash-flow/engine.mjs
           node --check free-tools/cash-flow/export-preflight.test.mjs
           node --check free-tools/cash-flow/control-character-export.test.mjs
+          node --check free-tools/cash-flow/exact-id-provenance.test.mjs
           node --check free-tools/cash-flow/fullwidth-csv.test.mjs
           node --check free-tools/cash-flow/engine.test.mjs
           node --check free-tools/cash-flow/boundary.test.mjs
@@ -35,6 +36,7 @@ jobs:
         run: |
           node free-tools/cash-flow/export-preflight.test.mjs
           node free-tools/cash-flow/control-character-export.test.mjs
+          node free-tools/cash-flow/exact-id-provenance.test.mjs
           node free-tools/cash-flow/engine.test.mjs
           node free-tools/cash-flow/boundary.test.mjs
           node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
