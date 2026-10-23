@@ -41,7 +41,7 @@ class ImportRaceReview(unittest.TestCase):
                     ):
                         page = browser.new_page(viewport={"width": 320, "height": 800})
                         try:
-                            page.add_init_script("""() => {
+                            page.add_init_script("""(() => {
                                 const original = File.prototype.arrayBuffer;
                                 let release;
                                 const gate = new Promise(resolve => { release = resolve; });
@@ -58,7 +58,7 @@ class ImportRaceReview(unittest.TestCase):
                                     }
                                     return original.call(this);
                                 };
-                            }""")
+                            })();""")
                             self.assertEqual(page.goto(url, wait_until="networkidle").status, 200)
                             upload = page.locator("#open-json")
                             upload.set_input_files({
