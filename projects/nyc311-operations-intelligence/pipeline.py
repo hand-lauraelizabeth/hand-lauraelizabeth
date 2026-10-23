@@ -10,6 +10,7 @@ import csv
 import datetime as dt
 import hashlib
 import json
+import os
 import sqlite3
 import tempfile
 from contextlib import closing
@@ -45,59 +46,74 @@ def ingest(source, output, *, as_of, min_cell=10):
     ):
         raise ValueError("Input CSV and output JSON must refer to distinct files")
     as_of_day = dt.date.fromisoformat(as_of)
-    digest = hashlib.sha256()
-    with source.open("rb") as binary:
-        while chunk := binary.read(1024 * 1024): digest.update(chunk)
     counts = collections.Counter()
     grouped = collections.Counter()
     closed = collections.Counter()
     # A disk-backed uniqueness index avoids holding request IDs in Python RAM.
     # Its private temporary files are removed even if parsing raises.
-    with tempfile.TemporaryDirectory(prefix="nyc311-ids-") as scratch, \
-            closing(sqlite3.connect(str(Path(scratch) / "keys.sqlite3"))) as db, \
-            source.open(encoding="utf-8-sig", newline="") as f:
-        db.execute("CREATE TABLE seen (request_id TEXT PRIMARY KEY) WITHOUT ROWID")
-        reader = csv.DictReader(f)
-        headers = reader.fieldnames or []
-        if len(headers) != len(set(headers)):
-            raise ValueError("Duplicate CSV header")
-        missing = REQUIRED - set(headers)
-        if missing: raise ValueError("Missing API columns: " + ", ".join(sorted(missing)))
-        for row in reader:
-            if None in row or any(value is None for value in row.values()):
-                raise ValueError("Malformed CSV row: inconsistent field count")
-            counts["rows_read"] += 1
-            key = normalize(row["unique_key"])
-            created = dateparse(row["created_date"])
-            finished = dateparse(row["closed_date"])
-            if not key: raise ValueError("Missing unique_key")
-            try:
-                db.execute("INSERT INTO seen (request_id) VALUES (?)", (key,))
-            except sqlite3.IntegrityError:
-                # Never include actual request IDs in exceptions.
-                raise ValueError("Duplicate unique_key") from None
-            if not created: counts["missing_or_invalid_created_date"] += 1; continue
-            if created.date() > as_of_day: counts["created_after_as_of"] += 1; continue
-            valid_closure = False
-            if finished:
-                # Compare UTC instants, not NYC wall-clock times across DST folds.
-                if finished.astimezone(dt.timezone.utc) < created.astimezone(dt.timezone.utc):
-                    counts["closure_before_creation"] += 1
-                elif finished.date() > as_of_day:
-                    counts["closure_after_as_of"] += 1
-                else:
-                    valid_closure = True
-            borough = normalize(row["borough"]).upper()
-            agency = normalize(row["agency"])
-            problem = normalize(row["complaint_type"])
-            if borough not in BOROUGHS: counts["missing_or_unknown_borough"] += 1; borough = "UNKNOWN"
-            if not agency: counts["missing_agency"] += 1; agency = "UNKNOWN"
-            if not problem: counts["missing_problem"] += 1; problem = "UNKNOWN"
-            group = (created.date().strftime("%Y-%m"), borough, agency, problem)
-            grouped[group] += 1
-            counts["valid_records"] += 1
-            if normalize(row["status"]).casefold() == "closed" and valid_closure:
-                closed[group] += 1
+    # Hash exactly the immutable snapshot parsed below, not a separate read of
+    # a source file that might change between hashing and parsing.
+    with tempfile.TemporaryDirectory(prefix="nyc311-ids-") as scratch:
+        snapshot = Path(scratch) / "source_snapshot.csv"
+        digest = hashlib.sha256()
+        source_bytes = 0
+        with source.open("rb") as original, snapshot.open("wb") as copied:
+            while chunk := original.read(1024 * 1024):
+                copied.write(chunk)
+                digest.update(chunk)
+                source_bytes += len(chunk)
+        with closing(sqlite3.connect(str(Path(scratch) / "keys.sqlite3"))) as db, \
+                snapshot.open(encoding="utf-8-sig", newline="") as f:
+            db.execute("CREATE TABLE seen (request_id TEXT PRIMARY KEY) WITHOUT ROWID")
+            reader = csv.DictReader(f)
+            headers = reader.fieldnames or []
+            if len(headers) != len(set(headers)):
+                raise ValueError("Duplicate CSV header")
+            missing = REQUIRED - set(headers)
+            if missing: raise ValueError("Missing API columns: " + ", ".join(sorted(missing)))
+            for row in reader:
+                if None in row or any(value is None for value in row.values()):
+                    raise ValueError("Malformed CSV row: inconsistent field count")
+                counts["rows_read"] += 1
+                key = normalize(row["unique_key"])
+                created = dateparse(row["created_date"])
+                finished = dateparse(row["closed_date"])
+                if not key: raise ValueError("Missing unique_key")
+                try:
+                    db.execute("INSERT INTO seen (request_id) VALUES (?)", (key,))
+                except sqlite3.IntegrityError:
+                    # Never include actual request IDs in exceptions.
+                    raise ValueError("Duplicate unique_key") from None
+                if not created: counts["missing_or_invalid_created_date"] += 1; continue
+                if created.date() > as_of_day: counts["created_after_as_of"] += 1; continue
+                valid_closure = False
+                if finished:
+                    # Compare UTC instants, not NYC wall-clock times across DST folds.
+                    if finished.astimezone(dt.timezone.utc) < created.astimezone(dt.timezone.utc):
+                        counts["closure_before_creation"] += 1
+                    elif finished.date() > as_of_day:
+                        counts["closure_after_as_of"] += 1
+                    else:
+                        valid_closure = True
+                borough = normalize(row["borough"]).upper()
+                agency = normalize(row["agency"])
+                problem = normalize(row["complaint_type"])
+                if borough not in BOROUGHS: counts["missing_or_unknown_borough"] += 1; borough = "UNKNOWN"
+                if not agency: counts["missing_agency"] += 1; agency = "UNKNOWN"
+                if not problem: counts["missing_problem"] += 1; problem = "UNKNOWN"
+                group = (created.date().strftime("%Y-%m"), borough, agency, problem)
+                grouped[group] += 1
+                counts["valid_records"] += 1
+                if normalize(row["status"]).casefold() == "closed" and valid_closure:
+                    closed[group] += 1
+        # A source mutation during processing invalidates this source binding.
+        # This is an integrity check, NOT independent official-source authentication.
+        current = hashlib.sha256()
+        with source.open("rb") as original:
+            while chunk := original.read(1024 * 1024):
+                current.update(chunk)
+        if current.digest() != digest.digest():
+            raise ValueError("Input CSV changed during processing")
     # Display-safe threshold; totals kept separately so small cells are not misreported as zero.
     records = [dict(month=m, borough=b, agency=a, problem=p, requests=n,
                     closed_with_valid_interval=closed[(m,b,a,p)])
@@ -106,7 +122,7 @@ def ingest(source, output, *, as_of, min_cell=10):
     payload = {
         "source": SOURCE_URL,
         "dataset_id": "erm2-nwe9", "snapshot_as_of": as_of,
-        "source_sha256": digest.hexdigest(), "source_bytes": source.stat().st_size,
+        "source_sha256": digest.hexdigest(), "source_bytes": source_bytes,
         "rules": {"grain":"month × borough × agency × original API complaint_type",
                   "display_minimum_cell_count":min_cell,
                   "closure":"closed status AND nonnegative elapsed interval by snapshot date in New York; not proof of resolution",
@@ -114,7 +130,20 @@ def ingest(source, output, *, as_of, min_cell=10):
                   "limitations":"Distinct IDs checked within this input; no rate/exposure denominators or case-mix-adjusted agency comparisons."},
         "quality": dict(counts), "aggregates": records
     }
-    Path(output).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # Preserve any existing export if serialization, flushing, or replacement fails.
+    # The temporary file must be on the destination filesystem for atomic replace.
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=destination.parent,
+                                         prefix=".nyc311_", suffix=".tmp", delete=False) as stream:
+            temporary = Path(stream.name)
+            json.dump(payload, stream, ensure_ascii=False, separators=(",", ":"))
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, destination)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     return payload
 
 def main():
