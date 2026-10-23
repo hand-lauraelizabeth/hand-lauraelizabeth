@@ -92,13 +92,14 @@ class HttpCspReview(unittest.TestCase):
                             self.assertIn('Event EV-00009',chronology)
                             self.assertIn('Request REQ-00007',chronology)
                             self.assertIn('source SRC-00002',chronology)
+                            self.assertEqual(imported.locator('#request-select option').last.get_attribute('value'), 'REQ-00007')
                             imported.evaluate("document.documentElement.style.fontSize='64px'")
                             imported.locator('#open-json').focus()
                             self.assertEqual(imported.evaluate('document.activeElement.id'), 'open-json')
                             geometry = imported.evaluate("""() => ({
                                 viewport: innerWidth,
                                 document: document.documentElement.scrollWidth,
-                                controls: [...document.querySelectorAll('input[type=file], input[type=date]')]
+                                controls: [...document.querySelectorAll('input[type=file], input[type=date], select')]
                                     .map(e => ({type:e.type, width:Math.round(e.getBoundingClientRect().width),
                                                 right:Math.round(e.getBoundingClientRect().right),
                                                 scroll:e.scrollWidth, client:e.clientWidth})),
