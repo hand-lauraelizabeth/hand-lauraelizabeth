@@ -10,7 +10,13 @@ import csv
 import datetime as dt
 import hashlib
 import json
+import sqlite3
+import tempfile
+from contextlib import closing
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+NYC_TZ = ZoneInfo("America/New_York")
 
 REQUIRED = {"unique_key", "created_date", "closed_date", "agency", "complaint_type", "borough", "status"}
 BOROUGHS = {"BRONX", "BROOKLYN", "MANHATTAN", "QUEENS", "STATEN ISLAND"}
@@ -19,7 +25,11 @@ SOURCE_URL = "https://data.cityofnewyork.us/d/erm2-nwe9"
 def dateparse(s):
     s = (s or "").strip()
     if not s: return None
-    try: return dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
+    try:
+        parsed = dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=NYC_TZ)
+        return parsed.astimezone(NYC_TZ)
     except ValueError: return None
 
 def normalize(s):
@@ -41,7 +51,12 @@ def ingest(source, output, *, as_of, min_cell=10):
     counts = collections.Counter()
     grouped = collections.Counter()
     closed = collections.Counter()
-    with source.open(encoding="utf-8-sig", newline="") as f:
+    # A disk-backed uniqueness index avoids holding request IDs in Python RAM.
+    # Its private temporary files are removed even if parsing raises.
+    with tempfile.TemporaryDirectory(prefix="nyc311-ids-") as scratch, \
+            closing(sqlite3.connect(str(Path(scratch) / "keys.sqlite3"))) as db, \
+            source.open(encoding="utf-8-sig", newline="") as f:
+        db.execute("CREATE TABLE seen (request_id TEXT PRIMARY KEY) WITHOUT ROWID")
         reader = csv.DictReader(f)
         headers = reader.fieldnames or []
         if len(headers) != len(set(headers)):
@@ -56,9 +71,22 @@ def ingest(source, output, *, as_of, min_cell=10):
             created = dateparse(row["created_date"])
             finished = dateparse(row["closed_date"])
             if not key: raise ValueError("Missing unique_key")
+            try:
+                db.execute("INSERT INTO seen (request_id) VALUES (?)", (key,))
+            except sqlite3.IntegrityError:
+                # Never include actual request IDs in exceptions.
+                raise ValueError("Duplicate unique_key") from None
             if not created: counts["missing_or_invalid_created_date"] += 1; continue
             if created.date() > as_of_day: counts["created_after_as_of"] += 1; continue
-            if finished and (finished < created): counts["closure_before_creation"] += 1
+            valid_closure = False
+            if finished:
+                # Compare UTC instants, not NYC wall-clock times across DST folds.
+                if finished.astimezone(dt.timezone.utc) < created.astimezone(dt.timezone.utc):
+                    counts["closure_before_creation"] += 1
+                elif finished.date() > as_of_day:
+                    counts["closure_after_as_of"] += 1
+                else:
+                    valid_closure = True
             borough = normalize(row["borough"]).upper()
             agency = normalize(row["agency"])
             problem = normalize(row["complaint_type"])
@@ -68,7 +96,7 @@ def ingest(source, output, *, as_of, min_cell=10):
             group = (created.date().strftime("%Y-%m"), borough, agency, problem)
             grouped[group] += 1
             counts["valid_records"] += 1
-            if normalize(row["status"]).casefold() == "closed" and finished and finished >= created:
+            if normalize(row["status"]).casefold() == "closed" and valid_closure:
                 closed[group] += 1
     # Display-safe threshold; totals kept separately so small cells are not misreported as zero.
     records = [dict(month=m, borough=b, agency=a, problem=p, requests=n,
@@ -81,9 +109,9 @@ def ingest(source, output, *, as_of, min_cell=10):
         "source_sha256": digest.hexdigest(), "source_bytes": source.stat().st_size,
         "rules": {"grain":"month × borough × agency × original API complaint_type",
                   "display_minimum_cell_count":min_cell,
-                  "closure":"closed status AND nonnegative valid close interval; not proof of resolution",
+                  "closure":"closed status AND nonnegative elapsed interval by snapshot date in New York; not proof of resolution",
                   "privacy":"No record-level coordinates, addresses, ZIP codes, or details exported",
-                  "limitations":"No distinct-identifier check, no rate/exposure denominators, no case-mix-adjusted agency comparisons."},
+                  "limitations":"Distinct IDs checked within this input; no rate/exposure denominators or case-mix-adjusted agency comparisons."},
         "quality": dict(counts), "aggregates": records
     }
     Path(output).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
