@@ -40,7 +40,7 @@ jobs:
       - name: Independently import synthetic CSV using Python csv
         run: node free-tools/cash-flow/csv-interop-fixture.mjs | python3 free-tools/cash-flow/csv-interop-import.test.py
   browser-qa:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
