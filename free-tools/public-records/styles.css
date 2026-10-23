@@ -17,3 +17,7 @@ form > label > :is(input,select,textarea){display:block;width:100%}
 
 /* Native select option labels can exceed their box in WebKit at 400% text size. */
 form select{width:100%;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+
+/* Prevent native select option text from extending a label's paint box in WebKit.
+   Preserve the full option text and keyboard selection; inset controls for focus rings. */
+form > label {overflow:clip;padding-inline:6px}
