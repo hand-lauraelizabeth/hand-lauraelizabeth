@@ -227,21 +227,21 @@ class HttpCspReview(unittest.TestCase):
         risky = [
             '=1+1',
             '  +SUM(1,1)',
-            '\\u200b=HYPERLINK("x","y")',
-            '\\uff1dSUM(1,1)',
-            '\\t@SUM(1)',
-            'note,\\n=HYPERLINK("x","y")',
+            '\u200b=HYPERLINK("x","y")',
+            '\uff1dSUM(1,1)',
+            '\t@SUM(1)',
+            'note,\n=HYPERLINK("x","y")',
             'note;=1+1',
             'note"=1+1',
-            'note\\u202evisible',
-            'note\\u2066visible',
-            'note\\u0001control',
+            'note\u202evisible',
+            'note\u2066visible',
+            'note\u0001control',
         ]
         safe = [
             'follow-up completed',
             'name@example.org',
             'Résumé — 日本語',
-            'Quote "this", with newline\\nand preserved evidence',
+            'Quote "this", with newline\nand preserved evidence',
         ]
         with sync_playwright() as pw:
             browser = getattr(pw, engine).launch(headless=True)
