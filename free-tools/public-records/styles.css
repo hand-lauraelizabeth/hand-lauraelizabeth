@@ -4,3 +4,9 @@ h1,h2{overflow-wrap:anywhere}
 
 #save-json,#save-csv{white-space:normal;overflow-wrap:anywhere;max-width:100%;min-width:0}
 form button{white-space:normal;overflow-wrap:anywhere}
+
+/* Keep native upload and date controls within narrow columns at large text sizes. */
+form{min-width:0}
+input[type=date],input[type=file]{width:100%;min-width:0;max-width:100%}
+#open-json{overflow:hidden}
+#open-json::file-selector-button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
