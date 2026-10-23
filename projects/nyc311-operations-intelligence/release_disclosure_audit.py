@@ -41,7 +41,13 @@ def _check(payload):
             raise ValueError('invalid quality counter')
     if quality['rows_read'] != quality['unique_keys_verified'] or quality['valid_records'] > quality['rows_read']:
         raise ValueError('inconsistent record count')
-    for v in quality.values():
+    # The pipeline exports an explicit boolean provenance flag; do not mistake
+    # it for a numeric quality counter (bool subclasses int in Python).
+    if type(quality.get('supplied_manifest_verified')) is not bool:
+        raise ValueError('invalid manifest-verification flag')
+    for name, v in quality.items():
+        if name == 'supplied_manifest_verified':
+            continue
         if type(v) is not int or v < 0:
             raise ValueError('unexpected quality field type')
     seen = set()
@@ -129,7 +135,9 @@ def audit_pair(previous, current):
         old_quality, new_quality = previous['quality'], current['quality']
         if old_quality.keys() != new_quality.keys():
             codes.add('QUALITY_COUNTER_SET_CHANGED')
-        for name in old_quality.keys() & new_quality.keys():
+        if old_quality['supplied_manifest_verified'] != new_quality['supplied_manifest_verified']:
+            codes.add('SOURCE_MANIFEST_VERIFICATION_CHANGED')
+        for name in (old_quality.keys() & new_quality.keys()) - {'supplied_manifest_verified'}:
             delta = abs(old_quality[name] - new_quality[name])
             if 0 < delta < threshold:
                 if name in ('rows_read', 'unique_keys_verified'):
