@@ -97,6 +97,9 @@ export function exportCSV(result){
 // fixtures, but the interface uses exportSafeCSV exclusively.
 export function csvExportRisk(result){
   if(!result||!Array.isArray(result.days))throw Error('Invalid projection for export.');
+  // Refuse control bytes that can be dropped, reinterpreted, or split by
+  // spreadsheet importers. Preserve the exact text through JSON instead.
+  const unsupportedControl=/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u2028\u2029]/u;
   for(const day of result.days){
     for(const event of day.events){
       for(const field of ['id','label']){
@@ -104,8 +107,9 @@ export function csvExportRisk(result){
         if(/^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[-=+@＝＋＠－]/u.test(value)||
            /^[\t\r\n]/u.test(value)||
            /[\r\n][\p{White_Space}\p{Default_Ignorable_Code_Point}]*[-=+@＝＋＠－]/u.test(value)||
-           /[\u202A-\u202E\u2066-\u2069]/u.test(value)){
-          return {field,eventId:event.id,reason:'formula-like text or invisible direction controls'};
+           /[\u202A-\u202E\u2066-\u2069]/u.test(value)||
+           unsupportedControl.test(value)){
+          return {field,eventId:event.id,reason:'formula-like text, invisible direction controls or unsupported control characters'};
         }
       }
     }
