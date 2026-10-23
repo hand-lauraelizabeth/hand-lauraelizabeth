@@ -5,6 +5,7 @@ contains redacted risk codes, never record-level data, marginal values or labels
 """
 import argparse
 import json
+import math
 import os
 import tempfile
 from pathlib import Path
@@ -70,10 +71,19 @@ def _reject_nonfinite(_value):
     raise ValueError('nonfinite JSON number')
 
 
+def _parse_finite_float(token):
+    """Reject valid-JSON exponents that overflow Python floats to infinity."""
+    number = float(token)
+    if not math.isfinite(number):
+        raise ValueError('out-of-range JSON number')
+    return number
+
+
 def _read_strict_json(path):
     return json.loads(Path(path).read_text(encoding='utf-8'),
                       object_pairs_hook=_reject_duplicate_keys,
-                      parse_constant=_reject_nonfinite)
+                      parse_constant=_reject_nonfinite,
+                      parse_float=_parse_finite_float)
 
 
 def _aliases_source(report, source):
