@@ -43,7 +43,8 @@ def _check(payload):
         raise ValueError('inconsistent record count')
     # The pipeline exports an explicit boolean provenance flag; do not mistake
     # it for a numeric quality counter (bool subclasses int in Python).
-    if type(quality.get('supplied_manifest_verified')) is not bool:
+    if ('supplied_manifest_verified' in quality and
+            type(quality['supplied_manifest_verified']) is not bool):
         raise ValueError('invalid manifest-verification flag')
     for name, v in quality.items():
         if name == 'supplied_manifest_verified':
@@ -135,7 +136,9 @@ def audit_pair(previous, current):
         old_quality, new_quality = previous['quality'], current['quality']
         if old_quality.keys() != new_quality.keys():
             codes.add('QUALITY_COUNTER_SET_CHANGED')
-        if old_quality['supplied_manifest_verified'] != new_quality['supplied_manifest_verified']:
+        if ('supplied_manifest_verified' in old_quality and
+                'supplied_manifest_verified' in new_quality and
+                old_quality['supplied_manifest_verified'] != new_quality['supplied_manifest_verified']):
             codes.add('SOURCE_MANIFEST_VERIFICATION_CHANGED')
         for name in (old_quality.keys() & new_quality.keys()) - {'supplied_manifest_verified'}:
             delta = abs(old_quality[name] - new_quality[name])
