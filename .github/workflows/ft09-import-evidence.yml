@@ -49,3 +49,4 @@ jobs:
         run: |
           python free-tools/public-records/http-import-crossengine.test.py
           python free-tools/public-records/import-race.test.py
+          python free-tools/public-records/import-pending.test.py
