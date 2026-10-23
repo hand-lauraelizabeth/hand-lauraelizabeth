@@ -36,7 +36,7 @@ def dateparse(s):
 def normalize(s):
     return " ".join((s or "").strip().split())
 
-def ingest(source, output, *, as_of, min_cell=10):
+def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None, expected_rows=None):
     source = Path(source)
     destination = Path(output)
     # Reject identical files and aliases before opening either path.
@@ -46,6 +46,14 @@ def ingest(source, output, *, as_of, min_cell=10):
     ):
         raise ValueError("Input CSV and output JSON must refer to distinct files")
     as_of_day = dt.date.fromisoformat(as_of)
+    if (expected_sha256 is None) != (expected_rows is None):
+        raise ValueError("Expected SHA-256 and row count must be supplied together")
+    if expected_sha256 is not None:
+        if (len(expected_sha256) != 64 or
+                any(c not in "0123456789abcdefABCDEF" for c in expected_sha256)):
+            raise ValueError("Expected SHA-256 must be 64 hexadecimal characters")
+        if not isinstance(expected_rows, int) or expected_rows < 0:
+            raise ValueError("Expected row count must be a nonnegative integer")
     counts = collections.Counter()
     grouped = collections.Counter()
     closed = collections.Counter()
@@ -62,6 +70,10 @@ def ingest(source, output, *, as_of, min_cell=10):
                 copied.write(chunk)
                 digest.update(chunk)
                 source_bytes += len(chunk)
+        # The expected digest must originate from an independently retained
+        # source manifest. Matching caller-supplied values does not prove origin.
+        if expected_sha256 is not None and digest.hexdigest().lower() != expected_sha256.lower():
+            raise ValueError("CSV SHA-256 does not match supplied manifest")
         with closing(sqlite3.connect(str(Path(scratch) / "keys.sqlite3"))) as db, \
                 snapshot.open(encoding="utf-8-sig", newline="") as f:
             db.execute("CREATE TABLE seen (request_id TEXT PRIMARY KEY) WITHOUT ROWID")
@@ -106,6 +118,8 @@ def ingest(source, output, *, as_of, min_cell=10):
                 counts["valid_records"] += 1
                 if normalize(row["status"]).casefold() == "closed" and valid_closure:
                     closed[group] += 1
+        if expected_rows is not None and counts["rows_read"] != expected_rows:
+            raise ValueError("CSV row count does not match supplied manifest")
         # A source mutation during processing invalidates this source binding.
         # This is an integrity check, NOT independent official-source authentication.
         current = hashlib.sha256()
@@ -119,6 +133,8 @@ def ingest(source, output, *, as_of, min_cell=10):
                     closed_with_valid_interval=closed[(m,b,a,p)])
                for (m,b,a,p),n in sorted(grouped.items()) if n >= min_cell]
     counts["small_cells_suppressed"] = sum(1 for n in grouped.values() if n < min_cell)
+    counts["unique_keys_verified"] = counts["rows_read"]
+    counts["supplied_manifest_verified"] = expected_sha256 is not None
     payload = {
         "source": SOURCE_URL,
         "dataset_id": "erm2-nwe9", "snapshot_as_of": as_of,
@@ -127,7 +143,8 @@ def ingest(source, output, *, as_of, min_cell=10):
                   "display_minimum_cell_count":min_cell,
                   "closure":"closed status AND nonnegative elapsed interval by snapshot date in New York; not proof of resolution",
                   "privacy":"No record-level coordinates, addresses, ZIP codes, or details exported",
-                  "limitations":"Distinct IDs checked within this input; no rate/exposure denominators or case-mix-adjusted agency comparisons."},
+                  "limitations":"Distinct IDs checked within this input; no rate/exposure denominators or case-mix-adjusted agency comparisons.",
+                  "source_provenance":"Caller-supplied checksum/count agreement is not independent authentication of official NYC source origin."},
         "quality": dict(counts), "aggregates": records
     }
     # Preserve any existing export if serialization, flushing, or replacement fails.
@@ -151,8 +168,11 @@ def main():
     p.add_argument("input_csv"); p.add_argument("output_json")
     p.add_argument("--as-of", required=True, help="snapshot date YYYY-MM-DD")
     p.add_argument("--min-cell", type=int, default=10)
+    p.add_argument("--expected-sha256", help="independently recorded full-source SHA-256")
+    p.add_argument("--expected-rows", type=int, help="independently recorded CSV data-row count")
     a = p.parse_args()
     if a.min_cell < 1: p.error("--min-cell must be positive")
-    result = ingest(a.input_csv, a.output_json, as_of=a.as_of, min_cell=a.min_cell)
+    result = ingest(a.input_csv, a.output_json, as_of=a.as_of, min_cell=a.min_cell,
+                    expected_sha256=a.expected_sha256, expected_rows=a.expected_rows)
     print(json.dumps({"quality":result["quality"],"public_cells":len(result["aggregates"])}))
 if __name__ == "__main__": main()
