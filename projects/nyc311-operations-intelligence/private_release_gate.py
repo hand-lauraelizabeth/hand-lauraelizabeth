@@ -14,6 +14,7 @@ from pathlib import Path
 from release_disclosure_audit import audit_single, audit_pair
 from marginal_reconstruction_audit import audit_marginals
 from integer_feasibility_audit import audit_integer_feasibility
+from source_unique_key_audit import audit_unique_keys
 
 EVIDENCE_FIELDS = {'coefficients', 'totals', 'suppressed', 'sensitive_groups'}
 # Aggregate snapshots and cleared marginal evidence should remain compact. Bound
@@ -163,8 +164,14 @@ def main(argv=None):
         evidence = (_read_strict_json(a.marginal_evidence_json)
                     if a.marginal_evidence_json else None)
         result = audit_release(candidate, previous=previous, evidence=evidence)
-        result['codes'] = sorted(set(result['codes']) |
-                                 set(_source_binding_codes(candidate, a.source_csv)))
+        binding = _source_binding_codes(candidate, a.source_csv)
+        codes = set(result['codes']) | set(binding)
+        if 'SOURCE_CSV_BYTES_MATCH_CANDIDATE_CLAIM' in binding:
+            # Uniqueness and optional row count are independent of byte equality.
+            # Neither check proves publisher provenance or query completeness.
+            expected_rows = candidate.get('source_rows') if type(candidate) is dict else None
+            codes.update(audit_unique_keys(a.source_csv, expected_rows=expected_rows))
+        result['codes'] = sorted(codes)
     except (OSError, UnicodeError, ValueError, TypeError,
             RecursionError, ArithmeticError):
         result = {'status': 'HOLD', 'manual_review_required': True,
