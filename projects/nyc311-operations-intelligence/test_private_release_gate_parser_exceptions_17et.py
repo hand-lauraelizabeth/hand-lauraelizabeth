@@ -23,9 +23,9 @@ class ParserExceptionFailClosedTests(unittest.TestCase):
                 args += ["--previous-json", str(files["previous"])]
             if source == "evidence":
                 args += ["--marginal-evidence-json", str(files["evidence"])]
-            with patch.object(gate, "audit_single") as single, \\
-                 patch.object(gate, "audit_pair") as pair, \\
-                 patch.object(gate, "audit_marginals") as marginal, \\
+            with patch.object(gate, "audit_single") as single, \
+                 patch.object(gate, "audit_pair") as pair, \
+                 patch.object(gate, "audit_marginals") as marginal, \
                  patch.object(gate, "audit_integer_feasibility") as integer:
                 code = gate.main(args)
             self.assertEqual(code, 2)
