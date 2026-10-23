@@ -101,9 +101,9 @@ export function csvExportRisk(result){
     for(const event of day.events){
       for(const field of ['id','label']){
         const value=String(event[field]);
-        if(/^[\p{White_Space}\p{Cf}]*[-=+@＝＋＠－]/u.test(value)||
+        if(/^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[-=+@＝＋＠－]/u.test(value)||
            /^[\t\r\n]/u.test(value)||
-           /[\r\n][\p{White_Space}\p{Cf}]*[-=+@＝＋＠－]/u.test(value)||
+           /[\r\n][\p{White_Space}\p{Default_Ignorable_Code_Point}]*[-=+@＝＋＠－]/u.test(value)||
            /[\u202A-\u202E\u2066-\u2069]/u.test(value)){
           return {field,eventId:event.id,reason:'formula-like text or invisible direction controls'};
         }
