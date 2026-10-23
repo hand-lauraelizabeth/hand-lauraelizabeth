@@ -94,7 +94,8 @@ def audit_single(payload):
         elif hi - lo <= 2:
             codes.append('SUPPRESSED_CELL_TIGHTLY_BOUNDED')
     if any(0 < n < threshold for k, n in payload['quality'].items()
-           if k not in ('rows_read', 'valid_records', 'unique_keys_verified', 'small_cells_suppressed')):
+           if k not in ('rows_read', 'valid_records', 'unique_keys_verified', 'small_cells_suppressed',
+                        'supplied_manifest_verified')):
         codes.append('SMALL_QUALITY_COUNTER_EXPOSED')
     if any(0 < c['closed_with_valid_interval'] < threshold or
            0 < c['requests'] - c['closed_with_valid_interval'] < threshold
