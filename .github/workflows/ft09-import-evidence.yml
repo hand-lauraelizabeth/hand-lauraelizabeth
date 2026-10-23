@@ -28,7 +28,7 @@ jobs:
         run: |
           node --test free-tools/public-records/json-duplicate-key.test.mjs free-tools/public-records/file-size-integrity.test.mjs
   http-crossengine:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
