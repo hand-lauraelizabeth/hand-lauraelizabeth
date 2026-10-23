@@ -128,6 +128,18 @@ async function testBrowser(name,type){
     await page.getByRole('button',{name:'Add event'}).click();
     check((await page.locator('#events li').allTextContents()).join('').includes('=HYPERLINK('),name+': formula text visible safely');
     check(await page.locator('#events a').count()===0,name+': unsafe label created HTML');
+
+    await page.locator('#calculate').click();
+    check(await page.locator('#export').isDisabled(),name+': unsafe CSV download blocked');
+    check(await page.locator('#export-json').isEnabled(),name+': lossless JSON available');
+    check((await page.locator('#csv-warning').innerText()).includes('CSV export unavailable'),name+': visible CSV warning');
+    const [jsonDownload]=await Promise.all([
+      page.waitForEvent('download'),
+      page.locator('#export-json').click()
+    ]);
+    const json=JSON.parse(readFileSync(await jsonDownload.path(),'utf8'));
+    check(json.schema==='cash-flow-scenario/v1',name+': JSON schema');
+    check(json.days.some(day=>day.events.some(event=>event.id==='formula'&&event.label==='=HYPERLINK("https://example.invalid")')),name+': exact formula-like text preserved in JSON');
     check(!errors.length,name+': uncaught JS exceptions: '+errors.join('; '));
     check(!offsite.length,name+': unexpected external requests: '+offsite.join('; '));
     await page.close();
