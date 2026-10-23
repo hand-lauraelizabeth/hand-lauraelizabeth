@@ -16,7 +16,7 @@ function render(){
     const opt=node('option',`${r.id} — ${r.agency}`);opt.value=r.id;selector.append(opt);
   }
   if([...selector.options].some(x=>x.value===selected)) selector.value=selected;
-  for(const e of chronology(state)) eventList.append(node('li',`${e.date} — ${e.requestId} — ${e.kind}: ${e.description}${e.sourceId?' [source '+e.sourceId+']':''}`));
+  for(const e of chronology(state)) eventList.append(node('li',`${e.date} — Event ${e.id} — Request ${e.requestId} — ${e.kind}: ${e.description}${e.sourceId?' [source '+e.sourceId+']':''}`));
   for(const item of reviewFlags(state)) flagList.append(node('li',`${item.requestId}: ${item.flags.join('; ')}`));
   if(!state.requests.length)requestList.append(node('p','No requests yet.'));
   if(!state.events.length)eventList.append(node('li','No dated events yet.'));
