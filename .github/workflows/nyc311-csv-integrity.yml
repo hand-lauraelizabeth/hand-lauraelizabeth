@@ -1,0 +1,28 @@
+name: NYC 311 CSV structural integrity
+on:
+  push:
+    branches:
+      - 'review/nyc311-*'
+    paths:
+      - 'projects/nyc311-operations-intelligence/**'
+      - '.github/workflows/nyc311-csv-integrity.yml'
+  pull_request:
+    paths:
+      - 'projects/nyc311-operations-intelligence/**'
+      - '.github/workflows/nyc311-csv-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and test synthetic NYC 311 parser
+        run: |
+          python -m compileall -q projects/nyc311-operations-intelligence
+          python -m unittest discover -s projects/nyc311-operations-intelligence -p 'test_*.py' -v
