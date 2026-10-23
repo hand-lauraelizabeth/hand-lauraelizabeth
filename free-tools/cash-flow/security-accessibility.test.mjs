@@ -50,7 +50,10 @@ check('event descriptions and results are inserted as text',()=>{
 });
 check('no fetch or remote upload implementation',()=>{
   assert.doesNotMatch(app,/\b(?:fetch|XMLHttpRequest|WebSocket|sendBeacon)\b/);
-  assert.match(app,/new Blob\(\[exportCSV\(latest\)\]/);
+  assert.match(app,/download\(exportSafeCSV\(latest\)/);
+  assert.match(app,/download\(exportJSON\(latest\)/);
+  assert.match(html,/<p id="csv-warning" role="status" aria-live="polite"><\/p>/);
+  assert.match(html,/id="export-json" type="button" disabled/);
   assert.match(app,/URL\.revokeObjectURL/);
 });
 console.log(passed+' FT-04 static security/accessibility guard assertions PASS; browser, CSP enforcement, screen-reader and zoom checks require separate testing.');
