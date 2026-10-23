@@ -6,6 +6,7 @@ contains redacted risk codes, never record-level data, marginal values or labels
 import argparse
 import json
 import math
+from decimal import Decimal
 import os
 import tempfile
 from pathlib import Path
@@ -76,6 +77,11 @@ def _parse_finite_float(token):
     number = float(token)
     if not math.isfinite(number):
         raise ValueError('out-of-range JSON number')
+    # A nonzero JSON quantity rounded to 0.0 would silently erase evidence.
+    # Decimal is consulted only at the zero boundary, so legitimate 0e-9999
+    # remains valid while nonzero subnormal underflow fails closed.
+    if number == 0.0 and not Decimal(token).is_zero():
+        raise ValueError('underflowing JSON number')
     return number
 
 
