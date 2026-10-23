@@ -292,5 +292,55 @@ class HttpCspReview(unittest.TestCase):
             finally:
                 browser.close()
 
+
+    def test_json_import_error_focus_and_recovery(self):
+        """Rejected imports expose an accessible error and never overwrite records."""
+        import json
+        engine = os.environ.get('FT09_BROWSER', 'chromium')
+        if engine not in ('chromium', 'firefox', 'webkit'):
+            raise ValueError('Unsupported browser engine')
+        request = {'id':'REQ-00007','jurisdiction':'federal','agency':'Example agency',
+                   'stage':'draft','submittedOn':'','agencyTrackingId':'0000987',
+                   'description':'Synthetic request'}
+        valid = json.dumps({'version':1,'requests':[request],'events':[]}).encode('utf-8')
+        invalid = b'{"version":1,"requests":[],"events":[],"\\u0076ersion":1}'
+        with sync_playwright() as pw:
+            browser = getattr(pw, engine).launch(headless=True)
+            try:
+                with serve() as url:
+                    page = browser.new_page(viewport={'width':320,'height':800})
+                    try:
+                        self.assertEqual(page.goto(url, wait_until='networkidle').status, 200)
+                        upload = page.locator('#open-json')
+                        self.assertEqual(upload.get_attribute('aria-describedby'), 'import-help')
+                        self.assertIsNone(upload.get_attribute('aria-invalid'))
+                        upload.set_input_files({'name':'bad.json','mimeType':'application/json',
+                                                'buffer':invalid})
+                        page.locator('#status').get_by_text('Import rejected',exact=False).wait_for()
+                        self.assertIn('Duplicate JSON object key',page.locator('#status').inner_text())
+                        self.assertEqual(page.evaluate('document.activeElement.id'),'open-json')
+                        self.assertEqual(upload.get_attribute('aria-invalid'),'true')
+                        self.assertEqual(upload.get_attribute('aria-describedby'),'import-help status')
+                        self.assertIn('No requests yet',page.locator('#requests').inner_text())
+
+                        upload.set_input_files({'name':'good.json','mimeType':'application/json',
+                                                'buffer':valid})
+                        page.locator('#status').get_by_text('Imported 1 requests',exact=False).wait_for()
+                        self.assertIsNone(upload.get_attribute('aria-invalid'))
+                        self.assertEqual(upload.get_attribute('aria-describedby'),'import-help')
+                        self.assertIn('REQ-00007',page.locator('#requests').inner_text())
+
+                        upload.set_input_files({'name':'good.json','mimeType':'application/json',
+                                                'buffer':valid})
+                        page.locator('#status').get_by_text('Import not applied',exact=False).wait_for()
+                        self.assertEqual(page.evaluate('document.activeElement.id'),'open-json')
+                        self.assertEqual(upload.get_attribute('aria-invalid'),'true')
+                        self.assertEqual(upload.get_attribute('aria-describedby'),'import-help status')
+                        self.assertIn('REQ-00007',page.locator('#requests').inner_text())
+                    finally:
+                        page.close()
+            finally:
+                browser.close()
+
 if __name__ == '__main__':
     unittest.main()
