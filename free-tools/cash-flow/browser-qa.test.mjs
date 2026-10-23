@@ -140,6 +140,34 @@ async function testBrowser(name,type){
     const json=JSON.parse(readFileSync(await jsonDownload.path(),'utf8'));
     check(json.schema==='cash-flow-scenario/v1',name+': JSON schema');
     check(json.days.some(day=>day.events.some(event=>event.id==='formula'&&event.label==='=HYPERLINK("https://example.invalid")')),name+': exact formula-like text preserved in JSON');
+    // Exercise a control character in the actual served UI, not only the
+    // pure export engine. The pre-fix engine permitted this CSV download.
+    await page.reload({waitUntil:'networkidle'});
+    const controlLabel='Invoice\u007Ftext';
+    await fill(page,'event-id','00009');
+    await fill(page,'event-label',controlLabel);
+    // Firefox may filter DEL from keyboard-like input. Simulate an imported
+    // untrusted value through the DOM setter so all engines test the same
+    // export boundary rather than their differing text-entry sanitizers.
+    if(await page.locator('#event-label').inputValue()!==controlLabel){
+      await page.locator('#event-label').evaluate((el,value)=>{
+        el.value=value;
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+      },controlLabel);
+    }
+    check(await page.locator('#event-label').inputValue()===controlLabel,name+': synthetic imported control value preserved in DOM input');
+    await fill(page,'event-amount','-1.00');
+    await fill(page,'event-date','2026-10-23');
+    await page.getByRole('button',{name:'Add event'}).click();
+    await page.getByRole('button',{name:'Calculate projection'}).click();
+    check(await page.locator('#export').isDisabled(),name+': DEL-containing label cannot be exported to CSV');
+    check((await page.locator('#csv-warning').innerText()).includes('unsupported control characters'),name+': control warning is explained in visible text');
+    const [controlJSONDownload]=await Promise.all([
+      page.waitForEvent('download'),
+      page.locator('#export-json').click()
+    ]);
+    const controlJSON=JSON.parse(readFileSync(await controlJSONDownload.path(),'utf8'));
+    check(controlJSON.days.some(day=>day.events.some(event=>event.id==='00009'&&event.label===controlLabel)),name+': JSON retains exact zero-padded ID and DEL-containing label');
     check(!errors.length,name+': uncaught JS exceptions: '+errors.join('; '));
     check(!offsite.length,name+': unexpected external requests: '+offsite.join('; '));
     await page.close();

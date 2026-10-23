@@ -46,6 +46,11 @@ jobs:
   browser-qa:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    # Official version-matched Playwright image includes all three browsers and
+    # OS dependencies. Avoid repeated browser downloads on short-lived runners.
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --user 1001
     permissions:
       contents: read
     steps:
@@ -53,10 +58,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install browser QA tooling and engines
+      - name: Install browser QA JavaScript packages
         run: |
           cd free-tools/cash-flow
           npm install --no-save --no-package-lock playwright@1.57.0 axe-core@4.10.3
-          npx playwright install --with-deps chromium firefox webkit
       - name: HTTP-served Chromium Firefox WebKit regression checks
         run: node free-tools/cash-flow/browser-qa.test.mjs
