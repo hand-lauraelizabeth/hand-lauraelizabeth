@@ -12,9 +12,18 @@ export function bindReopen(getState,setState,say) {
     input.setAttribute('aria-describedby','import-help status');
     input.focus();
   };
+  const cancelPending=()=>{
+    if(input.getAttribute('aria-busy')!=='true')return;
+    ++serial;
+    input.value='';
+    input.setAttribute('aria-busy','false');
+    resetImportError();
+    say('Workspace import canceled. Existing records were kept.');
+  };
+  input.addEventListener('cancel',cancelPending);
   input.addEventListener('change',async()=>{
     const file=input.files?.[0];
-    if(!file)return;
+    if(!file){cancelPending();return;}
     const current=++serial;
     resetImportError();
     input.setAttribute('aria-busy','true');
