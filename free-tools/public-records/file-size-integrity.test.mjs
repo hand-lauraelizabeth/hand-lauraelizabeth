@@ -1,0 +1,22 @@
+// Synthetic-only file-boundary integrity test. No real user files are used.
+import assert from 'node:assert/strict';
+import {readWorkspaceFile,MAX_IMPORT_BYTES} from './import.mjs';
+const workspace={version:1,requests:[{id:'R-0001',jurisdiction:'federal',agency:'Example Agency',stage:'draft',submittedOn:'',agencyTrackingId:'00000009',description:'Synthetic only'}],events:[]};
+const encoded=new TextEncoder().encode(JSON.stringify(workspace));
+const file=(bytes,size=bytes.length,options={})=>({name:options.name??'sample.JSON',type:options.type??'application/json',size,async arrayBuffer(){return bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}});
+let n=0;
+const pass=async(f,verify)=>{const r=await readWorkspaceFile(f);verify(r);n++};
+const reject=async(f,pattern)=>{await assert.rejects(()=>readWorkspaceFile(f),pattern);n++};
+await pass(file(encoded),r=>assert.equal(r.requests[0].agencyTrackingId,'00000009'));
+await pass(file(encoded,encoded.length,{type:'application/octet-stream'}),r=>assert.equal(r.requests[0].id,'R-0001'));
+await pass(file(encoded,encoded.length,{type:''}),r=>assert.equal(r.events.length,0));
+await reject(file(encoded,encoded.length-1),/size mismatch/);
+await reject(file(encoded,encoded.length+1),/size mismatch/);
+await reject(file(encoded,0),/size mismatch/);
+await reject(file(encoded,MAX_IMPORT_BYTES+1),/5 MB limit/);
+await reject(file(new Uint8Array(MAX_IMPORT_BYTES+1),encoded.length),/5 MB limit/);
+await reject(file(encoded,encoded.length,{type:'text/csv'}),/Unsupported file type/);
+await reject(file(encoded,encoded.length,{name:'sample.csv'}),/Choose a \.json/);
+await reject(file(Uint8Array.of(0xff),1),/valid UTF-8/);
+await reject(file(new TextEncoder().encode('{"version":1,"version":1}')), /Duplicate JSON object key/);
+console.log(`PASS: ${n} synthetic file-size, format, UTF-8, duplicate-key and exact-ID assertions`);
