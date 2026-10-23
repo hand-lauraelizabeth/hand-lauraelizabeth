@@ -39,7 +39,8 @@ async function testBrowser(name,type){
     check(await page.locator('#export').isDisabled(),name+': CSV export must begin disabled');
     check(await page.getByRole('main').count()===1,name+': main landmark');
     check(await page.getByRole('table',{name:'Projected end-of-day balances'}).count()===1,name+': table accessible name');
-    check(await page.getByRole('status').count()===1,name+': status announcement');
+    check(await page.locator('#status[role="status"]').count()===1,name+': projection status announcement');
+    check(await page.locator('#csv-warning[role="status"]').count()===1,name+': CSV risk status announcement');
     check(await page.getByRole('alert').count()===1,name+': error announcement');
     for(const id of ['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','shift-id','shift-days']){
       const label=await page.locator('#'+id).evaluate(el=>el.labels?.[0]?.textContent?.trim()||'');
