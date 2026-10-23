@@ -289,6 +289,8 @@ class HttpCspReview(unittest.TestCase):
                                     self.assertEqual(rows[0]['agencyTrackingId'], '0000987')
                             finally:
                                 page.close()
+            finally:
+                browser.close()
 
 if __name__ == '__main__':
     unittest.main()
