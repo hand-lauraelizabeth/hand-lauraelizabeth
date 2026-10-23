@@ -53,6 +53,20 @@ def main():
         exported = json.loads(Path(download.value.path()).read_text(encoding="utf-8"))
         assert len(exported["records"]) == 1
         assert exported["records"][0]["sourceId"] == "000123"
+        assert page.locator("#csv").is_enabled(), "benign source permits CSV"
+        page.locator("#sourceId").fill("=1+1")
+        page.locator("#date").fill("2026-10-23")
+        page.locator("#claim").fill("Synthetic formula-prefix source ID")
+        page.get_by_role("button", name="Add record").click()
+        assert page.locator("#records li").count() == 2, "unsafe input retained locally"
+        assert page.locator("#csv").is_disabled(), "CSV blocked for unsafe source"
+        assert "sourceId" in page.locator("#csv-warning").inner_text(), "accessible field warning"
+        assert page.locator("#csv-warning").get_attribute("role") == "status"
+        assert page.locator("#json").is_enabled(), "lossless JSON remains available"
+        with page.expect_download() as download:
+            page.locator("#json").click()
+        preserved = json.loads(Path(download.value.path()).read_text(encoding="utf-8"))
+        assert any(r["sourceId"] == "=1+1" for r in preserved["records"]), "exact unsafe source ID preserved in JSON"
         assert not errors, errors
         assert not violations, violations
         assert page.evaluate('window.__cspViolation || 0') == 0
@@ -61,7 +75,7 @@ def main():
         page.evaluate("document.documentElement.style.fontSize = '32px'")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), page.evaluate("""() => [...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1).slice(0, 8).map(e => ({tag:e.tagName,id:e.id,right:Math.round(e.getBoundingClientRect().right)}))""")
         browser.close()
-    print("PASS: 14 HTTP-served Chromium module/CSP/local-only/filter/export/reflow assertions")
+    print("PASS: HTTP-served Chromium module/CSP/local-only/filter/fail-closed CSV/JSON/reflow assertions")
 
 if __name__ == "__main__":
     main()
