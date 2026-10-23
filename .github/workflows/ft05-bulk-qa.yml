@@ -33,7 +33,8 @@ jobs:
       - name: Run independent CSV injection and provenance regression
         run: node free-tools/evidence-timeline/safe-export.test.mjs
   bulk-chromium:
-    runs-on: ubuntu-latest
+    # Pin a Playwright-supported runner; ubuntu-latest currently resolves to 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
