@@ -39,6 +39,9 @@ jobs:
     # dependencies; avoid repeated downloads on short-lived runners.
     container:
       image: mcr.microsoft.com/playwright/python:v1.57.0-noble
+    # GitHub overrides HOME to /github/home, which Firefox rejects when root.
+    env:
+      HOME: /root
     steps:
       - uses: actions/checkout@v4
       - name: Install version-matched Python Playwright package
