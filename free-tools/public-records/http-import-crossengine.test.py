@@ -94,6 +94,16 @@ class HttpCspReview(unittest.TestCase):
                             self.assertIn('source SRC-00002',chronology)
                             self.assertEqual(imported.locator('#request-select option').last.get_attribute('value'), 'REQ-00007')
                             imported.evaluate("document.documentElement.style.fontSize='64px'")
+                            # Even when the native select visually truncates a long option,
+                            # its complete identifier must remain keyboard-selectable.
+                            request_select = imported.get_by_role('combobox', name='Related request')
+                            self.assertEqual(request_select.locator('option').last.inner_text(),
+                                             'REQ-00007 — Example agency')
+                            request_select.select_option('')
+                            request_select.focus()
+                            self.assertEqual(imported.evaluate('document.activeElement.id'), 'request-select')
+                            request_select.press('End')
+                            self.assertEqual(request_select.input_value(), 'REQ-00007')
                             imported.locator('#open-json').focus()
                             self.assertEqual(imported.evaluate('document.activeElement.id'), 'open-json')
                             geometry = imported.evaluate("""() => ({
