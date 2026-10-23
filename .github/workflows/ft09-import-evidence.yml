@@ -1,0 +1,28 @@
+name: FT-09 import evidence integrity
+on:
+  push:
+    branches:
+      - review/ft09-import-evidence-reflow-20261023-0330
+  pull_request:
+    paths:
+      - 'free-tools/public-records/**'
+      - '.github/workflows/ft09-import-evidence.yml'
+permissions:
+  contents: read
+jobs:
+  node-import-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check module syntax
+        run: |
+          node --check free-tools/public-records/import.mjs
+          node --check free-tools/public-records/app.mjs
+          node --check free-tools/public-records/strict-json.mjs
+      - name: Test duplicate keys and actual file sizes with synthetic records
+        run: |
+          node --test free-tools/public-records/json-duplicate-key.test.mjs free-tools/public-records/file-size-integrity.test.mjs
