@@ -6,6 +6,7 @@ on:
       - 'review/ft05-http-csp-ci-*'
       - 'review/ft05-http-csp-hardening-*'
       - 'review/ft05-isolated-ci-*'
+      - 'review/ft05-failclosed-csv-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
@@ -25,6 +26,12 @@ jobs:
         run: node --check free-tools/evidence-timeline/bulk-boundary.test.mjs
       - name: Run 10k-record boundary and integrity checks
         run: node free-tools/evidence-timeline/bulk-boundary.test.mjs
+      - name: Check conservative CSV gate syntax
+        run: |
+          node --check free-tools/evidence-timeline/safe-export.mjs
+          node --check free-tools/evidence-timeline/safe-export.test.mjs
+      - name: Run independent CSV injection and provenance regression
+        run: node free-tools/evidence-timeline/safe-export.test.mjs
   bulk-chromium:
     runs-on: ubuntu-latest
     timeout-minutes: 20
