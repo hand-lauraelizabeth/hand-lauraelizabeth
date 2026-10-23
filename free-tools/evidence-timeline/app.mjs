@@ -1,4 +1,5 @@
-import {exportEvidenceCSV,summary} from './core.mjs';
+import {summary} from './core.mjs';
+import {csvExportRisk,exportSafeEvidenceCSV} from './safe-export.mjs';
 import {normalizeExact as normalizeEvidence} from './exact-core.mjs';
 import {readExactJSON} from './json-import.mjs';
 import {createImportFeedback} from './import-feedback.mjs';
@@ -19,7 +20,11 @@ function render(){
   $('empty').hidden=visible.length>0;
   $('empty').textContent=records.length===0 ? 'No records yet. Add a record to build your timeline.' : 'No records match this review status. Choose All statuses to see the complete timeline.';
   for(const r of visible){const item=text('li','');item.className='record';item.append(text('h3',r.sourceId+' — '+r.date));item.append(text('p',r.claim));const details=text('p','Type: '+r.kind+' · Status: '+r.status+(r.group?' · Group: '+r.group:''));item.append(details);const remove=text('button','Remove '+r.sourceId);remove.type='button';remove.setAttribute('aria-label','Remove record '+r.sourceId);remove.addEventListener('click',()=>{records=records.filter(x=>x.sourceId!==r.sourceId);render();$('count').focus();});item.append(remove);list.append(item);}
-  for(const id of ['csv','json','clear'])$(id).disabled=records.length===0;
+  const risk=csvExportRisk(records);
+  $('csv').disabled=records.length===0||Boolean(risk);
+  $('json').disabled=records.length===0;
+  $('clear').disabled=records.length===0;
+  $('csv-warning').textContent=risk?'CSV unavailable: '+risk.field+' contains '+risk.reason+'. Download exact JSON instead.':'';
 }
 $('count').tabIndex=-1;
 $('review-filter').addEventListener('change',render);
@@ -33,7 +38,7 @@ form.addEventListener('submit',event=>{
   catch(e){const message=String(e.message||e);const field=/source ID/i.test(message)?'sourceId':/date/i.test(message)?'date':/claim/i.test(message)?'claim':null;showError(message,field);}
 });
 function download(filename,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
-$('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportEvidenceCSV(records),'text/csv;charset=utf-8'));
+$('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportSafeEvidenceCSV(records),'text/csv;charset=utf-8'));
 $('json').addEventListener('click',()=>download('evidence-timeline-exact.json',JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n','application/json'));
 $('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];$('review-filter').value='all';render();$('sourceId').focus();}});
 
