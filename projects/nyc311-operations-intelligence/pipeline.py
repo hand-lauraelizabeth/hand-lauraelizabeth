@@ -10,6 +10,9 @@ import csv
 import datetime as dt
 import hashlib
 import json
+import sqlite3
+import tempfile
+from contextlib import closing
 from pathlib import Path
 
 REQUIRED = {"unique_key", "created_date", "closed_date", "agency", "complaint_type", "borough", "status"}
@@ -41,7 +44,12 @@ def ingest(source, output, *, as_of, min_cell=10):
     counts = collections.Counter()
     grouped = collections.Counter()
     closed = collections.Counter()
-    with source.open(encoding="utf-8-sig", newline="") as f:
+    # A disk-backed uniqueness index avoids holding request IDs in Python RAM.
+    # Its private temporary files are removed even if parsing raises.
+    with tempfile.TemporaryDirectory(prefix="nyc311-ids-") as scratch, \
+            closing(sqlite3.connect(str(Path(scratch) / "keys.sqlite3"))) as db, \
+            source.open(encoding="utf-8-sig", newline="") as f:
+        db.execute("CREATE TABLE seen (request_id TEXT PRIMARY KEY) WITHOUT ROWID")
         reader = csv.DictReader(f)
         headers = reader.fieldnames or []
         if len(headers) != len(set(headers)):
@@ -56,6 +64,11 @@ def ingest(source, output, *, as_of, min_cell=10):
             created = dateparse(row["created_date"])
             finished = dateparse(row["closed_date"])
             if not key: raise ValueError("Missing unique_key")
+            try:
+                db.execute("INSERT INTO seen (request_id) VALUES (?)", (key,))
+            except sqlite3.IntegrityError:
+                # Never include actual request IDs in exceptions.
+                raise ValueError("Duplicate unique_key") from None
             if not created: counts["missing_or_invalid_created_date"] += 1; continue
             if created.date() > as_of_day: counts["created_after_as_of"] += 1; continue
             if finished and (finished < created): counts["closure_before_creation"] += 1
@@ -83,7 +96,7 @@ def ingest(source, output, *, as_of, min_cell=10):
                   "display_minimum_cell_count":min_cell,
                   "closure":"closed status AND nonnegative valid close interval; not proof of resolution",
                   "privacy":"No record-level coordinates, addresses, ZIP codes, or details exported",
-                  "limitations":"No distinct-identifier check, no rate/exposure denominators, no case-mix-adjusted agency comparisons."},
+                  "limitations":"Distinct IDs checked within this input; no rate/exposure denominators or case-mix-adjusted agency comparisons."},
         "quality": dict(counts), "aggregates": records
     }
     Path(output).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
