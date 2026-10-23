@@ -46,4 +46,6 @@ jobs:
       - name: Verify HTTP-served synthetic import and local-only CSP
         env:
           FT09_BROWSER: ${{ matrix.browser }}
-        run: python free-tools/public-records/http-import-crossengine.test.py
+        run: |
+          python free-tools/public-records/http-import-crossengine.test.py
+          python free-tools/public-records/import-race.test.py
