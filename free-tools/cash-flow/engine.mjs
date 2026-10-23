@@ -89,3 +89,35 @@ export function exportCSV(result){
   for(const day of result.days)rows.push([day.date,formatCents(day.changeCents),formatCents(day.balanceCents),day.events.map(e=>e.id).join(' | '),day.events.map(e=>e.label).join(' | ')]);
   return rows.map((row,i)=>row.map((value,j)=>csvCell(value,i>0&&(j===1||j===2))).join(',')).join('\r\n')+'\r\n';
 }
+
+
+// CSV is a lossy spreadsheet interchange format. Reject formula-like text in
+// the user-facing CSV path; provide a lossless JSON alternative instead.
+// The historical exportCSV function remains for independent legacy regression
+// fixtures, but the interface uses exportSafeCSV exclusively.
+export function csvExportRisk(result){
+  if(!result||!Array.isArray(result.days))throw Error('Invalid projection for export.');
+  for(const day of result.days){
+    for(const event of day.events){
+      for(const field of ['id','label']){
+        const value=String(event[field]);
+        if(/^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[-=+@＝＋＠－]/u.test(value)||
+           /^[\t\r\n]/u.test(value)||
+           /[\r\n][\p{White_Space}\p{Default_Ignorable_Code_Point}]*[-=+@＝＋＠－]/u.test(value)||
+           /[\u202A-\u202E\u2066-\u2069]/u.test(value)){
+          return {field,eventId:event.id,reason:'formula-like text or invisible direction controls'};
+        }
+      }
+    }
+  }
+  return null;
+}
+export function exportSafeCSV(result){
+  const risk=csvExportRisk(result);
+  if(risk)throw Error('CSV export blocked: '+risk.field+' contains '+risk.reason+'. Export lossless JSON instead.');
+  return exportCSV(result);
+}
+export function exportJSON(result){
+  if(!result||!Array.isArray(result.days))throw Error('Invalid projection for export.');
+  return JSON.stringify({schema:'cash-flow-scenario/v1',...result},null,2)+'\n';
+}

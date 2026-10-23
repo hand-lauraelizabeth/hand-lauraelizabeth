@@ -41,6 +41,24 @@ const {chromium}=require('playwright');
    check(download.suggestedFilename()==='cash-flow-scenario.csv','CSV download name');
    const fs=require('node:fs');const csv=fs.readFileSync(await download.path(),'utf8');
    check(csv.includes('2026-10-20'),'CSV contains projected date');
+
+   // Browser-level synthetic regression: do not expose unsafe CSV downloads.
+   await page.locator('#event-id').fill('00009');
+   await page.locator('#event-label').fill('\u200B=SUM(1,2)');
+   await page.locator('#event-amount').fill('-1.00');
+   await page.locator('#event-date').fill('2026-10-21');
+   await page.locator('#event-form button[type=submit]').click();
+   await page.locator('#calculate').click();
+   check(await page.locator('#export').isDisabled(),'formula-like CSV blocked');
+   check(await page.locator('#export-json').isEnabled(),'lossless JSON alternative available');
+   check((await page.locator('#csv-warning').innerText()).includes('CSV export unavailable'),'visible CSV warning');
+   const jsonPromise=page.waitForEvent('download');
+   await page.locator('#export-json').click();
+   const jsonDownload=await jsonPromise;
+   check(jsonDownload.suggestedFilename()==='cash-flow-scenario.json','JSON download name');
+   const json=JSON.parse(fs.readFileSync(await jsonDownload.path(),'utf8'));
+   check(json.schema==='cash-flow-scenario/v1','JSON versioned schema');
+   check(json.days.some(d=>d.events.some(e=>e.id==='00009'&&e.label==='\u200B=SUM(1,2)')),'exact unsafe label and leading-zero ID preserved in JSON');
    await page.evaluate(()=>{document.documentElement.style.zoom='2'});
    check((await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth))<=1,'320px layout at 200% CSS zoom');
    check(errors.length===0,'no uncaught browser errors');check(requests.length===0,'no remote requests');
