@@ -10,3 +10,7 @@ form{min-width:0}
 input[type=date],input[type=file]{width:100%;min-width:0;max-width:100%}
 #open-json{overflow:hidden}
 #open-json::file-selector-button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+
+/* Block labels let long text wrap without anonymous flex-item min-content overflow. */
+form > label{display:block}
+form > label > :is(input,select,textarea){display:block;width:100%}
