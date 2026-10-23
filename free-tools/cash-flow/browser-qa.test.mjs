@@ -168,6 +168,37 @@ async function testBrowser(name,type){
     ]);
     const controlJSON=JSON.parse(readFileSync(await controlJSONDownload.path(),'utf8'));
     check(controlJSON.days.some(day=>day.events.some(event=>event.id==='00009'&&event.label===controlLabel)),name+': JSON retains exact zero-padded ID and DEL-containing label');
+    // Source identifiers are data: do not silently trim whitespace or
+    // collapse distinct IDs. This regression fails against the previous UI.
+    await page.reload({waitUntil:'networkidle'});
+    await fill(page,'event-id','   ');
+    await fill(page,'event-label','Valid label');
+    await fill(page,'event-amount','-1.00');
+    await fill(page,'event-date','2026-10-23');
+    await page.getByRole('button',{name:'Add event'}).click();
+    check((await page.locator('#error').textContent()).includes('unique ID'),name+': whitespace-only ID rejected');
+    check((await page.locator('#events').textContent()).includes('No events added.'),name+': rejected ID does not add event');
+
+    const paddedId=' 00009 ',paddedLabel=' Invoice  ';
+    await fill(page,'event-id',paddedId);
+    await fill(page,'event-label',paddedLabel);
+    await page.getByRole('button',{name:'Add event'}).click();
+    check((await page.locator('#error').textContent())==='',name+': corrected input clears validation error');
+    check((await page.locator('#events').textContent()).includes(paddedId+' — '+paddedLabel),name+': exact event ID and label remain visible');
+    await page.locator('#shift-id').selectOption(paddedId);
+    await fill(page,'shift-days','1');
+    await page.locator('#calculate').click();
+    check(await page.locator('#export').isEnabled(),name+': benign padded ID permits safe CSV');
+    const [exactJSONDownload]=await Promise.all([
+      page.waitForEvent('download'),page.locator('#export-json').click()
+    ]);
+    const exactJSON=JSON.parse(readFileSync(await exactJSONDownload.path(),'utf8'));
+    check(exactJSON.days.some(day=>day.date==='2026-10-24'&&day.events.some(event=>event.id===paddedId&&event.label===paddedLabel)),name+': JSON preserves padded source ID, label and shifted occurrence');
+    const [exactCSVDownload]=await Promise.all([
+      page.waitForEvent('download'),page.locator('#export').click()
+    ]);
+    const exactCSV=readFileSync(await exactCSVDownload.path(),'utf8');
+    check(exactCSV.includes('" 00009 "," Invoice  "'),name+': CSV preserves exact padded source fields');
     check(!errors.length,name+': uncaught JS exceptions: '+errors.join('; '));
     check(!offsite.length,name+': unexpected external requests: '+offsite.join('; '));
     await page.close();
