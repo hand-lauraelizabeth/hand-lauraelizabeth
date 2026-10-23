@@ -93,10 +93,23 @@ class HttpCspReview(unittest.TestCase):
                             self.assertIn('Request REQ-00007',chronology)
                             self.assertIn('source SRC-00002',chronology)
                             imported.evaluate("document.documentElement.style.fontSize='64px'")
+                            geometry = imported.evaluate("""() => ({
+                                viewport: innerWidth,
+                                document: document.documentElement.scrollWidth,
+                                suspects: [...document.querySelectorAll('body *')]
+                                    .map(e => ({
+                                        tag: e.tagName, id: e.id,
+                                        right: Math.round(e.getBoundingClientRect().right),
+                                        width: Math.round(e.getBoundingClientRect().width),
+                                        scroll: e.scrollWidth, client: e.clientWidth
+                                    }))
+                                    .filter(e => e.right > innerWidth + 1 ||
+                                        e.scroll > e.client + 1)
+                                    .slice(0, 15)
+                            })""")
                             self.assertLessEqual(
-                                imported.evaluate('document.documentElement.scrollWidth'),
-                                imported.evaluate('innerWidth'),
-                                '400% root-font scaling must not overflow 320 CSS pixels')
+                                geometry['document'], geometry['viewport'],
+                                '400% root-font scaling overflow: ' + str(geometry))
                         finally:
                             imported.close()
                     finally:
