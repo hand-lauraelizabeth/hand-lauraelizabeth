@@ -123,6 +123,19 @@ def audit_pair(previous, current):
                 codes.add('SMALL_CLOSURE_DELTA_EXPOSED')
         if 0 < abs(previous['quality']['valid_records'] - current['quality']['valid_records']) < threshold:
             codes.add('SMALL_COHORT_TOTAL_DELTA_EXPOSED')
+        # Quality fields and invalid-row totals can reveal small changes even
+        # when all displayed cells and valid cohort totals remain unchanged.
+        # Check every numeric counter; never include counter values in reports.
+        old_quality, new_quality = previous['quality'], current['quality']
+        if old_quality.keys() != new_quality.keys():
+            codes.add('QUALITY_COUNTER_SET_CHANGED')
+        for name in old_quality.keys() & new_quality.keys():
+            delta = abs(old_quality[name] - new_quality[name])
+            if 0 < delta < threshold:
+                if name in ('rows_read', 'unique_keys_verified'):
+                    codes.add('SMALL_SOURCE_ROW_DELTA_EXPOSED')
+                elif name != 'valid_records':
+                    codes.add('SMALL_QUALITY_DELTA_EXPOSED')
     return {'status': 'HOLD', 'codes': sorted(codes), 'manual_review_required': True,
             'note': 'Necessary checks only; no request-level transitions inferred.'}
 
