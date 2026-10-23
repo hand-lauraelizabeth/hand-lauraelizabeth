@@ -15,6 +15,9 @@ from marginal_reconstruction_audit import audit_marginals
 from integer_feasibility_audit import audit_integer_feasibility
 
 EVIDENCE_FIELDS = {'coefficients', 'totals', 'suppressed', 'sensitive_groups'}
+# Aggregate snapshots and cleared marginal evidence should remain compact. Bound
+# reads before UTF-8 decoding or JSON parsing to prevent memory exhaustion.
+MAX_INPUT_BYTES = 16 * 1024 * 1024
 
 
 def _codes(result):
@@ -86,7 +89,13 @@ def _parse_finite_float(token):
 
 
 def _read_strict_json(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'),
+    # Read at most one byte beyond the limit; never allocate based on file size.
+    # Byte counting (rather than character counting) also covers UTF-8 input.
+    with Path(path).open('rb') as stream:
+        payload = stream.read(MAX_INPUT_BYTES + 1)
+    if len(payload) > MAX_INPUT_BYTES:
+        raise ValueError('oversized JSON input')
+    return json.loads(payload.decode('utf-8'),
                       object_pairs_hook=_reject_duplicate_keys,
                       parse_constant=_reject_nonfinite,
                       parse_float=_parse_finite_float)
