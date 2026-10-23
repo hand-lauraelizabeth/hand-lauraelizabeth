@@ -55,6 +55,38 @@ def audit_release(candidate, *, previous=None, evidence=None):
             'release_authorized': False, 'codes': sorted(codes)}
 
 
+def _reject_duplicate_keys(pairs):
+    """Reject ambiguous JSON objects, including duplicates in nested evidence."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError('duplicate JSON key')
+        result[key] = value
+    return result
+
+
+def _reject_nonfinite(_value):
+    """Python's permissive JSON decoder otherwise accepts NaN/Infinity."""
+    raise ValueError('nonfinite JSON number')
+
+
+def _read_strict_json(path):
+    return json.loads(Path(path).read_text(encoding='utf-8'),
+                      object_pairs_hook=_reject_duplicate_keys,
+                      parse_constant=_reject_nonfinite)
+
+
+def _aliases_source(report, source):
+    """Prevent an output report from replacing any input, even via aliases."""
+    output, original = Path(report), Path(source)
+    if output.resolve() == original.resolve():
+        return True
+    try:
+        return output.samefile(original)
+    except (OSError, ValueError):
+        return False
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('candidate_json')
@@ -62,11 +94,15 @@ def main(argv=None):
     parser.add_argument('--marginal-evidence-json', help='synthetic or cleared evidence only')
     parser.add_argument('--report', required=True)
     a = parser.parse_args(argv)
+    sources = [p for p in (a.candidate_json, a.previous_json,
+                           a.marginal_evidence_json) if p is not None]
+    if any(_aliases_source(a.report, source) for source in sources):
+        print('HOLD: report destination aliases a source; source preserved')
+        return 2
     try:
-        candidate = json.loads(Path(a.candidate_json).read_text(encoding='utf-8'))
-        previous = (json.loads(Path(a.previous_json).read_text(encoding='utf-8'))
-                    if a.previous_json else None)
-        evidence = (json.loads(Path(a.marginal_evidence_json).read_text(encoding='utf-8'))
+        candidate = _read_strict_json(a.candidate_json)
+        previous = _read_strict_json(a.previous_json) if a.previous_json else None
+        evidence = (_read_strict_json(a.marginal_evidence_json)
                     if a.marginal_evidence_json else None)
         result = audit_release(candidate, previous=previous, evidence=evidence)
     except (OSError, UnicodeError, ValueError, TypeError):
