@@ -135,5 +135,85 @@ class HttpCspReview(unittest.TestCase):
             finally:
                 browser.close()
 
+
+    def test_evidence_export_safety_and_exact_roundtrip(self):
+        """Synthetic browser downloads must preserve evidence without spreadsheet execution."""
+        import csv
+        import io
+        import json
+        engine = os.environ.get('FT09_BROWSER', 'chromium')
+        if engine not in ('chromium', 'firefox', 'webkit'):
+            raise ValueError('Unsupported browser engine')
+        request = {'id':'REQ-00007','jurisdiction':'federal',
+                   'agency':'<img src=x onerror=window.__ft09Injected=true>',
+                   'stage':'draft','submittedOn':'','agencyTrackingId':'0000987',
+                   'description':'=SUM(1,1)'}
+        event = {'id':'EV-00009','requestId':'REQ-00007','date':'2026-10-01',
+                 'kind':'note','sourceId':'SRC-00002','description':'Synthetic event'}
+        unsafe = json.dumps({'version':1,'requests':[request],'events':[event]},
+                            ensure_ascii=False).encode('utf-8')
+        with sync_playwright() as pw:
+            browser = getattr(pw, engine).launch(headless=True)
+            try:
+                with serve() as url:
+                    page = browser.new_page(accept_downloads=True)
+                    try:
+                        self.assertEqual(page.goto(url,wait_until='networkidle').status,200)
+                        self.assertEqual(page.locator('#status').get_attribute('role'),'status')
+                        page.locator('#open-json').set_input_files({
+                            'name':'synthetic.json','mimeType':'application/json','buffer':unsafe})
+                        page.locator('#status').get_by_text('Imported 1 requests and 1 events',exact=False).wait_for()
+                        self.assertIn('REQ-00007',page.locator('#requests').inner_text())
+                        self.assertIn('EV-00009',page.locator('#events').inner_text())
+                        self.assertIn('SRC-00002',page.locator('#events').inner_text())
+                        self.assertEqual(page.locator('img').count(),0)
+                        self.assertFalse(page.evaluate('Boolean(window.__ft09Injected)'))
+                        downloads=[]
+                        page.on('download',lambda item: downloads.append(item))
+                        page.locator('#save-csv').click()
+                        page.locator('#status').get_by_text('CSV unavailable',exact=False).wait_for()
+                        page.wait_for_timeout(300)
+                        self.assertEqual(downloads,[],'Unsafe CSV must not be downloaded')
+                        self.assertIn('REQ-00007',page.locator('#requests').inner_text())
+                        with page.expect_download() as saved:
+                            page.locator('#save-json').click()
+                        exported=json.loads(saved.value.path().read_text(encoding='utf-8'))
+                        self.assertEqual(exported['requests'][0],request)
+                        self.assertEqual(exported['events'][0],event)
+                        self.assertEqual(exported['requests'][0]['agencyTrackingId'],'0000987')
+                    finally:
+                        page.close()
+
+                    safe_request={**request,'agency':'Example agency',
+                                  'description':'Safe, multiline\nnote'}
+                    safe=json.dumps({'version':1,'requests':[safe_request],'events':[event]},
+                                    ensure_ascii=False).encode('utf-8')
+                    page=browser.new_page(accept_downloads=True)
+                    try:
+                        self.assertEqual(page.goto(url,wait_until='networkidle').status,200)
+                        page.locator('#open-json').set_input_files({
+                            'name':'safe.json','mimeType':'application/json','buffer':safe})
+                        page.locator('#status').get_by_text('Imported 1 requests and 1 events',exact=False).wait_for()
+                        with page.expect_download() as saved:
+                            page.locator('#save-csv').click()
+                        self.assertEqual(saved.value.suggested_filename,'public-records-workspace.csv')
+                        rows=list(csv.reader(io.StringIO(saved.value.path().read_text(encoding='utf-8'),
+                                                         newline=''),strict=True))
+                        self.assertEqual(len(rows),3)
+                        self.assertEqual(len(rows[0]),11)
+                        self.assertEqual([len(row) for row in rows],[11,11,11])
+                        self.assertEqual(rows[0],['recordType','requestId','eventId','date',
+                            'jurisdiction','agency','stage','kind','sourceId',
+                            'description','agencyTrackingId'])
+                        self.assertEqual(rows[1][1],'REQ-00007')
+                        self.assertEqual(rows[1][9],'Safe, multiline\nnote')
+                        self.assertEqual(rows[1][10],'0000987')
+                        self.assertEqual(rows[2][2],'EV-00009')
+                        self.assertEqual(rows[2][8],'SRC-00002')
+                    finally:
+                        page.close()
+            finally:
+                browser.close()
+
 if __name__ == '__main__':
     unittest.main()
