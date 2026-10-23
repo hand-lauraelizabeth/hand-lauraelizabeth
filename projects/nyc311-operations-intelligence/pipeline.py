@@ -43,14 +43,19 @@ def ingest(source, output, *, as_of, min_cell=10):
     closed = collections.Counter()
     with source.open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
-        missing = REQUIRED - set(reader.fieldnames or [])
+        headers = reader.fieldnames or []
+        if len(headers) != len(set(headers)):
+            raise ValueError("Duplicate CSV header")
+        missing = REQUIRED - set(headers)
         if missing: raise ValueError("Missing API columns: " + ", ".join(sorted(missing)))
         for row in reader:
+            if None in row or any(value is None for value in row.values()):
+                raise ValueError("Malformed CSV row: inconsistent field count")
             counts["rows_read"] += 1
             key = normalize(row["unique_key"])
             created = dateparse(row["created_date"])
             finished = dateparse(row["closed_date"])
-            if not key: counts["missing_unique_key"] += 1
+            if not key: raise ValueError("Missing unique_key")
             if not created: counts["missing_or_invalid_created_date"] += 1; continue
             if created.date() > as_of_day: counts["created_after_as_of"] += 1; continue
             if finished and (finished < created): counts["closure_before_creation"] += 1
