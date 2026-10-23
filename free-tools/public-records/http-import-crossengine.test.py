@@ -105,6 +105,7 @@ class HttpCspReview(unittest.TestCase):
                                 suspects: [...document.querySelectorAll('body *')]
                                     .map(e => ({
                                         tag: e.tagName, id: e.id,
+                                        labelText: e.tagName === 'LABEL' ? e.textContent.trim().slice(0, 70) : '',
                                         right: Math.round(e.getBoundingClientRect().right),
                                         width: Math.round(e.getBoundingClientRect().width),
                                         scroll: e.scrollWidth, client: e.clientWidth
