@@ -10,4 +10,4 @@ button:hover{background:#eaf2ec}
 
 /* WebKit exposes native select option widths through ancestor scrollWidth at enlarged text.
    Contain that intrinsic overflow while preserving room for the keyboard focus ring. */
-.ft15-filters label{overflow:hidden;padding:3px}
+.ft15-filters label{overflow:hidden;padding:7px}
