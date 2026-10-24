@@ -21,6 +21,9 @@ EVIDENCE_FIELDS = {'coefficients', 'totals', 'suppressed', 'sensitive_groups'}
 # Aggregate snapshots and cleared marginal evidence should remain compact. Bound
 # reads before UTF-8 decoding or JSON parsing to prevent memory exhaustion.
 MAX_INPUT_BYTES = 16 * 1024 * 1024
+# Bound untrusted CSV snapshots independently of the candidate's self-reported
+# source_bytes. A larger authentic export requires an explicit reviewed change.
+MAX_SOURCE_BYTES = 1024 * 1024 * 1024
 
 
 def _codes(result):
@@ -115,6 +118,8 @@ def _source_binding_codes(candidate, csv_path, *, snapshot_path=None):
             len(candidate['source_sha256']) != 64 or
             any(c not in '0123456789abcdef' for c in candidate['source_sha256'])):
         return ['SOURCE_CSV_BINDING_FAILED']
+    if candidate['source_bytes'] > MAX_SOURCE_BYTES:
+        return ['SOURCE_CSV_SIZE_LIMIT_EXCEEDED']
     digest = hashlib.sha256()
     size = 0
     try:
@@ -129,6 +134,10 @@ def _source_binding_codes(candidate, csv_path, *, snapshot_path=None):
                 if not chunk:
                     break
                 size += len(chunk)
+                # Never copy or hash beyond the cap, even when a candidate
+                # understates its size or the source grows while being read.
+                if size > MAX_SOURCE_BYTES:
+                    return ['SOURCE_CSV_SIZE_LIMIT_EXCEEDED']
                 digest.update(chunk)
                 if snapshot is not None:
                     snapshot.write(chunk)
