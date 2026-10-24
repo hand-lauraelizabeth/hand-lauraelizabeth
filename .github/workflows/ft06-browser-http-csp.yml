@@ -19,8 +19,8 @@ jobs:
     timeout-minutes: 15
     container:
       image: mcr.microsoft.com/playwright/python:v1.57.0-noble
-      env:
-        HOME: /root
+    env:
+      HOME: /root
     steps:
       - uses: actions/checkout@v4
       - name: Install version-matched Playwright Python package
