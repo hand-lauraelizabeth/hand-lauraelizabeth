@@ -96,6 +96,11 @@ export function calculateLedger(award, categories, expenses) {
     totalUnassignedCents:totalExpenseCents-totalAssignedCents,review};
 }
 function csvCell(value) {
+  // Computed signed integer cents are numeric data, not untrusted text/formulas.
+  if (typeof value === 'number') {
+    if (!Number.isSafeInteger(value)) throw new Error('Invalid numeric CSV value');
+    return `"${value}"`;
+  }
   let text = String(value ?? '');
   // Spreadsheet-oriented precaution; a CSV consumer may strip or reinterpret this prefix.
   if (/^[\s\uFEFF]*[=+\-@\t\r＝＋－＠]/u.test(text)) text = `'${text}`;

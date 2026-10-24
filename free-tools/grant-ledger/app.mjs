@@ -1,4 +1,5 @@
 import {calculateLedger,exportTransactionsCSV,exportBudgetCSV,exportReviewCSV,exportJSON} from './core.mjs';
+import {assertSafeLedgerCSV} from './csv-preflight.mjs';
 import {buildInterface} from './view.mjs';
 import {renderLedger} from './render.mjs';
 buildInterface();
@@ -26,8 +27,19 @@ function download(filename,mime,text){
  setTimeout(()=>URL.revokeObjectURL(url),1000);$('status').textContent=filename+' downloaded.';
 }
 const current=()=>calculateLedger(award,categories,expenses);
-$('downloadTransactions').addEventListener('click',()=>download('grant-transactions.csv','text/csv;charset=utf-8',exportTransactionsCSV(current())));
-$('downloadBudget').addEventListener('click',()=>download('grant-budget.csv','text/csv;charset=utf-8',exportBudgetCSV(current())));
-$('downloadReview').addEventListener('click',()=>download('grant-review-flags.csv','text/csv;charset=utf-8',exportReviewCSV(current())));
+function safeCSV(kind, filename, exporter) {
+ try {
+  const result=current();
+  assertSafeLedgerCSV(result,kind);
+  error('');
+  download(filename,'text/csv;charset=utf-8',exporter(result));
+ } catch(e) {
+  error(e.message);
+  $('status').textContent='CSV unavailable. Evidence JSON retains the original entered values.';
+ }
+}
+$('downloadTransactions').addEventListener('click',()=>safeCSV('transactions','grant-transactions.csv',exportTransactionsCSV));
+$('downloadBudget').addEventListener('click',()=>safeCSV('budget','grant-budget.csv',exportBudgetCSV));
+$('downloadReview').addEventListener('click',()=>safeCSV('review','grant-review-flags.csv',exportReviewCSV));
 $('downloadJSON').addEventListener('click',()=>download('grant-evidence.json','application/json;charset=utf-8',exportJSON(current())));
 renderLedger(current());
