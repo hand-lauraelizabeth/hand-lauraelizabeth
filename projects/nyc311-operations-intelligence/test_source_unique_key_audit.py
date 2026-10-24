@@ -27,11 +27,22 @@ class UniqueKeySourceAuditTests(unittest.TestCase):
     def test_duplicate_key(self):
         self.assertEqual(self.run_csv(b'unique_key\n123\n123\n'), ['SOURCE_UNIQUE_KEY_DUPLICATE'])
 
-    def test_leading_zero_key(self):
-        self.assertEqual(self.run_csv(b'unique_key\n0123\n'), ['SOURCE_UNIQUE_KEY_INVALID'])
+    def test_leading_zero_text_key_preserved(self):
+        self.assertIn('SOURCE_UNIQUE_KEYS_DISTINCT', self.run_csv(b'unique_key\n0123\n'))
 
-    def test_non_ascii_key(self):
-        self.assertEqual(self.run_csv('unique_key\n１２３\n'.encode()), ['SOURCE_UNIQUE_KEY_INVALID'])
+    def test_non_ascii_text_key_preserved(self):
+        self.assertIn('SOURCE_UNIQUE_KEYS_DISTINCT',
+                      self.run_csv('unique_key\n１２３\n'.encode()))
+
+    def test_text_key_distinct_from_numeric_looking_key(self):
+        self.assertIn('SOURCE_UNIQUE_KEYS_DISTINCT',
+                      self.run_csv(b'unique_key\n0123\n123\n'))
+
+    def test_empty_key_fails_closed(self):
+        self.assertEqual(self.run_csv(b'unique_key\n""\n'), ['SOURCE_UNIQUE_KEY_INVALID'])
+
+    def test_control_character_key_fails_closed(self):
+        self.assertEqual(self.run_csv(b'unique_key\n"abc\tdef"\n'), ['SOURCE_UNIQUE_KEY_INVALID'])
 
     def test_header_alias_collision(self):
         self.assertEqual(self.run_csv(b'unique_key,Unique Key\n123,123\n'), ['SOURCE_CSV_HEADER_INVALID'])
