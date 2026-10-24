@@ -62,7 +62,7 @@ compareButton.addEventListener("click", () => {
     latest = compareRecords(records,left.value,right.value);
     output.replaceChildren();
     addText(output,"p",latest.comparable
-      ? "Comparable on basic series, variable, period and geography gates. Difference (right minus left): " + latest.difference
+      ? "Comparable on basic series, variable, period and geography gates. Difference (right minus left): " + (latest.difference_exact ?? latest.difference)
       : "Direct comparison blocked.");
     for (const item of [...latest.reasons,...latest.cautions]) addText(output,"p",item);
     setStatus("Comparison reviewed. No statistical significance determination is made.");
