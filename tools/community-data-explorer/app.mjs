@@ -1,14 +1,14 @@
-import {MAX_BYTES,readCsvBytes,compareRecords,evidenceExport} from "./engine.mjs";
+import {MAX_BYTES,readCsvBytes,fingerprintCsv,compareRecords,evidenceExport} from "./engine.mjs";
 const byId = id => document.getElementById(id);
 const input = byId("csv"), label = byId("label"), left = byId("left"), right = byId("right");
 const status = byId("status"), error = byId("error"), output = byId("comparison"), table = byId("records");
 const compareButton = byId("compare"), exportButton = byId("export");
-let records = [], latest = null, generation = 0;
+let records = [], latest = null, fingerprint = null, generation = 0;
 function showError(message) { error.textContent = message; error.hidden = false; error.focus(); }
 function clearError() { error.textContent = ""; error.hidden = true; }
 function setStatus(message) { status.textContent = message; }
 function reset() {
-  records = []; latest = null; compareButton.disabled = true; exportButton.disabled = true;
+  records = []; latest = null; fingerprint = null; compareButton.disabled = true; exportButton.disabled = true;
   left.replaceChildren(); right.replaceChildren(); table.replaceChildren(); output.replaceChildren();
 }
 function addText(parent, tag, value) {
@@ -34,7 +34,7 @@ function render() {
   table.replaceChildren(body);
   compareButton.disabled = records.length < 2;
   exportButton.disabled = false;
-  setStatus(records.length + " records loaded locally. Preview shows up to 100. Source authenticity is not verified.");
+  setStatus(records.length + " records loaded locally. Preview shows up to 100. " + (fingerprint?.sha256 ? "Original file SHA-256 computed locally. " : "Original file SHA-256 unavailable. ") + "Source authenticity is not verified.");
 }
 input.addEventListener("change", async () => {
   const ticket = ++generation; reset(); clearError(); setStatus("Reading file locally…");
@@ -47,6 +47,8 @@ input.addEventListener("change", async () => {
     const bytes = await file.arrayBuffer();
     if (ticket !== generation) return;
     records = readCsvBytes(bytes,file.size);
+    fingerprint = await fingerprintCsv(bytes);
+    if (ticket !== generation) return;
     render();
   } catch (e) {
     if (ticket !== generation) return;
@@ -70,7 +72,7 @@ for(const select of [left,right]) select.addEventListener("change", () => { late
 exportButton.addEventListener("click", () => {
   clearError();
   try {
-    const evidence = evidenceExport(records,label.value,latest);
+    const evidence = evidenceExport(records,label.value,latest,fingerprint);
     const blob = new Blob([JSON.stringify(evidence,null,2)],{type:"application/json"});
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = "community-data-evidence.json";
