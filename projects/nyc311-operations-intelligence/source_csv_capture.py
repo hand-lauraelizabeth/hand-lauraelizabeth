@@ -6,7 +6,9 @@ Only the seven explicitly selected public-data fields are requested. Do not
 commit downloaded source rows or capture receipts to a public repository.
 """
 import argparse
+import csv
 from contextlib import closing
+import io
 from http.client import HTTPException
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -17,7 +19,7 @@ import tempfile
 from urllib.request import Request, HTTPRedirectHandler, build_opener
 
 from source_export_query_contract import (check_export_query, query_fingerprint,
-                                          canonical_export_url)
+                                          canonical_export_url, FIELDS)
 
 MAX_SOURCE_BYTES = 1024 * 1024 * 1024  # Keep in sync with private_release_gate.
 CHUNK_BYTES = 1024 * 1024
@@ -30,6 +32,26 @@ class CaptureError(Exception):
 class _NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
+
+
+def _verify_selected_csv_header(path):
+    """Reject any unrequested columns before exposing a private source file.
+
+    The seven-field API export is intentionally minimal. This bounded first-
+    line check is not a substitute for the full streaming row/key/month audit.
+    """
+    with Path(path).open('rb') as source:
+        prefix = source.read(4096)
+    if b'\\n' not in prefix:
+        raise CaptureError('SOURCE_CSV_HEADER_INVALID')
+    try:
+        first_line = prefix.split(b'\\n', 1)[0] + b'\\n'
+        parsed = list(csv.reader(io.StringIO(first_line.decode('utf-8-sig')),
+                                 strict=True))
+    except (UnicodeError, csv.Error):
+        raise CaptureError('SOURCE_CSV_HEADER_INVALID') from None
+    if len(parsed) != 1 or parsed[0] != FIELDS.split(','):
+        raise CaptureError('SOURCE_CSV_HEADER_INVALID')
 
 
 def capture_official_csv(url, destination, *, reference_rows, opener=None,
@@ -99,6 +121,9 @@ def capture_official_csv(url, destination, *, reference_rows, opener=None,
                     raise CaptureError('SOURCE_HTTP_LENGTH_MISMATCH')
                 out.flush()
                 os.fsync(out.fileno())
+        # Reject unexpected columns, including potentially identifying fields,
+        # before exposing even a private capture destination.
+        _verify_selected_csv_header(temporary)
         # Close the HTTP response before publishing a source file. A close-time
         # protocol error must not leave a seemingly successful orphan capture.
         # Atomic no-clobber link: never replace a user's source or report.
