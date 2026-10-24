@@ -70,6 +70,7 @@ try {
   const enlarged = await page.evaluate(() => ({
     width: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
+    labels: [...document.querySelectorAll('.ft15-filters label')].map(el => ({text:el.textContent.slice(0,35),w:el.clientWidth,scroll:el.scrollWidth,children:[...el.children].map(c=>({tag:c.tagName,w:c.clientWidth,scroll:c.scrollWidth,rect:Math.round(c.getBoundingClientRect().right)}))})),
     overflow: [...document.querySelectorAll('*')].filter(el => el.scrollWidth > el.clientWidth + 1 || el.getBoundingClientRect().right > innerWidth + 1).slice(0, 12).map(el => ({ tag: el.tagName, id: el.id, className: String(el.className).slice(0, 70), width: el.clientWidth, scroll: el.scrollWidth, left: Math.round(el.getBoundingClientRect().left), right: Math.round(el.getBoundingClientRect().right) }))
   }));
   equal(enlarged.scrollWidth <= enlarged.width, true, '200% root text enlargement reflow (not native browser zoom): ' + JSON.stringify(enlarged));
