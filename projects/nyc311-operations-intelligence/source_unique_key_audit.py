@@ -11,7 +11,7 @@ from pathlib import Path
 
 MAX_CSV_FIELD = 1024 * 1024
 MAX_COLUMNS = 512
-MAX_KEY_DIGITS = 20
+MAX_KEY_LENGTH = 256
 
 
 def audit_unique_keys(source_csv, *, expected_rows=None):
@@ -47,9 +47,10 @@ def audit_unique_keys(source_csv, *, expected_rows=None):
                         if len(row) != len(header):
                             return ['SOURCE_CSV_ROW_STRUCTURE_INVALID']
                         key = row[index]
-                        if (not key or len(key) > MAX_KEY_DIGITS or
-                                not key.isascii() or not key.isdecimal() or
-                                key[0] == '0'):
+                        # Official NYC Open Data declares Unique Key as TEXT,
+                        # not a numeric type. Preserve leading zeroes and Unicode.
+                        if (not key or len(key) > MAX_KEY_LENGTH or
+                                any(ord(ch) < 32 or ord(ch) == 127 for ch in key)):
                             return ['SOURCE_UNIQUE_KEY_INVALID']
                         try:
                             db.execute('INSERT INTO keys(value) VALUES (?)', (key,))
