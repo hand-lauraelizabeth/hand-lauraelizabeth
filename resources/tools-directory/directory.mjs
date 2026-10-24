@@ -14,6 +14,9 @@ export function validateCatalog(rows=TOOLS){
    // Public labels are single-line metadata: reject hidden line breaks, C0/C1 controls,
    // Unicode line/paragraph separators and BOM before rendering or indexing.
    if(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\ufeff]/u.test(t[key]))throw Error('Control character in '+key);
+   // Non-printing format characters can conceal different visible labels and search terms.
+   // Keep ZWNJ/ZWJ for languages that require them; reject only the listed catalog obfuscators.
+   if(/[\u00ad\u180e\u200b\u2060]/u.test(t[key]))throw Error('Invisible format character in '+key);
   }
   if(!Object.hasOwn(STATUS_LABELS,t.status))throw Error('Invalid availability');
   if(t.status==='live'||t.status==='preview'){
