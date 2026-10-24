@@ -35,7 +35,7 @@ test("reject malformed, duplicate, unsafe and inconsistent inputs", () => {
   const bad = [
     [header,a,a].join("\n"),
     [header,a.replace("0001","\u202e0001")].join("\n"),
-    [header,a.replace("2015,2019","2019,2023")].join("\n"),
+    [header,a.replace("2015,2019","2019,2022")].join("\n"),
     [header,a.replace("acs5","acs1")].join("\n"),
     [header,a.replace("60000","=1+1")].join("\n"),
     [header,a.replace("1000","-3")].join("\n"),
