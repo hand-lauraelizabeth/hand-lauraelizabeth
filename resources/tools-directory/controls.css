@@ -8,5 +8,6 @@ input,select{display:block;width:100%;min-height:2.75rem;margin-top:.3rem;paddin
 button{min-height:2.75rem;padding:.5rem .85rem;border:1px solid var(--green);border-radius:.4rem;background:#fff;color:var(--green-deep);font-weight:700;cursor:pointer}
 button:hover{background:#eaf2ec}
 
-/* Constrain WebKit's intrinsic option-label scroll width under enlarged text. */
-select{overflow:hidden;text-overflow:ellipsis}
+/* WebKit exposes native select option widths through ancestor scrollWidth at enlarged text.
+   Contain that intrinsic overflow while preserving room for the keyboard focus ring. */
+.ft15-filters label{overflow:hidden;padding:3px}
