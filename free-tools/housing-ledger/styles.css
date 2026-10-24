@@ -1,1 +1,10 @@
 :root{font:100%/1.55 system-ui,sans-serif;color:#182b27;background:#f6f8f5}*{box-sizing:border-box}body{margin:0}header,main,footer{max-width:70rem;margin:auto;padding:1rem}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}section{min-width:0;border:1px solid #b8c7be;padding:1rem;background:white}input,select,textarea{display:block;min-width:0;max-width:100%;width:100%;font:inherit;padding:.5rem}label{display:block;margin-top:.8rem}button{font:inherit;cursor:pointer;padding:.6rem;margin:.6rem 0;background:#205942;color:white;border:2px solid #205942}.skip{position:absolute;left:-9999px}.skip:focus{left:1rem;top:1rem;background:white}:focus-visible{outline:3px solid #ad4d00;outline-offset:3px}.notice,#error{padding:1rem;border-left:4px solid #205942}li{overflow-wrap:anywhere}.actions{display:flex;flex-wrap:wrap;gap:.75rem}@media(max-width:720px){.grid{grid-template-columns:minmax(0,1fr)}}
+/* Preserve readable controls and source evidence at narrow widths and enlarged text. */
+header,main,footer,section,h1,h2,h3,p,li{min-width:0;overflow-wrap:anywhere}
+.actions button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:400px){
+  header,main,footer{padding:.5rem}
+  section{padding:.5rem}
+  .actions{display:grid;grid-template-columns:minmax(0,1fr)}
+  .actions button{width:100%;margin:.25rem 0}
+}
