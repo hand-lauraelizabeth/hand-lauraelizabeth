@@ -14,6 +14,20 @@ function reset() {
 function addText(parent, tag, value) {
   const element = document.createElement(tag); element.textContent = String(value); parent.append(element); return element;
 }
+// Explain annotation semantics without implying that a suppressed or controlled MOE is zero.
+function displayMeasure(value, status) {
+  if (status === "available") return value;
+  const labels = {
+    missing:"missing",
+    suppressed_insufficient_cases:"suppressed: insufficient cases",
+    not_applicable:"not applicable",
+    insufficient_observations:"insufficient observations",
+    controlled_moe:"controlled: MOE not numeric",
+    open_interval_moe:"open-ended median: MOE unavailable",
+    insufficient_moe:"insufficient sample: MOE unavailable"
+  };
+  return "Not numeric (" + (labels[status] || "unavailable") + ")";
+}
 function render() {
   for (const record of records) {
     for (const select of [left,right]) {
@@ -28,7 +42,7 @@ function render() {
   for (const r of records.slice(0,100)) {
     const tr = document.createElement("tr");
     for (const value of [r.source_id,r.geography,r.variable,r.series,r.period_start+"–"+r.period_end,
-      r.estimate ?? "Missing",r.moe ?? "Missing"]) addText(tr,"td",value);
+      displayMeasure(r.estimate,r.estimate_status),displayMeasure(r.moe,r.moe_status)]) addText(tr,"td",value);
     body.append(tr);
   }
   table.replaceChildren(body);

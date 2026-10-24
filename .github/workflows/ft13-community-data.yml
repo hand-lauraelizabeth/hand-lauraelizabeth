@@ -4,6 +4,7 @@ on:
     branches:
       - review/ft13-local-acs-comparison-20261024-0926
       - review/ft13-decimal-acs-evidence-20261024-1032
+      - review/ft13-acs-annotation-semantics-20261024-1130
     paths:
       - 'tools/community-data-explorer/**'
       - '.github/workflows/ft13-community-data.yml'
@@ -23,7 +24,7 @@ jobs:
           node-version: '22'
       - run: node --check tools/community-data-explorer/engine.mjs
       - run: node --check tools/community-data-explorer/app.mjs
-      - run: node --test tools/community-data-explorer/engine.test.mjs tools/community-data-explorer/decimal.test.mjs
+      - run: node --test tools/community-data-explorer/engine.test.mjs tools/community-data-explorer/decimal.test.mjs tools/community-data-explorer/annotation.test.mjs
   browser:
     runs-on: ubuntu-24.04
     container:

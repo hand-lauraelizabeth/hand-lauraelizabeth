@@ -4,7 +4,15 @@ export const MAX_RECORDS = 5_000;
 export const COLUMNS = ["source_id","geography","variable","series","period_start","period_end","estimate","moe"];
 const dangerous = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 const formulaPrefix = /^[\s\u00a0]*[=+\-@\uff1d\uff0b\uff0d\uff20]/u;
-const missingCodes = new Set(["-666666666","-888888888","-999999999"]);
+// Census annotation sentinels are not numeric estimates or numeric margins of error.
+const annotationCodes = new Map([
+  ["-999999999","suppressed_insufficient_cases"],
+  ["-888888888","not_applicable"],
+  ["-666666666","insufficient_observations"],
+  ["-555555555","controlled_moe"],
+  ["-333333333","open_interval_moe"],
+  ["-222222222","insufficient_moe"]
+]);
 function fail(message) { throw new Error(message); }
 function safeLabel(value, field) {
   if (typeof value !== "string" || !value.trim() || value.length > 240 || dangerous.test(value) || formulaPrefix.test(value))
@@ -43,15 +51,28 @@ function integer(raw, field) {
   return n;
 }
 // ACS detailed-table variables such as B01002 median age have decimal estimates.
-function measure(raw, field) {
-  if (raw === "" || raw === "*****" || missingCodes.has(raw)) return null;
+function measure(raw, field, kind) {
+  if (raw === "" || raw === "null") return {value:null,status:"missing"};
+  // Census documents sentinel values with .0 and .00 suffixes as well as integers.
+  const code = raw.replace(/[.]0{1,2}$/, "");
+  const annotation = annotationCodes.get(code);
+  if (annotation) {
+    if (kind === "estimate" && !["suppressed_insufficient_cases","not_applicable","insufficient_observations"].includes(annotation))
+      fail(field + " contains an MOE-only annotation");
+    return {value:null,status:annotation};
+  }
+  const symbols = kind === "estimate"
+    ? {"N":"suppressed_insufficient_cases","(X)":"not_applicable","-":"insufficient_observations"}
+    : {"N":"suppressed_insufficient_cases","(X)":"not_applicable","-":"insufficient_observations",
+       "**":"insufficient_moe","***":"open_interval_moe","*****":"controlled_moe"};
+  if (Object.hasOwn(symbols,raw)) return {value:null,status:symbols[raw]};
   if (!/^(0|[1-9][0-9]*)(?:[.][0-9]{1,6})?$/.test(raw))
-    fail(field + " must be a nonnegative decimal (up to 6 places) or explicit missing code");
+    fail(field + " must be a nonnegative decimal (up to 6 places) or recognized ACS annotation");
   const [whole, fraction] = raw.split(".");
   if (BigInt(whole) > BigInt(Number.MAX_SAFE_INTEGER) ||
       (fraction !== undefined && BigInt(whole) > 1_000_000_000_000n))
     fail(field + " exceeds supported numeric precision");
-  return Number(raw);
+  return {value:Number(raw),status:"available"};
 }
 function exactMeasureDifference(leftRaw, rightRaw) {
   const decimals = raw => (raw.split(".")[1] || "").length;
@@ -86,12 +107,12 @@ export function normalizeRows(rows) {
     const end = integer(last, "Row " + line + " period_end");
     if (start < 2005 || end > 2100 || end - start !== (series === "acs5" ? 4 : 0) || (series === "acs1" && start === 2020))
       fail("Row " + line + " has an invalid or unsupported ACS period");
-    const estimate = measure(rawEstimate, "Row " + line + " estimate");
-    const moe = measure(rawMoe, "Row " + line + " moe");
+    const {value:estimate,status:estimate_status} = measure(rawEstimate, "Row " + line + " estimate", "estimate");
+    const {value:moe,status:moe_status} = measure(rawMoe, "Row " + line + " moe", "moe");
     if (seen.has(source_id)) fail("Duplicate exact source_id at row " + line);
     seen.add(source_id);
     return {source_id,geography,variable,series,period_start:start,period_end:end,
-      estimate,moe,estimate_raw:rawEstimate,moe_raw:rawMoe};
+      estimate,moe,estimate_status,moe_status,estimate_raw:rawEstimate,moe_raw:rawMoe};
   });
 }
 export function readCsvBytes(buffer, declaredSize) {
@@ -126,7 +147,7 @@ export function compareRecords(records, leftId, rightId) {
       reasons.push("Same-geography periods overlap or are identical");
   }
   if (left.estimate === null || right.estimate === null) reasons.push("One or both estimates are missing");
-  if (left.moe === null || right.moe === null) cautions.push("One or both margins of error are unavailable");
+  if (left.moe === null || right.moe === null) cautions.push("One or both margins of error are unavailable or annotated (left: " + left.moe_status + "; right: " + right.moe_status + "). An annotated MOE is not a numeric zero.");
   cautions.push("Read ACS variable definitions, geography changes and margins of error; no statistical significance determination is made");
   const difference_exact = reasons.length === 0
     ? exactMeasureDifference(left.estimate_raw,right.estimate_raw) : null;
