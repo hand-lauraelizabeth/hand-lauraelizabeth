@@ -4,6 +4,7 @@ Use only synthetic or independently cleared marginal evidence. The output
 contains redacted risk codes, never record-level data, marginal values or labels.
 """
 import argparse
+from contextlib import ExitStack
 import hashlib
 import json
 import math
@@ -103,7 +104,7 @@ def _read_strict_json(path):
                       parse_float=_parse_finite_float)
 
 
-def _source_binding_codes(candidate, csv_path):
+def _source_binding_codes(candidate, csv_path, *, snapshot_path=None):
     """Compare bytes with the candidate's claim; never attest official origin."""
     if csv_path is None:
         return ['SOURCE_CSV_NOT_SUPPLIED']
@@ -117,13 +118,20 @@ def _source_binding_codes(candidate, csv_path):
     digest = hashlib.sha256()
     size = 0
     try:
-        with Path(csv_path).open('rb') as source:
+        # Snapshot the exact bytes being hashed. Auditing the original path
+        # later would permit a changed file to be validated against an old hash.
+        with ExitStack() as stack:
+            source = stack.enter_context(Path(csv_path).open('rb'))
+            snapshot = (stack.enter_context(Path(snapshot_path).open('xb'))
+                        if snapshot_path is not None else None)
             while True:
                 chunk = source.read(1024 * 1024)
                 if not chunk:
                     break
                 size += len(chunk)
                 digest.update(chunk)
+                if snapshot is not None:
+                    snapshot.write(chunk)
     except (OSError, ValueError):
         return ['SOURCE_CSV_READ_FAILED_CLOSED']
     if size != candidate['source_bytes'] or digest.hexdigest() != candidate['source_sha256']:
@@ -165,17 +173,21 @@ def main(argv=None):
         evidence = (_read_strict_json(a.marginal_evidence_json)
                     if a.marginal_evidence_json else None)
         result = audit_release(candidate, previous=previous, evidence=evidence)
-        binding = _source_binding_codes(candidate, a.source_csv)
-        codes = set(result['codes']) | set(binding)
-        if 'SOURCE_CSV_BYTES_MATCH_CANDIDATE_CLAIM' in binding:
-            # Uniqueness and optional row count are independent of byte equality.
-            # Neither check proves publisher provenance or query completeness.
-            if a.created_month is None:
-                codes.add('SOURCE_CREATED_DATE_MONTH_NOT_BOUND')
-            expected_rows = candidate.get('source_rows') if type(candidate) is dict else None
-            codes.update(audit_unique_keys(a.source_csv, expected_rows=expected_rows,
-                                           expected_month=a.created_month))
-        result['codes'] = sorted(codes)
+        # Hash and audit one private, automatically removed byte snapshot.
+        # This closes the gap between hashing the input and reopening it for
+        # unique_key/month checks; it does NOT authenticate publisher origin.
+        with tempfile.TemporaryDirectory(prefix='nyc311_source_snapshot_') as snapshot_dir:
+            snapshot = Path(snapshot_dir) / 'source.csv'
+            binding = _source_binding_codes(candidate, a.source_csv,
+                                            snapshot_path=snapshot)
+            codes = set(result['codes']) | set(binding)
+            if 'SOURCE_CSV_BYTES_MATCH_CANDIDATE_CLAIM' in binding:
+                if a.created_month is None:
+                    codes.add('SOURCE_CREATED_DATE_MONTH_NOT_BOUND')
+                expected_rows = candidate.get('source_rows') if type(candidate) is dict else None
+                codes.update(audit_unique_keys(snapshot, expected_rows=expected_rows,
+                                               expected_month=a.created_month))
+            result['codes'] = sorted(codes)
     except (OSError, UnicodeError, ValueError, TypeError,
             RecursionError, ArithmeticError):
         result = {'status': 'HOLD', 'manual_review_required': True,
