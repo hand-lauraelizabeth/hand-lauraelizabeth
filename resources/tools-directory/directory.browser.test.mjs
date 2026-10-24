@@ -70,7 +70,7 @@ try {
   const enlarged = await page.evaluate(() => ({
     width: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
-    overflow: [...document.querySelectorAll('*')].filter(el => el.getBoundingClientRect().right > innerWidth + 1).slice(0, 8).map(el => ({ tag: el.tagName, id: el.id, className: String(el.className).slice(0, 70), right: Math.round(el.getBoundingClientRect().right) }))
+    overflow: [...document.querySelectorAll('*')].filter(el => el.scrollWidth > el.clientWidth + 1 || el.getBoundingClientRect().right > innerWidth + 1).slice(0, 12).map(el => ({ tag: el.tagName, id: el.id, className: String(el.className).slice(0, 70), width: el.clientWidth, scroll: el.scrollWidth, left: Math.round(el.getBoundingClientRect().left), right: Math.round(el.getBoundingClientRect().right) }))
   }));
   equal(enlarged.scrollWidth <= enlarged.width, true, '200% root text enlargement reflow (not native browser zoom): ' + JSON.stringify(enlarged));
   equal(await page.locator('#tool-query').isVisible(), true, 'search remains visible on narrow screen');
