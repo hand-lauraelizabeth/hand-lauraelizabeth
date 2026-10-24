@@ -35,7 +35,7 @@ try{
     count++;
   }
   await page.setViewportSize({width:320,height:700});
-  await page.evaluate(()=>{document.documentElement.style.fontSize='400%';});
+  await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
   await page.locator('#source-id').fill('000-A/１');
   await page.locator('#source-label').fill('Synthetic receipt');
   await page.locator('#source-form button').click();
