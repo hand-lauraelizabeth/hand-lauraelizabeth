@@ -31,7 +31,7 @@ try{
     await page.setViewportSize({width,height:700});
     await page.evaluate(s=>{document.documentElement.style.fontSize=s+'%';},scale);
     const sizes=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
-    assert.ok(sizes.scroll<=sizes.viewport+1,`horizontal overflow at ${width}px/${scale}%: ${JSON.stringify(sizes)}`);
+    if(sizes.scroll>sizes.viewport+1){const offenders=await page.evaluate(()=>[...document.querySelectorAll('*')].filter(el=>el.getBoundingClientRect().right>document.documentElement.clientWidth+1).slice(0,12).map(el=>({tag:el.tagName,id:el.id,cls:el.className,right:Math.round(el.getBoundingClientRect().right),scroll:el.scrollWidth,client:el.clientWidth})));assert.fail(`horizontal overflow at ${width}px/${scale}%: ${JSON.stringify({sizes,offenders})}`);}
     count++;
   }
   await page.setViewportSize({width:320,height:700});
