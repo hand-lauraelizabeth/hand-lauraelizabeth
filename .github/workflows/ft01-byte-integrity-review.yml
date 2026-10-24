@@ -25,8 +25,10 @@ jobs:
         run: |
           node --check projects/data-rescue-studio/file-reader.js
           node --check projects/data-rescue-studio/tests/file-reader.test.js
+          node --check projects/data-rescue-studio/tests/evidence-json.test.js
       - name: Run byte-boundary and CSV regressions
         run: |
           node projects/data-rescue-studio/tests/file-reader.test.js
           node projects/data-rescue-studio/tests/rescue-core.test.js
           node projects/data-rescue-studio/tests/reconcile-core.test.js
+          node projects/data-rescue-studio/tests/evidence-json.test.js
