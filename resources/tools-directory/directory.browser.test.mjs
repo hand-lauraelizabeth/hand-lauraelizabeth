@@ -67,7 +67,12 @@ try {
   await page.setViewportSize({ width: 320, height: 720 });
   equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true, '320 CSS px reflow');
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
-  equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true, '200% root text enlargement reflow (not native browser zoom)');
+  const enlarged = await page.evaluate(() => ({
+    width: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    overflow: [...document.querySelectorAll('*')].filter(el => el.getBoundingClientRect().right > innerWidth + 1).slice(0, 8).map(el => ({ tag: el.tagName, id: el.id, className: String(el.className).slice(0, 70), right: Math.round(el.getBoundingClientRect().right) }))
+  }));
+  equal(enlarged.scrollWidth <= enlarged.width, true, '200% root text enlargement reflow (not native browser zoom): ' + JSON.stringify(enlarged));
   equal(await page.locator('#tool-query').isVisible(), true, 'search remains visible on narrow screen');
   equal(errors, [], 'no runtime script errors');
   console.log('FT-15 ' + browserName + ' HTTP browser integration: ' + checks + '/' + checks + ' PASS');
