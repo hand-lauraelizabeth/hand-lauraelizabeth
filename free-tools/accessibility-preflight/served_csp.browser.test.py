@@ -5,6 +5,7 @@ Synthetic documents only. The browser reads and exports data locally.
 import json
 import mimetypes
 import os
+import re
 import threading
 from contextlib import contextmanager
 from functools import partial
@@ -12,7 +13,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 
 ROOT = Path(__file__).resolve().parent
 POLICY = (
@@ -125,7 +126,7 @@ def main():
                 "name": "third.html", "mimeType": "text/html",
                 "buffer": third.encode("utf-8")
             })
-            page.wait_for_function("document.querySelector('#source').value.includes('third-unsafe')")
+            expect(page.locator('#source')).to_have_value(re.compile('third-unsafe'), timeout=5000)
             assert page.locator("#findings li").count() == 0
             checks += 1
             assert_no_download(page, "#download-json")
