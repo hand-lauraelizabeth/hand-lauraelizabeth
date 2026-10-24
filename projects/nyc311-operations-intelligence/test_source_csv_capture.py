@@ -104,6 +104,41 @@ class CaptureTests(unittest.TestCase):
                 self.fails('SOURCE_CSV_HEADER_INVALID',
                            Response(data=body), max_bytes=8192)
 
+    def test_staging_cleanup_failure_rolls_back_published_csv(self):
+        real_unlink = Path.unlink
+        failed = False
+
+        def fail_once(path, *args, **kwargs):
+            nonlocal failed
+            if path.name.startswith('.nyc311_capture_') and not failed:
+                failed = True
+                raise OSError('synthetic staging unlink failure')
+            return real_unlink(path, *args, **kwargs)
+
+        with patch.object(Path, 'unlink', fail_once):
+            self.fails('SOURCE_CAPTURE_CLEANUP_FAILED')
+        self.assertTrue(failed)
+
+    def test_cleanup_rollback_preserves_replaced_destination(self):
+        real_unlink = Path.unlink
+        swapped = False
+
+        def replace_destination_then_fail(path, *args, **kwargs):
+            nonlocal swapped
+            if path.name.startswith('.nyc311_capture_') and not swapped:
+                swapped = True
+                real_unlink(self.path)
+                self.path.write_bytes(b'other process')
+                raise OSError('synthetic cleanup failure after replacement')
+            return real_unlink(path, *args, **kwargs)
+
+        with patch.object(Path, 'unlink', replace_destination_then_fail):
+            with self.assertRaisesRegex(CaptureError, 'SOURCE_CAPTURE_CLEANUP_FAILED'):
+                self.run_capture()
+        self.assertTrue(swapped)
+        self.assertEqual(self.path.read_bytes(), b'other process')
+        self.assertFalse(list(self.path.parent.glob('.nyc311_capture_*')))
+
     def test_redirect_target_rejected(self):
         self.fails('SOURCE_HTTP_REDIRECT_OR_URL_MISMATCH',
                    Response(url='https://other.example/311.csv'))
