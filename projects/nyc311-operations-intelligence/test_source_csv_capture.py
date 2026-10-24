@@ -130,6 +130,33 @@ class CaptureTests(unittest.TestCase):
     def test_invalid_clock_does_not_publish_destination(self):
         self.fails('SOURCE_CAPTURE_CLOCK_INVALID', clock=lambda: datetime(2026, 10, 24))
 
+    def test_query_fingerprint_failure_never_publishes_csv(self):
+        # Regression: metadata used to be assembled AFTER os.link, leaving
+        # an orphan CSV when query_fingerprint raised.
+        with patch('source_csv_capture.query_fingerprint',
+                   side_effect=ValueError('synthetic fingerprint error')):
+            self.fails('SOURCE_HTTP_OR_DISK_FAILED_CLOSED')
+
+    def test_timestamp_serialization_failure_never_publishes_csv(self):
+        class BadTimezone(datetime):
+            def astimezone(self, tz=None):
+                raise ValueError('synthetic timestamp conversion error')
+
+        self.fails('SOURCE_HTTP_OR_DISK_FAILED_CLOSED',
+                   clock=lambda: BadTimezone(2026, 10, 24, 9, 0,
+                                             tzinfo=timezone.utc))
+
+    def test_competing_source_creation_never_overwritten(self):
+        def race_link(src, dst):
+            self.path.write_bytes(b'other process')
+            raise FileExistsError('synthetic concurrent source creation')
+
+        with patch('source_csv_capture.os.link', side_effect=race_link):
+            with self.assertRaisesRegex(CaptureError, 'SOURCE_HTTP_OR_DISK_FAILED_CLOSED'):
+                self.run_capture()
+        self.assertEqual(self.path.read_bytes(), b'other process')
+        self.assertFalse(list(self.path.parent.glob('.nyc311_capture_*')))
+
     def test_main_saves_receipt_but_remains_hold(self):
         receipt = self.path.parent / 'receipt.json'
         with patch('source_csv_capture.capture_official_csv',

@@ -98,8 +98,10 @@ def capture_official_csv(url, destination, *, reference_rows, opener=None,
             captured = clock() if clock else datetime.now(timezone.utc)
             if not isinstance(captured, datetime) or captured.tzinfo is None:
                 raise CaptureError('SOURCE_CAPTURE_CLOCK_INVALID')
-            os.link(temporary, target)
-            return {
+            # Prepare the complete audit receipt before publishing the CSV.
+            # If fingerprint or timestamp serialization fails, no destination
+            # is exposed; the temporary capture is cleaned in finally.
+            metadata = {
                 'status': 'HOLD', 'source_origin_authenticated': False,
                 'source_url': url, 'source_query_sha256': query_fingerprint(url),
                 'source_sha256': digest.hexdigest(), 'source_bytes': size,
@@ -108,6 +110,8 @@ def capture_official_csv(url, destination, *, reference_rows, opener=None,
                 'captured_at_utc': captured.astimezone(timezone.utc).isoformat(),
                 'required_next': 'independent_unique_key_month_count_privacy_and_source_review',
             }
+            os.link(temporary, target)
+            return metadata
     except CaptureError:
         raise
     except (OSError, ValueError, TypeError) as exc:
