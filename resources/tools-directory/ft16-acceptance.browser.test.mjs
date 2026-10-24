@@ -47,6 +47,16 @@ rejected([rows[0], {...rows[0]}], 'duplicate IDs');
 rejected([{...rows[0],id:'bad id'}], 'invalid ID');
 rejected([{...rows[0],description:''}], 'missing description');
 rejected([{...rows[0],status:'unknown'}], 'unknown availability');
+// A misleading invisible directional override can visually change catalog labels
+// even when textContent prevents script execution. Verify every public label field.
+for (const key of ['title','category','description']) {
+  for (const cp of [0x061c,0x200e,0x200f,0x202a,0x202b,0x202c,0x202d,0x202e,0x2066,0x2067,0x2068,0x2069]) {
+    rejected([{...rows[0],[key]:'Safe'+String.fromCodePoint(cp)+'spoof'}],
+      'directional spoof U+'+cp.toString(16)+' in '+key);
+  }
+}
+eq(validateCatalog([{...rows[0],title:'بحث علمي — Research 日本語',description:'A useful multilingual resource 🎓'}]),
+  true,'legitimate RTL, CJK and emoji catalog text remains supported');
 
 const allowed = new Set(['index.html','app.mjs','catalog.mjs','directory.mjs',
   'styles.css','layout.css','controls.css','focus.css']);
