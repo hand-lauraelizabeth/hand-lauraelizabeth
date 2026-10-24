@@ -71,9 +71,9 @@ try:
             verify(decimal_evidence["comparison"]["difference_exact"] == "0.7", engine_name + ": exact decimal evidence")
             verify(decimal_evidence["records"][0]["moe_raw"] == "0.3", engine_name + ": decimal MOE provenance")
             verify(decimal_evidence["records"][0]["source_id"] == "00001", engine_name + ": decimal source ID")
-            annotated_csv = ("source_id,geography,variable,series,period_start,period_end,estimate,moe\\n"
-                             "00001,Place,B01002_001E,acs5,2015,2019,37.4,-555555555.00\\n"
-                             "00002,Place,B01002_001E,acs5,2020,2024,38.1,0.4\\n")
+            annotated_csv = ("source_id,geography,variable,series,period_start,period_end,estimate,moe\n"
+                             "00001,Place,B01002_001E,acs5,2015,2019,37.4,-555555555.00\n"
+                             "00002,Place,B01002_001E,acs5,2020,2024,38.1,0.4\n")
             page.locator("#csv").set_input_files({"name":"synthetic-annotated.csv","mimeType":"text/csv","buffer":annotated_csv.encode()})
             page.locator("#status").filter(has_text="2 records loaded locally").wait_for(timeout=15000)
             verify("controlled" in page.locator("#records").inner_text().lower(), engine_name + ": controlled MOE visibly annotated")
