@@ -42,10 +42,10 @@ def _verify_selected_csv_header(path):
     """
     with Path(path).open('rb') as source:
         prefix = source.read(4096)
-    if b'\\n' not in prefix:
+    if b'\n' not in prefix:
         raise CaptureError('SOURCE_CSV_HEADER_INVALID')
     try:
-        first_line = prefix.split(b'\\n', 1)[0] + b'\\n'
+        first_line = prefix.split(b'\n', 1)[0] + b'\n'
         parsed = list(csv.reader(io.StringIO(first_line.decode('utf-8-sig')),
                                  strict=True))
     except (UnicodeError, csv.Error):
