@@ -1,0 +1,92 @@
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {readFile, mkdtemp, rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join, resolve, dirname, extname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {chromium, firefox, webkit} from 'playwright';
+
+// Runs the actual shipped browser UI over loopback HTTP, not a DOM mock.
+// All data is synthetic. The HTTP response repeats the page's restrictive CSP.
+const root=dirname(fileURLToPath(import.meta.url));
+const mime={'.html':'text/html','.mjs':'text/javascript','.css':'text/css','.json':'application/json'};
+const csp="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+const server=createServer(async(req,res)=>{
+  const url=new URL(req.url,'http://127.0.0.1');
+  const path=resolve(root,'.'+decodeURIComponent(url.pathname));
+  if(!path.startsWith(root+'/')||!Object.hasOwn(mime,extname(path))){res.writeHead(404);res.end();return;}
+  try{const body=await readFile(path);res.writeHead(200,{'content-type':mime[extname(path)]+'; charset=utf-8','content-security-policy':csp,'cache-control':'no-store'});res.end(body);}
+  catch{res.writeHead(404);res.end();}
+});
+await new Promise((ok,fail)=>server.once('error',fail).listen(0,'127.0.0.1',ok));
+const port=server.address().port;
+const temp=await mkdtemp(join(tmpdir(),'ft07-browser-'));
+let assertions=0;
+function check(ok,msg){assert.ok(ok,msg);assertions++;}
+async function textDownload(page,selector){
+  const [download]=await Promise.all([page.waitForEvent('download',{timeout:10000}),page.locator(selector).click()]);
+  const file=await download.path();
+  return {name:download.suggestedFilename(),text:await readFile(file,'utf8')};
+}
+try{
+  for(const [name,engine] of Object.entries({chromium,firefox,webkit})){
+    const browser=await engine.launch({headless:true});
+    try{
+      const context=await browser.newContext({acceptDownloads:true,viewport:{width:375,height:812}});
+      const page=await context.newPage();const failures=[];
+      page.on('pageerror',e=>failures.push(e.message));
+      page.on('response',r=>{if(r.status()>=400)failures.push('HTTP '+r.status()+' '+r.url());});
+      await page.goto('http://127.0.0.1:'+port+'/index.html',{waitUntil:'networkidle'});
+      check(await page.locator('#criteria-list .entry').count()===1,name+' initial criterion');
+      check(await page.locator('#vendors-list .entry').count()===1,name+' initial vendor');
+      await page.locator('#criterion-1-id').fill('C-0001');
+      await page.locator('#criterion-1-label').fill('Delivery');
+      await page.locator('#criterion-1-weight').fill('100');
+      await page.locator('#criterion-1-sourceRef').fill('REQ-0001');
+      await page.locator('#criterion-1-mandatory').check();
+      await page.locator('#vendor-1-id').fill('V-0007');
+      await page.locator('#vendor-1-name').fill('Example\u202E vendor');
+      await page.locator('#vendor-1-price').fill('10.00');
+      await page.locator('#vendor-1-conflict').selectOption('none');
+      await page.locator('#rating-1-vendorId').fill('V-0007');
+      await page.locator('#rating-1-criterionId').fill('C-0001');
+      await page.locator('#rating-1-score').fill('4');
+      await page.locator('#rating-1-evidenceRef').fill('EV-0001');
+      await page.locator('#rating-1-reviewer').fill('QA');
+      await page.locator('#rating-1-note').fill('Reviewed');
+      await page.locator('button[type=submit]').click();
+      check(await page.locator('#results-section').isVisible(),name+' evaluated locally');
+      await page.locator('#download-matrix').click();
+      check((await page.locator('#error').textContent()).includes('CSV export blocked'),name+' matrix blocked');
+      check(await page.evaluate(()=>document.activeElement?.id)==='error',name+' blocked export focuses error');
+      await page.locator('#download-coverage').click();
+      check((await page.locator('#error').textContent()).includes('CSV export blocked'),name+' provenance blocked');
+      const json=await textDownload(page,'#download-json');
+      const parsed=JSON.parse(json.text);
+      check(json.name==='rfp-evidence.json',name+' JSON downloaded');
+      check(parsed.vendors[0].name==='Example\u202E vendor',name+' JSON retains exact unsafe text');
+      check(parsed.vendors[0].id==='V-0007'&&parsed.criteria[0].sourceRef==='REQ-0001',name+' exact IDs');
+      await page.locator('#vendor-1-name').fill('Café 供應商');
+      await page.locator('button[type=submit]').click();
+      const safe=await textDownload(page,'#download-matrix');
+      check(safe.text.includes('"V-0007"')&&safe.text.includes('Café 供應商'),name+' safe CSV recovery');
+      await page.locator('#rating-1-note').fill('Reviewed\u2066 note');
+      await page.locator('button[type=submit]').click();
+      await page.locator('#download-evidence').click();
+      check((await page.locator('#error').textContent()).includes('CSV export blocked'),name+' rating CSV blocked');
+      await page.locator('#rating-1-note').fill('Reviewed note');
+      await page.locator('button[type=submit]').click();
+      const rating=await textDownload(page,'#download-evidence');
+      check(rating.text.includes('"EV-0001"'),name+' safe ratings CSV recovery');
+      const coverage=await textDownload(page,'#download-coverage');
+      check(coverage.text.includes('"REQ-0001"'),name+' safe coverage CSV recovery');
+      check(failures.length===0,name+' no HTTP failures or uncaught browser errors: '+failures.join(' | '));
+      await context.close();
+      console.log('PASS '+name+' HTTP/CSP/unsafe CSV/JSON fidelity/recovery/focus');
+    }finally{await browser.close();}
+  }
+  console.log('PASS '+assertions+' cross-browser assertions (synthetic only)');
+}finally{
+  await new Promise(resolve=>server.close(resolve));
+  await rm(temp,{recursive:true,force:true});
+}
