@@ -46,10 +46,10 @@ input.addEventListener("change", async () => {
   try {
     const bytes = await file.arrayBuffer();
     if (ticket !== generation) return;
-    records = readCsvBytes(bytes,file.size);
-    fingerprint = await fingerprintCsv(bytes);
+    const imported = readCsvBytes(bytes,file.size);
+    const computed = await fingerprintCsv(bytes);
     if (ticket !== generation) return;
-    render();
+    records = imported; fingerprint = computed; render();
   } catch (e) {
     if (ticket !== generation) return;
     reset(); showError(e instanceof Error ? e.message : "Unable to read CSV.");
