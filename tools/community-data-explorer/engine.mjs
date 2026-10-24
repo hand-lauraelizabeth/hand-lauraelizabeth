@@ -76,6 +76,14 @@ export function readCsvBytes(buffer, declaredSize) {
   catch { fail("CSV must be valid UTF-8"); }
   return normalizeRows(parseCsv(text));
 }
+export async function fingerprintCsv(buffer, cryptoProvider = globalThis.crypto) {
+  if (!(buffer instanceof ArrayBuffer) || buffer.byteLength > MAX_BYTES) fail("Cannot fingerprint invalid or oversized bytes");
+  const byte_count = buffer.byteLength;
+  if (!cryptoProvider?.subtle?.digest) return {sha256:null,byte_count,verification:"SHA-256 unavailable; source authenticity not verified"};
+  const hash = await cryptoProvider.subtle.digest("SHA-256",buffer);
+  const sha256 = Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,"0")).join("");
+  return {sha256,byte_count,verification:"Computed locally from original bytes; source authenticity not verified"};
+}
 export function compareRecords(records, leftId, rightId) {
   const left = records.find(x => x.source_id === leftId);
   const right = records.find(x => x.source_id === rightId);
@@ -96,9 +104,9 @@ export function compareRecords(records, leftId, rightId) {
   return {left_id:leftId,right_id:rightId,comparable:reasons.length === 0,reasons,cautions,
     difference:reasons.length === 0 ? right.estimate - left.estimate : null};
 }
-export function evidenceExport(records, datasetLabel, comparison = null) {
+export function evidenceExport(records, datasetLabel, comparison = null, sourceFile = null) {
   safeLabel(datasetLabel, "Dataset label");
   return {schema:"community-data-explorer/1",provenance_status:"user-supplied; not independently verified",
-    dataset_label:datasetLabel,records,comparison,
+    dataset_label:datasetLabel,source_file:sourceFile,records,comparison,
     guidance:"Estimates are not determinations. Verify source, variable definitions, geography, vintage, and MOE before interpretation."};
 }
