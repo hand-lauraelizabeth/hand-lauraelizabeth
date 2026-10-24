@@ -4,6 +4,7 @@ on:
     branches:
       - 'review/ft10-main-stale-report-*'
       - 'review/ft10-served-csp-export-*'
+      - 'review/ft10-csv-invisible-failclosed-*'
   pull_request:
     paths:
       - 'free-tools/accessibility-preflight/**'
@@ -35,3 +36,14 @@ jobs:
         env:
           FT10_BROWSER: ${{ matrix.browser }}
         run: python free-tools/accessibility-preflight/served_csp.browser.test.py
+
+  csv-security-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run exact-source CSV security regression
+        run: node free-tools/accessibility-preflight/report-export.test.mjs
