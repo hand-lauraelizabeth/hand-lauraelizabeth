@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {MAX_BYTES,parseCsv,normalizeRows,readCsvBytes,compareRecords,evidenceExport} from "./engine.mjs";
+import {createHash,webcrypto} from "node:crypto";
+import {MAX_BYTES,parseCsv,normalizeRows,readCsvBytes,fingerprintCsv,compareRecords,evidenceExport} from "./engine.mjs";
 const header = "source_id,geography,variable,series,period_start,period_end,estimate,moe";
 const a = '0001,"New York, NY",B19013_001E,acs5,2015,2019,60000,1000';
 const b = '0002,"New York, NY",B19013_001E,acs5,2020,2024,70000,1200';
@@ -60,4 +61,20 @@ test("property checks: exact zero-padded IDs and deterministic comparisons", () 
     assert.equal(r[0].source_id,id1);
     assert.equal(compareRecords(r,id1,id2).difference,100);
   }
+});
+
+test("local SHA-256 fingerprints match independent Node crypto oracle", async () => {
+  for(let i=0;i<80;i++) {
+    const value = "synthetic CSV payload "+i+"\n"+String(i).padStart(6,"0");
+    const buffer = bytes(value);
+    const actual = await fingerprintCsv(buffer,webcrypto);
+    const expected = createHash("sha256").update(new Uint8Array(buffer)).digest("hex");
+    assert.equal(actual.sha256,expected);
+    assert.equal(actual.byte_count,buffer.byteLength);
+    assert.match(actual.verification,/authenticity not verified/);
+  }
+  const fallback = await fingerprintCsv(bytes("offline"),null);
+  assert.equal(fallback.sha256,null);
+  assert.match(fallback.verification,/unavailable/);
+  assert.throws(()=>fingerprintCsv(new ArrayBuffer(MAX_BYTES+1),webcrypto),/oversized/);
 });
