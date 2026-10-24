@@ -62,6 +62,10 @@ def capture_official_csv(url, destination, *, reference_rows, opener=None,
                 raise CaptureError('SOURCE_HTTP_STATUS_INVALID')
             if response.geturl() != url:
                 raise CaptureError('SOURCE_HTTP_REDIRECT_OR_URL_MISMATCH')
+            # A 200 response carrying Content-Range can still be a fragment.
+            # A partial CSV must never be accepted as a complete source capture.
+            if response.headers.get('Content-Range') is not None:
+                raise CaptureError('SOURCE_HTTP_PARTIAL_RESPONSE_INVALID')
             media = response.headers.get('Content-Type', '').split(';', 1)[0].strip().lower()
             if media not in {'text/csv', 'application/csv'}:
                 raise CaptureError('SOURCE_HTTP_CONTENT_TYPE_INVALID')
