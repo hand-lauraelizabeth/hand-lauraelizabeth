@@ -80,6 +80,20 @@ class CaptureTests(unittest.TestCase):
     def test_non_200_rejected(self):
         self.fails('SOURCE_HTTP_STATUS_INVALID', Response(status=206))
 
+    def test_http_200_with_content_range_is_rejected(self):
+        # Some servers incorrectly return a partial payload with HTTP 200.
+        # A matching Content-Length alone must not authenticate completeness.
+        self.fails('SOURCE_HTTP_PARTIAL_RESPONSE_INVALID', Response(headers={
+            'Content-Type': 'text/csv',
+            'Content-Length': str(len(BODY)),
+            'Content-Range': f'bytes 0-{len(BODY) - 1}/{2 * len(BODY)}',
+        }))
+
+    def test_even_empty_content_range_is_rejected(self):
+        self.fails('SOURCE_HTTP_PARTIAL_RESPONSE_INVALID', Response(headers={
+            'Content-Type': 'text/csv', 'Content-Range': '',
+        }))
+
     def test_html_masquerade_rejected(self):
         self.fails('SOURCE_HTTP_CONTENT_TYPE_INVALID',
                    Response(headers={'Content-Type': 'text/html'}))
