@@ -74,6 +74,36 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(result['status'], 'HOLD')
         self.assertFalse(list(self.path.parent.glob('.nyc311_capture_*')))
 
+    def test_unrequested_identifying_column_rejected_before_publication(self):
+        body = (b'unique_key,created_date,closed_date,agency,borough,complaint_type,status,incident_address\n'
+                b'0001,2026-09-01T00:00:00,,ABC,Bronx,Example,Open,synthetic address\n')
+        self.fails('SOURCE_CSV_HEADER_INVALID', Response(data=body))
+
+    def test_missing_or_reordered_export_columns_rejected(self):
+        for header in (
+            b'unique_key,created_date,closed_date,agency,borough,complaint_type',
+            b'created_date,unique_key,closed_date,agency,borough,complaint_type,status',
+        ):
+            with self.subTest(header=header):
+                self.fails('SOURCE_CSV_HEADER_INVALID',
+                           Response(data=header + b'\n0001,2026-09-01T00:00:00\n'))
+
+    def test_bom_and_quoted_exact_export_header_accepted(self):
+        header = (b'\xef\xbb\xbf"unique_key","created_date","closed_date",'
+                  b'"agency","borough","complaint_type","status"\r\n')
+        body = header + BODY.split(b'\n', 1)[1]
+        result = self.run_capture(Response(data=body))
+        self.assertEqual(self.path.read_bytes(), body)
+        self.assertEqual(result['source_sha256'], sha256(body).hexdigest())
+
+    def test_oversized_or_malformed_export_header_rejected(self):
+        for body in (b'unique_key,' + b'x' * 4096,
+                     b'"unique_key,created_date\n',
+                     b'\xffunique_key,created_date,closed_date,agency,borough,complaint_type,status\n'):
+            with self.subTest(length=len(body)):
+                self.fails('SOURCE_CSV_HEADER_INVALID',
+                           Response(data=body), max_bytes=8192)
+
     def test_redirect_target_rejected(self):
         self.fails('SOURCE_HTTP_REDIRECT_OR_URL_MISMATCH',
                    Response(url='https://other.example/311.csv'))
