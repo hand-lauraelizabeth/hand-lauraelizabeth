@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'review/ft10-main-stale-report-*'
+      - 'review/ft10-served-csp-export-*'
   pull_request:
     paths:
       - 'free-tools/accessibility-preflight/**'
@@ -30,3 +31,7 @@ jobs:
         env:
           FT10_BROWSER: ${{ matrix.browser }}
         run: python free-tools/accessibility-preflight/stale_report.browser.test.py
+      - name: Run served HTTP/CSP and local-export regression
+        env:
+          FT10_BROWSER: ${{ matrix.browser }}
+        run: python free-tools/accessibility-preflight/served_csp.browser.test.py
