@@ -16,7 +16,7 @@ for(const name of ["source","claim"]){byId(name).addEventListener("submit",event
 byId("download").addEventListener("click",()=>{try{const blob=new Blob([exportProject(project)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="literature-evidence-matrix.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){showError(e)}});
 byId("upload").addEventListener("change",async event=>{
  const input=event.currentTarget,file=input.files[0],generation=++importGeneration;
- clearPreview();status("");
+ clearPreview();status("");byId("error").textContent="";
  if(!file)return;
  try{
   if(file.size>2000000||file.size===0||!file.name.toLowerCase().endsWith(".json"))throw Error("Choose a JSON file up to 2 MB.");
