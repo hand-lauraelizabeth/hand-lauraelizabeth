@@ -36,5 +36,5 @@ byId('download-json').addEventListener('click',()=>{
 });
 byId('download-csv').addEventListener('click',()=>{
  if(!report)return status.textContent='Analyze HTML first.';
- saveLocal('html-preflight.csv','text/csv;charset=utf-8',exportFindingsCSV(report.findings));
+ try{saveLocal('html-preflight.csv','text/csv;charset=utf-8',exportFindingsCSV(report.findings));}\n catch(error){status.textContent=error.message;status.focus();}
 });
