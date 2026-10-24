@@ -36,12 +36,38 @@ export function parseCsv(text) {
   if (rows.length && rows[rows.length - 1].length === 1 && rows[rows.length - 1][0] === "") rows.pop();
   return rows;
 }
-function integer(raw, field, allowMissing = false) {
-  if (allowMissing && (raw === "" || raw === "*****" || missingCodes.has(raw))) return null;
-  if (!/^(0|[1-9][0-9]*)$/.test(raw)) fail(field + " must be a nonnegative whole number or explicit missing code");
+function integer(raw, field) {
+  if (!/^(0|[1-9][0-9]*)$/.test(raw)) fail(field + " must be a nonnegative whole number");
   const n = Number(raw);
   if (!Number.isSafeInteger(n)) fail(field + " exceeds safe integer range");
   return n;
+}
+// ACS detailed-table variables such as B01002 median age have decimal estimates.
+function measure(raw, field) {
+  if (raw === "" || raw === "*****" || missingCodes.has(raw)) return null;
+  if (!/^(0|[1-9][0-9]*)(?:[.][0-9]{1,6})?$/.test(raw))
+    fail(field + " must be a nonnegative decimal (up to 6 places) or explicit missing code");
+  const [whole, fraction] = raw.split(".");
+  if (BigInt(whole) > BigInt(Number.MAX_SAFE_INTEGER) ||
+      (fraction !== undefined && BigInt(whole) > 1_000_000_000_000n))
+    fail(field + " exceeds supported numeric precision");
+  return Number(raw);
+}
+function exactMeasureDifference(leftRaw, rightRaw) {
+  const decimals = raw => (raw.split(".")[1] || "").length;
+  const scale = Math.max(decimals(leftRaw), decimals(rightRaw));
+  const scaled = raw => {
+    const [whole, fraction = ""] = raw.split(".");
+    return BigInt(whole) * 10n ** BigInt(scale) +
+      BigInt((fraction + "0".repeat(scale - fraction.length)) || "0");
+  };
+  const diff = scaled(rightRaw) - scaled(leftRaw);
+  if (scale === 0) return diff.toString();
+  const sign = diff < 0n ? "-" : "";
+  const digits = (diff < 0n ? -diff : diff).toString().padStart(scale + 1, "0");
+  const whole = digits.slice(0, -scale);
+  const fraction = digits.slice(-scale).replace(/0+$/, "");
+  return sign + whole + (fraction ? "." + fraction : "");
 }
 export function normalizeRows(rows) {
   if (!Array.isArray(rows) || !rows.length || rows[0].length !== COLUMNS.length ||
@@ -60,8 +86,8 @@ export function normalizeRows(rows) {
     const end = integer(last, "Row " + line + " period_end");
     if (start < 2005 || end > 2100 || end - start !== (series === "acs5" ? 4 : 0) || (series === "acs1" && start === 2020))
       fail("Row " + line + " has an invalid or unsupported ACS period");
-    const estimate = integer(rawEstimate, "Row " + line + " estimate", true);
-    const moe = integer(rawMoe, "Row " + line + " moe", true);
+    const estimate = measure(rawEstimate, "Row " + line + " estimate");
+    const moe = measure(rawMoe, "Row " + line + " moe");
     if (seen.has(source_id)) fail("Duplicate exact source_id at row " + line);
     seen.add(source_id);
     return {source_id,geography,variable,series,period_start:start,period_end:end,
@@ -102,8 +128,10 @@ export function compareRecords(records, leftId, rightId) {
   if (left.estimate === null || right.estimate === null) reasons.push("One or both estimates are missing");
   if (left.moe === null || right.moe === null) cautions.push("One or both margins of error are unavailable");
   cautions.push("Read ACS variable definitions, geography changes and margins of error; no statistical significance determination is made");
+  const difference_exact = reasons.length === 0
+    ? exactMeasureDifference(left.estimate_raw,right.estimate_raw) : null;
   return {left_id:leftId,right_id:rightId,comparable:reasons.length === 0,reasons,cautions,
-    difference:reasons.length === 0 ? right.estimate - left.estimate : null};
+    difference: difference_exact === null ? null : Number(difference_exact),difference_exact};
 }
 export function evidenceExport(records, datasetLabel, comparison = null, sourceFile = null) {
   safeLabel(datasetLabel, "Dataset label");
