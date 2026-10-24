@@ -102,8 +102,8 @@ def audit_unique_keys(source_csv, *, expected_rows=None, expected_month=None):
                     codes = ['SOURCE_UNIQUE_KEYS_DISTINCT']
                     codes.append('SOURCE_ROW_COUNT_MATCHED' if expected_rows is not None
                                  else 'SOURCE_ROW_COUNT_NOT_BOUND')
-                    codes.append('SOURCE_CREATED_DATE_MONTH_MATCHED' if expected_month is not None
-                                 else 'SOURCE_CREATED_DATE_MONTH_NOT_BOUND')
+                    if expected_month is not None:
+                        codes.append('SOURCE_CREATED_DATE_MONTH_MATCHED')
                     return codes
     except (OSError, UnicodeError, csv.Error, sqlite3.Error, ValueError, OverflowError):
         return ['SOURCE_UNIQUE_KEY_AUDIT_FAILED_CLOSED']
