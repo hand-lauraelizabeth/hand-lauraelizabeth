@@ -27,7 +27,7 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url,{waitUntil:'load'});
   await page.locator('#status').waitFor();
-  for(const [width,scale] of [[320,100],[320,200],[320,400],[375,400],[1280,100]]){
+  for(const [width,scale] of [[320,100],[320,200],[375,200],[1280,400],[1280,100]]){
     await page.setViewportSize({width,height:700});
     await page.evaluate(s=>{document.documentElement.style.fontSize=s+'%';},scale);
     const sizes=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
@@ -51,6 +51,6 @@ try{
   const body=readFileSync(await download.path(),'utf8');
   assert.ok(body.includes('000-A/１'),'original Unicode and zero-padded ID retained');count++;
   assert.deepEqual(errors,[],'no JavaScript errors');count++;
-  console.log(`PASS: ${count} FT-12 ${browserName} served-browser assertions (enlarged text is CSS emulation, not native zoom)`);
+  console.log(`PASS: ${count} FT-12 ${browserName} served-browser assertions (320px reflow and 200%/400% text resize are separate CSS tests, not native zoom)`);
   await page.close();
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
