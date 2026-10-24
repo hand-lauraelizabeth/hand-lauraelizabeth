@@ -11,6 +11,9 @@ export function validateCatalog(rows=TOOLS){
    // direction controls from visually reordering resource names or availability context.
    // Legitimate RTL/CJK letters and combining marks remain valid.
    if(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(t[key]))throw Error('Directional control in '+key);
+   // Public labels are single-line metadata: reject hidden line breaks, C0/C1 controls,
+   // Unicode line/paragraph separators and BOM before rendering or indexing.
+   if(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\ufeff]/u.test(t[key]))throw Error('Control character in '+key);
   }
   if(!Object.hasOwn(STATUS_LABELS,t.status))throw Error('Invalid availability');
   if(t.status==='live'||t.status==='preview'){
