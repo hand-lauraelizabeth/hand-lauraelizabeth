@@ -38,7 +38,7 @@ try {
   equal(await page.title(), 'Find a Tool — Tools & Templates', 'page title');
   equal(await page.locator('main').count(), 1, 'main landmark');
   equal(await page.locator('a.skip[href="#ft15-directory"]').count(), 1, 'skip link');
-  equal(await page.locator('#tool-count[role="status"][aria-live="polite"]').count(), 1, 'live result count');
+  equal(await page.locator('#tool-count[role="status"][aria-live="polite"][aria-atomic="true"]').count(), 1, 'live result count');
   equal(await page.locator('.ft15-card').count(), TOOLS.length, 'all resources rendered');
   equal(await page.locator('.ft15-link').count(), TOOLS.filter(t => t.status === 'live').length, 'only live resources linked');
   const renderedLinks = await page.locator('.ft15-link').evaluateAll(links => links.map(a => a.href).sort());
