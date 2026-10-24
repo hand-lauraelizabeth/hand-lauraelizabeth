@@ -71,6 +71,21 @@ try:
             verify(decimal_evidence["comparison"]["difference_exact"] == "0.7", engine_name + ": exact decimal evidence")
             verify(decimal_evidence["records"][0]["moe_raw"] == "0.3", engine_name + ": decimal MOE provenance")
             verify(decimal_evidence["records"][0]["source_id"] == "00001", engine_name + ": decimal source ID")
+            annotated_csv = ("source_id,geography,variable,series,period_start,period_end,estimate,moe\\n"
+                             "00001,Place,B01002_001E,acs5,2015,2019,37.4,-555555555.00\\n"
+                             "00002,Place,B01002_001E,acs5,2020,2024,38.1,0.4\\n")
+            page.locator("#csv").set_input_files({"name":"synthetic-annotated.csv","mimeType":"text/csv","buffer":annotated_csv.encode()})
+            page.locator("#status").filter(has_text="2 records loaded locally").wait_for(timeout=15000)
+            verify("controlled" in page.locator("#records").inner_text().lower(), engine_name + ": controlled MOE visibly annotated")
+            page.locator("#compare").click()
+            verify("not a numeric zero" in page.locator("#comparison").inner_text(), engine_name + ": nonzero controlled-MOE caution")
+            with page.expect_download() as annotated_download:
+                page.locator("#export").click()
+            annotated_evidence = json.loads(Path(annotated_download.value.path()).read_text())
+            verify(annotated_evidence["records"][0]["moe_raw"] == "-555555555.00", engine_name + ": raw MOE annotation")
+            verify(annotated_evidence["records"][0]["moe_status"] == "controlled_moe", engine_name + ": explicit MOE status")
+            verify(annotated_evidence["records"][0]["moe"] is None, engine_name + ": annotated MOE never numeric zero")
+            verify(annotated_evidence["comparison"]["difference_exact"] == "0.7", engine_name + ": arithmetic preserved with annotated MOE")
             bad = CSV.replace("00001,Place", "=1+1,Place")
             page.locator("#csv").set_input_files({"name":"unsafe.csv","mimeType":"text/csv","buffer":bad.encode()})
             page.locator("#error:not([hidden])").wait_for(timeout=15000)
