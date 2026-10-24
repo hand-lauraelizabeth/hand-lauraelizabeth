@@ -170,6 +170,8 @@ def main(argv=None):
         if 'SOURCE_CSV_BYTES_MATCH_CANDIDATE_CLAIM' in binding:
             # Uniqueness and optional row count are independent of byte equality.
             # Neither check proves publisher provenance or query completeness.
+            if a.created_month is None:
+                codes.add('SOURCE_CREATED_DATE_MONTH_NOT_BOUND')
             expected_rows = candidate.get('source_rows') if type(candidate) is dict else None
             codes.update(audit_unique_keys(a.source_csv, expected_rows=expected_rows,
                                            expected_month=a.created_month))
