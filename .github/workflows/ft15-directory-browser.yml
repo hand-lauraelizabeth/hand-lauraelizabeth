@@ -1,0 +1,27 @@
+name: FT-15 accessible tools directory
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  catalog-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node resources/tools-directory/live-destinations.test.mjs
+  browser:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock playwright@1.56.1
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node resources/tools-directory/directory.browser.test.mjs ${{ matrix.browser }}
