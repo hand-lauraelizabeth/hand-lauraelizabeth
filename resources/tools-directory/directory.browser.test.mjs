@@ -45,6 +45,12 @@ try {
   equal(renderedLinks, TOOLS.filter(t => t.status === 'live').map(t => t.url).sort(), 'exact approved live destinations');
   equal(await page.locator('.ft15-unavailable').count(), TOOLS.filter(t => t.status === 'development').length, 'development cards explicitly unavailable');
   equal(errors, [], 'no startup script errors');
+  await page.evaluate(() => {
+    const injected = document.createElement('script');
+    injected.textContent = 'window.__ft15_untrusted_inline_executed = true';
+    document.head.append(injected);
+  });
+  equal(await page.evaluate(() => Boolean(window.__ft15_untrusted_inline_executed)), false, 'HTML CSP blocks injected inline script');
 
   await page.locator('#tool-status').selectOption('development');
   equal(await page.locator('.ft15-card').count(), 11, 'development filter');
