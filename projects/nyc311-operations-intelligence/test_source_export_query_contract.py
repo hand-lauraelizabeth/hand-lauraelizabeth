@@ -83,13 +83,13 @@ class CanonicalSerializationTests(unittest.TestCase):
                          ['SOURCE_QUERY_NONCANONICAL'])
 
     def test_crlf_prefix_is_not_silently_stripped(self):
-        self.assert_noncanonical('\\r\\n' + self.url)
+        self.assert_noncanonical('\r\n' + self.url)
 
     def test_tab_inside_authority_is_not_silently_stripped(self):
-        self.assert_noncanonical(self.url.replace('https://', 'https://\\t'))
+        self.assert_noncanonical(self.url.replace('https://', 'https://\t'))
 
     def test_newline_suffix_is_not_silently_stripped(self):
-        self.assert_noncanonical(self.url + '\\n')
+        self.assert_noncanonical(self.url + '\n')
 
     def test_percent_encoding_case_is_not_aliased(self):
         self.assert_noncanonical(self.url.replace('%2C', '%2c'))
