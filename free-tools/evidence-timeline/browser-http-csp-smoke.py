@@ -67,6 +67,17 @@ def main():
             page.locator("#json").click()
         preserved = json.loads(Path(download.value.path()).read_text(encoding="utf-8"))
         assert any(r["sourceId"] == "=1+1" for r in preserved["records"]), "exact unsafe source ID preserved in JSON"
+        # Removing the risky source must restore safe export without losing the benign record.
+        page.get_by_role("button", name="Remove record =1+1").click()
+        assert page.locator("#records li").count() == 1
+        assert page.locator("#csv").is_enabled(), "CSV recovers after unsafe record removal"
+        assert page.locator("#csv-warning").inner_text() == "", "stale security warning cleared"
+        assert page.evaluate("document.activeElement.id") == "count", "focus returns to result count"
+        with page.expect_download() as download:
+            page.locator("#csv").click()
+        safe_csv = Path(download.value.path()).read_text(encoding="utf-8-sig")
+        assert "000123" in safe_csv, "zero-padded source identifier preserved in recovered CSV"
+        assert "=1+1" not in safe_csv, "removed risky record excluded from export"
         assert not errors, errors
         assert not violations, violations
         assert page.evaluate('window.__cspViolation || 0') == 0
