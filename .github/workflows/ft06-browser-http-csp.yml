@@ -1,0 +1,31 @@
+name: FT-06 HTTP browser security and accessibility smoke
+on:
+  push:
+    branches:
+      - review/ft06-http-csp-three-engine-20261024-1225
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-browser-http-csp.yml'
+  pull_request:
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-browser-http-csp.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  served-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.57.0-noble
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install version-matched Playwright Python package
+        run: python -m pip install playwright==1.57.0
+      - name: Check synthetic browser regression syntax
+        run: python -m py_compile free-tools/grant-ledger/browser-http-csp-smoke.py
+      - name: Test HTTP-served Chromium Firefox and WebKit
+        run: python free-tools/grant-ledger/browser-http-csp-smoke.py
