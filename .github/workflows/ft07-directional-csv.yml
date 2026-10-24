@@ -1,0 +1,24 @@
+name: FT-07 directional-control CSV safety
+on:
+  push:
+    branches:
+      - 'review/ft07-core-bidi-failclosed-ci-*'
+  pull_request:
+    paths:
+      - 'free-tools/rfp-evaluation/**'
+      - '.github/workflows/ft07-directional-csv.yml'
+permissions:
+  contents: read
+jobs:
+  node-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synthetic CSV directional-control and provenance regression
+        run: |
+          node --test free-tools/rfp-evaluation/bidi-export-guard.test.mjs
+          node --test free-tools/rfp-evaluation/evidence-provenance-regression.test.mjs
