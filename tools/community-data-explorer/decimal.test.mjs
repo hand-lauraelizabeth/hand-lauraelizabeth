@@ -36,7 +36,8 @@ test("unsupported numeric syntax and unsafe precision fail closed", () => {
     assert.throws(() => normalizeRows(parseCsv(csv(bad,"1"))));
 });
 test("missing values remain missing and block arithmetic", () => {
-  const rows = normalizeRows(parseCsv(csv("","*****","","-666666666")));
+  // The Census ***** annotation is MOE-only; -666666666 is an estimate missing-code.
+  const rows = normalizeRows(parseCsv(csv("","-666666666","","-666666666")));
   assert.equal(rows[0].estimate,null);
   assert.equal(rows[1].estimate,null);
   assert.equal(rows[0].moe,null);
