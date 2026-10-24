@@ -7,3 +7,6 @@ input,select,button{font:inherit;max-width:100%;min-width:0}
 input,select{display:block;width:100%;min-height:2.75rem;margin-top:.3rem;padding:.45rem .65rem;border:1px solid #718a7d;border-radius:.35rem;background:#fff;color:var(--ink)}
 button{min-height:2.75rem;padding:.5rem .85rem;border:1px solid var(--green);border-radius:.4rem;background:#fff;color:var(--green-deep);font-weight:700;cursor:pointer}
 button:hover{background:#eaf2ec}
+
+/* Constrain WebKit's intrinsic option-label scroll width under enlarged text. */
+select{overflow:hidden;text-overflow:ellipsis}
