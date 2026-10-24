@@ -1,0 +1,27 @@
+name: FT-14 Literature Matrix Import Review
+on:
+  push:
+    paths:
+      - 'resources/literature-evidence-matrix/**'
+      - '.github/workflows/ft14-import-preview.yml'
+  pull_request:
+    paths:
+      - 'resources/literature-evidence-matrix/**'
+      - '.github/workflows/ft14-import-preview.yml'
+permissions:
+  contents: read
+jobs:
+  import-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate browser modules
+        run: |
+          node --check resources/literature-evidence-matrix/app.mjs
+          node --check resources/literature-evidence-matrix/core.mjs
+      - name: Run synthetic import regression tests
+        run: node --test resources/literature-evidence-matrix/import-preview.test.mjs
