@@ -26,3 +26,12 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: node resources/tools-directory/directory.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-acceptance.browser.test.mjs ${{ matrix.browser }}
+      - name: Confirm acceptance rejects unsafe HTML rendering
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-acceptance.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: unsafe HTML sink unexpectedly passed"
+            exit 1
+          fi
+          echo "PASS: unsafe HTML sink detected by acceptance checks"
