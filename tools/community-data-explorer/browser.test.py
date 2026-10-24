@@ -58,6 +58,19 @@ try:
             verify(evidence["source_file"]["sha256"] == hashlib.sha256(CSV.encode()).hexdigest(), engine_name + ": original SHA-256")
             verify(evidence["provenance_status"].endswith("not independently verified"), engine_name + ": provenance disclaimer")
             verify(page.evaluate("document.documentElement.scrollWidth <= innerWidth"), engine_name + ": 320px reflow")
+            decimal_csv = ("source_id,geography,variable,series,period_start,period_end,estimate,moe\n"
+                           "00001,Place,B01002_001E,acs5,2015,2019,37.4,0.3\n"
+                           "00002,Place,B01002_001E,acs5,2020,2024,38.1,0.4\n")
+            page.locator("#csv").set_input_files({"name":"synthetic-median-age.csv","mimeType":"text/csv","buffer":decimal_csv.encode()})
+            page.locator("#status").filter(has_text="2 records loaded locally").wait_for(timeout=15000)
+            page.locator("#compare").click()
+            verify("0.7" in page.locator("#comparison").inner_text(), engine_name + ": exact decimal UI")
+            with page.expect_download() as decimal_download:
+                page.locator("#export").click()
+            decimal_evidence = json.loads(Path(decimal_download.value.path()).read_text())
+            verify(decimal_evidence["comparison"]["difference_exact"] == "0.7", engine_name + ": exact decimal evidence")
+            verify(decimal_evidence["records"][0]["moe_raw"] == "0.3", engine_name + ": decimal MOE provenance")
+            verify(decimal_evidence["records"][0]["source_id"] == "00001", engine_name + ": decimal source ID")
             bad = CSV.replace("00001,Place", "=1+1,Place")
             page.locator("#csv").set_input_files({"name":"unsafe.csv","mimeType":"text/csv","buffer":bad.encode()})
             page.locator("#error:not([hidden])").wait_for(timeout=15000)
