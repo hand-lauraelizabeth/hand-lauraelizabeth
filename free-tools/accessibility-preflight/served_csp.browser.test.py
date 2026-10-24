@@ -138,6 +138,29 @@ def main():
             assert not any(f["location"] == "img#second-unsafe" for f in third_json["findings"])
             checks += 1
 
+            # A bidi control in a user-supplied element ID must not enter CSV.
+            unsafe = ('<!doctype html><html lang="en"><body>'
+                      '<img id="reversed\\u202e-name" src="x.png"></body></html>')
+            page.locator("#source").fill(unsafe)
+            page.locator("#analyze").click()
+            unsafe_json = json.loads(download_text(page, "#download-json"))
+            assert any("\\u202e" in f["location"] for f in unsafe_json["findings"])
+            checks += 1
+            assert_no_download(page, "#download-csv")
+            checks += 1
+            assert "CSV export blocked" in page.locator("#status").inner_text()
+            checks += 1
+            assert page.evaluate("document.activeElement.id") == "status"
+            checks += 1
+            # Editing away the unsafe value and reanalyzing restores CSV export.
+            page.locator("#source").fill(third)
+            page.locator("#analyze").click()
+            recovered_csv = download_text(page, "#download-csv")
+            assert "img#third-unsafe" in recovered_csv
+            checks += 1
+            assert "\\u202e" not in recovered_csv
+            checks += 1
+
             page.locator("#source").fill(" ")
             page.locator("#analyze").click()
             assert "Cannot analyze" in page.locator("#status").inner_text()
