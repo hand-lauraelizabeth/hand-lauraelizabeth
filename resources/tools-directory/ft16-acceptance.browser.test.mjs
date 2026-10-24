@@ -62,6 +62,16 @@ for (const key of ['title','category','description']) {
       'hidden control U+'+cp.toString(16)+' in '+key);
   }
 }
+// Non-printing format characters can make catalog names and search results disagree.
+// Retain U+200C/U+200D because Persian and Indic shaping may require them.
+for (const key of ['title','category','description']) {
+  for (const cp of [0x00ad,0x180e,0x200b,0x2060]) {
+    rejected([{...rows[0],[key]:'Safe'+String.fromCodePoint(cp)+'spoof'}],
+      'invisible format U+'+cp.toString(16)+' in '+key);
+  }
+}
+eq(validateCatalog([{...rows[0],title:'می‌روم — فارسی',description:'क्‍ष — Indic shaping and research 🎓'}]),
+  true,'legitimate Persian ZWNJ and Indic ZWJ remain supported');
 eq(validateCatalog([{...rows[0],title:'بحث علمي — Research 日本語',description:'A useful multilingual resource 🎓'}]),
   true,'legitimate RTL, CJK and emoji catalog text remains supported');
 
