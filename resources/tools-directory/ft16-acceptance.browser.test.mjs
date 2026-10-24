@@ -52,6 +52,9 @@ const allowed = new Set(['index.html','app.mjs','catalog.mjs','directory.mjs',
   'styles.css','layout.css','controls.css','focus.css']);
 const types = { html:'text/html; charset=utf-8', mjs:'text/javascript; charset=utf-8',
   css:'text/css; charset=utf-8' };
+// Match a locked-down deployment: same-origin modules/styles, no inline scripts or network connections.
+// W3C CSP3: https://www.w3.org/TR/CSP/ (checked 2026-10-24).
+const csp = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 const fixtureCatalog = 'export const TOOLS = Object.freeze('+JSON.stringify(rows)+');\n'
   + 'export const STATUS_LABELS = Object.freeze({live:"Live",preview:"Preview",development:"In development"});\n';
 const server = createServer(async (req,res) => {
@@ -65,7 +68,7 @@ const server = createServer(async (req,res) => {
       data = data.replace(original, 'if(text!==undefined)e.innerHTML=text;return e;');
     }
     res.writeHead(200, {'Content-Type':types[name.split('.').at(-1)],
-      'X-Content-Type-Options':'nosniff'});
+      'X-Content-Type-Options':'nosniff', 'Content-Security-Policy':csp});
     res.end(data);
   } catch (error) { res.writeHead(500); res.end('Fixture failure'); }
 });
@@ -82,6 +85,7 @@ try {
   });
   const response = await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
   eq(response.status(),200,'real HTTP-served app');
+  eq(response.headers()['content-security-policy'],csp,'enforced HTTP Content-Security-Policy header');
   await page.locator('.ft15-card').first().waitFor();
   eq(await page.locator('.ft15-card').count(),4,'all synthetic records');
   eq(await page.locator('.ft15-card h3').allTextContents(),rows.map(r=>r.title),'literal exact headings');
@@ -90,6 +94,29 @@ try {
   eq(await page.locator('.ft15-card img,.ft15-card svg,.ft15-card script').count(),
     0,'untrusted metadata never parsed into DOM elements');
   eq(await page.evaluate(()=>window.__ft16_executed===undefined),true,'no untrusted script executed');
+  // Prove the browser enforces the policy, rather than merely asserting header text.
+  await page.evaluate(() => {
+    window.__ft16_violations = [];
+    document.addEventListener('securitypolicyviolation', event => {
+      window.__ft16_violations.push(event.violatedDirective);
+    });
+    const inline = document.createElement('script');
+    inline.textContent = 'window.__ft16_inline_executed=true';
+    document.body.append(inline);
+    inline.remove();
+    const trigger = document.createElement('button');
+    trigger.setAttribute('onclick','window.__ft16_handler_executed=true');
+    document.body.append(trigger);
+    trigger.click();
+    trigger.remove();
+  });
+  await page.waitForTimeout(50);
+  eq(await page.evaluate(()=>window.__ft16_inline_executed===undefined),true,
+    'CSP blocks injected inline script');
+  eq(await page.evaluate(()=>window.__ft16_handler_executed===undefined),true,
+    'CSP blocks injected inline event handler');
+  eq(await page.evaluate(()=>window.__ft16_violations.filter(x=>x.startsWith('script-src')).length>=2),
+    true,'browser emitted script-src policy violations for both probes');
   eq(await page.locator('.ft15-link').count(),1,'only approved live entry linked');
   eq(await page.locator('.ft15-link').getAttribute('href'),rows[0].url,'exact approved href');
   eq(await page.locator('.ft15-unavailable').count(),3,'development entries unavailable');
@@ -114,6 +141,8 @@ try {
   eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
     true,'320 CSS-pixel reflow');
   await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+  eq(await page.evaluate(()=>parseFloat(getComputedStyle(document.documentElement).fontSize)>=30),
+    true,'200% root-text setting actually applied before reflow assertion');
   eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
     true,'200% root-text reflow; not native browser zoom');
   eq(pageErrors,[],'no runtime JavaScript errors');
