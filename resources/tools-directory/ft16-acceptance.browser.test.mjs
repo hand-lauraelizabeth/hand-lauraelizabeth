@@ -55,6 +55,13 @@ for (const key of ['title','category','description']) {
       'directional spoof U+'+cp.toString(16)+' in '+key);
   }
 }
+// Reject control characters that can hide, split or visually alter public labels.
+for (const key of ['title','category','description']) {
+  for (const cp of [0x00,0x09,0x0a,0x0d,0x1f,0x7f,0x85,0x9f,0x2028,0x2029,0xfeff]) {
+    rejected([{...rows[0],[key]:'Safe'+String.fromCodePoint(cp)+'spoof'}],
+      'hidden control U+'+cp.toString(16)+' in '+key);
+  }
+}
 eq(validateCatalog([{...rows[0],title:'بحث علمي — Research 日本語',description:'A useful multilingual resource 🎓'}]),
   true,'legitimate RTL, CJK and emoji catalog text remains supported');
 
