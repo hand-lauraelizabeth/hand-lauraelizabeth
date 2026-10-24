@@ -113,6 +113,16 @@ try {
   const response = await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
   eq(response.status(),200,'real HTTP-served app');
   eq(response.headers()['content-security-policy'],csp,'enforced HTTP Content-Security-Policy header');
+  // Keyboard-only entry point: skip link must be first and must move focus to main.
+  await page.keyboard.press('Tab');
+  eq(await page.locator('.skip').evaluate(el=>el===document.activeElement),true,
+    'keyboard first tab reaches skip link');
+  await page.keyboard.press('Enter');
+  eq(await page.locator('main#ft15-directory').evaluate(el=>el===document.activeElement),true,
+    'skip link activation focuses main landmark');
+  await page.keyboard.press('Tab');
+  eq(await page.locator('#tool-query').evaluate(el=>el===document.activeElement),true,
+    'next tab reaches labeled search');
   await page.locator('.ft15-card').first().waitFor();
   eq(await page.locator('.ft15-card').count(),4,'all synthetic records');
   eq(await page.locator('.ft15-card h3').allTextContents(),rows.map(r=>r.title),'literal exact headings');
@@ -172,6 +182,15 @@ try {
     true,'200% root-text setting actually applied before reflow assertion');
   eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
     true,'200% root-text reflow; not native browser zoom');
+  // Extra text-size stress test; explicitly NOT a substitute for native 400% browser zoom.
+  await page.evaluate(()=>{document.documentElement.style.fontSize='400%';});
+  eq(await page.evaluate(()=>parseFloat(getComputedStyle(document.documentElement).fontSize)>=60),
+    true,'400% root-text setting actually applied');
+  eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
+    true,'400% root-text stress reflow at 320px; not native browser zoom');
+  await page.evaluate(()=>{document.documentElement.style.fontSize='';});
+  eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
+    true,'reset text size retains reflow');
   eq(pageErrors,[],'no runtime JavaScript errors');
   eq(externalRequests,[],'no outbound requests after interactions');
   console.log('FT-16 '+browserName+' '+(negativeControl?'NEGATIVE CONTROL ':'')+checks+'/'+checks+' PASS');
