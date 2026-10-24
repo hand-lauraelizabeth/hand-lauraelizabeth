@@ -38,5 +38,21 @@ const file=(name,bytes,reportedSize)=>({
  yes(reader.maxBytes===core.MAX_BYTES,'byte limits consistent with parser');
  eq(reader.decode(Buffer.from('a,b\n1,2')),'a,b\n1,2','manual decoder works');
  yes(!reader.decode(Buffer.from('NAME\n=2+2')).includes('\uFFFD'),'valid formula-like text not corrupt');
+ // A real File reports the same byte count before and after arrayBuffer().
+ // Synthetic malformed file-like objects must fail closed, without invoking the parser.
+ for(const [label,reported,actual] of [
+  ['under-reported',3,Buffer.from('ID\n1')],
+  ['over-reported',8,Buffer.from('ID\n1')],
+  ['empty-metadata',0,Buffer.from('ID\n1')],
+  ['max-metadata-short-buffer',reader.maxBytes,Buffer.from('ID\n1')]
+ ]){
+  let parsed=0;
+  await rejects(()=>reader.read(file(label+'.csv',actual,reported),()=>{parsed++;return {}; }),/byte count changed or is inconsistent/);
+  eq(parsed,0,label+' rejected before parser');
+ }
+ for(const [label,returned] of [['typed-array',new Uint8Array(4)],['null',null]]){
+  await rejects(()=>reader.read({name:label+'.csv',size:4,arrayBuffer:async()=>returned},core.parseDelimited),/Unable to read file bytes/);
+ }
+ eq((await reader.read(file('exact-bytes.csv',Buffer.from('ID\n1')),core.parseDelimited)).rows[0][0],'1','matching actual bytes still accepted');
  console.log('PASS: '+checks+' strict local UTF-8 and byte-size assertions.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
