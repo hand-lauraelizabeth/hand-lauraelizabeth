@@ -1,0 +1,35 @@
+name: FT-06 fail-closed CSV security regression
+on:
+  push:
+    branches:
+      - review/ft06-failclosed-csv-20261023-2030
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-failclosed-csv.yml'
+  pull_request:
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-failclosed-csv.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  csv-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate module and regression syntax
+        run: |
+          node --check free-tools/grant-ledger/csv-preflight.mjs
+          node --check free-tools/grant-ledger/csv-preflight.test.mjs
+          node --check free-tools/grant-ledger/app.mjs
+      - name: Verify synthetic CSV formula and control-character cases
+        run: node free-tools/grant-ledger/csv-preflight.test.mjs
+      - name: Verify existing grant ledger calculations
+        run: node free-tools/grant-ledger/core.test.mjs
+      - name: Verify CSV and JSON export structure
+        run: node free-tools/grant-ledger/csv-export-smoke.test.mjs
