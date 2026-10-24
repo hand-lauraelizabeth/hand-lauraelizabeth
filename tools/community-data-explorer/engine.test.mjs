@@ -76,5 +76,5 @@ test("local SHA-256 fingerprints match independent Node crypto oracle", async ()
   const fallback = await fingerprintCsv(bytes("offline"),null);
   assert.equal(fallback.sha256,null);
   assert.match(fallback.verification,/unavailable/);
-  assert.throws(()=>fingerprintCsv(new ArrayBuffer(MAX_BYTES+1),webcrypto),/oversized/);
+  await assert.rejects(fingerprintCsv(new ArrayBuffer(MAX_BYTES+1),webcrypto),/oversized/);
 });
