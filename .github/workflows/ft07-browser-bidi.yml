@@ -1,0 +1,30 @@
+name: FT-07 served cross-browser CSV recovery
+on:
+  push:
+    branches:
+      - 'review/ft07-http-browser-bidi-recovery-*'
+  pull_request:
+    paths:
+      - 'free-tools/rfp-evaluation/**'
+      - '.github/workflows/ft07-browser-bidi.yml'
+permissions:
+  contents: read
+jobs:
+  browser-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test runner
+        run: npm install --no-save --no-package-lock playwright@1.58.2
+      - name: Install browser engines and system dependencies
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Run served HTTP/CSP browser safety and recovery checks
+        run: node free-tools/rfp-evaluation/browser-bidi-regression.mjs
+      - name: Verify independent Node export guards
+        run: |
+          node --test free-tools/rfp-evaluation/bidi-export-guard.test.mjs
+          node --test free-tools/rfp-evaluation/evidence-provenance-regression.test.mjs
