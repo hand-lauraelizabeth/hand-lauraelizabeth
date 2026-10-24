@@ -130,18 +130,36 @@ def main(argv=None):
             receipt.is_symlink() or not receipt.parent.is_dir()):
         print('HOLD: invalid or occupied receipt destination')
         return 2
+    # The CSV and receipt form a private evidence pair. Never leave an orphan
+    # source CSV when receipt persistence fails; never replace an existing receipt.
+    # Stage the receipt in its destination directory and hard-link it only after
+    # fsync. A staged receipt is not a published receipt.
+    source_created = False
+    receipt_committed = False
+    staged_receipt = None
     try:
         metadata = capture_official_csv(
             canonical_export_url(limit=args.limit), source,
             reference_rows=args.reference_rows)
-        with receipt.open('x', encoding='utf-8') as handle:
+        source_created = True
+        with tempfile.NamedTemporaryFile(
+                mode='w', encoding='utf-8', dir=receipt.parent,
+                prefix='.nyc311_receipt_', suffix='.tmp', delete=False) as handle:
+            staged_receipt = Path(handle.name)
             json.dump(metadata, handle, indent=2, sort_keys=True)
             handle.write('\n')
             handle.flush()
             os.fsync(handle.fileno())
-    except (CaptureError, ValueError, OSError):
+        os.link(staged_receipt, receipt)  # atomic, exclusive, no clobber
+        receipt_committed = True
+    except (CaptureError, ValueError, OSError, TypeError):
+        if source_created and not receipt_committed:
+            source.unlink(missing_ok=True)
         print('HOLD: source capture or receipt failed closed')
         return 2
+    finally:
+        if staged_receipt is not None:
+            staged_receipt.unlink(missing_ok=True)
     print('HOLD: private source captured; provenance, row and disclosure QA required')
     return 2
 
