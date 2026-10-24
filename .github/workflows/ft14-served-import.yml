@@ -1,0 +1,38 @@
+name: FT-14 Literature Matrix HTTP/CSP import acceptance
+on:
+  push:
+    paths:
+      - 'resources/literature-evidence-matrix/**'
+      - '.github/workflows/ft14-served-import.yml'
+  pull_request:
+    paths:
+      - 'resources/literature-evidence-matrix/**'
+      - '.github/workflows/ft14-served-import.yml'
+permissions:
+  contents: read
+jobs:
+  node-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check resources/literature-evidence-matrix/import-served.browser.test.mjs
+      - run: node --test resources/literature-evidence-matrix/import-preview.test.mjs
+  served-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock playwright@1.56.1
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node resources/literature-evidence-matrix/import-served.browser.test.mjs ${{ matrix.browser }}
