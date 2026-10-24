@@ -23,3 +23,12 @@ jobs:
       - run: node --check tools/community-data-explorer/engine.mjs
       - run: node --check tools/community-data-explorer/app.mjs
       - run: node --test tools/community-data-explorer/engine.test.mjs
+  browser:
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.57.0-noble
+      env:
+        HOME: /root
+    steps:
+      - uses: actions/checkout@v4
+      - run: python tools/community-data-explorer/browser.test.py
