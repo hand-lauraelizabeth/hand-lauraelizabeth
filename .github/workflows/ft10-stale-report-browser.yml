@@ -1,0 +1,32 @@
+name: FT-10 stale-report browser QA
+on:
+  push:
+    branches:
+      - 'review/ft10-main-stale-report-*'
+  pull_request:
+    paths:
+      - 'free-tools/accessibility-preflight/**'
+      - '.github/workflows/ft10-stale-report-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  synthetic-browser-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser runner
+        run: |
+          python -m pip install playwright==1.58.0
+          python -m playwright install --with-deps ${{ matrix.browser }}
+      - name: Run source-invalidation regression
+        env:
+          FT10_BROWSER: ${{ matrix.browser }}
+        run: python free-tools/accessibility-preflight/stale_report.browser.test.py
