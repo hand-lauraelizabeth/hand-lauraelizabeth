@@ -1,0 +1,29 @@
+name: FT-11 evidence export security
+
+on:
+  push:
+    branches:
+      - 'review/ft11-*'
+    paths:
+      - 'projects/text-lens/**'
+      - '.github/workflows/ft11-evidence-export.yml'
+  pull_request:
+    paths:
+      - 'projects/text-lens/**'
+      - '.github/workflows/ft11-evidence-export.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run browser-local CSV and JSON evidence regression
+        run: node --test projects/text-lens/tests/cue-export-security.test.cjs
