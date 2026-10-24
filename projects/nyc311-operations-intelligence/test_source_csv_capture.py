@@ -156,5 +156,62 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(result['source_bytes'], len(BODY))
 
 
+    def test_main_receipt_serialization_failure_cleans_new_csv_and_stage(self):
+        receipt = self.path.parent / 'receipt.json'
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch('source_csv_capture.json.dump', side_effect=OSError('disk full')):
+                rc = main(['--source-csv', str(self.path),
+                           '--receipt-json', str(receipt),
+                           '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertFalse(self.path.exists())
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_main_receipt_race_preserves_existing_receipt_and_cleans_csv(self):
+        receipt = self.path.parent / 'receipt.json'
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            receipt.write_text('other process', encoding='utf-8')
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            rc = main(['--source-csv', str(self.path),
+                       '--receipt-json', str(receipt),
+                       '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertFalse(self.path.exists())
+        self.assertEqual(receipt.read_text(), 'other process')
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_main_capture_failure_never_creates_receipt(self):
+        receipt = self.path.parent / 'receipt.json'
+        with patch('source_csv_capture.capture_official_csv',
+                   side_effect=CaptureError('SOURCE_HTTP_STATUS_INVALID')):
+            rc = main(['--source-csv', str(self.path),
+                       '--receipt-json', str(receipt),
+                       '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertFalse(self.path.exists())
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_main_success_removes_staged_receipt(self):
+        receipt = self.path.parent / 'receipt.json'
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            rc = main(['--source-csv', str(self.path),
+                       '--receipt-json', str(receipt),
+                       '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.path.read_bytes(), BODY)
+        self.assertEqual(json.loads(receipt.read_text())['source_bytes'], len(BODY))
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+
 if __name__ == '__main__':
     unittest.main()
