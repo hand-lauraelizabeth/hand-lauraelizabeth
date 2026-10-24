@@ -1,0 +1,35 @@
+name: FT-13 Community Data Explorer tests
+on:
+  push:
+    branches:
+      - review/ft13-local-acs-comparison-20261024-0926
+    paths:
+      - 'tools/community-data-explorer/**'
+      - '.github/workflows/ft13-community-data.yml'
+  pull_request:
+    paths:
+      - 'tools/community-data-explorer/**'
+      - '.github/workflows/ft13-community-data.yml'
+permissions:
+  contents: read
+jobs:
+  engine:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check tools/community-data-explorer/engine.mjs
+      - run: node --check tools/community-data-explorer/app.mjs
+      - run: node --test tools/community-data-explorer/engine.test.mjs
+  browser:
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.57.0-noble
+      env:
+        HOME: /root
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install --disable-pip-version-check playwright==1.57.0
+      - run: HOME=/root python tools/community-data-explorer/browser.test.py

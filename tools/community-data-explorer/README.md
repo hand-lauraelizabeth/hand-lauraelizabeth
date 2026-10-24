@@ -1,0 +1,33 @@
+# Community Data Explorer
+
+A free, browser-local workspace for reviewing **user-supplied** American Community Survey (ACS) estimates. Open `index.html` from a local HTTP server or a reviewed static hosting preview. No account or server-side upload is required. The tool does not download official Census observations, certify their authenticity, or make statistical significance determinations.
+
+## Prepare your data
+
+Save a UTF-8 CSV with these columns **in this exact order**:
+
+```csv
+source_id,geography,variable,series,period_start,period_end,estimate,moe
+SYN-0001,"Example area, ST",B19013_001E,acs5,2015,2019,60000,1000
+SYN-0002,"Example area, ST",B19013_001E,acs5,2020,2024,70000,1200
+```
+
+**These two records are fictional testing examples, not Census statistics.** `source_id` is a user-assigned, unique identifier and is preserved exactly, including leading zeroes. `geography` must use consistent labels for matching; labels are not verified against Census geographic codes. `variable` must use an ACS detailed-table estimate ID (for example, `B19013_001E`); the tool checks the identifier's syntax, not its meaning or availability for a given year. `series` is `acs1` or `acs5`. A 5-year period must cover five calendar years. The standard 2020 ACS 1-year release is not accepted.
+
+`estimate` and `moe` are whole-number values or explicit missing markers. Blank fields, `*****`, and selected Census missing-value codes remain **missing**, never zero. Unsupported negative values are rejected rather than silently converted. File size is limited to 2,000,000 bytes and 5,000 records; invalid UTF-8, malformed quoting, duplicate source IDs and control/directional characters in IDs are rejected.
+
+## Review and export
+
+After importing, select two source IDs. The comparison gate blocks mixed ACS 1-year/5-year series, different variables, overlapping periods for the same geography, different periods for different geographies, and missing estimates. A permitted difference is **arithmetic only**; it is not a significance finding, inflation adjustment, or proof of change. Review margins of error and changing definitions before interpreting results.
+
+Export **JSON** to retain original numeric strings, exact IDs, missing-value markers, selected comparison, a user-supplied (unverified) dataset label, and—when WebCrypto is available—an SHA-256 fingerprint of the original file bytes. A fingerprint establishes byte identity, **not** Census authenticity. When WebCrypto is unavailable, the export explicitly records that no fingerprint was computed.
+
+There is no spreadsheet CSV export, to avoid turning untrusted source values into executable formulas. Uploaded data is processed locally in the browser; the application code does not issue network requests. The optional Census guidance link navigates away only if selected.
+
+## Official interpretation guidance
+
+- [Census Bureau: Comparing ACS Data](https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html)
+- [Census Bureau: Why margins of error matter](https://www.census.gov/help/topics/faq.do-i-need-to-consider-the-margins-of-error-when-comparing-acs-estimates.html)
+- [Census Bureau: ACS estimate and annotation values](https://www.census.gov/data/developers/data-sets/acs-1year/notes-on-acs-estimate-and-annotation-values.html)
+
+These resources were reviewed October 24, 2026. The tool remains under review; automated tests do not establish full accessibility or suitability for high-stakes decisions.

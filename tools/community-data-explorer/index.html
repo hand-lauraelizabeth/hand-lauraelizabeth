@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<title>Community Data Explorer — Local ACS Comparison</title>
+<link rel="stylesheet" href="./style.css">
+<script type="module" src="./app.mjs"></script>
+</head>
+<body>
+<main>
+<h1>Community Data Explorer</h1>
+<p>Compare locally imported American Community Survey estimates with explicit source identifiers and period checks. This tool does not retrieve, verify, or transmit data.</p>
+<p><strong>Before interpreting:</strong> ACS estimates have sampling uncertainty. This tool does not establish statistical significance, adjust for inflation, or resolve changing geographic definitions.</p>
+<section aria-labelledby="import-title">
+<h2 id="import-title">1. Import a CSV</h2>
+<p id="format">UTF-8 CSV, up to 2,000,000 bytes and 5,000 records. Exact columns, in order: <code>source_id,geography,variable,series,period_start,period_end,estimate,moe</code>. Series is <code>acs1</code> or <code>acs5</code>. Missing estimate/MOE: empty field or explicit Census missing code. No personal information needed.</p>
+<label for="csv">Choose a local CSV file</label>
+<input id="csv" type="file" accept=".csv,text/csv" aria-describedby="format">
+<label for="label">Dataset label (user-supplied, not verified)</label>
+<input id="label" type="text" value="Imported ACS data (unverified)" maxlength="240">
+<p id="status" role="status" aria-live="polite">No data loaded.</p>
+<p id="error" role="alert" tabindex="-1" hidden></p>
+</section>
+<section aria-labelledby="compare-title">
+<h2 id="compare-title">2. Compare two source records</h2>
+<div class="fields">
+<div><label for="left">First source ID</label><select id="left" aria-label="First source ID"></select></div>
+<div><label for="right">Second source ID</label><select id="right" aria-label="Second source ID"></select></div>
+</div>
+<button id="compare" type="button" disabled>Review comparison</button>
+<div id="comparison" aria-live="polite"></div>
+</section>
+<section aria-labelledby="records-title">
+<h2 id="records-title">3. Inspect evidence and export</h2>
+<p>Preview is limited to 100 rows; exported JSON retains every imported row, original estimate/MOE strings, and exact source IDs. There is no CSV export because untrusted spreadsheet cells can execute formulas.</p>
+<div class="scroll" tabindex="0" role="region" aria-label="Imported record preview">
+<table><thead><tr><th scope="col">Source ID</th><th scope="col">Geography</th><th scope="col">Variable</th><th scope="col">Series</th><th scope="col">Period</th><th scope="col">Estimate</th><th scope="col">MOE</th></tr></thead><tbody id="records"></tbody></table>
+</div>
+<button id="export" type="button" disabled>Export local JSON evidence</button>
+</section>
+<p>Method guidance: <a href="https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html">U.S. Census Bureau: Comparing ACS Data</a>. The link is optional; importing and analyzing data requires no network connection.</p>
+</main>
+</body>
+</html>
