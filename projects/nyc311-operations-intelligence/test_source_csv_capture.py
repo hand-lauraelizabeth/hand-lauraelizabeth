@@ -1,6 +1,7 @@
 """Offline transport-adversarial tests. No official CSV or network access."""
 from datetime import datetime, timezone
 from hashlib import sha256
+from http.client import HTTPException, IncompleteRead
 import io
 from pathlib import Path
 import tempfile
@@ -79,6 +80,21 @@ class CaptureTests(unittest.TestCase):
 
     def test_non_200_rejected(self):
         self.fails('SOURCE_HTTP_STATUS_INVALID', Response(status=206))
+
+    def test_incomplete_http_body_fails_closed_without_orphan(self):
+        class TruncatedResponse(Response):
+            def read(self, amount=-1):
+                raise IncompleteRead(b'partial', len(BODY))
+
+        self.fails('SOURCE_HTTP_OR_DISK_FAILED_CLOSED', TruncatedResponse())
+
+    def test_http_close_failure_fails_before_source_publication(self):
+        class CloseFailureResponse(Response):
+            def close(self):
+                super().close()
+                raise HTTPException('synthetic close failure')
+
+        self.fails('SOURCE_HTTP_OR_DISK_FAILED_CLOSED', CloseFailureResponse())
 
     def test_http_200_with_content_range_is_rejected(self):
         # Some servers incorrectly return a partial payload with HTTP 200.
