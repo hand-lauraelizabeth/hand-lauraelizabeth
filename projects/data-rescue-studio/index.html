@@ -65,7 +65,8 @@
 <p class="muted">Original input is not changed. Records that differ even slightly are not automatically merged.</p>
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
 <p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab. This changes those cell values and is not universally safe across spreadsheet programs. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
-<div class="actions"><button id="save" disabled>Export CSV</button></div>
+<p class="muted">For exact decoded cell values and logical source-record positions, export JSON instead. JSON does not add CSV formula prefixes; it is not a byte-for-byte copy or proof of authenticity. Both downloads contain your data and should be stored privately.</p>
+<div class="actions"><button id="save" disabled>Export CSV</button><button class="secondary" id="saveJson" disabled>Export exact JSON</button></div>
 </section>
 <footer><p class="muted">Preview version: CSV/TSV inspection and exact-identifier comparison. It does not perform fuzzy matching or validate business-specific rules. Spreadsheet export precautions do not guarantee security.</p></footer>
 </main><script src="rescue-core.js"></script><script src="file-reader.js"></script><script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script><script>
@@ -78,7 +79,7 @@ function clear(preserveFile=false){
  ++loadEpoch; loaded=null;if(!preserveFile)$('file').value='';
  window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
- $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;status('No data loaded.');
+ $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;$('saveJson').disabled=true;status('No data loaded.');
 }
 function el(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
 function quality(data,name) {
@@ -94,7 +95,7 @@ function quality(data,name) {
  thead.append(tr);t.append(thead);const tbody=el('tbody');
  for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',v));tbody.append(line);}
  t.append(tbody);$('columns').replaceChildren(t);
- $('dedupe').disabled=false;$('save').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted.');
+ $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted.');
 }
 function preview(){
  if(!loaded)return;
@@ -133,6 +134,15 @@ $('save').addEventListener('click',()=>{
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  const a=el('a');a.href=url;a.download='data-rescue-reviewed.csv';document.body.append(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1000);status('CSV exported locally: '+active.rows.length+' records.');
+});
+$('saveJson').addEventListener('click',()=>{
+ if(!loaded)return;
+ // JSON always includes all original parsed records, even if CSV deduplication is selected.
+ const json=lib.exportEvidenceJson(loaded,$('file').files?.[0]?.name || '');
+ const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'}));
+ const a=el('a');a.href=url;a.download='data-rescue-evidence.json';document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ status('Exact decoded JSON exported locally: '+loaded.rows.length+' source records. No rows were removed.');
 });
 })();
 </script></body></html>

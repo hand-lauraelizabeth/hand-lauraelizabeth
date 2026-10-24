@@ -125,5 +125,34 @@
     return [parsed.headers, ...parsed.rows].map(row => row.map(write).join(',')).join('\r\n');
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, exportCsv, MAX_BYTES, MAX_ROWS};
+  // Exact decoded cells and logical source record positions, without CSV formula rewriting.
+  // This is not a byte-for-byte copy or a cryptographic authenticity record.
+  function exportEvidenceJson(parsed, sourceFileName = '') {
+    if (!parsed || !Array.isArray(parsed.headers) || !Array.isArray(parsed.rows) ||
+        !Array.isArray(parsed.normalizedHeaders) || !Array.isArray(parsed.warnings) ||
+        (parsed.delimiter !== ',' && parsed.delimiter !== '\t') ||
+        typeof sourceFileName !== 'string')
+      throw new Error('A parsed CSV or TSV and its source filename are required.');
+    const width = parsed.headers.length;
+    if (width < 1 || width > MAX_COLUMNS || parsed.normalizedHeaders.length !== width ||
+        parsed.rows.length > MAX_ROWS ||
+        !parsed.headers.every(v => typeof v === 'string') ||
+        !parsed.normalizedHeaders.every(v => typeof v === 'string') ||
+        !parsed.warnings.every(v => typeof v === 'string') ||
+        !parsed.rows.every(row => Array.isArray(row) && row.length === width &&
+          row.every(v => typeof v === 'string')))
+      throw new Error('Cannot export an incomplete or inconsistent evidence table.');
+    return JSON.stringify({
+      format: 'data-rescue-evidence', schemaVersion: 1,
+      source: {fileName: sourceFileName, delimiter: parsed.delimiter,
+        headerRecord: 1, recordUnit: 'logical CSV/TSV record'},
+      headers: parsed.headers.slice(), normalizedHeaders: parsed.normalizedHeaders.slice(),
+      warnings: parsed.warnings.slice(), recordCount: parsed.rows.length,
+      records: parsed.rows.map((values, index) => ({
+        sourceRecord: index + 2, values: values.slice()
+      }))
+    }, null, 2);
+  }
+
+  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, exportCsv, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
 });
