@@ -141,6 +141,8 @@ try {
   eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
     true,'320 CSS-pixel reflow');
   await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+  eq(await page.evaluate(()=>parseFloat(getComputedStyle(document.documentElement).fontSize)>=30),
+    true,'200% root-text setting actually applied before reflow assertion');
   eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
     true,'200% root-text reflow; not native browser zoom');
   eq(pageErrors,[],'no runtime JavaScript errors');
