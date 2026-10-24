@@ -35,9 +35,9 @@ test("comparison gates overlapping ACS5, different series, geography, missing", 
 test("reject malformed, duplicate, unsafe and inconsistent inputs", () => {
   const bad = [
     [header,a,a].join("\n"),
-    [header,a.replace("0001","\u202e0001"),
+    [header,a.replace("0001","\u202e0001")].join("\n"),
     [header,a.replace("0001","=1+1")].join("\n"),
-    [header,a.replace("0001","  +SUM(1)")].join("\n")].join("\n"),
+    [header,a.replace("0001","  +SUM(1)")].join("\n"),
     [header,a.replace("2015,2019","2019,2022")].join("\n"),
     [header,a.replace("acs5","acs1")].join("\n"),
     [header,a.replace("60000","=1+1")].join("\n"),
