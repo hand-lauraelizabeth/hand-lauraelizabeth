@@ -151,6 +151,7 @@ def main(argv=None):
     parser.add_argument('--previous-json')
     parser.add_argument('--marginal-evidence-json', help='synthetic or cleared evidence only')
     parser.add_argument('--source-csv', help='private source CSV to stream-hash; origin still unverified')
+    parser.add_argument('--created-month', help='expected source-local YYYY-MM; floating timestamp, no timezone inference')
     parser.add_argument('--report', required=True)
     a = parser.parse_args(argv)
     sources = [p for p in (a.candidate_json, a.previous_json,
@@ -169,8 +170,11 @@ def main(argv=None):
         if 'SOURCE_CSV_BYTES_MATCH_CANDIDATE_CLAIM' in binding:
             # Uniqueness and optional row count are independent of byte equality.
             # Neither check proves publisher provenance or query completeness.
+            if a.created_month is None:
+                codes.add('SOURCE_CREATED_DATE_MONTH_NOT_BOUND')
             expected_rows = candidate.get('source_rows') if type(candidate) is dict else None
-            codes.update(audit_unique_keys(a.source_csv, expected_rows=expected_rows))
+            codes.update(audit_unique_keys(a.source_csv, expected_rows=expected_rows,
+                                           expected_month=a.created_month))
         result['codes'] = sorted(codes)
     except (OSError, UnicodeError, ValueError, TypeError,
             RecursionError, ArithmeticError):
