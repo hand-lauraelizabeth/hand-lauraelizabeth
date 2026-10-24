@@ -3,11 +3,12 @@ export const MAX_BYTES = 2_000_000;
 export const MAX_RECORDS = 5_000;
 export const COLUMNS = ["source_id","geography","variable","series","period_start","period_end","estimate","moe"];
 const dangerous = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
+const formulaPrefix = /^[\s\u00a0]*[=+\-@\uff1d\uff0b\uff0d\uff20]/u;
 const missingCodes = new Set(["-666666666","-888888888","-999999999"]);
 function fail(message) { throw new Error(message); }
 function safeLabel(value, field) {
-  if (typeof value !== "string" || !value.trim() || value.length > 240 || dangerous.test(value))
-    fail(field + " must be nonempty, at most 240 characters, and free of control/directional characters");
+  if (typeof value !== "string" || !value.trim() || value.length > 240 || dangerous.test(value) || formulaPrefix.test(value))
+    fail(field + " must be nonempty, at most 240 characters, and free of control/directional/formula-prefix characters");
   return value; // Never trim exact source identifiers.
 }
 export function parseCsv(text) {
