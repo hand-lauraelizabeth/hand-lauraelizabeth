@@ -1,0 +1,39 @@
+name: FT-11 served evidence browser QA
+
+on:
+  push:
+    branches:
+      - 'review/ft11-served-csp-evidence-*'
+    paths:
+      - 'projects/text-lens/**'
+      - '.github/workflows/ft11-served-csp.yml'
+  pull_request:
+    paths:
+      - 'projects/text-lens/**'
+      - '.github/workflows/ft11-served-csp.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  served-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser runner
+        run: |
+          python -m pip install playwright==1.58.0
+          python -m playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify served CSP, evidence exports and focus
+        env:
+          FT11_BROWSER: ${{ matrix.browser }}
+        run: python projects/text-lens/tests/served-evidence.browser.test.py

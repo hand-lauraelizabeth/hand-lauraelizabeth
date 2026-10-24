@@ -27,12 +27,12 @@ class TextLensContractTests(unittest.TestCase):
   for token in ['id="focusDoc"','id="vizMetric"',"function syncCorpusSelectors(","function renderMetricBars(","function kwicTarget()","similarity-meter","focus_document:","document_chart:"]:
    self.assertIn(token,HTML)
  def test_corpus_document_management_and_reference_keyness_are_present(self):
-  for token in ['id="keyRef"','id="docManager"',"let docSeq=0","function manageDocument(","function renderDocumentManager(","function keynessAgainstReference(","reference_document:reference","keyness_reference:","version:\"3.5\""]:
+  for token in ['id="keyRef"','id="docManager"',"let docSeq=0","function manageDocument(","function renderDocumentManager(","function keynessAgainstReference(","reference_document:reference","keyness_reference:","version:\"7.0\""]:
    self.assertIn(token,HTML)
  def test_corpus_refreshes_before_document_scoped_concordance(self):
-  self.assertIn("lastCompare=two;renderCorpus();renderKwic();",HTML)
+  self.assertRegex(HTML,r"lastCompare=two;.*?renderEvidence\(\);renderCorpus\(\);renderKwic\(\);")
  def test_custom_reference_sets_and_source_free_setup_are_present(self):
-  for token in ['value="custom"',"const customRefIds=new Set()","function customReference(","reference_id:'custom'",'id="saveCorpusSetup"','id="loadCorpusSetup"',"function buildCorpusSetup()","contains_source_text:false","function containsSourcePayload(","Corpus setup must not contain source text","version:\"3.5\""]:
+  for token in ['value="custom"',"const customRefIds=new Set()","function customReference(","reference_id:'custom'",'id="saveCorpusSetup"','id="loadCorpusSetup"',"function buildCorpusSetup()","contains_source_text:false","function containsSourcePayload(","Corpus setup must not contain source text","version:\"7.0\""]:
    self.assertIn(token,HTML)
  def test_setup_restore_is_metadata_only_and_pending_safe(self):
   for token in ["name:doc.name","size:Number(doc.size||0)","last_modified:Number(doc.lastModified||0)","pendingCorpusConfig?applyCorpusSetup","Saved corpus setup without source text."]:
@@ -50,9 +50,10 @@ class TextLensContractTests(unittest.TestCase):
   self.assertNotIn("function top(",HTML);self.assertIn("function topEntries(",HTML)
  def test_javascript_syntax(self):
   node=shutil.which("node");self.assertIsNotNone(node,"Node.js is required for Text Lens syntax validation")
-  parts=re.findall(r"<script>(.*?)</script>",HTML,re.S);self.assertEqual(len(parts),1)
-  with tempfile.NamedTemporaryFile("w",suffix=".js",encoding="utf-8") as f:
-   f.write(parts[0]);f.flush();p=subprocess.run([node,"--check",f.name],text=True,capture_output=True)
-  self.assertEqual(p.returncode,0,p.stderr)
+  parts=re.findall(r"<script>(.*?)</script>",HTML,re.S);self.assertGreaterEqual(len(parts),1)
+  for i,script in enumerate(parts,1):
+   with tempfile.NamedTemporaryFile("w",suffix=".js",encoding="utf-8") as f:
+    f.write(script);f.flush();p=subprocess.run([node,"--check",f.name],text=True,capture_output=True)
+   self.assertEqual(p.returncode,0,f"Inline script {i}: {p.stderr}")
 
 if __name__=="__main__":unittest.main()

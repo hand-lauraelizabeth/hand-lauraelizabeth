@@ -34,6 +34,7 @@ def run():
   driver=webdriver.Chrome(options=opts);driver.get(f"http://127.0.0.1:{port}/text-lens.html")
   wait=WebDriverWait(driver,10)
   with tempfile.TemporaryDirectory() as td:
+   driver.execute_cdp_cmd("Page.setDownloadBehavior",{"behavior":"allow","downloadPath":td})
    a=Path(td)/"alpha.txt";b=Path(td)/"beta.txt"
    a.write_text("alpha evidence alpha method corpus reference evidence method "*12,encoding="utf-8")
    b.write_text("beta archive beta document corpus comparison archive document "*12,encoding="utf-8")
@@ -66,7 +67,10 @@ def run():
    wait.until(lambda d:"Focus" in d.find_element(By.ID,"docManagerRows").text)
    wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,".keyness-table tbody tr"))==1)
 
-   setup=driver.execute_script("return buildCorpusSetup();")
+   click_id(driver,wait,"saveCorpusSetup")
+   setup_path=Path(td)/"text-lens-corpus-setup.json"
+   wait.until(lambda _:setup_path.is_file() and setup_path.stat().st_size>0)
+   setup=json.loads(setup_path.read_text(encoding="utf-8"))
    assert setup["contains_source_text"] is False
    assert len(setup["documents"])==2
    assert set(setup["documents"][0]).issubset({"source","name","size","last_modified","order"})
