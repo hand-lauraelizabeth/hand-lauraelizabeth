@@ -27,8 +27,11 @@ jobs:
           node --check free-tools/grant-ledger/csv-preflight.mjs
           node --check free-tools/grant-ledger/csv-preflight.test.mjs
           node --check free-tools/grant-ledger/app.mjs
+          node --check free-tools/grant-ledger/csv-numeric-fidelity.test.mjs
       - name: Verify synthetic CSV formula and control-character cases
         run: node free-tools/grant-ledger/csv-preflight.test.mjs
+      - name: Verify numeric CSV export fidelity
+        run: node free-tools/grant-ledger/csv-numeric-fidelity.test.mjs
       - name: Verify existing grant ledger calculations
         run: node free-tools/grant-ledger/core.test.mjs
       - name: Verify CSV and JSON export structure
