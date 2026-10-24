@@ -143,6 +143,19 @@ def capture_official_csv(url, destination, *, reference_rows, opener=None,
             'required_next': 'independent_unique_key_month_count_privacy_and_source_review',
         }
         os.link(temporary, target)
+        # Publishing is not complete until the staging hard link is removed.
+        # If that cleanup fails, roll back only our own inode; never delete a
+        # competing file that may have replaced the destination in the meantime.
+        try:
+            temporary.unlink()
+        except OSError as exc:
+            try:
+                if target.samefile(temporary):
+                    target.unlink()
+            except OSError:
+                pass
+            raise CaptureError('SOURCE_CAPTURE_CLEANUP_FAILED') from exc
+        temporary = None
         return metadata
     except CaptureError:
         raise
@@ -150,7 +163,12 @@ def capture_official_csv(url, destination, *, reference_rows, opener=None,
         raise CaptureError('SOURCE_HTTP_OR_DISK_FAILED_CLOSED') from exc
     finally:
         if temporary is not None:
-            temporary.unlink(missing_ok=True)
+            # Best effort after a failed capture or rollback. An unlink failure
+            # here must not mask the original fail-closed error.
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 def main(argv=None):
