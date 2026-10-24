@@ -1,0 +1,32 @@
+name: FT-01 local CSV byte-integrity review
+on:
+  push:
+    branches:
+      - review/ft01-byte-count-integrity-20261024-1827
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/ft01-byte-integrity-review.yml"
+  pull_request:
+    paths:
+      - "projects/data-rescue-studio/**"
+      - ".github/workflows/ft01-byte-integrity-review.yml"
+permissions:
+  contents: read
+jobs:
+  byte-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate JavaScript syntax
+        run: |
+          node --check projects/data-rescue-studio/file-reader.js
+          node --check projects/data-rescue-studio/tests/file-reader.test.js
+      - name: Run byte-boundary and CSV regressions
+        run: |
+          node projects/data-rescue-studio/tests/file-reader.test.js
+          node projects/data-rescue-studio/tests/rescue-core.test.js
+          node projects/data-rescue-studio/tests/reconcile-core.test.js

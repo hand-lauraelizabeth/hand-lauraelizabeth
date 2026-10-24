@@ -33,6 +33,13 @@
   const parse=parser||(root&&root.DataRescue&&root.DataRescue.parseDelimited);
   if(typeof parse!=='function')throw Error('CSV parser is unavailable.');
   const buffer=await file.arrayBuffer();
+  // Validate the bytes actually read, not only the file's reported metadata.
+  if(!(buffer instanceof ArrayBuffer))
+   throw Error('Unable to read file bytes. Re-select the file.');
+  if(buffer.byteLength>maxBytes)
+   throw Error('The selected file is larger than 5 MB.');
+  if(buffer.byteLength!==file.size)
+   throw Error('File byte count changed or is inconsistent. Re-select the file.');
   const source=decode(buffer);
   return parse(source,kind==='tsv'?'\t':undefined);
  }
