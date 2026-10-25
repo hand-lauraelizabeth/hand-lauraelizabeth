@@ -19,9 +19,23 @@ export function analyzeProject(input){
  const project=validateProject(input),issues=[],groups=new Map();
  for(const s of project.sources)if(!s.doi)issues.push({kind:"missing-doi",sourceId:s.id});
  for(const c of project.claims){if(!c.locator)issues.push({kind:"missing-locator",claimId:c.id,sourceId:c.sourceId});if(!c.methods)issues.push({kind:"methods-not-recorded",claimId:c.id});if(!c.limitations)issues.push({kind:"limitations-not-recorded",claimId:c.id});if(!groups.has(c.question))groups.set(c.question,[]);groups.get(c.question).push(c)}
+ // Count every cross-source, user-coded candidate without building an unbounded DOM list.
  const tensions=[];
- for(const [question,rows] of groups){const yes=rows.filter(x=>x.stance==="supports"),no=rows.filter(x=>x.stance==="challenges");for(const a of yes)for(const b of no)if(a.sourceId!==b.sourceId)tensions.push({question,supportClaimId:a.id,challengeClaimId:b.id,sourceIds:[a.sourceId,b.sourceId],status:"review-user-coded-stances"})}
- return {project,issues,tensions};
+ const MAX_VISIBLE_TENSIONS=1000;
+ let tensionTotal=0;
+ for(const [question,rows] of groups){
+  const yes=rows.filter(x=>x.stance==="supports"),no=rows.filter(x=>x.stance==="challenges");
+  const noBySource=new Map();
+  for(const b of no)noBySource.set(b.sourceId,(noBySource.get(b.sourceId)||0)+1);
+  for(const a of yes)tensionTotal+=no.length-(noBySource.get(a.sourceId)||0);
+  if(tensions.length>=MAX_VISIBLE_TENSIONS)continue;
+  candidatePairs: for(const a of yes)for(const b of no){
+   if(a.sourceId===b.sourceId)continue;
+   tensions.push({question,supportClaimId:a.id,challengeClaimId:b.id,sourceIds:[a.sourceId,b.sourceId],status:"review-user-coded-stances"});
+   if(tensions.length===MAX_VISIBLE_TENSIONS)break candidatePairs;
+  }
+ }
+ return {project,issues,tensions,tensionTotal,tensionsOmitted:tensionTotal-tensions.length};
 }
 function bytes(s){return unescape(encodeURIComponent(s)).length}
 export function exportProject(input){const json=JSON.stringify(validateProject(input),null,2);if(bytes(json)>2000000)throw Error("Export exceeds 2 MB");return json}
