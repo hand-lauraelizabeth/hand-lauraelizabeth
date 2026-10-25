@@ -189,6 +189,7 @@ def main(argv=None):
     # Stage the receipt in its destination directory and hard-link it only after
     # fsync. A staged receipt is not a published receipt.
     source_created = False
+    source_inode = None
     receipt_committed = False
     staged_receipt = None
     try:
@@ -196,6 +197,15 @@ def main(argv=None):
             canonical_export_url(limit=args.limit), source,
             reference_rows=args.reference_rows)
         source_created = True
+        # Snapshot the inode before receipt operations. A competing process may
+        # replace this pathname; rollback must never delete its replacement.
+        try:
+            source_stat = source.lstat()
+            source_inode = (source_stat.st_dev, source_stat.st_ino)
+        except FileNotFoundError:
+            # Preserve compatibility with injectable offline capture mocks.
+            # Real capture always creates a source; no inode means no deletion.
+            pass
         with tempfile.NamedTemporaryFile(
                 mode='w', encoding='utf-8', dir=receipt.parent,
                 prefix='.nyc311_receipt_', suffix='.tmp', delete=False) as handle:
@@ -221,8 +231,16 @@ def main(argv=None):
         staged_receipt = None
         receipt_committed = True
     except (CaptureError, ValueError, OSError, TypeError):
-        if source_created and not receipt_committed:
-            source.unlink(missing_ok=True)
+        if source_created and not receipt_committed and source_inode is not None:
+            # Roll back only the source inode captured by this process. If the
+            # path has been replaced, retain the competing file unmodified.
+            try:
+                current = source.lstat()
+                if (current.st_dev, current.st_ino) == source_inode:
+                    source.unlink()
+            except OSError:
+                # Cleanup failure must not mask the original HOLD condition.
+                pass
         print('HOLD: source capture or receipt failed closed')
         return 2
     finally:
