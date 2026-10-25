@@ -54,6 +54,7 @@ try{
   await page.locator('#import-file').setInputFiles({name:'housing.json',mimeType:'application/json',buffer:exported});
   page.once('dialog',dialog=>dialog.accept());
   await page.locator('#import').click();
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('reopened successfully'));
   await check(async()=>assert.match(await page.locator('#status').innerText(),/reopened successfully/));
   await check(async()=>assert.match(await page.locator('#sources-list').innerText(),/000-A\/１/));
   await check(async()=>assert.match(await page.locator('#events-list').innerText(),/000-E\/é/));
@@ -68,16 +69,19 @@ try{
   await page.locator('#import-file').setInputFiles({name:'housing.json',mimeType:'application/json',buffer:exported});
   page.once('dialog',dialog=>dialog.dismiss());
   await page.locator('#import').click();
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Import canceled'));
   await check(async()=>assert.match(await page.locator('#status').innerText(),/Import canceled/));
   await check(async()=>assert.match(await page.locator('#sources-list').innerText(),/000-EXTRA/));
   await page.locator('#import-file').setInputFiles({name:'broken.json',mimeType:'application/json',buffer:Buffer.from('{')});
   await page.locator('#import').click();
+  await page.locator('#error').waitFor({state:'visible'});
   await check(async()=>assert.equal(await page.evaluate(()=>document.activeElement.id),'error'));
   await check(async()=>assert.match(await page.locator('#error').innerText(),/valid JSON/));
   await check(async()=>assert.match(await page.locator('#sources-list').innerText(),/000-EXTRA/));
   await page.locator('#import-file').setInputFiles({name:'housing.json',mimeType:'application/json',buffer:exported});
   page.once('dialog',dialog=>dialog.accept());
   await page.locator('#import').click();
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('reopened successfully'));
   await check(async()=>assert.doesNotMatch(await page.locator('#sources-list').innerText(),/000-EXTRA/));
   await check(async()=>assert.equal(await page.locator('#error').isHidden(),true));
   const widths=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth}));
