@@ -11,8 +11,8 @@ function ok(value, message) {assert.ok(value, message); checks++;}
 const headers = ['ID', 'ID', 'Note', ...Array.from({length:97}, (_,i)=>'C'+i)];
 const blank = ','.repeat(99);
 const lines = Array(49_000).fill(blank);
-lines[0] = '0007,=1+2,"café\nline",' + ','.repeat(97);
-lines[48_999] = '0099,-2,tail,' + ','.repeat(97);
+lines[0] = '0007,=1+2,"café\nline"' + ','.repeat(97);
+lines[48_999] = '0099,-2,tail' + ','.repeat(97);
 const source = headers.join(',') + '\r\n' + lines.join('\r\n');
 const sourceBytes = byteLength(source, 'utf8');
 ok(sourceBytes <= MAX_BYTES && sourceBytes > 4_900_000, 'near-limit synthetic CSV remains under byte cap');
