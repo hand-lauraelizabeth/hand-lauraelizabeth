@@ -18,10 +18,10 @@ export function validateCatalog(rows=TOOLS){
 // Normalize only the temporary search index; catalog titles and URLs remain unchanged.
 // Canonical decomposition supports both precomposed and combining-mark input.
 function searchKey(value){
- return String(value).normalize('NFD').replace(/\\p{M}/gu,'').toLocaleLowerCase('en');
+ return String(value).normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('en');
 }
 export function filterTools(rows=TOOLS,{query='',category='all',status='all'}={}){
- const terms=searchKey(query).trim().split(/\\s+/u).filter(Boolean);
+ const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean);
  return rows.filter(t=>{
   if(category!=='all'&&t.category!==category)return false;
   if(status!=='all'&&t.status!==status)return false;
