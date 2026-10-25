@@ -199,6 +199,45 @@ async function testBrowser(name,type){
     ]);
     const exactCSV=readFileSync(await exactCSVDownload.path(),'utf8');
     check(exactCSV.includes('" 00009 "," Invoice  "'),name+': CSV preserves exact padded source fields');
+    // Removing an event is destructive for the local scenario. A cancelled
+    // confirmation must preserve the exact event and previously calculated
+    // export; confirmation must invalidate both downloads and recover focus.
+    const removalDialogs=[];
+    let approveRemoval=false;
+    page.on('dialog',async dialog=>{
+      removalDialogs.push(dialog.message());
+      if(approveRemoval) await dialog.accept();
+      else await dialog.dismiss();
+    });
+    const removeEvent=page.getByRole('button',{name:'Remove '+paddedId});
+    await removeEvent.focus();
+    await page.keyboard.press('Enter');
+    check(removalDialogs.length===1,name+': removal requires confirmation');
+    check(!removalDialogs[0].includes(paddedId)&&!removalDialogs[0].includes(paddedLabel),
+      name+': confirmation does not echo sensitive event details');
+    check((await page.locator('#events').textContent()).includes(paddedId),
+      name+': cancelled removal must retain event');
+    check(await page.locator('#export-json').isEnabled(),
+      name+': cancelled removal must retain calculated JSON export');
+    const [cancelledDownload]=await Promise.all([
+      page.waitForEvent('download'),page.locator('#export-json').click()
+    ]);
+    check(readFileSync(await cancelledDownload.path(),'utf8')===JSON.stringify(exactJSON,null,2)+'\n',
+      name+': cancelled removal must preserve exact JSON bytes');
+    approveRemoval=true;
+    await removeEvent.focus();
+    await page.keyboard.press('Enter');
+    check(removalDialogs.length===2,name+': confirmed removal requires a second prompt');
+    check((await page.locator('#events').textContent()).includes('No events added.'),
+      name+': confirmed removal clears selected event');
+    check(await page.locator('#export-json').isDisabled()&&await page.locator('#export').isDisabled(),
+      name+': confirmed removal invalidates stale exports');
+    check((await page.locator('#results tr').count())===0,
+      name+': confirmed removal invalidates stale projection');
+    check(await page.evaluate(()=>document.activeElement.id)==='event-id',
+      name+': confirmed removal restores keyboard focus to event entry');
+    check((await page.locator('#status').textContent()).includes('Event removed.'),
+      name+': confirmed removal announces result without private ID');
     check(!errors.length,name+': uncaught JS exceptions: '+errors.join('; '));
     check(!offsite.length,name+': unexpected external requests: '+offsite.join('; '));
     await page.close();
@@ -243,7 +282,10 @@ async function testMobile(label,type,profile){
     await fill(page,'opening','400.00');
     check(await page.getByRole('button',{name:'Export scenario CSV'}).isDisabled(),label+': stale export blocked after edit');
     check(await page.locator('#results tr').count()===0,label+': stale results invalidated');
+    let mobileRemovalDialogs=0;
+    page.on('dialog',async dialog=>{mobileRemovalDialogs++;await dialog.accept();});
     await page.getByRole('button',{name:'Remove rent'}).tap();
+    check(mobileRemovalDialogs===1,label+': touch removal requires confirmation');
     check((await page.locator('#events').textContent()).includes('No events added.'),label+': touch removes event');
     check(errors.length===0,label+': no page exceptions: '+errors.join('; '));
     check(offsite.length===0,label+': no offsite requests: '+offsite.join('; '));
