@@ -41,5 +41,15 @@ function safeCSV(kind, filename, exporter) {
 $('downloadTransactions').addEventListener('click',()=>safeCSV('transactions','grant-transactions.csv',exportTransactionsCSV));
 $('downloadBudget').addEventListener('click',()=>safeCSV('budget','grant-budget.csv',exportBudgetCSV));
 $('downloadReview').addEventListener('click',()=>safeCSV('review','grant-review-flags.csv',exportReviewCSV));
-$('downloadJSON').addEventListener('click',()=>download('grant-evidence.json','application/json;charset=utf-8',exportJSON(current())));
+$('downloadJSON').addEventListener('click',()=>{
+ try {
+  // Validate and serialize before clearing any earlier CSV-specific error.
+  const evidence = exportJSON(current());
+  error('');
+  download('grant-evidence.json','application/json;charset=utf-8',evidence);
+ } catch (e) {
+  error(e.message);
+  $('status').textContent='Evidence JSON unavailable.';
+ }
+});
 renderLedger(current());
