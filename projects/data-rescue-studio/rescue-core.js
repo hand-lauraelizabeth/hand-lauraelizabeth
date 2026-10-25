@@ -46,10 +46,11 @@
         if (c === '"') {
           if (text[i+1] === '"') { field += '"'; i++; }
           else state = 'afterQuote';
-        } else if (c === '\r') {
-          if (text[i+1] === '\n') i++;
-          field += '\n';
-        } else field += c;
+        } else {
+          // Quoted CRLF, lone CR and LF are cell data, not record boundaries.
+          // Preserve their exact decoded characters for evidence and round-trips.
+          field += c;
+        }
       } else if (c === sep) pushField();
       else if (c === '\n' || c === '\r') {
         pushRow();
