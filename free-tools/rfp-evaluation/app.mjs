@@ -30,7 +30,14 @@ function addRow(kind){
   const id=`${kind}-${num}-${field.dataset.field}`;const label=field.closest('label');field.id=id;label.htmlFor=id;
  }
  item.querySelector('[data-remove]').addEventListener('click',()=>{
+  // Native confirmation is keyboard operable and does not repeat sensitive IDs.
+  // Cancel must leave the evaluated results, pending import, and inputs intact.
+  if(!window.confirm(`Remove this ${kind} entry? Its locally entered fields will be discarded. Select Cancel to keep the entry.`)){
+   $('status').textContent=`${kind} removal canceled. Existing entries were preserved.`;
+   return;
+  }
   cancelPendingImport();dismissResetPreview();item.remove();invalidate();
+  $('status').textContent=`${kind} entry removed. Evaluate again before exporting.`;
   // Removing the focused button must not strand keyboard focus in detached DOM.
   $('add-'+kind).focus();
  });
