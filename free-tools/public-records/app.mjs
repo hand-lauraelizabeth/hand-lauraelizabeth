@@ -22,15 +22,33 @@ function render(){
   if(!state.events.length)eventList.append(node('li','No dated events yet.'));
   if(!flagList.children.length)flagList.append(node('li','No missing-documentation flags. This does not establish completeness.'));
 }
-function add(formId,kind){const form=byId(formId);form.addEventListener('submit',event=>{
-  event.preventDefault();try{
-    const r=kind==='request'?{
-      id:field(form,'id'),jurisdiction:field(form,'jurisdiction'),agency:field(form,'agency'),stage:field(form,'stage'),submittedOn:field(form,'submittedOn'),agencyTrackingId:field(form,'agencyTrackingId'),description:field(form,'description')
-    }:{id:field(form,'id'),requestId:field(form,'requestId'),date:field(form,'date'),kind:field(form,'kind'),sourceId:field(form,'sourceId'),description:field(form,'description')};
-    const next={...state,[kind==='request'?'requests':'events']:[...state[kind==='request'?'requests':'events'],r]};
-    state=validateWorkspace(next);form.reset();render();say(`Added ${kind} ${r.id}.`);
-  }catch(error){say(`Cannot add ${kind}: ${error.message}`);}
-});}
+function add(formId,kind){
+  const form=byId(formId), errorMessage=byId(kind+'-error');
+  form.addEventListener('submit',event=>{
+    event.preventDefault();
+    try{
+      const r=kind==='request'?{
+        id:field(form,'id'),jurisdiction:field(form,'jurisdiction'),agency:field(form,'agency'),stage:field(form,'stage'),submittedOn:field(form,'submittedOn'),agencyTrackingId:field(form,'agencyTrackingId'),description:field(form,'description')
+      }:{
+        id:field(form,'id'),requestId:field(form,'requestId'),date:field(form,'date'),kind:field(form,'kind'),sourceId:field(form,'sourceId'),description:field(form,'description')
+      };
+      const collection=kind==='request'?'requests':'events';
+      const next={...state,[collection]:[...state[collection],r]};
+      state=validateWorkspace(next);
+      errorMessage.hidden=true;
+      errorMessage.textContent='';
+      form.reset();
+      render();
+      say(`Added ${kind} ${r.id}.`);
+    }catch(error){
+      // Keep the entered values and exact existing workspace. Never echo user input in an error.
+      errorMessage.textContent=`Cannot add ${kind}: ${error.message}. Correct the fields and try again; nothing was added.`;
+      errorMessage.hidden=false;
+      say(`${kind==='request'?'Request':'Event'} not added. Review the form error.`);
+      errorMessage.focus();
+    }
+  });
+}
 add('request-form','request');add('event-form','event');
 bindExports(()=>state,say);
 bindReopen(()=>state, next=>{state=next;render();},say);
