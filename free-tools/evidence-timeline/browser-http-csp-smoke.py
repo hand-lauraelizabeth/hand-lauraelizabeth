@@ -68,6 +68,8 @@ def main():
         preserved = json.loads(Path(download.value.path()).read_text(encoding="utf-8"))
         assert any(r["sourceId"] == "=1+1" for r in preserved["records"]), "exact unsafe source ID preserved in JSON"
         # Removing the risky source must restore safe export without losing the benign record.
+        # Destructive removal now requires explicit user confirmation.
+        page.once("dialog", lambda dialog: dialog.accept())
         page.get_by_role("button", name="Remove record =1+1").click()
         assert page.locator("#records li").count() == 1
         assert page.locator("#csv").is_enabled(), "CSV recovers after unsafe record removal"
