@@ -64,7 +64,7 @@
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>
 <p class="muted">Original input is not changed. Records that differ even slightly are not automatically merged.</p>
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
-<p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab. This changes those cell values and is not universally safe across spreadsheet programs. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
+<p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab and includes a UTF-8 byte-order mark for Excel compatibility. The tab changes those cell values and is not universally safe across spreadsheet programs. Machine-readable export omits both the tab precaution and byte-order mark. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
 <p class="muted">For exact decoded cell values and logical source-record positions, export JSON instead. JSON does not add CSV formula prefixes; it is not a byte-for-byte copy or proof of authenticity. For uploaded files, a local SHA-256 fingerprint of the original bytes is included when browser cryptography is available; it can check byte equality, not establish who created the file. If cryptography is unavailable, no fingerprint is claimed. Both downloads contain your data and should be stored privately.</p>
 <div class="actions"><button id="save" disabled>Export CSV</button><button class="secondary" id="saveJson" disabled>Export exact JSON</button></div>
 </section>
@@ -130,7 +130,7 @@ $('reset').addEventListener('click',clear);$('dedupe').addEventListener('change'
 $('save').addEventListener('click',()=>{
  if(!loaded)return;
  const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;
- const csv=lib.exportCsv(active,$('sheetSafe').checked);
+ const csv=lib.exportCsvDownload(active,$('sheetSafe').checked);
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  const a=el('a');a.href=url;a.download='data-rescue-reviewed.csv';document.body.append(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1000);status('CSV exported locally: '+active.rows.length+' records.');
