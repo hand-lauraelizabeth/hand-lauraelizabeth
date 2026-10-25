@@ -95,7 +95,7 @@ function quality(data,name,provenance=null) {
  thead.append(tr);t.append(thead);const tbody=el('tbody');
  for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',v));tbody.append(line);}
  t.append(tbody);$('columns').replaceChildren(t);
- $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted.');
+ $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));
 }
 function preview(){
  if(!loaded)return;
