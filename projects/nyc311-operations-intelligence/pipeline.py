@@ -129,9 +129,24 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None, expected
         if current.digest() != digest.digest():
             raise ValueError("Input CSV changed during processing")
     # Display-safe threshold; totals kept separately so small cells are not misreported as zero.
-    records = [dict(month=m, borough=b, agency=a, problem=p, requests=n,
-                    closed_with_valid_interval=closed[(m,b,a,p)])
-               for (m,b,a,p),n in sorted(grouped.items()) if n >= min_cell]
+    # Suppressing small request cells is insufficient: an exact closure count
+    # inside a large request cell can disclose a small outcome subgroup, or
+    # its small complement (requests - closed). Null, never zero, denotes
+    # withheld closure counts. Zero and all-closed cells are safe within
+    # this single-table threshold rule, but cross-release differencing is
+    # NOT addressed; no public release until a separate disclosure audit.
+    records = []
+    for (m, b, a, p), n in sorted(grouped.items()):
+        if n < min_cell:
+            continue
+        c = closed[(m, b, a, p)]
+        withheld = (0 < c < min_cell) or (0 < n - c < min_cell)
+        if withheld:
+            counts["closure_subcells_suppressed"] += 1
+        records.append(dict(
+            month=m, borough=b, agency=a, problem=p, requests=n,
+            closed_with_valid_interval=None if withheld else c
+        ))
     counts["small_cells_suppressed"] = sum(1 for n in grouped.values() if n < min_cell)
     counts["unique_keys_verified"] = counts["rows_read"]
     counts["supplied_manifest_verified"] = expected_sha256 is not None
