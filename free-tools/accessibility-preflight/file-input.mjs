@@ -8,14 +8,17 @@ export function bindHTMLFile(input, target, status) {
   const selected=input.files?.[0];if(!selected)return;
   const current=++version;
   try{
-   if(!/\.html?$/i.test(selected.name)||selected.size>2_000_000)throw Error('Choose an HTML file up to 2 MB.');
-   const bytes=new Uint8Array(await selected.arrayBuffer());
-   if(bytes.byteLength>2_000_000)throw Error('File exceeds 2 MB.');
+   if(!/\.html?$/i.test(selected.name)||!Number.isSafeInteger(selected.size)||selected.size<1||selected.size>2_000_000)throw Error('Choose a nonempty HTML file up to 2 MB.');
+   // Read actual bytes, not just untrusted file metadata; never accept a partial or substituted read.
+   const buffer=await selected.arrayBuffer();
+   if(!(buffer instanceof ArrayBuffer))throw Error('File read did not return an ArrayBuffer.');
+   const bytes=new Uint8Array(buffer);
+   if(bytes.byteLength!==selected.size)throw Error('File byte count does not match its declared size.');
    const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
    if(current!==version||input.files?.[0]!==selected)return;
    target.value=text;
    status.textContent='HTML loaded locally. Select Analyze.';
-  }catch(error){if(current===version)status.textContent='File rejected: '+error.message;}
+  }catch(error){if(current===version){status.textContent='File rejected: '+error.message;status.focus();}}
   finally{if(current===version)input.value='';}
  });
 }
