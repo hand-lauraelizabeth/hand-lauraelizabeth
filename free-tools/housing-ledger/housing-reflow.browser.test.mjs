@@ -9,7 +9,7 @@ const here=dirname(fileURLToPath(import.meta.url));
 const browserName=process.argv[2]||'chromium';
 const engines={chromium,firefox,webkit};
 assert.ok(Object.hasOwn(engines,browserName),'supported browser required');
-const files=new Set(['index.html','styles.css','app.mjs','housing-core.mjs']);
+const files=new Set(['index.html','styles.css','app.mjs','housing-core.mjs','housing-import.mjs']);
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8'};
 const server=createServer((req,res)=>{
   const name=decodeURIComponent((req.url||'/').split('?')[0]).replace(/^\//,'')||'index.html';
