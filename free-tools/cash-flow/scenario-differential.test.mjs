@@ -18,7 +18,9 @@ function isDue(event,day){
 }
 function independentDailyOracle(config){
   const days=[];
-  let balance=config.openingCents,minimum=balance,minDate=config.start;
+  // Independent reference: compute closing balances first; the opening input is
+  // not an observed daily close and must not bias the minimum.
+  let balance=config.openingCents,minimum=null,minDate=null;
   for(let t=timestamp(config.start);t<=timestamp(config.end);t+=DAY){
     const date=iso(t),items=[];
     for(const event of config.events){
@@ -29,7 +31,7 @@ function independentDailyOracle(config){
     }
     const change=items.reduce((sum,event)=>sum+event.cents,0);
     balance+=change;
-    if(balance<minimum){minimum=balance;minDate=date}
+    if(minimum===null||balance<minimum){minimum=balance;minDate=date}
     days.push({date,changeCents:change,balanceCents:balance,events:items});
   }
   return {days,minimumCents:minimum,minimumDate:minDate,

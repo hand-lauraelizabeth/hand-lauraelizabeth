@@ -70,17 +70,19 @@ export function project({start,end,openingCents,events,shiftId=null,shiftDays=0}
     }
   }
   if(shiftId!==null&&!ids.has(shiftId))throw Error('Scenario event not found.');
-  let balance=openingCents,minimum=openingCents,minDate=start;
+  // The opening amount is before this window's first end-of-day netting.
+  // A reported minimum must be an actual projected daily closing balance.
+  let balance=openingCents,minimum=null,minDate=null;
   const days=[];
   for(let t=a;t<=b;t+=DAY){
     const date=dateString(t),items=byDate.get(date)||[];
     const change=items.reduce((n,e)=>n+e.cents,0);
     balance+=change;
     if(!Number.isSafeInteger(balance)||Math.abs(balance)>LIMITS.maxAbsCents)throw Error('Projected balance exceeds limit.');
-    if(balance<minimum){minimum=balance;minDate=date;}
+    if(minimum===null||balance<minimum){minimum=balance;minDate=date;}
     days.push({date,changeCents:change,balanceCents:balance,events:items});
   }
-  return {days,minimumCents:minimum,minimumDate:minDate,endingCents:balance,openingCents,assumption:'End-of-day netting only; actual settlement timing, fees, and availability are not modeled.'};
+  return {days,minimumCents:minimum,minimumDate:minDate,minimumBasis:'projected-end-of-day',endingCents:balance,openingCents,assumption:'End-of-day netting only; actual settlement timing, fees, and availability are not modeled.'};
 }
 // Defensive spreadsheet export: textual IDs/labels are escaped, not treated as spreadsheet formulas.
 export function csvCell(value,numeric=false){const s=String(value);if(numeric&&/^-?\d+\.\d{2}$/.test(s))return s;const guarded=/^[\s\uFEFF]*[=+@\-\t\r＝＋－＠]/u.test(s)?"'"+s:s;return '"'+guarded.replaceAll('"','""')+'"'}
