@@ -5,6 +5,7 @@ on:
       - 'review/ft10-main-stale-report-*'
       - 'review/ft10-served-csp-export-*'
       - 'review/ft10-csv-invisible-failclosed-*'
+      - 'review/ft10-file-byte-integrity-*'
   pull_request:
     paths:
       - 'free-tools/accessibility-preflight/**'
@@ -47,3 +48,5 @@ jobs:
           node-version: '22'
       - name: Run exact-source CSV security regression
         run: node free-tools/accessibility-preflight/report-export.test.mjs
+      - name: Run File API byte-integrity and async-race regression
+        run: node --test free-tools/accessibility-preflight/file-input.integrity.test.mjs
