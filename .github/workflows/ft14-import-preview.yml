@@ -24,4 +24,4 @@ jobs:
           node --check resources/literature-evidence-matrix/app.mjs
           node --check resources/literature-evidence-matrix/core.mjs
       - name: Run synthetic import regression tests
-        run: node --test resources/literature-evidence-matrix/import-preview.test.mjs
+        run: node --test resources/literature-evidence-matrix/import-preview.test.mjs resources/literature-evidence-matrix/tension-cap.test.mjs
