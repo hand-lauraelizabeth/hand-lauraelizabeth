@@ -8,7 +8,7 @@ assert.match(source,/Open '\+tool\.title/, 'links have unique accessible names')
 assert.match(source,/\.textContent=text/, 'untrusted strings are rendered as text');
 assert.match(html,/<main\b[^>]*id="ft15-directory"[^>]*>/, 'main landmark');
 assert.match(html,/<main\b[^>]*tabindex="-1"[^>]*>/, 'skip target is programmatically focusable');
-assert.match(html,/<p id="tool-count" role="status" aria-live="polite">/, 'live result count');
+assert.match(html,/<p id="tool-count" role="status" aria-live="polite" aria-atomic="true">/, 'live result count');
 assert.match(html,/<a class="skip" href="#ft15-directory">/, 'skip navigation');
 assert.match(css,/:focus-visible/, 'visible focus');
 assert.match(css,/prefers-reduced-motion/, 'motion preference');
