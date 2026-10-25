@@ -3,11 +3,16 @@ import unittest
 from private_coarse_candidate import build_candidate
 
 
+def candidate(src, closures, *, as_of, min_cell=10):
+    return build_candidate(src, closures, as_of=as_of, min_cell=min_cell,
+                           expected_valid_records=sum(src.values()))
+
+
 class CoarseCandidateTests(unittest.TestCase):
     def test_combine_before_suppress_without_exact_quality_marginals(self):
         a = ("2026-09", "QUEENS", "DOT", "Synthetic Visible")
         b = ("2026-09", "QUEENS", "DOT", "Synthetic Withheld")
-        result = build_candidate({a: 12, b: 3}, {}, as_of="2026-10-25")
+        result = candidate({a: 12, b: 3}, {}, as_of="2026-10-25")
         self.assertEqual(len(result["aggregates"]), 1)
         self.assertEqual(result["aggregates"][0]["requests"], 15)
         self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 0)
@@ -21,18 +26,18 @@ class CoarseCandidateTests(unittest.TestCase):
 
     def test_threshold_and_closure_complement_suppression(self):
         a = ("2026-09", "BRONX", "DOT", "Fixture")
-        self.assertEqual(build_candidate({a: 9}, {}, as_of="2026-10-25")["aggregates"], [])
+        self.assertEqual(candidate({a: 9}, {}, as_of="2026-10-25")["aggregates"], [])
         for closed in (1, 9, 11, 19):
-            result = build_candidate({a: 20}, {a: closed}, as_of="2026-10-25")
+            result = candidate({a: 20}, {a: closed}, as_of="2026-10-25")
             self.assertIsNone(result["aggregates"][0]["closed_with_valid_interval"])
         for closed in (0, 10, 20):
-            result = build_candidate({a: 20}, {a: closed}, as_of="2026-10-25")
+            result = candidate({a: 20}, {a: closed}, as_of="2026-10-25")
             self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], closed)
 
     def test_multiple_agencies_are_separate(self):
         a = ("2026-09", "QUEENS", "DOT", "Fixture")
         b = ("2026-09", "QUEENS", "DEP", "Fixture")
-        rows = build_candidate({a: 12, b: 11}, {}, as_of="2026-10-25")["aggregates"]
+        rows = candidate({a: 12, b: 11}, {}, as_of="2026-10-25")["aggregates"]
         self.assertEqual([(r["agency"], r["requests"]) for r in rows],
                          [("DEP", 11), ("DOT", 12)])
 
@@ -52,13 +57,19 @@ class CoarseCandidateTests(unittest.TestCase):
         for src, closures, as_of, k in bad:
             with self.subTest(as_of=as_of, min_cell=k):
                 with self.assertRaises(ValueError):
-                    build_candidate(src, closures, as_of=as_of, min_cell=k)
+                    candidate(src, closures, as_of=as_of, min_cell=k)
+
+    def test_fails_closed_on_incomplete_source_groups(self):
+        a = ("2026-09", "QUEENS", "DOT", "Fixture")
+        with self.assertRaisesRegex(ValueError, "Incomplete source-group"):
+            build_candidate({a: 12}, {}, as_of="2026-10-25",
+                            expected_valid_records=15)
 
     def test_does_not_mutate_private_counters(self):
         a = ("2026-09", "QUEENS", "DOT", "Fixture")
         src, closed = {a: 18}, {a: 14}
         before = (dict(src), dict(closed))
-        build_candidate(src, closed, as_of="2026-10-25")
+        candidate(src, closed, as_of="2026-10-25")
         self.assertEqual((src, closed), before)
 
 
