@@ -222,7 +222,7 @@ async function testBrowser(name,type){
     const [cancelledDownload]=await Promise.all([
       page.waitForEvent('download'),page.locator('#export-json').click()
     ]);
-    check(readFileSync(await cancelledDownload.path(),'utf8')===JSON.stringify(exactJSON,null,2)+'\\n',
+    check(readFileSync(await cancelledDownload.path(),'utf8')===JSON.stringify(exactJSON,null,2)+'\n',
       name+': cancelled removal must preserve exact JSON bytes');
     approveRemoval=true;
     await removeEvent.focus();
