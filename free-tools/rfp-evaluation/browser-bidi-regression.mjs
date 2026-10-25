@@ -80,6 +80,29 @@ try{
       check(rating.text.includes('"EV-0001"'),name+' safe ratings CSV recovery');
       const coverage=await textDownload(page,'#download-coverage');
       check(coverage.text.includes('"REQ-0001"'),name+' safe coverage CSV recovery');
+      // Removing an entry is destructive: keyboard cancellation must preserve the
+      // current evaluated workspace, while confirmation must invalidate exports.
+      for(const [kind,list] of [['criterion','criteria-list'],['vendor','vendors-list'],['rating','ratings-list']]){
+        const row=page.locator('#'+list+' .entry').first();
+        const remove=row.locator('[data-remove]');
+        const before=await page.locator('#'+list+' .entry').count();
+        let prompt='';
+        page.once('dialog',async dialog=>{prompt=dialog.message();await dialog.dismiss();});
+        await remove.focus();await remove.press('Enter');
+        check(prompt.includes('Remove this '+kind+' entry'),name+' '+kind+' native confirmation shown');
+        check(!prompt.includes('C-0001')&&!prompt.includes('V-0007'),name+' '+kind+' prompt does not disclose source IDs');
+        check(await page.locator('#'+list+' .entry').count()===before,name+' '+kind+' cancellation retains entry');
+        if(kind==='criterion'){
+          check(await page.locator('#results-section').isVisible(),name+' cancellation preserves evaluated results');
+          const unchanged=JSON.parse((await textDownload(page,'#download-json')).text);
+          check(unchanged.criteria[0].id==='C-0001'&&unchanged.vendors[0].id==='V-0007',name+' cancellation preserves exact JSON');
+        }
+        page.once('dialog',dialog=>dialog.accept());
+        await remove.focus();await remove.press('Enter');
+        check(await page.locator('#'+list+' .entry').count()===before-1,name+' '+kind+' confirmation removes one entry');
+        check(await page.locator('#results-section').isHidden(),name+' '+kind+' removal invalidates previous results');
+        check(await page.evaluate(()=>document.activeElement?.id)==='add-'+kind,name+' '+kind+' removal restores keyboard focus');
+      }
       check(failures.length===0,name+' no HTTP failures or uncaught browser errors: '+failures.join(' | '));
       await context.close();
       console.log('PASS '+name+' HTTP/CSP/unsafe CSV/JSON fidelity/recovery/focus');
