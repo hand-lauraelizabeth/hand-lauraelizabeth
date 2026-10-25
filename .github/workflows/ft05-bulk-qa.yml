@@ -32,6 +32,11 @@ jobs:
           node --check free-tools/evidence-timeline/safe-export.test.mjs
       - name: Run independent CSV injection and provenance regression
         run: node free-tools/evidence-timeline/safe-export.test.mjs
+      - name: Verify JSON import declared and actual byte counts
+        run: |
+          node --check free-tools/evidence-timeline/json-import.mjs
+          node --check free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
+          node free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
   bulk-chromium:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

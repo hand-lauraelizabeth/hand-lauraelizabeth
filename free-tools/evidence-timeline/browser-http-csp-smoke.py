@@ -78,6 +78,26 @@ def main():
         safe_csv = Path(download.value.path()).read_text(encoding="utf-8-sig")
         assert "000123" in safe_csv, "zero-padded source identifier preserved in recovered CSV"
         assert "=1+1" not in safe_csv, "removed risky record excluded from export"
+        # Real browser File API: valid JSON succeeds; substituted byte counts fail closed.
+        byte_gate = page.evaluate("""async () => {
+            const {readExactJSON} = await import('./json-import.mjs');
+            const payload = JSON.stringify({schema:'evidence-timeline-v1',records:[
+              {sourceId:'000456',date:'2026-10-25',claim:'Synthetic local record',status:'reported',kind:'source',group:''}
+            ]});
+            const file = new File([payload], 'synthetic.json', {type:'application/json'});
+            const rows = await readExactJSON(file);
+            const rejected = [];
+            for (const declared of [0, file.size-1, file.size+1]) {
+              try {
+                await readExactJSON({name:file.name,size:declared,arrayBuffer:()=>file.arrayBuffer()});
+                rejected.push(false);
+              } catch (error) {
+                rejected.push(/File size does not match content/.test(error.message));
+              }
+            }
+            return {id:rows[0].sourceId,rejected};
+        }""")
+        assert byte_gate == {"id":"000456","rejected":[True,True,True]}, byte_gate
         assert not errors, errors
         assert not violations, violations
         assert page.evaluate('window.__cspViolation || 0') == 0
