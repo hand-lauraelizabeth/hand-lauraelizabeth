@@ -56,6 +56,8 @@ def verify(browser_type, url, width):
     evidence = json.loads(data)
     assert evidence["lines"][1]["label"] == "=2+2", "JSON retains risky original"
     assert evidence["expenses"][0]["sourceId"] == " SRC-0007 "
+    assert page.locator("#error").is_hidden(), "successful Evidence JSON must clear stale CSV error"
+    assert "grant-evidence.json downloaded" in page.locator("#status").inner_text(), "JSON success announced"
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "viewport reflow"
     assert not errors, errors
     assert all(req.startswith(url.rsplit("/", 1)[0] + "/") for req in requests), requests
