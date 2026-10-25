@@ -1,0 +1,40 @@
+name: FT-01 Excel-friendly UTF-8 CSV review
+on:
+  push:
+    branches:
+      - 'review/ft01-excel-utf8-bom-*'
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-excel-utf8-bom-review.yml'
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-excel-utf8-bom-review.yml'
+permissions:
+  contents: read
+jobs:
+  csv-utf8-bom:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser runner
+        run: |
+          cd projects/data-rescue-studio
+          npm install --no-save --no-package-lock playwright@1.57.0
+      - name: Check committed implementation and test syntax
+        run: |
+          node --check projects/data-rescue-studio/rescue-core.js
+          node --check projects/data-rescue-studio/reconcile-ui.js
+          node --check projects/data-rescue-studio/tests/spreadsheet-utf8-bom.test.cjs
+          node --check projects/data-rescue-studio/tests/spreadsheet-utf8-bom-browser.test.cjs
+      - name: Verify independent Node CSV round-trip and JSON evidence
+        run: node projects/data-rescue-studio/tests/spreadsheet-utf8-bom.test.cjs
+      - name: Verify real browser downloads in Chromium Firefox WebKit
+        run: node projects/data-rescue-studio/tests/spreadsheet-utf8-bom-browser.test.cjs
