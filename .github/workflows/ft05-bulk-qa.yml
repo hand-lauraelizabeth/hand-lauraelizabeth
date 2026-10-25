@@ -59,6 +59,8 @@ jobs:
         run: python free-tools/evidence-timeline/browser-cross-engine.py
       - name: Run cross-browser import cancellation, recovery and replacement
         run: python free-tools/evidence-timeline/browser-import-replacement.py
+      - name: Verify keyboard-safe record deletion in Chromium, Firefox and WebKit
+        run: python free-tools/evidence-timeline/browser-confirm-removal.py
       - name: Run synthetic 10k-record Chromium regression
         run: |
           CHROMIUM_BIN="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" python free-tools/evidence-timeline/browser-10k-basic.py
