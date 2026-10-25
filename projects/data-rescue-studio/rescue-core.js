@@ -125,6 +125,13 @@
     return [parsed.headers, ...parsed.rows].map(row => row.map(write).join(',')).join('\r\n');
   }
 
+  // Spreadsheet download adds a UTF-8 BOM for Excel's direct-open behavior.
+  // Machine-readable CSV remains BOM-free and preserves unmodified cells.
+  function exportCsvDownload(parsed, spreadsheetView = true) {
+    const csv = exportCsv(parsed, spreadsheetView);
+    return spreadsheetView ? '\uFEFF' + csv : csv;
+  }
+
   // Exact decoded cells and logical source record positions, without CSV formula rewriting.
   // This is not a byte-for-byte copy or a cryptographic authenticity record.
   function exportEvidenceJson(parsed, sourceFileName = '', provenance = null) {
@@ -168,5 +175,5 @@
     });
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, exportCsv, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
+  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
 });
