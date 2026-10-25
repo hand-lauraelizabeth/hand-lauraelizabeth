@@ -65,6 +65,15 @@ try {
   equal(await page.locator('.ft15-card').count(), 17, 'clear restores all cards');
   equal(await page.locator('#tool-query').inputValue(), '', 'clear resets query');
   equal(await page.locator('#tool-query').evaluate(el => el === document.activeElement), true, 'clear restores keyboard focus');
+  await page.locator('#tool-query').fill('research evidence');
+  const expectedMulti=filterTools(TOOLS,{query:'research evidence'}).map(t=>t.title).sort();
+  equal(expectedMulti.length>0,true,'multi-term search has relevant results');
+  equal((await page.locator('.ft15-card h3').allTextContents()).sort(),expectedMulti,'multi-term search across metadata');
+  await page.locator('#tool-query').fill('EVIDENCE    RESEARCH');
+  equal((await page.locator('.ft15-card h3').allTextContents()).sort(),expectedMulti,'word order and whitespace independent');
+  await page.locator('#tool-query').fill('tExT   LeNs');
+  equal(await page.locator('.ft15-card h3').allTextContents(),['Text Lens'],'case-insensitive multi-term search');
+  await page.locator('#tool-clear').click();
   const category = 'Research & Writing';
   await page.locator('#tool-category').selectOption(category);
   equal(await page.locator('.ft15-card').count(), filterTools(TOOLS, { category }).length, 'category filter uses canonical data');
