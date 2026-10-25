@@ -30,7 +30,8 @@ class TestPipeline(unittest.TestCase):
             self.assertEqual(obj["quality"]["closure_before_creation"],1)
             self.assertEqual(obj["quality"]["small_cells_suppressed"],2)
             self.assertEqual(obj["aggregates"][0]["requests"],2)
-            self.assertEqual(obj["aggregates"][0]["closed_with_valid_interval"],1)
+            self.assertIsNone(obj["aggregates"][0]["closed_with_valid_interval"])
+            self.assertEqual(obj["quality"]["closure_subcells_suppressed"], 1)
             self.assertNotIn("incident_address",out.read_text())
             self.assertEqual(json.loads(out.read_text())["source_sha256"],obj["source_sha256"])
     def test_closed_date_on_nonclosed_status_never_counts_as_closed(self):
