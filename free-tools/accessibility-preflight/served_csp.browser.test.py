@@ -171,6 +171,39 @@ def main():
                     delete window.__ft10OriginalRead;
                 }""")
 
+            # NUL can be silently replaced by the HTML parser; empty decoded
+            # content (including BOM-only input) must not replace existing HTML.
+            for name, payload, expected_error in [
+                ("nul.html", b"<h1>\x00</h1>", "NUL character"),
+                ("bom-only.html", bytes([0xef, 0xbb, 0xbf]), "no text to analyze"),
+                ("whitespace.html", b" \r\n\t ", "no text to analyze"),
+            ]:
+                page.locator("#html-file").set_input_files({
+                    "name": name, "mimeType": "text/html", "buffer": payload
+                })
+                expect(page.locator("#status")).to_contain_text(expected_error, timeout=5000)
+                checks += 1
+                assert page.locator("#source").input_value() == third
+                checks += 1
+                assert page.evaluate("document.activeElement.id") == "status"
+                checks += 1
+                assert_no_download(page, "#download-json")
+                checks += 1
+
+            # A subsequent valid file must recover without stale errors.
+            page.locator("#html-file").set_input_files({
+                "name": "recovered.html", "mimeType": "text/html",
+                "buffer": second.encode("utf-8")
+            })
+            expect(page.locator("#source")).to_have_value(re.compile("second-unsafe"))
+            checks += 1
+            assert "HTML loaded locally" in page.locator("#status").inner_text()
+            checks += 1
+            page.locator("#analyze").click()
+            recovered_json = json.loads(download_text(page, "#download-json"))
+            assert any(f["location"] == "img#second-unsafe" for f in recovered_json["findings"])
+            checks += 1
+
             # A bidi control in a user-supplied element ID must not enter CSV.
             unsafe = ('<!doctype html><html lang="en"><body>'
                       '<img id="reversed\u202e-name" src="x.png"></body></html>')
