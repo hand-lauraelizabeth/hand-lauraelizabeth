@@ -1,7 +1,8 @@
 """Private QA: fail-closed marginal and paired-snapshot disclosure checks.
 
-This diagnostic never authorizes publication. It does not model external
-cross-tabs, integer inference, agency reclassification, or repeated releases.
+This diagnostic never authorizes publication. External marginal and exact 2x2
+integer checks are partial; they do not establish safety for the full 20-cell
+candidate, agency reclassification, arbitrary overlaps, or repeated releases.
 Only synthetic fixtures belong in repository tests. Do not commit source CSVs.
 """
 import argparse
@@ -148,6 +149,8 @@ def main():
     parser.add_argument("--previous", type=Path)
     parser.add_argument("--external-marginals", type=Path,
                         help="Private auxiliary-total audit; diagnostic only, never release approval")
+    parser.add_argument("--overlap-constraints", type=Path,
+                        help="Private exact 2x2 constraints; never proof of candidate-wide disclosure safety")
     args = parser.parse_args()
     try:
         payload = json.loads(args.candidate.read_text(encoding="utf-8"))
@@ -166,6 +169,20 @@ def main():
                     findings.update(audit_external_marginals(payload, external))
                 except (OSError, UnicodeError, ValueError, TypeError, ImportError):
                     findings.add("unreadable_or_invalid_external_marginals")
+        if args.overlap_constraints:
+            if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+                findings.add("overlap_constraints_require_review_candidate")
+            else:
+                # The 2x2 constraint file is not cryptographically or
+                # structurally bound to the candidate's 20-cell aggregation.
+                # Do not infer release clearance from an absence of findings.
+                findings.add("overlap_constraints_alignment_unverified")
+                try:
+                    from overlap_integer_audit import audit as audit_overlap
+                    constraints = json.loads(args.overlap_constraints.read_text(encoding="utf-8"))
+                    findings.update(audit_overlap(constraints))
+                except (OSError, UnicodeError, ValueError, TypeError, ImportError):
+                    findings.add("unreadable_or_invalid_overlap_constraints")
         if isinstance(payload, dict) and payload.get("schema_version") == CANDIDATE_VERSION:
             # Passing modeled checks is NOT a release authorization.
             findings.add("external_marginal_integer_review_pending")
@@ -175,7 +192,7 @@ def main():
         findings = ["unreadable_or_invalid_json"]
     print(json.dumps({"hold": bool(findings), "findings": findings,
                       "publication_approved": False,
-                      "scope": "partial QA only; external marginals may be incomplete and temporal series untested"}))
+                      "scope": "partial QA only; 2x2 alignment, multiway inference and temporal series unverified"}))
     return 2 if findings else 0
 
 
