@@ -36,6 +36,7 @@ try{
   await page.locator('#event-date').fill('2026-10-02');
   await page.locator('#category').selectOption('deposit');
   await page.locator('#description').fill('Synthetic CRLF\r\n=1+1');
+  const enteredDescription=await page.locator('#description').inputValue();
   await page.locator('#source-links').fill('000-A/１');
   await page.locator('#event-form button').click();
   const downloadPromise=page.waitForEvent('download');
@@ -46,7 +47,7 @@ try{
   await check(async()=>assert.equal(json.sources[0].sourceId,'000-A/１'));
   await check(async()=>assert.equal(json.events[0].eventId,'000-E/é'));
   await check(async()=>assert.equal(json.events[0].sourceIds[0],'000-A/１'));
-  await check(async()=>assert.equal(json.events[0].description,'Synthetic CRLF\r\n=1+1'));
+  await check(async()=>assert.equal(json.events[0].description,enteredDescription));
   await check(async()=>assert.equal(json.findings.length,1));
   page.once('dialog',dialog=>dialog.accept());
   await page.locator('#clear').click();
