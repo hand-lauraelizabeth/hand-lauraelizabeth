@@ -5,12 +5,19 @@ cross-tabs, integer inference, agency reclassification, or repeated releases.
 Only synthetic fixtures belong in repository tests. Do not commit source CSVs.
 """
 import argparse
+import datetime as dt
 import json
 from pathlib import Path
 
 GRAIN = ("month", "borough", "agency", "problem")
 FORBIDDEN = {"unique_key", "incident_address", "latitude", "longitude",
              "location", "address", "incident_zip", "descriptor"}
+CANDIDATE_FIELDS = {"schema_version", "dataset_id", "snapshot_as_of",
+                    "rules", "aggregates"}
+CANDIDATE_RULES = {"grain", "display_minimum_cell_count"}
+AGGREGATE_FIELDS = set(GRAIN) | {"requests", "closed_with_valid_interval"}
+CANDIDATE_VERSION = "nyc311-review-candidate-v1"
+EXPECTED_GRAIN = "month × borough × agency × original API complaint_type"
 
 
 def inspect(payload, previous=None):
@@ -21,25 +28,38 @@ def inspect(payload, previous=None):
     rules = payload.get("rules")
     quality = payload.get("quality")
     rows = payload.get("aggregates")
-    if not isinstance(rules, dict) or not isinstance(quality, dict) or not isinstance(rows, list):
+    candidate = payload.get("schema_version") == CANDIDATE_VERSION
+    if "schema_version" in payload:
+        if not candidate or set(payload) != CANDIDATE_FIELDS:
+            return ["invalid_candidate_schema"]
+        if (payload.get("dataset_id") != "erm2-nwe9" or
+                not isinstance(rules, dict) or set(rules) != CANDIDATE_RULES or
+                rules.get("grain") != EXPECTED_GRAIN or not isinstance(rows, list)):
+            return ["invalid_candidate_schema"]
+        snapshot = payload.get("snapshot_as_of")
+        try:
+            if not isinstance(snapshot, str) or len(snapshot) != 10:
+                raise ValueError("Invalid snapshot date")
+            dt.date.fromisoformat(snapshot)
+        except ValueError:
+            return ["invalid_candidate_schema"]
+    elif not isinstance(rules, dict) or not isinstance(quality, dict) or not isinstance(rows, list):
         return ["invalid_payload"]
     k = rules.get("display_minimum_cell_count")
-    if type(k) is not int or k < 2:
+    if type(k) is not int or k < (10 if candidate else 2):
         issues.add("unsafe_or_invalid_threshold")
-        k = max(k, 2) if type(k) is int else 2
-    suppressed = quality.get("small_cells_suppressed")
-    if type(suppressed) is not int or suppressed < 0:
-        issues.add("unverified_suppression_metadata")
-    elif suppressed:
-        # A complete partition plus an exact valid_records marginal reveals
-        # the total of the omitted request cells. If just one is omitted,
-        # its exact count is recovered. Other quality totals may combine to
-        # reveal valid_records even when that field is absent.
-        if any(field in quality for field in ("valid_records", "rows_read",
-                                               "unique_keys_verified")):
-            issues.add("exact_quality_marginal_with_suppressed_cells")
-        if suppressed == 1 and "valid_records" in quality:
-            issues.add("single_suppressed_cell_reconstructible")
+        k = max(k, 10 if candidate else 2) if type(k) is int else (10 if candidate else 2)
+    if not candidate:
+        suppressed = quality.get("small_cells_suppressed")
+        if type(suppressed) is not int or suppressed < 0:
+            issues.add("unverified_suppression_metadata")
+        elif suppressed:
+            # Exact private QA totals may reconstruct a withheld partition.
+            if any(field in quality for field in ("valid_records", "rows_read",
+                                                   "unique_keys_verified")):
+                issues.add("exact_quality_marginal_with_suppressed_cells")
+            if suppressed == 1 and "valid_records" in quality:
+                issues.add("single_suppressed_cell_reconstructible")
     keys = set()
     public = {}
     for row in rows:
@@ -48,6 +68,8 @@ def inspect(payload, previous=None):
             continue
         if FORBIDDEN.intersection(row):
             issues.add("record_level_field")
+        if candidate and set(row) != AGGREGATE_FIELDS:
+            issues.add("invalid_candidate_aggregate_schema")
         key = tuple(row.get(f) for f in GRAIN)
         if any(not isinstance(x, str) or not x for x in key):
             issues.add("invalid_group_key")
@@ -70,10 +92,21 @@ def inspect(payload, previous=None):
         if not isinstance(previous, dict) or not isinstance(previous.get("aggregates"), list):
             issues.add("invalid_previous_snapshot")
         elif (previous.get("dataset_id") != payload.get("dataset_id") or
-              previous.get("rules", {}).get("grain") != rules.get("grain")):
+              previous.get("rules", {}).get("grain") != rules.get("grain") or
+              previous.get("schema_version") != payload.get("schema_version") or
+              (candidate and previous.get("rules", {}).get("display_minimum_cell_count") != k)):
             issues.add("incompatible_snapshots")
         else:
+            if candidate:
+                if inspect(previous):
+                    issues.add("invalid_previous_snapshot")
+                try:
+                    if dt.date.fromisoformat(previous["snapshot_as_of"]) > dt.date.fromisoformat(payload["snapshot_as_of"]):
+                        issues.add("reverse_snapshot_order")
+                except (KeyError, TypeError, ValueError):
+                    issues.add("invalid_previous_snapshot")
             earlier = {}
+            earlier_closure = {}
             for row in previous["aggregates"]:
                 if not isinstance(row, dict):
                     issues.add("invalid_previous_snapshot")
@@ -85,6 +118,7 @@ def inspect(payload, previous=None):
                     if key in earlier:
                         issues.add("duplicate_previous_group_key")
                     earlier[key] = n
+                    earlier_closure[key] = row.get("closed_with_valid_interval")
                 else:
                     issues.add("invalid_previous_snapshot")
             # A small change in a matched published group can expose a
@@ -93,6 +127,15 @@ def inspect(payload, previous=None):
                 delta = abs(public[key] - earlier[key])
                 if 0 < delta < k:
                     issues.add("small_temporal_difference")
+                if candidate:
+                    current = next((r.get("closed_with_valid_interval") for r in rows
+                                    if tuple(r.get(f) for f in GRAIN) == key), None)
+                    prior = earlier_closure[key]
+                    if (current is None) != (prior is None):
+                        issues.add("changed_closure_disclosure_support")
+                    elif type(current) is int and type(prior) is int:
+                        if 0 < abs(current - prior) < k:
+                            issues.add("small_temporal_closure_difference")
             if set(public) != set(earlier):
                 issues.add("changed_published_group_support")
     return sorted(issues)
@@ -108,6 +151,9 @@ def main():
         previous = (json.loads(args.previous.read_text(encoding="utf-8"))
                     if args.previous else None)
         findings = inspect(payload, previous)
+        if isinstance(payload, dict) and payload.get("schema_version") == CANDIDATE_VERSION:
+            # Passing modeled checks is NOT a release authorization.
+            findings = sorted(set(findings) | {"external_marginal_integer_review_pending"})
     except (OSError, UnicodeError, ValueError, TypeError) as exc:
         # Avoid printing file content or paths from parser exceptions.
         findings = ["unreadable_or_invalid_json"]
