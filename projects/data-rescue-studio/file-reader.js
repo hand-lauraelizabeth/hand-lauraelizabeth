@@ -28,20 +28,38 @@
   if(decoded.includes('\u0000'))throw Error('NUL characters are not supported in a CSV or TSV file.');
   return decoded;
  }
- async function read(file,parser){
+ async function readValidated(file,parser){
   const kind=requireFile(file);
   const parse=parser||(root&&root.DataRescue&&root.DataRescue.parseDelimited);
   if(typeof parse!=='function')throw Error('CSV parser is unavailable.');
   const buffer=await file.arrayBuffer();
-  // Validate the bytes actually read, not only the file's reported metadata.
+  // Trust neither declared size nor returned bytes; parse and hash the SAME buffer.
   if(!(buffer instanceof ArrayBuffer))
    throw Error('Unable to read file bytes. Re-select the file.');
   if(buffer.byteLength>maxBytes)
    throw Error('The selected file is larger than 5 MB.');
   if(buffer.byteLength!==file.size)
    throw Error('File byte count changed or is inconsistent. Re-select the file.');
-  const source=decode(buffer);
-  return parse(source,kind==='tsv'?'\t':undefined);
+  const parsed=parse(decode(buffer),kind==='tsv'?'\t':undefined);
+  return {parsed,buffer};
  }
- return {read,decode,extension,requireFile,maxBytes};
+ async function read(file,parser){
+  return (await readValidated(file,parser)).parsed;
+ }
+ // Fingerprint ORIGINAL bytes, not normalized CSV cells or exported JSON.
+ // A hash can check byte equality; it does not authenticate who supplied a file.
+ async function readWithDigest(file,parser,subtleOverride){
+  const {parsed,buffer}=await readValidated(file,parser);
+  const subtle=subtleOverride===undefined?(root&&root.crypto&&root.crypto.subtle):subtleOverride;
+  if(!subtle||typeof subtle.digest!=='function')
+   return {parsed,provenance:null};
+  let hash;
+  try{hash=await subtle.digest('SHA-256',buffer);}
+  catch(_){return {parsed,provenance:null};}
+  if(!(hash instanceof ArrayBuffer)||hash.byteLength!==32)
+   throw Error('The source-file fingerprint was invalid.');
+  const sha256=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+  return {parsed,provenance:{sha256,byteCount:buffer.byteLength}};
+ }
+ return {read,readWithDigest,decode,extension,requireFile,maxBytes};
 });
