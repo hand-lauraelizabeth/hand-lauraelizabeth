@@ -146,21 +146,36 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--previous", type=Path)
+    parser.add_argument("--external-marginals", type=Path,
+                        help="Private auxiliary-total audit; diagnostic only, never release approval")
     args = parser.parse_args()
     try:
         payload = json.loads(args.candidate.read_text(encoding="utf-8"))
         previous = (json.loads(args.previous.read_text(encoding="utf-8"))
                     if args.previous else None)
-        findings = inspect(payload, previous)
+        findings = set(inspect(payload, previous))
+        if args.external_marginals:
+            if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+                findings.add("external_marginals_require_review_candidate")
+            else:
+                try:
+                    # Lazy import avoids a circular dependency with the existing
+                    # stand-alone external_marginal_audit diagnostic.
+                    from external_marginal_audit import audit as audit_external_marginals
+                    external = json.loads(args.external_marginals.read_text(encoding="utf-8"))
+                    findings.update(audit_external_marginals(payload, external))
+                except (OSError, UnicodeError, ValueError, TypeError, ImportError):
+                    findings.add("unreadable_or_invalid_external_marginals")
         if isinstance(payload, dict) and payload.get("schema_version") == CANDIDATE_VERSION:
             # Passing modeled checks is NOT a release authorization.
-            findings = sorted(set(findings) | {"external_marginal_integer_review_pending"})
+            findings.add("external_marginal_integer_review_pending")
+        findings = sorted(findings)
     except (OSError, UnicodeError, ValueError, TypeError) as exc:
         # Avoid printing file content or paths from parser exceptions.
         findings = ["unreadable_or_invalid_json"]
     print(json.dumps({"hold": bool(findings), "findings": findings,
                       "publication_approved": False,
-                      "scope": "partial QA only; external marginals and temporal series untested"}))
+                      "scope": "partial QA only; external marginals may be incomplete and temporal series untested"}))
     return 2 if findings else 0
 
 
