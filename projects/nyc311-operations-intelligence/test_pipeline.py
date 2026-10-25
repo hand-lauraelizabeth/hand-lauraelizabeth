@@ -111,4 +111,65 @@ class TestInputOutputIsolation(unittest.TestCase):
             self.assertEqual(result["quality"]["rows_read"], 1)
             self.assertTrue(output.exists())
 
+
+class TestClosureSubcellPrivacy(unittest.TestCase):
+    def test_closure_and_complement_thresholds_are_fail_closed(self):
+        # All records are synthetic. A large denominator can hide a small
+        # closure numerator OR a small still-open complement.
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"subcell.csv", Path(tmp)/"public.json"
+            cases = [0, 1, 4, 5, 6, 7, 8, 11, 12]
+            with inp.open("w", newline="", encoding="utf-8") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                key = 0
+                for closed_count in cases:
+                    for position in range(12):
+                        key += 1
+                        is_closed = position < closed_count
+                        writer.writerow([
+                            str(key), "2026-09-10T09:00:00.000",
+                            "2026-09-11T09:00:00.000" if is_closed else "",
+                            "DOT", f"Synthetic type {closed_count:02d}",
+                            "Queens", "Closed" if is_closed else "Open"
+                        ])
+                # A separate small request group must never appear at all.
+                for _ in range(4):
+                    key += 1
+                    writer.writerow([
+                        str(key), "2026-09-10T09:00:00.000",
+                        "2026-09-11T09:00:00.000", "DOT",
+                        "Synthetic small group", "Queens", "Closed"
+                    ])
+            result = ingest(inp, out, as_of="2026-10-25", min_cell=5)
+            self.assertEqual(result["quality"]["rows_read"], 112)
+            self.assertEqual(result["quality"]["small_cells_suppressed"], 1)
+            self.assertEqual(result["quality"]["closure_subcells_suppressed"], 4)
+            self.assertEqual(len(result["aggregates"]), 9)
+            actual = {int(row["problem"].rsplit(" ", 1)[-1]):
+                      row["closed_with_valid_interval"]
+                      for row in result["aggregates"]}
+            expected = {0: 0, 1: None, 4: None, 5: 5, 6: 6,
+                        7: 7, 8: None, 11: None, 12: 12}
+            self.assertEqual(actual, expected)
+            published = json.loads(out.read_text(encoding="utf-8"))
+            self.assertEqual(published["aggregates"], result["aggregates"])
+            self.assertNotIn("Synthetic small group", out.read_text())
+            self.assertIsNone(actual[11])
+            self.assertIsNone(actual[1])
+
+    def test_single_record_threshold_allows_counts_without_false_nulls(self):
+        # With min_cell=1 no positive subcell is below the threshold.
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"single.csv", Path(tmp)/"public.json"
+            with inp.open("w", newline="", encoding="utf-8") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["1", "2026-09-10T09:00:00.000",
+                                 "2026-09-11T09:00:00.000",
+                                 "DOT", "Synthetic", "Queens", "Closed"])
+            result = ingest(inp, out, as_of="2026-10-25", min_cell=1)
+            self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 1)
+            self.assertEqual(result["quality"].get("closure_subcells_suppressed", 0), 0)
+
 if __name__ == "__main__": unittest.main()
