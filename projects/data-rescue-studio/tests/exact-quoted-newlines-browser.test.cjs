@@ -18,7 +18,7 @@ const server=createServer((req,res)=>{
  catch{res.writeHead(500).end('Unavailable');}
 });
 const source=Buffer.from('ID,Note\r\n0001,"line one\r\nline two"\r\n0002,"lone\rreturn"\r\n0003,"line\nfeed"\r\n0004,"café \r\n 漢字"\r\n','utf8');
-const expected=parseDelimited(source.toString('utf8')).rows;
+const expected=[['0001','line one\r\nline two'],['0002','lone\rreturn'],['0003','line\nfeed'],['0004','café \r\n 漢字']];
 let checks=0;
 function eq(a,b,m){assert.deepEqual(a,b,m);checks++;}
 function ok(a,m){assert.ok(a,m);checks++;}
