@@ -165,7 +165,7 @@
       records: parsed.rows.map((values, index) => ({
         sourceRecord: index + 2, values: values.slice()
       }))
-    }, null, 2);
+    });
   }
 
   return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, exportCsv, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
