@@ -127,7 +127,7 @@
 
   // Exact decoded cells and logical source record positions, without CSV formula rewriting.
   // This is not a byte-for-byte copy or a cryptographic authenticity record.
-  function exportEvidenceJson(parsed, sourceFileName = '') {
+  function exportEvidenceJson(parsed, sourceFileName = '', provenance = null) {
     if (!parsed || !Array.isArray(parsed.headers) || !Array.isArray(parsed.rows) ||
         !Array.isArray(parsed.normalizedHeaders) || !Array.isArray(parsed.warnings) ||
         (parsed.delimiter !== ',' && parsed.delimiter !== '\t') ||
@@ -142,10 +142,24 @@
         !parsed.rows.every(row => Array.isArray(row) && row.length === width &&
           row.every(v => typeof v === 'string')))
       throw new Error('Cannot export an incomplete or inconsistent evidence table.');
+    // Optional fingerprint describes original uploaded bytes, not this JSON representation.
+    // Never accept a digest without its matching validated byte count.
+    if(provenance !== null && (
+       !provenance || typeof provenance !== 'object' ||
+       !Number.isSafeInteger(provenance.byteCount) || provenance.byteCount < 0 ||
+       provenance.byteCount > MAX_BYTES ||
+       typeof provenance.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(provenance.sha256)))
+      throw new Error('Invalid original-file SHA-256 provenance.');
+    const source = {fileName: sourceFileName, delimiter: parsed.delimiter,
+      headerRecord: 1, recordUnit: 'logical CSV/TSV record'};
+    if(provenance !== null) {
+      source.byteCount = provenance.byteCount;
+      source.digestAlgorithm = 'SHA-256';
+      source.sha256 = provenance.sha256;
+    }
     return JSON.stringify({
       format: 'data-rescue-evidence', schemaVersion: 1,
-      source: {fileName: sourceFileName, delimiter: parsed.delimiter,
-        headerRecord: 1, recordUnit: 'logical CSV/TSV record'},
+      source,
       headers: parsed.headers.slice(), normalizedHeaders: parsed.normalizedHeaders.slice(),
       warnings: parsed.warnings.slice(), recordCount: parsed.rows.length,
       records: parsed.rows.map((values, index) => ({
