@@ -50,3 +50,4 @@ jobs:
           python free-tools/public-records/http-import-crossengine.test.py
           python free-tools/public-records/import-race.test.py
           python free-tools/public-records/import-pending.test.py
+          python free-tools/public-records/form-error-recovery.test.py
