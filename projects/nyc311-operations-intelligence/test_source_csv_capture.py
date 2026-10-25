@@ -376,6 +376,63 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(receipt.read_bytes(), b'other process')
         self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
 
+
+    def test_main_receipt_failure_preserves_competing_source_replacement(self):
+        receipt = self.path.parent / 'receipt.json'
+        swapped = False
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+
+        def swap_source_then_fail(*args, **kwargs):
+            nonlocal swapped
+            self.path.unlink()
+            self.path.write_bytes(b'other process source')
+            swapped = True
+            raise OSError('synthetic receipt serialization failure after swap')
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch('source_csv_capture.json.dump', side_effect=swap_source_then_fail):
+                rc = main(['--source-csv', str(self.path),
+                           '--receipt-json', str(receipt),
+                           '--reference-rows', '323630'])
+        self.assertTrue(swapped)
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.path.read_bytes(), b'other process source')
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_main_source_rollback_unlink_error_does_not_mask_hold(self):
+        receipt = self.path.parent / 'receipt.json'
+        real_unlink = Path.unlink
+        attempted = False
+
+        def fail_source_unlink(path, *args, **kwargs):
+            nonlocal attempted
+            if path == self.path:
+                attempted = True
+                raise OSError('synthetic rollback permission error')
+            return real_unlink(path, *args, **kwargs)
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch('source_csv_capture.json.dump',
+                       side_effect=OSError('synthetic receipt failure')):
+                with patch.object(Path, 'unlink', fail_source_unlink):
+                    rc = main(['--source-csv', str(self.path),
+                               '--receipt-json', str(receipt),
+                               '--reference-rows', '323630'])
+        self.assertTrue(attempted)
+        self.assertEqual(rc, 2)
+        # Filesystem refused deletion: remain on HOLD and require private cleanup.
+        self.assertEqual(self.path.read_bytes(), BODY)
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
     def test_main_success_removes_staged_receipt(self):
         receipt = self.path.parent / 'receipt.json'
         def captured(*args, **kwargs):
