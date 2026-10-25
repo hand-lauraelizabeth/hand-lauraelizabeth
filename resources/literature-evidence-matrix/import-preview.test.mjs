@@ -106,3 +106,19 @@ test("mismatched file bytes are rejected without replacement",async()=>{
  assert.match(node("error").textContent,/File size changed/);
  assert.equal(node("import-preview").hidden,true);
 });
+
+test("imported 1,600 candidate pairs announce the full count while rendering at most 1,000",async()=>{
+ const sources=Array.from({length:80},(_,i)=>({id:"S"+i,title:"Synthetic "+i,year:null,doi:""}));
+ const claims=sources.map((s,i)=>({
+  id:"C"+i,sourceId:s.id,question:"Question",summary:"Synthetic finding",
+  stance:i<40?"supports":"challenges",locator:"p",methods:"m",limitations:"l",quote:""
+ }));
+ node("upload").files=[fileFor(JSON.stringify({schema:SCHEMA,sources,claims}))];
+ await emit("upload","change");
+ await emit("confirm-import","click");
+ assert.match(node("counts").textContent,/1,600|1600/);
+ assert.match(node("counts").textContent,/600 additional pairs not displayed/);
+ assert.equal(node("tensions").items.length,1000);
+ assert.match(node("tensions").items[0].textContent,/C0 \/ C40/);
+ assert.equal(node("claims").items.length,80);
+});

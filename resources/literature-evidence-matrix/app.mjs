@@ -7,7 +7,7 @@ function clearPreview(){pendingImport=null;byId("import-preview").hidden=true;by
 function invalidateImport(){importGeneration++;clearPreview()}
 function status(message){byId("status").textContent=message}
 function showList(id,rows,fn){const ul=byId(id);ul.replaceChildren();for(const row of rows){const li=document.createElement("li");li.textContent=fn(row);ul.append(li)}}
-function render(){const a=analyzeProject(project);byId("error").textContent="";byId("counts").textContent=project.sources.length+" sources, "+project.claims.length+" findings, "+a.issues.length+" gaps, "+a.tensions.length+" tensions.";
+function render(){const a=analyzeProject(project);byId("error").textContent="";byId("counts").textContent=project.sources.length+" sources, "+project.claims.length+" findings, "+a.issues.length+" gaps, "+a.tensionTotal+" user-coded candidate pairs"+(a.tensionsOmitted?" (first "+a.tensions.length+" shown; "+a.tensionsOmitted+" additional pairs not displayed).":".");
 showList("sources",project.sources,s=>s.id+" — "+s.title);
 showList("claims",project.claims,c=>c.id+" — "+c.sourceId+" — "+c.summary+" ("+c.stance+")");
 showList("issues",a.issues,x=>x.kind+" — "+(x.claimId||x.sourceId));
