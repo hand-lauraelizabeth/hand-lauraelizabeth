@@ -320,6 +320,62 @@ class CaptureTests(unittest.TestCase):
         self.assertFalse(receipt.exists())
         self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
 
+    def test_main_receipt_staging_cleanup_failure_rolls_back_both_outputs(self):
+        receipt = self.path.parent / 'receipt.json'
+        real_unlink = Path.unlink
+        failed = False
+
+        def fail_once(path, *args, **kwargs):
+            nonlocal failed
+            if path.name.startswith('.nyc311_receipt_') and not failed:
+                failed = True
+                raise OSError('synthetic receipt stage unlink failure')
+            return real_unlink(path, *args, **kwargs)
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch.object(Path, 'unlink', fail_once):
+                rc = main(['--source-csv', str(self.path),
+                           '--receipt-json', str(receipt),
+                           '--reference-rows', '323630'])
+        self.assertTrue(failed)
+        self.assertEqual(rc, 2)
+        self.assertFalse(self.path.exists())
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_main_receipt_cleanup_preserves_competing_replacement(self):
+        receipt = self.path.parent / 'receipt.json'
+        real_unlink = Path.unlink
+        swapped = False
+
+        def swap_then_fail(path, *args, **kwargs):
+            nonlocal swapped
+            if path.name.startswith('.nyc311_receipt_') and not swapped:
+                swapped = True
+                real_unlink(receipt)
+                receipt.write_bytes(b'other process')
+                raise OSError('synthetic receipt replacement during cleanup')
+            return real_unlink(path, *args, **kwargs)
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch.object(Path, 'unlink', swap_then_fail):
+                rc = main(['--source-csv', str(self.path),
+                           '--receipt-json', str(receipt),
+                           '--reference-rows', '323630'])
+        self.assertTrue(swapped)
+        self.assertEqual(rc, 2)
+        self.assertFalse(self.path.exists())
+        self.assertEqual(receipt.read_bytes(), b'other process')
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
     def test_main_success_removes_staged_receipt(self):
         receipt = self.path.parent / 'receipt.json'
         def captured(*args, **kwargs):

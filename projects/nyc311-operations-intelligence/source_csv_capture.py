@@ -205,6 +205,20 @@ def main(argv=None):
             handle.flush()
             os.fsync(handle.fileno())
         os.link(staged_receipt, receipt)  # atomic, exclusive, no clobber
+        # The receipt is not committed until its staging link is removed.
+        # Otherwise a cleanup error can escape after both outputs exist.
+        try:
+            staged_receipt.unlink()
+        except OSError as exc:
+            # Only remove the receipt if it still names our staged inode.
+            # A competing replacement must remain untouched.
+            try:
+                if receipt.samefile(staged_receipt):
+                    receipt.unlink()
+            except OSError:
+                pass
+            raise CaptureError('SOURCE_RECEIPT_CLEANUP_FAILED') from exc
+        staged_receipt = None
         receipt_committed = True
     except (CaptureError, ValueError, OSError, TypeError):
         if source_created and not receipt_committed:
@@ -213,7 +227,11 @@ def main(argv=None):
         return 2
     finally:
         if staged_receipt is not None:
-            staged_receipt.unlink(missing_ok=True)
+            # Best effort: cleanup must not mask the original HOLD failure.
+            try:
+                staged_receipt.unlink(missing_ok=True)
+            except OSError:
+                pass
     print('HOLD: private source captured; provenance, row and disclosure QA required')
     return 2
 
