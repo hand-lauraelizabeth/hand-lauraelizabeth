@@ -87,11 +87,9 @@ try:
             verify(annotated_evidence["records"][0]["moe"] is None, engine_name + ": annotated MOE never numeric zero")
             verify(annotated_evidence["comparison"]["difference_exact"] == "0.7", engine_name + ": arithmetic preserved with annotated MOE")
             # A second valid import must be explicitly confirmed; cancelling is lossless.
-            replacement_csv = ("source_id,geography,variable,series,period_start,period_end,estimate,moe\\n"
-                               "00999,Other Place,B01002_001E,acs5,2015,2019,40.0,0.2\\n"
-                               "01000,Other Place,B01002_001E,acs5,2020,2024,42.0,0.3\\n")
-            # The string above uses literal escape sequences for predictable synthetic bytes.
-            replacement_csv = replacement_csv.replace("\\\\n", "\\n")
+            replacement_csv = ("source_id,geography,variable,series,period_start,period_end,estimate,moe\n"
+                               "00999,Other Place,B01002_001E,acs5,2015,2019,40.0,0.2\n"
+                               "01000,Other Place,B01002_001E,acs5,2020,2024,42.0,0.3\n")
             dialogs = []
             def dismiss_replacement(dialog):
                 dialogs.append(dialog.message)
