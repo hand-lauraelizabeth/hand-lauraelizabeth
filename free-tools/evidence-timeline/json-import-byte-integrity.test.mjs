@@ -13,10 +13,11 @@ const valid=await readExactJSON(new File([bytes],'synthetic.json',{type:'applica
 assert.equal(valid[0].sourceId,'000123');checks++;
 assert.equal(valid[0].claim,record.claim);checks++;
 assert.deepEqual(await readExactJSON(fake(bytes.length,bytes,'SYNTHETIC.JSON')),valid);checks++;
-for(const size of [0,bytes.length-1,bytes.length+1,-1,1.5,NaN,undefined,Infinity]){
+for(const size of [0,bytes.length-1,bytes.length+1,-1,1.5,NaN,Infinity]){
   await assert.rejects(readExactJSON(fake(size)),/file size|does not match/i);
   checks++;
 }
+await assert.rejects(readExactJSON({...fake(),size:undefined}),/Invalid file size/);checks++;
 await assert.rejects(readExactJSON(fake(MAX_BYTES+1)),/exceeds/i);checks++;
 await assert.rejects(readExactJSON(fake(0,Buffer.alloc(MAX_BYTES+1))),/exceeds/i);checks++;
 await assert.rejects(readExactJSON(fake(bytes.length,bytes,'synthetic.csv')),/Choose a JSON export/);checks++;
