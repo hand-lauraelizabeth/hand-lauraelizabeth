@@ -138,6 +138,39 @@ def main():
             assert not any(f["location"] == "img#second-unsafe" for f in third_json["findings"])
             checks += 1
 
+            # Simulate an inconsistent browser File read: the actual ArrayBuffer is
+            # shorter than the File.size metadata. This must fail closed.
+            page.evaluate("""() => {
+                window.__ft10OriginalRead = File.prototype.arrayBuffer;
+                File.prototype.arrayBuffer = function() {
+                    const original = window.__ft10OriginalRead.call(this);
+                    return this.name === 'mismatch.html'
+                        ? original.then(buffer => buffer.slice(0, -1)) : original;
+                };
+            }""")
+            try:
+                page.locator("#html-file").set_input_files({
+                    "name": "mismatch.html", "mimeType": "text/html",
+                    "buffer": third.encode("utf-8")
+                })
+                expect(page.locator("#status")).to_contain_text(
+                    "File byte count does not match its declared size.", timeout=5000
+                )
+                checks += 1
+                assert page.locator("#source").input_value() == third
+                checks += 1
+                assert page.evaluate("document.activeElement.id") == "status"
+                checks += 1
+                assert page.locator("#findings li").count() == 0
+                checks += 1
+                assert_no_download(page, "#download-json")
+                checks += 1
+            finally:
+                page.evaluate("""() => {
+                    File.prototype.arrayBuffer = window.__ft10OriginalRead;
+                    delete window.__ft10OriginalRead;
+                }""")
+
             # A bidi control in a user-supplied element ID must not enter CSV.
             unsafe = ('<!doctype html><html lang="en"><body>'
                       '<img id="reversed\u202e-name" src="x.png"></body></html>')
