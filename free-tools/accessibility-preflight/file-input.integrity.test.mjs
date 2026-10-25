@@ -109,3 +109,43 @@ test('a valid selection succeeds after a rejected mismatch',async()=>{
  assert.equal(target.value,'<h1>Ready</h1>');
  assert.match(status.textContent,/HTML loaded locally/);
 });
+
+test('BOM-only, whitespace-only and NUL-containing files fail closed',async()=>{
+ const cases=[
+  {name:'bom.html',data:Uint8Array.from([0xef,0xbb,0xbf]),message:/no text to analyze/},
+  {name:'whitespace.htm',data:bytes(' \r\n\t '),message:/no text to analyze/},
+  {name:'nul.html',data:bytes('<h1>Before\\0After</h1>'.replace('\\0','\u0000')),message:/NUL character/}
+ ];
+ for(const candidate of cases){
+  const {input,target,status}=harness();
+  input.files=[file(candidate.name,candidate.data)];
+  await input.fire('change');
+  assert.equal(target.value,'Earlier source',candidate.name);
+  assert.match(status.textContent,candidate.message,candidate.name);
+  assert.equal(status.focused,true,candidate.name);
+  assert.equal(input.value,'',candidate.name);
+ }
+});
+test('valid HTML with UTF-8 BOM still imports and preserves its decoded content',async()=>{
+ const {input,target,status}=harness();
+ const source='<h1>Évidence 🧾</h1>\r\n<p>ok</p>';
+ const data=bytes(source);
+ const withBOM=Uint8Array.from([0xef,0xbb,0xbf,...data]);
+ input.files=[file('good.html',withBOM)];
+ await input.fire('change');
+ assert.equal(target.value,source);
+ assert.match(status.textContent,/HTML loaded locally/);
+});
+test('valid file recovers after empty or NUL input',async()=>{
+ const {input,target,status}=harness();
+ for(const data of [bytes(' \n '),bytes('<p>\u0000</p>')]){
+  input.files=[file('bad.html',data)];
+  await input.fire('change');
+  assert.match(status.textContent,/File rejected/);
+  assert.equal(target.value,'Earlier source');
+ }
+ input.files=[file('good.html',bytes('<p>Recovered</p>'))];
+ await input.fire('change');
+ assert.equal(target.value,'<p>Recovered</p>');
+ assert.match(status.textContent,/HTML loaded locally/);
+});

@@ -6,6 +6,7 @@ on:
       - 'review/ft10-served-csp-export-*'
       - 'review/ft10-csv-invisible-failclosed-*'
       - 'review/ft10-file-byte-integrity-*'
+      - 'review/ft10-html-content-guard-*'
   pull_request:
     paths:
       - 'free-tools/accessibility-preflight/**'
