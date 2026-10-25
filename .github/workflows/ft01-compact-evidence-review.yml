@@ -1,0 +1,29 @@
+name: FT-01 compact evidence boundary review
+on:
+  push:
+    branches:
+      - 'review/ft01-compact-evidence-*'
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-compact-evidence-review.yml'
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-compact-evidence-review.yml'
+permissions:
+  contents: read
+jobs:
+  compact-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify committed source and test syntax
+        run: |
+          node --check projects/data-rescue-studio/rescue-core.js
+          node --check projects/data-rescue-studio/tests/compact-evidence-boundary.test.cjs
+      - name: Verify lossless 49k-row x 100-column evidence boundary
+        run: node projects/data-rescue-studio/tests/compact-evidence-boundary.test.cjs
