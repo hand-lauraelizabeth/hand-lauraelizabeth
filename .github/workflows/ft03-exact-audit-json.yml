@@ -1,0 +1,40 @@
+name: FT-03 exact reconciliation JSON review
+on:
+  push:
+    branches:
+      - 'review/ft03-exact-audit-json-*'
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft03-exact-audit-json.yml'
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft03-exact-audit-json.yml'
+permissions:
+  contents: read
+jobs:
+  exact-reconciliation-json:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser runner
+        run: |
+          cd projects/data-rescue-studio
+          npm install --no-save --no-package-lock playwright@1.57.0
+      - name: Check implementation and test syntax
+        run: |
+          node --check projects/data-rescue-studio/reconcile-evidence.js
+          node --check projects/data-rescue-studio/reconcile-ui.js
+          node --check projects/data-rescue-studio/tests/reconcile-evidence.test.cjs
+          node --check projects/data-rescue-studio/tests/reconcile-evidence-browser.test.cjs
+      - name: Run independent Node provenance and JSON assertions
+        run: node projects/data-rescue-studio/tests/reconcile-evidence.test.cjs
+      - name: Run real HTTP Chromium, Firefox and WebKit downloads
+        run: node projects/data-rescue-studio/tests/reconcile-evidence-browser.test.cjs

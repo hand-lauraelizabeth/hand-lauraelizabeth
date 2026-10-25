@@ -54,11 +54,12 @@
 <div class="actions">
 <button id="compareRun" disabled>Compare exact identifiers</button>
 <button class="secondary" id="compareExport" disabled>Export comparison audit CSV</button>
+<button class="secondary" id="compareExportJson" disabled>Export exact comparison JSON</button>
 <button class="secondary" id="compareClear">Clear second file</button>
 </div>
 <div id="compareMetrics" class="grid" aria-label="Reconciliation summary"></div>
 <div id="compareResults" class="overflow" aria-label="Reconciliation record preview"></div>
-<p class="muted">Preview shows at most 30 findings. The downloaded audit includes all findings, source record positions, and identifier keys, but no complete input records. Keys may be sensitive; keep your exported audit private. Spreadsheet formula precautions are imperfect.</p>
+<p class="muted">Preview shows at most 30 findings. The downloaded audit includes all findings, source record positions, and identifier keys, but no complete input records. Keys may be sensitive; keep your exported audit private. Spreadsheet formula precautions are imperfect. Exact comparison JSON preserves decoded identifier strings, classifications, and logical record positions without formula prefixes, but is not proof of file authenticity. Do not open untrusted identifiers as spreadsheet formulas.</p>
 </section>
 <section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>
@@ -69,7 +70,7 @@
 <div class="actions"><button id="save" disabled>Export CSV</button><button class="secondary" id="saveJson" disabled>Export exact JSON</button></div>
 </section>
 <footer><p class="muted">Preview version: CSV/TSV inspection and exact-identifier comparison. It does not perform fuzzy matching or validate business-specific rules. Spreadsheet export precautions do not guarantee security.</p></footer>
-</main><script src="rescue-core.js"></script><script src="file-reader.js"></script><script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script><script>
+</main><script src="rescue-core.js"></script><script src="file-reader.js"></script><script src="reconcile-core.js"></script><script src="provenance-core.js"></script><script src="reconcile-evidence.js"></script><script src="reconcile-ui.js"></script><script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;

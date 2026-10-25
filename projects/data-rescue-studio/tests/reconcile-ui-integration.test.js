@@ -9,6 +9,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const ui = fs.readFileSync(path.join(root, 'reconcile-ui.js'), 'utf8');
 const rescue = require('../rescue-core.js');
 const engine = require('../reconcile-core.js');
+const evidence = require('../reconcile-evidence.js');
 
 class FakeElement {
   constructor(tag='div') {
@@ -37,12 +38,12 @@ class FakeElement {
   remove() {}
 }
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
-  'compareRun','compareExport','compareClear','leftKey','rightKey'];
+  'compareRun','compareExport','compareExportJson','compareClear','leftKey','rightKey'];
 const nodes = {};
 for (const id of ids) {
   nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' ? 'select' : 'div');
   // The fixture must respect initial HTML disabled attributes, not merely JS defaults.
-  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport'].includes(id);
+  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareExportJson'].includes(id);
 }
 const document = {
   body: new FakeElement('body'),
@@ -53,7 +54,7 @@ const document = {
   createElement: tag => new FakeElement(tag)
 };
 const blobs = [], downloads = [];
-const win = {DataRescue: rescue, DataReconcile: engine};
+const win = {DataRescue: rescue, DataReconcile: engine, DataRescueReconciliationEvidence: evidence};
 const ctx = {window:win, document,
   Blob,
   URL: {createObjectURL(blob){blobs.push(blob);return 'blob:synthetic-' + blobs.length;},
@@ -85,6 +86,7 @@ async function run() {
   assert.deepEqual(counts,[1,1,1,1,2]);count++;
   check(nodes.compareResults.children.length===1,'visible result table created');
   check(!nodes.compareExport.disabled,'audit enabled only after comparing');
+  check(!nodes.compareExportJson.disabled,'exact JSON enabled only after comparing');
   check(nodes.compareStatus.textContent.includes('ambiguous identifier groups'),'ambiguity reported in status');
   nodes.compareExport.handlers.click();
   check(blobs.length===1,'export creates one local blob');
@@ -95,9 +97,15 @@ async function run() {
   check(audit.rows.some(row=>row[0]==='Missing second-file key' && row[3]==='5'),'missing key trace retained');
   check(!csv.includes('Duplicate'),'source data fields omitted from audit');
   check(downloads.length===1,'blob URL revoked after download');
+  nodes.compareExportJson.handlers.click();
+  const exactAudit=JSON.parse(await blobs[1].text());
+  check(exactAudit.schema==='data-rescue-reconciliation/v1','exact JSON schema');
+  check(exactAudit.findings.length===6,'exact JSON preserves all findings');
+  check(exactAudit.findings.some(item=>item.classification==='ambiguous' && item.firstFileRecords.join(',')==='3,4'),'exact JSON preserves duplicate source records');
   nodes.compareClear.handlers.click();
   check(nodes.rightKey.disabled,'clear revokes second-file readiness');
   check(nodes.compareExport.disabled,'clear revokes stale audit');
+  check(nodes.compareExportJson.disabled,'clear revokes stale JSON audit');
   // Replacing a file mid-read must ignore the older async completion.
   let finishRead;
   nodes.compareFile.files=[{name:'slow.csv',size:100,text:()=>new Promise(resolve=>finishRead=resolve)}];
@@ -124,9 +132,9 @@ async function run() {
   nodes.leftKey.value='ID';nodes.rightKey.value='ID';
   nodes.leftKey.handlers.change();nodes.rightKey.handlers.change();
   nodes.compareRun.handlers.click();nodes.compareExport.handlers.click();
-  const riskCsv=await blobs[1].text();
+  const riskCsv=await blobs[2].text();
   check(riskCsv.includes('"\t=1+2"'),'spreadsheet-oriented export mitigates formula-like key');
-  check(html.includes('<script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
+  check(['reconcile-core.js','provenance-core.js','reconcile-evidence.js','reconcile-ui.js'].every((name,i,list)=>html.includes('<script src="'+name+'"></script>')&&(i===0||html.indexOf('<script src="'+list[i-1]+'"></script>')<html.indexOf('<script src="'+name+'"></script>'))),'scripts loaded in dependency order');
   check(html.includes('DataRescueCompareUI.setPrimary(data,name)'),'first-file load feeds reconciliation UI');
   check(html.includes('DataRescueCompareUI.setPrimary(null)'),'clearing first file invalidates comparison');
   check(html.includes('const ticket=loadEpoch') && html.includes('if(ticket!==loadEpoch)return'),'stale first file reads guarded');

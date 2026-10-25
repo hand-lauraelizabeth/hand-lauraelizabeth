@@ -33,6 +33,7 @@
     $('compareMetrics').replaceChildren();
     $('compareResults').replaceChildren();
     $('compareExport').disabled = true;
+    $('compareExportJson').disabled = true;
     $('compareRun').disabled = !(first && second && $('leftKey').value && $('rightKey').value);
   }
   function setPrimary(data, name = '') {
@@ -131,6 +132,7 @@
     table.append(body);
     $('compareResults').replaceChildren(table);
     $('compareExport').disabled = false;
+    $('compareExportJson').disabled = false;
     message('Comparison complete: ' + result.matches.length + ' exact one-to-one matches; ' + result.ambiguous.length + ' ambiguous identifier groups. Unmatched and missing-key records remain separate.');
   }
   function compare() {
@@ -160,11 +162,27 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     message('Exported ' + rows.length + ' findings for ' + firstName + ' and ' + secondName + '. Contains identifier keys and source row numbers, not full records. Keep the file private if identifiers are sensitive.');
   }
+  function exportExactAuditJson() {
+    if (!comparison) return;
+    const json = root.DataRescueReconciliationEvidence.exportJson(comparison, {
+      firstName, secondName, firstKey: $('leftKey').value, secondKey: $('rightKey').value
+    });
+    const url = URL.createObjectURL(new Blob([json], {type:'application/json;charset=utf-8'}));
+    const link = el('a');
+    link.href = url;
+    link.download = 'data-rescue-comparison-evidence.json';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    message('Exported exact decoded identifiers and source-record positions for ' + firstName + ' and ' + secondName + '. No input records were merged. This local JSON contains sensitive identifiers if your files do; it is not source authentication.');
+  }
   $('compareFile').addEventListener('change', loadSecond);
   $('compareClear').addEventListener('click', clearSecond);
   $('leftKey').addEventListener('change', invalidate);
   $('rightKey').addEventListener('change', invalidate);
   $('compareRun').addEventListener('click', compare);
   $('compareExport').addEventListener('click', exportAudit);
+  $('compareExportJson').addEventListener('click', exportExactAuditJson);
   root.DataRescueCompareUI = {setPrimary};
 })(window);

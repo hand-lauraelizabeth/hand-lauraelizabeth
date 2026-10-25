@@ -1,0 +1,44 @@
+'use strict';
+// Synthetic-only reconciliation evidence checks; never uses real records.
+const assert=require('node:assert/strict');
+const rescue=require('../rescue-core.js');
+const provenance=require('../provenance-core.js');
+const evidence=require('../reconcile-evidence.js');
+let checks=0;
+function eq(actual,expected,label){assert.deepEqual(actual,expected,label);checks++;}
+function throws(fn,pattern,label){assert.throws(fn,pattern,label);checks++;}
+const first=rescue.parseDelimited('ID,Note\n0001,first\n0001,second\n=1+2,formula\ncafé,accent\n,missing\n');
+const second=rescue.parseDelimited('Ref,Note\n0001,match\n=1+2,ok\ncafé,ok\n9999,only\n,missing\n');
+first.sourceRowNumbers=[2,7,8,15,16];
+second.sourceRowNumbers=[3,4,9,10,11];
+const result=provenance.compare(first,second,'ID','Ref');
+const before=JSON.stringify(result);
+const context={firstName:'first.csv',secondName:'second.csv',firstKey:'ID',secondKey:'Ref'};
+const doc=evidence.build(result,context);
+eq(doc.schema,'data-rescue-reconciliation/v1','version');
+eq(doc.matching,'exact-case-sensitive','exact matching disclosed');
+eq(doc.recordPositions,'logical-records-header-is-1','record numbering disclosed');
+eq(doc.sources,{first:{fileName:'first.csv',keyColumn:'ID'},second:{fileName:'second.csv',keyColumn:'Ref'}},'source context');
+eq(doc.counts,{matches:2,ambiguous:1,leftOnly:0,rightOnly:1,missingLeft:1,missingRight:1},'all categories');
+eq(doc.findings.length,6,'no findings omitted');
+eq(doc.findings[0],{classification:'match',identifier:'=1+2',firstFileRecords:[8],secondFileRecords:[4]},'formula-like identifier exact');
+eq(doc.findings[1],{classification:'match',identifier:'café',firstFileRecords:[15],secondFileRecords:[9]},'Unicode exact');
+eq(doc.findings[2],{classification:'ambiguous',identifier:'0001',firstFileRecords:[2,7],secondFileRecords:[3]},'duplicate group source positions');
+eq(doc.findings[3],{classification:'second-only',identifier:'9999',firstFileRecords:[],secondFileRecords:[10]},'unmatched second');
+eq(doc.findings[4],{classification:'missing-first-key',identifier:null,firstFileRecords:[16],secondFileRecords:[]},'missing first explicit null');
+eq(doc.findings[5],{classification:'missing-second-key',identifier:null,firstFileRecords:[],secondFileRecords:[11]},'missing second explicit null');
+eq(JSON.stringify(result),before,'no mutation');
+const json=evidence.exportJson(result,context);
+eq(JSON.parse(json),doc,'round-trip exact');
+eq(json.includes('\\t=1+2'),false,'no CSV formula prefix in JSON');
+eq(json.includes('first,second'),false,'full row contents not exported');
+eq(doc.limitations.includes('not cryptographic source authentication'),true,'limitations explicit');
+throws(()=>evidence.build(null,context),/completed reconciliation/,'missing comparison rejected');
+throws(()=>evidence.build({...result,matches:null},context),/completed reconciliation/,'invalid categories rejected');
+throws(()=>evidence.build(result,{...context,firstKey:''}),/cannot be empty/,'missing selected key rejected');
+throws(()=>evidence.build(result,{...context,firstName:42}),/Source names/,'invalid filename rejected');
+throws(()=>evidence.build({...result,matches:[{key:'a',leftRow:1,rightRow:2}]},context),/logical source-record/,'header cannot be a data position');
+throws(()=>evidence.build({...result,matches:[{key:'a',leftRow:2.5,rightRow:2}]},context),/logical source-record/,'fractional position rejected');
+throws(()=>evidence.build({...result,matches:[{key:42,leftRow:2,rightRow:2}]},context),/exact identifier/,'non-string key rejected');
+throws(()=>evidence.build({...result,ambiguous:[{key:'a',leftRows:[2,'3'],rightRows:[]}]},context),/logical source-record/,'string position rejected');
+console.log('PASS: '+checks+' synthetic exact reconciliation JSON, provenance, privacy and validation assertions.');
