@@ -8,7 +8,7 @@ const checks = [
   ['local file selector', /type="file"[^>]*accept="[^"]*\.csv/.test(html)],
   ['input has visible label', /<label for="file">/.test(html)],
   ['status announced', /id="status"[^>]*role="status"/.test(html)],
-  ['file size checked before reading', html.includes('file.size>lib.MAX_BYTES') && html.includes('DataRescueFileReader.read(file,lib.parseDelimited)')],
+  ['file size checked before reading', html.includes('file.size>lib.MAX_BYTES') && html.includes('DataRescueFileReader.readWithDigest(file,lib.parseDelimited)')],
   ['strict local byte decoder included', html.includes('<script src="file-reader.js"></script>')],
   ['input filename extension checked', /\/\\\.\(csv\|tsv\)/.test(html) || html.includes('test(file.name)')],
   ['export via local Blob', html.includes('new Blob([csv]')],
