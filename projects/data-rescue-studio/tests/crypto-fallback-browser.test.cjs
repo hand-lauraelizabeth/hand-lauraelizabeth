@@ -15,7 +15,7 @@ const server=createServer((req,res)=>{
  try{res.writeHead(200,{'Content-Type':asset.endsWith('.html')?'text/html; charset=utf-8':'text/javascript; charset=utf-8','Cache-Control':'no-store'});res.end(readFileSync(join(root,asset)));}
  catch{res.writeHead(500).end('Asset unavailable');}
 });
-const fixture=Buffer.from('ID,Value\\r\\n0009,"=SUM(1,2)"\\r\\n0010,café\\r\\n','utf8');
+const fixture=Buffer.from('ID,Value\r\n0009,"=SUM(1,2)"\r\n0010,café\r\n','utf8');
 const expectedHash=createHash('sha256').update(fixture).digest('hex');
 let checks=0;
 function eq(a,b,message){assert.deepEqual(a,b,message);checks++;}
