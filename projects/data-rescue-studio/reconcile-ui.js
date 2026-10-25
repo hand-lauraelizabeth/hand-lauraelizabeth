@@ -149,7 +149,7 @@
     const headers = ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'];
     const parsed = {headers, normalizedHeaders: headers, rows, warnings: [], delimiter: ','};
     // Identifier values are untrusted. Spreadsheet-oriented mitigation is explicit and imperfect.
-    const csv = lib.exportCsv(parsed, true);
+    const csv = lib.exportCsvDownload(parsed, true);
     const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
     const link = el('a');
     link.href = url;
