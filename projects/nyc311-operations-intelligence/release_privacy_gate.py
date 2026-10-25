@@ -89,7 +89,8 @@ def inspect(payload, previous=None):
                 issues.add("unsafe_closure_subcell")
         public[key] = n
     if previous is not None:
-        if not isinstance(previous, dict) or not isinstance(previous.get("aggregates"), list):
+        if (not isinstance(previous, dict) or not isinstance(previous.get("aggregates"), list) or
+                not isinstance(previous.get("rules"), dict)):
             issues.add("invalid_previous_snapshot")
         elif (previous.get("dataset_id") != payload.get("dataset_id") or
               previous.get("rules", {}).get("grain") != rules.get("grain") or
