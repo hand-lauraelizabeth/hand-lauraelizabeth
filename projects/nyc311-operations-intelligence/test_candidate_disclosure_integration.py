@@ -137,6 +137,12 @@ class CandidateGateIntegration(unittest.TestCase):
         current = prepare(private_fixture())
         self.assertIn("invalid_previous_snapshot", inspect(current, previous))
 
+    def test_malformed_previous_rules_fail_closed(self):
+        previous = prepare(private_fixture(snapshot="2026-10-24"))
+        previous["rules"] = None
+        current = prepare(private_fixture())
+        self.assertIn("invalid_previous_snapshot", inspect(current, previous))
+
     def test_original_private_fixture_unchanged(self):
         source = private_fixture()
         before = copy.deepcopy(source)
