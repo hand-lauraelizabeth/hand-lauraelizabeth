@@ -51,11 +51,17 @@ function render() {
   setStatus(records.length + " records loaded locally. Preview shows up to 100. " + (fingerprint?.sha256 ? "Original file SHA-256 computed locally. " : "Original file SHA-256 unavailable. ") + "Source authenticity is not verified.");
 }
 input.addEventListener("change", async () => {
-  const ticket = ++generation; reset(); clearError(); setStatus("Reading file locally…");
+  const ticket = ++generation;
   const file = input.files?.[0];
-  if (!file) { setStatus("No file selected."); return; }
+  // Release the picker selection so the same corrected file can be retried.
+  input.value = "";
+  if (!file) { setStatus(records.length ? "Existing records preserved." : "No file selected."); return; }
+  clearError();
+  setStatus(records.length ? "Checking replacement locally; current records remain available." : "Reading file locally…");
   if (!/\.csv$/i.test(file.name) || file.size > MAX_BYTES) {
-    showError("Choose a .csv file no larger than 2,000,000 bytes."); setStatus("Import failed."); return;
+    showError("Choose a .csv file no larger than 2,000,000 bytes.");
+    setStatus(records.length ? "Import failed; existing records preserved." : "Import failed.");
+    return;
   }
   try {
     const bytes = await file.arrayBuffer();
@@ -63,11 +69,17 @@ input.addEventListener("change", async () => {
     const imported = readCsvBytes(bytes,file.size);
     const computed = await fingerprintCsv(bytes);
     if (ticket !== generation) return;
+    // A validated replacement must not silently destroy the current evidence.
+    if (records.length && !window.confirm("Replace the current local records and comparison with this CSV? Cancel keeps your current evidence and export.")) {
+      setStatus("Replacement cancelled; existing records and export preserved.");
+      return;
+    }
+    reset();
     records = imported; fingerprint = computed; render();
   } catch (e) {
     if (ticket !== generation) return;
-    reset(); showError(e instanceof Error ? e.message : "Unable to read CSV.");
-    setStatus("Import failed. Existing results were cleared.");
+    showError(e instanceof Error ? e.message : "Unable to read CSV.");
+    setStatus(records.length ? "Import failed; existing records preserved." : "Import failed.");
   }
 });
 compareButton.addEventListener("click", () => {
