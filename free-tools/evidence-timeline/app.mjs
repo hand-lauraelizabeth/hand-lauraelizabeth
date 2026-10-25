@@ -62,7 +62,11 @@ input.addEventListener('change',async()=>{
    if(records!==initialRecords) throw Error('Records changed while reading the file. Choose the file again to review the current records.');
    const impact=previewReplacement(records,next);
    if(window.confirm(replacementConfirmation(impact))){
-     records=next;render();$('count').focus();importFeedback.announce(next.length+' records imported locally.');
+     records=next;
+     // A filter from the replaced working set must not conceal imported evidence.
+     $('review-filter').value='all';
+     render();$('count').focus();
+     importFeedback.announce(next.length+' records imported locally. All review statuses are now shown.');
    }else importFeedback.announce('Import cancelled; existing records retained.');
  }catch(e){importFeedback.fail(String(e.message||e));}
  finally{input.value='';input.disabled=false;}
