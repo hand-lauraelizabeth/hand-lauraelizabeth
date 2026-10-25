@@ -11,6 +11,8 @@ jobs:
         with:
           node-version: '22'
       - run: node resources/tools-directory/live-destinations.test.mjs
+      - run: node resources/tools-directory/search.test.mjs
+      - run: node resources/tools-directory/accessible.test.mjs
   browser:
     runs-on: ubuntu-24.04
     strategy:
