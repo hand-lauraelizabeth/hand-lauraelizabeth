@@ -49,7 +49,7 @@ try{
  await page.locator('#source input[name="id"]').fill('0007');
  await page.locator('#source input[name="title"]').fill('<img src=x onerror=alert(1)>');
  await page.locator('#source button').click();
- check(await page.locator('#counts').textContent(),'1 sources, 0 findings, 1 gaps, 0 tensions.','original source added');
+ check(await page.locator('#counts').textContent(),'1 sources, 0 findings, 1 gaps, 0 user-coded candidate pairs.','original source added');
  check(await page.locator('#sources li').count(),1,'one source visible');
  check(await page.locator('#sources img').count(),0,'hostile title rendered as text');
  check((await page.locator('#sources li').textContent()).includes('<img src=x onerror=alert(1)>'),true,'literal title preserved');
@@ -57,7 +57,7 @@ try{
  await upload(page,'broken.json',Buffer.from('{"schema":','utf8'));
  await page.waitForFunction(()=>document.querySelector('#error').textContent.includes('Invalid JSON'));
  check(await page.locator('#error').evaluate(el=>el===document.activeElement),true,'invalid file error receives focus');
- check(await page.locator('#counts').textContent(),'1 sources, 0 findings, 1 gaps, 0 tensions.','invalid file preserves matrix');
+ check(await page.locator('#counts').textContent(),'1 sources, 0 findings, 1 gaps, 0 user-coded candidate pairs.','invalid file preserves matrix');
  check(await page.locator('#import-preview').isHidden(),true,'invalid file has no preview');
 
  await upload(page,'candidate.JSON',fixture(['0010','β-0020']));
@@ -65,7 +65,7 @@ try{
  check(await page.locator('#error').textContent(),'','valid selection clears stale error');
  check(await page.locator('#confirm-import').evaluate(el=>el===document.activeElement),true,'preview confirmation receives focus');
  check((await page.locator('#import-summary').textContent()).includes('Replace the current 1 sources and 0 findings with 2 sources and 0 findings?'),true,'preview describes both record counts');
- check(await page.locator('#counts').textContent(),'1 sources, 0 findings, 1 gaps, 0 tensions.','preview does not replace data');
+ check(await page.locator('#counts').textContent(),'1 sources, 0 findings, 1 gaps, 0 user-coded candidate pairs.','preview does not replace data');
  await page.locator('#cancel-import').click();
  check(await page.locator('#import-preview').isHidden(),true,'cancel hides preview');
  check(await page.locator('#upload').evaluate(el=>el===document.activeElement),true,'cancel returns focus to file chooser');
@@ -74,7 +74,7 @@ try{
  await upload(page,'candidate.json',fixture(['0010','β-0020']));
  await page.locator('#import-preview').waitFor({state:'visible'});
  await page.locator('#confirm-import').click();
- check(await page.locator('#counts').textContent(),'2 sources, 0 findings, 2 gaps, 0 tensions.','confirmed replacement updates count');
+ check(await page.locator('#counts').textContent(),'2 sources, 0 findings, 2 gaps, 0 user-coded candidate pairs.','confirmed replacement updates count');
  check(await page.locator('#import-preview').isHidden(),true,'confirmation closes preview');
  check(await page.locator('#sources li').allTextContents(),['0010 — Synthetic 0010','β-0020 — Synthetic β-0020'],'exact zero-padded and Unicode IDs retained');
  check((await page.locator('#status').textContent()).includes('confirmed'),true,'confirmation status');
@@ -89,7 +89,7 @@ try{
  await upload(page,'oversized.json',Buffer.alloc(2000001,0x20));
  await page.waitForFunction(()=>document.querySelector('#error').textContent.includes('up to 2 MB'));
  check(await page.locator('#import-preview').isHidden(),true,'oversized file cannot replace data');
- check(await page.locator('#counts').textContent(),'2 sources, 0 findings, 2 gaps, 0 tensions.','oversized file leaves data intact');
+ check(await page.locator('#counts').textContent(),'2 sources, 0 findings, 2 gaps, 0 user-coded candidate pairs.','oversized file leaves data intact');
 
  await page.setViewportSize({width:320,height:720});
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'320px responsive reflow');
