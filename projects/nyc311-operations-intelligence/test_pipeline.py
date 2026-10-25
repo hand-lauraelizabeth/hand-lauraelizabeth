@@ -33,6 +33,59 @@ class TestPipeline(unittest.TestCase):
             self.assertEqual(obj["aggregates"][0]["closed_with_valid_interval"],1)
             self.assertNotIn("incident_address",out.read_text())
             self.assertEqual(json.loads(out.read_text())["source_sha256"],obj["source_sha256"])
+    def test_closed_date_on_nonclosed_status_never_counts_as_closed(self):
+        # Public-source QA found that a closed_date can coexist with an
+        # administratively non-Closed status. Synthetic records only.
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"status_fixture.csv", Path(tmp)/"result.json"
+            rows = [
+                [str(i), "2026-09-10T09:00:00.000",
+                 "2026-09-11T09:00:00.000", "DOT", "Pothole", "Queens", status]
+                for i, status in enumerate(
+                    ["Assigned", "In Progress", "Open", "Pending", "Unspecified"],
+                    start=1)
+            ]
+            rows.extend([
+                ["6", "2026-09-10T09:00:00.000",
+                 "2026-09-11T09:00:00.000", "DOT", "Pothole", "Queens", "Closed"],
+                ["7", "2026-09-10T09:00:00.000",
+                 "", "DOT", "Pothole", "Queens", "Closed"],
+            ])
+            with inp.open("w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(FIELDS)
+                writer.writerows(rows)
+            result = ingest(inp, out, as_of="2026-10-25", min_cell=1)
+            self.assertEqual(result["quality"]["rows_read"], 7)
+            self.assertEqual(result["quality"]["valid_records"], 7)
+            self.assertEqual(len(result["aggregates"]), 1)
+            self.assertEqual(result["aggregates"][0]["requests"], 7)
+            self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 1)
+
+    def test_closed_status_requires_valid_interval(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inp, out = Path(tmp)/"interval_fixture.csv", Path(tmp)/"result.json"
+            rows = [
+                ["1", "2026-09-10T09:00:00.000",
+                 "2026-09-09T09:00:00.000", "DOT", "Pothole", "Queens", "Closed"],
+                ["2", "2026-09-10T09:00:00.000",
+                 "2026-10-26T09:00:00.000", "DOT", "Pothole", "Queens", "Closed"],
+                ["3", "2026-09-10T09:00:00.000",
+                 "2026-09-11T09:00:00.000", "DOT", "Pothole", "Queens", "Closed"],
+                ["4", "2026-09-10T09:00:00.000",
+                 "", "DOT", "Pothole", "Queens", "Closed"],
+            ]
+            with inp.open("w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(FIELDS)
+                writer.writerows(rows)
+            result = ingest(inp, out, as_of="2026-10-25", min_cell=1)
+            self.assertEqual(result["quality"]["rows_read"], 4)
+            self.assertEqual(result["quality"]["closure_before_creation"], 1)
+            self.assertEqual(result["quality"]["closure_after_as_of"], 1)
+            self.assertEqual(result["aggregates"][0]["requests"], 4)
+            self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 1)
+
     def test_required_columns(self):
         with tempfile.TemporaryDirectory() as tmp:
             inp, out = Path(tmp)/"invalid.csv", Path(tmp)/"result.json"
