@@ -46,9 +46,11 @@ await reject(()=>readHousingJSONFile(mock(valid,{size:5_000_001})),'large metada
 await reject(()=>readHousingJSONFile(mock(valid,{size:NaN})),'invalid metadata');
 await reject(()=>readHousingJSONFile(mock(new Uint8Array([0xc3,0x28]))),'invalid UTF8');
 await reject(()=>readHousingJSONFile({name:'x.json',size:1,arrayBuffer:async()=>new Uint8Array([123])}),'non-ArrayBuffer');
-check(()=>assert.deepEqual(await readHousingJSONFile(mock(valid)),ledger));
+const imported=await readHousingJSONFile(mock(valid));
+check(()=>assert.deepEqual(imported,ledger));
 const withBom=new Uint8Array([0xef,0xbb,0xbf,...valid]);
-check(()=>assert.deepEqual(await readHousingJSONFile(mock(withBom)),ledger));
+const bomImported=await readHousingJSONFile(mock(withBom));
+check(()=>assert.deepEqual(bomImported,ledger));
 for(let seed=0;seed<200;seed++){
   const id='000-'+seed+'-é';
   const scenario=buildHousingLedger({sources:[{...source,sourceId:id}],events:[{...event,eventId:'E-'+seed,sourceIds:[id],amountCents:seed}]});
