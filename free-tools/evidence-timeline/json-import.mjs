@@ -17,9 +17,13 @@ export function parseExactJSON(raw) {
 }
 export async function readExactJSON(file){
   if(!file||!/\.json$/i.test(file.name||'')) throw Error('Choose a JSON export');
+  if(!Number.isSafeInteger(file.size)||file.size<0) throw Error('Invalid file size');
   if(file.size>MAX_BYTES) throw Error('File exceeds 5000000 bytes');
   const bytes=await file.arrayBuffer();
+  if(!(bytes instanceof ArrayBuffer)) throw Error('Invalid file content');
   if(bytes.byteLength>MAX_BYTES) throw Error('File exceeds 5000000 bytes');
+  // Never accept a partial or substituted read, even if it parses as valid JSON.
+  if(bytes.byteLength!==file.size) throw Error('File size does not match content');
   let value;
   try { value=new TextDecoder('utf-8',{fatal:true}).decode(bytes); }
   catch { throw Error('Invalid UTF-8'); }
