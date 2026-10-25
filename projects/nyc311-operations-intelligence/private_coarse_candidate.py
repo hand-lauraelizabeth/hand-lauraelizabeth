@@ -5,7 +5,9 @@ retained in memory during local ingestion. Never coarsen the already-suppressed
 JSON output: its omitted small categories make its denominators incomplete.
 
 This generates a candidate for independent privacy review, NOT publication.
-It intentionally omits exact quality marginals, raw source checksums, bytes,
+It requires an independently retained valid-record count as a completeness
+cross-check (not proof of authentic source origin). It omits exact quality
+marginals, raw source checksums, bytes,
 suppression counts, identifiers, problem labels and request-level fields.
 External marginals, combined cross-tabs and temporal differencing are untested.
 """
@@ -18,7 +20,7 @@ GRAIN = ("month", "borough", "agency")
 SCHEMA = "nyc311-private-coarse-candidate-v1"
 
 
-def build_candidate(request_counts, closed_counts, *, as_of, min_cell=10):
+def build_candidate(request_counts, closed_counts, *, as_of, expected_valid_records, min_cell=10):
     """Project complete, private source-grain counters to coarser review cells.
 
     Fails closed on malformed counters. Caller must retain the original
@@ -47,12 +49,16 @@ def build_candidate(request_counts, closed_counts, *, as_of, min_cell=10):
         if not MONTH.fullmatch(key[0]) or key[0] > as_of[:7]:
             raise ValueError("Invalid source month")
 
+    if type(expected_valid_records) is not int or expected_valid_records < 1:
+        raise ValueError("Independent source valid-record count is required")
     groups, outcomes = Counter(), Counter()
     for key, n in request_counts.items():
         validate_key(key)
         if type(n) is not int or n <= 0:
             raise ValueError("Invalid source count")
         groups[key[:3]] += n
+    if sum(groups.values()) != expected_valid_records:
+        raise ValueError("Incomplete source-group counters")
     for key, n in closed_counts.items():
         validate_key(key)
         if key not in request_counts or type(n) is not int or not 0 <= n <= request_counts[key]:
