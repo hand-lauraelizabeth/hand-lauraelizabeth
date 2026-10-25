@@ -15,7 +15,7 @@
 <p><strong>Before interpreting:</strong> ACS estimates have sampling uncertainty. This tool does not establish statistical significance, adjust for inflation, or resolve changing geographic definitions.</p>
 <section aria-labelledby="import-title">
 <h2 id="import-title">1. Import a CSV</h2>
-<p id="format">UTF-8 CSV, up to 2,000,000 bytes and 5,000 records. Exact columns, in order: <code>source_id,geography,variable,series,period_start,period_end,estimate,moe</code>. Series is <code>acs1</code> or <code>acs5</code>. Missing estimate/MOE: empty field or explicit Census missing code. No personal information needed.</p>
+<p id="format">UTF-8 CSV, up to 2,000,000 bytes and 5,000 records. Exact columns, in order: <code>source_id,geography,variable,series,period_start,period_end,estimate,moe</code>. Series is <code>acs1</code> or <code>acs5</code>. Missing estimate/MOE: empty field or explicit Census missing code. No personal information needed. Importing another valid file will ask before replacing your current local records; cancelled or invalid imports keep the current evidence and export.</p>
 <label for="csv">Choose a local CSV file</label>
 <input id="csv" type="file" accept=".csv,text/csv" aria-describedby="format">
 <label for="label">Dataset label (user-supplied, not verified)</label>
