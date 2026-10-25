@@ -1,8 +1,8 @@
 """Private QA: fail-closed marginal and paired-snapshot disclosure checks.
 
-This diagnostic never authorizes publication. External marginal and exact 2x2
-integer checks are partial; they do not establish safety for the full 20-cell
-candidate, agency reclassification, arbitrary overlaps, or repeated releases.
+This diagnostic never authorizes publication. External marginal, exact 2x2,
+and unbound 20-cell multiway checks are partial; they do not establish safety
+for candidate data, agency reclassification, arbitrary overlaps, or releases.
 Only synthetic fixtures belong in repository tests. Do not commit source CSVs.
 """
 import argparse
@@ -151,6 +151,8 @@ def main():
                         help="Private auxiliary-total audit; diagnostic only, never release approval")
     parser.add_argument("--overlap-constraints", type=Path,
                         help="Private exact 2x2 constraints; never proof of candidate-wide disclosure safety")
+    parser.add_argument("--multiway-constraints", type=Path,
+                        help="Private unbound 20-cell multiway audit; not publication clearance")
     args = parser.parse_args()
     try:
         payload = json.loads(args.candidate.read_text(encoding="utf-8"))
@@ -183,6 +185,20 @@ def main():
                     findings.update(audit_overlap(constraints))
                 except (OSError, UnicodeError, ValueError, TypeError, ImportError):
                     findings.add("unreadable_or_invalid_overlap_constraints")
+        if args.multiway_constraints:
+            if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+                findings.add("multiway_constraints_require_review_candidate")
+            else:
+                # The 20-variable algebraic model is not bound to the actual
+                # candidate groups or authenticated external source marginals.
+                # Findings never constitute disclosure clearance.
+                findings.add("multiway_constraints_alignment_unverified")
+                try:
+                    from multiway_integer_audit import audit as audit_multiway
+                    constraints = json.loads(args.multiway_constraints.read_text(encoding="utf-8"))
+                    findings.update(audit_multiway(constraints))
+                except (OSError, UnicodeError, ValueError, TypeError, ImportError):
+                    findings.add("unreadable_or_invalid_multiway_constraints")
         if isinstance(payload, dict) and payload.get("schema_version") == CANDIDATE_VERSION:
             # Passing modeled checks is NOT a release authorization.
             findings.add("external_marginal_integer_review_pending")
@@ -192,7 +208,7 @@ def main():
         findings = ["unreadable_or_invalid_json"]
     print(json.dumps({"hold": bool(findings), "findings": findings,
                       "publication_approved": False,
-                      "scope": "partial QA only; 2x2 alignment, multiway inference and temporal series unverified"}))
+                      "scope": "partial QA only; candidate mapping, source marginals, integer feasibility and temporal series unverified"}))
     return 2 if findings else 0
 
 
