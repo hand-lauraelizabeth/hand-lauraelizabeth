@@ -61,7 +61,7 @@ async function testBrowser(name,type){
       });
       if(current&&current!==visited.at(-1))visited.push(current);
     }
-    const expected=['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','Add event','shift-id','shift-days','calculate'];
+    const expected=['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','Add event','save-plan','load-plan','shift-id','shift-days','calculate'];
     assert.deepEqual(visited,expected,name+': keyboard control traversal order');
     checks++;
 
