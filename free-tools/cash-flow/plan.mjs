@@ -28,7 +28,10 @@ export function validatePlan(value){
   if(value.shiftId!==null&&(typeof value.shiftId!=='string'||!ids.has(value.shiftId)))throw Error('Unknown shift event.');
   if(!Number.isInteger(value.shiftDays)||Math.abs(value.shiftDays)>60)throw Error('Invalid shift days.');
   const plan={schema:PLAN_SCHEMA,start:value.start,end:value.end,openingCents:value.openingCents,events,shiftId:value.shiftId,shiftDays:value.shiftDays};
-  // Reuse the exact projection boundary and arithmetic checks; no partial import.
+  // The interface displays both the unshifted baseline and the shifted scenario.
+  // A shifted event can leave the date window and conceal baseline overflow.
+  // Reject the whole plan unless BOTH projections are arithmetically valid.
+  project({...plan,shiftId:null,shiftDays:0});
   project(plan);
   return plan;
 }

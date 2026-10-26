@@ -78,6 +78,20 @@ try{
    expect(await page.locator('#export-json').isDisabled(),name+' confirmed import invalidates prior projection');
    expect(await page.evaluate(()=>document.activeElement.id)==='event-id',name+' import restores focus');
    expect(await download(page,'#save-plan')===saved,name+' exported plan roundtrips byte-identically');
+   // The shifted projection is valid, but its baseline exceeds the supported
+   // balance limit. Reject before confirmation without clearing current data.
+   await page.locator('#calculate').click();
+   const currentScenario=await download(page,'#export-json');
+   const baselineOverflow={schema:'cash-flow-plan/v1',start:'2026-10-25',end:'2026-10-25',
+     openingCents:1000000000000,
+     events:[{id:'synthetic-income',label:'Synthetic income',date:'2026-10-25',repeat:'once',cents:1}],
+     shiftId:'synthetic-income',shiftDays:1};
+   await upload(page,JSON.stringify(baselineOverflow));
+   await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('Projected balance exceeds limit'));
+   expect(await page.locator('#export-json').isEnabled(),name+' overflow import preserves existing projection');
+   expect(await download(page,'#export-json')===currentScenario,name+' overflow import preserves exact scenario JSON');
+   expect(await download(page,'#save-plan')===saved,name+' overflow import preserves editable plan');
+   expect((await page.locator('#events').textContent()).includes(' 00007 '),name+' overflow import preserves event ID');
    await upload(page,Buffer.alloc(256001,65));
    await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('256,000'));
    expect(await download(page,'#save-plan')===saved,name+' oversized file preserves plan');

@@ -34,6 +34,14 @@ const bad=[
 for(const [i,v] of bad.entries())check(()=>assert.throws(()=>parsePlanJSON(JSON.stringify(v)),undefined,'invalid case '+i));
 for(const s of ['', '{', '[]','null','"string"','{"__proto__":{"polluted":true}}'])
  check(()=>assert.throws(()=>parsePlanJSON(s)));
+// A shifted scenario can hide an overflowing *baseline* by moving a payment
+// outside the selected window. Import and save must validate both projections.
+const baselineOverflow={schema:PLAN_SCHEMA,start:'2026-10-25',end:'2026-10-25',
+ openingCents:1000000000000,
+ events:[{id:'synthetic-income',label:'Synthetic income',date:'2026-10-25',repeat:'once',cents:1}],
+ shiftId:'synthetic-income',shiftDays:1};
+check(()=>assert.throws(()=>parsePlanJSON(JSON.stringify(baselineOverflow)),/Projected balance exceeds limit/));
+check(()=>assert.throws(()=>exportPlan(baselineOverflow),/Projected balance exceeds limit/));
 const bytes=new TextEncoder().encode(json);
 const file=(data,opts={})=>({name:opts.name??'plan.json',type:opts.type??'application/json',
  size:opts.size??data.length,arrayBuffer:async()=>data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength)});
