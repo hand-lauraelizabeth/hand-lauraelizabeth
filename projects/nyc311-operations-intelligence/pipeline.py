@@ -5,12 +5,14 @@ Input: a locally downloaded CSV export of the official NYC Open Data
 This does not publish individual request locations or addresses.
 """
 import argparse
+import calendar
 import collections
 import csv
 import datetime as dt
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import tempfile
 from contextlib import closing
@@ -36,7 +38,8 @@ def dateparse(s):
 def normalize(s):
     return " ".join((s or "").strip().split())
 
-def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None, expected_rows=None):
+def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None,
+           expected_rows=None, reporting_month=None):
     source = Path(source)
     destination = Path(output)
     # Reject identical files and aliases before opening either path.
@@ -46,14 +49,30 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None, expected
     ):
         raise ValueError("Input CSV and output JSON must refer to distinct files")
     as_of_day = dt.date.fromisoformat(as_of)
+    if reporting_month is not None:
+        # An explicit full-month source cohort must be complete by calendar
+        # boundary and checked against an independently retained receipt.
+        # This verifies membership, not official origin or completeness.
+        if (not isinstance(reporting_month, str)
+                or not re.fullmatch(r"\d{4}-\d{2}", reporting_month)):
+            raise ValueError("Invalid required reporting month")
+        try:
+            month_start = dt.date.fromisoformat(reporting_month + "-01")
+        except ValueError:
+            raise ValueError("Invalid required reporting month") from None
+        last_day = calendar.monthrange(month_start.year, month_start.month)[1]
+        if as_of_day < month_start.replace(day=last_day):
+            raise ValueError("Snapshot precedes end of required reporting month")
+        if expected_sha256 is None or expected_rows is None:
+            raise ValueError("Full-month cohort requires independent SHA-256 and row count")
     if (expected_sha256 is None) != (expected_rows is None):
         raise ValueError("Expected SHA-256 and row count must be supplied together")
     if expected_sha256 is not None:
         if (len(expected_sha256) != 64 or
                 any(c not in "0123456789abcdefABCDEF" for c in expected_sha256)):
             raise ValueError("Expected SHA-256 must be 64 hexadecimal characters")
-        if not isinstance(expected_rows, int) or expected_rows < 0:
-            raise ValueError("Expected row count must be a nonnegative integer")
+        if type(expected_rows) is not int or expected_rows < (1 if reporting_month else 0):
+            raise ValueError("Expected row count must be a valid integer")
     counts = collections.Counter()
     grouped = collections.Counter()
     closed = collections.Counter()
@@ -90,6 +109,16 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None, expected
                 key = normalize(row["unique_key"])
                 created = dateparse(row["created_date"])
                 finished = dateparse(row["closed_date"])
+                if reporting_month is not None:
+                    # Compare New York calendar dates, not UTC date strings.
+                    # Never silently skip invalid, out-of-cohort or future rows.
+                    if created is None:
+                        raise ValueError("Invalid created_date in required month cohort")
+                    if created.strftime("%Y-%m") != reporting_month:
+                        raise ValueError("CSV row outside required reporting month")
+                    if created.date() > as_of_day:
+                        raise ValueError("CSV row after snapshot date")
+                    counts["reporting_month_rows_verified"] += 1
                 if not key: raise ValueError("Missing unique_key")
                 try:
                     db.execute("INSERT INTO seen (request_id) VALUES (?)", (key,))
@@ -162,6 +191,8 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None, expected
                   "source_provenance":"Caller-supplied checksum/count agreement is not independent authentication of official NYC source origin."},
         "quality": dict(counts), "aggregates": records
     }
+    if reporting_month is not None:
+        payload["rules"]["strict_reporting_month"] = reporting_month
     # Preserve any existing export if serialization, flushing, or replacement fails.
     # The temporary file must be on the destination filesystem for atomic replace.
     temporary = None
@@ -185,9 +216,11 @@ def main():
     p.add_argument("--min-cell", type=int, default=10)
     p.add_argument("--expected-sha256", help="independently recorded full-source SHA-256")
     p.add_argument("--expected-rows", type=int, help="independently recorded CSV data-row count")
+    p.add_argument("--reporting-month", help="strict YYYY-MM cohort; requires expected SHA-256 and row count")
     a = p.parse_args()
     if a.min_cell < 1: p.error("--min-cell must be positive")
     result = ingest(a.input_csv, a.output_json, as_of=a.as_of, min_cell=a.min_cell,
-                    expected_sha256=a.expected_sha256, expected_rows=a.expected_rows)
+                    expected_sha256=a.expected_sha256, expected_rows=a.expected_rows,
+                    reporting_month=a.reporting_month)
     print(json.dumps({"quality":result["quality"],"public_cells":len(result["aggregates"])}))
 if __name__ == "__main__": main()
