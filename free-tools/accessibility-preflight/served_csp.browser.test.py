@@ -218,6 +218,34 @@ def main():
             checks += 1
             assert page.evaluate("document.activeElement.id") == "status"
             checks += 1
+            # An invisible Unicode format control in a source ID blocks CSV.
+            # The leading-apostrophe rule applies only to the beginning of a
+            # complete CSV cell; location labels start with an element tag.
+            for suspicious in ["\u061c=SUM(1,2)"]:
+                document = ('<!doctype html><html lang="en"><body>'
+                            '<img id="' + suspicious + '" src="x.png"></body></html>')
+                page.locator("#source").fill(document)
+                page.locator("#analyze").click()
+                evidence = json.loads(download_text(page, "#download-json"))
+                assert any(suspicious in item["location"] for item in evidence["findings"])
+                checks += 1
+                assert_no_download(page, "#download-csv")
+                checks += 1
+                assert "CSV export blocked" in page.locator("#status").inner_text()
+                checks += 1
+
+            # Apostrophes inside a prefixed location are not cell prefixes:
+            # preserve this legitimate identifier without overblocking.
+            apostrophe_id = "'=1+1"
+            page.locator("#source").fill(
+                '<!doctype html><html lang="en"><body><img id="' +
+                apostrophe_id + '" src="x.png"></body></html>'
+            )
+            page.locator("#analyze").click()
+            apostrophe_csv = download_text(page, "#download-csv")
+            assert "img#'=1+1" in apostrophe_csv
+            checks += 1
+
             # Editing away the unsafe value and reanalyzing restores CSV export.
             page.locator("#source").fill(third)
             page.locator("#analyze").click()
