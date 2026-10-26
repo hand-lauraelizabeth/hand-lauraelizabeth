@@ -39,6 +39,28 @@ def verify(browser_type, url, width):
     csv = Path(info.value.path()).read_text(encoding="utf-8-sig")
     assert '"000123"' in csv and '" SRC-0007 "' in csv, "CSV exact identifiers"
     assert '"500"' in csv, "integer cents preserved"
+    # Review flags must carry the exact source, transaction, and category IDs.
+    # The synthetic HTML-looking identifier must remain inert text.
+    unsafe_source = " SRC-0008 <img src=x onerror=alert(1)> "
+    expense.locator('[name="transactionId"]').fill("000124")
+    expense.locator('[name="sourceId"]').fill(unsafe_source)
+    expense.locator('[name="date"]').fill("2027-01-01")
+    expense.locator('[name="categoryId"]').select_option("001")
+    expense.locator('[name="amount"]').fill("12.00")
+    expense.locator('[name="percent"]').fill("50")
+    expense.locator('[name="evidenceRef"]').fill("")
+    expense.locator('button[type="submit"]').click()
+    flags = page.locator("#reviewList li").all_inner_texts()
+    assert len(flags) == 4, flags
+    # Playwright inner_text normalizes visual whitespace; DOM textContent must retain raw spaces.
+    visible_source = " ".join(unsafe_source.split())
+    assert all("Transaction 000124" in f and "Source " + visible_source in f and "Category 001" in f for f in flags[:3]), flags
+    assert "Source " + unsafe_source in page.locator("#reviewList li").first.evaluate("(node) => node.textContent"), "DOM retains raw identifier"
+    assert any("Date outside award period" in f for f in flags), flags
+    assert any("Partial allocation lacks documented basis" in f for f in flags), flags
+    assert any("Supporting evidence reference missing" in f for f in flags), flags
+    assert any(f.startswith("Category 001: Budget comparison:") for f in flags), flags
+    assert page.locator("#reviewList img").count() == 0, "untrusted identifier must render as text"
     category.locator('[name="categoryId"]').fill("002")
     category.locator('[name="label"]').fill("=2+2")
     category.locator('[name="budget"]').fill("1.00")
@@ -56,6 +78,7 @@ def verify(browser_type, url, width):
     evidence = json.loads(data)
     assert evidence["lines"][1]["label"] == "=2+2", "JSON retains risky original"
     assert evidence["expenses"][0]["sourceId"] == " SRC-0007 "
+    assert evidence["expenses"][1]["sourceId"] == unsafe_source, "JSON preserves untrusted source ID exactly"
     assert page.locator("#error").is_hidden(), "successful Evidence JSON must clear stale CSV error"
     assert "grant-evidence.json downloaded" in page.locator("#status").inner_text(), "JSON success announced"
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "viewport reflow"
