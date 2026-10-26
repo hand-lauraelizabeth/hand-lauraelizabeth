@@ -55,8 +55,8 @@ def main():
             undo.focus()
             page.keyboard.press('Enter')
             assert undo.is_hidden(),(engine,'single-use undo')
-            assert export(page)==before,(engine,'exact original export restored')
             assert page.evaluate('document.activeElement.getAttribute("aria-label")')=='Review status for record 000123'
+            assert export(page)==before,(engine,'exact original export restored')
             assert 'undone' in page.locator('#change-status-message').inner_text()
             page.get_by_role('combobox',name='Review status for record 000123').select_option('corroborated')
             page.get_by_role('combobox',name='Review status for record 000456').select_option('disputed')
