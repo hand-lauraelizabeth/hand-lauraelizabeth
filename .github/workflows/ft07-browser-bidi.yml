@@ -28,3 +28,4 @@ jobs:
         run: |
           node --test free-tools/rfp-evaluation/bidi-export-guard.test.mjs
           node --test free-tools/rfp-evaluation/evidence-provenance-regression.test.mjs
+          node --test free-tools/rfp-evaluation/coverage-summary.test.mjs
