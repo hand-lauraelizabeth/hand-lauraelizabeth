@@ -132,7 +132,13 @@ try{
    await page.evaluate(()=>window.__delayedPlanReads[1].release());
    await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('inputs changed'));
    expect(await page.locator('#opening').inputValue()==='777.00',name+' user edit wins pending import');
-   expect(JSON.parse(await download(page,'#save-plan')).openingCents===77700,name+' saved plan preserves edited amount');
+   const editedDownload=page.waitForEvent('download',{timeout:5000}).catch(()=>null);
+   await page.locator('#save-plan').click();
+   const editedFile=await editedDownload;
+   if(!editedFile)console.log(name+' edited save blocked: '+await page.locator('#error').innerText()+
+     '; shift ID='+await page.locator('#shift-id').inputValue());
+   expect(Boolean(editedFile),name+' edited plan remains downloadable');
+   expect(JSON.parse(readFileSync(await editedFile.path(),'utf8')).openingCents===77700,name+' saved plan preserves edited amount');
    expect(await page.locator('#export-json').isDisabled(),name+' user edit keeps old projection invalidated');
 
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),name+' 320px no page overflow');
