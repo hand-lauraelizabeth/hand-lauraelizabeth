@@ -27,3 +27,6 @@ jobs:
           node-version: '22'
       - name: Run browser-local CSV and JSON evidence regression
         run: node --test projects/text-lens/tests/cue-export-security.test.cjs
+
+      - name: Verify bounded UTF-8 corpus imports and stale-read recovery
+        run: node --test projects/text-lens/tests/local-file-boundary.test.cjs

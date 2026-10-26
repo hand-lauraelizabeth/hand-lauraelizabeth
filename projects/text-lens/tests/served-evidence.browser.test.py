@@ -149,6 +149,47 @@ def main():
             assert cleared["rows"] == []
             checks += 1
 
+            # Invalid local files cannot overwrite the existing manual corpus.
+            prior_text = page.locator("#a").input_value()
+            page.locator("#fileA").set_input_files({
+                "name": "malformed.txt", "mimeType": "text/plain",
+                "buffer": b"\xc3\x28"
+            })
+            expect(page.locator("#status")).to_contain_text("Invalid UTF-8", timeout=10000)
+            checks += 1
+            assert page.locator("#a").input_value() == prior_text
+            checks += 1
+            assert page.evaluate("document.activeElement.id") == "status"
+            checks += 1
+
+            page.locator("#fileA").set_input_files({
+                "name": "too-large.txt", "mimeType": "text/plain",
+                "buffer": b"x" * 5_000_001
+            })
+            expect(page.locator("#status")).to_contain_text("byte local limit", timeout=10000)
+            checks += 1
+            assert page.locator("#a").input_value() == prior_text
+            checks += 1
+
+            # A valid BOM-prefixed Unicode file can be imported after errors.
+            page.locator("#fileA").set_input_files({
+                "name": "café.md", "mimeType": "text/markdown",
+                "buffer": b"\xef\xbb\xbf" + "Café 東京 😀".encode("utf-8")
+            })
+            expect(page.locator("#a")).to_have_value("Café 東京 😀", timeout=10000)
+            checks += 1
+            expect(page.locator("#fileMetaA")).to_contain_text("café.md")
+            checks += 1
+
+            page.locator("#fileA").set_input_files({
+                "name": "binary.csv", "mimeType": "text/csv",
+                "buffer": b"alpha\x00beta"
+            })
+            expect(page.locator("#status")).to_contain_text("NUL", timeout=10000)
+            checks += 1
+            assert page.locator("#a").input_value() == "Café 東京 😀"
+            checks += 1
+
             assert not errors, errors
             checks += 1
             assert requests and all(url.startswith(origin + "/") for url in requests), requests
