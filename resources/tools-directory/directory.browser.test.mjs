@@ -133,6 +133,41 @@ try {
   equal(await page.locator('.ft15-card').count(),TOOLS.length,
     'clear remains operable at 400% root text');
   equal(await page.locator('#tool-query').isVisible(), true, 'search remains visible on narrow screen');
+  // Chromium emulates the Windows-style forced-colors preference; this is not
+  // a physical Windows High Contrast or assistive-technology certification.
+  if (browserName === 'chromium') {
+    await page.emulateMedia({ forcedColors: 'active' });
+    equal(await page.evaluate(() => matchMedia('(forced-colors: active)').matches), true,
+      'Chromium forced-colors preference is active');
+    const highContrast = await page.evaluate(() => {
+      const link = document.querySelector('.ft15-link');
+      const badge = document.querySelector('.ft15-badge');
+      const linkStyle = getComputedStyle(link), badgeStyle = getComputedStyle(badge);
+      return {
+        linkBorder: parseFloat(linkStyle.borderTopWidth),
+        linkBorderStyle: linkStyle.borderTopStyle,
+        linkDecoration: linkStyle.textDecorationLine,
+        badgeBorder: parseFloat(badgeStyle.borderTopWidth),
+        badgeBorderStyle: badgeStyle.borderTopStyle,
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth
+      };
+    });
+    equal(highContrast.linkBorder >= 2 && highContrast.linkBorderStyle === 'solid', true,
+      'live action remains bounded without forced background colors: ' + JSON.stringify(highContrast));
+    equal(highContrast.linkDecoration.includes('underline'), true,
+      'live action retains non-color link affordance');
+    equal(highContrast.badgeBorder >= 1 && highContrast.badgeBorderStyle === 'solid', true,
+      'availability badge remains bounded without its background color');
+    equal(highContrast.scrollWidth <= highContrast.viewportWidth, true,
+      'forced colors and enlarged text retain 320px reflow');
+    await page.locator('#tool-query').fill('text lens');
+    equal(await page.locator('.ft15-card h3').allTextContents(), ['Text Lens'],
+      'search still operates in forced-colors mode');
+    await page.locator('#tool-clear').click();
+    equal(await page.locator('.ft15-card').count(), TOOLS.length,
+      'clear still operates in forced-colors mode');
+  }
   equal(errors, [], 'no runtime script errors');
   console.log('FT-15 ' + browserName + ' HTTP browser integration: ' + checks + '/' + checks + ' PASS');
 } finally {
