@@ -32,6 +32,34 @@ same(ids('no-match-987654'),[],'zero result');
 same(ids('  '),synthetic.map(t=>t.id).sort(),'blank query returns all');
 same(JSON.stringify(synthetic),before,'search never mutates source labels');
 
+// Preserve meaning-bearing marks outside Latin; accent-insensitive Latin remains supported.
+// Unicode UAX #15 (2026-08-12): https://www.unicode.org/reports/tr15/
+const multilingual=[
+ {id:'dev-vowel',title:'किताब',category:'Languages',description:'Hindi',status:'development'},
+ {id:'dev-plain',title:'कतब',category:'Languages',description:'Hindi',status:'development'},
+ {id:'jp-voiced',title:'が',category:'Languages',description:'Japanese',status:'development'},
+ {id:'jp-unvoiced',title:'か',category:'Languages',description:'Japanese',status:'development'},
+ {id:'ar-vowel',title:'عَلَم',category:'Languages',description:'Arabic',status:'development'},
+ {id:'ar-plain',title:'علم',category:'Languages',description:'Arabic',status:'development'},
+ {id:'greek-accent',title:'ά',category:'Languages',description:'Greek',status:'development'},
+ {id:'greek-plain',title:'α',category:'Languages',description:'Greek',status:'development'},
+ {id:'latin-accent',title:'Ångström',category:'Languages',description:'Latin',status:'development'}
+];
+const multilingualBefore=JSON.stringify(multilingual);
+const multilingualIds=q=>filterTools(multilingual,{query:q}).map(t=>t.id).sort();
+same(multilingualIds('किताब'),['dev-vowel'],'Devanagari vowel mark must not be discarded');
+same(multilingualIds('कतब'),['dev-plain'],'Devanagari unmarked word remains distinct');
+same(multilingualIds('が'),['jp-voiced'],'Japanese dakuten must not be discarded');
+same(multilingualIds('か\u3099'),['jp-voiced'],'Japanese canonically decomposed voiced form');
+same(multilingualIds('عَلَم'),['ar-vowel'],'Arabic vowel marks must not be discarded');
+same(multilingualIds('علم'),['ar-plain'],'Arabic unmarked word remains distinct');
+same(multilingualIds('ά'),['greek-accent'],'Greek accent remains meaningful');
+same(multilingualIds('α'),['greek-plain'],'Greek unaccented letter remains distinct');
+same(multilingualIds('angstrom'),['latin-accent'],'Latin accent-insensitive search retained');
+same(multilingualIds('ÅNGSTRÖM'),['latin-accent'],'Latin case and accents supported');
+same(JSON.stringify(multilingual),multilingualBefore,'multilingual metadata remains exact');
+
+
 // Independent expected-ID table; not computed by the search implementation.
 const cases=[
  ['resume',['resume']],
