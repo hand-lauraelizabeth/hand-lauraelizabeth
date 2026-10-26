@@ -1,6 +1,7 @@
 import {exportMatrixJSON,exportMatrixCSV,exportEvidenceCSV} from './core.mjs';
 import {evaluateWithProvenance,exportEvidenceCoverageCSV} from './evidence-coverage.mjs';
 import {readWorkspaceFile} from './reopen.mjs';
+import {describeCoverage} from './coverage-summary.mjs';
 import {createReplacementGate} from './replacement-gate.mjs';
 import {createResetGate} from './reset-gate.mjs';
 const $=id=>document.getElementById(id);
@@ -55,7 +56,7 @@ function evaluate(event){event.preventDefault();cancelPendingImport();invalidate
  const data={criteria:rows('criterion'),vendors:rows('vendor'),ratings:rows('rating')};
  current=evaluateWithProvenance(data);const body=$('result-body');body.replaceChildren();
  for(const item of current.comparisons){const tr=document.createElement('tr');const values=[item.vendorId,item.name,item.scorePercent===null?'Incomplete':item.scorePercent.toFixed(1)+'%',item.priceCents===null?'Not supplied':'$'+(item.priceCents/100).toFixed(2),item.reviewFlags.length?item.reviewFlags.join('; '):'No flags'];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}body.append(tr);}
- $('result-summary').textContent=`${current.comparisons.length} proposal(s) evaluated. Incomplete scores remain withheld.`;$('results-section').hidden=false;$('status').textContent='Evaluation complete. Review flags before exporting.';
+ $('result-summary').textContent=`${current.comparisons.length} proposal(s) evaluated. ${describeCoverage(current)}`;$('results-section').hidden=false;$('status').textContent='Evaluation complete. Review flags before exporting.';
  }catch(e){showError(e);}}
 function download(kind){if(!current){showError('Evaluate proposals before exporting.');return;}try{
  const data=kind==='json'?exportMatrixJSON(current):kind==='matrix'?exportMatrixCSV(current):kind==='coverage'?exportEvidenceCoverageCSV(current):exportEvidenceCSV(current);
