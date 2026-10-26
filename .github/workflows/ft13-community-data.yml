@@ -6,6 +6,7 @@ on:
       - review/ft13-decimal-acs-evidence-20261024-1032
       - review/ft13-acs-annotation-semantics-20261024-1130
       - review/ft13-import-preservation-20261025-1825
+      - review/ft13-sha256-failure-integrity-20261026-1330
     paths:
       - 'tools/community-data-explorer/**'
       - '.github/workflows/ft13-community-data.yml'

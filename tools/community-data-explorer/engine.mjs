@@ -127,10 +127,19 @@ export function readCsvBytes(buffer, declaredSize) {
 export async function fingerprintCsv(buffer, cryptoProvider = globalThis.crypto) {
   if (!(buffer instanceof ArrayBuffer) || buffer.byteLength > MAX_BYTES) fail("Cannot fingerprint invalid or oversized bytes");
   const byte_count = buffer.byteLength;
-  if (!cryptoProvider?.subtle?.digest) return {sha256:null,byte_count,verification:"SHA-256 unavailable; source authenticity not verified"};
-  const hash = await cryptoProvider.subtle.digest("SHA-256",buffer);
-  const sha256 = Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,"0")).join("");
-  return {sha256,byte_count,verification:"Computed locally from original bytes; source authenticity not verified"};
+  const unavailable = reason => ({sha256:null,byte_count,
+    verification:"SHA-256 unavailable (" + reason + "); source authenticity not verified"});
+  if (!cryptoProvider?.subtle?.digest) return unavailable("Web Crypto not available");
+  try {
+    const hash = await cryptoProvider.subtle.digest("SHA-256",buffer);
+    // SHA-256 is exactly 256 bits. Never label truncated or malformed bytes as a source fingerprint.
+    if (!(hash instanceof ArrayBuffer) || hash.byteLength !== 32)
+      return unavailable("invalid digest result");
+    const sha256 = Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,"0")).join("");
+    return {sha256,byte_count,verification:"Computed locally from original bytes; source authenticity not verified"};
+  } catch {
+    return unavailable("digest failed");
+  }
 }
 export function compareRecords(records, leftId, rightId) {
   const left = records.find(x => x.source_id === leftId);
