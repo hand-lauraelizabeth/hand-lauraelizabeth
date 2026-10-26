@@ -191,10 +191,50 @@ def inspect_official_marginal_receipt(payload, receipt):
     return sorted(issues)
 
 
+
+def inspect_cross_dimension_receipt(payload, receipt, cross):
+    """Check necessary candidate pair bounds against saved public 2D marginals.
+
+    This is arithmetic QA only: the independent public queries are non-atomic,
+    a candidate may omit suppressed groups, and source CSV origin is unknown.
+    No findings contain categories, private counts, paths or row identifiers.
+    """
+    from cross_dimension_marginal_receipt import HOLDS, audit as audit_cross
+    findings = set(audit_cross(receipt, cross))
+    findings.add("cross_dimension_candidate_source_not_authenticated")
+    findings.update(inspect_official_marginal_receipt(payload, receipt))
+    if (not isinstance(payload, dict) or
+            payload.get("schema_version") != CANDIDATE_VERSION or inspect(payload)):
+        findings.add("cross_dimension_requires_valid_review_candidate")
+        return sorted(findings)
+    if findings - (HOLDS | {
+            "cross_dimension_candidate_source_not_authenticated",
+            "official_marginal_receipt_candidate_source_not_authenticated"}):
+        # Never compare against a malformed, differently scoped or
+        # inconsistent public source, or a mismatched candidate month.
+        return sorted(findings)
+    by_pair = {}
+    for row in cross["rows"]:
+        key = (row["borough"], row["agency"])
+        by_pair[key] = int(row["records"])
+    candidate_pairs = {}
+    for row in payload["aggregates"]:
+        key = (row["borough"], row["agency"])
+        candidate_pairs[key] = candidate_pairs.get(key, 0) + row["requests"]
+    for pair, visible in candidate_pairs.items():
+        if pair not in by_pair:
+            findings.add("cross_dimension_candidate_pair_absent_from_source")
+        elif visible > by_pair[pair]:
+            findings.add("cross_dimension_candidate_pair_exceeds_source")
+    return sorted(findings)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--previous", type=Path)
+    parser.add_argument("--borough-agency-cross-receipt", type=Path,
+                        help="Saved bounded public borough x agency query; requires --official-marginal-receipt; never release clearance")
     parser.add_argument("--official-marginal-receipt", type=Path,
                         help="Saved official public SoQL aggregates; source/date QA only, never release clearance")
     parser.add_argument("--external-marginals", type=Path,
@@ -225,6 +265,16 @@ def main():
                 findings.update(inspect_official_marginal_receipt(payload, receipt))
             except (OSError, UnicodeError, ValueError, TypeError, KeyError, ImportError):
                 findings.add("unreadable_or_invalid_official_marginal_receipt")
+        if args.borough_agency_cross_receipt:
+            if not args.official_marginal_receipt:
+                findings.add("cross_dimension_requires_official_marginal_receipt")
+            else:
+                try:
+                    receipt = json.loads(args.official_marginal_receipt.read_text(encoding="utf-8"))
+                    cross = json.loads(args.borough_agency_cross_receipt.read_text(encoding="utf-8"))
+                    findings.update(inspect_cross_dimension_receipt(payload, receipt, cross))
+                except (OSError, UnicodeError, ValueError, TypeError, KeyError, ImportError):
+                    findings.add("unreadable_or_invalid_cross_dimension_receipt")
         if args.external_marginals:
             if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
                 findings.add("external_marginals_require_review_candidate")
