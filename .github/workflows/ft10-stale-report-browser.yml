@@ -7,6 +7,7 @@ on:
       - 'review/ft10-csv-invisible-failclosed-*'
       - 'review/ft10-file-byte-integrity-*'
       - 'review/ft10-html-content-guard-*'
+      - 'review/ft10-csv-format-controls-*'
   pull_request:
     paths:
       - 'free-tools/accessibility-preflight/**'
