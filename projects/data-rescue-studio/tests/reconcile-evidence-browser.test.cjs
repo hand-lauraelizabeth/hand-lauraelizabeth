@@ -55,6 +55,57 @@ async function runEngine(label,type,url){
   ok(await page.locator('#compareExportJson').isEnabled(),label+' rerun restores export');
   await page.locator('#compareClear').click();
   ok(!(await page.locator('#compareExportJson').isEnabled()),label+' clearing second file revokes export');
+
+  // Real HTTP-served DOM regression: direct primary replacement must revoke an
+  // already-completed comparison even when the replacement has identical headers.
+  await page.locator('#compareFile').setInputFiles({name:'second-again.csv',mimeType:'text/csv',buffer:Buffer.from(right,'utf8')});
+  await page.waitForFunction(()=>!document.querySelector('#rightKey').disabled);
+  await page.locator('#rightKey').selectOption('Ref');
+  await page.locator('#compareRun').click();
+  ok(await page.locator('#compareExportJson').isEnabled(),label+' completed comparison ready before replacement');
+  await page.evaluate(()=>{
+    window.DataRescueCompareUI.setPrimary(
+      window.DataRescue.parseDelimited('ID,Note\\n9999,replacement'.replace('\\n','\n')),
+      'replacement.csv'
+    );
+  });
+  ok(!(await page.locator('#rightKey').isEnabled()),label+' primary replacement clears old second-file key');
+  ok(!(await page.locator('#compareRun').isEnabled()),label+' primary replacement disables old comparison');
+  ok(!(await page.locator('#compareExport').isEnabled()),label+' primary replacement revokes CSV audit');
+  ok(!(await page.locator('#compareExportJson').isEnabled()),label+' primary replacement revokes JSON audit');
+  eq(await page.locator('#compareFile').inputValue(),'',label+' primary replacement clears selected second file');
+  eq(await page.locator('#compareResults').locator('table').count(),0,label+' primary replacement clears old findings');
+
+  // Hold the actual File.arrayBuffer() read; replace primary while the second
+  // file is pending, then release its bytes. A stale completion must be ignored.
+  await page.evaluate(()=>{
+    window.__slowReadStarted=false;
+    window.__releaseSlow=null;
+    const original=File.prototype.arrayBuffer;
+    File.prototype.arrayBuffer=function(){
+      if(this.name!=='slow.csv')return original.call(this);
+      window.__slowReadStarted=true;
+      return new Promise(resolve=>{
+        window.__releaseSlow=()=>resolve(new TextEncoder().encode('Ref,Note\\n9999,stale'.replace('\\n','\n')).buffer);
+      });
+    };
+  });
+  await page.locator('#compareFile').setInputFiles({name:'slow.csv',mimeType:'text/csv',buffer:Buffer.from('Ref,Note\n9999,stale')});
+  await page.waitForFunction(()=>window.__slowReadStarted===true);
+  await page.evaluate(()=>{
+    window.DataRescueCompareUI.setPrimary(
+      window.DataRescue.parseDelimited('ID,Note\\n0007,current'.replace('\\n','\n')),
+      'current.csv'
+    );
+    window.__releaseSlow();
+  });
+  await page.waitForTimeout(100);
+  ok(!(await page.locator('#rightKey').isEnabled()),label+' pending stale second file cannot enable key after replacement');
+  ok(!(await page.locator('#compareRun').isEnabled()),label+' pending stale second file cannot enable compare');
+  ok(!(await page.locator('#compareExportJson').isEnabled()),label+' pending stale second file cannot enable export');
+  ok((await page.locator('#compareStatus').innerText()).includes('First file ready'),label+' stale read cannot replace current primary status');
+  eq(await page.locator('#compareFile').inputValue(),'',label+' pending stale selection stays cleared');
+
   await page.setViewportSize({width:320,height:800});
   ok(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),label+' 320px reflow');
   eq(errors,[],label+' no uncaught browser errors');
