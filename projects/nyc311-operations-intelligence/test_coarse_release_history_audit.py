@@ -90,6 +90,27 @@ class CoarseReleaseHistoryTests(unittest.TestCase):
         items[2]["snapshot_as_of"] = "2026-10-24"
         self.assertIn("history_snapshot_order_invalid", audit(items))
 
+    def test_incomplete_september_snapshot_rejected(self):
+        items = history()
+        items[0]["snapshot_as_of"] = "2026-09-30"
+        self.assertIn("history_snapshot_before_month_close", audit(items))
+
+    def test_december_to_january_boundary(self):
+        items = history()
+        for item, day in zip(items, (1, 2, 3)):
+            item["month"] = "2026-12"
+            item["snapshot_as_of"] = "2027-01-%02d" % day
+        self.assertEqual(audit(items), sorted(HOLDS))
+        items[0]["snapshot_as_of"] = "2026-12-31"
+        self.assertIn("history_snapshot_before_month_close", audit(items))
+
+    def test_same_month_snapshot_before_close_rejected(self):
+        items = history()
+        for item, day in zip(items, (29, 30, 31)):
+            item["month"] = "2026-10"
+            item["snapshot_as_of"] = "2026-10-%02d" % day
+        self.assertIn("history_snapshot_before_month_close", audit(items))
+
     def test_invalid_history_shapes(self):
         for items in (None, {}, [], [sample()], [sample()] * 25,
                       [sample(), "not a manifest"]):
