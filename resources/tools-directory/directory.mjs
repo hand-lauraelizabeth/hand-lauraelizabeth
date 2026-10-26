@@ -26,7 +26,7 @@ export function validateCatalog(rows=TOOLS){
    // canonical, lower-case ASCII resource paths are suitable as public live links.
    // WHATWG URL Standard (2026-10-19): https://url.spec.whatwg.org/
    if(u.origin!=='https://www.lauraelizabethhand.com'||u.username||u.password||u.search||u.hash||
-      u.href!==t.url||!/^\\/resources\\/(?:[a-z0-9-]+\\/)+$/.test(u.pathname))throw Error('Unapproved tool URL');
+      u.href!==t.url||!/^\/resources\/(?:[a-z0-9-]+\/)+$/.test(u.pathname))throw Error('Unapproved tool URL');
   }else if(t.url)throw Error('Unreleased tool cannot have a link');
  }
  return true;
