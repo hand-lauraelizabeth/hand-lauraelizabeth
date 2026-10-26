@@ -45,6 +45,19 @@ export function buildHousingLedger({sources,events}) {
   }
   return {schema:'housing-evidence-ledger-v1',sources:safeSources,events:safeEvents.map(({index,...rest})=>rest),findings,disclaimer:'Organizational record only. No legal rights, payment status, deadlines, or deposit entitlement are determined.'};
 }
+/** Correct an event without changing its exact ID or any other record. Invalid edits fail atomically. */
+export function reviseHousingEvent({sources,events}, eventId, changes) {
+  const ledger=buildHousingLedger({sources,events});
+  if (typeof eventId!=='string' || !ledger.events.some(e=>e.eventId===eventId)) throw Error('Unknown event ID');
+  const fields=['date','description','sourceIds','amountCents'];
+  if (!changes || typeof changes!=='object' || Array.isArray(changes) ||
+      Object.keys(changes).length!==fields.length || !fields.every(k=>Object.hasOwn(changes,k))) {
+    throw Error('Invalid event correction fields');
+  }
+  const revised=ledger.events.map(e=>e.eventId===eventId?{...e,...changes}:e);
+  return buildHousingLedger({sources:ledger.sources,events:revised});
+}
+
 export function exportHousingJSON(ledger) {
   if (!ledger || ledger.schema!=='housing-evidence-ledger-v1' || !Array.isArray(ledger.events) || !Array.isArray(ledger.sources)) throw Error('Invalid ledger');
   return JSON.stringify(ledger,null,2)+'\n';
