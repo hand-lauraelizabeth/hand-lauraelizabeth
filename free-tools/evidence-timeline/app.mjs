@@ -5,11 +5,15 @@ import {readExactJSON} from './json-import.mjs';
 import {createImportFeedback} from './import-feedback.mjs';
 import {previewReplacement, replacementConfirmation} from './replacement-preview.mjs';
 import {filterReviewRows, reviewStatusSummary} from './review-filter.mjs';
-import {STATUS_OPTIONS, updateReviewStatus} from './reclassify.mjs';
+import {STATUS_OPTIONS} from './reclassify.mjs';
+import {changeReviewStatus, undoReviewStatus} from './undo-status.mjs';
 const $ = id => document.getElementById(id);
 let records = [];
+let pendingStatusUndo = null;
 const form=$('entry-form'), error=$('error'), list=$('records');
 const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=String(value);return e;};
+function clearStatusUndo(){pendingStatusUndo=null;$('undo-status').hidden=true;$('undo-status').disabled=true;}
+function offerStatusUndo(change){pendingStatusUndo=change;$('undo-status').hidden=false;$('undo-status').disabled=false;}
 function showError(message,field){error.textContent=message;error.hidden=false; if(field){const input=$(field);input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby','error');}error.focus();}
 function clearError(){error.hidden=true;error.textContent='';for(const field of form.elements)if(field.removeAttribute){field.removeAttribute('aria-invalid');field.removeAttribute('aria-describedby');}}
 function render(){
@@ -29,7 +33,9 @@ function render(){
     statusSelect.addEventListener('change',()=>{
       try{
         const hadFilter=$('review-filter').value!=='all';
-        records=updateReviewStatus(records,r.sourceId,statusSelect.value);
+        const change=changeReviewStatus(records,r.sourceId,statusSelect.value);
+        records=change.records;
+        if(change.undo)offerStatusUndo(change.undo);else clearStatusUndo();
         if(hadFilter)$('review-filter').value='all';
         render();
         const replacement=[...list.querySelectorAll('select[data-source-id]')].find(element=>element.dataset.sourceId===r.sourceId);
@@ -38,7 +44,7 @@ function render(){
       }catch(e){$('change-status-message').textContent='Review status could not be updated.';render();$('count').focus();}
     });
     item.append(statusSelect);
-    const remove=text('button','Remove '+r.sourceId);remove.type='button';remove.setAttribute('aria-label','Remove record '+r.sourceId);remove.addEventListener('click',()=>{if(!window.confirm('Remove this record from this tab? This cannot be undone unless you have an export.'))return;records=records.filter(x=>x.sourceId!==r.sourceId);render();$('count').focus();});item.append(remove);list.append(item);}
+    const remove=text('button','Remove '+r.sourceId);remove.type='button';remove.setAttribute('aria-label','Remove record '+r.sourceId);remove.addEventListener('click',()=>{if(!window.confirm('Remove this record from this tab? This cannot be undone unless you have an export.'))return;records=records.filter(x=>x.sourceId!==r.sourceId);clearStatusUndo();render();$('count').focus();});item.append(remove);list.append(item);}
   const risk=csvExportRisk(records);
   $('csv').disabled=records.length===0||Boolean(risk);
   $('json').disabled=records.length===0;
@@ -47,19 +53,31 @@ function render(){
 }
 $('count').tabIndex=-1;
 $('review-filter').addEventListener('change',render);
+$('undo-status').addEventListener('click',()=>{
+  const change=pendingStatusUndo;
+  try{
+    records=undoReviewStatus(records,change);
+    clearStatusUndo();
+    $('review-filter').value='all';
+    render();
+    const replacement=[...list.querySelectorAll('select[data-source-id]')].find(element=>element.dataset.sourceId===change.sourceId);
+    (replacement||$('count')).focus();
+    $('change-status-message').textContent='Last review status change undone. All statuses are now shown.';
+  }catch(e){clearStatusUndo();$('change-status-message').textContent='Undo is no longer available because records changed.';$('count').focus();}
+});
 form.addEventListener('submit',event=>{
   event.preventDefault();clearError();
   const data=Object.fromEntries(new FormData(form).entries());
   for(const [id,label] of [['sourceId','Source ID'],['date','Record date'],['claim','Record description']]){
     if(!String(data[id]??'').trim()){showError(label+' is required.',id);return;}
   }
-  try{records=normalizeEvidence([...records,data]);form.reset();render();$('sourceId').focus();}
+  try{records=normalizeEvidence([...records,data]);clearStatusUndo();form.reset();render();$('sourceId').focus();}
   catch(e){const message=String(e.message||e);const field=/source ID/i.test(message)?'sourceId':/date/i.test(message)?'date':/claim/i.test(message)?'claim':null;showError(message,field);}
 });
 function download(filename,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 $('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportSafeEvidenceCSV(records),'text/csv;charset=utf-8'));
 $('json').addEventListener('click',()=>download('evidence-timeline-exact.json',JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n','application/json'));
-$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];$('review-filter').value='all';render();$('sourceId').focus();}});
+$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];clearStatusUndo();$('review-filter').value='all';render();$('sourceId').focus();}});
 
 const timeline=document.querySelector('[aria-labelledby="timeline-heading"]');
 const section=document.createElement('section');
@@ -82,6 +100,7 @@ input.addEventListener('change',async()=>{
    const impact=previewReplacement(records,next);
    if(window.confirm(replacementConfirmation(impact))){
      records=next;
+     clearStatusUndo();
      // A filter from the replaced working set must not conceal imported evidence.
      $('review-filter').value='all';
      render();$('count').focus();
