@@ -139,6 +139,23 @@ try:
             verify(replaced["comparison"] is None and replaced["source_file"]["sha256"] == hashlib.sha256(replacement_csv.encode()).hexdigest(),
                    engine_name + ": replacement JSON hash and comparison reset")
             verify(page.evaluate("document.documentElement.scrollWidth <= innerWidth"), engine_name + ": replacement 320px reflow")
+            # Exercise the actual served module in each browser with synthetic WebCrypto failure providers.
+            fingerprint_fallbacks = page.evaluate("""async () => {
+                const {fingerprintCsv} = await import("./engine.mjs");
+                const source = new Uint8Array([1, 2, 3, 4]).buffer;
+                const providers = [
+                    {subtle:{digest:async () => new ArrayBuffer(8)}},
+                    {subtle:{digest:async () => new Uint8Array(32)}},
+                    {subtle:{digest:async () => {throw new Error("synthetic rejection");}}},
+                    null
+                ];
+                return Promise.all(providers.map(provider => fingerprintCsv(source,provider)));
+            }""")
+            verify(len(fingerprint_fallbacks) == 4, engine_name + ": four digest failure scenarios")
+            verify(all(item["sha256"] is None and item["byte_count"] == 4 for item in fingerprint_fallbacks),
+                   engine_name + ": malformed/rejected digests never export fake hashes")
+            verify(all("unavailable" in item["verification"] and "authenticity not verified" in item["verification"]
+                       for item in fingerprint_fallbacks), engine_name + ": explicit missing-fingerprint provenance")
             verify(not outbound, engine_name + ": no outbound requests")
             verify(not errors, engine_name + ": no JavaScript page errors")
             context.close()
