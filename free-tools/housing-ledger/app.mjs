@@ -2,6 +2,7 @@ import {buildHousingLedger,exportHousingJSON,reviseHousingEvent} from './housing
 import {readHousingJSONFile} from './housing-import.mjs';
 const sources=[]; const events=[];
 let mutationVersion=0; let importRequest=0; let editingEventId=null;
+let editingOriginalDescription=null; let editingDisplayedDescription=null;
 const $=id=>document.getElementById(id);
 const error=$('error'),status=$('status');
 const message=(msg)=>{error.hidden=false;error.textContent=msg;error.focus();};
@@ -29,6 +30,7 @@ function eventButton(eventId){
 function closeEventEditor(focusButton=false){
   const id=editingEventId;
   editingEventId=null;
+  editingOriginalDescription=null; editingDisplayedDescription=null;
   $('event-edit-form').reset();
   $('event-editor').hidden=true;
   if(focusButton && id!==null) eventButton(id)?.focus();
@@ -40,6 +42,8 @@ function openEventEditor(eventId){
   $('edit-event-id').textContent=eventId;
   $('edit-event-date').value=event.date;
   $('edit-description').value=event.description;
+  editingOriginalDescription=event.description;
+  editingDisplayedDescription=$('edit-description').value;
   $('edit-amount').value=event.amountCents===null?'':String(event.amountCents);
   $('edit-source-links').value=event.sourceIds.join('\n');
   $('event-editor').hidden=false;
@@ -55,7 +59,7 @@ $('event-edit-form').addEventListener('submit',e=>{
     if(raw!=='' && !/^[0-9]{1,12}$/u.test(raw)) throw Error('Amount must be whole cents');
     const changes={
       date:$('edit-event-date').value,
-      description:$('edit-description').value,
+      description:$('edit-description').value===editingDisplayedDescription?editingOriginalDescription:$('edit-description').value,
       amountCents:raw===''?null:Number(raw),
       sourceIds:$('edit-source-links').value===''?[]:$('edit-source-links').value.split(/\r?\n/u)
     };
