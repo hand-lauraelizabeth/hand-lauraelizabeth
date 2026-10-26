@@ -61,6 +61,14 @@ def audit(history):
 
     first = history[0]
     dates = [dt.date.fromisoformat(item["snapshot_as_of"]) for item in history]
+    # A date-only snapshot cannot establish a complete reporting month until
+    # the following calendar day. This also handles December -> January.
+    month_start = dt.date.fromisoformat(first["month"] + "-01")
+    next_month = (dt.date(month_start.year + 1, 1, 1)
+                  if month_start.month == 12 else
+                  dt.date(month_start.year, month_start.month + 1, 1))
+    if any(date < next_month for date in dates):
+        return sorted(issues | {"history_snapshot_before_month_close"})
     if any(item["dataset_id"] != first["dataset_id"]
            or item["month"] != first["month"] for item in history[1:]):
         return sorted(issues | {"history_cohort_changed"})
