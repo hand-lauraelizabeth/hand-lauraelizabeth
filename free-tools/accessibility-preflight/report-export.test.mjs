@@ -14,7 +14,7 @@ for(const risky of [
  '=1+1',' +SUM(A1:A2)','-3','@cmd','\u202eleft','abc\u200bhidden',
  '\u2066isolate','\ufeff=SUM(A1:A2)','hello\nworld','hello\tworld',
  'hello\u0000world','abc\u007fdef','abc\u009fdef','abc\u200fdef',
- 'abc\u2069def','\u00a0=2+2','\uFF1D1+1','\uFF0B3','\uFF0D2','\uFF20cmd'
+ 'abc\u2069def','\u061c=SUM(1,2)','\u206a=1+1','\u180e=1+1',"'=1+1",'\u00a0=2+2','\uFF1D1+1','\uFF0B3','\uFF0D2','\uFF20cmd'
 ]){
  const candidate={...row,location:risky};
  assert.throws(()=>exportFindingsCSV([candidate]),/CSV export blocked: unsafe spreadsheet cell in location \(finding 1\)/);
