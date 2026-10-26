@@ -155,6 +155,8 @@ def main():
                         help="Private unbound 20-cell multiway audit; not publication clearance")
     parser.add_argument("--coarse-binding", type=Path,
                         help="Private 5-borough x 4-group source reconciliation manifest; no publication clearance")
+    parser.add_argument("--candidate-source-alignment", action="store_true",
+                        help="Reconcile visible candidate aggregates with --coarse-binding; arithmetic only, never provenance or release clearance")
     parser.add_argument("--expected-source-sha256",
                         help="Independent expected digest for --coarse-binding; equality is not origin authentication")
     parser.add_argument("--paired-coarse-previous", type=Path,
@@ -223,6 +225,23 @@ def main():
                         manifest, args.expected_source_sha256))
                 except (OSError, UnicodeError, ValueError, TypeError, ImportError):
                     findings.add("unreadable_or_invalid_coarse_binding")
+        if args.candidate_source_alignment and not args.coarse_binding:
+            findings.add("candidate_source_alignment_requires_coarse_binding")
+        elif args.candidate_source_alignment and args.coarse_binding:
+            if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+                findings.add("candidate_source_alignment_requires_review_candidate")
+            else:
+                # The 20-cell binding is only a supplied aggregate. Even exact
+                # candidate equality does not authenticate the official CSV,
+                # the unique-key cohort, hidden problem categories, or marginals.
+                findings.add("candidate_source_alignment_authentication_pending")
+                try:
+                    from candidate_coarse_alignment_audit import audit as audit_candidate_source
+                    source_binding = json.loads(
+                        args.coarse_binding.read_text(encoding="utf-8"))
+                    findings.update(audit_candidate_source(payload, source_binding))
+                except (OSError, UnicodeError, ValueError, TypeError, KeyError, ImportError):
+                    findings.add("unreadable_or_invalid_candidate_source_pair")
         if bool(args.paired_coarse_previous) != bool(args.paired_coarse_current):
             findings.add("paired_coarse_manifest_pair_incomplete")
         elif args.paired_coarse_previous and args.paired_coarse_current:
