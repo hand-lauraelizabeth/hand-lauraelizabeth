@@ -22,5 +22,5 @@ p{max-width:74ch}main>p{color:var(--muted)}
   .ft15-card { border: 1px solid CanvasText; box-shadow: none; }
   .ft15-badge { border: 1px solid CanvasText; }
   .ft15-link { border: 2px solid LinkText; text-decoration: underline; }
-  :focus-visible { outline-color: Highlight; }
+  :focus-visible, input:focus, select:focus, button:focus, .ft15-link:focus { outline-color: Highlight; }
 }
