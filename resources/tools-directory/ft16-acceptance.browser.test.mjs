@@ -42,6 +42,20 @@ for (const badUrl of [
   'https://www.lauraelizabethhand.com/resources/example/?leak=1',
   'https://www.lauraelizabethhand.com/resources/example/#leak'
 ]) rejected([{...rows[0],url:badUrl}], 'unsafe destination '+badUrl);
+// WHATWG URL parsing normalizes some malformed destinations before the origin check.
+// Public links must retain their exact, unambiguous canonical spelling.
+for (const badUrl of [
+  ' https://www.lauraelizabethhand.com/resources/example/',
+  'HTTPS://www.lauraelizabethhand.com/resources/example/',
+  'https://WWW.lauraelizabethhand.com/resources/example/',
+  'https://www.lauraelizabethhand.com/resources/./example/',
+  'https://www.lauraelizabethhand.com/resources/dir/../example/',
+  'https://www.lauraelizabethhand.com/resources//example/',
+  'https://www.lauraelizabethhand.com/resources/%2fexample/',
+  'https://www.lauraelizabethhand.com/resources/%65xample/',
+  'https://www.lauraelizabethhand.com/resources/%252e%252e/example/',
+  'https://www.lauraelizabethhand.com:443/resources/example/'
+]) rejected([{...rows[0],url:badUrl}], 'noncanonical destination '+badUrl);
 rejected([{...rows[1],url:'https://www.lauraelizabethhand.com/resources/example/'}], 'unreleased item linked');
 rejected([rows[0], {...rows[0]}], 'duplicate IDs');
 rejected([{...rows[0],id:'bad id'}], 'invalid ID');
