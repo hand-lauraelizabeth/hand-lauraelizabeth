@@ -74,10 +74,10 @@ class RequestMetadataEdit(unittest.TestCase):
                         card = page.locator("#requests .card").first
                         card.locator("input").nth(0).fill("2026-02-30")
                         card.locator("button").click()
-                        self.assertEqual(exported(), updated, "invalid calendar date must not modify evidence")
+                        self.assertEqual(page.evaluate("document.activeElement.getAttribute('role')"), "alert")
                         self.assertEqual(card.locator("input").nth(0).get_attribute("aria-invalid"), "true")
                         self.assertIn("real calendar date", card.locator('[role="alert"]').inner_text())
-                        self.assertEqual(page.evaluate("document.activeElement.getAttribute('role')"), "alert")
+                        self.assertEqual(exported(), updated, "invalid calendar date must not modify evidence")
                         card.locator("input").nth(0).fill("")
                         card.locator("input").nth(1).fill("")
                         card.locator("button").click()
