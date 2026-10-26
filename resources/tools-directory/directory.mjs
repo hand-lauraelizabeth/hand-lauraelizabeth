@@ -18,7 +18,9 @@ export function validateCatalog(rows=TOOLS){
 // Normalize only the temporary search index; catalog titles and URLs remain unchanged.
 // Canonical decomposition supports both precomposed and combining-mark input.
 function searchKey(value){
- return String(value).normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('en');
+ // Latin accent-insensitive matching must not erase meaningful vowel/voicing marks
+ // in Devanagari, Japanese, Arabic or other scripts. Preserve NFD equivalence.
+ return String(value).normalize('NFD').replace(/(\p{Script=Latin})\p{M}+/gu,'$1').toLocaleLowerCase('en');
 }
 export function filterTools(rows=TOOLS,{query='',category='all',status='all'}={}){
  const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean);
