@@ -8,6 +8,7 @@ on:
       - 'review/ft05-isolated-ci-*'
       - 'review/ft05-failclosed-csv-*'
       - 'review/ft05-inline-status-reclassification-*'
+      - 'review/ft05-undo-status-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
@@ -38,6 +39,11 @@ jobs:
           node --check free-tools/evidence-timeline/reclassify.mjs
           node --check free-tools/evidence-timeline/reclassify.test.mjs
           node free-tools/evidence-timeline/reclassify.test.mjs
+      - name: Verify reversible status changes and exact evidence
+        run: |
+          node --check free-tools/evidence-timeline/undo-status.mjs
+          node --check free-tools/evidence-timeline/undo-status.test.mjs
+          node free-tools/evidence-timeline/undo-status.test.mjs
       - name: Verify JSON import declared and actual byte counts
         run: |
           node --check free-tools/evidence-timeline/json-import.mjs
@@ -69,6 +75,8 @@ jobs:
         run: python free-tools/evidence-timeline/browser-confirm-removal.py
       - name: Verify status reclassification and exact export in three engines
         run: python free-tools/evidence-timeline/browser-reclassify.py
+      - name: Verify status undo, focus and invalidation in three engines
+        run: python free-tools/evidence-timeline/browser-undo-status.py
       - name: Run synthetic 10k-record Chromium regression
         run: |
           CHROMIUM_BIN="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" python free-tools/evidence-timeline/browser-10k-basic.py
