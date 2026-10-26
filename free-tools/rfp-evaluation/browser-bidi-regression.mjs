@@ -56,6 +56,8 @@ try{
       await page.locator('#rating-1-note').fill('Reviewed');
       await page.locator('button[type=submit]').click();
       check(await page.locator('#results-section').isVisible(),name+' evaluated locally');
+      check((await page.locator('#result-summary').innerText()).includes('1 of 1 vendor–criterion pairs scored'),name+' scored coverage visible');
+      check((await page.locator('#result-summary').innerText()).includes('1 scored pairs have visible evidence and criterion source'),name+' documented coverage visible');
       await page.locator('#download-matrix').click();
       check((await page.locator('#error').textContent()).includes('CSV export blocked'),name+' matrix blocked');
       check(await page.evaluate(()=>document.activeElement?.id)==='error',name+' blocked export focuses error');
@@ -80,6 +82,19 @@ try{
       check(rating.text.includes('"EV-0001"'),name+' safe ratings CSV recovery');
       const coverage=await textDownload(page,'#download-coverage');
       check(coverage.text.includes('"REQ-0001"'),name+' safe coverage CSV recovery');
+      // Coverage must never treat missing source/evidence as documented or missing score as zero.
+      await page.locator('#criterion-1-sourceRef').fill('');
+      await page.locator('button[type=submit]').click();
+      check((await page.locator('#result-summary').innerText()).includes('0 scored pairs missing evidence or source')===false,name+' missing source reduces documented coverage');
+      check((await page.locator('#result-summary').innerText()).includes('1 scored pairs missing evidence or source'),name+' missing source count');
+      check((await page.locator('#result-body').innerText()).includes('Incomplete'),name+' missing source withholds score');
+      await page.locator('#criterion-1-sourceRef').fill('REQ-0001');
+      await page.locator('#rating-1-score').fill('');
+      await page.locator('button[type=submit]').click();
+      check((await page.locator('#result-summary').innerText()).includes('0 of 1 vendor–criterion pairs scored'),name+' missing score not treated as zero');
+      check((await page.locator('#result-summary').innerText()).includes('1 missing scores'),name+' missing score explicitly counted');
+      await page.locator('#rating-1-score').fill('4');
+      await page.locator('button[type=submit]').click();
       // Removing an entry is destructive: keyboard cancellation must preserve the
       // current evaluated workspace, while confirmation must invalidate exports.
       for(const [kind,list] of [['criterion','criteria-list'],['vendor','vendors-list'],['rating','ratings-list']]){
