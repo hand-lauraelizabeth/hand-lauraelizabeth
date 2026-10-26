@@ -49,7 +49,7 @@ const multilingualBefore=JSON.stringify(multilingual);
 const multilingualIds=q=>filterTools(multilingual,{query:q}).map(t=>t.id).sort();
 same(multilingualIds('किताब'),['dev-vowel'],'Devanagari vowel mark must not be discarded');
 same(multilingualIds('कि'),['dev-vowel'],'complete Hindi vowel grapheme remains searchable');
-same(multilingualIds('क'),[],'bare Hindi consonant must not match vowel grapheme');
+same(multilingualIds('क'),['dev-plain'],'bare Hindi consonant must not match vowelled grapheme');
 same(multilingualIds('कतब'),['dev-plain'],'Devanagari unmarked word remains distinct');
 same(multilingualIds('が'),['jp-voiced'],'Japanese dakuten must not be discarded');
 same(multilingualIds('か'),['jp-unvoiced'],'unvoiced Japanese must not match voiced grapheme');
