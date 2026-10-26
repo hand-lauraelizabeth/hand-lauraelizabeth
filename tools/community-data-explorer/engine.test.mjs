@@ -80,3 +80,25 @@ test("local SHA-256 fingerprints match independent Node crypto oracle", async ()
   assert.match(fallback.verification,/unavailable/);
   await assert.rejects(fingerprintCsv(new ArrayBuffer(MAX_BYTES+1),webcrypto),/oversized/);
 });
+
+test("SHA-256 failure and malformed digest never become false source fingerprints", async () => {
+  const buffer = bytes("synthetic exact source bytes");
+  const providers = [
+    {subtle:{digest:async () => new ArrayBuffer(0)}},
+    {subtle:{digest:async () => new ArrayBuffer(8)}},
+    {subtle:{digest:async () => new ArrayBuffer(31)}},
+    {subtle:{digest:async () => new ArrayBuffer(33)}},
+    {subtle:{digest:async () => new Uint8Array(32)}},
+    {subtle:{digest:async () => {throw new Error("synthetic digest rejection");}}}
+  ];
+  for (const provider of providers) {
+    const result = await fingerprintCsv(buffer,provider);
+    assert.equal(result.sha256,null);
+    assert.equal(result.byte_count,buffer.byteLength);
+    assert.match(result.verification,/SHA-256 unavailable/);
+    assert.match(result.verification,/authenticity not verified/);
+  }
+  const correct = await fingerprintCsv(buffer,webcrypto);
+  assert.equal(correct.sha256,createHash("sha256").update(new Uint8Array(buffer)).digest("hex"));
+  assert.match(correct.sha256,/^[0-9a-f]{64}$/);
+});
