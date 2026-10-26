@@ -1,7 +1,11 @@
 // Spreadsheet programs may interpret imported CSV cells as formulas. Refuse
 // ambiguous cells rather than silently altering evidence; JSON remains exact.
-const UNSAFE_CONTROL = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/u;
-const FORMULA_PREFIX = /^\s*[-=+@\uFF1D\uFF0B\uFF0D\uFF20]/u;
+// Reject all Unicode format controls (Cf), including invisible bidi and shaping
+// characters, in spreadsheet CSV; the JSON export preserves exact evidence.
+const UNSAFE_CONTROL = /[\u0000-\u001f\u007f-\u009f\p{Cf}]/u;
+// Leading apostrophes can be interpreted as spreadsheet text escapes,
+// changing source evidence after opening or saving.
+const FORMULA_PREFIX = /^\s*['-=+@\uFF1D\uFF0B\uFF0D\uFF20]/u;
 
 export function exportFindingsCSV(findings) {
  const columns=['id','rule','severity','location','message','reference'];
