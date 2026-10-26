@@ -157,6 +157,10 @@ def main():
                         help="Private 5-borough x 4-group source reconciliation manifest; no publication clearance")
     parser.add_argument("--expected-source-sha256",
                         help="Independent expected digest for --coarse-binding; equality is not origin authentication")
+    parser.add_argument("--paired-coarse-previous", type=Path,
+                        help="Previous private 20-cell manifest; requires --paired-coarse-current")
+    parser.add_argument("--paired-coarse-current", type=Path,
+                        help="Current private 20-cell manifest; requires --paired-coarse-previous")
     args = parser.parse_args()
     try:
         payload = json.loads(args.candidate.read_text(encoding="utf-8"))
@@ -219,6 +223,25 @@ def main():
                         manifest, args.expected_source_sha256))
                 except (OSError, UnicodeError, ValueError, TypeError, ImportError):
                     findings.add("unreadable_or_invalid_coarse_binding")
+        if bool(args.paired_coarse_previous) != bool(args.paired_coarse_current):
+            findings.add("paired_coarse_manifest_pair_incomplete")
+        elif args.paired_coarse_previous and args.paired_coarse_current:
+            if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+                findings.add("paired_coarse_requires_review_candidate")
+            else:
+                # Paired manifests have NOT been bound to candidate cells,
+                # independently authenticated official snapshots or public
+                # external marginals. A clean synthetic audit is never approval.
+                findings.add("paired_coarse_candidate_alignment_unverified")
+                try:
+                    from paired_coarse_temporal_audit import audit as audit_paired_coarse
+                    old_manifest = json.loads(
+                        args.paired_coarse_previous.read_text(encoding="utf-8"))
+                    new_manifest = json.loads(
+                        args.paired_coarse_current.read_text(encoding="utf-8"))
+                    findings.update(audit_paired_coarse(old_manifest, new_manifest))
+                except (OSError, UnicodeError, ValueError, TypeError, KeyError, ImportError):
+                    findings.add("unreadable_or_invalid_paired_coarse_manifest")
         if isinstance(payload, dict) and payload.get("schema_version") == CANDIDATE_VERSION:
             # Passing modeled checks is NOT a release authorization.
             findings.add("external_marginal_integer_review_pending")
