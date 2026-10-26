@@ -106,7 +106,7 @@ class CrossDimensionGateTests(unittest.TestCase):
 
     def test_missing_cross_rows_fails_closed(self):
         self.x = {"url": url()}
-        self.assertIn("cross_response_invalid", self.findings())
+        self.assertIn("cross_query_scope_invalid", self.findings())
 
     def test_cli_requires_base_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
