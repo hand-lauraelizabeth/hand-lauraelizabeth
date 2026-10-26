@@ -10,5 +10,13 @@ $('totals').textContent='Planned '+formatMoney(result.totalBudgetCents)+' | Assi
 $('budgetRows').replaceChildren();result.lines.forEach(c=>row($('budgetRows'),[c.label,formatMoney(c.budgetCents),formatMoney(c.actualCents),formatMoney(c.differenceCents)]));
 $('expenseRows').replaceChildren();result.expenses.forEach(e=>row($('expenseRows'),[e.transactionId,e.sourceId,e.date,formatMoney(e.assignedCents),formatMoney(e.unassignedCents)]));
 $('reviewList').replaceChildren();const flags=result.review.length?result.review:[{flag:'No automatic review flags; this does not establish compliance.'}];
-flags.forEach(f=>{const li=document.createElement('li');li.textContent=(f.transactionId?f.transactionId+': ':'')+f.flag;$('reviewList').append(li);});
+flags.forEach(f=>{
+  const li=document.createElement('li');
+  const provenance=[];
+  if(f.transactionId)provenance.push('Transaction '+f.transactionId);
+  if(f.sourceId)provenance.push('Source '+f.sourceId);
+  if(f.categoryId)provenance.push('Category '+f.categoryId);
+  li.textContent=(provenance.length?provenance.join(' · ')+': ':'')+f.flag;
+  $('reviewList').append(li);
+});
 }
