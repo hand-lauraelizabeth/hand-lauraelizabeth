@@ -52,7 +52,10 @@ def verify(browser_type, url, width):
     expense.locator('button[type="submit"]').click()
     flags = page.locator("#reviewList li").all_inner_texts()
     assert len(flags) == 4, flags
-    assert all("Transaction 000124" in f and "Source " + unsafe_source in f and "Category 001" in f for f in flags[:3]), flags
+    # Playwright inner_text normalizes visual whitespace; DOM textContent must retain raw spaces.
+    visible_source = " ".join(unsafe_source.split())
+    assert all("Transaction 000124" in f and "Source " + visible_source in f and "Category 001" in f for f in flags[:3]), flags
+    assert "Source " + unsafe_source in page.locator("#reviewList li").first.evaluate("(node) => node.textContent"), "DOM retains raw identifier"
     assert any("Date outside award period" in f for f in flags), flags
     assert any("Partial allocation lacks documented basis" in f for f in flags), flags
     assert any("Supporting evidence reference missing" in f for f in flags), flags
