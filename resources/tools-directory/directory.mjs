@@ -36,6 +36,17 @@ export function validateCatalog(rows=TOOLS){
 // Unicode UAX #29 (2026-09-01): https://www.unicode.org/reports/tr29/
 // Latin accents are folded for search; meaningful marks in other scripts remain.
 const segmenter=new Intl.Segmenter('und',{granularity:'grapheme'});
+// Bound untrusted pasted search text before Unicode segmentation or catalog scans.
+// Count Unicode code points, not UTF-16 units, so supplementary-script text is
+// not penalized. The fast code-unit guard prevents oversized allocations.
+export const MAX_QUERY_CODE_POINTS=256;
+export function queryTooLong(query){
+ const value=String(query);
+ if(value.length>MAX_QUERY_CODE_POINTS*2)return true;
+ let count=0;
+ for(const _ of value)if(++count>MAX_QUERY_CODE_POINTS)return true;
+ return false;
+}
 function searchKey(value){
  return String(value).normalize('NFD')
   .replace(/(\p{Script=Latin})\p{M}+/gu,'$1')
@@ -56,6 +67,7 @@ function includesGraphemes(index,term){
  return false;
 }
 export function filterTools(rows=TOOLS,{query='',category='all',status='all'}={}){
+ if(queryTooLong(query))return [];
  const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean).map(graphemes);
  return rows.filter(t=>{
   if(category!=='all'&&t.category!==category)return false;
