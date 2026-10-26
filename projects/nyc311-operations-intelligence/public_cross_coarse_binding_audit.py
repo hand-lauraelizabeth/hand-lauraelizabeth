@@ -5,7 +5,6 @@ originate from an official CSV, and the editorial grouping is not validated.
 Even an exact match is diagnostic only. Never echo labels, counts or digests.
 """
 import argparse
-import calendar
 import datetime as dt
 import json
 from collections import defaultdict
@@ -29,6 +28,15 @@ HOLDS = {
 }
 
 
+def _month_closed(month, as_of):
+    """A date-only snapshot can attest to a full month only on the next day."""
+    start = dt.date.fromisoformat(month + "-01")
+    first_after = (dt.date(start.year + 1, 1, 1)
+                   if start.month == 12 else
+                   dt.date(start.year, start.month + 1, 1))
+    return dt.date.fromisoformat(as_of) >= first_after
+
+
 def audit(binding, receipt, cross):
     """Return codes only, never input data; all outcomes retain release HOLD."""
     issues = set(HOLDS)
@@ -43,9 +51,9 @@ def audit(binding, receipt, cross):
     if binding["month"] != receipt["reporting_month"]:
         return sorted(issues | {"reporting_month_mismatch"})
     try:
-        year, month = map(int, binding["month"].split("-"))
-        last = dt.date(year, month, calendar.monthrange(year, month)[1])
-        if dt.date.fromisoformat(binding["snapshot_as_of"]) < last:
+        # Preserve the existing finding code for downstream review tooling.
+        # The last calendar day itself is still too early for a full month.
+        if not _month_closed(binding["month"], binding["snapshot_as_of"]):
             issues.add("private_snapshot_before_month_end")
     except (ValueError, TypeError, OverflowError):
         issues.add("invalid_snapshot_date")

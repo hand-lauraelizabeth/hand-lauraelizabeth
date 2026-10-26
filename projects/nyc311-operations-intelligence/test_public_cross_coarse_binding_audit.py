@@ -8,7 +8,7 @@ import unittest
 from collections import defaultdict
 from pathlib import Path
 
-from public_cross_coarse_binding_audit import HOLDS, audit
+from public_cross_coarse_binding_audit import HOLDS, _month_closed, audit
 from test_coarse_20cell_binding_audit import sample
 from test_official_marginal_receipt import receipt
 from test_cross_dimension_marginal_receipt import url
@@ -82,6 +82,22 @@ class PublicCoarseBindingTests(unittest.TestCase):
     def test_premature_private_snapshot(self):
         self.binding["snapshot_as_of"] = "2026-09-15"
         self.assertIn("private_snapshot_before_month_end", self.findings())
+
+    def test_snapshot_on_last_day_cannot_claim_complete_month(self):
+        self.binding["snapshot_as_of"] = "2026-09-30"
+        self.assertIn("private_snapshot_before_month_end", self.findings())
+
+    def test_snapshot_on_first_day_of_next_month_keeps_hold(self):
+        self.binding["snapshot_as_of"] = "2026-10-01"
+        self.assertEqual(self.findings(), sorted(HOLDS))
+
+    def test_december_year_rollover_boundary(self):
+        self.assertFalse(_month_closed("2026-12", "2026-12-31"))
+        self.assertTrue(_month_closed("2026-12", "2027-01-01"))
+
+    def test_leap_year_month_boundary(self):
+        self.assertFalse(_month_closed("2028-02", "2028-02-29"))
+        self.assertTrue(_month_closed("2028-02", "2028-03-01"))
 
     def test_official_title_case_boroughs_normalize_safely(self):
         for r in self.cross["rows"]:
