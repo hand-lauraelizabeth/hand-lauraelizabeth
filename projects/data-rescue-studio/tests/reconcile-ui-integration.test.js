@@ -10,6 +10,7 @@ const ui = fs.readFileSync(path.join(root, 'reconcile-ui.js'), 'utf8');
 const rescue = require('../rescue-core.js');
 const engine = require('../reconcile-core.js');
 const evidence = require('../reconcile-evidence.js');
+const reader = require('../file-reader.js');
 
 class FakeElement {
   constructor(tag='div') {
@@ -54,7 +55,7 @@ const document = {
   createElement: tag => new FakeElement(tag)
 };
 const blobs = [], downloads = [];
-const win = {DataRescue: rescue, DataReconcile: engine, DataRescueReconciliationEvidence: evidence};
+const win = {DataRescue: rescue, DataReconcile: engine, DataRescueReconciliationEvidence: evidence, DataRescueFileReader: reader};
 const ctx = {window:win, document,
   Blob,
   URL: {createObjectURL(blob){blobs.push(blob);return 'blob:synthetic-' + blobs.length;},
@@ -64,6 +65,13 @@ const ctx = {window:win, document,
 vm.runInNewContext(ui, ctx, {filename:'reconcile-ui.js'});
 let count=0;
 function check(value,label) { assert.ok(value,label); count++; }
+function bytes(source) {
+  const data = Buffer.from(source, 'utf8');
+  return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+}
+function localFile(name,source) {
+  return {name,size:Buffer.byteLength(source,'utf8'),arrayBuffer:async()=>bytes(source)};
+}
 async function run() {
   check(typeof win.DataRescueCompareUI.setPrimary === 'function','UI controller exposed locally');
   const first=rescue.parseDelimited('ID,Value\n1,A\n2,B\n2,Duplicate\n3,C\n,Missing');
@@ -73,7 +81,7 @@ async function run() {
   check(nodes.compareRun.disabled,'compare disabled before second upload');
   check(nodes.leftKey.options.length===3,'first select has placeholder and both headings');
   const secondSource='Ref,Cost\n1,10\n2,20\n4,40\n,Missing';
-  nodes.compareFile.files=[{name:'second.csv',size:secondSource.length,text:async()=>secondSource}];
+  nodes.compareFile.files=[localFile('second.csv',secondSource)];
   await nodes.compareFile.handlers.change();
   check(!nodes.rightKey.disabled,'second identifier select enabled');
   check(nodes.compareRun.disabled,'compare disabled until identifiers selected');
@@ -108,10 +116,11 @@ async function run() {
   check(nodes.compareExportJson.disabled,'clear revokes stale JSON audit');
   // Replacing a file mid-read must ignore the older async completion.
   let finishRead;
-  nodes.compareFile.files=[{name:'slow.csv',size:100,text:()=>new Promise(resolve=>finishRead=resolve)}];
+  const slowSource='Ref,Cost\\n1,10'.replace('\\n','\n');
+  nodes.compareFile.files=[{name:'slow.csv',size:Buffer.byteLength(slowSource),arrayBuffer:()=>new Promise(resolve=>finishRead=resolve)}];
   const pending=nodes.compareFile.handlers.change();
   nodes.compareClear.handlers.click();
-  finishRead('Ref,Cost\n1,10');
+  finishRead(bytes(slowSource));
   await pending;
   check(nodes.rightKey.disabled,'stale async file read ignored after clear');
   check(!nodes.compareStatus.textContent.includes('Loaded second file'),'stale file never shown as loaded');
@@ -122,12 +131,40 @@ async function run() {
   nodes.compareFile.files=[{name:'oversized.csv',size:rescue.MAX_BYTES+1,text:async()=> {throw Error('should not read');}}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.textContent.includes('larger than 5 MB'),'size rejected before read');
+  // Changing the primary source invalidates a pending secondary read, even with matching headers.
+  const replacement=rescue.parseDelimited('ID,Value\\n9,New'.replace('\\n','\n'));
+  let finishOld;
+  const oldSource='Ref,Cost\\n1,10'.replace('\\n','\n');
+  nodes.compareFile.files=[{name:'old.csv',size:Buffer.byteLength(oldSource),arrayBuffer:()=>new Promise(resolve=>finishOld=resolve)}];
+  const pendingOld=nodes.compareFile.handlers.change();
+  win.DataRescueCompareUI.setPrimary(replacement,'replacement.csv');
+  finishOld(bytes(oldSource));
+  await pendingOld;
+  check(nodes.rightKey.disabled,'primary replacement invalidates in-flight secondary import');
+  check(nodes.compareRun.disabled,'primary replacement prevents cross-source comparison');
+  check(nodes.compareExport.disabled&&nodes.compareExportJson.disabled,'primary replacement revokes both audit exports');
+  check(nodes.compareFile.value==='','primary replacement clears selected second file');
+  check(!nodes.compareStatus.textContent.includes('Loaded second file'),'stale secondary completion cannot announce success');
+  // Malformed UTF-8 and inconsistent byte counts must fail closed without File.text() fallback.
+  nodes.compareFile.files=[{name:'invalid.csv',size:2,arrayBuffer:async()=>Uint8Array.from([0xff,0xfe]).buffer}];
+  await nodes.compareFile.handlers.change();
+  check(nodes.compareStatus.textContent.includes('Invalid UTF-8'),'malformed secondary UTF-8 rejected');
+  check(nodes.rightKey.disabled,'malformed bytes cannot enable second identifier');
+  nodes.compareFile.files=[{name:'mismatch.csv',size:3,arrayBuffer:async()=>bytes('ID\\n1'.replace('\\n','\n')+'2')}];
+  await nodes.compareFile.handlers.change();
+  check(nodes.compareStatus.textContent.includes('byte count'),'inconsistent secondary byte count rejected');
+  win.DataRescueFileReader=null;
+  nodes.compareFile.files=[{name:'fallback.csv',size:4,text:async()=> 'ID\\n1'.replace('\\n','\n')}];
+  await nodes.compareFile.handlers.change();
+  check(nodes.compareStatus.textContent.includes('Secure local file reader is unavailable'),'no permissive text fallback');
+  check(nodes.rightKey.disabled,'missing secure reader leaves comparison disabled');
+  win.DataRescueFileReader=reader;
   win.DataRescueCompareUI.setPrimary(null);
   check(nodes.leftKey.disabled,'clearing first file disables comparison');
   const riskFirst=rescue.parseDelimited('ID\n=1+2');
   const riskSecond=rescue.parseDelimited('ID\n=1+2');
   win.DataRescueCompareUI.setPrimary(riskFirst,'one.csv');
-  nodes.compareFile.files=[{name:'two.csv',size:8,text:async()=> 'ID\n=1+2'}];
+  nodes.compareFile.files=[localFile('two.csv','ID\n=1+2')];
   await nodes.compareFile.handlers.change();
   nodes.leftKey.value='ID';nodes.rightKey.value='ID';
   nodes.leftKey.handlers.change();nodes.rightKey.handlers.change();
