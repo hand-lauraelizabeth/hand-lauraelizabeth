@@ -112,6 +112,26 @@ try {
     overflow: [...document.querySelectorAll('*')].filter(el => el.scrollWidth > el.clientWidth + 1 || el.getBoundingClientRect().right > innerWidth + 1).slice(0, 12).map(el => ({ tag: el.tagName, id: el.id, className: String(el.className).slice(0, 70), width: el.clientWidth, scroll: el.scrollWidth, left: Math.round(el.getBoundingClientRect().left), right: Math.round(el.getBoundingClientRect().right) }))
   }));
   equal(enlarged.scrollWidth <= enlarged.width, true, '200% root text enlargement reflow (not native browser zoom): ' + JSON.stringify(enlarged));
+  // W3C WCAG 2.2 1.4.10 and 1.4.4: stress-test 400% root text
+  // at 320 CSS px. This is text enlargement, NOT native browser zoom.
+  await page.evaluate(() => { document.documentElement.style.fontSize = '400%'; });
+  const fourfold = await page.evaluate(() => ({
+    width: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    controls: [...document.querySelectorAll('#tool-query,#tool-category,#tool-status,#tool-clear')]
+      .map(el => ({ id:el.id, visible:el.getBoundingClientRect().width>0 && el.getBoundingClientRect().height>0,
+        left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right }))
+  }));
+  equal(fourfold.scrollWidth <= fourfold.width, true,
+    '400% root text / 320px reflow (not native zoom): '+JSON.stringify(fourfold));
+  equal(fourfold.controls.every(c=>c.visible && c.left>=-1 && c.right<=fourfold.width+1),true,
+    '400% root text keeps all four filters onscreen: '+JSON.stringify(fourfold));
+  await page.locator('#tool-query').fill('text lens');
+  equal(await page.locator('.ft15-card h3').allTextContents(),['Text Lens'],
+    'search remains operable at 400% root text');
+  await page.locator('#tool-clear').click();
+  equal(await page.locator('.ft15-card').count(),TOOLS.length,
+    'clear remains operable at 400% root text');
   equal(await page.locator('#tool-query').isVisible(), true, 'search remains visible on narrow screen');
   equal(errors, [], 'no runtime script errors');
   console.log('FT-15 ' + browserName + ' HTTP browser integration: ' + checks + '/' + checks + ' PASS');
