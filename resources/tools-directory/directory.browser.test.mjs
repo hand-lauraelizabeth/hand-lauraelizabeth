@@ -90,7 +90,7 @@ try {
     ];
     const ids=query=>filterTools(fixture,{query}).map(x=>x.id);
     return {hindi:ids('किताब'),hindiPlain:ids('कतब'),hindiBare:ids('क'),
-      voiced:ids('が'),unvoiced:ids('か'),decomposed:ids('か\\u3099'),
+      voiced:ids('が'),unvoiced:ids('か'),decomposed:ids('か\u3099'),
       greekAccent:ids('ά'),greekPlain:ids('α'),
       arabicVowel:ids('عَ'),arabicPlain:ids('ع'),
       latin:ids('resume'),original:fixture[0].title};
