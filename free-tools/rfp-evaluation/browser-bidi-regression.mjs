@@ -58,6 +58,7 @@ try{
       check(await page.locator('#results-section').isVisible(),name+' evaluated locally');
       check((await page.locator('#result-summary').innerText()).includes('1 of 1 vendor–criterion pairs scored'),name+' scored coverage visible');
       check((await page.locator('#result-summary').innerText()).includes('1 scored pairs have visible evidence and criterion source'),name+' documented coverage visible');
+      check((await page.locator('#status').innerText()).includes('1 of 1 vendor–criterion pairs scored'),name+' coverage announced through pre-existing status region');
       await page.locator('#download-matrix').click();
       check((await page.locator('#error').textContent()).includes('CSV export blocked'),name+' matrix blocked');
       check(await page.evaluate(()=>document.activeElement?.id)==='error',name+' blocked export focuses error');
