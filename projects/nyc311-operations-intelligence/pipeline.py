@@ -54,7 +54,7 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None,
         # boundary and checked against an independently retained receipt.
         # This verifies membership, not official origin or completeness.
         if (not isinstance(reporting_month, str)
-                or not re.fullmatch(r"\\d{4}-\\d{2}", reporting_month)):
+                or not re.fullmatch(r"\d{4}-\d{2}", reporting_month)):
             raise ValueError("Invalid required reporting month")
         try:
             month_start = dt.date.fromisoformat(reporting_month + "-01")
