@@ -82,16 +82,28 @@ try {
       {id:'dev-plain',title:'कतब',category:'Language',description:'Hindi',status:'development'},
       {id:'jp-voiced',title:'が',category:'Language',description:'Japanese',status:'development'},
       {id:'jp-plain',title:'か',category:'Language',description:'Japanese',status:'development'},
+      {id:'gr-accent',title:'ά',category:'Language',description:'Greek',status:'development'},
+      {id:'gr-plain',title:'α',category:'Language',description:'Greek',status:'development'},
+      {id:'ar-vowel',title:'عَلَم',category:'Language',description:'Arabic',status:'development'},
+      {id:'ar-plain',title:'علم',category:'Language',description:'Arabic',status:'development'},
       {id:'latin',title:'Résumé',category:'Language',description:'Latin',status:'development'}
     ];
     const ids=query=>filterTools(fixture,{query}).map(x=>x.id);
-    return {hindi:ids('किताब'),hindiPlain:ids('कतब'),
-      voiced:ids('が'),decomposed:ids('か\u3099'),latin:ids('resume'),
-      original:fixture[0].title};
+    return {hindi:ids('किताब'),hindiPlain:ids('कतब'),hindiBare:ids('क'),
+      voiced:ids('が'),unvoiced:ids('か'),decomposed:ids('か\u3099'),
+      greekAccent:ids('ά'),greekPlain:ids('α'),
+      arabicVowel:ids('عَ'),arabicPlain:ids('ع'),
+      latin:ids('resume'),original:fixture[0].title};
   });
   equal(multilingual.hindi,['dev-marked'],'browser preserves Devanagari vowel sign');
   equal(multilingual.hindiPlain,['dev-plain'],'browser distinguishes unmarked Hindi');
   equal(multilingual.voiced,['jp-voiced'],'browser preserves Japanese dakuten');
+  equal(multilingual.unvoiced,['jp-plain'],'browser excludes voiced Japanese grapheme from unvoiced search');
+  equal(multilingual.hindiBare,['dev-plain'],'browser excludes Hindi vowelled grapheme from bare consonant search');
+  equal(multilingual.greekAccent,['gr-accent'],'browser retains Greek accent');
+  equal(multilingual.greekPlain,['gr-plain'],'browser excludes accented Greek grapheme from plain search');
+  equal(multilingual.arabicVowel,['ar-vowel'],'browser retains Arabic vowel mark');
+  equal(multilingual.arabicPlain,['ar-plain'],'browser excludes vowelled Arabic grapheme from plain search');
   equal(multilingual.decomposed,['jp-voiced'],'browser matches canonical Japanese equivalent');
   equal(multilingual.latin,['latin'],'browser preserves Latin accent folding');
   equal(multilingual.original,'किताब','browser search does not mutate source');
