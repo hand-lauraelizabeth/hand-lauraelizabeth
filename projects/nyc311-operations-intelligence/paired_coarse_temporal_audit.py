@@ -37,7 +37,13 @@ def audit(previous, current):
            "excluded_borough_count_mismatch", "source_total_count_mismatch",
            "coarse_cell_below_display_threshold"}
     if bad.intersection(audit_binding(previous)) or bad.intersection(audit_binding(current)):
-        return ["inconsistent_paired_coarse_manifest"]
+        issues = {"inconsistent_paired_coarse_manifest"}
+        # Report a definition change even if it also breaks the arithmetic:
+        # otherwise a silent agency reassignment is masked as generic bad data.
+        if (previous["group_labels"] != current["group_labels"]
+                or previous["agency_to_group"] != current["agency_to_group"]):
+            issues.add("editorial_group_definition_changed")
+        return sorted(issues)
 
     findings = {"source_identity_cohort_not_reconciled",
                 "paired_external_marginals_not_authenticated",
