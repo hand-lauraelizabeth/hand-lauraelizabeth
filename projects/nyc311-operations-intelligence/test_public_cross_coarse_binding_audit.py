@@ -93,13 +93,15 @@ class PublicCoarseBindingTests(unittest.TestCase):
     def test_case_normalization_collision_rejected(self):
         for r in self.cross["rows"]:
             if r["borough"] == "BRONX" and r["agency"] == "Agency 0":
-                r["borough"] = "Bronx"
+                r["records"] = "10"
+                self.cross["rows"].append(
+                    {"borough": "Bronx", "agency": "Agency 0", "records": "10"})
                 break
         old = next(r for r in self.base["queries"]["borough"]["rows"]
                    if r["borough"] == "BRONX")
-        old["records"] = str(int(old["records"]) - 20)
+        old["records"] = str(int(old["records"]) - 10)
         self.base["queries"]["borough"]["rows"].append(
-            {"borough": "Bronx", "records": "20"})
+            {"borough": "Bronx", "records": "10"})
         self.assertIn("borough_normalization_collision", self.findings())
 
     def test_unrecognized_public_borough_is_not_silently_coerced(self):
