@@ -105,10 +105,10 @@ class CandidateCoarseAlignmentTests(unittest.TestCase):
         c["snapshot_as_of"] = "2026-10-26"
         self.assertIn("candidate_source_snapshot_mismatch", audit(c, sample()))
 
-    def test_wrong_dataset_flagged(self):
+    def test_wrong_dataset_is_rejected_by_candidate_schema(self):
         c = candidate()
         c["dataset_id"] = "not-erm2-nwe9"
-        self.assertIn("candidate_source_dataset_mismatch", audit(c, sample()))
+        self.assertEqual(audit(c, sample()), ["invalid_or_unsafe_review_candidate"])
 
     def test_unexpected_candidate_agency_detected(self):
         c = candidate()
