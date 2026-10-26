@@ -8,6 +8,7 @@ let focused="";
 function node(id){
  if(!nodes.has(id))nodes.set(id,{
   id,textContent:"",hidden:id==="import-preview",value:"",files:[],fields:[],items:[],
+  elements:{namedItem(){return {value:"",readOnly:false,focus(){}}}},
   listeners:{},addEventListener(name,fn){this.listeners[name]=fn},
   focus(){focused=id},reset(){this.fields=[]},replaceChildren(){this.items=[]},
   append(item){this.items.push(item)}

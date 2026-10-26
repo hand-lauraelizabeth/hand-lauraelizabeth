@@ -15,6 +15,18 @@ export function validateProject(input){
  if(!STANCES.has(r.stance)||cs.has(r.id)||!ss.has(r.sourceId))throw Error("Invalid stance, duplicate claim or unknown source");cs.add(r.id);return r});
  return {schema:SCHEMA,sources,claims};
 }
+// Correct an existing finding without changing its evidence identifier or other findings.
+export function updateClaim(input,claimId,changes){
+ const project=validateProject(input);
+ const key=id(claimId,"Finding ID"),patch=obj(changes,"Finding changes");
+ const index=project.claims.findIndex(c=>c.id===key);
+ if(index<0)throw Error("Finding ID not found");
+ if(Object.hasOwn(patch,"id")&&patch.id!==key)throw Error("Finding ID cannot be changed");
+ const original=project.claims[index];
+ const updated={...original,...patch,id:key};
+ const claims=project.claims.map((claim,i)=>i===index?updated:claim);
+ return validateProject({...project,claims});
+}
 export function analyzeProject(input){
  const project=validateProject(input),issues=[],groups=new Map();
  for(const s of project.sources)if(!s.doi)issues.push({kind:"missing-doi",sourceId:s.id});
