@@ -1,13 +1,27 @@
 import {TOOLS,STATUS_LABELS} from './catalog.mjs';
-import {filterTools} from './directory.mjs';
+import {filterTools,queryTooLong} from './directory.mjs';
 const root=document.getElementById('ft15-directory');
 const query=root.querySelector('#tool-query'),category=root.querySelector('#tool-category'),status=root.querySelector('#tool-status');
 const cards=root.querySelector('#tool-results'),count=root.querySelector('#tool-count');
+const queryError=root.querySelector('#tool-query-error');
 for(const name of [...new Set(TOOLS.map(t=>t.category))].sort()){
  const opt=document.createElement('option');opt.value=name;opt.textContent=name;category.append(opt);
 }
 function element(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
 function render(){
+ // Never silently truncate or index an overlong query. Keep the exact input
+ // available for correction, announce the error, and skip catalog work.
+ const invalid=queryTooLong(query.value);
+ queryError.hidden=!invalid;
+ if(invalid){
+  query.setAttribute('aria-invalid','true');
+  query.setAttribute('aria-describedby','tool-query-error');
+  cards.replaceChildren();
+  count.textContent='Search paused until the query is shortened';
+  return;
+ }
+ query.removeAttribute('aria-invalid');
+ query.removeAttribute('aria-describedby');
  const visible=filterTools(TOOLS,{query:query.value,category:category.value,status:status.value});
  const fragment=document.createDocumentFragment();
  for(const tool of visible){
