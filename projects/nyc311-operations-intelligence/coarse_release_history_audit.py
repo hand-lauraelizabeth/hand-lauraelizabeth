@@ -47,7 +47,17 @@ def audit(history):
         except (TypeError, ValueError, KeyError, OverflowError):
             return sorted(issues | {"invalid_history_manifest"})
         if findings - BINDING_BASELINE:
-            return sorted(issues | {"invalid_history_manifest"})
+            # A changed editorial map often makes a supplied manifest
+            # internally inconsistent. Preserve that distinct diagnosis
+            # instead of masking it as generic malformed input.
+            extra = {"invalid_history_manifest"}
+            if (all(isinstance(x, dict) and "group_labels" in x
+                    and "agency_to_group" in x for x in history)
+                    and any(x["group_labels"] != history[0]["group_labels"]
+                            or x["agency_to_group"] != history[0]["agency_to_group"]
+                            for x in history[1:])):
+                extra.add("history_editorial_definitions_changed")
+            return sorted(issues | extra)
 
     first = history[0]
     dates = [dt.date.fromisoformat(item["snapshot_as_of"]) for item in history]
