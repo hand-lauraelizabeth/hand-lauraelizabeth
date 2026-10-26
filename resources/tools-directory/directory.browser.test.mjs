@@ -11,7 +11,7 @@ const browserName = process.argv[2] || 'chromium';
 const engine = { chromium, firefox, webkit }[browserName];
 if (!engine) throw new Error('Unknown browser engine');
 const dir = dirname(fileURLToPath(import.meta.url));
-const allowed = new Set(['index.html', 'app.mjs', 'catalog.mjs', 'directory.mjs', 'styles.css', 'layout.css', 'controls.css']);
+const allowed = new Set(['index.html', 'app.mjs', 'catalog.mjs', 'directory.mjs', 'styles.css', 'layout.css', 'controls.css', 'focus.css']);
 const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 const server = createServer(async (req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
