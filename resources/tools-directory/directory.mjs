@@ -22,7 +22,11 @@ export function validateCatalog(rows=TOOLS){
   if(t.status==='live'||t.status==='preview'){
    if(typeof t.url!=='string')throw Error('Available tool must have URL');
    const u=new URL(t.url);
-   if(u.origin!=='https://www.lauraelizabethhand.com'||!u.pathname.startsWith('/resources/')||u.username||u.password||u.search||u.hash)throw Error('Unapproved tool URL');
+   // URL parsing can silently strip whitespace and normalize path segments. Only
+   // canonical, lower-case ASCII resource paths are suitable as public live links.
+   // WHATWG URL Standard (2026-10-19): https://url.spec.whatwg.org/
+   if(u.origin!=='https://www.lauraelizabethhand.com'||u.username||u.password||u.search||u.hash||
+      u.href!==t.url||!/^\\/resources\\/(?:[a-z0-9-]+\\/)+$/.test(u.pathname))throw Error('Unapproved tool URL');
   }else if(t.url)throw Error('Unreleased tool cannot have a link');
  }
  return true;
