@@ -11,7 +11,7 @@ const browserName = process.argv[2] || 'chromium';
 const engine = { chromium, firefox, webkit }[browserName];
 if (!engine) throw new Error('Unknown browser engine');
 const dir = dirname(fileURLToPath(import.meta.url));
-const allowed = new Set(['index.html', 'app.mjs', 'catalog.mjs', 'directory.mjs', 'styles.css', 'layout.css', 'controls.css']);
+const allowed = new Set(['index.html', 'app.mjs', 'catalog.mjs', 'directory.mjs', 'styles.css', 'layout.css', 'controls.css', 'focus.css']);
 const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 const server = createServer(async (req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
@@ -168,6 +168,37 @@ try {
     equal(await page.locator('.ft15-card').count(), TOOLS.length,
       'clear still operates in forced-colors mode');
   }
+  // WCAG 2.2 2.4.7/2.4.11: actual keyboard Tab traversal at narrow width
+  // and 400% root-text scaling. Chromium additionally retains forced colors.
+  // This checks rendered focus and viewport intersection, not screen readers,
+  // native browser zoom, or a WCAG conformance certification.
+  await page.locator('#tool-query').focus();
+  for (const selector of ['#tool-category', '#tool-status', '#tool-clear', '.ft15-link']) {
+    await page.keyboard.press('Tab');
+    const focus = await page.evaluate(selector => {
+      const el = document.activeElement;
+      const style = getComputedStyle(el);
+      const box = el.getBoundingClientRect();
+      return {
+        expected: el.matches(selector),
+        outlineWidth: parseFloat(style.outlineWidth),
+        outlineStyle: style.outlineStyle,
+        intersectsViewport: box.width > 0 && box.height > 0 &&
+          box.right > 0 && box.left < innerWidth &&
+          box.bottom > 0 && box.top < innerHeight,
+        horizontalOverflow: document.documentElement.scrollWidth >
+          document.documentElement.clientWidth
+      };
+    }, selector);
+    equal(focus.expected, true, 'Tab reaches ' + selector + ': ' + JSON.stringify(focus));
+    equal(focus.outlineWidth >= 3 && focus.outlineStyle === 'solid', true,
+      'visible keyboard outline on ' + selector + ': ' + JSON.stringify(focus));
+    equal(focus.intersectsViewport && !focus.horizontalOverflow, true,
+      'keyboard target remains visible without horizontal overflow: ' + selector + ' ' + JSON.stringify(focus));
+  }
+  await page.keyboard.press('Shift+Tab');
+  equal(await page.locator('#tool-clear').evaluate(el => el === document.activeElement),
+    true, 'reverse keyboard traversal returns to Clear filters');
   equal(errors, [], 'no runtime script errors');
   console.log('FT-15 ' + browserName + ' HTTP browser integration: ' + checks + '/' + checks + ' PASS');
 } finally {
