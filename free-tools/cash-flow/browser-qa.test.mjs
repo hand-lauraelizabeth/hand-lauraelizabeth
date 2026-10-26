@@ -9,7 +9,7 @@ import {chromium,firefox,webkit,devices} from 'playwright';
 const root=dirname(fileURLToPath(import.meta.url));
 const assets=new Map([
   ['/','index.html'], ['/index.html','index.html'], ['/style.css','style.css'],
-  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs'], ['/axe.min.js','node_modules/axe-core/axe.min.js']
+  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs'], ['/plan.mjs','plan.mjs'], ['/axe.min.js','node_modules/axe-core/axe.min.js']
 ]);
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8'};
 const server=createServer((req,res)=>{
@@ -61,7 +61,7 @@ async function testBrowser(name,type){
       });
       if(current&&current!==visited.at(-1))visited.push(current);
     }
-    const expected=['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','Add event','shift-id','shift-days','calculate'];
+    const expected=['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','Add event','save-plan','load-plan','shift-id','shift-days','calculate'];
     assert.deepEqual(visited,expected,name+': keyboard control traversal order');
     checks++;
 
