@@ -10,11 +10,38 @@ function render(){
   const requestList=byId('requests'), eventList=byId('events'), flagList=byId('flags'), selector=byId('request-select');
   requestList.replaceChildren();eventList.replaceChildren();flagList.replaceChildren();
   const selected=selector.value;selector.replaceChildren(node('option','Select a request'));selector.firstChild.value='';
-  for(const r of state.requests){
-    const card=node('div',`${r.id} — ${r.agency} (${r.jurisdiction}; ${r.stage}) — ${r.description}`);
-    card.className='card';requestList.append(card);
+  state.requests.forEach((r,index)=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.append(node('p',`${r.id} — ${r.agency} (${r.jurisdiction}; ${r.stage}) — ${r.description}`));
+    const statusLabel=node('label',`Tracking status for request ${r.id}`);
+    const statusSelect=document.createElement('select');
+    statusSelect.className='request-stage';
+    for(const stage of ['draft','submitted','acknowledged','processing','responded','closed','unknown']){
+      const option=node('option',stage);option.value=stage;statusSelect.append(option);
+    }
+    statusSelect.value=r.stage;
+    statusLabel.append(statusSelect);
+    const save=node('button','Save status');
+    save.type='button';
+    save.setAttribute('aria-label',`Save status for request ${r.id}`);
+    save.addEventListener('click',()=>{
+      if(statusSelect.value===r.stage){say(`No status change for request ${r.id}.`);return;}
+      try{
+        const next=validateWorkspace({...state,requests:state.requests.map(item=>
+          item.id===r.id?{...item,stage:statusSelect.value}:item)});
+        state=next;
+        render();
+        requestList.children[index]?.querySelector('button')?.focus();
+        say(`Updated tracking status for request ${r.id} to ${statusSelect.value}. Review the documentation flags; this is not an agency determination.`);
+      }catch(error){
+        say('Status was not changed. Review the selected status and try again.');
+        save.focus();
+      }
+    });
+    card.append(statusLabel,save);requestList.append(card);
     const opt=node('option',`${r.id} — ${r.agency}`);opt.value=r.id;selector.append(opt);
-  }
+  });
   if([...selector.options].some(x=>x.value===selected)) selector.value=selected;
   for(const e of chronology(state)) eventList.append(node('li',`${e.date} — Event ${e.id} — Request ${e.requestId} — ${e.kind}: ${e.description}${e.sourceId?' [source '+e.sourceId+']':''}`));
   for(const item of reviewFlags(state)) flagList.append(node('li',`${item.requestId}: ${item.flags.join('; ')}`));
