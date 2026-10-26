@@ -91,6 +91,46 @@ try{
  check(await page.locator('#import-preview').isHidden(),true,'oversized file cannot replace data');
  check(await page.locator('#counts').textContent(),'2 sources, 0 findings, 2 gaps, 0 user-coded candidate pairs.','oversized file leaves data intact');
 
+
+ // Existing evidence can be corrected without re-entering the record or losing its ID.
+ await page.locator('#claim input[name="id"]').fill('finding-0001');
+ await page.locator('#claim input[name="sourceId"]').fill('0010');
+ await page.locator('#claim input[name="question"]').fill('Question');
+ await page.locator('#claim textarea[name="summary"]').fill('Original synthetic result');
+ await page.locator('#claim textarea[name="methods"]').fill('Method A');
+ await page.locator('#claim button[type="submit"], #claim-submit').click();
+ check(await page.locator('#claims li').count(),1,'original finding added');
+ await page.locator('#edit-claim-id').selectOption('finding-0001');
+ await page.locator('#load-claim').click();
+ check(await page.locator('#claim input[name="id"]').isEditable(),false,'finding identifier locked during correction');
+ check(await page.locator('#claim textarea[name="summary"]').evaluate(el=>el===document.activeElement),true,'correction focuses finding text');
+ await page.locator('#claim textarea[name="summary"]').fill('Corrected <script>inert</script> β');
+ await page.locator('#claim input[name="sourceId"]').fill('not-a-source');
+ await page.locator('#claim-submit').click();
+ check((await page.locator('#error').textContent()).includes('Invalid stance, duplicate claim or unknown source'),true,'invalid reference rejected');
+ check((await page.locator('#claims li').textContent()).includes('Original synthetic result'),true,'invalid correction preserves original');
+ await page.locator('#claim input[name="sourceId"]').fill('β-0020');
+ await page.locator('#claim-submit').click();
+ check(await page.locator('#claims li').count(),1,'correction does not duplicate finding');
+ check((await page.locator('#claims li').textContent()).includes('Corrected <script>inert</script> β'),true,'corrected text visible');
+ check(await page.locator('#claims script').count(),0,'HTML-looking correction inert');
+ check((await page.locator('#claims li').textContent()).includes('β-0020'),true,'new source reference preserved');
+ check(await page.locator('#edit-claim-id').evaluate(el=>el===document.activeElement),true,'focus returns to correction selector');
+ const correctedDownloadPromise=page.waitForEvent('download');
+ await page.locator('#download').click();
+ const correctedDownload=await correctedDownloadPromise;
+ const corrected=JSON.parse(await readFile(await correctedDownload.path(),'utf8'));
+ check(corrected.claims[0].id,'finding-0001','download preserves exact finding ID');
+ check(corrected.claims[0].sourceId,'β-0020','download includes corrected source reference');
+ check(corrected.claims[0].summary,'Corrected <script>inert</script> β','download preserves corrected Unicode text');
+ check(corrected.claims[0].methods,'Method A','unmodified methods retained');
+ await page.locator('#edit-claim-id').selectOption('finding-0001');
+ await page.locator('#load-claim').click();
+ await page.locator('#claim textarea[name="summary"]').fill('Discarded edit');
+ await page.locator('#cancel-claim-edit').click();
+ check((await page.locator('#claims li').textContent()).includes('Discarded edit'),false,'cancel preserves saved evidence');
+ check(await page.locator('#claim input[name="id"]').isEditable(),true,'cancel unlocks add mode');
+
  await page.setViewportSize({width:320,height:720});
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'320px responsive reflow');
  await page.evaluate(()=>{document.documentElement.style.fontSize='200%'});
