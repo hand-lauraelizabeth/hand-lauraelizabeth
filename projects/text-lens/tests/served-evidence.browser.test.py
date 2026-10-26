@@ -153,7 +153,7 @@ def main():
             prior_text = page.locator("#a").input_value()
             page.locator("#fileA").set_input_files({
                 "name": "malformed.txt", "mimeType": "text/plain",
-                "buffer": b"\\xc3\\x28"
+                "buffer": b"\xc3\x28"
             })
             expect(page.locator("#status")).to_contain_text("Invalid UTF-8", timeout=10000)
             checks += 1
@@ -174,7 +174,7 @@ def main():
             # A valid BOM-prefixed Unicode file can be imported after errors.
             page.locator("#fileA").set_input_files({
                 "name": "café.md", "mimeType": "text/markdown",
-                "buffer": b"\\xef\\xbb\\xbf" + "Café 東京 😀".encode("utf-8")
+                "buffer": b"\xef\xbb\xbf" + "Café 東京 😀".encode("utf-8")
             })
             expect(page.locator("#a")).to_have_value("Café 東京 😀", timeout=10000)
             checks += 1
@@ -183,7 +183,7 @@ def main():
 
             page.locator("#fileA").set_input_files({
                 "name": "binary.csv", "mimeType": "text/csv",
-                "buffer": b"alpha\\x00beta"
+                "buffer": b"alpha\x00beta"
             })
             expect(page.locator("#status")).to_contain_text("NUL", timeout=10000)
             checks += 1
