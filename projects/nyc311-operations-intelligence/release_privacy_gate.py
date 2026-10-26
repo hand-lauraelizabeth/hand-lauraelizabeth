@@ -6,6 +6,7 @@ for candidate data, agency reclassification, arbitrary overlaps, or releases.
 Only synthetic fixtures belong in repository tests. Do not commit source CSVs.
 """
 import argparse
+import calendar
 import datetime as dt
 import json
 from pathlib import Path
@@ -143,10 +144,59 @@ def inspect(payload, previous=None):
     return sorted(issues)
 
 
+
+def inspect_official_marginal_receipt(payload, receipt):
+    """Bind a public four-query receipt to candidate month; never authorize release.
+
+    The receipt's live SoQL calls are not an atomic snapshot. A passing upper
+    bound is necessary arithmetic consistency, NOT a full source reconciliation.
+    """
+    from official_marginal_receipt import audit as audit_receipt
+    source_findings = set(audit_receipt(receipt))
+    issues = set(source_findings)
+    issues.add("official_marginal_receipt_candidate_source_not_authenticated")
+    if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+        issues.add("official_marginal_receipt_requires_review_candidate")
+        return sorted(issues)
+    month = receipt.get("reporting_month") if isinstance(receipt, dict) else None
+    if not isinstance(month, str):
+        issues.add("official_marginal_receipt_invalid_month")
+        return sorted(issues)
+    rows = payload.get("aggregates")
+    same_month = (isinstance(rows, list) and bool(rows) and
+                  all(isinstance(row, dict) and row.get("month") == month for row in rows))
+    if not same_month:
+        issues.add("official_marginal_receipt_candidate_month_mismatch")
+    try:
+        if len(month) != 7 or month[4] != "-":
+            raise ValueError("Invalid month")
+        year, number = map(int, month.split("-"))
+        if not (1 <= number <= 12):
+            raise ValueError("Invalid month")
+        month_end = dt.date(year, number, calendar.monthrange(year, number)[1])
+        as_of = dt.date.fromisoformat(payload["snapshot_as_of"])
+        if as_of < month_end:
+            issues.add("official_marginal_receipt_candidate_before_month_end")
+    except (ValueError, TypeError, KeyError, OverflowError):
+        issues.add("official_marginal_receipt_invalid_month_or_snapshot")
+    # Only compare a necessary upper bound when all four source queries passed
+    # schema, scope, category and internal arithmetic checks.
+    baseline = {"source_queries_not_atomic", "official_csv_origin_not_authenticated",
+                "privacy_and_temporal_release_review_pending"}
+    if same_month and source_findings == baseline and all(
+            type(row.get("requests")) is int and row["requests"] >= 0 for row in rows):
+        cohort = int(receipt["queries"]["cohort"]["rows"][0]["records"])
+        if sum(row["requests"] for row in rows) > cohort:
+            issues.add("official_marginal_receipt_visible_candidate_exceeds_source")
+    return sorted(issues)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--previous", type=Path)
+    parser.add_argument("--official-marginal-receipt", type=Path,
+                        help="Saved official public SoQL aggregates; source/date QA only, never release clearance")
     parser.add_argument("--external-marginals", type=Path,
                         help="Private auxiliary-total audit; diagnostic only, never release approval")
     parser.add_argument("--overlap-constraints", type=Path,
@@ -169,6 +219,12 @@ def main():
         previous = (json.loads(args.previous.read_text(encoding="utf-8"))
                     if args.previous else None)
         findings = set(inspect(payload, previous))
+        if args.official_marginal_receipt:
+            try:
+                receipt = json.loads(args.official_marginal_receipt.read_text(encoding="utf-8"))
+                findings.update(inspect_official_marginal_receipt(payload, receipt))
+            except (OSError, UnicodeError, ValueError, TypeError, KeyError, ImportError):
+                findings.add("unreadable_or_invalid_official_marginal_receipt")
         if args.external_marginals:
             if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
                 findings.add("external_marginals_require_review_candidate")
