@@ -218,6 +218,21 @@ def main():
             checks += 1
             assert page.evaluate("document.activeElement.id") == "status"
             checks += 1
+            # Format controls beyond the old list and spreadsheet apostrophe
+            # escapes must keep exact JSON but never create CSV.
+            for suspicious in ["\u061c=SUM(1,2)", "'=1+1"]:
+                document = ('<!doctype html><html lang="en"><body>'
+                            '<img id="' + suspicious + '" src="x.png"></body></html>')
+                page.locator("#source").fill(document)
+                page.locator("#analyze").click()
+                evidence = json.loads(download_text(page, "#download-json"))
+                assert any(suspicious in item["location"] for item in evidence["findings"])
+                checks += 1
+                assert_no_download(page, "#download-csv")
+                checks += 1
+                assert "CSV export blocked" in page.locator("#status").inner_text()
+                checks += 1
+
             # Editing away the unsafe value and reanalyzing restores CSV export.
             page.locator("#source").fill(third)
             page.locator("#analyze").click()
