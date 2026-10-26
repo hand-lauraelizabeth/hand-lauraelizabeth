@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {TOOLS} from './catalog.mjs';
-import {filterTools,validateCatalog} from './directory.mjs';
+import {filterTools,validateCatalog,queryTooLong,MAX_QUERY_CODE_POINTS} from './directory.mjs';
 
 // Synthetic-only names exercise composed/decomposed Unicode without modifying public metadata.
 const synthetic=[
@@ -85,4 +85,21 @@ for(let i=0;i<500;i++){
  same(ids(q),expected,'seeded case '+i+': '+JSON.stringify(q));
 }
 same(validateCatalog(TOOLS),true,'original public catalog remains valid');
+// Search-input budget is measured in Unicode code points, not UTF-16 units.
+// Rejection is non-destructive, including for very large pasted text.
+same(MAX_QUERY_CODE_POINTS,256,'documented Unicode query budget');
+same(queryTooLong('x'.repeat(256)),false,'256 Latin code points accepted');
+same(queryTooLong('x'.repeat(257)),true,'257 Latin code points rejected');
+same(queryTooLong('🧪'.repeat(256)),false,'256 supplementary code points accepted');
+same(queryTooLong('🧪'.repeat(257)),true,'257 supplementary code points rejected');
+same(queryTooLong('क'.repeat(256)),false,'256 Devanagari code points accepted');
+same(queryTooLong('क'.repeat(257)),true,'257 Devanagari code points rejected');
+same(queryTooLong('x'.repeat(100000)),true,'large pasted text rejected before normalization');
+same(filterTools(synthetic,{query:'x'.repeat(100000)}),[],'oversized query yields no partial matches');
+const noScan=new Proxy([], {get(target,key,receiver){
+ if(key==='filter')throw Error('oversized query must not enumerate catalog');
+ return Reflect.get(target,key,receiver);
+}});
+same(filterTools(noScan,{query:'x'.repeat(257)}),[],'invalid query short-circuits catalog scan');
+same(ids('resume'),['resume'],'normal search recovers after oversized query');
 console.log('FT-15 Unicode multi-term search: '+checks+'/'+checks+' PASS');
