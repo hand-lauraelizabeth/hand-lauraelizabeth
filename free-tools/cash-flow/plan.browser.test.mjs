@@ -95,6 +95,51 @@ try{
    await upload(page,Buffer.alloc(256001,65));
    await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('256,000'));
    expect(await download(page,'#save-plan')===saved,name+' oversized file preserves plan');
+
+   // Deliberately hold a real File.arrayBuffer() read while a newer local plan
+   // is imported. The obsolete read must not overwrite either the new plan or
+   // its success announcement with a misleading stale-input error.
+   await page.evaluate(()=>{
+     window.__delayedPlanReads=[];
+     const original=File.prototype.arrayBuffer;
+     File.prototype.arrayBuffer=function(){
+       if(!this.name.startsWith('delayed-'))return original.call(this);
+       const file=this;
+       return new Promise(resolve=>{
+         window.__delayedPlanReads.push({name:file.name,release:()=>resolve(original.call(file))});
+       });
+     };
+   });
+   await upload(page,saved,'delayed-old.json');
+   await page.waitForFunction(()=>window.__delayedPlanReads.length===1);
+   const newerPlan={...plan,openingCents:45678};
+   page.once('dialog',dialog=>dialog.accept());
+   await upload(page,JSON.stringify(newerPlan),'newer.json');
+   await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('loaded locally'));
+   expect(await page.locator('#opening').inputValue()==='456.78',name+' newer import replaces opening');
+   await page.evaluate(()=>window.__delayedPlanReads[0].release());
+   await page.waitForTimeout(150);
+   expect(await page.locator('#opening').inputValue()==='456.78',name+' obsolete import cannot replace newer plan');
+   expect(await page.locator('#error').innerText()==='',name+' obsolete import cannot overwrite newer success with error');
+   expect((await page.locator('#status').innerText()).includes('loaded locally'),name+' newer success announcement survives stale completion');
+   expect(JSON.parse(await download(page,'#save-plan')).openingCents===45678,name+' exported editable plan retains newer value');
+
+   // An actual user edit while a file is pending must also prevent replacement
+   // and preserve the edited input without a confirmation dialog.
+   await upload(page,saved,'delayed-edit.json');
+   await page.waitForFunction(()=>window.__delayedPlanReads.length===2);
+   await page.locator('#opening').fill('777.00');
+   await page.evaluate(()=>window.__delayedPlanReads[1].release());
+   await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('inputs changed'));
+   expect(await page.locator('#opening').inputValue()==='777.00',name+' user edit wins pending import');
+   // Do not request an eleventh automatic browser download: Chromium may
+   // throttle repeated downloads in a single page. Earlier downloads already
+   // verify exact saved-plan bytes; here validate save succeeds after the race.
+   await page.locator('#save-plan').click();
+   expect((await page.locator('#status').innerText()).includes('saved locally'),name+' edited plan validates for save');
+   expect(await page.locator('#error').innerText()==='',name+' edited plan save clears obsolete error');
+   expect(await page.locator('#export-json').isDisabled(),name+' user edit keeps old projection invalidated');
+
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),name+' 320px no page overflow');
    expect(errors.length===0,name+' no uncaught browser exceptions '+errors.join(';'));
    expect(offsite.length===0,name+' no outbound requests '+offsite.join(';'));

@@ -34,7 +34,10 @@ $('load-plan').addEventListener('change',async()=>{
   const ticket=++loadTicket,startedAt=revision;
   try{
     const plan=await readPlanFile(file);
-    if(ticket!==loadTicket||startedAt!==revision){say('Plan was not loaded because inputs changed. Choose the file again.',true);return;}
+    // A superseded file read is obsolete, not a new user-facing error. Never
+    // overwrite a newer import's status or confirmation with stale feedback.
+    if(ticket!==loadTicket)return;
+    if(startedAt!==revision){say('Plan was not loaded because inputs changed. Choose the file again.',true);return;}
     if(!window.confirm('Replace all events and projection settings in this tab with the selected local plan?')){say('Plan import cancelled. Current inputs and exports were preserved.');return;}
     $('start').value=plan.start;$('end').value=plan.end;
     $('opening').value=formatCents(plan.openingCents);
