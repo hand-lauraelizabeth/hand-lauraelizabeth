@@ -37,18 +37,18 @@
     $('compareRun').disabled = !(first && second && $('leftKey').value && $('rightKey').value);
   }
   function setPrimary(data, name = '') {
+    // Every primary replacement changes the source pair, even when headers match.
+    // Invalidate in-flight second-file reads and revoke all prior comparison evidence.
     const priorKey = $('leftKey').value;
+    ++generation;
     first = data;
     firstName = name;
+    second = null;
+    secondName = '';
+    $('compareFile').value = '';
     options('leftKey', data);
     if (data && priorKey && data.normalizedHeaders.includes(priorKey)) $('leftKey').value = priorKey;
-    if (!data) {
-      ++generation;
-      second = null;
-      secondName = '';
-      $('compareFile').value = '';
-      options('rightKey', null);
-    }
+    options('rightKey', null);
     invalidate();
     message(data ? 'First file ready. Choose a second file and both identifier columns.' : 'Open a first file above to compare.');
   }
@@ -76,9 +76,10 @@
     }
     message('Reading second file locally…');
     try {
-      const parsed = root.DataRescueFileReader
-        ? await root.DataRescueFileReader.read(file, lib.parseDelimited)
-        : lib.parseDelimited(await file.text(), /\.tsv$/i.test(file.name) ? '\t' : undefined);
+      if (!root.DataRescueFileReader || typeof root.DataRescueFileReader.read !== 'function')
+        throw Error('Secure local file reader is unavailable. Reload the page.');
+      // Never fall back to File.text(): it bypasses byte-count and fatal UTF-8 validation.
+      const parsed = await root.DataRescueFileReader.read(file, lib.parseDelimited);
       if (thisGeneration !== generation) return;
       second = parsed;
       secondName = file.name;
