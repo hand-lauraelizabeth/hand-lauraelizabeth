@@ -22,24 +22,45 @@ function render(){
     }
     statusSelect.value=r.stage;
     statusLabel.append(statusSelect);
-    const save=node('button','Save status');
+    const dateLabel=node('label','Submission date (YYYY-MM-DD; blank if unknown)');
+    const dateInput=document.createElement('input');
+    dateInput.type='text';dateInput.inputMode='numeric';dateInput.maxLength=10;
+    dateInput.placeholder='YYYY-MM-DD';dateInput.value=r.submittedOn;
+    dateLabel.append(dateInput);
+    const trackingLabel=node('label','Agency tracking ID (optional; preserved exactly)');
+    const trackingInput=document.createElement('input');
+    trackingInput.type='text';trackingInput.maxLength=200;trackingInput.value=r.agencyTrackingId;
+    trackingLabel.append(trackingInput);
+    const error=node('p','');
+    error.className='form-error';error.setAttribute('role','alert');
+    error.tabIndex=-1;error.hidden=true;
+    const save=node('button','Save request changes');
     save.type='button';
-    save.setAttribute('aria-label',`Save status for request ${r.id}`);
+    save.setAttribute('aria-label',`Save request changes for request ${r.id}`);
     save.addEventListener('click',()=>{
-      if(statusSelect.value===r.stage){say(`No status change for request ${r.id}.`);return;}
+      const changed=statusSelect.value!==r.stage || dateInput.value!==r.submittedOn ||
+        trackingInput.value!==r.agencyTrackingId;
+      if(!changed){say(`No status change or detail change for request ${r.id}.`);return;}
+      dateInput.removeAttribute('aria-invalid');
       try{
         const next=validateWorkspace({...state,requests:state.requests.map(item=>
-          item.id===r.id?{...item,stage:statusSelect.value}:item)});
+          item.id===r.id?{...item,stage:statusSelect.value,submittedOn:dateInput.value,
+            agencyTrackingId:trackingInput.value}:item)});
         state=next;
         render();
         requestList.children[index]?.querySelector('button')?.focus();
-        say(`Updated tracking status for request ${r.id} to ${statusSelect.value}. Review the documentation flags; this is not an agency determination.`);
-      }catch(error){
-        say('Status was not changed. Review the selected status and try again.');
-        save.focus();
+        say(`Updated tracking status or request details for request ${r.id}. Review the documentation flags; these are your records, not agency determinations.`);
+      }catch(failure){
+        error.textContent=/submitted date/i.test(failure.message)
+          ? 'Submission date is invalid. Use YYYY-MM-DD for a real calendar date, or leave it blank.'
+          : 'Request changes were not saved. Check the tracking ID (200 characters maximum) and selected status.';
+        if(/submitted date/i.test(failure.message))dateInput.setAttribute('aria-invalid','true');
+        error.hidden=false;
+        say('Request changes not saved; the original records and evidence were kept.');
+        error.focus();
       }
     });
-    card.append(statusLabel,save);requestList.append(card);
+    card.append(statusLabel,dateLabel,trackingLabel,save,error);requestList.append(card);
     const opt=node('option',`${r.id} — ${r.agency}`);opt.value=r.id;selector.append(opt);
   });
   if([...selector.options].some(x=>x.value===selected)) selector.value=selected;

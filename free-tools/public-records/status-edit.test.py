@@ -60,7 +60,7 @@ class RequestStatusEdit(unittest.TestCase):
                         card.locator("button").click()
                         self.assertIn("Updated tracking status", page.locator("#status").inner_text())
                         self.assertEqual(page.evaluate("document.activeElement.getAttribute('aria-label')"),
-                                         "Save status for request REQ-00007")
+                                         "Save request changes for request REQ-00007")
                         updated = exported()
                         self.assertEqual(updated["requests"][0]["stage"], "responded")
                         self.assertEqual({k:v for k,v in updated["requests"][0].items() if k != "stage"},
