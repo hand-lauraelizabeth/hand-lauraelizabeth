@@ -153,6 +153,10 @@ def main():
                         help="Private exact 2x2 constraints; never proof of candidate-wide disclosure safety")
     parser.add_argument("--multiway-constraints", type=Path,
                         help="Private unbound 20-cell multiway audit; not publication clearance")
+    parser.add_argument("--coarse-binding", type=Path,
+                        help="Private 5-borough x 4-group source reconciliation manifest; no publication clearance")
+    parser.add_argument("--expected-source-sha256",
+                        help="Independent expected digest for --coarse-binding; equality is not origin authentication")
     args = parser.parse_args()
     try:
         payload = json.loads(args.candidate.read_text(encoding="utf-8"))
@@ -199,6 +203,22 @@ def main():
                     findings.update(audit_multiway(constraints))
                 except (OSError, UnicodeError, ValueError, TypeError, ImportError):
                     findings.add("unreadable_or_invalid_multiway_constraints")
+        if args.expected_source_sha256 is not None and args.coarse_binding is None:
+            findings.add("orphan_expected_source_digest")
+        if args.coarse_binding:
+            if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+                findings.add("coarse_binding_requires_review_candidate")
+            else:
+                # This source aggregate is NOT yet bound to the fine-grain
+                # candidate, authenticated official CSV, or public marginals.
+                findings.add("coarse_binding_candidate_alignment_unverified")
+                try:
+                    from coarse_20cell_binding_audit import audit as audit_coarse_binding
+                    manifest = json.loads(args.coarse_binding.read_text(encoding="utf-8"))
+                    findings.update(audit_coarse_binding(
+                        manifest, args.expected_source_sha256))
+                except (OSError, UnicodeError, ValueError, TypeError, ImportError):
+                    findings.add("unreadable_or_invalid_coarse_binding")
         if isinstance(payload, dict) and payload.get("schema_version") == CANDIDATE_VERSION:
             # Passing modeled checks is NOT a release authorization.
             findings.add("external_marginal_integer_review_pending")
