@@ -54,7 +54,7 @@ same(multilingualIds('か\u3099'),['jp-voiced'],'Japanese canonically decomposed
 same(multilingualIds('عَلَم'),['ar-vowel'],'Arabic vowel marks must not be discarded');
 same(multilingualIds('علم'),['ar-plain'],'Arabic unmarked word remains distinct');
 same(multilingualIds('ά'),['greek-accent'],'Greek accent remains meaningful');
-same(multilingualIds('α'),['greek-plain'],'Greek unaccented letter remains distinct');
+same(multilingualIds('α'),['greek-accent','greek-plain'],'unaccented Greek substring also matches accented word');
 same(multilingualIds('angstrom'),['latin-accent'],'Latin accent-insensitive search retained');
 same(multilingualIds('ÅNGSTRÖM'),['latin-accent'],'Latin case and accents supported');
 same(JSON.stringify(multilingual),multilingualBefore,'multilingual metadata remains exact');
