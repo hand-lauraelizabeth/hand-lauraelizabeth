@@ -12,6 +12,7 @@ jobs:
           node-version: '22'
       - run: node free-tools/housing-ledger/housing-core.test.mjs
       - run: node free-tools/housing-ledger/housing-import.test.mjs
+      - run: node free-tools/housing-ledger/housing-event-edit.test.mjs
       - run: node free-tools/housing-ledger/housing-ui-contract.test.mjs
   browser:
     runs-on: ubuntu-24.04
@@ -28,3 +29,4 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: node free-tools/housing-ledger/housing-reflow.browser.test.mjs ${{ matrix.browser }}
       - run: node free-tools/housing-ledger/housing-import.browser.test.mjs ${{ matrix.browser }}
+      - run: node free-tools/housing-ledger/housing-event-edit.browser.test.mjs ${{ matrix.browser }}
