@@ -99,7 +99,7 @@ try {
   equal(multilingual.hindiPlain,['dev-plain'],'browser distinguishes unmarked Hindi');
   equal(multilingual.voiced,['jp-voiced'],'browser preserves Japanese dakuten');
   equal(multilingual.unvoiced,['jp-plain'],'browser excludes voiced Japanese grapheme from unvoiced search');
-  equal(multilingual.hindiBare,[],'browser excludes Hindi vowelled grapheme from bare consonant search');
+  equal(multilingual.hindiBare,['dev-plain'],'browser excludes Hindi vowelled grapheme from bare consonant search');
   equal(multilingual.greekAccent,['gr-accent'],'browser retains Greek accent');
   equal(multilingual.greekPlain,['gr-plain'],'browser excludes accented Greek grapheme from plain search');
   equal(multilingual.arabicVowel,['ar-vowel'],'browser retains Arabic vowel mark');
