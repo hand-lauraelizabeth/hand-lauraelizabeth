@@ -73,6 +73,29 @@ try {
   equal((await page.locator('.ft15-card h3').allTextContents()).sort(),expectedMulti,'word order and whitespace independent');
   await page.locator('#tool-query').fill('tExT   LeNs');
   equal(await page.locator('.ft15-card h3').allTextContents(),['Text Lens'],'case-insensitive multi-term search');
+
+  // Real browser module execution with synthetic multilingual records; no user text leaves the page.
+  const multilingual = await page.evaluate(async () => {
+    const {filterTools} = await import('./directory.mjs');
+    const fixture = [
+      {id:'dev-marked',title:'किताब',category:'Language',description:'Hindi',status:'development'},
+      {id:'dev-plain',title:'कतब',category:'Language',description:'Hindi',status:'development'},
+      {id:'jp-voiced',title:'が',category:'Language',description:'Japanese',status:'development'},
+      {id:'jp-plain',title:'か',category:'Language',description:'Japanese',status:'development'},
+      {id:'latin',title:'Résumé',category:'Language',description:'Latin',status:'development'}
+    ];
+    const ids=query=>filterTools(fixture,{query}).map(x=>x.id);
+    return {hindi:ids('किताब'),hindiPlain:ids('कतब'),
+      voiced:ids('が'),decomposed:ids('か\u3099'),latin:ids('resume'),
+      original:fixture[0].title};
+  });
+  equal(multilingual.hindi,['dev-marked'],'browser preserves Devanagari vowel sign');
+  equal(multilingual.hindiPlain,['dev-plain'],'browser distinguishes unmarked Hindi');
+  equal(multilingual.voiced,['jp-voiced'],'browser preserves Japanese dakuten');
+  equal(multilingual.decomposed,['jp-voiced'],'browser matches canonical Japanese equivalent');
+  equal(multilingual.latin,['latin'],'browser preserves Latin accent folding');
+  equal(multilingual.original,'किताब','browser search does not mutate source');
+
   await page.locator('#tool-clear').click();
   const category = 'Research & Writing';
   await page.locator('#tool-category').selectOption(category);
