@@ -65,6 +65,25 @@ try {
   equal(await page.locator('.ft15-card').count(), 17, 'clear restores all cards');
   equal(await page.locator('#tool-query').inputValue(), '', 'clear resets query');
   equal(await page.locator('#tool-query').evaluate(el => el === document.activeElement), true, 'clear restores keyboard focus');
+  // Oversized paste must fail closed without truncating the entered text.
+  await page.locator('#tool-query').fill('a'.repeat(257));
+  equal(await page.locator('#tool-query').inputValue(),'a'.repeat(257),'oversized paste remains editable, not silently truncated');
+  equal(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','oversized query identified as invalid');
+  equal(await page.locator('#tool-query').getAttribute('aria-describedby'),'tool-query-error','error associated with search input');
+  equal(await page.locator('#tool-query-error[role="alert"]').isVisible(),true,'oversized query has visible alert');
+  equal(await page.locator('.ft15-card').count(),0,'invalid query does not render partial results');
+  equal(await page.locator('#tool-count').textContent(),'Search paused until the query is shortened','invalid query announced in status');
+  await page.locator('#tool-query').fill('text lens');
+  equal(await page.locator('#tool-query-error').isHidden(),true,'correcting query clears alert');
+  equal(await page.locator('#tool-query').getAttribute('aria-invalid'),null,'corrected query clears error state');
+  equal(await page.locator('.ft15-card h3').allTextContents(),['Text Lens'],'normal search recovers');
+  await page.locator('#tool-query').fill('🧪'.repeat(256));
+  equal(await page.locator('#tool-query-error').isHidden(),true,'256 supplementary characters allowed');
+  await page.locator('#tool-query').fill('🧪'.repeat(257));
+  equal(await page.locator('#tool-query-error').isVisible(),true,'257 supplementary characters rejected');
+  await page.locator('#tool-clear').click();
+  equal(await page.locator('.ft15-card').count(),TOOLS.length,'clear restores all after invalid query');
+  equal(await page.locator('#tool-query').evaluate(el=>el===document.activeElement),true,'clear restores focus after invalid query');
   await page.locator('#tool-query').fill('research evidence');
   const expectedMulti=filterTools(TOOLS,{query:'research evidence'}).map(t=>t.title).sort();
   equal(expectedMulti.length>0,true,'multi-term search has relevant results');
@@ -116,6 +135,10 @@ try {
 
   await page.setViewportSize({ width: 320, height: 720 });
   equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true, '320 CSS px reflow');
+  await page.locator('#tool-query').fill('x'.repeat(257));
+  equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),true,'visible query error reflows at 320px');
+  equal(await page.locator('#tool-query-error').isVisible(),true,'narrow-screen query error remains visible');
+  await page.locator('#tool-clear').click();
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
   const enlarged = await page.evaluate(() => ({
     width: document.documentElement.clientWidth,
