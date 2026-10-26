@@ -253,6 +253,8 @@ def main():
                         help="Previous private 20-cell manifest; requires --paired-coarse-current")
     parser.add_argument("--paired-coarse-current", type=Path,
                         help="Current private 20-cell manifest; requires --paired-coarse-previous")
+    parser.add_argument("--coarse-history", type=Path,
+                        help="Private JSON array of 2-24 chronological 20-cell manifests; ALL historical pairs audited, never release clearance")
     args = parser.parse_args()
     try:
         payload = json.loads(args.candidate.read_text(encoding="utf-8"))
@@ -367,6 +369,20 @@ def main():
                     findings.update(audit_paired_coarse(old_manifest, new_manifest))
                 except (OSError, UnicodeError, ValueError, TypeError, KeyError, ImportError):
                     findings.add("unreadable_or_invalid_paired_coarse_manifest")
+        if args.coarse_history:
+            if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_VERSION:
+                findings.add("coarse_history_requires_review_candidate")
+            else:
+                # An all-pairs private-history audit cannot authenticate source
+                # provenance or establish safe disclosure for actual requests.
+                findings.add("coarse_history_candidate_alignment_unverified")
+                try:
+                    from coarse_release_history_audit import audit as audit_history
+                    manifest_history = json.loads(
+                        args.coarse_history.read_text(encoding="utf-8"))
+                    findings.update(audit_history(manifest_history))
+                except (OSError, UnicodeError, ValueError, TypeError, KeyError, ImportError, OverflowError):
+                    findings.add("unreadable_or_invalid_coarse_history")
         if isinstance(payload, dict) and payload.get("schema_version") == CANDIDATE_VERSION:
             # Passing modeled checks is NOT a release authorization.
             findings.add("external_marginal_integer_review_pending")
