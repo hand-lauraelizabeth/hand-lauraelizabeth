@@ -1,0 +1,32 @@
+name: FT-03 strict secondary import and primary replacement
+on:
+  push:
+    branches:
+      - 'review/ft03-primary-replacement-*'
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft03-primary-replacement.yml'
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft03-primary-replacement.yml'
+permissions:
+  contents: read
+jobs:
+  local-reconciliation-integrity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and fail-closed integration checks
+        run: |
+          node --check projects/data-rescue-studio/reconcile-ui.js
+          node --check projects/data-rescue-studio/file-reader.js
+          node --check projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
+          node projects/data-rescue-studio/tests/reconcile-ui-integration.test.js
+      - name: Exact-value provenance regression
+        run: |
+          node projects/data-rescue-studio/tests/reconcile-evidence.test.cjs
