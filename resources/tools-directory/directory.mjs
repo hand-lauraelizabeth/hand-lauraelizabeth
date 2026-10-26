@@ -31,20 +31,37 @@ export function validateCatalog(rows=TOOLS){
  }
  return true;
 }
-// Normalize only the temporary search index; catalog titles and URLs remain unchanged.
-// Canonical decomposition supports both precomposed and combining-mark input.
+// Search operates on a temporary index; source titles, IDs and URLs are never changed.
+// Unicode UAX #15 (2026-08-12): https://www.unicode.org/reports/tr15/
+// Unicode UAX #29 (2026-09-01): https://www.unicode.org/reports/tr29/
+// Latin accents are folded for search; meaningful marks in other scripts remain.
+const segmenter=new Intl.Segmenter('und',{granularity:'grapheme'});
 function searchKey(value){
- // Latin accent-insensitive matching must not erase meaningful vowel/voicing marks
- // in Devanagari, Japanese, Arabic or other scripts. Preserve NFD equivalence.
- return String(value).normalize('NFD').replace(/(\p{Script=Latin})\p{M}+/gu,'$1').toLocaleLowerCase('en');
+ return String(value).normalize('NFD')
+  .replace(/(\p{Script=Latin})\p{M}+/gu,'$1')
+  .toLocaleLowerCase('en').normalize('NFC');
+}
+function graphemes(value){
+ return Array.from(segmenter.segment(value),part=>part.segment);
+}
+// Match at complete extended-grapheme boundaries, not inside a decomposed
+// vowel/voicing cluster (e.g. か must not match が; α must not match ά).
+function includesGraphemes(index,term){
+ if(!term.length)return true;
+ for(let i=0;i<=index.length-term.length;i++){
+  let matches=true;
+  for(let j=0;j<term.length;j++)if(index[i+j]!==term[j]){matches=false;break;}
+  if(matches)return true;
+ }
+ return false;
 }
 export function filterTools(rows=TOOLS,{query='',category='all',status='all'}={}){
- const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean);
+ const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean).map(graphemes);
  return rows.filter(t=>{
   if(category!=='all'&&t.category!==category)return false;
   if(status!=='all'&&t.status!==status)return false;
-  const index=searchKey([t.title,t.category,t.description].join(' '));
-  return terms.every(term=>index.includes(term));
+  const index=graphemes(searchKey([t.title,t.category,t.description].join(' ')));
+  return terms.every(term=>includesGraphemes(index,term));
  });
 }
 validateCatalog();
