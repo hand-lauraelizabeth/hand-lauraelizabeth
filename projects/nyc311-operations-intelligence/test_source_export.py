@@ -242,6 +242,40 @@ class TestSourceExport(unittest.TestCase):
             self.assertEqual(receiptfile.read_text(encoding="utf-8"), "protected concurrent receipt")
             self.assertEqual(list(Path(tmp).glob(".nyc311-*")), [])
 
+
+    def test_reject_coerced_publisher_cohort_counts(self):
+        # Prior int(value) silently accepted True, 1.0 and padded strings.
+        for field in ("records", "distinct_keys"):
+            for bad in (True, 1.0, " 1 ", "1.0", None, [], {"n": 1}):
+                with self.subTest(field=field, bad=repr(bad)), tempfile.TemporaryDirectory() as tmp:
+                    publisher = FakePublisher([record("001")])
+                    def malformed(url):
+                        result = publisher(url)
+                        params = parse_qs(urlparse(url).query)
+                        if "$select" in params and "count(*)" in params["$select"][0]:
+                            result[0][field] = bad
+                        return result
+                    csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                    with self.assertRaisesRegex(ValueError, "Invalid publisher count"):
+                        download("2026-09", csvfile, receiptfile, fetch=malformed)
+                    self.assertFalse(csvfile.exists())
+                    self.assertFalse(receiptfile.exists())
+
+    def test_reject_noncanonical_official_aggregate_counts(self):
+        for bad in (True, 1.0, " 1 ", "1.0", None, [], {"n": 1}):
+            with self.subTest(bad=repr(bad)), tempfile.TemporaryDirectory() as tmp:
+                publisher = FakePublisher([record("001")])
+                def malformed(url):
+                    result = publisher(url)
+                    if "$group" in parse_qs(urlparse(url).query):
+                        result[0]["n"] = bad
+                    return result
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "Invalid official aggregate count"):
+                    download("2026-09", csvfile, receiptfile, fetch=malformed)
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
     def test_page_size_bounds(self):
         with tempfile.TemporaryDirectory() as tmp:
             for n in (0, 50001, -1, True, 1.5):
