@@ -126,7 +126,7 @@ test('external corpus import cancels an older pending file read on the same side
  h.handlers['text-lens:import']({detail:{key:'a',name:'new-東京.md',size:3,lastModified:77,text:'new'}});
  resolve(encoder.encode('old').buffer);await pending;
  assert.deepEqual(Array.from(h.env.sourceDocs.a,x=>x.name),['new-東京.md']);
- assert.deepEqual(h.env.sourceFiles.a,['new-東京.md']);
+ assert.deepEqual(Array.from(h.env.sourceFiles.a),['new-東京.md']);
  assert.equal(h.api.getDocSeq(),1);
  assert.equal(h.api.fileLoadRevision.a,2);
  assert.equal(h.runs,1);
