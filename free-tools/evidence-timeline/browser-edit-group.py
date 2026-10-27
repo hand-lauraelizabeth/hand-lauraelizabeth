@@ -43,7 +43,7 @@ def main():
             assert page.goto(url,wait_until='networkidle').status==200
             add(page,'0001','Synthetic original',group='review')
             add(page,'cafe\u0301','Synthetic Unicode',group='review')
-            add(page,'=1+1','Synthetic formula-like ID')
+            add(page,'S-003','Synthetic formula-like ID')
             original=exported(page)
             assert len(original['records'])==3
             page.get_by_role('button',name='Edit group for 0001').click()
@@ -67,7 +67,7 @@ def main():
             assert next(r for r in saved['records'] if r['sourceId']=='0001')['group']=='review'
             assert not page.locator('#group-edit-panel').is_visible()
             assert page.evaluate('document.activeElement.dataset.editGroup')=='cafe\u0301'
-            page.get_by_role('button',name='Edit group for =1+1').click()
+            page.get_by_role('button',name='Edit group for S-003').click()
             field.evaluate("(el) => el.value='x'.repeat(121)")
             page.get_by_role('button',name='Save group').click()
             assert page.locator('#group-edit-error').is_visible()
@@ -77,13 +77,13 @@ def main():
             page.get_by_role('button',name='Save group').click()
             assert page.locator('#csv').is_disabled(),(engine,'formula-like group should block CSV')
             formula_snapshot=exported(page)
-            assert next(r for r in formula_snapshot['records'] if r['sourceId']=='=1+1')['group']=='=SUM(A1)'
-            page.get_by_role('button',name='Edit group for =1+1').click()
+            assert next(r for r in formula_snapshot['records'] if r['sourceId']=='S-003')['group']=='=SUM(A1)'
+            page.get_by_role('button',name='Edit group for S-003').click()
             field.fill('')
             page.get_by_role('button',name='Cancel group edit').click()
             assert exported(page)==formula_snapshot
-            assert page.evaluate('document.activeElement.dataset.editGroup')=='=1+1'
-            page.get_by_role('button',name='Edit group for =1+1').click()
+            assert page.evaluate('document.activeElement.dataset.editGroup')=='S-003'
+            page.get_by_role('button',name='Edit group for S-003').click()
             field.fill('')
             page.get_by_role('button',name='Save group').click()
             assert page.locator('#csv').is_enabled()
