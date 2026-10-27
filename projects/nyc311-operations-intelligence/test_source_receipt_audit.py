@@ -79,6 +79,9 @@ class ReceiptAuditTests(unittest.TestCase):
     def test_duplicate_key_fails_even_if_receipt_is_recalculated(self):
         self.rows[1][0] = "0001"
         self.write()
+        # Simulate a forged receipt claiming all three keys are distinct.
+        self.receipt["distinct_keys"] = len(self.rows)
+        self.save_receipt()
         self.assertIn("KEY_DUPLICATE_OR_ORDER_INVALID", self.codes())
 
     def test_out_of_month_fails_even_if_hashes_match(self):
