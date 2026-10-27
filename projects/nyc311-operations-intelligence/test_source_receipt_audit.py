@@ -92,7 +92,7 @@ class ReceiptAuditTests(unittest.TestCase):
     def test_tz_bearing_date_fails(self):
         self.rows[0][1] = "2026-09-01T00:00:00+00:00"
         self.write()
-        self.assertIn("CREATED_DATE_OUTSIDE_MONTH", self.codes())
+        self.assertIn("CREATED_DATE_INVALID", self.codes())
 
     def test_row_count_mismatch(self):
         self.receipt["rows"] = 4
