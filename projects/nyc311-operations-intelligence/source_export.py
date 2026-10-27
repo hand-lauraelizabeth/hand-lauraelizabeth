@@ -232,13 +232,16 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             json.dump(receipt, output, indent=2)
             output.flush()
             os.fsync(output.fileno())
-        os.replace(temp_csv, csv_path)
-        temp_csv = None
+        # Atomic no-clobber publication: os.replace would overwrite an artifact
+        # created after the initial existence check. Both temporary files are
+        # created in their destination directories, so hard links stay on-device.
+        os.link(temp_csv, csv_path)
         try:
-            os.replace(temp_receipt, receipt_path)
-            temp_receipt = None
+            os.link(temp_receipt, receipt_path)
         except Exception:
-            csv_path.unlink(missing_ok=True)
+            # The CSV link belongs to this invocation; remove it if receipt
+            # publication fails. Never remove a pre-existing receipt.
+            csv_path.unlink()
             raise
         return receipt
     finally:
