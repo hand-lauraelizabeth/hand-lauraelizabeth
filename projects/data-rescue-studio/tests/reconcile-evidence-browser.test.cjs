@@ -42,6 +42,9 @@ async function runEngine(label,type,url){
   eq(doc.sources.first.fileName,'first.csv',label+' first source');
   eq(doc.sources.second.keyColumn,'Ref',label+' second selected key');
   eq(doc.counts,{matches:2,ambiguous:1,leftOnly:0,rightOnly:1,missingLeft:1,missingRight:1},label+' all finding categories');
+  eq(doc.recordCounts,{first:{total:5,matched:2,ambiguous:2,firstOnly:0,missingIdentifier:1},second:{total:5,matched:2,ambiguous:1,secondOnly:1,missingIdentifier:1}},label+' JSON row coverage');
+  ok((await page.locator('#compareStatus').innerText()).includes('5 of 5'),label+' accessible completed row coverage');
+  eq(await page.locator('#compareMetrics .metric').count(),9,label+' group and row metrics visible');
   eq(doc.findings.find(x=>x.identifier==='0001'),{classification:'ambiguous',identifier:'0001',firstFileRecords:[2,3],secondFileRecords:[2]},label+' ambiguous exact IDs');
   eq(doc.findings.find(x=>x.identifier==='=1+2'),{classification:'match',identifier:'=1+2',firstFileRecords:[4],secondFileRecords:[3]},label+' formula-like exact key');
   eq(doc.findings.find(x=>x.identifier==='café').firstFileRecords,[5],label+' Unicode');
