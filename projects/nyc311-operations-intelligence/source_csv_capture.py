@@ -190,6 +190,7 @@ def main(argv=None):
     # fsync. A staged receipt is not a published receipt.
     source_created = False
     source_inode = None
+    source_fd = None  # Pin our inode so unlink/recreate cannot reuse its number.
     receipt_committed = False
     staged_receipt = None
     try:
@@ -200,7 +201,11 @@ def main(argv=None):
         # Snapshot the inode before receipt operations. A competing process may
         # replace this pathname; rollback must never delete its replacement.
         try:
-            source_stat = source.lstat()
+            # Keep a descriptor open through receipt serialization and rollback.
+            # A bare (device, inode) snapshot is insufficient: after unlink,
+            # a competing replacement can reuse the released inode number.
+            source_fd = os.open(source, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0))
+            source_stat = os.fstat(source_fd)
             source_inode = (source_stat.st_dev, source_stat.st_ino)
         except FileNotFoundError:
             # Preserve compatibility with injectable offline capture mocks.
@@ -244,6 +249,11 @@ def main(argv=None):
         print('HOLD: source capture or receipt failed closed')
         return 2
     finally:
+        if source_fd is not None:
+            try:
+                os.close(source_fd)
+            except OSError:
+                pass  # Never mask the original HOLD or successful receipt result.
         if staged_receipt is not None:
             # Best effort: cleanup must not mask the original HOLD failure.
             try:
