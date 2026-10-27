@@ -249,6 +249,53 @@ class TestSourceExport(unittest.TestCase):
                     download("2026-09", Path(tmp)/"x.csv", Path(tmp)/"r.json",
                              page_size=n, fetch=FakePublisher())
 
+    def test_reject_date_only_and_partial_created_timestamps(self):
+        for value in ("2026-09-15", "2026-09-15T09:00", "2026-09-15 09:00:00"):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as tmp:
+                row = record("001")
+                row["created_date"] = value
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "Malformed publisher floating timestamp"):
+                    download("2026-09", csvfile, receiptfile, fetch=FakePublisher([row]))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_reject_invalid_optional_closed_timestamps(self):
+        for value in ("2026-09-15", "2026-09-15T09:00:00Z",
+                      "2026-02-30T09:00:00", "not-a-date"):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as tmp:
+                row = record("001")
+                row["closed_date"] = value
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "Malformed publisher floating timestamp"):
+                    download("2026-09", csvfile, receiptfile, fetch=FakePublisher([row]))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_optional_null_or_omitted_closure_normalized_to_blank(self):
+        for kind in ("null", "omitted"):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as tmp:
+                row = record("001")
+                if kind == "null":
+                    row["closed_date"] = None
+                else:
+                    del row["closed_date"]
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                receipt = download("2026-09", csvfile, receiptfile, fetch=FakePublisher([row]))
+                self.assertEqual(receipt["rows"], 1)
+                with csvfile.open(newline="", encoding="utf-8") as stream:
+                    self.assertEqual(list(csv.DictReader(stream))[0]["closed_date"], "")
+
+    def test_valid_fractional_closed_timestamp_preserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            row = record("001")
+            row["closed_date"] = "2026-09-15T10:01:02.123"
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            download("2026-09", csvfile, receiptfile, fetch=FakePublisher([row]))
+            with csvfile.open(newline="", encoding="utf-8") as stream:
+                self.assertEqual(list(csv.DictReader(stream))[0]["closed_date"],
+                                 "2026-09-15T10:01:02.123")
+
 
 if __name__ == "__main__":
     unittest.main()
