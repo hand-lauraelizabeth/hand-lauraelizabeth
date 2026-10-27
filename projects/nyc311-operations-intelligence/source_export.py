@@ -32,7 +32,7 @@ def fetch_json(url, *, opener=urlopen):
 
 
 def month_bounds(month):
-    if not isinstance(month, str) or not re.fullmatch(r"\\d{4}-\\d{2}", month):
+    if not isinstance(month, str) or not re.fullmatch(r"\d{4}-\d{2}", month):
         raise ValueError("Expected YYYY-MM reporting month")
     try:
         start = dt.date.fromisoformat(month + "-01")
@@ -107,7 +107,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             temp_csv = Path(output.name)
             os.chmod(temp_csv, 0o600)
             writer = csv.DictWriter(output, fieldnames=FIELDS, extrasaction="ignore",
-                                    lineterminator="\\n")
+                                    lineterminator="\n")
             writer.writeheader()
             while rows < expected:
                 url = api_url("/resource/" + DATASET + ".json", {
