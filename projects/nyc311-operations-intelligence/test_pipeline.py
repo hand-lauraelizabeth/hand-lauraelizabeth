@@ -173,4 +173,54 @@ class TestClosureSubcellPrivacy(unittest.TestCase):
             self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 1)
             self.assertEqual(result["quality"].get("closure_subcells_suppressed", 0), 0)
 
+
+class TestStrictReportingMonthClosure(unittest.TestCase):
+    """Synthetic CSV fixtures: a full-month claim requires next-day dating."""
+
+    def _case(self, month, last_day, first_after):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "source.csv"
+            output = Path(tmp) / "output.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", month + "-10T12:00:00.000",
+                                 "", "DOT", "Synthetic", "Queens", "Open"])
+            sha = hashlib.sha256(source.read_bytes()).hexdigest()
+            output.write_text("preserve existing output", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Snapshot precedes completion"):
+                ingest(source, output, as_of=last_day, reporting_month=month,
+                       expected_sha256=sha, expected_rows=1, min_cell=1)
+            self.assertEqual(output.read_text(encoding="utf-8"),
+                             "preserve existing output")
+            result = ingest(source, output, as_of=first_after,
+                            reporting_month=month, expected_sha256=sha,
+                            expected_rows=1, min_cell=1)
+            self.assertEqual(result["quality"]["reporting_month_rows_verified"], 1)
+            self.assertEqual(result["quality"]["unique_keys_verified"], 1)
+            self.assertEqual(result["rules"]["strict_reporting_month"], month)
+            self.assertTrue(result["quality"]["supplied_manifest_verified"])
+
+    def test_september_last_day_rejected_october_first_accepted(self):
+        self._case("2026-09", "2026-09-30", "2026-10-01")
+
+    def test_december_rollover_requires_january_first(self):
+        self._case("2026-12", "2026-12-31", "2027-01-01")
+
+    def test_leap_february_requires_march_first(self):
+        self._case("2028-02", "2028-02-29", "2028-03-01")
+
+    def test_non_strict_partial_month_ingest_does_not_claim_full_month(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "output.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10T12:00:00.000",
+                                 "", "DOT", "Synthetic", "Queens", "Open"])
+            result = ingest(source, output, as_of="2026-09-30", min_cell=1)
+            self.assertEqual(result["quality"]["rows_read"], 1)
+            self.assertNotIn("strict_reporting_month", result["rules"])
+
 if __name__ == "__main__": unittest.main()
