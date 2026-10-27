@@ -41,7 +41,7 @@ async function testBrowser(name,type){
     check(await page.getByRole('table',{name:'Projected end-of-day balances'}).count()===1,name+': table accessible name');
     check(await page.locator('#status[role="status"]').count()===1,name+': projection status announcement');
     check(await page.locator('#csv-warning[role="status"]').count()===1,name+': CSV risk status announcement');
-    check(await page.getByRole('alert').count()===1,name+': error announcement');
+    check(await page.locator('#error[role="alert"]').count()===1 && await page.locator('#event-error[role="alert"]').count()===1,name+': separate event and projection error announcements');
     for(const id of ['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','shift-id','shift-days']){
       const label=await page.locator('#'+id).evaluate(el=>el.labels?.[0]?.textContent?.trim()||'');
       check(label.length>0,name+': unlabeled control '+id);
@@ -176,14 +176,14 @@ async function testBrowser(name,type){
     await fill(page,'event-amount','-1.00');
     await fill(page,'event-date','2026-10-23');
     await page.getByRole('button',{name:'Add event'}).click();
-    check((await page.locator('#error').textContent()).includes('unique ID'),name+': whitespace-only ID rejected');
+    check((await page.locator('#event-error').textContent()).includes('unique ID'),name+': whitespace-only ID rejected');
     check((await page.locator('#events').textContent()).includes('No events added.'),name+': rejected ID does not add event');
 
     const paddedId=' 00009 ',paddedLabel=' Invoice  ';
     await fill(page,'event-id',paddedId);
     await fill(page,'event-label',paddedLabel);
     await page.getByRole('button',{name:'Add event'}).click();
-    check((await page.locator('#error').textContent())==='',name+': corrected input clears validation error');
+    check((await page.locator('#event-error').textContent())==='',name+': corrected input clears validation error');
     check((await page.locator('#events').textContent()).includes(paddedId+' — '+paddedLabel),name+': exact event ID and label remain visible');
     await page.locator('#shift-id').selectOption(paddedId);
     await fill(page,'shift-days','1');
