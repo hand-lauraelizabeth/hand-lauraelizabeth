@@ -85,6 +85,23 @@ class EventDraftRetention(unittest.TestCase):
                         self.assertEqual(after_request["events"], original["events"])
                         self.assertEqual(after_request["requests"][0]["stage"], "submitted")
 
+                        # Adding a third event must not discard either pending correction.
+                        form = page.locator("#event-form")
+                        form.locator('[name="id"]').fill("EV-0003")
+                        form.locator('[name="requestId"]').select_option("REQ-0001")
+                        form.locator('[name="date"]').fill("2026-10-25")
+                        form.locator('[name="kind"]').select_option("note")
+                        form.locator('[name="description"]').fill("New synthetic event")
+                        form.get_by_role("button", name="Add event").click()
+                        first, second = editor("EV-0001"), editor("EV-0002")
+                        self.assertIsNotNone(first.locator("details").get_attribute("open"))
+                        self.assertIsNotNone(second.locator("details").get_attribute("open"))
+                        self.assertEqual(first.locator("input").nth(1).input_value(), " SRC-0001-漢字 ")
+                        self.assertEqual(second.locator("textarea").input_value(), "Second pending — é")
+                        after_add = export()
+                        self.assertEqual(after_add["events"][:2], original["events"])
+                        self.assertEqual(after_add["events"][2]["id"], "EV-0003")
+
                         first.get_by_role("button", name="Save event correction").click()
                         first, second = editor("EV-0001"), editor("EV-0002")
                         self.assertIsNone(first.locator("details").get_attribute("open"))
