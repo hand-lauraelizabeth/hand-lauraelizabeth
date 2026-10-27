@@ -9,6 +9,7 @@ on:
       - 'review/ft05-failclosed-csv-*'
       - 'review/ft05-inline-status-reclassification-*'
       - 'review/ft05-undo-status-*'
+      - 'review/ft05-source-id-find-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
@@ -44,6 +45,11 @@ jobs:
           node --check free-tools/evidence-timeline/undo-status.mjs
           node --check free-tools/evidence-timeline/undo-status.test.mjs
           node free-tools/evidence-timeline/undo-status.test.mjs
+      - name: Verify exact literal source-ID search and 10k boundary
+        run: |
+          node --check free-tools/evidence-timeline/source-id-find.mjs
+          node --check free-tools/evidence-timeline/source-id-find.test.mjs
+          node free-tools/evidence-timeline/source-id-find.test.mjs
       - name: Verify JSON import declared and actual byte counts
         run: |
           node --check free-tools/evidence-timeline/json-import.mjs
@@ -77,6 +83,8 @@ jobs:
         run: python free-tools/evidence-timeline/browser-reclassify.py
       - name: Verify status undo, focus and invalidation in three engines
         run: python free-tools/evidence-timeline/browser-undo-status.py
+      - name: Verify source-ID lookup, exact exports and keyboard clear in three engines
+        run: python free-tools/evidence-timeline/browser-source-id-find.py
       - name: Run synthetic 10k-record Chromium regression
         run: |
           CHROMIUM_BIN="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" python free-tools/evidence-timeline/browser-10k-basic.py
