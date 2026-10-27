@@ -91,7 +91,8 @@ async function run() {
   check(!nodes.compareRun.disabled,'compare enabled when both keys chosen');
   nodes.compareRun.handlers.click();
   const counts=nodes.compareMetrics.children.map(node=>Number(node.children[1].textContent));
-  assert.deepEqual(counts,[1,1,1,1,2]);count++;
+  assert.deepEqual(counts,[1,1,1,1,2,5,4,2,1]);count++;
+  check(nodes.compareStatus.textContent.includes('5 of 5')&&nodes.compareStatus.textContent.includes('4 of 4'),'all source records accounted for in accessible status');
   check(nodes.compareResults.children.length===1,'visible result table created');
   check(!nodes.compareExport.disabled,'audit enabled only after comparing');
   check(!nodes.compareExportJson.disabled,'exact JSON enabled only after comparing');
@@ -109,6 +110,7 @@ async function run() {
   const exactAudit=JSON.parse(await blobs[1].text());
   check(exactAudit.schema==='data-rescue-reconciliation/v1','exact JSON schema');
   check(exactAudit.findings.length===6,'exact JSON preserves all findings');
+  assert.deepEqual(exactAudit.recordCounts,{first:{total:5,matched:1,ambiguous:2,firstOnly:1,missingIdentifier:1},second:{total:4,matched:1,ambiguous:1,secondOnly:1,missingIdentifier:1}});count++;
   check(exactAudit.findings.some(item=>item.classification==='ambiguous' && item.firstFileRecords.join(',')==='3,4'),'exact JSON preserves duplicate source records');
   nodes.compareClear.handlers.click();
   check(nodes.rightKey.disabled,'clear revokes second-file readiness');
