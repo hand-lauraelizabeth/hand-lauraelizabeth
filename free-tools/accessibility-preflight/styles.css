@@ -1,1 +1,5 @@
 :root{font:1rem/1.5 system-ui,sans-serif;color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f5f8f6;color:#163329}main{max-width:70rem;margin:auto;padding:1rem}h1,h2{line-height:1.25;overflow-wrap:anywhere}label{display:block;font-weight:650;margin:.75rem 0 .3rem}textarea,input{display:block;width:100%;max-width:100%;font:inherit;padding:.6rem;border:1px solid #526e63;border-radius:.25rem}textarea{min-height:12rem;overflow-wrap:anywhere}button{font:inherit;padding:.65rem 1rem;border:0;border-radius:.25rem;background:#245243;color:#fff;cursor:pointer;margin:.4rem .5rem .4rem 0}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #a86b0a;outline-offset:3px}li{overflow-wrap:anywhere;margin:.7rem 0}#status{min-height:1.5rem;font-weight:650;overflow-wrap:anywhere}p{overflow-wrap:anywhere}
+
+/* Keep action controls operable when text is enlarged to 400% on narrow screens. */
+button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:40rem){button{display:block;width:100%;margin-inline:0}}
