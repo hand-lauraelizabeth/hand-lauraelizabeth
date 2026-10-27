@@ -5,6 +5,7 @@ import {renderLedger} from './render.mjs';
 buildInterface();
 let award={awardId:'SYNTHETIC-AWARD-01',awardName:'Sample community project',start:'2026-01-01',end:'2026-12-31'};
 let categories=[],expenses=[];
+let editingId=null;
 const $=id=>document.getElementById(id);
 const values=form=>Object.fromEntries(new FormData(form).entries());
 const error=text=>{const e=$('error');e.textContent=text;e.hidden=!text;if(text)e.focus();};
@@ -18,8 +19,51 @@ $('awardForm').addEventListener('submit',ev=>{
 $('categoryForm').addEventListener('submit',ev=>{
  ev.preventDefault();try{const f=ev.currentTarget;update(award,[...categories,values(f)],expenses,'Category added.');f.reset();}catch(e){error(e.message);}
 });
+function endExpenseEdit(form){
+ editingId=null;form.elements.transactionId.readOnly=false;
+ $('expenseSubmit').textContent='Add expenditure';$('cancelExpenseEdit').hidden=true;
+ form.reset();form.elements.percent.value='100';
+}
+function focusExpenseEdit(id){
+ const index=expenses.findIndex(e=>e.transactionId===id);
+ if(index>=0)$('expenseRows').querySelector('button[data-edit-index="'+index+'"]')?.focus();
+}
+$('expenseRows').addEventListener('click',event=>{
+ const button=event.target.closest('button[data-edit-index]');
+ if(!button||!$('expenseRows').contains(button))return;
+ const index=Number(button.dataset.editIndex);
+ if(!Number.isSafeInteger(index)||index<0||index>=expenses.length)return;
+ const item=expenses[index],form=$('expenseForm');
+ editingId=item.transactionId;
+ for(const [key,value] of Object.entries(item)){
+  const control=form.elements.namedItem(key);if(control)control.value=value;
+ }
+ form.elements.transactionId.readOnly=true;
+ $('expenseSubmit').textContent='Save correction';$('cancelExpenseEdit').hidden=false;
+ error('');$('status').textContent='Editing expenditure '+editingId+'. Transaction ID stays unchanged. Cancel to discard edits.';
+ form.elements.sourceId.focus();
+});
+$('cancelExpenseEdit').addEventListener('click',()=>{
+ const id=editingId;endExpenseEdit($('expenseForm'));error('');
+ $('status').textContent='Correction cancelled; saved evidence unchanged.';
+ if(id!==null)focusExpenseEdit(id);
+});
 $('expenseForm').addEventListener('submit',ev=>{
- ev.preventDefault();try{const f=ev.currentTarget;update(award,categories,[...expenses,values(f)],'Expenditure recorded.');f.reset();f.elements.percent.value='100';}catch(e){error(e.message);}
+ ev.preventDefault();
+ const form=ev.currentTarget;
+ try{
+  const item=values(form);
+  if(editingId===null){
+   update(award,categories,[...expenses,item],'Expenditure recorded.');
+   endExpenseEdit(form);
+  }else{
+   const id=editingId,index=expenses.findIndex(e=>e.transactionId===id);
+   if(index<0||item.transactionId!==id)throw new Error('Correction cannot change the transaction ID. Cancel and start again.');
+   const corrected=expenses.map((e,i)=>i===index?item:e);
+   update(award,categories,corrected,'Expenditure '+id+' corrected. Review flags and totals recalculated.');
+   endExpenseEdit(form);focusExpenseEdit(id);
+  }
+ }catch(e){error(e.message);}
 });
 function download(filename,mime,text){
  const url=URL.createObjectURL(new Blob([text],{type:mime}));
