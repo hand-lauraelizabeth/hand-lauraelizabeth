@@ -59,17 +59,17 @@ def main():
         ('<span id="x">One</span><span id="x">Two</span><input aria-labelledby="x x">',
          {"ambiguous-id-reference"}),
         # U+00A0/U+202F are valid characters inside a single exact ID token.
-        ('<span id="claim\\u00a001">A</span><input aria-describedby="claim\\u00a001">',
+        ('<span id="claim\u00a001">A</span><input aria-describedby="claim\u00a001">',
          set()),
-        ('<span id="claim\\u00a001">A</span><span id="claim\\u00a001">B</span>'
-         '<input aria-describedby="claim\\u00a001">', {"ambiguous-id-reference"}),
-        ('<span id="claim\\u202f01">A</span><input aria-labelledby="claim\\u202f01">',
+        ('<span id="claim\u00a001">A</span><span id="claim\u00a001">B</span>'
+         '<input aria-describedby="claim\u00a001">', {"ambiguous-id-reference"}),
+        ('<span id="claim\u202f01">A</span><input aria-labelledby="claim\u202f01">',
          set()),
-        ('<table><tr><th id="head\\u00a001">A</th><th id="head\\u00a001">B</th></tr>'
-         '<tr><td headers="head\\u00a001">Cell</td></tr></table>',
+        ('<table><tr><th id="head\u00a001">A</th><th id="head\u00a001">B</th></tr>'
+         '<tr><td headers="head\u00a001">Cell</td></tr></table>',
          {"ambiguous-table-header"}),
         ('<span id="one">A</span><span id="two">B</span>'
-         '<input aria-describedby="one\\ttwo">', set()),
+         '<input aria-describedby="one\ttwo">', set()),
 
     ]
     with served() as origin, sync_playwright() as pw:
