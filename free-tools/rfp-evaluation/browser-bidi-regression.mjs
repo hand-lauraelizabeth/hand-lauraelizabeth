@@ -83,6 +83,18 @@ try{
       check(rating.text.includes('"EV-0001"'),name+' safe ratings CSV recovery');
       const coverage=await textDownload(page,'#download-coverage');
       check(coverage.text.includes('"REQ-0001"'),name+' safe coverage CSV recovery');
+      // Missing reviewer attribution is visible and included in the exported audit,
+      // without changing the numeric score or discarding exact evidence.
+      await page.locator('#rating-1-reviewer').fill('');
+      await page.locator('button[type=submit]').click();
+      check((await page.locator('#result-summary').innerText()).includes('1 scored pairs missing a visible reviewer identifier'),name+' reviewer coverage disclosed');
+      check((await page.locator('#result-body').innerText()).includes('Reviewer identifier missing: C-0001'),name+' unattributed score flagged');
+      check((await page.locator('#result-body').innerText()).includes('80.0%'),name+' reviewer omission does not invent or withhold numeric score');
+      const unattributed=await textDownload(page,'#download-coverage');
+      check(unattributed.text.includes('Reviewer identifier missing'),name+' reviewer omission appears in audit CSV');
+      await page.locator('#rating-1-reviewer').fill('QA');
+      await page.locator('button[type=submit]').click();
+      check(!(await page.locator('#result-summary').innerText()).includes('1 scored pairs missing a visible reviewer identifier'),name+' reviewer recovery updates counts');
       // Coverage must never treat missing source/evidence as documented or missing score as zero.
       await page.locator('#criterion-1-sourceRef').fill('');
       await page.locator('button[type=submit]').click();
