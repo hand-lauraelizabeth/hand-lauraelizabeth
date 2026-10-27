@@ -59,6 +59,7 @@ try{
       check((await page.locator('#result-summary').innerText()).includes('1 of 1 vendor–criterion pairs scored'),name+' scored coverage visible');
       check((await page.locator('#result-summary').innerText()).includes('1 scored pairs have visible evidence and criterion source'),name+' documented coverage visible');
       check((await page.locator('#status').innerText()).includes('1 of 1 vendor–criterion pairs scored'),name+' coverage announced through pre-existing status region');
+      check((await page.locator('#status').innerText()).includes('1 scored pairs have visible criterion source, evidence and reviewer identifiers'),name+' combined reference coverage announced');
       await page.locator('#download-matrix').click();
       check((await page.locator('#error').textContent()).includes('CSV export blocked'),name+' matrix blocked');
       check(await page.evaluate(()=>document.activeElement?.id)==='error',name+' blocked export focuses error');
@@ -88,6 +89,8 @@ try{
       await page.locator('#rating-1-reviewer').fill('');
       await page.locator('button[type=submit]').click();
       check((await page.locator('#result-summary').innerText()).includes('1 scored pairs missing a visible reviewer identifier'),name+' reviewer coverage disclosed');
+      check((await page.locator('#result-summary').innerText()).includes('0 scored pairs have visible criterion source, evidence and reviewer identifiers'),name+' missing reviewer lowers combined reference coverage');
+      check((await page.locator('#result-summary').innerText()).includes('1 scored pairs missing at least one of those references'),name+' combined gap visible');
       check((await page.locator('#result-body').innerText()).includes('Reviewer identifier missing: C-0001'),name+' unattributed score flagged');
       check((await page.locator('#result-body').innerText()).includes('80.0%'),name+' reviewer omission does not invent or withhold numeric score');
       const unattributed=await textDownload(page,'#download-coverage');
@@ -95,6 +98,7 @@ try{
       await page.locator('#rating-1-reviewer').fill('QA');
       await page.locator('button[type=submit]').click();
       check(!(await page.locator('#result-summary').innerText()).includes('1 scored pairs missing a visible reviewer identifier'),name+' reviewer recovery updates counts');
+      check((await page.locator('#result-summary').innerText()).includes('1 scored pairs have visible criterion source, evidence and reviewer identifiers'),name+' combined reference coverage recovers');
       // Coverage must never treat missing source/evidence as documented or missing score as zero.
       await page.locator('#criterion-1-sourceRef').fill('');
       await page.locator('button[type=submit]').click();
