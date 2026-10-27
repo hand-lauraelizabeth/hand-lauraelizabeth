@@ -6,7 +6,7 @@ import {createImportFeedback} from './import-feedback.mjs';
 import {previewReplacement, replacementConfirmation} from './replacement-preview.mjs';
 import {reviewStatusSummary} from './review-filter.mjs';
 import {findSourceIds} from './source-id-find.mjs';
-import {findReviewGroups} from './group-find.mjs';
+import {filterByGroupLabel} from './group-find.mjs';
 import {setReviewGroup} from './edit-group.mjs';
 import {STATUS_OPTIONS} from './reclassify.mjs';
 import {changeReviewStatus, undoReviewStatus} from './undo-status.mjs';
@@ -51,7 +51,7 @@ function render(){
   list.replaceChildren();const report=summary(records);
   const selected=$('review-filter').value;const query=$('source-find').value;
   const groupQuery=$('group-find').value, ungroupedOnly=$('ungrouped-only').checked;
-  const visible=findReviewGroups(findSourceIds(records,selected,query),groupQuery,ungroupedOnly);
+  const visible=filterByGroupLabel(findSourceIds(records,selected,query),groupQuery,ungroupedOnly);
   $('clear-source-find').disabled=query==='';
   $('clear-group-find').disabled=groupQuery==='' && !ungroupedOnly;
   $('count').textContent=selected==='all' && query==='' && groupQuery==='' && !ungroupedOnly ? report.total+' '+(report.total===1?'record':'records')+' (date order).' : 'Showing '+visible.length+' of '+report.total+' records (date order).';
