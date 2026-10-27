@@ -40,6 +40,22 @@ try{
    }
    await add('bill-0001','Rent','-150.00','2026-10-02');
    await add('pay-0002','Paycheck','100.00','2026-10-04');
+   // Duplicate IDs and invalid amounts are actionable at the form, not in a distant results section.
+   await add('bill-0001','Duplicate rent','-20.00','2026-10-03');
+   check(await page.locator('#event-error[role="alert"][tabindex="-1"]').count()===1,name+' form has focusable text error');
+   check((await page.locator('#event-error').innerText()).includes('unique ID'),name+' duplicate source ID gets descriptive form error');
+   check(await page.evaluate(()=>document.activeElement?.id==='event-error'),name+' keyboard focus moves to form error');
+   check(await page.locator('#events li').count()===2,name+' invalid duplicate does not add an event');
+   await page.locator('#event-id').fill('corrected-id');
+   check((await page.locator('#event-error').innerText())==='',name+' editing form clears stale error');
+   await page.locator('#event-id').fill('bad-amount');
+   await page.locator('#event-amount').fill('not-money');
+   await page.getByRole('button',{name:'Add event'}).click();
+   check((await page.locator('#event-error').innerText()).length>0,name+' invalid amount gets descriptive form error');
+   check(await page.evaluate(()=>document.activeElement?.id==='event-error'),name+' invalid amount error receives focus');
+   check(await page.locator('#events li').count()===2,name+' invalid amount cannot change saved events');
+   await page.locator('#event-amount').fill('-25.00');
+   check((await page.locator('#event-error').innerText())==='',name+' amount correction clears stale error');
    await page.locator('#shift-id').selectOption('bill-0001');
    await page.locator('#shift-days').fill('3');
    await page.locator('#calculate').click();
