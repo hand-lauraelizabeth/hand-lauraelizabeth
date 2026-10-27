@@ -172,6 +172,27 @@ def capture_official_csv(url, destination, *, reference_rows, opener=None,
                 pass
 
 
+
+def _source_path_still_pinned(source, source_fd, source_inode):
+    """Ensure the CSV pathname still resolves to the verified regular file.
+
+    This detects replacement and symlink swaps during receipt staging. It
+    cannot make two separate filesystem paths a single atomic transaction;
+    the independent downstream source SHA-256 audit remains mandatory.
+    """
+    if source_fd is None:
+        return True  # Offline injected capture mocks may not create a file.
+    try:
+        current = source.lstat()
+        held = os.fstat(source_fd)
+    except OSError:
+        return False
+    return (stat.S_ISREG(current.st_mode) and
+            stat.S_ISREG(held.st_mode) and
+            (current.st_dev, current.st_ino) == source_inode and
+            (held.st_dev, held.st_ino) == source_inode)
+
+
 def main(argv=None):
     """Explicit private capture command; never performs a release or publication."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -242,7 +263,17 @@ def main(argv=None):
             handle.write('\n')
             handle.flush()
             os.fsync(handle.fileno())
+        # A competitor can replace the pathname after the initial digest,
+        # including while JSON is being serialized. Do not bind a receipt to
+        # the old descriptor if the visible source path now names another file.
+        if not _source_path_still_pinned(source, source_fd, source_inode):
+            raise CaptureError('SOURCE_PATH_CHANGED_BEFORE_RECEIPT')
         os.link(staged_receipt, receipt)  # atomic, exclusive, no clobber
+        # Recheck after the link as well; a swap during link must not leave
+        # an apparently valid receipt. The exception handler removes only
+        # the receipt hard link belonging to our staged inode.
+        if not _source_path_still_pinned(source, source_fd, source_inode):
+            raise CaptureError('SOURCE_PATH_CHANGED_DURING_RECEIPT')
         # The receipt is not committed until its staging link is removed.
         # Otherwise a cleanup error can escape after both outputs exist.
         try:
@@ -259,6 +290,15 @@ def main(argv=None):
         staged_receipt = None
         receipt_committed = True
     except (CaptureError, ValueError, OSError, TypeError):
+        # The exclusive receipt link may already exist if a source swap
+        # occurred during os.link(). Remove only our own staged inode;
+        # preserve any competing receipt written at the same pathname.
+        if staged_receipt is not None:
+            try:
+                if receipt.samefile(staged_receipt):
+                    receipt.unlink()
+            except OSError:
+                pass
         if source_created and not receipt_committed and source_inode is not None:
             # Roll back only the source inode captured by this process. If the
             # path has been replaced, retain the competing file unmodified.
