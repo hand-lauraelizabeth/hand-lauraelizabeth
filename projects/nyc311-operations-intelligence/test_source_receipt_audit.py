@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from urllib.parse import urlencode
 from collections import Counter
 
 from source_receipt_audit import FIELDS, audit, main
@@ -33,7 +34,23 @@ class ReceiptAuditTests(unittest.TestCase):
             [[b, a, n] for (b, a), n in sorted(pairs.items())],
             separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")).hexdigest()
+        predicate = "created_date >= '2026-09-01T00:00:00' AND created_date < '2026-10-01T00:00:00'"
+        resource = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
+        count_query = resource + "?" + urlencode({
+            "$select": "count(*) as records, count(distinct unique_key) as distinct_keys",
+            "$where": predicate,
+        })
+        aggregate_query = resource + "?" + urlencode({
+            "$select": "borough,agency,count(*) as n", "$where": predicate,
+            "$group": "borough,agency", "$order": "borough,agency",
+            "$limit": 50000,
+        })
         self.receipt = {
+            "where": predicate,
+            "metadata_url": "https://data.cityofnewyork.us/api/views/erm2-nwe9.json",
+            "count_query_url": count_query,
+            "aggregate_query_url": aggregate_query,
+            "verified_at_utc": "2026-10-27T10:00:00+00:00",
             "dataset": "erm2-nwe9",
             "reporting_month": "2026-09",
             "publisher": "https://data.cityofnewyork.us/d/erm2-nwe9",
@@ -79,6 +96,34 @@ class ReceiptAuditTests(unittest.TestCase):
                 self.save_receipt()
                 self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
         self.receipt["pages"] = 3  # Three short pages can hold three records.
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_query_and_month_provenance_are_bound_to_receipt(self):
+        for field, bad in (
+            ("where", "created_date >= '2026-08-01T00:00:00'"),
+            ("metadata_url", "https://example.org/api/views/erm2-nwe9.json"),
+            ("count_query_url", "https://example.org/count"),
+            ("aggregate_query_url", "https://example.org/aggregate"),
+            ("reporting_month", "2026-08"),
+        ):
+            with self.subTest(field=field):
+                original = self.receipt[field]
+                self.receipt[field] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+                self.receipt[field] = original
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_receipt_verification_timestamp_must_be_utc(self):
+        for bad in (None, "", "2026-10-27", "2026-10-27T10:00:00",
+                    "2026-10-27T10:00:00-04:00", "not-a-timestamp"):
+            with self.subTest(bad=bad):
+                self.receipt["verified_at_utc"] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+        self.receipt["verified_at_utc"] = "2026-10-27T10:00:00+00:00"
         self.save_receipt()
         self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
 
