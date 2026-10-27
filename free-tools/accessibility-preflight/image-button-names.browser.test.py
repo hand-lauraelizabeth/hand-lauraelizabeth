@@ -75,15 +75,28 @@ def main():
                           '<body><h1>Test</h1><form>' + snippet + '</form></body></html>')
                 page.locator("#source").fill(markup)
                 page.locator("#analyze").click()
-                with page.expect_download() as download:
-                    page.locator("#download-json").click()
-                data = json.loads(Path(download.value.path()).read_text(encoding="utf-8"))
-                rules = {finding["rule"] for finding in data["findings"]}
+                # Inspect every live rendered result. A dozen automatic downloads
+                # from one origin are not a realistic single-user acceptance case;
+                # Chromium can suppress subsequent automatic downloads.
+                headings = page.locator("#findings li strong").all_text_contents()
+                rules = {heading.split(": ", 1)[1].split(" (", 1)[0]
+                         for heading in headings if ": " in heading}
                 selected = rules & {"image-button-alt", "input-button-name", "form-name"}
                 assert selected == expected, (snippet, selected, expected)
                 checks += 1
                 assert page.locator("#findings li").count() >= 1
                 checks += 1
+                if snippet == cases[1][0]:
+                    # Independently verify a real browser-generated JSON download
+                    # and its exact finding IDs, not only rendered UI text.
+                    with page.expect_download(timeout=10000) as download:
+                        page.locator("#download-json").click()
+                    assert download.value.suggested_filename == "html-preflight.json"
+                    data = json.loads(Path(download.value.path()).read_text(encoding="utf-8"))
+                    exported = {finding["rule"] for finding in data["findings"]}
+                    assert exported & {"image-button-alt", "input-button-name", "form-name"} == expected
+                    assert all(finding["id"].startswith("F-") for finding in data["findings"])
+                    checks += 3
             assert page.evaluate(
                 "document.documentElement.scrollWidth <= window.innerWidth"
             ), "Unexpected horizontal overflow at 320 CSS px"
