@@ -60,5 +60,58 @@ class SyntheticPreviewContract(unittest.TestCase):
             self.assertIn(directive, self.html)
         self.assertNotRegex(self.html, r'<(?:iframe|img|form)\b')
 
+    def test_runtime_allowlist_rejects_balanced_tampering_and_bad_schema(self):
+        """Execute the committed browser validator independently in Node."""
+        import copy
+        import shutil
+        import subprocess
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node unavailable; local Chromium regression is recorded separately")
+        start = self.html.index("const EXPECTED_COUNTS=")
+        end = self.html.index("function initialize(){", start)
+        validator = self.html[start:end]
+        base = copy.deepcopy(self.rows)
+        cases = [base]
+        changed = copy.deepcopy(base)
+        changed[0]["requests"] += 1
+        cases.append(changed)
+        balanced = copy.deepcopy(base)
+        balanced[0]["requests"] += 1
+        balanced[1]["requests"] -= 1
+        cases.append(balanced)
+        missing = copy.deepcopy(base)
+        missing.pop()
+        cases.append(missing)
+        duplicate = copy.deepcopy(base)
+        duplicate[1] = copy.deepcopy(duplicate[0])
+        cases.append(duplicate)
+        extra = copy.deepcopy(base)
+        extra[0]["unique_key"] = "synthetic"
+        cases.append(extra)
+        floating = copy.deepcopy(base)
+        floating[0]["requests"] = 810.5
+        cases.append(floating)
+        unknown = copy.deepcopy(base)
+        unknown[0]["borough"] = "Unspecified"
+        cases.append(unknown)
+        reordered = list(reversed(copy.deepcopy(base)))
+        cases.append(reordered)
+        script = validator + "\nconst cases=JSON.parse(process.argv[1]);process.stdout.write(JSON.stringify(cases.map(validateFixture)));"
+        run = subprocess.run([node, "-e", script, json.dumps(cases)],
+                             capture_output=True, text=True, timeout=15, check=True)
+        self.assertEqual(json.loads(run.stdout),
+                         [True, False, False, False, False, False, False, False, True])
+
+    def test_invalid_fixture_is_accessibly_fail_closed(self):
+        self.assertIn("function initialize(){", self.html)
+        self.assertIn("if(!validateFixture(candidate))", self.html)
+        self.assertIn("results.replaceChildren();", self.html)
+        self.assertIn("summary.setAttribute('role','alert')", self.html)
+        self.assertIn("summary.setAttribute('aria-live','assertive')", self.html)
+        self.assertIn("control.disabled=true", self.html)
+        self.assertIn("No counts are shown.", self.html)
+        self.assertIn("initialize();", self.html)
+
 if __name__ == "__main__":
     unittest.main()
