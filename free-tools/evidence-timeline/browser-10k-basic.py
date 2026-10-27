@@ -16,11 +16,12 @@ with sync_playwright() as p:
  page.set_content(html)
  page.add_style_tag(content=(ROOT/'styles.css').read_text())
  scripts=[]
- for name in ('exact-core.mjs','core.mjs','safe-export.mjs','json-import.mjs','import-feedback.mjs','replacement-preview.mjs','review-filter.mjs','source-id-find.mjs','reclassify.mjs','undo-status.mjs','app.mjs'):
+ for name in ('exact-core.mjs','core.mjs','safe-export.mjs','json-import.mjs','import-feedback.mjs','replacement-preview.mjs','review-filter.mjs','source-id-find.mjs','group-find.mjs','edit-group.mjs','reclassify.mjs','undo-status.mjs','app.mjs'):
   body=re.sub(r'^import .*?;\s*$','',(ROOT/name).read_text(),flags=re.M)
   scripts.append(re.sub(r'^export ','',body,flags=re.M))
  page.add_script_tag(content='\n'.join(scripts))
  assert page.evaluate("typeof csvExportRisk === 'function'"), 'CSV safety module available in DOM fixture'
+ assert page.evaluate("typeof filterByGroupLabel === 'function'"), 'Group search module available in DOM fixture'
  page.locator('#resume-json').set_input_files({'name':'synthetic.json','mimeType':'application/json','buffer':json.dumps({'schema':'evidence-timeline-v1','records':rows}).encode()})
  page.locator('#resume-json-status').get_by_text('10000 records imported',exact=False).wait_for(timeout=30000)
  assert page.locator('#records li').count()==N
