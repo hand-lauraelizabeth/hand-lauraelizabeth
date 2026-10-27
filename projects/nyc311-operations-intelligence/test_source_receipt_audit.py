@@ -41,6 +41,7 @@ class ReceiptAuditTests(unittest.TestCase):
             "cross_aggregate_verified": True, "release_status": "HOLD",
             "rows": len(self.rows), "distinct_keys": len({r[0] for r in self.rows}),
             "aggregate_cells": len(pairs), "publisher_rows_updated_at": 1790000000,
+            "page_size": 2, "pages": 2,
             "csv_sha256": hashlib.sha256(self.csvfile.read_bytes()).hexdigest(),
             "aggregate_sha256": pair_digest,
         }
@@ -59,6 +60,27 @@ class ReceiptAuditTests(unittest.TestCase):
             "OFFICIAL_SOURCE_ORIGIN_NOT_AUTHENTICATED",
         ])
         self.assertEqual(main([str(self.csvfile), str(self.receiptfile)]), 2)
+
+
+    def test_receipt_rejects_impossible_or_noninteger_page_size(self):
+        for bad in (0, -1, True, 1.0, "2", 50001, None):
+            with self.subTest(bad=repr(bad)):
+                self.receipt["page_size"] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+        self.receipt["page_size"] = 2
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_receipt_rejects_impossible_page_count_but_allows_short_pages(self):
+        for bad in (0, 1, 4, True, 2.0, "2", None):
+            with self.subTest(bad=repr(bad)):
+                self.receipt["pages"] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+        self.receipt["pages"] = 3  # Three short pages can hold three records.
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
 
     def test_tampered_csv_fails_digest(self):
         self.csvfile.write_bytes(self.csvfile.read_bytes().replace(b"Category Y", b"Category Z"))
