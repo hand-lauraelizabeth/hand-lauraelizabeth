@@ -84,7 +84,15 @@ def main():
                 assert "preliminary checks" in page.locator("#summary").inner_text()
                 checks += 2
             page.evaluate("document.documentElement.style.fontSize='64px'")
-            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "400% text reflow"
+            overflow = page.evaluate("""() => ({
+                viewport: innerWidth,
+                scroll: document.documentElement.scrollWidth,
+                elements: [...document.querySelectorAll('body *')]
+                    .filter(el => el.getBoundingClientRect().right > innerWidth + 1)
+                    .slice(0, 6)
+                    .map(el => ({tag: el.tagName, id: el.id, right: Math.round(el.getBoundingClientRect().right)}))
+            })""")
+            assert overflow["scroll"] <= overflow["viewport"], f"400% text reflow: {overflow}"
             checks += 1
             assert not errors, errors
             checks += 1
