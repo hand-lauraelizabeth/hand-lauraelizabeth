@@ -91,6 +91,16 @@ def audit(csv_path, receipt_path):
                 or not ( (n + receipt["page_size"] - 1) // receipt["page_size"]
                          <= receipt["pages"] <= n)):
             raise ValueError("receipt counts invalid")
+        # A receipt cannot have verified a publisher update that occurs
+        # after its verification clock. Five minutes allow clock skew only.
+        try:
+            publisher_updated = dt.datetime.fromtimestamp(
+                receipt["publisher_rows_updated_at"], dt.timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            raise ValueError("invalid publisher update clock") from None
+        if (publisher_updated > checked_dt + dt.timedelta(minutes=5)
+                or checked_dt > dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=5)):
+            raise ValueError("impossible source verification chronology")
         if (not isinstance(receipt.get("csv_sha256"), str)
                 or not HEX64.fullmatch(receipt["csv_sha256"])
                 or not isinstance(receipt.get("aggregate_sha256"), str)

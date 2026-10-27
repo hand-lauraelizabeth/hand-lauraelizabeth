@@ -51,6 +51,20 @@ def parse_publisher_count(value):
     raise ValueError("Invalid publisher count representation")
 
 
+def validate_utc_verification_time(value):
+    """Require a real UTC receipt clock, never a future or naive timestamp."""
+    if not isinstance(value, str):
+        raise ValueError("Invalid UTC verification timestamp")
+    try:
+        checked = dt.datetime.fromisoformat(value)
+    except ValueError:
+        raise ValueError("Invalid UTC verification timestamp") from None
+    if (checked.tzinfo is None or checked.utcoffset() != dt.timedelta(0)
+            or checked > dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=5)):
+        raise ValueError("Invalid UTC verification timestamp")
+    return checked
+
+
 def fetch_json(url, *, opener=urlopen):
     with opener(url, timeout=90) as response:
         data = response.read()
@@ -83,6 +97,8 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     if type(page_size) is not int or not 1 <= page_size <= PAGE_MAX:
         raise ValueError("Invalid page size")
     lower, upper = month_bounds(month)
+    if verified_at is not None:
+        validate_utc_verification_time(verified_at)
     csv_path, receipt_path = Path(csv_path), Path(receipt_path)
     if csv_path.resolve() == receipt_path.resolve():
         raise ValueError("CSV and receipt paths must differ")
@@ -152,8 +168,6 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     before_update = metadata()
     expected = counts()
     before_pairs = official_pairs(expected)
-    if verified_at is None:
-        verified_at = dt.datetime.now(dt.timezone.utc).isoformat()
     seen = set()
     local_pairs = Counter()
     month_start = dt.datetime.fromisoformat(lower)
@@ -221,6 +235,17 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Publisher source aggregates changed during export")
         if dict(local_pairs) != before_pairs:
             raise ValueError("Exported rows disagree with official cross-aggregate")
+        # Stamp *completed* source checks, not the start of a long paginated
+        # acquisition. A caller-supplied UTC clock is only a synthetic test hook.
+        if verified_at is None:
+            verified_at = dt.datetime.now(dt.timezone.utc).isoformat()
+        verified_dt = validate_utc_verification_time(verified_at)
+        try:
+            source_updated = dt.datetime.fromtimestamp(before_update, dt.timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            raise ValueError("Invalid publisher source-update clock") from None
+        if source_updated > verified_dt + dt.timedelta(minutes=5):
+            raise ValueError("Publisher update clock follows verification")
         # Digest only: fine-grained cells remain in private memory, not the receipt.
         aggregate_digest = hashlib.sha256(json.dumps(
             [[b, a, n] for (b, a), n in sorted(before_pairs.items())],
