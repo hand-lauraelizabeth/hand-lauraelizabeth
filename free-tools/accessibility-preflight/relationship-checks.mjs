@@ -3,6 +3,9 @@ const IDREF_LIST = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'ari
 const IDREF_SINGLE = ['aria-activedescendant'];
 const LABELABLE = new Set(['INPUT','BUTTON','SELECT','TEXTAREA','METER','OUTPUT','PROGRESS']);
 const tidy = value => String(value ?? '').replace(/\s+/g, ' ').trim();
+// HTML/ARIA IDREF lists use ASCII whitespace, not JavaScript's broader \s.
+// NBSP, narrow NBSP and other non-ASCII separators may belong to an exact ID.
+const idRefs = value => String(value ?? '').split(/[\t\n\f\r ]+/).filter(Boolean);
 
 export function checkRelationships(doc, add) {
   // IDs are case-sensitive. Do not trim or normalize ID values themselves.
@@ -16,7 +19,7 @@ export function checkRelationships(doc, add) {
   for (const attr of [...IDREF_LIST, ...IDREF_SINGLE]) {
     for (const el of doc.querySelectorAll('[' + attr + ']')) {
       const raw = el.getAttribute(attr) ?? '';
-      const refs = tidy(raw).split(' ').filter(Boolean);
+      const refs = idRefs(raw);
       if (!refs.length) {
         add('empty-id-reference', 'review', el, attr + ' has no reference target.', 'WAI-ARIA 1.2 ID reference processing');
         continue;
@@ -47,7 +50,7 @@ export function checkRelationships(doc, add) {
     }
   }
   for (const cell of doc.querySelectorAll('th[headers],td[headers]')) {
-    const refs = tidy(cell.getAttribute('headers')).split(' ').filter(Boolean);
+    const refs = idRefs(cell.getAttribute('headers'));
     if (!refs.length) add('table-header-reference', 'review', cell, 'The headers attribute is empty.', 'WCAG 1.3.1');
     for (const id of new Set(refs)) {
       if (idCounts.get(id) > 1) {
