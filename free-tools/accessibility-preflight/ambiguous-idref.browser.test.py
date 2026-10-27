@@ -83,6 +83,12 @@ def main():
                 assert selected == expected, (markup, selected, expected)
                 assert "preliminary checks" in page.locator("#summary").inner_text()
                 checks += 2
+            # 320 CSS px is the WCAG 1.4.10 reflow-equivalent viewport.
+            # Separately exercise 400% root text scaling at a 1280px viewport;
+            # combining both would impose an unintended 16x stress case.
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "320px reflow"
+            checks += 1
+            page.set_viewport_size({"width": 1280, "height": 800})
             page.evaluate("document.documentElement.style.fontSize='64px'")
             overflow = page.evaluate("""() => ({
                 viewport: innerWidth,
@@ -95,7 +101,7 @@ def main():
                                  right: Math.round(el.getBoundingClientRect().right),
                                  scroll: el.scrollWidth, client: el.clientWidth}))
             })""")
-            assert overflow["scroll"] <= overflow["viewport"], f"400% text reflow: {overflow}"
+            assert overflow["scroll"] <= overflow["viewport"], f"400% text scaling: {overflow}"
             checks += 1
             assert not errors, errors
             checks += 1
