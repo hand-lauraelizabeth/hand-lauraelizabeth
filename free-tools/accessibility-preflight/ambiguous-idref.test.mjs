@@ -51,6 +51,17 @@ expect([p('001','A'),p('001','B'),element('INPUT',{id:'q','aria-describedby':'00
 for(const attr of ['aria-labelledby','aria-describedby','aria-controls','aria-owns','aria-details','aria-errormessage','aria-activedescendant']){
   expect([p('ref','First'),p('ref','Second'),element('BUTTON',{id:'control',[attr]:'ref'})],['ambiguous-id-reference']);
 }
+// Non-ASCII spacing belongs to the ID token, unlike HTML ASCII whitespace.
+expect([p('claim\u00a001'),element('INPUT',{id:'q','aria-describedby':'claim\u00a001'})],[]);
+expect([p('claim\u00a001'),p('claim\u00a001'),element('INPUT',{id:'q','aria-describedby':'claim\u00a001'})],['ambiguous-id-reference']);
+expect([p('claim\u202f01'),element('INPUT',{id:'q','aria-labelledby':'claim\u202f01'})],[]);
+expect([p('claim\u202801'),element('INPUT',{id:'q','aria-controls':'claim\u202801'})],[]);
+expect([p('claim\u000b01'),element('INPUT',{id:'q','aria-describedby':'claim\u000b01'})],[]);
+expect([p('first'),p('second'),element('INPUT',{id:'q','aria-describedby':'first\tsecond'})],[]);
+expect([p('first'),p('second'),element('INPUT',{id:'q','aria-describedby':'first\fsecond'})],[]);
+expect([element('TH',{id:'head\u00a001'}),element('TD',{headers:'head\u00a001'})],[]);
+expect([element('TH',{id:'head\u00a001'}),element('TH',{id:'head\u00a001'}),element('TD',{headers:'head\u00a001'})],['ambiguous-table-header']);
+expect([p('claim\u00a001'),element('BUTTON',{id:'q','aria-activedescendant':'claim\u00a001'})],[]);
 const sample=rules([p('safe','One'),p('safe','Two'),element('INPUT',{id:'q','aria-labelledby':'safe'})])[0];
 assert.match(sample.message,/multiple elements/);count++;
 assert.match(sample.reference,/4\.1\.2/);count++;
