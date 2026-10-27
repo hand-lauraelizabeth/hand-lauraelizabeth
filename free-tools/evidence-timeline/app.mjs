@@ -7,6 +7,7 @@ import {previewReplacement, replacementConfirmation} from './replacement-preview
 import {reviewStatusSummary} from './review-filter.mjs';
 import {findSourceIds} from './source-id-find.mjs';
 import {filterByGroupLabel} from './group-find.mjs';
+import {formatGroupSummary} from './group-summary.mjs';
 import {setReviewGroup} from './edit-group.mjs';
 import {STATUS_OPTIONS} from './reclassify.mjs';
 import {changeReviewStatus, undoReviewStatus} from './undo-status.mjs';
@@ -56,7 +57,7 @@ function render(){
   $('clear-group-find').disabled=groupQuery==='' && !ungroupedOnly;
   $('count').textContent=selected==='all' && query==='' && groupQuery==='' && !ungroupedOnly ? report.total+' '+(report.total===1?'record':'records')+' (date order).' : 'Showing '+visible.length+' of '+report.total+' records (date order).';
   $('review-summary').textContent=reviewStatusSummary(records);
-  $('groups').textContent=report.reviewGroups.length?report.reviewGroups.map(g=>'Review group '+g.group+': '+g.sourceIds.join(', ')).join(' · '):'No related-record groups to review.';
+  $('groups').textContent=formatGroupSummary(report.reviewGroups);
   $('empty').hidden=visible.length>0;
   $('empty').textContent=records.length===0 ? 'No records yet. Add a record to build your timeline.' : 'No records match the selected review status, source ID, or group filter. Clear the searches or choose All statuses.';
   for(const r of visible){const item=text('li','');item.className='record';item.append(text('h3',r.sourceId+' — '+r.date));item.append(text('p',r.claim));const details=text('p','Type: '+r.kind+' · Status: '+r.status+(r.group?' · Group: '+r.group:''));item.append(details);
