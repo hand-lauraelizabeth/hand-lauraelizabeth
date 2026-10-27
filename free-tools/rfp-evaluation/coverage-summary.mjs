@@ -9,7 +9,7 @@ export function summarizeCoverage(result){
      result.comparisons.length!==result.vendors.length)
     throw Error('Invalid evaluated RFP coverage');
   const totalPairs=result.criteria.length*result.vendors.length;
-  let scoredPairs=0, documentedPairs=0;
+  let scoredPairs=0, documentedPairs=0, attributedPairs=0;
   for(const comparison of result.comparisons){
     if(!Array.isArray(comparison.detail)||comparison.detail.length!==result.criteria.length)
       throw Error('Invalid evaluated RFP details');
@@ -19,6 +19,7 @@ export function summarizeCoverage(result){
         throw Error('Invalid evaluated RFP criterion reference');
       if(detail.score!==null){
         scoredPairs++;
+        if(hasVisibleReference(detail.reviewer))attributedPairs++;
         if(hasVisibleReference(detail.evidenceRef)&&hasVisibleReference(criterion.sourceRef))
           documentedPairs++;
       }
@@ -30,11 +31,12 @@ export function summarizeCoverage(result){
   return Object.freeze({
     totalPairs,scoredPairs,documentedPairs,missingScores:totalPairs-scoredPairs,
     scoredWithoutReferences:scoredPairs-documentedPairs,
+    scoredWithoutReviewer:scoredPairs-attributedPairs,
     withheld,conflictReview,missingPrices
   });
 }
 
 export function describeCoverage(result){
   const c=summarizeCoverage(result);
-  return `Coverage: ${c.scoredPairs} of ${c.totalPairs} vendor–criterion pairs scored; ${c.documentedPairs} scored pairs have visible evidence and criterion source; ${c.missingScores} missing scores; ${c.scoredWithoutReferences} scored pairs missing evidence or source; ${c.withheld} proposal scores withheld; ${c.conflictReview} conflict statuses require review; ${c.missingPrices} prices not supplied. Counts are descriptive, not an award decision.`;
+  return `Coverage: ${c.scoredPairs} of ${c.totalPairs} vendor–criterion pairs scored; ${c.documentedPairs} scored pairs have visible evidence and criterion source; ${c.missingScores} missing scores; ${c.scoredWithoutReferences} scored pairs missing evidence or source; ${c.scoredWithoutReviewer} scored pairs missing a visible reviewer identifier; ${c.withheld} proposal scores withheld; ${c.conflictReview} conflict statuses require review; ${c.missingPrices} prices not supplied. Counts are descriptive, not an award decision.`;
 }
