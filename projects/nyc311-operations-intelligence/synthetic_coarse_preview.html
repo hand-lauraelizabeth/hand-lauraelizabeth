@@ -28,7 +28,32 @@
 ]</script>
 <script>
 'use strict';
-const rows=Object.freeze(JSON.parse(document.getElementById('synthetic-cells').textContent));
+let rows=[];
+const EXPECTED_COUNTS=Object.freeze({Bronx:[810,780,640,570],Brooklyn:[1020,980,820,610],Manhattan:[900,860,790,600],Queens:[1100,950,850,720],'Staten Island':[620,610,590,550]});
+const GROUPS=['Group A','Group B','Group C','Group D'];
+function validateFixture(data){
+ if(!Array.isArray(data)||data.length!==20)return false;
+ const seen=new Set();
+ for(const r of data){
+  if(!r||typeof r!=='object'||Array.isArray(r)||Object.keys(r).sort().join(',')!=='borough,group,requests'||!Object.hasOwn(EXPECTED_COUNTS,r.borough)||!GROUPS.includes(r.group)||!Number.isSafeInteger(r.requests)||r.requests!==EXPECTED_COUNTS[r.borough][GROUPS.indexOf(r.group)])return false;
+  const key=r.borough+'|'+r.group;if(seen.has(key))return false;seen.add(key);
+ }
+ return seen.size===20;
+}
+function initialize(){
+ try{
+  const candidate=JSON.parse(document.getElementById('synthetic-cells').textContent);
+  if(!validateFixture(candidate))throw new Error('Invalid synthetic fixture');
+  rows=Object.freeze(candidate.map(r=>Object.freeze(r)));
+  render();
+ }catch(_error){
+  results.replaceChildren();
+  summary.setAttribute('role','alert');summary.setAttribute('aria-live','assertive');
+  summary.textContent='Synthetic preview unavailable: the local demonstration data failed its integrity checks. No counts are shown.';
+  for(const control of [borough,group,sort,document.getElementById('reset')])control.disabled=true;
+ }
+}
+
 const borough=document.getElementById('borough'),group=document.getElementById('group'),sort=document.getElementById('sort'),results=document.getElementById('results'),summary=document.getElementById('summary'),format=new Intl.NumberFormat('en-US');
 function render(){
  const chosen=rows.filter(r=>(!borough.value||r.borough===borough.value)&&(!group.value||r.group===group.value));
@@ -40,5 +65,5 @@ function render(){
 }
 for(const select of [borough,group,sort])select.addEventListener('change',render);
 document.getElementById('reset').addEventListener('click',()=>{borough.value='';group.value='';sort.value='borough';render();borough.focus()});
-render();
+initialize();
 </script></body></html>
