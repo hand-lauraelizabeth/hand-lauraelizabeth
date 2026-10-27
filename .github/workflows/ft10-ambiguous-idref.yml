@@ -1,0 +1,47 @@
+name: FT-10 ambiguous reference regression
+on:
+  push:
+    branches:
+      - 'review/ft10-ambiguous-idref-*'
+  pull_request:
+    paths:
+      - 'free-tools/accessibility-preflight/relationship-checks.mjs'
+      - 'free-tools/accessibility-preflight/ambiguous-idref.test.mjs'
+      - 'free-tools/accessibility-preflight/ambiguous-idref.browser.test.py'
+      - '.github/workflows/ft10-ambiguous-idref.yml'
+  workflow_dispatch:
+
+jobs:
+  synthetic-node:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate exact referenced-ID behavior
+        run: |
+          node --check free-tools/accessibility-preflight/relationship-checks.mjs
+          node free-tools/accessibility-preflight/ambiguous-idref.test.mjs
+
+  synthetic-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned browser runner
+        run: |
+          python -m pip install playwright==1.58.0
+          python -m playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify browser-local reference checks
+        env:
+          FT10_BROWSER: ${{ matrix.browser }}
+        run: python free-tools/accessibility-preflight/ambiguous-idref.browser.test.py
