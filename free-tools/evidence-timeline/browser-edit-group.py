@@ -62,11 +62,11 @@ def main():
             assert field.input_value()=='new\u00a0group',(engine,'unrelated render lost draft')
             page.locator('#review-filter').select_option('all')
             page.locator('#group-edit-form').evaluate("(form) => form.requestSubmit()")
+            assert not page.locator('#group-edit-panel').is_visible()
+            assert page.evaluate('document.activeElement.dataset.editGroup')=='cafe\u0301'
             saved=exported(page)
             assert next(r for r in saved['records'] if r['sourceId']=='cafe\u0301')['group']=='new\u00a0group'
             assert next(r for r in saved['records'] if r['sourceId']=='0001')['group']=='review'
-            assert not page.locator('#group-edit-panel').is_visible()
-            assert page.evaluate('document.activeElement.dataset.editGroup')=='cafe\u0301'
             page.get_by_role('button',name='Edit group for S-003').click()
             field.evaluate("(el) => el.value='x'.repeat(121)")
             page.get_by_role('button',name='Save group').click()
@@ -81,8 +81,8 @@ def main():
             page.get_by_role('button',name='Edit group for S-003').click()
             field.fill('')
             page.get_by_role('button',name='Cancel group edit').click()
-            assert exported(page)==formula_snapshot
             assert page.evaluate('document.activeElement.dataset.editGroup')=='S-003'
+            assert exported(page)==formula_snapshot
             page.get_by_role('button',name='Edit group for S-003').click()
             field.fill('')
             page.get_by_role('button',name='Save group').click()
