@@ -18,6 +18,34 @@
   if(typeof key!=='string')throw Error('Invalid exact identifier.');
   return key;
  }
+ function summarizeCoverage(result){
+  if(!result||groups.some(name=>!Array.isArray(result[name])))
+   throw Error('A completed reconciliation is required.');
+  const first={total:0,matched:0,ambiguous:0,firstOnly:0,missingIdentifier:0};
+  const second={total:0,matched:0,ambiguous:0,secondOnly:0,missingIdentifier:0};
+  const seenFirst=new Set(),seenSecond=new Set();
+  function count(rows,seen,side,kind){
+   for(const row of checkRows(rows)){
+    if(seen.has(row))throw Error('A source record occurs in multiple reconciliation findings.');
+    seen.add(row);
+    side[kind]++;
+    side.total++;
+   }
+  }
+  for(const x of result.matches){
+   count([x.leftRow],seenFirst,first,'matched');
+   count([x.rightRow],seenSecond,second,'matched');
+  }
+  for(const x of result.ambiguous){
+   count(x.leftRows,seenFirst,first,'ambiguous');
+   count(x.rightRows,seenSecond,second,'ambiguous');
+  }
+  for(const x of result.leftOnly)count([x.row],seenFirst,first,'firstOnly');
+  for(const x of result.rightOnly)count([x.row],seenSecond,second,'secondOnly');
+  count(result.missingLeft,seenFirst,first,'missingIdentifier');
+  count(result.missingRight,seenSecond,second,'missingIdentifier');
+  return {first,second};
+ }
  function build(result,context){
   if(!result||groups.some(name=>!Array.isArray(result[name])))
    throw Error('A completed reconciliation is required.');
@@ -40,10 +68,11 @@
    recordPositions:'logical-records-header-is-1',
    sources:{first:{fileName:context.firstName,keyColumn:context.firstKey},second:{fileName:context.secondName,keyColumn:context.secondKey}},
    counts:Object.fromEntries(groups.map(name=>[name,result[name].length])),
+   recordCounts:summarizeCoverage(result),
    findings,
    limitations:'Local comparison of decoded identifiers only. File names and logical record positions are not cryptographic source authentication. No automatic merges or determinations.'
   };
  }
  function exportJson(result,context){return JSON.stringify(build(result,context));}
- return {build,exportJson};
+ return {build,exportJson,summarizeCoverage};
 });
