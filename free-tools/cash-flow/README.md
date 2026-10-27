@@ -14,7 +14,7 @@ The model accepts up to 200 events across 366 calendar days, within 1900–2100.
 
 After calculating, the tool separately summarizes baseline and shifted-scenario dates with a **negative projected end-of-day balance**. It shows the number of such dates, first date, lowest balance and longest consecutive span. Zero is not negative. The summary updates only when you calculate and clears when inputs change; the detailed daily balances and exported scenario remain the underlying evidence. A negative projected closing balance is a planning flag, **not a prediction of an overdraft, bank fee, or payment outcome**. Intraday posting order, available balance and holds are not modeled.
 
-## Export and spreadsheet safety
+## Compare which dates change\n\nThe scenario summary also distinguishes dates that were below zero in the baseline but are **no longer below zero** in the shifted scenario from dates that become **newly below zero**. It reports counts and the first date in each category, comparing the same calendar dates only. A shift can improve some dates and worsen others; a lower minimum alone does not capture that tradeoff. This is a projected end-of-day comparison, not a payment-clearance, fee, or overdraft determination. Changing any input clears the old summary.\n\n## Export and spreadsheet safety
 
 Export creates a UTF-8 CSV with date, daily change, end-of-day balance, event IDs, and event labels. Numeric balances retain two decimal places. Text resembling spreadsheet formulas is prefixed with an apostrophe before CSV quoting; this changes the original text and is only a **defense in depth**, not a universal guarantee against formula execution in every spreadsheet program or import setting.
 
