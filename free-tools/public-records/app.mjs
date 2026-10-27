@@ -115,7 +115,26 @@ function captureEventDrafts(){
   }
   return drafts;
 }
-function render({discardEventDraftId=null}={}){
+function captureRequestDrafts(){
+  // Preserve user-entered request fields across unrelated list rerenders.
+  // Drafts are DOM-only and are never part of downloaded evidence.
+  const drafts=new Map();
+  for(const card of byId('requests').querySelectorAll('.card[data-request-id]')){
+    const stage=card.querySelector('.request-stage');
+    const inputs=card.querySelectorAll('input');
+    const error=card.querySelector('[role="alert"]');
+    if(!stage || inputs.length!==2 || !error)continue;
+    drafts.set(card.dataset.requestId,{
+      stage:stage.value,submittedOn:inputs[0].value,agencyTrackingId:inputs[1].value,
+      invalidDate:inputs[0].getAttribute('aria-invalid')==='true',
+      error:error.hidden?'':error.textContent
+    });
+  }
+  return drafts;
+}
+function render({discardEventDraftId=null,discardRequestDraftId=null}={}){
+  const requestDrafts=captureRequestDrafts();
+  if(discardRequestDraftId!==null)requestDrafts.delete(discardRequestDraftId);
   const drafts=captureEventDrafts();
   if(discardEventDraftId!==null)drafts.delete(discardEventDraftId);
   const requestList=byId('requests'), eventList=byId('events'), flagList=byId('flags'), selector=byId('request-select');
@@ -123,7 +142,7 @@ function render({discardEventDraftId=null}={}){
   const selected=selector.value;selector.replaceChildren(node('option','Select a request'));selector.firstChild.value='';
   state.requests.forEach((r,index)=>{
     const card=document.createElement('div');
-    card.className='card';
+    card.className='card';card.dataset.requestId=r.id;
     card.append(node('p',`${r.id} — ${r.agency} (${r.jurisdiction}; ${r.stage}) — ${r.description}`));
     const statusLabel=node('label',`Tracking status for request ${r.id}`);
     const statusSelect=document.createElement('select');
@@ -158,7 +177,7 @@ function render({discardEventDraftId=null}={}){
           item.id===r.id?{...item,stage:statusSelect.value,submittedOn:dateInput.value,
             agencyTrackingId:trackingInput.value}:item)});
         state=next;
-        render();
+        render({discardRequestDraftId:r.id});
         requestList.children[index]?.querySelector('button')?.focus();
         say(`Updated tracking status or request details for request ${r.id}. Review the documentation flags; these are your records, not agency determinations.`);
       }catch(failure){
@@ -171,6 +190,14 @@ function render({discardEventDraftId=null}={}){
         error.focus();
       }
     });
+    const requestDraft=requestDrafts.get(r.id);
+    if(requestDraft){
+      statusSelect.value=requestDraft.stage;
+      dateInput.value=requestDraft.submittedOn;
+      trackingInput.value=requestDraft.agencyTrackingId;
+      if(requestDraft.invalidDate)dateInput.setAttribute('aria-invalid','true');
+      if(requestDraft.error){error.textContent=requestDraft.error;error.hidden=false;}
+    }
     card.append(statusLabel,dateLabel,trackingLabel,save,error);requestList.append(card);
     const opt=node('option',`${r.id} — ${r.agency}`);opt.value=r.id;selector.append(opt);
   });
