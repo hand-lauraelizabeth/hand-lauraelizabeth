@@ -190,6 +190,61 @@ def main():
             assert page.locator("#a").input_value() == "Café 東京 😀"
             checks += 1
 
+            # A cross-component import must update the actual analyzed text, not just its source label.
+            # The earlier implementation silently analyzed the previous textarea contents.
+            def dispatch_import(key, name, text, size=None):
+                detail = {
+                    "key": key, "name": name,
+                    "size": len(text.encode("utf-8")) if size is None else size,
+                    "lastModified": 0, "text": text
+                }
+                page.evaluate("""detail => {
+                    document.querySelector('#leh-text-lens-app').dispatchEvent(
+                        new CustomEvent('text-lens:import', {detail})
+                    );
+                }""", detail)
+
+            imported_a = "The museum was wonderful. The guides were helpful and kind."
+            imported_b = "The hallway was terrible and the signs were confusing."
+            page.locator("#a").fill("The previous corpus was entirely different.")
+            dispatch_import("a", "0001-東京.md", imported_a)
+            expect(page.locator("#a")).to_have_value(imported_a)
+            checks += 1
+            expect(page.locator("#fileMetaA")).to_contain_text("0001-東京.md")
+            checks += 1
+            analysis_a = json.loads(download_bytes(page, "#download").decode("utf-8"))
+            assert analysis_a["source_files"]["text_a"] == ["0001-東京.md"]
+            checks += 1
+            assert (analysis_a["text_a"]["counts"]["words"] ==
+                    analysis_a["document_profiles"]["text_a"][0]["analysis"]["counts"]["words"])
+            checks += 1
+            assert analysis_a["text_a"]["counts"]["words"] > 5
+            checks += 1
+            cues_a = json.loads(download_bytes(page, "#cueJson").decode("utf-8"))
+            assert cues_a["rows"] and all(row["source"] == "0001-東京.md" for row in cues_a["rows"])
+            checks += 1
+
+            page.locator("#cmp").check()
+            dispatch_import("b", "0002-résumé.txt", imported_b)
+            expect(page.locator("#b")).to_have_value(imported_b)
+            checks += 1
+            assert page.locator("#a").input_value() == imported_a
+            checks += 1
+            analysis_b = json.loads(download_bytes(page, "#download").decode("utf-8"))
+            assert analysis_b["source_files"]["text_b"] == ["0002-résumé.txt"]
+            checks += 1
+            assert (analysis_b["text_b"]["counts"]["words"] ==
+                    analysis_b["document_profiles"]["text_b"][0]["analysis"]["counts"]["words"])
+            checks += 1
+
+            dispatch_import("a", "invalid.txt", "rejected", size=-1)
+            expect(page.locator("#status")).to_contain_text("Import rejected")
+            checks += 1
+            assert page.locator("#a").input_value() == imported_a
+            checks += 1
+            assert page.evaluate("document.activeElement.id") == "status"
+            checks += 1
+
             assert not errors, errors
             checks += 1
             assert requests and all(url.startswith(origin + "/") for url in requests), requests
