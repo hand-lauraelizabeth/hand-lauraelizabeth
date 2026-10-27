@@ -53,7 +53,12 @@ def audit(csv_path, receipt_path):
                 or type(receipt.get("aggregate_cells")) is not int
                 or receipt["aggregate_cells"] <= 0
                 or type(receipt.get("publisher_rows_updated_at")) is not int
-                or receipt["publisher_rows_updated_at"] <= 0):
+                or receipt["publisher_rows_updated_at"] <= 0
+                or type(receipt.get("page_size")) is not int
+                or not 1 <= receipt["page_size"] <= 50000
+                or type(receipt.get("pages")) is not int
+                or not ( (n + receipt["page_size"] - 1) // receipt["page_size"]
+                         <= receipt["pages"] <= n)):
             raise ValueError("receipt counts invalid")
         if (not isinstance(receipt.get("csv_sha256"), str)
                 or not HEX64.fullmatch(receipt["csv_sha256"])
