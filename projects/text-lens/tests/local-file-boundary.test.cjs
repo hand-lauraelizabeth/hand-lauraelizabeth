@@ -147,3 +147,57 @@ test('external import invalidates only its own side, preserving another pending 
  assert.equal(h.api.getDocSeq(),2);
  assert.equal(h.runs,2);
 });
+
+test('external import rejects malformed or oversized event data without altering evidence',()=>{
+ const bad=[
+  {text:'x'.repeat(400001)},
+  {text:'x\\u0000y'.replace('\\u0000','\\u0000')},
+  {text:null},
+  {name:''},
+  {name:'x'.repeat(256)},
+  {name:'bad\\u0000.txt'.replace('\\u0000','\\u0000')},
+  {size:-1},
+  {size:5000001},
+  {size:NaN},
+  {lastModified:-1},
+  {lastModified:1.5}
+ ];
+ for(const variant of bad){
+  const h=harness(true);
+  h.env.sourceDocs.a=[{id:'a-0007',name:'prior.txt',text:'keep'}];
+  h.env.sourceFiles.a=['prior.txt'];
+  h.els.a.value='keep';
+  const detail={key:'a',name:'new-東京.md',size:3,lastModified:77,text:'new',...variant};
+  h.handlers['text-lens:import']({detail});
+  assert.deepEqual(Array.from(h.env.sourceDocs.a,x=>x.id),['a-0007']);
+  assert.deepEqual(Array.from(h.env.sourceFiles.a),['prior.txt']);
+  assert.equal(h.els.a.value,'keep');
+  assert.equal(h.api.fileLoadRevision.a,0);
+  assert.equal(h.api.getDocSeq(),0);
+  assert.equal(h.runs,0);
+  assert.match(h.els.status.textContent,/Import rejected:/);
+  assert.equal(h.els.status.tabIndex,-1);
+  assert.equal(h.els.status.focused,true);
+ }
+});
+test('rejected external event does not cancel an in-flight valid local read',async()=>{
+ const h=harness(true);let resolve;
+ const pending=h.api.loadFiles({files:[file('valid.txt','yes',{arrayBuffer:()=>new Promise(r=>resolve=r)})],value:'valid'},'a','fileMetaA','a');
+ h.handlers['text-lens:import']({detail:{key:'a',name:'oversized.txt',size:1,text:'x'.repeat(400001)}});
+ assert.equal(h.api.fileLoadRevision.a,1);
+ resolve(encoder.encode('yes').buffer);await pending;
+ assert.deepEqual(Array.from(h.env.sourceDocs.a,x=>x.name),['valid.txt']);
+ assert.equal(h.runs,1);
+ assert.equal(h.api.getDocSeq(),1);
+});
+test('valid external event recovers after rejection with Unicode source ID intact',()=>{
+ const h=harness(true);
+ const dispatch=detail=>h.handlers['text-lens:import']({detail});
+ dispatch({key:'a',name:'bad',size:5000001,text:'bad'});
+ dispatch({key:'a',name:'0001-東京.md',size:4,lastModified:0,text:'Café'});
+ assert.deepEqual(Array.from(h.env.sourceDocs.a,x=>x.name),['0001-東京.md']);
+ assert.equal(h.env.sourceDocs.a[0].text,'Café');
+ assert.equal(h.api.fileLoadRevision.a,1);
+ assert.equal(h.api.getDocSeq(),1);
+ assert.equal(h.runs,1);
+});
