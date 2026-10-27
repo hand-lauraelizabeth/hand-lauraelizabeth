@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>NYC 311 operations lab — synthetic interactive preview</title>
+<style>
+:root{font-family:system-ui,Arial,sans-serif;color:#173a32;background:#f5f8f6;line-height:1.5}*{box-sizing:border-box}body{margin:0}.skip{position:absolute;left:-9999px}.skip:focus{left:1rem;top:1rem;background:white;padding:.7rem}header{background:#174d43;color:white;padding:2rem max(1rem,calc((100vw - 68rem)/2))}h1{font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.2}header p{max-width:55rem}main{max-width:68rem;margin:auto;padding:1rem 1rem 3rem}.flag{display:inline-block;border:2px solid currentColor;padding:.25rem .6rem;font-weight:700}.notice{background:#fff3d4;color:#49310b;border-left:5px solid #875400;padding:1rem}.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr));gap:1rem;padding:1rem;background:white;border:1px solid #9cb5aa;border-radius:.5rem}label{display:block;font-weight:700;margin-bottom:.3rem}select,button{font:inherit;width:100%;min-height:2.8rem;border:2px solid #486b60;border-radius:.3rem;background:white;color:#173a32;padding:.4rem}button{cursor:pointer;background:#e7f3ec;font-weight:700}:focus-visible{outline:3px solid #b05006;outline-offset:3px}.summary{font-weight:700;padding:.8rem 0}.scroll{overflow-x:auto;max-width:100%;border:1px solid #9cb5aa;background:white;border-radius:.4rem}table{width:100%;min-width:30rem;border-collapse:collapse}caption{text-align:left;padding:.8rem;font-weight:700}th,td{padding:.7rem .8rem;text-align:left;border-bottom:1px solid #d0ddd7}thead{background:#e7f3ec}tbody tr:nth-child(even){background:#f6faf8}td:last-child,th:last-child{text-align:right;font-variant-numeric:tabular-nums}details{background:white;border:1px solid #9cb5aa;border-radius:.4rem;padding:1rem;margin-top:1rem}summary{font-weight:700;cursor:pointer}a{color:#165b4b}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body>
+<a class="skip" href="#controls">Skip to filters</a>
+<header><span class="flag">SYNTHETIC DATA · NOT A PUBLIC RELEASE</span><h1>Public Service Operations Intelligence Lab</h1><p>Explore a working 20-cell prototype for comparing request volumes across five boroughs and four illustrative groups. Every number and group label is fabricated for interface testing.</p></header>
+<main><p class="notice"><strong>Research status: HOLD.</strong> This offline preview contains no NYC 311 records or official statistics. It does not authenticate the September 2026 source, measure service quality, or authorize publication of real results.</p>
+<h2 id="controls">Explore the demonstration</h2>
+<div class="controls" role="group" aria-label="Filter and sort synthetic requests">
+<div><label for="borough">Borough</label><select id="borough"><option value="">All boroughs</option><option>Bronx</option><option>Brooklyn</option><option>Manhattan</option><option>Queens</option><option>Staten Island</option></select></div>
+<div><label for="group">Illustrative group</label><select id="group"><option value="">All groups</option><option>Group A</option><option>Group B</option><option>Group C</option><option>Group D</option></select></div>
+<div><label for="sort">Sort results</label><select id="sort"><option value="borough">Borough, then group</option><option value="high">Most requests first</option><option value="low">Fewest requests first</option></select></div>
+<div><label for="reset">Reset selections</label><button type="button" id="reset">Clear filters and sorting</button></div></div>
+<p id="summary" class="summary" role="status" aria-live="polite" aria-atomic="true"></p>
+<div class="scroll" role="region" aria-label="Scrollable synthetic request results" tabindex="0"><table><caption>Synthetic request counts by borough and illustrative group</caption><thead><tr><th scope="col">Borough</th><th scope="col">Group</th><th scope="col">Fabricated requests</th></tr></thead><tbody id="results"></tbody></table></div>
+<details><summary>What these groups mean—and do not mean</summary><p>Groups A–D are placeholders for four mutually exclusive agency categories, <strong>not</strong> a verified mapping of city agencies. Actual editorial groups require independently verified source reconciliation and disclosure review.</p><p>Counts do not measure agency performance, resolution, individual outcomes, population-adjusted demand, or causation.</p></details>
+<p>Official source for future verification: <a href="https://data.cityofnewyork.us/d/erm2-nwe9" rel="noopener noreferrer">NYC Open Data · 311 Service Requests from 2020 to Present</a>. The preview makes no network requests; this link is navigational only.</p>
+</main>
+<script id="synthetic-cells" type="application/json">[
+{"borough":"Bronx","group":"Group A","requests":810},{"borough":"Bronx","group":"Group B","requests":780},{"borough":"Bronx","group":"Group C","requests":640},{"borough":"Bronx","group":"Group D","requests":570},
+{"borough":"Brooklyn","group":"Group A","requests":1020},{"borough":"Brooklyn","group":"Group B","requests":980},{"borough":"Brooklyn","group":"Group C","requests":820},{"borough":"Brooklyn","group":"Group D","requests":610},
+{"borough":"Manhattan","group":"Group A","requests":900},{"borough":"Manhattan","group":"Group B","requests":860},{"borough":"Manhattan","group":"Group C","requests":790},{"borough":"Manhattan","group":"Group D","requests":600},
+{"borough":"Queens","group":"Group A","requests":1100},{"borough":"Queens","group":"Group B","requests":950},{"borough":"Queens","group":"Group C","requests":850},{"borough":"Queens","group":"Group D","requests":720},
+{"borough":"Staten Island","group":"Group A","requests":620},{"borough":"Staten Island","group":"Group B","requests":610},{"borough":"Staten Island","group":"Group C","requests":590},{"borough":"Staten Island","group":"Group D","requests":550}
+]</script>
+<script>
+'use strict';
+const rows=Object.freeze(JSON.parse(document.getElementById('synthetic-cells').textContent));
+const borough=document.getElementById('borough'),group=document.getElementById('group'),sort=document.getElementById('sort'),results=document.getElementById('results'),summary=document.getElementById('summary'),format=new Intl.NumberFormat('en-US');
+function render(){
+ const chosen=rows.filter(r=>(!borough.value||r.borough===borough.value)&&(!group.value||r.group===group.value));
+ chosen.sort((a,b)=>sort.value==='high'?b.requests-a.requests||a.borough.localeCompare(b.borough):sort.value==='low'?a.requests-b.requests||a.borough.localeCompare(b.borough):a.borough.localeCompare(b.borough)||a.group.localeCompare(b.group));
+ const fragment=document.createDocumentFragment();
+ for(const row of chosen){const tr=document.createElement('tr');for(const value of [row.borough,row.group,format.format(row.requests)]){const td=document.createElement('td');td.textContent=value;tr.appendChild(td)}fragment.appendChild(tr)}
+ results.replaceChildren(fragment);
+ summary.textContent=chosen.length+' of 20 synthetic cells shown · '+format.format(chosen.reduce((s,r)=>s+r.requests,0))+' fabricated requests in this selection';
+}
+for(const select of [borough,group,sort])select.addEventListener('change',render);
+document.getElementById('reset').addEventListener('click',()=>{borough.value='';group.value='';sort.value='borough';render();borough.focus()});
+render();
+</script></body></html>
