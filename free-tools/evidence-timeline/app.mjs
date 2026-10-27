@@ -6,6 +6,7 @@ import {createImportFeedback} from './import-feedback.mjs';
 import {previewReplacement, replacementConfirmation} from './replacement-preview.mjs';
 import {reviewStatusSummary} from './review-filter.mjs';
 import {findSourceIds} from './source-id-find.mjs';
+import {findReviewGroups} from './group-find.mjs';
 import {setReviewGroup} from './edit-group.mjs';
 import {STATUS_OPTIONS} from './reclassify.mjs';
 import {changeReviewStatus, undoReviewStatus} from './undo-status.mjs';
@@ -49,13 +50,15 @@ function beginGroupEdit(record){
 function render(){
   list.replaceChildren();const report=summary(records);
   const selected=$('review-filter').value;const query=$('source-find').value;
-  const visible=findSourceIds(records,selected,query);
+  const groupQuery=$('group-find').value, ungroupedOnly=$('ungrouped-only').checked;
+  const visible=findReviewGroups(findSourceIds(records,selected,query),groupQuery,ungroupedOnly);
   $('clear-source-find').disabled=query==='';
-  $('count').textContent=selected==='all' && query==='' ? report.total+' '+(report.total===1?'record':'records')+' (date order).' : 'Showing '+visible.length+' of '+report.total+' records (date order).';
+  $('clear-group-find').disabled=groupQuery==='' && !ungroupedOnly;
+  $('count').textContent=selected==='all' && query==='' && groupQuery==='' && !ungroupedOnly ? report.total+' '+(report.total===1?'record':'records')+' (date order).' : 'Showing '+visible.length+' of '+report.total+' records (date order).';
   $('review-summary').textContent=reviewStatusSummary(records);
   $('groups').textContent=report.reviewGroups.length?report.reviewGroups.map(g=>'Review group '+g.group+': '+g.sourceIds.join(', ')).join(' · '):'No related-record groups to review.';
   $('empty').hidden=visible.length>0;
-  $('empty').textContent=records.length===0 ? 'No records yet. Add a record to build your timeline.' : 'No records match the selected review status or source ID. Clear the source search or choose All statuses.';
+  $('empty').textContent=records.length===0 ? 'No records yet. Add a record to build your timeline.' : 'No records match the selected review status, source ID, or group filter. Clear the searches or choose All statuses.';
   for(const r of visible){const item=text('li','');item.className='record';item.append(text('h3',r.sourceId+' — '+r.date));item.append(text('p',r.claim));const details=text('p','Type: '+r.kind+' · Status: '+r.status+(r.group?' · Group: '+r.group:''));item.append(details);
     const statusSelect=document.createElement('select');
     statusSelect.setAttribute('aria-label','Review status for record '+r.sourceId);
@@ -92,6 +95,16 @@ $('count').tabIndex=-1;
 $('review-filter').addEventListener('change',render);
 $('source-find').addEventListener('input',render);
 $('clear-source-find').addEventListener('click',()=>{$('source-find').value='';render();$('source-find').focus();});
+$('group-find').addEventListener('input',render);
+$('ungrouped-only').addEventListener('change',()=>{
+  if($('ungrouped-only').checked)$('group-find').value='';
+  $('group-find').disabled=$('ungrouped-only').checked;
+  render();
+});
+function clearGroupFilter(){
+  $('group-find').value='';$('group-find').disabled=false;$('ungrouped-only').checked=false;
+}
+$('clear-group-find').addEventListener('click',()=>{clearGroupFilter();render();$('group-find').focus();});
 $('group-edit-form').addEventListener('submit',event=>{
   event.preventDefault();
   if(editingGroupId===null)return;
@@ -100,9 +113,11 @@ $('group-edit-form').addEventListener('submit',event=>{
     records=setReviewGroup(records,sourceId,$('group-edit-value').value);
     clearStatusUndo();
     stopGroupEdit();
+    const groupFilterWasActive=$('group-find').value!=='' || $('ungrouped-only').checked;
+    if(groupFilterWasActive)clearGroupFilter();
     render();
     focusGroupEditButton(sourceId);
-    $('change-status-message').textContent='Related-record group saved for '+sourceId+'.';
+    $('change-status-message').textContent='Related-record group saved for '+sourceId+'.'+(groupFilterWasActive?' Group filter cleared so the edited record remains visible.':'');
   }catch(e){
     $('group-edit-error').textContent='Group not saved: '+String(e.message||e);
     $('group-edit-error').hidden=false;
@@ -135,13 +150,13 @@ form.addEventListener('submit',event=>{
   for(const [id,label] of [['sourceId','Source ID'],['date','Record date'],['claim','Record description']]){
     if(!String(data[id]??'').trim()){showError(label+' is required.',id);return;}
   }
-  try{records=normalizeEvidence([...records,data]);clearStatusUndo();form.reset();$('source-find').value='';render();$('sourceId').focus();}
+  try{records=normalizeEvidence([...records,data]);clearStatusUndo();form.reset();$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();}
   catch(e){const message=String(e.message||e);const field=/source ID/i.test(message)?'sourceId':/date/i.test(message)?'date':/claim/i.test(message)?'claim':null;showError(message,field);}
 });
 function download(filename,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 $('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportSafeEvidenceCSV(records),'text/csv;charset=utf-8'));
 $('json').addEventListener('click',()=>download('evidence-timeline-exact.json',JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n','application/json'));
-$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];stopGroupEdit();clearStatusUndo();$('review-filter').value='all';$('source-find').value='';render();$('sourceId').focus();}});
+$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];stopGroupEdit();clearStatusUndo();$('review-filter').value='all';$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();}});
 
 const timeline=document.querySelector('[aria-labelledby="timeline-heading"]');
 const section=document.createElement('section');
@@ -169,6 +184,7 @@ input.addEventListener('change',async()=>{
      // A filter from the replaced working set must not conceal imported evidence.
      $('review-filter').value='all';
      $('source-find').value='';
+     clearGroupFilter();
      render();$('count').focus();
      importFeedback.announce(next.length+' records imported locally. All review statuses are now shown.');
    }else importFeedback.announce('Import cancelled; existing records retained.');
