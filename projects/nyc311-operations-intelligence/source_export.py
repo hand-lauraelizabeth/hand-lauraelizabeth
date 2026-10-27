@@ -42,6 +42,15 @@ def parse_floating_timestamp(value, *, required=False):
         raise ValueError("Malformed publisher floating timestamp") from None
 
 
+def parse_publisher_count(value):
+    """Accept exact nonnegative integer counts, never coerced booleans/floats."""
+    if type(value) is int:
+        return value
+    if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
+        return int(value)
+    raise ValueError("Invalid publisher count representation")
+
+
 def fetch_json(url, *, opener=urlopen):
     with opener(url, timeout=90) as response:
         data = response.read()
@@ -109,10 +118,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             if not isinstance(borough, str) or not isinstance(agency, str):
                 raise ValueError("Invalid official aggregate dimension")
             try:
-                raw = item["n"]
-                if isinstance(raw, bool) or not str(raw).isdigit():
-                    raise ValueError
-                n = int(raw)
+                n = parse_publisher_count(item["n"])
             except (KeyError, TypeError, ValueError):
                 raise ValueError("Invalid official aggregate count") from None
             key = (borough, agency)
@@ -135,8 +141,8 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         if not isinstance(obj, list) or len(obj) != 1:
             raise ValueError("Unexpected publisher count response")
         try:
-            n = int(obj[0]["records"])
-            k = int(obj[0]["distinct_keys"])
+            n = parse_publisher_count(obj[0]["records"])
+            k = parse_publisher_count(obj[0]["distinct_keys"])
         except (KeyError, TypeError, ValueError):
             raise ValueError("Invalid publisher count response") from None
         if n <= 0 or k != n:
