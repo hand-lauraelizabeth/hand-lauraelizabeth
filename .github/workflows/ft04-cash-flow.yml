@@ -22,6 +22,9 @@ jobs:
       - name: Validate JavaScript syntax
         run: |
           node --check free-tools/cash-flow/engine.mjs
+          node --check free-tools/cash-flow/shortfalls.mjs
+          node --check free-tools/cash-flow/shortfalls.test.mjs
+          node --check free-tools/cash-flow/shortfalls.browser.test.mjs
           node --check free-tools/cash-flow/plan.mjs
           node --check free-tools/cash-flow/plan.test.mjs
           node --check free-tools/cash-flow/plan.browser.test.mjs
@@ -40,6 +43,7 @@ jobs:
         run: |
           node free-tools/cash-flow/export-preflight.test.mjs
           node free-tools/cash-flow/plan.test.mjs
+          node free-tools/cash-flow/shortfalls.test.mjs
           node free-tools/cash-flow/control-character-export.test.mjs
           node free-tools/cash-flow/exact-id-provenance.test.mjs
           node free-tools/cash-flow/end-of-day-minimum.test.mjs
@@ -74,3 +78,4 @@ jobs:
         run: |
           node free-tools/cash-flow/browser-qa.test.mjs
           node free-tools/cash-flow/plan.browser.test.mjs
+          node free-tools/cash-flow/shortfalls.browser.test.mjs
