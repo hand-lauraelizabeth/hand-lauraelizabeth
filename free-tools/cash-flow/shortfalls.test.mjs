@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {summarizeShortfalls} from './shortfalls.mjs';
+import {summarizeShortfalls,compareBelowZeroDates} from './shortfalls.mjs';
 let checks=0;
 const check=(actual,expected)=>{assert.deepEqual(actual,expected);checks++;};
 const projection=(balances,start='2026-10-01')=>({days:balances.map((balanceCents,i)=>({date:new Date(Date.parse(start+'T00:00:00Z')+i*86400000).toISOString().slice(0,10),balanceCents}))});
@@ -31,4 +31,41 @@ for(let sample=0;sample<600;sample++){
  assert.equal(got.periods.reduce((n,p)=>n+p.days,0),below.length);
  checks+=5;
 }
+
+// Exact four-way partition: the comparison is by matching calendar date,
+// not by order of shortfall periods or by the minimum alone.
+check(compareBelowZeroDates(projection([-1,0,-2,-3,0]),projection([0,-1,-2,0,0])),{
+  noLongerBelowZero:2,newlyBelowZero:1,stillBelowZero:1,nonnegativeInBoth:1,
+  firstNoLongerBelowZeroDate:'2026-10-01',firstNewlyBelowZeroDate:'2026-10-02'
+});
+check(compareBelowZeroDates(projection([0,0]),projection([0,0])),{
+  noLongerBelowZero:0,newlyBelowZero:0,stillBelowZero:0,nonnegativeInBoth:2,
+  firstNoLongerBelowZeroDate:null,firstNewlyBelowZeroDate:null
+});
+for(const [a,b] of [[projection([0]),projection([0,0])],
+ [projection([0]),projection([0],'2026-10-02')],
+ [projection([0,0]),projection([0,0],'2026-10-02')]]){
+ assert.throws(()=>compareBelowZeroDates(a,b),/same projected dates/);checks++;
+}
+assert.throws(()=>compareBelowZeroDates(projection([0]),{days:[{date:'2026-10-01',balanceCents:NaN}]}));checks++;
+// Independently compute transitions directly from raw synthetic cent arrays.
+let comparisonSeed=0x4e34a1f0;
+const next=()=>((comparisonSeed=(Math.imul(comparisonSeed,1664525)+1013904223)>>>0)/4294967296);
+for(let sample=0;sample<700;sample++){
+ const n=1+Math.floor(next()*366),a=[],b=[];
+ for(let i=0;i<n;i++){a.push(Math.floor(next()*7-3)*100);b.push(Math.floor(next()*7-3)*100);}
+ const result=compareBelowZeroDates(projection(a,'2024-01-01'),projection(b,'2024-01-01'));
+ const states=a.map((v,i)=>Number(v<0)*2+Number(b[i]<0));
+ const count=state=>states.filter(x=>x===state).length;
+ assert.equal(result.noLongerBelowZero,count(2));
+ assert.equal(result.newlyBelowZero,count(1));
+ assert.equal(result.stillBelowZero,count(3));
+ assert.equal(result.nonnegativeInBoth,count(0));
+ assert.equal(Object.values(result).slice(0,4).reduce((x,y)=>x+y,0),n);
+ const first=(state)=>{const index=states.indexOf(state);return index<0?null:projection(a,'2024-01-01').days[index].date};
+ assert.equal(result.firstNoLongerBelowZeroDate,first(2));
+ assert.equal(result.firstNewlyBelowZeroDate,first(1));
+ checks+=7;
+}
+
 console.log(checks+' FT-04 shortfall summary assertions PASS');

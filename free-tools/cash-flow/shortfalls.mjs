@@ -31,3 +31,30 @@ export function summarizeShortfalls(projection){
   finishRun();
   return {daysBelowZero,firstBelowZeroDate,lowestBalanceCents,longestRunDays,periods};
 }
+
+
+// Compare *the same calendar dates* in two projections. A date that becomes
+// nonnegative is not proof a payment will clear or a bank will avoid fees.
+export function compareBelowZeroDates(baseline,scenario){
+  summarizeShortfalls(baseline);
+  summarizeShortfalls(scenario);
+  if(baseline.days.length!==scenario.days.length)
+    throw Error('Scenarios must cover the same projected dates.');
+  let noLongerBelowZero=0,newlyBelowZero=0,stillBelowZero=0,nonnegativeInBoth=0;
+  let firstNoLongerBelowZeroDate=null,firstNewlyBelowZeroDate=null;
+  for(let i=0;i<baseline.days.length;i++){
+    const a=baseline.days[i],b=scenario.days[i];
+    if(a.date!==b.date)throw Error('Scenarios must cover the same projected dates.');
+    const wasBelow=a.balanceCents<0,isBelow=b.balanceCents<0;
+    if(wasBelow&&isBelow)stillBelowZero++;
+    else if(wasBelow){
+      noLongerBelowZero++;
+      if(firstNoLongerBelowZeroDate===null)firstNoLongerBelowZeroDate=a.date;
+    }else if(isBelow){
+      newlyBelowZero++;
+      if(firstNewlyBelowZeroDate===null)firstNewlyBelowZeroDate=a.date;
+    }else nonnegativeInBoth++;
+  }
+  return {noLongerBelowZero,newlyBelowZero,stillBelowZero,nonnegativeInBoth,
+    firstNoLongerBelowZeroDate,firstNewlyBelowZeroDate};
+}
