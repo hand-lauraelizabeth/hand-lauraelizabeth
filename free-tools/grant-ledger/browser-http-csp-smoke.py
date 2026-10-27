@@ -56,6 +56,7 @@ def verify(browser_type, url, width):
     assert "$8.00" in page.locator("#expenseRows").inner_text()
     assert page.evaluate("document.activeElement.dataset.editIndex") == "0", "save restores edit focus"
     assert "corrected" in page.locator("#status").inner_text()
+    assert "1 expenditure correction recorded" in page.locator("#correctionSummary").inner_text()
     edit = page.locator('#expenseRows button[data-edit-index="0"]')
     edit.click()
     expense.locator('[name="amount"]').fill("not-a-number")
@@ -67,6 +68,7 @@ def verify(browser_type, url, width):
     assert page.locator("#error").is_hidden()
     assert page.evaluate("document.activeElement.dataset.editIndex") == "0", "cancel restores edit focus"
     assert "$8.00" in page.locator("#expenseRows").inner_text(), "cancel retains saved amount"
+    assert "1 expenditure correction recorded" in page.locator("#correctionSummary").inner_text(), "invalid/cancel edits never append history"
     # Review flags must carry the exact source, transaction, and category IDs.
     # The synthetic HTML-looking identifier must remain inert text.
     unsafe_source = " SRC-0008 <img src=x onerror=alert(1)> "
@@ -109,6 +111,14 @@ def verify(browser_type, url, width):
     assert evidence["expenses"][0]["sourceId"] == " SRC-CORRECTED ", "corrected source ID exact"
     assert evidence["expenses"][0]["totalCents"] == 800, "corrected amount preserved"
     assert evidence["expenses"][0]["note"] == "Corrección – 日本語", "corrected Unicode preserved"
+    assert evidence["correctionHistory"]["schema"] == "expenditure-corrections-v1"
+    assert len(evidence["correctionHistory"]["entries"]) == 1
+    change = evidence["correctionHistory"]["entries"][0]
+    assert change["revision"] == 1 and change["transactionId"] == "000123"
+    assert change["before"]["sourceId"] == " SRC-0007 " and change["before"]["amount"] == "5.00"
+    assert change["after"]["sourceId"] == " SRC-CORRECTED " and change["after"]["amount"] == "8.00"
+    assert change["after"]["note"] == "Corrección – 日本語"
+    assert "award and budget-category edits are not recorded" in evidence["correctionHistory"]["scope"]
     assert evidence["expenses"][1]["sourceId"] == unsafe_source, "JSON preserves untrusted source ID exactly"
     assert page.locator("#error").is_hidden(), "successful Evidence JSON must clear stale CSV error"
     assert "grant-evidence.json downloaded" in page.locator("#status").inner_text(), "JSON success announced"
