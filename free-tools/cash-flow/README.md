@@ -10,6 +10,10 @@ Enter positive amounts for income and negative amounts for bills. Select an even
 
 The model accepts up to 200 events across 366 calendar days, within 1900–2100. It uses whole-cent arithmetic. Monthly recurring dates use the original day of month when possible and the final day of shorter months otherwise. Projections do not model settlement time, pending transactions, overdraft fees, interest, credit access, or individual banks' rules; they are **not verified account balances or financial advice**.
 
+## Projected below-zero days
+
+After calculating, the tool separately summarizes baseline and shifted-scenario dates with a **negative projected end-of-day balance**. It shows the number of such dates, first date, lowest balance and longest consecutive span. Zero is not negative. The summary updates only when you calculate and clears when inputs change; the detailed daily balances and exported scenario remain the underlying evidence. A negative projected closing balance is a planning flag, **not a prediction of an overdraft, bank fee, or payment outcome**. Intraday posting order, available balance and holds are not modeled.
+
 ## Export and spreadsheet safety
 
 Export creates a UTF-8 CSV with date, daily change, end-of-day balance, event IDs, and event labels. Numeric balances retain two decimal places. Text resembling spreadsheet formulas is prefixed with an apostrophe before CSV quoting; this changes the original text and is only a **defense in depth**, not a universal guarantee against formula execution in every spreadsheet program or import setting.
@@ -22,6 +26,7 @@ From the repository root, run the deterministic tests with Node.js:
 
 ```sh
 node free-tools/cash-flow/engine.test.mjs
+node free-tools/cash-flow/shortfalls.test.mjs
 node free-tools/cash-flow/boundary.test.mjs
 node free-tools/cash-flow/occurrence-anchor-regression.test.mjs
 node free-tools/cash-flow/security-accessibility.test.mjs
