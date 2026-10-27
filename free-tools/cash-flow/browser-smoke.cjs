@@ -13,7 +13,7 @@ const {chromium}=require('playwright');
   const root=path.resolve(__dirname);
   const server=require('node:http').createServer((req,res)=>{
    const fs=require('node:fs'),p=req.url==='/'?'index.html':decodeURIComponent(req.url.slice(1));
-   if(!['index.html','app.mjs','engine.mjs','plan.mjs','style.css'].includes(p)){res.writeHead(404);res.end();return}
+   if(!['index.html','app.mjs','engine.mjs','plan.mjs','shortfalls.mjs','style.css'].includes(p)){res.writeHead(404);res.end();return}
    res.setHeader('Content-Type',p.endsWith('.mjs')?'text/javascript':p.endsWith('.css')?'text/css':'text/html');
    res.end(fs.readFileSync(path.join(root,p)));
   });
@@ -24,6 +24,7 @@ const {chromium}=require('playwright');
    check(await page.locator('#export').isDisabled(),'export initially disabled');
    await page.locator('#calculate').click();
    check(await page.locator('#export').isEnabled(),'empty schedule calculates');
+   check((await page.locator('#shortfall-summary').innerText()).includes('no projected below-zero end-of-day dates'),'shortfall status reports empty schedule');
    check((await page.locator('#results tr').count())>0,'daily output visible');
    await page.locator('#opening').fill('not money');await page.locator('#calculate').click();
    check(await page.locator('#export').isDisabled(),'invalid amount blocks export');
