@@ -6,6 +6,79 @@ const byId=id=>document.getElementById(id);
 const say=message=>{byId('status').textContent=message;};
 const field=(form,name)=>form.elements.namedItem(name).value;
 const node=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;return el;};
+function renderEvent(e,list){
+  const item=document.createElement('li');
+  item.dataset.eventId=e.id;
+  item.append(node('p',`${e.date} — Event ${e.id} — Request ${e.requestId} — ${e.kind}: ${e.description}${e.sourceId?' [source '+e.sourceId+']':''}`));
+  const details=document.createElement('details');
+  const summary=node('summary',`Correct event ${e.id}`);
+  details.append(summary);
+  const editor=document.createElement('div');
+  editor.className='event-editor';
+  const control=(labelText,tag,value,max)=>{
+    const label=node('label',labelText);
+    const input=document.createElement(tag);
+    if(tag==='input'){input.type='text';input.maxLength=max;}
+    if(tag==='textarea'){input.maxLength=max;}
+    input.value=value;label.append(input);editor.append(label);
+    return input;
+  };
+  const dateInput=control('Event date (YYYY-MM-DD)', 'input',e.date,10);
+  dateInput.inputMode='numeric';
+  const kindLabel=node('label','Event type');
+  const kindSelect=document.createElement('select');
+  for(const kind of ['submitted','acknowledged','agency-message','clarification','response','appeal','note']){
+    const option=node('option',kind);option.value=kind;kindSelect.append(option);
+  }
+  kindSelect.value=e.kind;kindLabel.append(kindSelect);editor.append(kindLabel);
+  const sourceInput=control('Evidence/source ID (optional; exact text)', 'input',e.sourceId,200);
+  const descriptionInput=control('What happened?', 'textarea',e.description,5000);
+  const save=node('button','Save event correction');
+  save.type='button';
+  const cancel=node('button','Cancel event correction');
+  cancel.type='button';
+  const error=node('p','');
+  error.className='form-error';error.setAttribute('role','alert');
+  error.tabIndex=-1;error.hidden=true;
+  save.addEventListener('click',()=>{
+    if(dateInput.value===e.date && kindSelect.value===e.kind &&
+       sourceInput.value===e.sourceId && descriptionInput.value===e.description){
+      say(`No changes to event ${e.id}.`);return;
+    }
+    for(const input of [dateInput,kindSelect,sourceInput,descriptionInput])input.removeAttribute('aria-invalid');
+    try{
+      const next=validateWorkspace({...state,events:state.events.map(event=>
+        event.id===e.id?{...event,date:dateInput.value,kind:kindSelect.value,
+          sourceId:sourceInput.value,description:descriptionInput.value}:event)});
+      state=next;render();
+      const updated=[...byId('events').children].find(li=>li.dataset.eventId===e.id);
+      updated?.querySelector('summary')?.focus();
+      say(`Corrected event ${e.id}. Its event ID and related request were preserved; review the updated chronology and documentation flags.`);
+    }catch(failure){
+      const message=String(failure.message);
+      if(/event date/i.test(message))dateInput.setAttribute('aria-invalid','true');
+      if(/source ID/i.test(message))sourceInput.setAttribute('aria-invalid','true');
+      if(/event description/i.test(message))descriptionInput.setAttribute('aria-invalid','true');
+      error.textContent=/event date/i.test(message)
+        ? 'Event date is invalid. Use YYYY-MM-DD for a real calendar date.'
+        : /source ID/i.test(message)
+          ? 'Source ID is invalid. Use at most 200 characters and no null characters.'
+          : /event description/i.test(message)
+            ? 'Event description is required (up to 5,000 characters; no null characters).'
+            : 'Event correction was not saved. Review the event fields.';
+      error.hidden=false;
+      say('Event correction not saved; original records and evidence were kept.');
+      error.focus();
+    }
+  });
+  cancel.addEventListener('click',()=>{
+    render();
+    const restored=[...byId('events').children].find(li=>li.dataset.eventId===e.id);
+    restored?.querySelector('summary')?.focus();
+    say(`Cancelled changes to event ${e.id}; no records were changed.`);
+  });
+  editor.append(save,cancel,error);details.append(editor);item.append(details);list.append(item);
+}
 function render(){
   const requestList=byId('requests'), eventList=byId('events'), flagList=byId('flags'), selector=byId('request-select');
   requestList.replaceChildren();eventList.replaceChildren();flagList.replaceChildren();
@@ -64,7 +137,7 @@ function render(){
     const opt=node('option',`${r.id} — ${r.agency}`);opt.value=r.id;selector.append(opt);
   });
   if([...selector.options].some(x=>x.value===selected)) selector.value=selected;
-  for(const e of chronology(state)) eventList.append(node('li',`${e.date} — Event ${e.id} — Request ${e.requestId} — ${e.kind}: ${e.description}${e.sourceId?' [source '+e.sourceId+']':''}`));
+  for(const e of chronology(state)) renderEvent(e,eventList);
   for(const item of reviewFlags(state)) flagList.append(node('li',`${item.requestId}: ${item.flags.join('; ')}`));
   if(!state.requests.length)requestList.append(node('p','No requests yet.'));
   if(!state.events.length)eventList.append(node('li','No dated events yet.'));
