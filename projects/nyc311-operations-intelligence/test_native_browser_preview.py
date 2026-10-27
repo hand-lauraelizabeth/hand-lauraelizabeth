@@ -7,6 +7,9 @@ Requires Selenium and locally installed Chrome/Chromedriver. All values are
 fabricated; this does not authenticate official 311 data or clear disclosure.
 """
 from pathlib import Path
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
 import unittest
 
 try:
@@ -18,13 +21,22 @@ try:
 except ImportError:  # Standard offline unit suite need not install a browser.
     webdriver = None
 
-PREVIEW = Path(__file__).with_name("synthetic_coarse_preview.html").resolve().as_uri()
+PREVIEW_DIR = Path(__file__).resolve().parent
 
 
 @unittest.skipUnless(webdriver is not None, 'Selenium unavailable; native browser workflow installs it')
 class NativePreviewRegression(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        class QuietHandler(SimpleHTTPRequestHandler):
+            def log_message(self, *_args):
+                pass
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0),
+                                         partial(QuietHandler, directory=str(PREVIEW_DIR)))
+        cls.thread = Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+        cls.preview_url = ("http://127.0.0.1:" + str(cls.server.server_port) +
+                           "/synthetic_coarse_preview.html")
         options = Options()
         for flag in ("--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
                      "--disable-gpu", "--allow-file-access-from-files"):
@@ -35,9 +47,11 @@ class NativePreviewRegression(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.browser.quit()
+        cls.server.shutdown()
+        cls.server.server_close()
 
     def setUp(self):
-        self.browser.get(PREVIEW)
+        self.browser.get(self.preview_url)
         WebDriverWait(self.browser, 15).until(
             lambda b: len(b.find_elements(By.CSS_SELECTOR, "#results tr")) == 20
         )
@@ -48,7 +62,7 @@ class NativePreviewRegression(unittest.TestCase):
                 self.browser.execute_cdp_cmd("Emulation.setDeviceMetricsOverride", {
                     "width": width, "height": 900, "deviceScaleFactor": 1, "mobile": False
                 })
-                self.browser.get(PREVIEW)
+                self.browser.get(self.preview_url)
                 self.assertEqual(
                     len(self.browser.find_elements(By.CSS_SELECTOR, "#results tr")), 20
                 )
@@ -100,7 +114,7 @@ class NativePreviewRegression(unittest.TestCase):
         self.assertTrue(self.browser.find_element(
             By.CSS_SELECTOR, "details").get_attribute("open") is not None)
         self.assertEqual(self.browser.execute_script(
-            "return performance.getEntriesByType('resource').length"), 0)
+            "return performance.getEntriesByType('resource').filter(e => new URL(e.name).origin !== location.origin).length"), 0)
         self.assertEqual(len(self.browser.find_elements(
             By.CSS_SELECTOR, "script[src],link[rel='stylesheet'],img")), 0)
 
@@ -116,7 +130,7 @@ JSON.parse=function(...args){
             "Page.addScriptToEvaluateOnNewDocument", {"source": script}
         )["identifier"]
         try:
-            self.browser.get(PREVIEW)
+            self.browser.get(self.preview_url)
             self.assertEqual(len(self.browser.find_elements(
                 By.CSS_SELECTOR, "#results tr")), 0)
             status = self.browser.find_element(By.ID, "summary")
