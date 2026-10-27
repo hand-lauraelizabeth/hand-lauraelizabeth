@@ -67,7 +67,7 @@ def main():
             ])
             selector = page.locator("#resume-json")
             selector.set_input_files({"name": "synthetic.json", "mimeType": "application/json", "buffer": incoming})
-            page.wait_for_function("document.querySelector('#resume-json-status').textContent.includes('cancelled')")
+            page.locator("#resume-json-status").filter(has_text="cancelled").wait_for()
             assert page.locator("#review-filter").input_value() == "disputed", (engine, "cancel changed filter")
             assert page.locator("#count").inner_text().startswith("Showing 0 of 1"), (engine, "cancel changed records")
             assert page.locator("#resume-json").is_enabled()
@@ -83,7 +83,7 @@ def main():
 
             decision["accept"] = True
             selector.set_input_files({"name": "synthetic.json", "mimeType": "application/json", "buffer": incoming})
-            page.wait_for_function("document.querySelector('#resume-json-status').textContent.includes('imported locally')")
+            page.locator("#resume-json-status").filter(has_text="imported locally").wait_for()
             assert page.locator("#review-filter").input_value() == "all", (engine, "new records hidden by old filter")
             assert page.locator("#records li").count() == 2, (engine, "new records not shown")
             assert page.locator("#count").inner_text().startswith("2 records"), (engine, "incorrect count")
