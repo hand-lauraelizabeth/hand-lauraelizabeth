@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from http.client import HTTPException, IncompleteRead
 import io
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -402,6 +403,46 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(self.path.read_bytes(), b'other process source')
         self.assertFalse(receipt.exists())
         self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_receipt_failure_pins_original_inode_during_competing_swap(self):
+        """A live source descriptor prevents inode-number reuse during rollback."""
+        receipt = self.path.parent / 'receipt.json'
+        real_open = os.open
+        held = {}
+        saw_open_original = False
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY)}
+
+        def track_open(path, flags, *args, **kwargs):
+            fd = real_open(path, flags, *args, **kwargs)
+            if isinstance(path, (str, os.PathLike)) and Path(path) == self.path:
+                held['fd'] = fd
+            return fd
+
+        def swap_then_fail(*args, **kwargs):
+            nonlocal saw_open_original
+            fd = held['fd']
+            original = os.fstat(fd)
+            self.path.unlink()
+            self.path.write_bytes(b'other process source')
+            # The original inode must remain pinned even after unlink.
+            saw_open_original = (os.fstat(fd).st_ino == original.st_ino)
+            raise OSError('synthetic receipt serialization failure after swap')
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch('source_csv_capture.os.open', side_effect=track_open):
+                with patch('source_csv_capture.json.dump', side_effect=swap_then_fail):
+                    rc = main(['--source-csv', str(self.path),
+                               '--receipt-json', str(receipt),
+                               '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertTrue(saw_open_original)
+        self.assertEqual(self.path.read_bytes(), b'other process source')
+        self.assertFalse(receipt.exists())
+        with self.assertRaises(OSError):
+            os.fstat(held['fd'])  # No leaked descriptor after rollback.
 
     def test_main_source_rollback_unlink_error_does_not_mask_hold(self):
         receipt = self.path.parent / 'receipt.json'
