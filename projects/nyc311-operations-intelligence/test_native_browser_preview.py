@@ -9,15 +9,19 @@ fabricated; this does not authenticate official 311 data or clear disclosure.
 from pathlib import Path
 import unittest
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import Select, WebDriverWait
+try:
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.support.ui import Select, WebDriverWait
+except ImportError:  # Standard offline unit suite need not install a browser.
+    webdriver = None
 
 PREVIEW = Path(__file__).with_name("synthetic_coarse_preview.html").resolve().as_uri()
 
 
+@unittest.skipUnless(webdriver is not None, 'Selenium unavailable; native browser workflow installs it')
 class NativePreviewRegression(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
