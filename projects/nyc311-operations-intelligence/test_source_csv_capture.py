@@ -547,5 +547,89 @@ class CaptureTests(unittest.TestCase):
         self.assertFalse(receipt.exists())
 
 
+
+    def test_source_path_swap_during_receipt_serialization_fails_closed(self):
+        """Receipt cannot bind a verified fd to a replaced visible pathname."""
+        receipt = self.path.parent / 'receipt.json'
+        competitor = b'competing replacement'
+        real_dump = json.dump
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY),
+                    'source_sha256': sha256(BODY).hexdigest()}
+
+        def swap_after_dump(*args, **kwargs):
+            result = real_dump(*args, **kwargs)
+            self.path.unlink()
+            self.path.write_bytes(competitor)
+            return result
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch('source_csv_capture.json.dump', side_effect=swap_after_dump):
+                rc = main(['--source-csv', str(self.path),
+                           '--receipt-json', str(receipt),
+                           '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.path.read_bytes(), competitor)
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_source_path_swap_during_receipt_link_rolls_back_receipt(self):
+        """A swap immediately after receipt link leaves no orphan receipt."""
+        receipt = self.path.parent / 'receipt.json'
+        competitor = b'competing source after receipt link'
+        real_link = os.link
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY),
+                    'source_sha256': sha256(BODY).hexdigest()}
+
+        def link_then_swap(src, dst):
+            result = real_link(src, dst)
+            self.path.unlink()
+            self.path.write_bytes(competitor)
+            return result
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch('source_csv_capture.os.link', side_effect=link_then_swap):
+                rc = main(['--source-csv', str(self.path),
+                           '--receipt-json', str(receipt),
+                           '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.path.read_bytes(), competitor)
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_source_symlink_swap_during_serialization_fails_closed(self):
+        """A symlink to the original bytes is not an acceptable source path."""
+        receipt = self.path.parent / 'receipt.json'
+        other = self.path.parent / 'other.csv'
+        other.write_bytes(BODY)
+        real_dump = json.dump
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY),
+                    'source_sha256': sha256(BODY).hexdigest()}
+
+        def swap_to_symlink(*args, **kwargs):
+            result = real_dump(*args, **kwargs)
+            self.path.unlink()
+            self.path.symlink_to(other)
+            return result
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            with patch('source_csv_capture.json.dump', side_effect=swap_to_symlink):
+                rc = main(['--source-csv', str(self.path),
+                           '--receipt-json', str(receipt),
+                           '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertTrue(self.path.is_symlink())
+        self.assertEqual(other.read_bytes(), BODY)
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
 if __name__ == '__main__':
     unittest.main()
