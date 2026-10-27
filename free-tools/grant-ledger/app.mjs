@@ -1,10 +1,11 @@
-import {calculateLedger,exportTransactionsCSV,exportBudgetCSV,exportReviewCSV,exportJSON} from './core.mjs';
+import {calculateLedger,exportTransactionsCSV,exportBudgetCSV,exportReviewCSV} from './core.mjs';
+import {appendExpenseCorrection,exportEvidenceWithCorrections} from './correction-history.mjs';
 import {assertSafeLedgerCSV} from './csv-preflight.mjs';
 import {buildInterface} from './view.mjs';
 import {renderLedger} from './render.mjs';
 buildInterface();
 let award={awardId:'SYNTHETIC-AWARD-01',awardName:'Sample community project',start:'2026-01-01',end:'2026-12-31'};
-let categories=[],expenses=[];
+let categories=[],expenses=[],corrections=[];
 let editingId=null;
 const $=id=>document.getElementById(id);
 const values=form=>Object.fromEntries(new FormData(form).entries());
@@ -59,8 +60,13 @@ $('expenseForm').addEventListener('submit',ev=>{
   }else{
    const id=editingId,index=expenses.findIndex(e=>e.transactionId===id);
    if(index<0||item.transactionId!==id)throw new Error('Correction cannot change the transaction ID. Cancel and start again.');
+   const proposedHistory=appendExpenseCorrection(corrections,expenses[index],item);
    const corrected=expenses.map((e,i)=>i===index?item:e);
-   update(award,categories,corrected,'Expenditure '+id+' corrected. Review flags and totals recalculated.');
+   const changed=proposedHistory!==corrections;
+   // Commit the history only after the complete corrected ledger validates successfully.
+   update(award,categories,corrected,changed?'Expenditure '+id+' corrected; prior values retained in Evidence JSON.':'No expenditure values changed.');
+   corrections=proposedHistory;
+   $('correctionSummary').textContent=corrections.length+' expenditure correction'+(corrections.length===1?'':'s')+' recorded in this tab. Evidence JSON includes original and replacement values; award and category edits are not logged.';
    endExpenseEdit(form);focusExpenseEdit(id);
   }
  }catch(e){error(e.message);}
@@ -88,7 +94,7 @@ $('downloadReview').addEventListener('click',()=>safeCSV('review','grant-review-
 $('downloadJSON').addEventListener('click',()=>{
  try {
   // Validate and serialize before clearing any earlier CSV-specific error.
-  const evidence = exportJSON(current());
+  const evidence = exportEvidenceWithCorrections(current(),corrections);
   error('');
   download('grant-evidence.json','application/json;charset=utf-8',evidence);
  } catch (e) {
