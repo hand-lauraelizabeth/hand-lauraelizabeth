@@ -24,6 +24,22 @@ BASE = "https://data.cityofnewyork.us"
 FIELDS = ("unique_key", "created_date", "closed_date", "agency",
           "complaint_type", "borough", "status")
 PAGE_MAX = 50000
+# Socrata floating timestamps are local wall-clock date-times, never dates alone
+# or timezone-bearing instants. Seconds and fractional seconds are supported.
+FLOATING_TIMESTAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?\Z")
+
+
+def parse_floating_timestamp(value, *, required=False):
+    if value is None or value == "":
+        if required:
+            raise ValueError("Missing publisher created_date")
+        return None
+    if not isinstance(value, str) or not FLOATING_TIMESTAMP.fullmatch(value):
+        raise ValueError("Malformed publisher floating timestamp")
+    try:
+        return dt.datetime.fromisoformat(value)
+    except ValueError:
+        raise ValueError("Malformed publisher floating timestamp") from None
 
 
 def fetch_json(url, *, opener=urlopen):
@@ -173,17 +189,17 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                         raise ValueError("Duplicate publisher unique_key")
                     seen.add(key)
                     last_key = key
-                    created = record.get("created_date")
-                    if not isinstance(created, str):
-                        raise ValueError("Missing publisher created_date")
-                    try:
-                        timestamp = dt.datetime.fromisoformat(created)
-                    except ValueError:
-                        raise ValueError("Malformed publisher created_date") from None
-                    if timestamp.tzinfo is not None or not month_start <= timestamp < month_end:
+                    timestamp = parse_floating_timestamp(record.get("created_date"), required=True)
+                    if not month_start <= timestamp < month_end:
                         raise ValueError("Publisher row outside reporting month")
-                    if any(not isinstance(record.get(f, ""), str) for f in FIELDS):
+                    # Socrata may omit an unresolved request\'s closed_date or
+                    # represent it as JSON null; both mean no closure timestamp.
+                    closed = parse_floating_timestamp(record.get("closed_date"))
+                    if any(not isinstance(record.get(f, ""), str) for f in FIELDS
+                           if f != "closed_date"):
                         raise ValueError("Invalid publisher field type")
+                    if record.get("closed_date") is None:
+                        record = {**record, "closed_date": ""}
                     local_pairs[(record.get("borough", ""), record.get("agency", ""))] += 1
                     writer.writerow({f: record.get(f, "") for f in FIELDS})
                 rows += len(page)
