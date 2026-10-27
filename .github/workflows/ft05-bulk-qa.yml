@@ -11,6 +11,7 @@ on:
       - 'review/ft05-undo-status-*'
       - 'review/ft05-source-id-find-*'
       - 'review/ft05-edit-related-groups-*'
+      - 'review/ft05-group-filter-*'
   pull_request:
     paths:
       - 'free-tools/evidence-timeline/**'
@@ -51,6 +52,11 @@ jobs:
           node --check free-tools/evidence-timeline/source-id-find.mjs
           node --check free-tools/evidence-timeline/source-id-find.test.mjs
           node free-tools/evidence-timeline/source-id-find.test.mjs
+      - name: Verify literal group search, ungrouped review and exact evidence
+        run: |
+          node --check free-tools/evidence-timeline/group-find.mjs
+          node --check free-tools/evidence-timeline/group-find.test.mjs
+          node free-tools/evidence-timeline/group-find.test.mjs
       - name: Verify user-assigned group editing and immutable source evidence
         run: |
           node --check free-tools/evidence-timeline/edit-group.mjs
@@ -93,6 +99,8 @@ jobs:
         run: python free-tools/evidence-timeline/browser-source-id-find.py
       - name: Verify group editor, invalid input, keyboard focus and exact exports in three engines
         run: python free-tools/evidence-timeline/browser-edit-group.py
+      - name: Verify group filter, Unicode, exports, keyboard focus and 320px in three engines
+        run: python free-tools/evidence-timeline/browser-group-find.py
       - name: Run synthetic 10k-record Chromium regression
         run: |
           CHROMIUM_BIN="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" python free-tools/evidence-timeline/browser-10k-basic.py
