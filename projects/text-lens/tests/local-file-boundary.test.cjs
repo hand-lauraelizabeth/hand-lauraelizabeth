@@ -201,3 +201,38 @@ test('valid external event recovers after rejection with Unicode source ID intac
  assert.equal(h.api.getDocSeq(),1);
  assert.equal(h.runs,1);
 });
+
+
+test('external import synchronizes the exact analyzed textarea with source provenance on both sides',()=>{
+ const h=harness(true);
+ h.els.a.value='Older A';h.els.b.value='Older B';
+ const textA='Café 東京\\n0007,=SUM(1,2)'.replace('\\n','\n');
+ const textB='<img src=x onerror=alert(1)> — literal source text';
+ const dispatch=detail=>h.handlers['text-lens:import']({detail});
+ dispatch({key:'a',name:'0001-東京.md',size:18,lastModified:77,text:textA});
+ assert.equal(h.els.a.value,textA);
+ assert.equal(h.env.sourceDocs.a[0].text,h.els.a.value);
+ assert.equal(h.env.sourceDocs.a[0].name,'0001-東京.md');
+ assert.equal(h.els.b.value,'Older B');
+ dispatch({key:'b',name:'b-0002.txt',size:40,text:textB});
+ assert.equal(h.els.b.value,textB);
+ assert.equal(h.env.sourceDocs.b[0].text,h.els.b.value);
+ assert.equal(h.els.a.value,textA);
+ assert.deepEqual(Array.from(h.env.sourceFiles.a),['0001-東京.md']);
+ assert.deepEqual(Array.from(h.env.sourceFiles.b),['b-0002.txt']);
+ assert.equal(h.api.getDocSeq(),2);
+ assert.equal(h.runs,2);
+});
+test('rejected external import leaves analyzed text and source evidence synchronized',()=>{
+ const h=harness(true);
+ const dispatch=detail=>h.handlers['text-lens:import']({detail});
+ dispatch({key:'a',name:'valid.txt',size:4,text:'safe'});
+ dispatch({key:'a',name:'bad.txt',size:-1,text:'different'});
+ assert.equal(h.els.a.value,'safe');
+ assert.equal(h.env.sourceDocs.a[0].text,'safe');
+ assert.equal(h.env.sourceDocs.a[0].name,'valid.txt');
+ assert.equal(h.api.fileLoadRevision.a,1);
+ assert.equal(h.api.getDocSeq(),1);
+ assert.equal(h.runs,1);
+ assert.match(h.els.status.textContent,/Import rejected/);
+});
