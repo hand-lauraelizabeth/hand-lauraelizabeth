@@ -36,7 +36,7 @@ class SyntheticPreviewContract(unittest.TestCase):
 
     def test_no_record_level_fields_or_live_data(self):
         self.assertNotRegex(self.html.lower(),
-                            r'"(?:unique_key|incident_address|latitude|longitude|descriptor|closed_date|status)"\\s*:')
+                            r'"(?:unique_key|incident_address|latitude|longitude|descriptor|closed_date|status)"\s*:')
         self.assertNotIn("fetch(", self.html)
         self.assertNotIn("XMLHttpRequest", self.html)
         self.assertIn("NOT A PUBLIC RELEASE", self.html)
@@ -58,7 +58,7 @@ class SyntheticPreviewContract(unittest.TestCase):
     def test_local_only_content_policy(self):
         for directive in ("connect-src 'none'", "default-src 'none'", "form-action 'none'"):
             self.assertIn(directive, self.html)
-        self.assertNotRegex(self.html, r'<(?:iframe|img|form)\\b')
+        self.assertNotRegex(self.html, r'<(?:iframe|img|form)\b')
 
 if __name__ == "__main__":
     unittest.main()
