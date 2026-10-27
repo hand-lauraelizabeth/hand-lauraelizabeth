@@ -17,9 +17,11 @@ export function evaluateWithProvenance(input){
  const missingSources=result.criteria.filter(c=>!hasVisibleReference(c.sourceRef));
  return {...result,comparisons:result.comparisons.map(v=>{
   const invisibleEvidence=v.detail.filter(d=>d.score!==null&&!hasVisibleReference(d.evidenceRef));
+  const unattributed=v.detail.filter(d=>d.score!==null&&!hasVisibleReference(d.reviewer));
   const flags=[...v.reviewFlags];
   for(const c of missingSources)if(c.sourceRef.trim())flags.push('Criterion source visually empty: '+c.id);
   for(const d of invisibleEvidence)if(d.evidenceRef.trim())flags.push('Evidence reference visually empty: '+d.criterionId);
+  for(const d of unattributed)flags.push('Reviewer identifier missing: '+d.criterionId);
   return {...v,scorePercent:missingSources.length||invisibleEvidence.length?null:v.scorePercent,reviewFlags:flags};
  })};
 }
@@ -56,6 +58,7 @@ export function exportEvidenceCoverageCSV(saved){
   if(!r)issues.push('Rating record missing');
   if(!r||r.score===null)issues.push('Score missing');
   if(!hasVisibleReference(r?.evidenceRef))issues.push('Evidence reference missing');
+  if(r&&r.score!==null&&!hasVisibleReference(r.reviewer))issues.push('Reviewer identifier missing');
   if(!hasVisibleReference(c.sourceRef))issues.push('Criterion source missing');
   if(c.mandatory&&r?.score!=null&&r.score<3)issues.push('Mandatory criterion requires human review');
   const row=[v.id,v.conflict,v.priceCents??'',vendorIssues.join('; '),c.id,r?.score??'',r?.evidenceRef??'',r?.note??'',r?.reviewer??'',c.sourceRef,String(c.mandatory),issues.join('; ')];
