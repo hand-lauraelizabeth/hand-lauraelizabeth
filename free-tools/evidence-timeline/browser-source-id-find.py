@@ -74,6 +74,7 @@ def main():
             snapshot=export(page)
             page.on('dialog',lambda dialog: dialog.accept())
             page.locator('#resume-json').set_input_files({'name':'synthetic.json','mimeType':'application/json','buffer':json.dumps(snapshot,ensure_ascii=False).encode('utf-8')})
+            page.locator('#resume-json-status').get_by_text('records imported locally',exact=False).wait_for(timeout=30000)
             assert find.input_value()=='' and page.locator('#review-filter').input_value()=='all'
             assert export(page)==snapshot,(engine,'import preserves exact source evidence')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),(engine,'320px reflow')
