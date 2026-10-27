@@ -96,7 +96,7 @@ class TestSourceExport(unittest.TestCase):
             self.assertEqual(receipt["aggregate_cells"], 1)
             self.assertEqual(len(receipt["aggregate_sha256"]), 64)
             self.assertTrue(receipt["cross_aggregate_verified"])
-            self.assertIn("$group=borough%2Cagency", receipt["aggregate_query_url"])
+            self.assertIn("%24group=borough%2Cagency", receipt["aggregate_query_url"])
             self.assertNotIn("QUEENS", receiptfile.read_text())
 
     def test_duplicate_or_out_of_order_keys_fail_closed(self):
