@@ -102,13 +102,17 @@
     result.missingRight.forEach(row => add('Missing second-file key', '', '', row));
     return records;
   }
-  function render(result) {
+  function render(result, coverage) {
     const categories = [
       ['One-to-one matches', result.matches.length],
       ['Ambiguous keys', result.ambiguous.length],
       ['First file only', result.leftOnly.length],
       ['Second file only', result.rightOnly.length],
-      ['Missing identifiers', result.missingLeft.length + result.missingRight.length]
+      ['Missing identifiers', result.missingLeft.length + result.missingRight.length],
+      ['First-file records classified', coverage.first.total],
+      ['Second-file records classified', coverage.second.total],
+      ['First-file records in ambiguous groups', coverage.first.ambiguous],
+      ['Second-file records in ambiguous groups', coverage.second.ambiguous]
     ];
     const grid = $('compareMetrics');
     grid.replaceChildren();
@@ -134,13 +138,16 @@
     $('compareResults').replaceChildren(table);
     $('compareExport').disabled = false;
     $('compareExportJson').disabled = false;
-    message('Comparison complete: ' + result.matches.length + ' exact one-to-one matches; ' + result.ambiguous.length + ' ambiguous identifier groups. Unmatched and missing-key records remain separate.');
+    message('Comparison complete: ' + result.matches.length + ' exact one-to-one matches; ' + result.ambiguous.length + ' ambiguous identifier groups. First-file records classified: ' + coverage.first.total + ' of ' + first.rows.length + '; second-file records classified: ' + coverage.second.total + ' of ' + second.rows.length + '. Unmatched and missing-key records remain separate.');
   }
   function compare() {
     if (!(first && second && $('leftKey').value && $('rightKey').value)) return;
     try {
       comparison = (engine.compare || engine.reconcile)(first, second, $('leftKey').value, $('rightKey').value);
-      render(comparison);
+      const coverage = root.DataRescueReconciliationEvidence.summarizeCoverage(comparison);
+      if (coverage.first.total !== first.rows.length || coverage.second.total !== second.rows.length)
+        throw Error('Comparison did not account for every record in both files.');
+      render(comparison, coverage);
     } catch (error) {
       invalidate();
       message('Unable to compare: ' + error.message, true);
