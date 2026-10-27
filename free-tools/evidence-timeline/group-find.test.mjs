@@ -16,7 +16,7 @@ check(findReviewGroups(records,'café').map(r=>r.sourceId).join()==='0001','comp
 check(findReviewGroups(records,'cafe\u0301').map(r=>r.sourceId).join()==='0002','decomposed Unicode exact');
 check(findReviewGroups(records,'CAFÉ').map(r=>r.sourceId).join()==='0005','case preserved');
 check(findReviewGroups(records,'cafe').length===1,'no Unicode normalization');
-check(findReviewGroups(records,'caf').length===1,'literal substring');
+check(findReviewGroups(records,'caf').length===2,'literal substring matches both Unicode spellings');
 check(findReviewGroups(records,'=SUM(A1)')[0].sourceId==='0004','formula-like group treated literally');
 check(findReviewGroups(records,'',true).map(r=>r.sourceId).join()==='0003','ungrouped only');
 check(findReviewGroups(records,'café',true).map(r=>r.sourceId).join()==='0003','ungrouped toggle takes precedence');
