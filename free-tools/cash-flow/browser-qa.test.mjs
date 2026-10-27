@@ -9,7 +9,7 @@ import {chromium,firefox,webkit,devices} from 'playwright';
 const root=dirname(fileURLToPath(import.meta.url));
 const assets=new Map([
   ['/','index.html'], ['/index.html','index.html'], ['/style.css','style.css'],
-  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs'], ['/plan.mjs','plan.mjs'], ['/axe.min.js','node_modules/axe-core/axe.min.js']
+  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs'], ['/plan.mjs','plan.mjs'], ['/shortfalls.mjs','shortfalls.mjs'], ['/axe.min.js','node_modules/axe-core/axe.min.js']
 ]);
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8'};
 const server=createServer((req,res)=>{
