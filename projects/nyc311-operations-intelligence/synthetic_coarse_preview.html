@@ -57,11 +57,11 @@ function initialize(){
 const borough=document.getElementById('borough'),group=document.getElementById('group'),sort=document.getElementById('sort'),results=document.getElementById('results'),summary=document.getElementById('summary'),format=new Intl.NumberFormat('en-US');
 function render(){
  const chosen=rows.filter(r=>(!borough.value||r.borough===borough.value)&&(!group.value||r.group===group.value));
- chosen.sort((a,b)=>sort.value==='high'?b.requests-a.requests||a.borough.localeCompare(b.borough):sort.value==='low'?a.requests-b.requests||a.borough.localeCompare(b.borough):a.borough.localeCompare(b.borough)||a.group.localeCompare(b.group));
+ chosen.sort((a,b)=>{const tie=a.borough.localeCompare(b.borough)||a.group.localeCompare(b.group);return sort.value==='high'?b.requests-a.requests||tie:sort.value==='low'?a.requests-b.requests||tie:tie});
  const fragment=document.createDocumentFragment();
- for(const row of chosen){const tr=document.createElement('tr');for(const value of [row.borough,row.group,format.format(row.requests)]){const td=document.createElement('td');td.textContent=value;tr.appendChild(td)}fragment.appendChild(tr)}
+ for(const row of chosen){const tr=document.createElement('tr');const heading=document.createElement('th');heading.setAttribute('scope','row');heading.textContent=row.borough;tr.appendChild(heading);for(const value of [row.group,format.format(row.requests)]){const td=document.createElement('td');td.textContent=value;tr.appendChild(td)}fragment.appendChild(tr)}
  results.replaceChildren(fragment);
- summary.textContent=chosen.length+' of 20 synthetic cells shown · '+format.format(chosen.reduce((s,r)=>s+r.requests,0))+' fabricated requests in this selection';
+ summary.textContent=chosen.length+' of 20 synthetic cells shown for '+(borough.value||'all boroughs')+' / '+(group.value||'all groups')+' · '+format.format(chosen.reduce((s,r)=>s+r.requests,0))+' fabricated requests in this selection';
 }
 for(const select of [borough,group,sort])select.addEventListener('change',render);
 document.getElementById('reset').addEventListener('click',()=>{borough.value='';group.value='';sort.value='borough';render();borough.focus()});
