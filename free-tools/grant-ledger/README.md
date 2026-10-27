@@ -4,7 +4,7 @@ A free, browser-local review tool for comparing a grant's planned budget with us
 
 ## Use
 
-Open the page from a static web server. Replace the fictional sample award, enter its dates, and add budget categories. Enter transactions with unique transaction IDs, exact source IDs, dates, amounts, assigned percentages, allocation bases, and supporting-document references. Compare planned versus assigned amounts, review flags, and download CSV or JSON. No account, financial connection, or upload is required.
+Open the page from a static web server. Replace the fictional sample award, enter its dates, and add budget categories. Enter transactions with unique transaction IDs, exact source IDs, dates, amounts, assigned percentages, allocation bases, and supporting-document references. Use **Edit** on an expenditure to correct its source, date, category, amount, allocation, basis, reference, or note without changing its transaction ID. Save recalculates totals and review flags; an invalid edit does not change saved evidence, and Cancel discards edits. Compare planned versus assigned amounts, review flags, and download CSV or JSON. No account, financial connection, or upload is required.
 
 The interface stores records only in the current tab. Export before refreshing or closing. JSON preserves text; CSV adds a spreadsheet-formula precaution that changes some values and is not universally reliable after spreadsheet re-save. Keep exported records private.
 
