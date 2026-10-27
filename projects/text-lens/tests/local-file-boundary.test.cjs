@@ -14,19 +14,25 @@ function file(name,text,overrides={}){
  const raw=typeof text==='string'?encoder.encode(text):Uint8Array.from(text);
  return {name,size:raw.byteLength,lastModified:42,arrayBuffer:async()=>raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength),...overrides};
 }
-function harness(){
+function harness(withExternalImport=false){
  const els={};
  for(const id of ['a','b','fileMetaA','fileMetaB','status']){
   els[id]={value:'',textContent:'',focused:false,focus(){this.focused=true}};
  }
  let runs=0;
+ const handlers={};
  const env={
+  root:{addEventListener(type,handler){handlers[type]=handler}},
   MAX_CHARS:400000,sourceDocs:{a:[],b:[]},sourceFiles:{a:[],b:[]},
   docSeq:0,pendingCorpusConfig:null,run(){runs++},applyCorpusSetup(){runs++},
   $(id){return els[id]},TextDecoder,Uint8Array,ArrayBuffer,Number,String,Error
  };
- const api=vm.runInNewContext(source+';({loadFiles,fileLoadRevision,getDocSeq:()=>docSeq})',env);
- return {api,env,els,get runs(){return runs}};
+ const eventStart=html.indexOf("root.addEventListener('text-lens:import',e=>{");
+ const eventEnd=html.indexOf('});run();})();',eventStart);
+ assert.ok(eventStart>0&&eventEnd>eventStart,'External import event handler must exist');
+ const eventHandler=html.slice(eventStart,eventEnd+2);
+ const api=vm.runInNewContext(source+(withExternalImport?'\n'+eventHandler:'')+';({loadFiles,fileLoadRevision,getDocSeq:()=>docSeq})',env);
+ return {api,env,els,handlers,get runs(){return runs}};
 }
 test('strict UTF-8 import preserves Unicode, exact source names and stable IDs',async()=>{
  const h=harness();
@@ -111,4 +117,33 @@ test('clear or manual edit invalidates pending read without stale focus or error
  assert.ok(html.includes("['a','b'].forEach(id=>$(id).addEventListener('input',()=>{fileLoadRevision[id]++}))"));
  assert.ok(html.includes("$('clear').onclick=()=>{fileLoadRevision.a++;fileLoadRevision.b++;"));
  assert.ok(html.includes("$('sample').onclick=()=>{fileLoadRevision.a++;fileLoadRevision.b++;"));
+});
+
+test('external corpus import cancels an older pending file read on the same side',async()=>{
+ const h=harness(true);let resolve;
+ const pending=h.api.loadFiles({files:[file('old.txt','old',{arrayBuffer:()=>new Promise(r=>resolve=r)})],value:'old'},'a','fileMetaA','a');
+ assert.equal(typeof h.handlers['text-lens:import'],'function');
+ h.handlers['text-lens:import']({detail:{key:'a',name:'new-東京.md',size:3,lastModified:77,text:'new'}});
+ resolve(encoder.encode('old').buffer);await pending;
+ assert.deepEqual(Array.from(h.env.sourceDocs.a,x=>x.name),['new-東京.md']);
+ assert.deepEqual(Array.from(h.env.sourceFiles.a),['new-東京.md']);
+ assert.equal(h.api.getDocSeq(),1);
+ assert.equal(h.api.fileLoadRevision.a,2);
+ assert.equal(h.runs,1);
+ assert.match(h.els.fileMetaA.textContent,/new-東京.md/);
+ assert.equal(h.els.a.focused,false);
+});
+test('external import invalidates only its own side, preserving another pending file',async()=>{
+ const h=harness(true);let resolve;
+ const pending=h.api.loadFiles({files:[file('a.txt','AAA',{arrayBuffer:()=>new Promise(r=>resolve=r)})],value:'a'},'a','fileMetaA','a');
+ h.handlers['text-lens:import']({detail:{key:'b',name:'b-0001.csv',size:3,lastModified:5,text:'BBB'}});
+ h.handlers['text-lens:import']({detail:{key:'invalid',name:'ignored.txt',text:'x'}});
+ resolve(encoder.encode('AAA').buffer);await pending;
+ assert.equal(h.els.a.value,'AAA');
+ assert.deepEqual(Array.from(h.env.sourceDocs.a,x=>x.name),['a.txt']);
+ assert.deepEqual(Array.from(h.env.sourceDocs.b,x=>x.name),['b-0001.csv']);
+ assert.equal(h.api.fileLoadRevision.a,1);
+ assert.equal(h.api.fileLoadRevision.b,1);
+ assert.equal(h.api.getDocSeq(),2);
+ assert.equal(h.runs,2);
 });
