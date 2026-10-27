@@ -34,5 +34,7 @@ jobs:
         run: node free-tools/grant-ledger/csv-numeric-fidelity.test.mjs
       - name: Verify existing grant ledger calculations
         run: node free-tools/grant-ledger/core.test.mjs
+      - name: Verify local expenditure correction history and exact JSON
+        run: node free-tools/grant-ledger/correction-history.test.mjs
       - name: Verify CSV and JSON export structure
         run: node free-tools/grant-ledger/csv-export-smoke.test.mjs
