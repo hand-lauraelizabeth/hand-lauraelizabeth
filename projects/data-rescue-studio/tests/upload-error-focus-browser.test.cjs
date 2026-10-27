@@ -54,7 +54,7 @@ async function checkBrowser(label,type,url){
   // The second-file upload must provide the same actionable error and recovery path.
   const second=page.locator('#compareFile');
   eq(await second.getAttribute('aria-describedby'),'compareStatus',label+' second upload references feedback');
-  await second.setInputFiles({name:'notes.txt',mimeType:'text/plain',buffer:Buffer.from('ID\\n0001')});
+  await second.setInputFiles({name:'notes.txt',mimeType:'text/plain',buffer:Buffer.from('ID\n0001')});
   eq(await page.locator('#compareStatus').getAttribute('role'),'alert',label+' second format error announced');
   eq(await second.getAttribute('aria-invalid'),'true',label+' second format error marks file');
   eq(await page.evaluate(()=>document.activeElement.id),'compareStatus',label+' second format error focused');
@@ -69,7 +69,7 @@ async function checkBrowser(label,type,url){
   eq(await page.locator('#compareStatus').getAttribute('role'),'alert',label+' second UTF-8 error announced');
   eq(await second.getAttribute('aria-invalid'),'true',label+' second UTF-8 error marks file');
   eq(await page.evaluate(()=>document.activeElement.id),'compareStatus',label+' second UTF-8 error focused');
-  await second.setInputFiles({name:'second.csv',mimeType:'text/csv',buffer:Buffer.from('ID,Note\\n0001,other\\n','utf8')});
+  await second.setInputFiles({name:'second.csv',mimeType:'text/csv',buffer:Buffer.from('ID,Note\n0001,other\n','utf8')});
   await page.waitForFunction(()=>document.querySelector('#compareStatus').textContent.includes('Loaded second file'));
   eq(await page.locator('#compareStatus').getAttribute('role'),'status',label+' valid second upload clears alert');
   eq(await second.getAttribute('aria-invalid'),'false',label+' valid second upload clears invalid flag');
