@@ -12,6 +12,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+from urllib.parse import urlencode
 
 FIELDS = ("unique_key", "created_date", "closed_date", "agency",
           "complaint_type", "borough", "status")
@@ -39,12 +40,42 @@ def audit(csv_path, receipt_path):
         start = dt.date.fromisoformat(month + "-01")
         end = (dt.date(start.year + 1, 1, 1) if start.month == 12
                else dt.date(start.year, start.month + 1, 1))
+        # Reconstruct the exact publisher queries independently of the exporter.
+        # A receipt with altered month, source, or aggregation query must not
+        # pass even when its local CSV and digest are internally consistent.
+        lower = start.isoformat() + "T00:00:00"
+        upper = end.isoformat() + "T00:00:00"
+        predicate = f"created_date >= '{lower}' AND created_date < '{upper}'"
+        base = "https://data.cityofnewyork.us"
+        resource = base + "/resource/erm2-nwe9.json"
+        count_query = resource + "?" + urlencode({
+            "$select": "count(*) as records, count(distinct unique_key) as distinct_keys",
+            "$where": predicate,
+        })
+        aggregate_query = resource + "?" + urlencode({
+            "$select": "borough,agency,count(*) as n", "$where": predicate,
+            "$group": "borough,agency", "$order": "borough,agency",
+            "$limit": 50000,
+        })
+        checked_at = receipt.get("verified_at_utc")
+        if not isinstance(checked_at, str):
+            raise ValueError("missing verification timestamp")
+        try:
+            checked_dt = dt.datetime.fromisoformat(checked_at)
+        except ValueError:
+            raise ValueError("invalid verification timestamp") from None
+        if checked_dt.tzinfo is None or checked_dt.utcoffset() != dt.timedelta(0):
+            raise ValueError("verification timestamp must be UTC")
         if (receipt.get("dataset") != "erm2-nwe9"
                 or receipt.get("publisher") != "https://data.cityofnewyork.us/d/erm2-nwe9"
                 or receipt.get("fields") != list(FIELDS)
                 or receipt.get("ordered_by") != "unique_key ASC"
                 or receipt.get("cross_aggregate_verified") is not True
-                or receipt.get("release_status") != "HOLD"):
+                or receipt.get("release_status") != "HOLD"
+                or receipt.get("where") != predicate
+                or receipt.get("metadata_url") != base + "/api/views/erm2-nwe9.json"
+                or receipt.get("count_query_url") != count_query
+                or receipt.get("aggregate_query_url") != aggregate_query):
             raise ValueError("receipt contract mismatch")
         n = receipt.get("rows")
         if (type(n) is not int or n <= 0
