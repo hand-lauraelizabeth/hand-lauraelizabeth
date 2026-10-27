@@ -151,11 +151,11 @@ test('external import invalidates only its own side, preserving another pending 
 test('external import rejects malformed or oversized event data without altering evidence',()=>{
  const bad=[
   {text:'x'.repeat(400001)},
-  {text:'x\\u0000y'.replace('\\u0000','\\u0000')},
+  {text:'x\u0000y'},
   {text:null},
   {name:''},
   {name:'x'.repeat(256)},
-  {name:'bad\\u0000.txt'.replace('\\u0000','\\u0000')},
+  {name:'bad\u0000.txt'},
   {size:-1},
   {size:5000001},
   {size:NaN},
