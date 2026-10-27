@@ -97,7 +97,7 @@ class SyntheticPreviewContract(unittest.TestCase):
         cases.append(unknown)
         reordered = list(reversed(copy.deepcopy(base)))
         cases.append(reordered)
-        script = validator + "\\nconst cases=JSON.parse(process.argv[1]);process.stdout.write(JSON.stringify(cases.map(validateFixture)));"
+        script = validator + "\nconst cases=JSON.parse(process.argv[1]);process.stdout.write(JSON.stringify(cases.map(validateFixture)));"
         run = subprocess.run([node, "-e", script, json.dumps(cases)],
                              capture_output=True, text=True, timeout=15, check=True)
         self.assertEqual(json.loads(run.stdout),
