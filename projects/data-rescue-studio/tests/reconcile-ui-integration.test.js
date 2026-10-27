@@ -20,7 +20,11 @@ class FakeElement {
     this.value = '';
     this.files = [];
     this.textContent = '';
+    this.attributes = {};
   }
+  setAttribute(name, value) { this.attributes[name] = String(value); }
+  getAttribute(name) { return this.attributes[name] ?? null; }
+  focus() { document.activeElement = this; }
   addEventListener(type, callback) { this.handlers[type] = callback; }
   append(...children) {
     this.children.push(...children);
@@ -46,6 +50,7 @@ for (const id of ids) {
 }
 const document = {
   body: new FakeElement('body'),
+  activeElement: null,
   getElementById: id => {
     assert.ok(nodes[id], 'known element: ' + id);
     return nodes[id];
@@ -75,6 +80,8 @@ async function run() {
   nodes.compareFile.files=[{name:'second.csv',size:secondSource.length,text:async()=>secondSource}];
   await nodes.compareFile.handlers.change();
   check(!nodes.rightKey.disabled,'second identifier select enabled');
+  check(nodes.compareFile.getAttribute('aria-invalid')==='false','successful second file clears invalid flag');
+  check(nodes.compareStatus.getAttribute('role')==='status','successful second file exposes status role');
   check(nodes.compareRun.disabled,'compare disabled until identifiers selected');
   nodes.leftKey.value='ID'; nodes.rightKey.value='Ref';
   nodes.leftKey.handlers.change();
@@ -110,12 +117,18 @@ async function run() {
   nodes.compareFile.files=[{name:'payload.exe',size:10,text:async()=> 'x'}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.className==='error','invalid extension produces error');
+  check(nodes.compareFile.getAttribute('aria-invalid')==='true','invalid second file marked invalid');
+  check(nodes.compareStatus.getAttribute('role')==='alert','invalid second file exposes alert role');
+  check(document.activeElement===nodes.compareStatus,'invalid second file focuses actionable error');
   check(nodes.compareRun.disabled,'invalid file cannot be compared');
   nodes.compareFile.files=[{name:'oversized.csv',size:rescue.MAX_BYTES+1,text:async()=> {throw Error('should not read');}}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.textContent.includes('larger than 5 MB'),'size rejected before read');
+  check(nodes.compareFile.getAttribute('aria-invalid')==='true','oversized second file marked invalid');
+  check(document.activeElement===nodes.compareStatus,'oversized second file focuses error');
   win.DataRescueCompareUI.setPrimary(null);
   check(nodes.leftKey.disabled,'clearing first file disables comparison');
+  check(nodes.compareFile.getAttribute('aria-invalid')==='false','first-file reset clears second-file error state');
   const riskFirst=rescue.parseDelimited('ID\n=1+2');
   const riskSecond=rescue.parseDelimited('ID\n=1+2');
   win.DataRescueCompareUI.setPrimary(riskFirst,'one.csv');

@@ -14,7 +14,7 @@
   .actions button{max-width:100%;overflow-wrap:anywhere;white-space:normal}
   button{border:1px solid var(--forest);background:var(--forest);color:white;border-radius:7px;padding:9px 14px;cursor:pointer}
   button.secondary{color:var(--forest);background:white}button:disabled{opacity:.5;cursor:not-allowed}
-  button:focus-visible,input:focus-visible,select:focus-visible,#status:focus{outline:3px solid #d58b30;outline-offset:3px}
+  button:focus-visible,input:focus-visible,select:focus-visible,#status:focus,#compareStatus:focus{outline:3px solid #d58b30;outline-offset:3px}
   .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:15px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
   .metric{background:#edf4ef;border-radius:8px;padding:10px}
@@ -45,8 +45,8 @@
 <section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
 <p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines.</p>
 <label for="compareFile"><strong>Second file (UTF-8 CSV or TSV, maximum 5 MB)</strong></label>
-<div><input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
-<p id="compareStatus" role="status" aria-live="polite">Open a first file above to compare.</p>
+<div><input id="compareFile" type="file" aria-describedby="compareStatus" aria-invalid="false" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
+<p id="compareStatus" role="status" aria-live="polite" tabindex="-1">Open a first file above to compare.</p>
 <div class="grid">
 <div><label for="leftKey"><strong>Identifier in first file</strong></label><select id="leftKey" disabled><option value="">Choose a first file</option></select></div>
 <div><label for="rightKey"><strong>Identifier in second file</strong></label><select id="rightKey" disabled><option value="">Choose a second file</option></select></div>
