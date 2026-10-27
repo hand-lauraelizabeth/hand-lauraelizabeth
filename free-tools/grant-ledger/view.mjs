@@ -31,14 +31,16 @@ export function buildInterface(){
  field(e,'Assigned to this award (%)','percent',{mode:'decimal',value:'100'});
  field(e,'Allocation basis','allocationBasis',{required:false});
  field(e,'Supporting evidence reference','evidenceRef',{required:false});
- field(e,'Notes','note',{required:false});button(e,'Add expenditure');
+ field(e,'Notes','note',{required:false});
+ const submit=button(e,'Add expenditure');submit.id='expenseSubmit';
+ const cancel=button(e,'Cancel correction','cancelExpenseEdit');cancel.hidden=true;
  const error=add(root,'div','','error');error.setAttribute('role','alert');error.tabIndex=-1;error.hidden=true;
  const status=add(root,'p','','status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const report=section('4. Budget versus recorded allocations');
  add(report,'p','','totals').setAttribute('aria-live','polite');
  const table=(headers,bodyId)=>{const wrap=add(report,'div');wrap.className='scroll';const t=add(wrap,'table');const thead=add(t,'thead');const row=add(thead,'tr');for(const h of headers){const th=add(row,'th',h);th.scope='col';}add(t,'tbody','',bodyId);};
  table(['Category','Planned','Assigned','Difference'],'budgetRows');
- add(report,'h3','Expenditures');table(['Transaction','Source','Date','Assigned','Unassigned'],'expenseRows');
+ add(report,'h3','Expenditures');table(['Transaction','Source','Date','Assigned','Unassigned','Action'],'expenseRows');
  add(report,'h3','Items requiring human review');add(report,'ul','','reviewList');
  add(report,'p','CSV export is blocked when a field contains spreadsheet-formula or control-character risks. Evidence JSON preserves your original IDs and text. All exports stay on your device.');
  const actions=add(report,'div');actions.className='actions';

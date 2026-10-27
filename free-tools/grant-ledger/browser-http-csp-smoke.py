@@ -39,6 +39,34 @@ def verify(browser_type, url, width):
     csv = Path(info.value.path()).read_text(encoding="utf-8-sig")
     assert '"000123"' in csv and '" SRC-0007 "' in csv, "CSV exact identifiers"
     assert '"500"' in csv, "integer cents preserved"
+    # Correct the recorded transaction without losing its ID or unrelated evidence.
+    edit = page.locator('#expenseRows button[data-edit-index="0"]')
+    assert edit.get_attribute("aria-label") == "Edit expenditure 000123"
+    edit.click()
+    assert expense.locator('[name="transactionId"]').input_value() == "000123"
+    assert expense.locator('[name="transactionId"]').evaluate("(e) => e.readOnly")
+    assert page.evaluate("document.activeElement.name") == "sourceId"
+    assert page.locator("#cancelExpenseEdit").is_visible()
+    expense.locator('[name="sourceId"]').fill(" SRC-CORRECTED ")
+    expense.locator('[name="amount"]').fill("8.00")
+    expense.locator('[name="note"]').fill("Corrección – \u65e5\u672c\u8a9e")
+    expense.locator('button[type="submit"]').click()
+    assert page.locator("#expenseRows tr").count() == 1
+    assert " SRC-CORRECTED " in page.locator("#expenseRows tr").first.evaluate("(e) => e.textContent")
+    assert "$8.00" in page.locator("#expenseRows").inner_text()
+    assert page.evaluate("document.activeElement.dataset.editIndex") == "0", "save restores edit focus"
+    assert "corrected" in page.locator("#status").inner_text()
+    edit = page.locator('#expenseRows button[data-edit-index="0"]')
+    edit.click()
+    expense.locator('[name="amount"]').fill("not-a-number")
+    expense.locator('button[type="submit"]').click()
+    assert page.locator("#error").is_visible(), "invalid correction reported"
+    assert page.evaluate("document.activeElement.id") == "error"
+    assert "$8.00" in page.locator("#expenseRows").inner_text(), "invalid correction must not change saved amount"
+    page.locator("#cancelExpenseEdit").click()
+    assert page.locator("#error").is_hidden()
+    assert page.evaluate("document.activeElement.dataset.editIndex") == "0", "cancel restores edit focus"
+    assert "$8.00" in page.locator("#expenseRows").inner_text(), "cancel retains saved amount"
     # Review flags must carry the exact source, transaction, and category IDs.
     # The synthetic HTML-looking identifier must remain inert text.
     unsafe_source = " SRC-0008 <img src=x onerror=alert(1)> "
@@ -77,7 +105,10 @@ def verify(browser_type, url, width):
     import json
     evidence = json.loads(data)
     assert evidence["lines"][1]["label"] == "=2+2", "JSON retains risky original"
-    assert evidence["expenses"][0]["sourceId"] == " SRC-0007 "
+    assert evidence["expenses"][0]["transactionId"] == "000123", "correction preserves transaction ID"
+    assert evidence["expenses"][0]["sourceId"] == " SRC-CORRECTED ", "corrected source ID exact"
+    assert evidence["expenses"][0]["totalCents"] == 800, "corrected amount preserved"
+    assert evidence["expenses"][0]["note"] == "Corrección – 日本語", "corrected Unicode preserved"
     assert evidence["expenses"][1]["sourceId"] == unsafe_source, "JSON preserves untrusted source ID exactly"
     assert page.locator("#error").is_hidden(), "successful Evidence JSON must clear stale CSV error"
     assert "grant-evidence.json downloaded" in page.locator("#status").inner_text(), "JSON success announced"
