@@ -49,6 +49,7 @@ try{
    check(summary.includes('lowest -50.00 USD'),name+' baseline lowest balance');
    check(summary.includes('longest consecutive span 2 days'),name+' baseline consecutive span');
    check(summary.includes('Scenario: no projected below-zero end-of-day dates'),name+' shifted scenario removes modeled below-zero days');
+   check(summary.includes('Compared with baseline: 2 dates no longer below zero (first 2026-10-02); 0 dates newly below zero.'),name+' modeled date improvement disclosed');
    check(summary.includes('intraday funds or overdraft rules'),name+' explicit modeling limitation');
    const balances=await page.locator('#results tr').evaluateAll(rows=>rows.map(r=>[...r.querySelectorAll('td')].map(c=>c.textContent)));
    assert.deepEqual(balances,[
@@ -68,6 +69,17 @@ try{
    await page.locator('#calculate').click();
    const noShift=await page.locator('#shortfall-summary').innerText();
    check(noShift.includes('Scenario: 2 projected below-zero end-of-day dates'),name+' scenario recalculated after shift removal');
+   check(noShift.includes('Compared with baseline: 0 dates no longer below zero; 0 dates newly below zero.'),name+' unchanged scenario comparison');
+   // Delaying the paycheck beyond the window introduces newly negative dates.
+   await page.locator('#shift-id').selectOption('pay-0002');
+   await page.locator('#shift-days').fill('2');
+   await page.locator('#calculate').click();
+   const delayedPay=await page.locator('#shortfall-summary').innerText();
+   check(delayedPay.includes('2 dates newly below zero (first 2026-10-04)'),name+' delayed income newly negative dates');
+   check(delayedPay.includes('0 dates no longer below zero'),name+' no falsely resolved dates');
+   const [newDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#export-json').click()]);
+   const delayedJSON=JSON.parse(readFileSync(await newDownload.path(),'utf8'));
+   check(delayedJSON.days[4].balanceCents===-5000,name+' exported JSON still uses exact projected cents');
    check(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),name+' 375px no horizontal page overflow');
    check(errors.length===0,name+' no uncaught exceptions: '+errors.join('; '));
    check(offsite.length===0,name+' no offsite requests: '+offsite.join('; '));
