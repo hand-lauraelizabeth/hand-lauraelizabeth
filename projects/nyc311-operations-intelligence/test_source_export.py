@@ -2,8 +2,10 @@
 import csv
 from collections import Counter
 import json
+import os
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -209,6 +211,36 @@ class TestSourceExport(unittest.TestCase):
                                page_size=2)
             self.assertEqual(receipt["aggregate_cells"], 3)
             self.assertEqual(receipt["rows"], 3)
+
+    def test_late_csv_collision_never_overwrites_other_writer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            original_link = os.link
+            def race(src, dst):
+                if Path(dst) == csvfile:
+                    csvfile.write_text("protected concurrent CSV", encoding="utf-8")
+                return original_link(src, dst)
+            with patch("source_export.os.link", side_effect=race):
+                with self.assertRaises(FileExistsError):
+                    download("2026-09", csvfile, receiptfile, fetch=FakePublisher())
+            self.assertEqual(csvfile.read_text(encoding="utf-8"), "protected concurrent CSV")
+            self.assertFalse(receiptfile.exists())
+            self.assertEqual(list(Path(tmp).glob(".nyc311-*")), [])
+
+    def test_late_receipt_collision_preserves_receipt_and_rolls_back_csv(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            original_link = os.link
+            def race(src, dst):
+                if Path(dst) == receiptfile:
+                    receiptfile.write_text("protected concurrent receipt", encoding="utf-8")
+                return original_link(src, dst)
+            with patch("source_export.os.link", side_effect=race):
+                with self.assertRaises(FileExistsError):
+                    download("2026-09", csvfile, receiptfile, fetch=FakePublisher())
+            self.assertFalse(csvfile.exists())
+            self.assertEqual(receiptfile.read_text(encoding="utf-8"), "protected concurrent receipt")
+            self.assertEqual(list(Path(tmp).glob(".nyc311-*")), [])
 
     def test_page_size_bounds(self):
         with tempfile.TemporaryDirectory() as tmp:
