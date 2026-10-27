@@ -25,4 +25,9 @@ const missing=evaluateWithProvenance({...input,ratings:[{...input.ratings[0],evi
 check(missing.comparisons[0].scorePercent,null);
 check(exportEvidenceCoverageCSV(missing).includes('Evidence reference missing'),true);
 check(input.ratings[0].evidenceRef,'EV-0001');
+const noReviewer=evaluateWithProvenance({...input,ratings:[{...input.ratings[0],reviewer:'\u200b\u0301'}]});
+check(noReviewer.comparisons[0].reviewFlags.includes('Reviewer identifier missing: C-0001'),true);
+check(noReviewer.comparisons[0].scorePercent,80);
+check(exportEvidenceCoverageCSV(noReviewer).includes('Reviewer identifier missing'),true);
+check(exportEvidenceCoverageCSV(result).includes('Reviewer identifier missing'),false);
 console.log(`FT-07 provenance regression: ${count}/${count} assertions PASS`);
