@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: '22'
       - run: node free-tools/grant-ledger/core.test.mjs
+      - run: node free-tools/grant-ledger/correction-history.test.mjs
       - run: node free-tools/grant-ledger/boundary-regression.test.mjs
       - run: node free-tools/grant-ledger/export-invariants.test.mjs
       - run: node free-tools/grant-ledger/csp-contract.test.mjs
