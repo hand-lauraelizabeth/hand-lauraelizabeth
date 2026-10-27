@@ -236,3 +236,41 @@ test('rejected external import leaves analyzed text and source evidence synchron
  assert.equal(h.runs,1);
  assert.match(h.els.status.textContent,/Import rejected/);
 });
+
+
+test('table CSV fails closed on formula-like source names and retains exact JSON-compatible rows',()=>{
+ const start=html.indexOf('function csvEscape(v){'),end=html.indexOf('function docDescriptor(',start);
+ const riskStart=html.indexOf('function cueCsvRisk(value){'),riskEnd=html.indexOf('function cueCsvCell(',riskStart);
+ assert.ok(start>0&&end>start&&riskStart>0&&riskEnd>riskStart);
+ const source=html.slice(riskStart,riskEnd)+'\n'+html.slice(start,end);
+ const status={textContent:'',focused:false,focus(){this.focused=true}};
+ const create=name=>{
+  const docs={a:[{id:'a-1',name,text:'safe words'}],b:[]};
+  const context={
+   sourceDocs:docs,lastA:{W:2,freq:{safe:2},collocs:[]},lastB:null,lastCompare:false,
+   topEntries:freq=>Object.entries(freq),corpusRows:()=>[],corpusComparison:()=>({similarity:[],keyness:[]}),
+   kwicTarget:()=>null,kwic:()=>[],analyze:()=>({W:2,flesch:-3,mattr50:NaN,herdan:0,S:1}),
+   $:()=>({value:''}),fmt:String,Blob,URL:{createObjectURL(){throw Error('Unexpected download')}},
+   document:{createElement(){throw Error('Unexpected download')}},setTimeout
+  };
+  context.$=id=>id==='status'?status:{value:''};
+  return vm.runInNewContext(source+';({tableRows,tableCsv,downloadTables})',context);
+ };
+ for(const name of ['=1+1',"'=1+1",'＋1+1',' \t=1+1','safe\r=1+1']){
+  status.textContent='';status.focused=false;
+  const api=create(name);
+  assert.throws(()=>api.tableCsv(),/Unsafe spreadsheet table cell/);
+  assert.equal(api.tableRows().find(row=>row[0]==='document_summary')[2],name);
+  api.downloadTables();
+  assert.match(status.textContent,/CSV export blocked.*JSON instead/);
+  assert.equal(status.focused,true);
+  assert.equal(status.tabIndex,-1);
+ }
+ const safe=create('résumé-東京.csv');
+ const csv=safe.tableCsv();
+ assert.match(csv,/résumé-東京\.csv/);
+ assert.match(csv,/-3/);
+ assert.equal(safe.tableRows().find(row=>row[0]==='document_summary')[2],'résumé-東京.csv');
+ assert.match(html,/id="downloadTablesJson"/);
+ assert.match(html,/\$\('downloadTablesJson'\)\.onclick=downloadTablesJson/);
+});
