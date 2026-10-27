@@ -16,6 +16,14 @@ import re
 FIELDS = ("unique_key", "created_date", "closed_date", "agency",
           "complaint_type", "borough", "status")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
+FLOATING_TIMESTAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?\Z")
+
+
+def parse_source_timestamp(value):
+    """Require full timezone-free Socrata floating timestamp, not date-only."""
+    if not FLOATING_TIMESTAMP.fullmatch(value):
+        raise ValueError("not a floating timestamp")
+    return dt.datetime.fromisoformat(value)
 
 
 def audit(csv_path, receipt_path):
@@ -80,7 +88,7 @@ def audit(csv_path, receipt_path):
                 seen.add(key)
                 last = key
                 try:
-                    created = dt.datetime.fromisoformat(record["created_date"])
+                    created = parse_source_timestamp(record["created_date"])
                 except ValueError:
                     codes.add("CREATED_DATE_INVALID")
                 else:
@@ -88,6 +96,11 @@ def audit(csv_path, receipt_path):
                             dt.datetime.combine(start, dt.time.min)
                             <= created < dt.datetime.combine(end, dt.time.min)):
                         codes.add("CREATED_DATE_OUTSIDE_MONTH")
+                if record["closed_date"]:
+                    try:
+                        parse_source_timestamp(record["closed_date"])
+                    except ValueError:
+                        codes.add("CLOSED_DATE_INVALID")
                 pairs[(record["borough"], record["agency"])] += 1
                 rows += 1
         if rows != n or len(seen) != receipt["distinct_keys"]:

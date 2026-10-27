@@ -92,7 +92,7 @@ class ReceiptAuditTests(unittest.TestCase):
     def test_tz_bearing_date_fails(self):
         self.rows[0][1] = "2026-09-01T00:00:00+00:00"
         self.write()
-        self.assertIn("CREATED_DATE_OUTSIDE_MONTH", self.codes())
+        self.assertIn("CREATED_DATE_INVALID", self.codes())
 
     def test_row_count_mismatch(self):
         self.receipt["rows"] = 4
@@ -112,6 +112,28 @@ class ReceiptAuditTests(unittest.TestCase):
     def test_missing_receipt_rejected(self):
         self.receiptfile.unlink()
         self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+
+    def test_date_only_created_fails_even_with_matching_receipt_digests(self):
+        self.rows[0][1] = "2026-09-01"
+        self.write()
+        self.assertIn("CREATED_DATE_INVALID", self.codes())
+        self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_malformed_closed_fails_even_with_matching_receipt_digests(self):
+        for value in ("2026-09-01", "2026-09-01T11:00:00+00:00",
+                      "2026-02-30T11:00:00", "invalid"):
+            with self.subTest(value=value):
+                self.rows[0][2] = value
+                self.write()
+                self.assertIn("CLOSED_DATE_INVALID", self.codes())
+                self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_valid_fractional_closed_and_blank_closure_pass_internal_checks(self):
+        self.rows[0][2] = "2026-09-01T12:30:00.123"
+        self.rows[1][2] = ""
+        self.write()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+        self.assertNotIn("CLOSED_DATE_INVALID", self.codes())
 
 
 if __name__ == "__main__":
