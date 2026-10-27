@@ -6,17 +6,46 @@ import {createImportFeedback} from './import-feedback.mjs';
 import {previewReplacement, replacementConfirmation} from './replacement-preview.mjs';
 import {reviewStatusSummary} from './review-filter.mjs';
 import {findSourceIds} from './source-id-find.mjs';
+import {setReviewGroup} from './edit-group.mjs';
 import {STATUS_OPTIONS} from './reclassify.mjs';
 import {changeReviewStatus, undoReviewStatus} from './undo-status.mjs';
 const $ = id => document.getElementById(id);
 let records = [];
 let pendingStatusUndo = null;
+let editingGroupId = null;
 const form=$('entry-form'), error=$('error'), list=$('records');
 const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=String(value);return e;};
 function clearStatusUndo(){pendingStatusUndo=null;$('undo-status').hidden=true;$('undo-status').disabled=true;}
 function offerStatusUndo(change){pendingStatusUndo=change;$('undo-status').hidden=false;$('undo-status').disabled=false;}
 function showError(message,field){error.textContent=message;error.hidden=false; if(field){const input=$(field);input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby','error');}error.focus();}
 function clearError(){error.hidden=true;error.textContent='';for(const field of form.elements)if(field.removeAttribute){field.removeAttribute('aria-invalid');field.removeAttribute('aria-describedby');}}
+function stopGroupEdit(){
+  editingGroupId=null;
+  $('group-edit-panel').hidden=true;
+  $('group-edit-form').reset();
+  $('group-edit-error').hidden=true;
+  $('group-edit-error').textContent='';
+  $('group-edit-value').removeAttribute('aria-invalid');
+  $('group-edit-value').removeAttribute('aria-describedby');
+}
+function focusGroupEditButton(sourceId){
+  const button=[...list.querySelectorAll('button[data-edit-group]')].find(item=>item.dataset.editGroup===sourceId);
+  (button||$('count')).focus();
+}
+function beginGroupEdit(record){
+  if(editingGroupId!==null && editingGroupId!==record.sourceId &&
+      !window.confirm('Discard the unsaved group edit and open another record?')) return;
+  editingGroupId=record.sourceId;
+  $('group-edit-form').reset();
+  $('group-edit-error').hidden=true;
+  $('group-edit-error').textContent='';
+  $('group-edit-value').removeAttribute('aria-invalid');
+  $('group-edit-value').setAttribute('aria-describedby','group-edit-help');
+  $('group-edit-source').textContent='Source ID: '+record.sourceId;
+  $('group-edit-value').value=record.group;
+  $('group-edit-panel').hidden=false;
+  $('group-edit-value').focus();
+}
 function render(){
   list.replaceChildren();const report=summary(records);
   const selected=$('review-filter').value;const query=$('source-find').value;
@@ -47,7 +76,12 @@ function render(){
       }catch(e){$('change-status-message').textContent='Review status could not be updated.';render();$('count').focus();}
     });
     item.append(statusSelect);
-    const remove=text('button','Remove '+r.sourceId);remove.type='button';remove.setAttribute('aria-label','Remove record '+r.sourceId);remove.addEventListener('click',()=>{if(!window.confirm('Remove this record from this tab? This cannot be undone unless you have an export.'))return;records=records.filter(x=>x.sourceId!==r.sourceId);clearStatusUndo();render();$('count').focus();});item.append(remove);list.append(item);}
+    const editGroup=text('button','Edit group for '+r.sourceId);
+    editGroup.type='button';
+    editGroup.dataset.editGroup=r.sourceId;
+    editGroup.addEventListener('click',()=>beginGroupEdit(r));
+    item.append(editGroup);
+    const remove=text('button','Remove '+r.sourceId);remove.type='button';remove.setAttribute('aria-label','Remove record '+r.sourceId);remove.addEventListener('click',()=>{if(!window.confirm('Remove this record from this tab? This cannot be undone unless you have an export.'))return;records=records.filter(x=>x.sourceId!==r.sourceId);if(editingGroupId===r.sourceId)stopGroupEdit();clearStatusUndo();render();$('count').focus();});item.append(remove);list.append(item);}
   const risk=csvExportRisk(records);
   $('csv').disabled=records.length===0||Boolean(risk);
   $('json').disabled=records.length===0;
@@ -58,6 +92,31 @@ $('count').tabIndex=-1;
 $('review-filter').addEventListener('change',render);
 $('source-find').addEventListener('input',render);
 $('clear-source-find').addEventListener('click',()=>{$('source-find').value='';render();$('source-find').focus();});
+$('group-edit-form').addEventListener('submit',event=>{
+  event.preventDefault();
+  if(editingGroupId===null)return;
+  const sourceId=editingGroupId;
+  try{
+    records=setReviewGroup(records,sourceId,$('group-edit-value').value);
+    clearStatusUndo();
+    stopGroupEdit();
+    render();
+    focusGroupEditButton(sourceId);
+    $('change-status-message').textContent='Related-record group saved for '+sourceId+'.';
+  }catch(e){
+    $('group-edit-error').textContent='Group not saved: '+String(e.message||e);
+    $('group-edit-error').hidden=false;
+    $('group-edit-value').setAttribute('aria-invalid','true');
+    $('group-edit-value').setAttribute('aria-describedby','group-edit-help group-edit-error');
+    $('group-edit-error').focus();
+  }
+});
+$('cancel-group-edit').addEventListener('click',()=>{
+  const sourceId=editingGroupId;
+  stopGroupEdit();
+  focusGroupEditButton(sourceId);
+  $('change-status-message').textContent='Group edit cancelled. No evidence changed.';
+});
 $('undo-status').addEventListener('click',()=>{
   const change=pendingStatusUndo;
   try{
@@ -82,7 +141,7 @@ form.addEventListener('submit',event=>{
 function download(filename,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 $('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportSafeEvidenceCSV(records),'text/csv;charset=utf-8'));
 $('json').addEventListener('click',()=>download('evidence-timeline-exact.json',JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n','application/json'));
-$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];clearStatusUndo();$('review-filter').value='all';$('source-find').value='';render();$('sourceId').focus();}});
+$('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];stopGroupEdit();clearStatusUndo();$('review-filter').value='all';$('source-find').value='';render();$('sourceId').focus();}});
 
 const timeline=document.querySelector('[aria-labelledby="timeline-heading"]');
 const section=document.createElement('section');
@@ -105,6 +164,7 @@ input.addEventListener('change',async()=>{
    const impact=previewReplacement(records,next);
    if(window.confirm(replacementConfirmation(impact))){
      records=next;
+     stopGroupEdit();
      clearStatusUndo();
      // A filter from the replaced working set must not conceal imported evidence.
      $('review-filter').value='all';
