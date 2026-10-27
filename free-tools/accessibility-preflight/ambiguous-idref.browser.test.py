@@ -88,9 +88,12 @@ def main():
                 viewport: innerWidth,
                 scroll: document.documentElement.scrollWidth,
                 elements: [...document.querySelectorAll('body *')]
-                    .filter(el => el.getBoundingClientRect().right > innerWidth + 1)
-                    .slice(0, 6)
-                    .map(el => ({tag: el.tagName, id: el.id, right: Math.round(el.getBoundingClientRect().right)}))
+                    .filter(el => el.getBoundingClientRect().right > innerWidth + 1 ||
+                                  el.scrollWidth > el.clientWidth + 1)
+                    .slice(0, 10)
+                    .map(el => ({tag: el.tagName, id: el.id,
+                                 right: Math.round(el.getBoundingClientRect().right),
+                                 scroll: el.scrollWidth, client: el.clientWidth}))
             })""")
             assert overflow["scroll"] <= overflow["viewport"], f"400% text reflow: {overflow}"
             checks += 1
