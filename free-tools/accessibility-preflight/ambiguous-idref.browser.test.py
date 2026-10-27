@@ -46,7 +46,7 @@ def main():
         ('<span id="hint">First</span><span id="Hint">Second</span><input aria-describedby="hint">',
          set()),
         ('<span id="unused">A</span><span id="unused">B</span><input aria-describedby="hint">',
-         set()),
+         {"unresolved-id-reference"}),
         ('<input id="field"><input id="field"><label for="field">Name</label>',
          {"ambiguous-label-target"}),
         ('<input id="field"><label for="field">Name</label>',
@@ -58,6 +58,19 @@ def main():
          set()),
         ('<span id="x">One</span><span id="x">Two</span><input aria-labelledby="x x">',
          {"ambiguous-id-reference"}),
+        # U+00A0/U+202F are valid characters inside a single exact ID token.
+        ('<span id="claim\\u00a001">A</span><input aria-describedby="claim\\u00a001">',
+         set()),
+        ('<span id="claim\\u00a001">A</span><span id="claim\\u00a001">B</span>'
+         '<input aria-describedby="claim\\u00a001">', {"ambiguous-id-reference"}),
+        ('<span id="claim\\u202f01">A</span><input aria-labelledby="claim\\u202f01">',
+         set()),
+        ('<table><tr><th id="head\\u00a001">A</th><th id="head\\u00a001">B</th></tr>'
+         '<tr><td headers="head\\u00a001">Cell</td></tr></table>',
+         {"ambiguous-table-header"}),
+        ('<span id="one">A</span><span id="two">B</span>'
+         '<input aria-describedby="one\\ttwo">', set()),
+
     ]
     with served() as origin, sync_playwright() as pw:
         browser = getattr(pw, engine).launch(headless=True)
@@ -78,7 +91,7 @@ def main():
                 headings = page.locator("#findings li strong").all_text_contents()
                 rules = {heading.split(": ", 1)[1].split(" (", 1)[0]
                          for heading in headings if ": " in heading}
-                selected = rules & {"ambiguous-id-reference",
+                selected = rules & {"ambiguous-id-reference", "unresolved-id-reference",
                                     "ambiguous-label-target", "ambiguous-table-header"}
                 assert selected == expected, (markup, selected, expected)
                 assert "preliminary checks" in page.locator("#summary").inner_text()
