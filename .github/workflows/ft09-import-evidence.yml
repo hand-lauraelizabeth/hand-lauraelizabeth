@@ -53,3 +53,4 @@ jobs:
           python free-tools/public-records/form-error-recovery.test.py
           python free-tools/public-records/status-edit.test.py
           python free-tools/public-records/request-metadata-edit.test.py
+          python free-tools/public-records/event-correction.test.py
