@@ -6,7 +6,7 @@ const byId=id=>document.getElementById(id);
 const say=message=>{byId('status').textContent=message;};
 const field=(form,name)=>form.elements.namedItem(name).value;
 const node=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;return el;};
-function renderEvent(e,list){
+function renderEvent(e,list,draft){
   const item=document.createElement('li');
   item.dataset.eventId=e.id;
   item.append(node('p',`${e.date} — Event ${e.id} — Request ${e.requestId} — ${e.kind}: ${e.description}${e.sourceId?' [source '+e.sourceId+']':''}`));
@@ -50,7 +50,7 @@ function renderEvent(e,list){
       const next=validateWorkspace({...state,events:state.events.map(event=>
         event.id===e.id?{...event,date:dateInput.value,kind:kindSelect.value,
           sourceId:sourceInput.value,description:descriptionInput.value}:event)});
-      state=next;render();
+      state=next;render({discardEventDraftId:e.id});
       const updated=[...byId('events').children].find(li=>li.dataset.eventId===e.id);
       updated?.querySelector('summary')?.focus();
       say(`Corrected event ${e.id}. Its event ID and related request were preserved; review the updated chronology and documentation flags.`);
@@ -72,14 +72,52 @@ function renderEvent(e,list){
     }
   });
   cancel.addEventListener('click',()=>{
-    render();
+    render({discardEventDraftId:e.id});
     const restored=[...byId('events').children].find(li=>li.dataset.eventId===e.id);
     restored?.querySelector('summary')?.focus();
     say(`Cancelled changes to event ${e.id}; no records were changed.`);
   });
+  // Unsaved edits are transient UI state, never part of JSON/CSV evidence.
+  if(draft){
+    details.open=true;
+    dateInput.value=draft.date;
+    kindSelect.value=draft.kind;
+    sourceInput.value=draft.sourceId;
+    descriptionInput.value=draft.description;
+    for(const [input,invalid] of [[dateInput,draft.invalidDate],
+      [sourceInput,draft.invalidSource],[descriptionInput,draft.invalidDescription]]){
+      if(invalid)input.setAttribute('aria-invalid','true');
+    }
+    if(draft.error){error.textContent=draft.error;error.hidden=false;}
+  }
   editor.append(save,cancel,error);details.append(editor);item.append(details);list.append(item);
 }
-function render(){
+function captureEventDrafts(){
+  const drafts=new Map();
+  for(const item of byId('events').children){
+    const details=item.querySelector('details');
+    if(!details?.open)continue;
+    const editor=details.querySelector('.event-editor');
+    if(!editor)continue;
+    const inputs=editor.querySelectorAll('input');
+    const kind=editor.querySelector('select');
+    const description=editor.querySelector('textarea');
+    const error=editor.querySelector('[role="alert"]');
+    if(inputs.length!==2 || !kind || !description || !error)continue;
+    drafts.set(item.dataset.eventId,{
+      date:inputs[0].value,kind:kind.value,sourceId:inputs[1].value,
+      description:description.value,
+      invalidDate:inputs[0].getAttribute('aria-invalid')==='true',
+      invalidSource:inputs[1].getAttribute('aria-invalid')==='true',
+      invalidDescription:description.getAttribute('aria-invalid')==='true',
+      error:error.hidden?'':error.textContent
+    });
+  }
+  return drafts;
+}
+function render({discardEventDraftId=null}={}){
+  const drafts=captureEventDrafts();
+  if(discardEventDraftId!==null)drafts.delete(discardEventDraftId);
   const requestList=byId('requests'), eventList=byId('events'), flagList=byId('flags'), selector=byId('request-select');
   requestList.replaceChildren();eventList.replaceChildren();flagList.replaceChildren();
   const selected=selector.value;selector.replaceChildren(node('option','Select a request'));selector.firstChild.value='';
@@ -137,7 +175,7 @@ function render(){
     const opt=node('option',`${r.id} — ${r.agency}`);opt.value=r.id;selector.append(opt);
   });
   if([...selector.options].some(x=>x.value===selected)) selector.value=selected;
-  for(const e of chronology(state)) renderEvent(e,eventList);
+  for(const e of chronology(state)) renderEvent(e,eventList,drafts.get(e.id));
   for(const item of reviewFlags(state)) flagList.append(node('li',`${item.requestId}: ${item.flags.join('; ')}`));
   if(!state.requests.length)requestList.append(node('p','No requests yet.'));
   if(!state.events.length)eventList.append(node('li','No dated events yet.'));
