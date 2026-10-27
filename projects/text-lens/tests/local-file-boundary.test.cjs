@@ -256,7 +256,7 @@ test('table CSV fails closed on formula-like source names and retains exact JSON
   context.$=id=>id==='status'?status:{value:''};
   return vm.runInNewContext(source+';({tableRows,tableCsv,downloadTables})',context);
  };
- for(const name of ['=1+1',"'=1+1",'＋1+1',' \\t=1+1','safe\\r=1+1']){
+ for(const name of ['=1+1',"'=1+1",'＋1+1',' \t=1+1','safe\r=1+1']){
   status.textContent='';status.focused=false;
   const api=create(name);
   assert.throws(()=>api.tableCsv(),/Unsafe spreadsheet table cell/);
@@ -268,9 +268,9 @@ test('table CSV fails closed on formula-like source names and retains exact JSON
  }
  const safe=create('résumé-東京.csv');
  const csv=safe.tableCsv();
- assert.match(csv,/résumé-東京\\.csv/);
+ assert.match(csv,/résumé-東京\.csv/);
  assert.match(csv,/-3/);
  assert.equal(safe.tableRows().find(row=>row[0]==='document_summary')[2],'résumé-東京.csv');
  assert.match(html,/id="downloadTablesJson"/);
- assert.match(html,/\\$\\('downloadTablesJson'\\)\\.onclick=downloadTablesJson/);
+ assert.match(html,/\$\('downloadTablesJson'\)\.onclick=downloadTablesJson/);
 });
