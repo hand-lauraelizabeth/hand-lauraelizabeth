@@ -5,7 +5,6 @@ Input: a locally downloaded CSV export of the official NYC Open Data
 This does not publish individual request locations or addresses.
 """
 import argparse
-import calendar
 import collections
 import csv
 import datetime as dt
@@ -60,9 +59,13 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None,
             month_start = dt.date.fromisoformat(reporting_month + "-01")
         except ValueError:
             raise ValueError("Invalid required reporting month") from None
-        last_day = calendar.monthrange(month_start.year, month_start.month)[1]
-        if as_of_day < month_start.replace(day=last_day):
-            raise ValueError("Snapshot precedes end of required reporting month")
+        # A date-only as-of value cannot attest to the entire reporting
+        # month until its first subsequent calendar day (including Dec→Jan).
+        first_after = (dt.date(month_start.year + 1, 1, 1)
+                       if month_start.month == 12 else
+                       dt.date(month_start.year, month_start.month + 1, 1))
+        if as_of_day < first_after:
+            raise ValueError("Snapshot precedes completion of required reporting month")
         if expected_sha256 is None or expected_rows is None:
             raise ValueError("Full-month cohort requires independent SHA-256 and row count")
     if (expected_sha256 is None) != (expected_rows is None):
