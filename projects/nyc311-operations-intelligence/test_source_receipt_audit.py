@@ -203,5 +203,32 @@ class ReceiptAuditTests(unittest.TestCase):
         self.assertNotIn("CLOSED_DATE_INVALID", self.codes())
 
 
+
+    def test_source_swap_between_digest_and_parsing_is_rejected(self):
+        """A valid digest of file A must not validate parsed bytes from file B."""
+        from unittest.mock import patch
+        original_open = Path.open
+        source_opens = 0
+
+        def swap_on_second_open(path, mode="r", *args, **kwargs):
+            nonlocal source_opens
+            if Path(path) == self.csvfile:
+                source_opens += 1
+                if source_opens == 2:
+                    # Same-length replacement preserves row count and the
+                    # borough-by-agency digest; only a source-byte binding
+                    # across parsing can detect this interleaving.
+                    alternate = self.csvfile.with_suffix(".replacement")
+                    alternate.write_bytes(self.csvfile.read_bytes().replace(
+                        b"Category X", b"Category Z"))
+                    alternate.replace(self.csvfile)
+            return original_open(path, mode, *args, **kwargs)
+
+        with patch.object(Path, "open", swap_on_second_open):
+            codes = self.codes()
+        self.assertGreaterEqual(source_opens, 2)
+        self.assertIn("CSV_CHANGED_DURING_AUDIT", codes)
+        self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", codes)
+
 if __name__ == "__main__":
     unittest.main()
