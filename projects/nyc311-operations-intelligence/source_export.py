@@ -6,6 +6,7 @@ for downstream QA, but does NOT establish a transactional/immutable snapshot.
 The resulting CSV and receipt must remain in private storage.
 """
 import argparse
+from collections import Counter
 import csv
 import datetime as dt
 import hashlib
@@ -71,6 +72,41 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$where": predicate
     })
 
+    aggregate_url = api_url("/resource/" + DATASET + ".json", {
+        "$select": "borough,agency,count(*) as n", "$where": predicate,
+        "$group": "borough,agency", "$order": "borough,agency",
+        "$limit": PAGE_MAX
+    })
+
+    def official_pairs(expected_rows):
+        data = fetch(aggregate_url)
+        if not isinstance(data, list) or not data or len(data) >= PAGE_MAX:
+            raise ValueError("Invalid or potentially truncated official aggregate")
+        pairs = {}
+        for item in data:
+            if not isinstance(item, dict):
+                raise ValueError("Malformed official aggregate")
+            borough, agency = item.get("borough", ""), item.get("agency", "")
+            # SoQL omits null grouping fields in some JSON responses.
+            borough = "" if borough is None else borough
+            agency = "" if agency is None else agency
+            if not isinstance(borough, str) or not isinstance(agency, str):
+                raise ValueError("Invalid official aggregate dimension")
+            try:
+                raw = item["n"]
+                if isinstance(raw, bool) or not str(raw).isdigit():
+                    raise ValueError
+                n = int(raw)
+            except (KeyError, TypeError, ValueError):
+                raise ValueError("Invalid official aggregate count") from None
+            key = (borough, agency)
+            if n <= 0 or key in pairs:
+                raise ValueError("Duplicate or nonpositive official aggregate")
+            pairs[key] = n
+        if sum(pairs.values()) != expected_rows:
+            raise ValueError("Official aggregate total differs from source count")
+        return pairs
+
     def metadata():
         obj = fetch(meta_url)
         stamp = obj.get("rowsUpdatedAt") if isinstance(obj, dict) else None
@@ -93,9 +129,13 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
 
     before_update = metadata()
     expected = counts()
+    before_pairs = official_pairs(expected)
     if verified_at is None:
         verified_at = dt.datetime.now(dt.timezone.utc).isoformat()
     seen = set()
+    local_pairs = Counter()
+    month_start = dt.datetime.fromisoformat(lower)
+    month_end = dt.datetime.fromisoformat(upper)
     rows = 0
     pages = 0
     last_key = None
@@ -133,10 +173,18 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                         raise ValueError("Duplicate publisher unique_key")
                     seen.add(key)
                     last_key = key
-                    if not isinstance(record.get("created_date"), str):
+                    created = record.get("created_date")
+                    if not isinstance(created, str):
                         raise ValueError("Missing publisher created_date")
+                    try:
+                        timestamp = dt.datetime.fromisoformat(created)
+                    except ValueError:
+                        raise ValueError("Malformed publisher created_date") from None
+                    if timestamp.tzinfo is not None or not month_start <= timestamp < month_end:
+                        raise ValueError("Publisher row outside reporting month")
                     if any(not isinstance(record.get(f, ""), str) for f in FIELDS):
                         raise ValueError("Invalid publisher field type")
+                    local_pairs[(record.get("borough", ""), record.get("agency", ""))] += 1
                     writer.writerow({f: record.get(f, "") for f in FIELDS})
                 rows += len(page)
                 pages += 1
@@ -146,6 +194,16 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Publisher row/key count mismatch")
         if metadata() != before_update or counts() != expected:
             raise ValueError("Publisher source changed during export")
+        after_pairs = official_pairs(expected)
+        if after_pairs != before_pairs:
+            raise ValueError("Publisher source aggregates changed during export")
+        if dict(local_pairs) != before_pairs:
+            raise ValueError("Exported rows disagree with official cross-aggregate")
+        # Digest only: fine-grained cells remain in private memory, not the receipt.
+        aggregate_digest = hashlib.sha256(json.dumps(
+            [[b, a, n] for (b, a), n in sorted(before_pairs.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
         sha = hashlib.sha256()
         with temp_csv.open("rb") as stream:
             while chunk := stream.read(1024 * 1024):
@@ -154,12 +212,16 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "dataset": DATASET, "reporting_month": month,
             "publisher": BASE + "/d/" + DATASET,
             "metadata_url": meta_url, "count_query_url": count_url,
+            "aggregate_query_url": aggregate_url,
+            "aggregate_cells": len(before_pairs),
+            "aggregate_sha256": aggregate_digest,
+            "cross_aggregate_verified": True,
             "where": predicate, "ordered_by": "unique_key ASC",
             "fields": list(FIELDS), "rows": rows, "distinct_keys": len(seen),
             "pages": pages, "page_size": page_size,
             "publisher_rows_updated_at": before_update,
             "csv_sha256": sha.hexdigest(), "verified_at_utc": verified_at,
-            "provenance_limit": "Non-atomic paginated public API reads; matching metadata and counts do not prove an immutable publisher snapshot.",
+            "provenance_limit": "Non-atomic paginated public API reads; matched source cross-aggregates, metadata and counts do not prove an immutable publisher snapshot.",
             "release_status": "HOLD"
         }
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8",

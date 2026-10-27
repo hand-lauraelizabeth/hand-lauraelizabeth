@@ -1,5 +1,6 @@
 """Offline adversarial tests for private NYC 311 publisher-cohort acquisition."""
 import csv
+from collections import Counter
 import json
 import tempfile
 import unittest
@@ -21,6 +22,7 @@ class FakePublisher:
         self.drift = drift
         self.meta_calls = 0
         self.count_calls = 0
+        self.group_calls = 0
         self.urls = []
 
     def __call__(self, url):
@@ -29,6 +31,25 @@ class FakePublisher:
             self.meta_calls += 1
             return {"rowsUpdatedAt": 123456 if not (self.drift == "metadata" and self.meta_calls > 1) else 123457}
         params = parse_qs(urlparse(url).query)
+        if "$group" in params:
+            self.group_calls += 1
+            assert params["$group"] == ["borough,agency"]
+            assert "2026-09-01T00:00:00" in params["$where"][0]
+            pairs = Counter((r.get("borough", ""), r.get("agency", "")) for r in self.rows)
+            data = [{"borough": b, "agency": a, "n": str(n)}
+                    for (b, a), n in sorted(pairs.items())]
+            if self.drift in ("aggregate_mismatch", "aggregate_drift") and (
+                    self.drift == "aggregate_mismatch" or self.group_calls > 1):
+                data[0]["borough"] = "ALTERED SYNTHETIC BOROUGH"
+            if self.drift == "aggregate_total":
+                data[0]["n"] = str(int(data[0]["n"]) + 1)
+            if self.drift == "aggregate_duplicate":
+                data.append(dict(data[0]))
+            if self.drift == "aggregate_malformed":
+                del data[0]["n"]
+            if self.drift == "aggregate_missing":
+                return []
+            return data
         if "$select" in params and "count(*)" in params["$select"][0]:
             self.count_calls += 1
             n = len(self.rows) + (1 if self.drift == "count" and self.count_calls > 1 else 0)
@@ -71,6 +92,12 @@ class TestSourceExport(unittest.TestCase):
             self.assertEqual(hashlib.sha256(csvfile.read_bytes()).hexdigest(), receipt["csv_sha256"])
             self.assertEqual(publisher.meta_calls, 2)
             self.assertEqual(publisher.count_calls, 2)
+            self.assertEqual(publisher.group_calls, 2)
+            self.assertEqual(receipt["aggregate_cells"], 1)
+            self.assertEqual(len(receipt["aggregate_sha256"]), 64)
+            self.assertTrue(receipt["cross_aggregate_verified"])
+            self.assertIn("%24group=borough%2Cagency", receipt["aggregate_query_url"])
+            self.assertNotIn("QUEENS", receiptfile.read_text())
 
     def test_duplicate_or_out_of_order_keys_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -128,6 +155,60 @@ class TestSourceExport(unittest.TestCase):
                          fetch=FakePublisher([broken]))
             self.assertFalse(csvfile.exists())
             self.assertFalse(receiptfile.exists())
+
+    def test_outside_month_and_malformed_source_timestamps_fail_closed(self):
+        for created in ("2026-08-31T23:59:59", "2026-10-01T00:00:00",
+                        "2026-09-15T09:00:00+00:00", "not-a-date"):
+            with self.subTest(created=created), tempfile.TemporaryDirectory() as tmp:
+                row = record("001")
+                row["created_date"] = created
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "outside reporting month|Malformed"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher([row]))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_valid_boundary_timestamps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [record("001"), record("002")]
+            rows[0]["created_date"] = "2026-09-01T00:00:00.000"
+            rows[1]["created_date"] = "2026-09-30T23:59:59.999"
+            receipt = download("2026-09", Path(tmp)/"source.csv",
+                               Path(tmp)/"receipt.json", fetch=FakePublisher(rows))
+            self.assertEqual(receipt["rows"], 2)
+
+    def test_aggregate_mismatch_or_drift_fails_closed(self):
+        for drift in ("aggregate_mismatch", "aggregate_drift"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "aggregates changed|cross-aggregate"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher(drift=drift), page_size=2)
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_invalid_official_aggregates_fail_closed(self):
+        for drift in ("aggregate_total", "aggregate_duplicate",
+                      "aggregate_malformed", "aggregate_missing"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "aggregate"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher(drift=drift))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_source_aggregate_matches_multiple_groups(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [record("001"), record("002"), record("003")]
+            rows[1]["borough"] = "BROOKLYN"
+            rows[2]["agency"] = "DEP"
+            receipt = download("2026-09", Path(tmp)/"source.csv",
+                               Path(tmp)/"receipt.json", fetch=FakePublisher(rows),
+                               page_size=2)
+            self.assertEqual(receipt["aggregate_cells"], 3)
+            self.assertEqual(receipt["rows"], 3)
 
     def test_page_size_bounds(self):
         with tempfile.TemporaryDirectory() as tmp:
