@@ -11,10 +11,14 @@
     if (text !== undefined) node.textContent = String(text);
     return node;
   };
-  function message(text, error = false) {
+  function message(text, error = false, uploadError = false) {
     const node = $('compareStatus');
     node.textContent = text;
     node.className = error ? 'error' : '';
+    node.setAttribute('role', error ? 'alert' : 'status');
+    node.setAttribute('aria-live', error ? 'assertive' : 'polite');
+    $('compareFile').setAttribute('aria-invalid', uploadError ? 'true' : 'false');
+    if (uploadError) node.focus();
   }
   function options(selectId, data) {
     const select = $(selectId);
@@ -68,10 +72,10 @@
     invalidate();
     if (!file) { message('No second file selected.'); return; }
     if (file.size > lib.MAX_BYTES) {
-      message('The second file is larger than 5 MB.', true); return;
+      message('The second file is larger than 5 MB.', true, true); return;
     }
     if (!/\.(csv|tsv)$/i.test(file.name)) {
-      message('Choose a second .csv or .tsv file.', true); return;
+      message('Choose a second .csv or .tsv file.', true, true); return;
     }
     message('Reading second file locally…');
     try {
@@ -86,7 +90,7 @@
       message('Loaded second file: ' + second.rows.length + ' rows. No file was transmitted.');
     } catch (error) {
       if (thisGeneration !== generation) return;
-      message('Unable to read second file: ' + error.message, true);
+      message('Unable to read second file: ' + error.message, true, true);
     }
   }
   function auditRows(result) {
