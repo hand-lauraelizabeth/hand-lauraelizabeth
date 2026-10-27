@@ -15,7 +15,7 @@ $('calculate').addEventListener('click',()=>{invalidate();try{const config={star
 function shortfallText(label,projection){
   const s=summarizeShortfalls(projection);
   if(s.daysBelowZero===0)return label+': no projected below-zero end-of-day dates.';
-  return label+': '+s.daysBelowZero+' projected below-zero end-of-day dates (first '+s.firstBelowZeroDate+'; lowest '+formatCents(s.lowestBalanceCents)+' USD; longest consecutive span '+s.longestRunDays+' '+(s.longestRunDays===1?'day':'days')+').';
+  return label+': '+s.daysBelowZero+' projected below-zero end-of-day '+(s.daysBelowZero===1?'date':'dates')+' (first '+s.firstBelowZeroDate+'; lowest '+formatCents(s.lowestBalanceCents)+' USD; longest consecutive span '+s.longestRunDays+' '+(s.longestRunDays===1?'day':'days')+').';
 }
 function download(content,type,filename){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('export').addEventListener('click',()=>{if(!latest)return;try{download(exportSafeCSV(latest),'text/csv;charset=utf-8','cash-flow-scenario.csv')}catch(error){say(error.message,true)}});
