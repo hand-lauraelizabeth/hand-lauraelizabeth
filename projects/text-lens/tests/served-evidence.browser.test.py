@@ -123,6 +123,22 @@ def main():
             assert all(row["passage"] in SYNTHETIC for row in unsafe_json["rows"])
             checks += 1
 
+            # General analysis-table exports also contain untrusted filenames.
+            no_download(page, "#downloadcsv")
+            checks += 1
+            expect(page.locator("#status")).to_contain_text("CSV export blocked")
+            checks += 1
+            assert page.evaluate("document.activeElement.id") == "status"
+            checks += 1
+            unsafe_tables = json.loads(download_bytes(page, "#downloadTablesJson").decode("utf-8"))
+            assert unsafe_tables["export_type"] == "analysis-tables"
+            checks += 1
+            assert unsafe_tables["columns"][:3] == ["section", "text", "item"]
+            checks += 1
+            assert any(row[0] == "document_summary" and row[2] == "=1+1.txt"
+                       for row in unsafe_tables["rows"])
+            checks += 1
+
             page.locator("#fileA").set_input_files({
                 "name": "archive.txt", "mimeType": "text/plain",
                 "buffer": SYNTHETIC.encode("utf-8")
@@ -139,6 +155,11 @@ def main():
             checks += 1
             assert all("=1+1.txt" not in row for row in table[1:])
             checks += 1
+            safe_tables = download_bytes(page, "#downloadcsv").decode("utf-8-sig")
+            assert any(row[0] == "document_summary" and row[2] == "archive.txt"
+                       for row in csv.reader(io.StringIO(safe_tables)))
+            checks += 1
+
 
             page.locator("#a").fill("An unrelated sentence with no evaluative cue.")
             expect(page.locator("#cueCsv")).to_be_disabled(timeout=10000)
