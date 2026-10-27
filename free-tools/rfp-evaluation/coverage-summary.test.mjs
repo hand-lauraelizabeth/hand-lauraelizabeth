@@ -18,7 +18,7 @@ test('counts zero as scored and missing as missing, without manufacturing a scor
  const result=evaluateWithProvenance(base);
  assert.deepEqual(summarizeCoverage(result),{
   totalPairs:4,scoredPairs:3,documentedPairs:2,missingScores:1,
-  scoredWithoutReferences:1,scoredWithoutReviewer:3,withheld:1,conflictReview:1,missingPrices:1
+  scoredWithoutReferences:1,scoredWithoutReviewer:3,completeReferencePairs:0,scoredMissingAnyReference:3,withheld:1,conflictReview:1,missingPrices:1
  });
  assert.equal(result.comparisons[1].scorePercent,null);
  assert.match(describeCoverage(result),/3 of 4 vendor–criterion pairs scored/);
@@ -44,7 +44,7 @@ test('complete evidence counts all pairs, no withholding',()=>{
  const input={...base,vendors:base.vendors.map(v=>({...v,conflict:'none',price:'1.00'})),
  ratings:base.ratings.map(r=>({...r,score:0,evidenceRef:'EV-00'}))};
  const summary=summarizeCoverage(evaluateWithProvenance(input));
- assert.deepEqual(summary,{totalPairs:4,scoredPairs:4,documentedPairs:4,missingScores:0,scoredWithoutReferences:0,scoredWithoutReviewer:4,withheld:0,conflictReview:0,missingPrices:0});
+ assert.deepEqual(summary,{totalPairs:4,scoredPairs:4,documentedPairs:4,missingScores:0,scoredWithoutReferences:0,scoredWithoutReviewer:4,completeReferencePairs:0,scoredMissingAnyReference:4,withheld:0,conflictReview:0,missingPrices:0});
 });
 test('invalid external coverage cannot be silently summarized',()=>{
  const result=evaluateWithProvenance(base);
@@ -60,6 +60,8 @@ test('scored pairs without visible reviewer IDs are counted and flagged in expor
  const result=evaluateWithProvenance(input),summary=summarizeCoverage(result);
  assert.equal(summary.scoredPairs,3);
  assert.equal(summary.scoredWithoutReviewer,2);
+ assert.equal(summary.completeReferencePairs,1);
+ assert.equal(summary.scoredMissingAnyReference,2);
  assert.equal(result.comparisons[0].scorePercent,40);
  assert.ok(result.comparisons[0].reviewFlags.some(x=>x==='Reviewer identifier missing: C-02'));
  assert.ok(!result.comparisons[0].reviewFlags.some(x=>x==='Reviewer identifier missing: C-01'));
