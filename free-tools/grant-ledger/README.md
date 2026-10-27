@@ -6,7 +6,7 @@ A free, browser-local review tool for comparing a grant's planned budget with us
 
 Open the page from a static web server. Replace the fictional sample award, enter its dates, and add budget categories. Enter transactions with unique transaction IDs, exact source IDs, dates, amounts, assigned percentages, allocation bases, and supporting-document references. Use **Edit** on an expenditure to correct its source, date, category, amount, allocation, basis, reference, or note without changing its transaction ID. Save recalculates totals and review flags; an invalid edit does not change saved evidence, and Cancel discards edits. Compare planned versus assigned amounts, review flags, and download CSV or JSON. No account, financial connection, or upload is required.
 
-The interface stores records only in the current tab. Export before refreshing or closing. JSON preserves text; CSV adds a spreadsheet-formula precaution that changes some values and is not universally reliable after spreadsheet re-save. Keep exported records private.
+The interface stores records only in the current tab. Export before refreshing or closing. **Evidence JSON now includes an expenditure-correction history:** each successful changed edit records its sequence number and exact before/after input values, including source IDs. Invalid, canceled and unchanged edits do not create entries. The history is limited to 500 corrections; download Evidence JSON before reaching the limit. This is a user-entered change log, **not an independently authenticated audit trail**. Award and category edits are not tracked. JSON may contain earlier sensitive values, so keep it private. CSV represents only the latest saved records; its spreadsheet-formula precaution changes some values and is not universally reliable after spreadsheet re-save.
 
 All money calculations use integer cents. Partial allocations use the user-entered percentage, rounded to the nearest cent; the residual is shown as unassigned. Missing allocation bases, missing evidence references, dates outside the award period, and budgets exceeded are **review flags**, not accounting conclusions. Source IDs are preserved exactly. Multiple transactions may cite the same source document.
 
@@ -20,4 +20,4 @@ Accessibility design references [WCAG 2.2](https://www.w3.org/TR/WCAG22/). CSV p
 
 ## Testing
 
-Run `node core.test.mjs` for committed synthetic calculation tests. Manual screen-reader, Firefox/WebKit, 200% browser zoom, deployed Content Security Policy, and native spreadsheet reopening checks remain outstanding. Do not publish as a production tool before review.
+Run `node core.test.mjs` and `node correction-history.test.mjs` for committed synthetic calculation and revision-integrity tests. Manual screen-reader, Firefox/WebKit, 200% browser zoom, deployed Content Security Policy, and native spreadsheet reopening checks remain outstanding. Do not publish as a production tool before review.

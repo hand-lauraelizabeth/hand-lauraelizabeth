@@ -34,6 +34,7 @@ export function buildInterface(){
  field(e,'Notes','note',{required:false});
  const submit=button(e,'Add expenditure');submit.id='expenseSubmit';
  const cancel=button(e,'Cancel correction','cancelExpenseEdit');cancel.hidden=true;
+ add(root,'p','0 expenditure corrections recorded in this tab. Evidence JSON includes original and replacement values; award and category edits are not logged.','correctionSummary');
  const error=add(root,'div','','error');error.setAttribute('role','alert');error.tabIndex=-1;error.hidden=true;
  const status=add(root,'p','','status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const report=section('4. Budget versus recorded allocations');
