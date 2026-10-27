@@ -118,7 +118,7 @@ def verify(browser_type, url, width):
     assert change["before"]["sourceId"] == " SRC-0007 " and change["before"]["amount"] == "5.00"
     assert change["after"]["sourceId"] == " SRC-CORRECTED " and change["after"]["amount"] == "8.00"
     assert change["after"]["note"] == "Corrección – 日本語"
-    assert "award and budget-category edits are not recorded" in evidence["correctionHistory"]["scope"]
+    assert "Award and budget-category edits are not recorded." in evidence["correctionHistory"]["scope"]
     assert evidence["expenses"][1]["sourceId"] == unsafe_source, "JSON preserves untrusted source ID exactly"
     assert page.locator("#error").is_hidden(), "successful Evidence JSON must clear stale CSV error"
     assert "grant-evidence.json downloaded" in page.locator("#status").inner_text(), "JSON success announced"
