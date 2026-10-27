@@ -7,7 +7,7 @@ const {join}=require('node:path');
 const {chromium,firefox,webkit}=require('playwright');
 const {parseDelimited}=require('../rescue-core.js');
 const root=join(__dirname,'..');
-const allow=new Map([['/','index.html'],['/index.html','index.html'],['/rescue-core.js','rescue-core.js'],['/file-reader.js','file-reader.js'],['/reconcile-core.js','reconcile-core.js'],['/reconcile-ui.js','reconcile-ui.js']]);
+const allow=new Map([['/','index.html'],['/index.html','index.html'],['/rescue-core.js','rescue-core.js'],['/file-reader.js','file-reader.js'],['/reconcile-core.js','reconcile-core.js'],['/provenance-core.js','provenance-core.js'],['/reconcile-evidence.js','reconcile-evidence.js'],['/reconcile-ui.js','reconcile-ui.js']]);
 const server=createServer((req,res)=>{
  const path=allow.get(new URL(req.url,'http://localhost').pathname);
  if(!path){res.writeHead(404).end('Not found');return;}
