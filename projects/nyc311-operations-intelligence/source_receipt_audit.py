@@ -12,6 +12,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import tempfile
 from urllib.parse import urlencode
 
 FIELDS = ("unique_key", "created_date", "closed_date", "agency",
@@ -110,55 +111,66 @@ def audit(csv_path, receipt_path):
         return ["INVALID_OR_UNREADABLE_RECEIPT"]
 
     try:
-        digest = hashlib.sha256()
-        with Path(csv_path).open("rb") as stream:
-            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-                digest.update(chunk)
-        if digest.hexdigest() != receipt["csv_sha256"]:
-            codes.add("CSV_SHA256_MISMATCH")
-        pairs = Counter()
-        seen = set()
-        last = None
-        rows = 0
-        with Path(csv_path).open("r", encoding="utf-8", newline="") as stream:
-            reader = csv.reader(stream, strict=True)
-            if tuple(next(reader)) != FIELDS:
-                raise ValueError("CSV header mismatch")
-            for row in reader:
-                if len(row) != len(FIELDS):
-                    raise ValueError("CSV column mismatch")
-                record = dict(zip(FIELDS, row))
-                key = record["unique_key"]
-                if not key or key in seen or (last is not None and key <= last):
-                    codes.add("KEY_DUPLICATE_OR_ORDER_INVALID")
-                seen.add(key)
-                last = key
-                try:
-                    created = parse_source_timestamp(record["created_date"])
-                except ValueError:
-                    codes.add("CREATED_DATE_INVALID")
-                else:
-                    if (created.tzinfo is not None or not
-                            dt.datetime.combine(start, dt.time.min)
-                            <= created < dt.datetime.combine(end, dt.time.min)):
-                        codes.add("CREATED_DATE_OUTSIDE_MONTH")
-                if record["closed_date"]:
+        with tempfile.TemporaryDirectory(prefix="nyc311-audit-") as scratch:
+            snapshot = Path(scratch) / "source.csv"
+            digest = hashlib.sha256()
+            with Path(csv_path).open("rb") as stream, snapshot.open("wb") as copy:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    digest.update(chunk)
+                    copy.write(chunk)
+            if digest.hexdigest() != receipt["csv_sha256"]:
+                codes.add("CSV_SHA256_MISMATCH")
+            pairs = Counter()
+            seen = set()
+            last = None
+            rows = 0
+            with snapshot.open("r", encoding="utf-8", newline="") as stream:
+                reader = csv.reader(stream, strict=True)
+                if tuple(next(reader)) != FIELDS:
+                    raise ValueError("CSV header mismatch")
+                for row in reader:
+                    if len(row) != len(FIELDS):
+                        raise ValueError("CSV column mismatch")
+                    record = dict(zip(FIELDS, row))
+                    key = record["unique_key"]
+                    if not key or key in seen or (last is not None and key <= last):
+                        codes.add("KEY_DUPLICATE_OR_ORDER_INVALID")
+                    seen.add(key)
+                    last = key
                     try:
-                        parse_source_timestamp(record["closed_date"])
+                        created = parse_source_timestamp(record["created_date"])
                     except ValueError:
-                        codes.add("CLOSED_DATE_INVALID")
-                pairs[(record["borough"], record["agency"])] += 1
-                rows += 1
-        if rows != n or len(seen) != receipt["distinct_keys"]:
-            codes.add("ROW_OR_DISTINCT_KEY_COUNT_MISMATCH")
-        if len(pairs) != receipt["aggregate_cells"]:
-            codes.add("AGGREGATE_CELL_COUNT_MISMATCH")
-        aggregate_digest = hashlib.sha256(json.dumps(
-            [[b, a, count] for (b, a), count in sorted(pairs.items())],
-            separators=(",", ":"), ensure_ascii=False
-        ).encode("utf-8")).hexdigest()
-        if aggregate_digest != receipt["aggregate_sha256"]:
-            codes.add("AGGREGATE_SHA256_MISMATCH")
+                        codes.add("CREATED_DATE_INVALID")
+                    else:
+                        if (created.tzinfo is not None or not
+                                dt.datetime.combine(start, dt.time.min)
+                                <= created < dt.datetime.combine(end, dt.time.min)):
+                            codes.add("CREATED_DATE_OUTSIDE_MONTH")
+                    if record["closed_date"]:
+                        try:
+                            parse_source_timestamp(record["closed_date"])
+                        except ValueError:
+                            codes.add("CLOSED_DATE_INVALID")
+                    pairs[(record["borough"], record["agency"])] += 1
+                    rows += 1
+            if rows != n or len(seen) != receipt["distinct_keys"]:
+                codes.add("ROW_OR_DISTINCT_KEY_COUNT_MISMATCH")
+            if len(pairs) != receipt["aggregate_cells"]:
+                codes.add("AGGREGATE_CELL_COUNT_MISMATCH")
+            aggregate_digest = hashlib.sha256(json.dumps(
+                [[b, a, count] for (b, a), count in sorted(pairs.items())],
+                separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")).hexdigest()
+            if aggregate_digest != receipt["aggregate_sha256"]:
+                codes.add("AGGREGATE_SHA256_MISMATCH")
+            # The parsed snapshot and the source must still contain identical
+            # bytes after the audit; a pathname swap after capture is a HOLD.
+            current = hashlib.sha256()
+            with Path(csv_path).open("rb") as source:
+                for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                    current.update(chunk)
+            if current.digest() != digest.digest():
+                codes.add("CSV_CHANGED_DURING_AUDIT")
     except (OSError, UnicodeError, ValueError, csv.Error, OverflowError, StopIteration):
         codes.add("CSV_UNREADABLE_OR_MALFORMED")
     if not codes:
