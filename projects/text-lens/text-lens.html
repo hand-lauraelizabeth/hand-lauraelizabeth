@@ -310,5 +310,9 @@ let evidenceRows=[],evidencePage=0;let lastA=null,lastB=null,lastCompare=false;f
   status.tabIndex=-1;status.focus();
   return;
  }
- fileLoadRevision[d.key]++;sourceDocs[d.key]=[{id:d.key+'-'+(++docSeq),name:d.name,size:d.size,lastModified:d.lastModified,text:d.text}];sourceFiles[d.key]=[d.name];$(d.key==='a'?'fileMetaA':'fileMetaB').textContent='Imported '+d.name+' · local text';run()});run();})();</script></div>
+ fileLoadRevision[d.key]++;
+ // Keep the analyzed textarea synchronized with the source evidence for this import.
+ // Assign directly: a synthetic input event would trigger manual-edit provenance clearing.
+ $(d.key).value=d.text;
+ sourceDocs[d.key]=[{id:d.key+'-'+(++docSeq),name:d.name,size:d.size,lastModified:d.lastModified,text:d.text}];sourceFiles[d.key]=[d.name];$(d.key==='a'?'fileMetaA':'fileMetaB').textContent='Imported '+d.name+' · local text';run()});run();})();</script></div>
 </body></html>
