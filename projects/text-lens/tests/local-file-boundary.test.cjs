@@ -206,15 +206,15 @@ test('valid external event recovers after rejection with Unicode source ID intac
 test('external import synchronizes the exact analyzed textarea with source provenance on both sides',()=>{
  const h=harness(true);
  h.els.a.value='Older A';h.els.b.value='Older B';
- const textA='Café 東京\\n0007,=SUM(1,2)'.replace('\\n','\n');
+ const textA='Café 東京\n0007,=SUM(1,2)';
  const textB='<img src=x onerror=alert(1)> — literal source text';
  const dispatch=detail=>h.handlers['text-lens:import']({detail});
- dispatch({key:'a',name:'0001-東京.md',size:18,lastModified:77,text:textA});
+ dispatch({key:'a',name:'0001-東京.md',size:Buffer.byteLength(textA,'utf8'),lastModified:77,text:textA});
  assert.equal(h.els.a.value,textA);
  assert.equal(h.env.sourceDocs.a[0].text,h.els.a.value);
  assert.equal(h.env.sourceDocs.a[0].name,'0001-東京.md');
  assert.equal(h.els.b.value,'Older B');
- dispatch({key:'b',name:'b-0002.txt',size:40,text:textB});
+ dispatch({key:'b',name:'b-0002.txt',size:Buffer.byteLength(textB,'utf8'),text:textB});
  assert.equal(h.els.b.value,textB);
  assert.equal(h.env.sourceDocs.b[0].text,h.els.b.value);
  assert.equal(h.els.a.value,textA);
