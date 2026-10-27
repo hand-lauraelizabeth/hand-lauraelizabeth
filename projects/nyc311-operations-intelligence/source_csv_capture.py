@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 import json
 import os
+import stat
 from pathlib import Path
 import tempfile
 from urllib.request import Request, HTTPRedirectHandler, build_opener
@@ -206,6 +207,28 @@ def main(argv=None):
             # a competing replacement can reuse the released inode number.
             source_fd = os.open(source, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0))
             source_stat = os.fstat(source_fd)
+            # Bind the receipt to the bytes on the descriptor we actually hold.
+            # A pathname can be replaced between capture() returning and open().
+            # On mismatch do not record an inode for rollback: it may belong to
+            # a competing writer, and preserving it is safer than deleting it.
+            if isinstance(metadata, dict) and 'source_sha256' in metadata:
+                expected_hash = metadata['source_sha256']
+                expected_bytes = metadata.get('source_bytes')
+                if (not isinstance(expected_hash, str) or len(expected_hash) != 64 or
+                        any(c not in '0123456789abcdef' for c in expected_hash) or
+                        type(expected_bytes) is not int or expected_bytes < 1 or
+                        not stat.S_ISREG(source_stat.st_mode) or
+                        source_stat.st_size != expected_bytes):
+                    raise CaptureError('SOURCE_RECEIPT_BYTE_BINDING_INVALID')
+                digest = sha256()
+                while True:
+                    chunk = os.read(source_fd, CHUNK_BYTES)
+                    if not chunk:
+                        break
+                    digest.update(chunk)
+                if (digest.hexdigest() != expected_hash or
+                        os.fstat(source_fd).st_size != expected_bytes):
+                    raise CaptureError('SOURCE_RECEIPT_BYTE_BINDING_MISMATCH')
             source_inode = (source_stat.st_dev, source_stat.st_ino)
         except FileNotFoundError:
             # Preserve compatibility with injectable offline capture mocks.

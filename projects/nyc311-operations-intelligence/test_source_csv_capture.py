@@ -489,5 +489,63 @@ class CaptureTests(unittest.TestCase):
         self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
 
 
+    def test_receipt_binding_rejects_competing_same_length_csv(self):
+        """A swapped CSV with identical length cannot acquire a trusted receipt."""
+        receipt = self.path.parent / 'receipt.json'
+        competitor = b'X' * len(BODY)
+
+        def captured(*args, **kwargs):
+            # Simulate a different writer replacing the source pathname
+            # immediately after capture has returned its original digest.
+            self.path.write_bytes(competitor)
+            return {'status': 'HOLD', 'source_bytes': len(BODY),
+                    'source_sha256': sha256(BODY).hexdigest()}
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            rc = main(['--source-csv', str(self.path),
+                       '--receipt-json', str(receipt),
+                       '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.path.read_bytes(), competitor)
+        self.assertFalse(receipt.exists())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_receipt_binding_accepts_matching_source_digest(self):
+        """The receipt can be persisted when pinned bytes match its SHA-256."""
+        receipt = self.path.parent / 'receipt.json'
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY),
+                    'source_sha256': sha256(BODY).hexdigest()}
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            rc = main(['--source-csv', str(self.path),
+                       '--receipt-json', str(receipt),
+                       '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.path.read_bytes(), BODY)
+        self.assertEqual(json.loads(receipt.read_text())['source_sha256'],
+                         sha256(BODY).hexdigest())
+        self.assertFalse(list(self.path.parent.glob('.nyc311_receipt_*')))
+
+    def test_receipt_binding_rejects_invalid_metadata_without_deleting_source(self):
+        """An invalid digest fails closed before the receipt is created."""
+        receipt = self.path.parent / 'receipt.json'
+
+        def captured(*args, **kwargs):
+            self.path.write_bytes(BODY)
+            return {'status': 'HOLD', 'source_bytes': len(BODY),
+                    'source_sha256': 'not-a-valid-digest'}
+
+        with patch('source_csv_capture.capture_official_csv', side_effect=captured):
+            rc = main(['--source-csv', str(self.path),
+                       '--receipt-json', str(receipt),
+                       '--reference-rows', '323630'])
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.path.read_bytes(), BODY)
+        self.assertFalse(receipt.exists())
+
+
 if __name__ == '__main__':
     unittest.main()
