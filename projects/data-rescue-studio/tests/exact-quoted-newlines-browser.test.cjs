@@ -77,6 +77,24 @@ async function run(label,browserType,url){
   const [originalEvidence]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
   eq(JSON.parse(readFileSync(await originalEvidence.path(),'utf8')).records.map(r=>r.sourceRecord),
     [2,3,4,5],label+' JSON still exports all original records');
+  // Generated duplicate-header labels must never shadow literal source headers.
+  // The third column must be selectable as a distinct exact-reconciliation key.
+  await page.locator('#file').setInputFiles({name:'synthetic-colliding-headers.csv',mimeType:'text/csv',
+    buffer:Buffer.from('ID,ID,ID (2)\\nX,A,ALPHA\\nY,B,BETA\\n'.replaceAll('\\n','\n'),'utf8')});
+  await page.waitForFunction(()=>document.querySelector('#leftKey')?.options.length===4);
+  eq(await page.locator('#leftKey option').allTextContents(),
+    ['Select a column','ID','ID (2)','ID (2) (2)'],label+' distinct column choices');
+  await page.locator('#compareFile').setInputFiles({name:'synthetic-target.csv',mimeType:'text/csv',
+    buffer:Buffer.from('Join\nALPHA\nBETA\n','utf8')});
+  await page.waitForFunction(()=>document.querySelector('#rightKey')?.options.length===2);
+  await page.locator('#leftKey').selectOption('ID (2) (2)');
+  await page.locator('#rightKey').selectOption('Join');
+  await page.locator('#compareRun').click();
+  ok((await page.locator('#compareStatus').innerText()).includes('2 exact one-to-one matches'),
+    label+' third source column produces two exact matches');
+  const [headerEvidence]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
+  eq(JSON.parse(readFileSync(await headerEvidence.path(),'utf8')).headers,
+    ['ID','ID','ID (2)'],label+' original colliding headers preserved in evidence');
   await page.close();
  }finally{await browser.close();}
 }

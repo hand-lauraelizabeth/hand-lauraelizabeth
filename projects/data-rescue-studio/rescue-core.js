@@ -68,15 +68,26 @@
     const headers = records.shift();
     if (headers.length > MAX_COLUMNS) throw new Error('More than 100 columns are not supported.');
     const normalizedHeaders = [];
-    const seen = new Map();
+    const seen = new Map(), used = new Set();
     const warnings = [];
     for (let i = 0; i < headers.length; i++) {
       const base = headers[i].trim() || ('Column ' + (i+1));
       const id = base.toLowerCase();
       const count = (seen.get(id) || 0) + 1; seen.set(id, count);
-      normalizedHeaders.push(count === 1 ? base : base + ' (' + count + ')');
+      // A literal header such as "ID (2)" can collide with the generated
+      // label for a second "ID" column. Reconciliation uses these labels
+      // as keys, so each displayed choice must identify exactly one column.
+      let suffix = count;
+      let label = count === 1 ? base : base + ' (' + suffix + ')';
+      while (used.has(label.toLowerCase())) {
+        suffix = Math.max(2, suffix + 1);
+        label = base + ' (' + suffix + ')';
+      }
+      used.add(label.toLowerCase());
+      normalizedHeaders.push(label);
       if (!headers[i].trim()) warnings.push('Column ' + (i+1) + ' has a blank header.');
       if (count > 1) warnings.push('Repeated header: ' + base + '.');
+      else if (label !== base) warnings.push('Column ' + (i+1) + ' was labeled "' + label + '" to distinguish it from another column.');
     }
     const data = [];
     for (let i = 0; i < records.length; i++) {
