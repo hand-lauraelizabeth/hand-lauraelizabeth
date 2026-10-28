@@ -43,23 +43,23 @@ console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
  */
 {
   const {exportEvidenceJson} = require('../rescue-core.js');
-  for (const separator of ['\\u2028', '\\u2029']) {
+  for (const separator of ['\u2028', '\u2029']) {
     for (const payload of ['safe' + separator + '=1+1', 'safe' + separator + 'plain']) {
-      const parsed = parseDelimited('ID,Note\\n1,"' + payload + '"');
+      const parsed = parseDelimited('ID,Note\n1,"' + payload + '"');
       assert.throws(() => exportCsv(parsed, true), /source record 2, column 2/);
       assert.equal(parseDelimited(exportCsv(parsed, false)).rows[0][1], payload);
       assert.equal(JSON.parse(exportEvidenceJson(parsed, 'synthetic.csv')).records[0].values[1], payload);
     }
-    const header = parseDelimited('ID,"Name' + separator + 'Note"\\n1,ok');
+    const header = parseDelimited('ID,"Name' + separator + 'Note"\n1,ok');
     assert.throws(() => exportCsv(header, true), /source record 1, column 2/);
     assert.equal(parseDelimited(exportCsv(header, false)).headers[1], 'Name' + separator + 'Note');
     const filtered = withoutExactDuplicates(parseDelimited(
-      'ID,Note\\n1,repeat\\n1,repeat\\n3,"safe' + separator + '=1+1"'));
+      'ID,Note\n1,repeat\n1,repeat\n3,"safe' + separator + '=1+1"'));
     assert.throws(() => exportCsv(filtered, true), /source record 4, column 2/);
     assert.deepEqual(JSON.parse(exportEvidenceJson(filtered, 'synthetic.csv'))
       .records.map(r => r.sourceRecord), [2, 4]);
   }
-  assert.doesNotThrow(() => exportCsv(parseDelimited('ID,Note\\n1,"safe line"'), true));
+  assert.doesNotThrow(() => exportCsv(parseDelimited('ID,Note\n1,"safe line"'), true));
   console.log('PASS: Unicode line/paragraph separator spreadsheet boundary and exact export checks.');
 }
 
