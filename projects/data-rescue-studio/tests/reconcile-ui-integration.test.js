@@ -108,7 +108,7 @@ async function run() {
   check(downloads.length===1,'blob URL revoked after download');
   // A replacement primary must revoke an already loaded secondary source,
   // even when the new primary uses the same normalized identifier heading.
-  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Value\\n9,Replacement'),'replacement.csv');
+  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Value\n9,Replacement'),'replacement.csv');
   check(nodes.rightKey.disabled,'replacing primary clears loaded second-file key');
   check(nodes.compareFile.value==='','replacing primary clears second-file input');
   check(nodes.compareRun.disabled,'replacing primary disables stale comparison');
@@ -130,8 +130,8 @@ async function run() {
   let finishOldPrimaryRead;
   nodes.compareFile.files=[{name:'late.csv',size:100,text:()=>new Promise(resolve=>finishOldPrimaryRead=resolve)}];
   const oldPrimaryRead=nodes.compareFile.handlers.change();
-  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Value\\n8,Newer'),'new-primary.csv');
-  finishOldPrimaryRead('Ref,Cost\\n8,80');
+  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Value\n8,Newer'),'new-primary.csv');
+  finishOldPrimaryRead('Ref,Cost\n8,80');
   await oldPrimaryRead;
   check(nodes.rightKey.disabled && nodes.compareRun.disabled,'old secondary read ignored after primary replacement');
   check(!nodes.compareStatus.textContent.includes('Loaded second file'),'old secondary read cannot overwrite replacement status');
