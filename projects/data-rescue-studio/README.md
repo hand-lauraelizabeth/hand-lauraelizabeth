@@ -41,7 +41,9 @@ node projects/data-rescue-studio/tests/provenance-core.test.js
 node projects/data-rescue-studio/tests/file-reader.test.js
 \`\`\`
 
-Includes synthetic fixtures for quoted commas, embedded newlines, repeated quotes, Unicode BOM, tabs, blank values, repeated headers, exact duplicates, malformed rows, missing and ambiguous keys, and second-file state changes. The synthetic controller test is not a substitute for real-browser keyboard, mobile, and zoom checks.
+Includes synthetic fixtures for quoted commas, embedded newlines, repeated quotes, Unicode BOM, tabs, blank values, repeated headers, exact duplicates, malformed rows, missing and ambiguous keys, and second-file state changes.
+
+An additional independent CSV/TSV interoperability check can be run with `node projects/data-rescue-studio/tests/cross-language-csv.test.cjs` (requires Python 3). It compares browser-engine exports against Python's standard-library `csv.reader`, then imports Python `csv.writer` output into the browser engine across 600 deterministic synthetic cases. It also checks exact retained source-record positions. This does **not** establish Excel or Google Sheets reopen-and-resave safety; those require separate application testing. The synthetic controller test is not a substitute for real-browser keyboard, mobile, and zoom checks.
 
 ## Sources and design references
 
