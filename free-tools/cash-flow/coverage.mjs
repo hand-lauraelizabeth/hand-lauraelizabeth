@@ -28,7 +28,7 @@ export function summarizeEventCoverage(events,baseline,scenario){
 }
 // Bound each displayed ID independently of the four-ID list limit. Preserve exact IDs in
 // coverage comparisons; shorten only the spoken/visible status preview, by Unicode code point.
-export function displaySafeText(id){
+export function displaySafeText(id,kind='ID'){
   let count=0;
   const first=[],last=[];
   for(const point of id){
@@ -41,7 +41,7 @@ export function displaySafeText(id){
   const shown=shortened?first.join('')+'…'+last.join(''):id;
   const escaped=JSON.stringify(shown).replace(/[\p{Default_Ignorable_Code_Point}\p{Cc}\p{Cf}\u2028\u2029\u115f-\u1160\u17b4-\u17b5\ufff9-\ufffb]/gu,
     character=>'\\u'+character.codePointAt(0).toString(16).toUpperCase().padStart(4,'0'));
-  return shortened?escaped+' ('+(count-72)+' code points omitted from displayed ID)':escaped;
+  return shortened?escaped+' ('+(count-72)+' code points omitted from displayed '+kind+')':escaped;
 }
 export function coverageText(events,baseline,scenario){
   const {baselineMissing,scenarioMissing}=summarizeEventCoverage(events,baseline,scenario);
