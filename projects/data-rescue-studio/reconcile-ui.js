@@ -103,6 +103,24 @@
     result.missingRight.forEach(row => add('Missing second-file key', '', '', row));
     return records;
   }
+  // Bound DOM previews of untrusted identifiers without altering any audit export.
+  // Escape invisible formatting and line breaks so readers can see what matched.
+  function auditPreview(value) {
+    const points = Array.from(String(value));
+    const omitted = Math.max(0, points.length - 116);
+    const shown = omitted ? [...points.slice(0, 96), ...points.slice(-20)] : points;
+    const visible = shown.map(char => {
+      const code = char.codePointAt(0);
+      if (char === '\n') return '\\n';
+      if (char === '\r') return '\\r';
+      if (char === '\t') return '\\t';
+      if (code < 32 || (code >= 127 && code <= 159) || /\p{Default_Ignorable_Code_Point}/u.test(char))
+        return '\\u{' + code.toString(16).toUpperCase().padStart(4, '0') + '}';
+      return char;
+    });
+    if (omitted) visible.splice(96, 0, ' … [' + omitted + ' code points omitted] … ');
+    return visible.join('');
+  }
   function render(result) {
     const categories = [
       ['One-to-one matches', result.matches.length],
@@ -128,7 +146,7 @@
     const body = el('tbody');
     rows.slice(0, 30).forEach(record => {
       const line = el('tr');
-      record.forEach(value => line.append(el('td', value)));
+      record.forEach(value => line.append(el('td', auditPreview(value))));
       body.append(line);
     });
     table.append(body);

@@ -130,6 +130,26 @@ async function run() {
   nodes.compareRun.handlers.click();nodes.compareExport.handlers.click();
   const riskCsv=await blobs[1].text();
   check(riskCsv.includes('"\t=1+2"'),'spreadsheet-oriented export mitigates formula-like key');
+  // A long, invisible-character identifier must be legible and bounded in the
+  // preview without truncating the exact downloadable JSON audit.
+  const longKey='A\u200B'+'B'.repeat(210)+'\n'+'tail';
+  const quotedKey='"'+longKey+'"';
+  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID\n'+quotedKey),'long-first.csv');
+  nodes.compareFile.files=[{name:'long-second.csv',size:quotedKey.length+4,
+    text:async()=> 'Ref\n'+quotedKey}];
+  await nodes.compareFile.handlers.change();
+  nodes.leftKey.value='ID'; nodes.rightKey.value='Ref';
+  nodes.leftKey.handlers.change(); nodes.rightKey.handlers.change();
+  nodes.compareRun.handlers.click();
+  const previewKey=nodes.compareResults.children[0].children[2].children[0].children[1].textContent;
+  check(previewKey.includes('\\u{200B}'),'invisible identifier character visible in preview');
+  check(previewKey.includes('\\n'),'multiline identifier visibly escaped in preview');
+  check(previewKey.includes('code points omitted'),'long preview states omission');
+  check(!previewKey.includes('B'.repeat(100)),'preview bounds long identifier');
+  const priorJsonCount=blobs.length;
+  nodes.compareJson.handlers.click();
+  const exactLongAudit=JSON.parse(await blobs[priorJsonCount].text());
+  check(exactLongAudit.matches[0].key===longKey,'JSON preserves exact unbounded identifier');
   // Embedded newline followed by a formula marker must not create a CSV download.
   const multiline='safe\n=1+1';
   win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Note\n"safe\n=1+1",private-field'),'unsafe-left.csv');

@@ -43,7 +43,7 @@
 <div class="overflow" id="table"></div>
 </section>
 <section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
-<p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines.</p>
+<p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines. The on-screen findings preview shortens very long values and visibly marks hidden formatting characters; downloaded JSON audits retain exact identifiers.</p>
 <label for="compareFile"><strong>Second file (UTF-8 CSV or TSV, maximum 5 MB)</strong></label>
 <div><input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
 <p id="compareStatus" role="status" aria-live="polite" tabindex="-1">Open a first file above to compare.</p>
