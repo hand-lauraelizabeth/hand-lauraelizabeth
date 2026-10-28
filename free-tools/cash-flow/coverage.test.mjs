@@ -133,8 +133,8 @@ test('event descriptions with embedded quotes and line breaks display as one rea
 });
 test('long event descriptions use bounded display-only previews',()=>{
   const label='start'.repeat(12)+'X'.repeat(600)+'ending'.repeat(2);
-  const shown=displaySafeText(label);
-  assert.match(shown,/600 code points omitted from displayed ID/);
+  const shown=displaySafeText(label,'description');
+  assert.match(shown,/600 code points omitted from displayed description/);
   assert.ok(shown.length<180);
   assert.ok(!shown.includes('X'.repeat(600)));
 });
