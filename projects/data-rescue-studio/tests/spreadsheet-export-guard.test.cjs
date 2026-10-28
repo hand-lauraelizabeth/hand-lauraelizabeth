@@ -23,4 +23,20 @@ eq(parseDelimited(exportCsvDownload(benign,true)).rows,benign.rows,'benign sprea
 const normalFormula=parseDelimited('ID,Note\\n01,=1+1\\n'.replaceAll('\\n','\n'));
 eq(spreadsheetExportRisk(normalFormula),null,'known leading formula remains tab-prefixed in spreadsheet mode');
 assert.ok(exportCsvDownload(normalFormula,true).includes('\\t=1+1'.replace('\\t','\t')));count++;
+// A duplicate before an unsafe cell must not renumber the source record.
+const repeated=parseDelimited('ID,Note\n01,ok\n01,ok\n02,"safe\n=1+1"\n02,"safe\n=1+1"\n03,done\n');
+const deduped=require('../rescue-core.js').withoutExactDuplicates(repeated);
+eq(deduped.rows.length,3,'deduplication retains three distinct records');
+eq(deduped.sourceRecords,[2,4,6],'original logical positions survive deduplication');
+eq(deduped.originalRowCount,5,'original row count retained');
+eq(spreadsheetExportRisk(deduped),{sourceRecord:4,column:2},'blocked export cites original record 4, not filtered record 3');
+assert.throws(()=>exportCsvDownload(deduped,true),/source record 4, column 2/);count++;
+eq(parseDelimited(exportCsvDownload(deduped,false)).rows,deduped.rows,'filtered machine CSV retains exact values');
+const dedupedEvidence=JSON.parse(exportEvidenceJson(deduped,'synthetic.csv'));
+eq(dedupedEvidence.records.map(r=>r.sourceRecord),[2,4,6],'filtered JSON retains original source positions');
+eq(dedupedEvidence.source.originalDataRecords,5,'filtered JSON discloses original record count');
+eq(dedupedEvidence.recordCount,3,'filtered JSON discloses retained count');
+eq(require('../rescue-core.js').withoutExactDuplicates(deduped).sourceRecords,[2,4,6],'repeat dedupe does not renumber');
+assert.throws(()=>exportEvidenceJson({...deduped,sourceRecords:[2,2,6]},'synthetic.csv'),/Invalid source-record positions/);count++;
+assert.throws(()=>exportEvidenceJson({...deduped,originalRowCount:3},'synthetic.csv'),/Invalid original record count/);count++;
 console.log('PASS: '+count+' spreadsheet export boundary, source position and exact JSON/CSV assertions.');
