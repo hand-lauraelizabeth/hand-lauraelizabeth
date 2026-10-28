@@ -26,9 +26,22 @@ export function summarizeEventCoverage(events,baseline,scenario){
     scenarioMissing:sourceIds.filter(id=>!scenarioIds.has(id))
   };
 }
+// Bound each displayed ID independently of the four-ID list limit. Preserve exact IDs in
+// coverage comparisons; shorten only the spoken/visible status preview, by Unicode code point.
 function visibleId(id){
-  return JSON.stringify(id).replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u061c\u202a-\u202e\u2066-\u2069]/gu,
+  let count=0;
+  const first=[],last=[];
+  for(const point of id){
+    count++;
+    if(count<=60)first.push(point);
+    last.push(point);
+    if(last.length>12)last.shift();
+  }
+  const shortened=count>80;
+  const shown=shortened?first.join('')+'…'+last.join(''):id;
+  const escaped=JSON.stringify(shown).replace(/[\u007f-\u009f\u00ad\u034f\u061c\u115f-\u1160\u17b4-\u17b5\u180b-\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufe00-\ufe0f\ufeff\ufff9-\ufffb\u{e0000}-\u{e007f}\u{e0100}-\u{e01ef}]/gu,
     character=>'\\u'+character.codePointAt(0).toString(16).toUpperCase().padStart(4,'0'));
+  return shortened?escaped+' ('+(count-72)+' code points omitted from displayed ID)':escaped;
 }
 export function coverageText(events,baseline,scenario){
   const {baselineMissing,scenarioMissing}=summarizeEventCoverage(events,baseline,scenario);
