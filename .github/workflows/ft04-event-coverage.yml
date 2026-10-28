@@ -1,0 +1,23 @@
+name: FT-04 event coverage regressions
+on:
+  pull_request:
+    paths:
+      - 'free-tools/cash-flow/**'
+      - '.github/workflows/ft04-event-coverage.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate event coverage module and tests
+        run: |
+          node --check free-tools/cash-flow/coverage.mjs
+          node --check free-tools/cash-flow/coverage.test.mjs
+      - name: Run synthetic source-ID and window-coverage tests
+        run: node --test free-tools/cash-flow/coverage.test.mjs
