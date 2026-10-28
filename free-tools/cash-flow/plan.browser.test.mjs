@@ -55,8 +55,11 @@ try{
    expect(!('days' in plan),name+' plan does not misrepresent projected output as inputs');
    // Malformed and invalid plans cannot destroy an existing calculation.
    await upload(page,'{"schema":"cash-flow-plan/v1","events":[]}');
-   await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.length>0);
+   await page.waitForFunction(()=>document.querySelector('#plan-error')?.textContent?.length>0);
    expect(await page.locator('#export-json').isEnabled(),name+' invalid file preserves export');
+   expect(await page.evaluate(()=>document.activeElement.id)==='plan-error',name+' invalid import focuses nearby explanation');
+   expect(await page.locator('#load-plan').getAttribute('aria-invalid')==='true',name+' invalid import marks file input');
+   expect((await page.locator('#load-plan').getAttribute('aria-describedby')).includes('plan-error'),name+' file input references error');
    expect(await download(page,'#export-json')===before,name+' invalid file preserves JSON bytes');
    expect((await page.locator('#events').textContent()).includes(' 00007 '),name+' invalid file preserves event');
    // User declines replacement: both settings and previously calculated export survive.
@@ -64,6 +67,8 @@ try{
    await upload(page,saved);
    await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('import cancelled'));
    expect(await download(page,'#export-json')===before,name+' cancelled import preserves JSON');
+   expect(await page.locator('#plan-error').textContent()==='',name+' corrected selection clears prior import error');
+   expect(await page.locator('#load-plan').getAttribute('aria-invalid')===null,name+' retry clears invalid state');
    expect(await page.locator('#opening').inputValue()==='123.45',name+' cancelled import preserves settings');
    // Change the live plan, then restore from the exact saved JSON.
    await page.locator('#opening').fill('999.00');
@@ -87,13 +92,13 @@ try{
      events:[{id:'synthetic-income',label:'Synthetic income',date:'2026-10-25',repeat:'once',cents:1}],
      shiftId:'synthetic-income',shiftDays:1};
    await upload(page,JSON.stringify(baselineOverflow));
-   await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('Projected balance exceeds limit'));
+   await page.waitForFunction(()=>document.querySelector('#plan-error')?.textContent?.includes('Projected balance exceeds limit'));
    expect(await page.locator('#export-json').isEnabled(),name+' overflow import preserves existing projection');
    expect(await download(page,'#export-json')===currentScenario,name+' overflow import preserves exact scenario JSON');
    expect(await download(page,'#save-plan')===saved,name+' overflow import preserves editable plan');
    expect((await page.locator('#events').textContent()).includes(' 00007 '),name+' overflow import preserves event ID');
    await upload(page,Buffer.alloc(256001,65));
-   await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('256,000'));
+   await page.waitForFunction(()=>document.querySelector('#plan-error')?.textContent?.includes('256,000'));
    expect(await download(page,'#save-plan')===saved,name+' oversized file preserves plan');
 
    // Deliberately hold a real File.arrayBuffer() read while a newer local plan
@@ -130,7 +135,7 @@ try{
    await page.waitForFunction(()=>window.__delayedPlanReads.length===2);
    await page.locator('#opening').fill('777.00');
    await page.evaluate(()=>window.__delayedPlanReads[1].release());
-   await page.waitForFunction(()=>document.querySelector('#error')?.textContent?.includes('inputs changed'));
+   await page.waitForFunction(()=>document.querySelector('#plan-error')?.textContent?.includes('inputs changed'));
    expect(await page.locator('#opening').inputValue()==='777.00',name+' user edit wins pending import');
    // Do not request an eleventh automatic browser download: Chromium may
    // throttle repeated downloads in a single page. Earlier downloads already
