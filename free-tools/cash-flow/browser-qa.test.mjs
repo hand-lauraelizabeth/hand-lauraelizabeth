@@ -126,6 +126,20 @@ async function testBrowser(name,type){
     check(coverage.includes('baseline 1 of 2 ["future-bill"]'),name+': outside-window bill named in baseline coverage');
     check(coverage.includes('shifted scenario 1 of 2 ["future-bill"]'),name+': outside-window bill named in scenario coverage');
     check((await page.locator('#events').textContent()).includes('future-bill'),name+': outside-window bill remains in editable event list');
+
+    const [coverageDownload]=await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button',{name:'Export lossless JSON'}).click()
+    ]);
+    const coverageJSON=JSON.parse(readFileSync(await coverageDownload.path(),'utf8'));
+    check(coverageJSON.schema==='cash-flow-scenario/v1',name+': scenario JSON schema retained');
+    check(coverageJSON.sourceEventCoverage.enteredEventCount===2,name+': exported source-event count');
+    check(coverageJSON.sourceEventCoverage.baseline.modeledEventCount===1,name+': baseline included-event count');
+    check(coverageJSON.sourceEventCoverage.shiftedScenario.modeledEventCount===1,name+': shifted included-event count');
+    check(JSON.stringify(coverageJSON.sourceEventCoverage.baseline.withoutOccurrencesIds)===JSON.stringify(['future-bill']),name+': baseline unmodeled exact ID');
+    check(JSON.stringify(coverageJSON.sourceEventCoverage.shiftedScenario.withoutOccurrencesIds)===JSON.stringify(['future-bill']),name+': shifted unmodeled exact ID');
+    check(coverageJSON.sourceEventCoverage.note.includes('does not contain baseline daily balances'),name+': evidence scope explained');
+
     await page.reload({waitUntil:'networkidle'});
     check(await page.locator('#export').isDisabled(),name+': session not persisted to storage');
     const inlineExecuted=await page.evaluate(()=>{

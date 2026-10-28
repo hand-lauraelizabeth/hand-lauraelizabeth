@@ -52,3 +52,18 @@ export function coverageText(events,baseline,scenario){
     '; shifted scenario '+scenarioMissing.length+' of '+events.length+preview(scenarioMissing)+
     '. These events remain in your editable plan but do not affect the corresponding projected balances. Review dates, recurrence, and any shift.';
 }
+
+/**
+ * Evidence attached to the downloaded scenario JSON. Source IDs are exact,
+ * including whitespace and Unicode; only events without occurrences are listed.
+ * Baseline coverage is included for interpretation, not baseline daily balances.
+ */
+export function coverageEvidence(events,baseline,scenario){
+  const {baselineMissing,scenarioMissing}=summarizeEventCoverage(events,baseline,scenario);
+  return {
+    enteredEventCount:events.length,
+    baseline:{modeledEventCount:events.length-baselineMissing.length,withoutOccurrencesIds:baselineMissing},
+    shiftedScenario:{modeledEventCount:events.length-scenarioMissing.length,withoutOccurrencesIds:scenarioMissing},
+    note:'Counts distinct entered event IDs with at least one occurrence within the selected dates. Events without occurrences do not affect the corresponding projection. This export contains shifted-scenario daily balances only; it does not contain baseline daily balances.'
+  };
+}
