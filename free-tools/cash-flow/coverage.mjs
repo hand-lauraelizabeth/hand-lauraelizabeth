@@ -28,7 +28,7 @@ export function summarizeEventCoverage(events,baseline,scenario){
 }
 // Bound each displayed ID independently of the four-ID list limit. Preserve exact IDs in
 // coverage comparisons; shorten only the spoken/visible status preview, by Unicode code point.
-function visibleId(id){
+export function displaySafeText(id){
   let count=0;
   const first=[],last=[];
   for(const point of id){
@@ -47,7 +47,7 @@ export function coverageText(events,baseline,scenario){
   const {baselineMissing,scenarioMissing}=summarizeEventCoverage(events,baseline,scenario);
   if(events.length===0)return 'No income or bill events were added; only the opening balance is modeled.';
   if(!baselineMissing.length&&!scenarioMissing.length)return 'All '+events.length+' '+(events.length===1?'event has':'events have')+' at least one occurrence within the selected dates in both projections.';
-  const preview=ids=>ids.length?' ['+ids.slice(0,4).map(visibleId).join(', ')+(ids.length>4?'; '+(ids.length-4)+' more':'')+']':'';
+  const preview=ids=>ids.length?' ['+ids.slice(0,4).map(displaySafeText).join(', ')+(ids.length>4?'; '+(ids.length-4)+' more':'')+']':'';
   return 'Events with no occurrence within the selected dates: baseline '+baselineMissing.length+' of '+events.length+preview(baselineMissing)+
     '; shifted scenario '+scenarioMissing.length+' of '+events.length+preview(scenarioMissing)+
     '. These events remain in your editable plan but do not affect the corresponding projected balances. Review dates, recurrence, and any shift.';
