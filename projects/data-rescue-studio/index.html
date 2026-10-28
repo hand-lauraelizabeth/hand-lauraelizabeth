@@ -75,7 +75,15 @@
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;
 let loaded=null, loadedProvenance=null, loadedSourceName='', loadEpoch=0;
-const status=(message,error=false)=>{$('status').textContent=message;$('status').className=error?'error':'';};
+const status=(message,error=false)=>{
+ const messageNode=$('status'),fileInput=$('file');
+ messageNode.textContent=message;
+ messageNode.className=error?'error':'';
+ messageNode.setAttribute('role',error?'alert':'status');
+ messageNode.setAttribute('aria-live',error?'assertive':'polite');
+ if(error){fileInput.setAttribute('aria-invalid','true');messageNode.focus();}
+ else fileInput.removeAttribute('aria-invalid');
+};
 function clear(preserveFile=false){
  ++loadEpoch; loaded=null;loadedProvenance=null;loadedSourceName='';if(!preserveFile)$('file').value='';
  window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
