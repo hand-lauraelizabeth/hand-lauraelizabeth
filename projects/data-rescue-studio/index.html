@@ -46,7 +46,7 @@
 <p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines.</p>
 <label for="compareFile"><strong>Second file (UTF-8 CSV or TSV, maximum 5 MB)</strong></label>
 <div><input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
-<p id="compareStatus" role="status" aria-live="polite">Open a first file above to compare.</p>
+<p id="compareStatus" role="status" aria-live="polite" tabindex="-1">Open a first file above to compare.</p>
 <div class="grid">
 <div><label for="leftKey"><strong>Identifier in first file</strong></label><select id="leftKey" disabled><option value="">Choose a first file</option></select></div>
 <div><label for="rightKey"><strong>Identifier in second file</strong></label><select id="rightKey" disabled><option value="">Choose a second file</option></select></div>
@@ -54,11 +54,12 @@
 <div class="actions">
 <button id="compareRun" disabled>Compare exact identifiers</button>
 <button class="secondary" id="compareExport" disabled>Export comparison audit CSV</button>
+<button class="secondary" id="compareJson" disabled>Export exact comparison audit JSON</button>
 <button class="secondary" id="compareClear">Clear second file</button>
 </div>
 <div id="compareMetrics" class="grid" aria-label="Reconciliation summary"></div>
 <div id="compareResults" class="overflow" aria-label="Reconciliation record preview"></div>
-<p class="muted">Preview shows at most 30 findings. The downloaded audit includes all findings, source record positions, and identifier keys, but no complete input records. Keys may be sensitive; keep your exported audit private. Spreadsheet formula precautions are imperfect.</p>
+<p class="muted">Preview shows at most 30 findings. Downloads include all findings, exact identifier keys, and original logical source-record positions, but not complete input records. Spreadsheet CSV may be blocked when untrusted keys contain ambiguous formula-like text; exact JSON remains available. Keep both audit files private if identifiers are sensitive. Spreadsheet formula precautions are imperfect.</p>
 </section>
 <section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>

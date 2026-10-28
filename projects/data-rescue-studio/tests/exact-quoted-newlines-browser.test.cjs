@@ -95,6 +95,40 @@ async function run(label,browserType,url){
   const [headerEvidence]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
   eq(JSON.parse(readFileSync(await headerEvidence.path(),'utf8')).headers,
     ['ID','ID','ID (2)'],label+' original colliding headers preserved in evidence');
+
+  // Comparison keys may contain multiline formula-like text. CSV must fail
+  // closed with an accessible recovery path; JSON must retain the exact key.
+  await page.locator('#file').setInputFiles({name:'synthetic-audit-left.csv',mimeType:'text/csv',
+    buffer:Buffer.from('ID,Note\\n"safe\\n=1+1",not-exported\\n'.replaceAll('\\n','\n'),'utf8')});
+  await page.waitForFunction(()=>document.querySelector('#leftKey')?.options.length===3);
+  await page.locator('#compareFile').setInputFiles({name:'synthetic-audit-right.csv',mimeType:'text/csv',
+    buffer:Buffer.from('Join\\n"safe\\n=1+1"\\n'.replaceAll('\\n','\n'),'utf8')});
+  await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Loaded second file'));
+  await page.locator('#leftKey').selectOption('ID');
+  await page.locator('#rightKey').selectOption('Join');
+  await page.locator('#compareRun').click();
+  ok(await page.locator('#compareJson').isEnabled(),label+' exact audit JSON enabled after comparison');
+  let auditCsvDownloaded=false;
+  const onAuditCsvDownload=()=>{auditCsvDownloaded=true;};
+  page.on('download',onAuditCsvDownload);
+  await page.locator('#compareExport').click();
+  ok((await page.locator('#compareStatus').innerText()).includes('Comparison CSV blocked at audit record 2, column 2'),
+    label+' unsafe comparison CSV blocked with exact audit location');
+  eq(await page.locator('#compareStatus').getAttribute('role'),'alert',label+' audit error announced as alert');
+  ok(await page.locator('#compareStatus').evaluate(el=>document.activeElement===el),label+' audit error focused');
+  ok(!auditCsvDownloaded,label+' unsafe comparison CSV produces no download');
+  page.off('download',onAuditCsvDownload);
+  const [auditJsonDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#compareJson').click()]);
+  const audit=JSON.parse(readFileSync(await auditJsonDownload.path(),'utf8'));
+  eq(audit.format,'data-rescue-comparison-audit',label+' exact audit schema');
+  eq(audit.source.firstKey,'ID',label+' selected source key recorded');
+  eq(audit.matches,[{key:'safe\n=1+1',leftRow:2,rightRow:2}],label+' exact multiline key and logical positions');
+  ok(!JSON.stringify(audit).includes('not-exported'),label+' audit omits non-key source cells');
+  ok((await page.locator('#compareStatus').innerText()).includes('Exported exact comparison audit JSON'),
+    label+' JSON recovery is confirmed');
+  eq(await page.locator('#compareStatus').getAttribute('role'),'status',label+' success restores status role');
+  eq(errors,[],label+' no page errors after audit recovery');
+  eq(external,[],label+' no external requests after audit recovery');
   await page.close();
  }finally{await browser.close();}
 }

@@ -15,6 +15,8 @@
     const node = $('compareStatus');
     node.textContent = text;
     node.className = error ? 'error' : '';
+    node.setAttribute('role', error ? 'alert' : 'status');
+    if (error) node.focus();
   }
   function options(selectId, data) {
     const select = $(selectId);
@@ -33,6 +35,7 @@
     $('compareMetrics').replaceChildren();
     $('compareResults').replaceChildren();
     $('compareExport').disabled = true;
+    $('compareJson').disabled = true;
     $('compareRun').disabled = !(first && second && $('leftKey').value && $('rightKey').value);
   }
   function setPrimary(data, name = '') {
@@ -131,6 +134,7 @@
     table.append(body);
     $('compareResults').replaceChildren(table);
     $('compareExport').disabled = false;
+    $('compareJson').disabled = false;
     message('Comparison complete: ' + result.matches.length + ' exact one-to-one matches; ' + result.ambiguous.length + ' ambiguous identifier groups. Unmatched and missing-key records remain separate.');
   }
   function compare() {
@@ -143,22 +147,53 @@
       message('Unable to compare: ' + error.message, true);
     }
   }
+  function download(contents, filename, type) {
+    const url = URL.createObjectURL(new Blob([contents], {type}));
+    const link = el('a');
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   function exportAudit() {
     if (!comparison) return;
     const rows = auditRows(comparison);
     const headers = ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'];
     const parsed = {headers, normalizedHeaders: headers, rows, warnings: [], delimiter: ','};
-    // Identifier values are untrusted. Spreadsheet-oriented mitigation is explicit and imperfect.
-    const csv = lib.exportCsvDownload(parsed, true);
-    const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
-    const link = el('a');
-    link.href = url;
-    link.download = 'data-rescue-comparison-audit.csv';
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    message('Exported ' + rows.length + ' findings for ' + firstName + ' and ' + secondName + '. Contains identifier keys and source row numbers, not full records. Keep the file private if identifiers are sensitive.');
+    // Identifier keys are untrusted. Do not download a CSV when spreadsheet
+    // import could reinterpret them; retain exact findings in the JSON option.
+    const risk = lib.spreadsheetExportRisk(parsed);
+    if (risk) {
+      message('Comparison CSV blocked at audit record ' + risk.sourceRecord +
+        ', column ' + risk.column + '. No CSV was downloaded. Use Export exact comparison audit JSON instead.', true);
+      return;
+    }
+    try {
+      download(lib.exportCsvDownload(parsed, true), 'data-rescue-comparison-audit.csv', 'text/csv;charset=utf-8');
+      message('Exported ' + rows.length + ' findings. Contains identifier keys and source record positions, not full input records. Keep it private if identifiers are sensitive.');
+    } catch (error) {
+      message('Unable to export comparison CSV: ' + error.message + ' Use exact comparison audit JSON instead.', true);
+    }
+  }
+  function exportAuditJson() {
+    if (!comparison) return;
+    // Preserve exact keys and numeric source-record arrays. No full source rows,
+    // fabricated timestamps, remote requests, or spreadsheet-specific rewrites.
+    const audit = {
+      format: 'data-rescue-comparison-audit', schemaVersion: 1,
+      source: {firstFileName: firstName, secondFileName: secondName,
+        firstKey: $('leftKey').value, secondKey: $('rightKey').value,
+        recordUnit: 'logical CSV/TSV record; header is record 1'},
+      ...comparison
+    };
+    try {
+      download(JSON.stringify(audit), 'data-rescue-comparison-audit.json', 'application/json;charset=utf-8');
+      message('Exported exact comparison audit JSON. Includes all findings and exact identifier keys, not complete input records. Keep it private if identifiers are sensitive.');
+    } catch (error) {
+      message('Unable to export comparison audit JSON: ' + error.message, true);
+    }
   }
   $('compareFile').addEventListener('change', loadSecond);
   $('compareClear').addEventListener('click', clearSecond);
@@ -166,5 +201,6 @@
   $('rightKey').addEventListener('change', invalidate);
   $('compareRun').addEventListener('click', compare);
   $('compareExport').addEventListener('click', exportAudit);
+  $('compareJson').addEventListener('click', exportAuditJson);
   root.DataRescueCompareUI = {setPrimary};
 })(window);

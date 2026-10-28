@@ -34,15 +34,17 @@ class FakeElement {
     }
   }
   click() { this.clicked = true; }
+  focus() { this.focused = true; }
+  setAttribute(name, value) { this[name] = value; }
   remove() {}
 }
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
-  'compareRun','compareExport','compareClear','leftKey','rightKey'];
+  'compareRun','compareExport','compareJson','compareClear','leftKey','rightKey'];
 const nodes = {};
 for (const id of ids) {
   nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' ? 'select' : 'div');
   // The fixture must respect initial HTML disabled attributes, not merely JS defaults.
-  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport'].includes(id);
+  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareJson'].includes(id);
 }
 const document = {
   body: new FakeElement('body'),
@@ -84,7 +86,8 @@ async function run() {
   const counts=nodes.compareMetrics.children.map(node=>Number(node.children[1].textContent));
   assert.deepEqual(counts,[1,1,1,1,2]);count++;
   check(nodes.compareResults.children.length===1,'visible result table created');
-  check(!nodes.compareExport.disabled,'audit enabled only after comparing');
+  check(!nodes.compareExport.disabled,'CSV audit enabled only after comparing');
+  check(!nodes.compareJson.disabled,'JSON audit enabled only after comparing');
   check(nodes.compareStatus.textContent.includes('ambiguous identifier groups'),'ambiguity reported in status');
   nodes.compareExport.handlers.click();
   check(blobs.length===1,'export creates one local blob');
@@ -97,7 +100,8 @@ async function run() {
   check(downloads.length===1,'blob URL revoked after download');
   nodes.compareClear.handlers.click();
   check(nodes.rightKey.disabled,'clear revokes second-file readiness');
-  check(nodes.compareExport.disabled,'clear revokes stale audit');
+  check(nodes.compareExport.disabled,'clear revokes stale CSV audit');
+  check(nodes.compareJson.disabled,'clear revokes stale JSON audit');
   // Replacing a file mid-read must ignore the older async completion.
   let finishRead;
   nodes.compareFile.files=[{name:'slow.csv',size:100,text:()=>new Promise(resolve=>finishRead=resolve)}];
@@ -126,6 +130,27 @@ async function run() {
   nodes.compareRun.handlers.click();nodes.compareExport.handlers.click();
   const riskCsv=await blobs[1].text();
   check(riskCsv.includes('"\t=1+2"'),'spreadsheet-oriented export mitigates formula-like key');
+  // Embedded newline followed by a formula marker must not create a CSV download.
+  const multiline='safe\n=1+1';
+  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Note\n"safe\n=1+1",private-field'),'unsafe-left.csv');
+  nodes.compareFile.files=[{name:'unsafe-right.csv',size:25,text:async()=> 'Join\n"safe\n=1+1"'}];
+  await nodes.compareFile.handlers.change();
+  nodes.leftKey.value='ID';nodes.rightKey.value='Join';
+  nodes.leftKey.handlers.change();nodes.rightKey.handlers.change();
+  nodes.compareRun.handlers.click();
+  const before=blobs.length;
+  nodes.compareExport.handlers.click();
+  check(blobs.length===before,'unsafe comparison CSV does not create blob');
+  check(nodes.compareStatus.textContent.includes('audit record 2, column 2'),'CSV block identifies audit-output record');
+  check(nodes.compareStatus.role==='alert' && nodes.compareStatus.focused,'CSV block is focused and announced');
+  nodes.compareJson.handlers.click();
+  check(blobs.length===before+1,'exact JSON comparison recovery creates blob');
+  const json=JSON.parse(await blobs[before].text());
+  check(json.format==='data-rescue-comparison-audit','JSON audit schema identified');
+  check(json.matches[0].key===multiline && json.matches[0].leftRow===2 && json.matches[0].rightRow===2,
+    'JSON audit preserves exact multiline key and source positions');
+  check(!JSON.stringify(json).includes('private-field'),'JSON audit excludes non-key source cells');
+  check(nodes.compareStatus.role==='status','JSON recovery restores normal status role');
   check(html.includes('<script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
   check(html.includes('DataRescueCompareUI.setPrimary(data,name)'),'first-file load feeds reconciliation UI');
   check(html.includes('DataRescueCompareUI.setPrimary(null)'),'clearing first file invalidates comparison');
