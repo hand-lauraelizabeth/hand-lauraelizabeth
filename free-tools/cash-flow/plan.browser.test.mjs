@@ -58,6 +58,7 @@ try{
    await page.waitForFunction(()=>document.querySelector('#plan-error')?.textContent?.length>0);
    expect(await page.locator('#export-json').isEnabled(),name+' invalid file preserves export');
    expect(await page.evaluate(()=>document.activeElement.id)==='plan-error',name+' invalid import focuses nearby explanation');
+   expect(await page.locator('#plan-error').evaluate(el=>getComputedStyle(el).outlineStyle)==='solid',name+' focused import explanation has visible outline');
    expect(await page.locator('#load-plan').getAttribute('aria-invalid')==='true',name+' invalid import marks file input');
    expect((await page.locator('#load-plan').getAttribute('aria-describedby')).includes('plan-error'),name+' file input references error');
    expect(await download(page,'#export-json')===before,name+' invalid file preserves JSON bytes');
