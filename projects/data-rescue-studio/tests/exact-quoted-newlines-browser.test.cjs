@@ -66,6 +66,17 @@ async function run(label,browserType,url){
   const [safeJson]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
   eq(JSON.parse(readFileSync(await safeJson.path(),'utf8')).records[0].values[1],'safe\n=1+1',label+' JSON preserves multiline source');
 
+  // Duplicate removal must not change the logical record cited in a blocked export.
+  await page.locator('#file').setInputFiles({name:'synthetic-deduped-guard.csv',mimeType:'text/csv',
+    buffer:Buffer.from('ID,Note\n01,ok\n01,ok\n02,"safe\n=1+1"\n03,done\n','utf8')});
+  await page.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
+  await page.locator('#dedupe').check();
+  await page.locator('#sheetSafe').check();
+  await page.locator('#save').click();
+  ok((await page.locator('#status').innerText()).includes('source record 4, column 2'),label+' deduplicated export cites original source position');
+  const [originalEvidence]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
+  eq(JSON.parse(readFileSync(await originalEvidence.path(),'utf8')).records.map(r=>r.sourceRecord),
+    [2,3,4,5],label+' JSON still exports all original records');
   await page.close();
  }finally{await browser.close();}
 }
