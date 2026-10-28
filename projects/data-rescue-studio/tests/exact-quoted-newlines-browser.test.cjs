@@ -202,6 +202,14 @@ async function run(label,browserType,url){
   ok(await page.locator('#compareStatus').evaluate(el=>document.activeElement===el),label+' audit error focused');
   ok(!auditCsvDownloaded,label+' unsafe comparison CSV produces no download');
   page.off('download',onAuditCsvDownload);
+  ok(await page.locator('#compareJson').isEnabled(),label+' exact JSON recovery remains enabled after blocked audit CSV');
+  console.log('AUDIT_RECOVERY_STATE',label,JSON.stringify(await page.evaluate(()=>({
+    compareStatus:document.querySelector('#compareStatus').textContent,
+    jsonDisabled:document.querySelector('#compareJson').disabled,
+    csvDisabled:document.querySelector('#compareExport').disabled,
+    selectedFirst:document.querySelector('#leftKey').value,
+    selectedSecond:document.querySelector('#rightKey').value
+  }))));
   const [auditJsonDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#compareJson').click()]);
   const audit=JSON.parse(readFileSync(await auditJsonDownload.path(),'utf8'));
   eq(audit.format,'data-rescue-comparison-audit',label+' exact audit schema');
