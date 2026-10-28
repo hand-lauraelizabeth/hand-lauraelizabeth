@@ -67,6 +67,14 @@ let count=0;
 function check(value,label) { assert.ok(value,label); count++; }
 async function run() {
   check(typeof win.DataRescueCompareUI.setPrimary === 'function','UI controller exposed locally');
+  const safePreview=win.DataRescueCompareUI.previewText;
+  check(typeof safePreview==='function','shared first-file/reconciliation preview helper exposed');
+  const hidden='start\u200B'+'Z'.repeat(210)+'\nend';
+  const visible=safePreview(hidden);
+  check(visible.includes('\\u{200B}') && visible.includes('\\n'),'shared preview escapes hidden characters and line breaks');
+  check(visible.includes('code points omitted') && !visible.includes('Z'.repeat(100)),'shared preview bounds long values');
+  check(safePreview('short value')==='short value','short printable values unchanged');
+  check(html.includes('DataRescueCompareUI.previewText(h)') && html.includes('DataRescueCompareUI.previewText(v)'),'first-file headers, quality metrics and cells use shared preview');
   const first=rescue.parseDelimited('ID,Value\n1,A\n2,B\n2,Duplicate\n3,C\n,Missing');
   win.DataRescueCompareUI.setPrimary(first,'first.csv');
   check(!nodes.leftKey.disabled,'first identifier select enabled');
