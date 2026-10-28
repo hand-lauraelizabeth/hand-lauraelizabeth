@@ -1,14 +1,14 @@
 import {parseCents,formatCents,dateUTC,project,exportSafeCSV,exportJSON,csvExportRisk} from './engine.mjs';
 import {exportPlan,readPlanFile} from './plan.mjs';
 import {summarizeShortfalls,compareBelowZeroDates} from './shortfalls.mjs';
-import {coverageText} from './coverage.mjs';
+import {coverageText,displaySafeText} from './coverage.mjs';
 const $=id=>document.getElementById(id),events=[];let latest=null,revision=0,loadTicket=0;
 function markEdited(){revision++;}
 function say(message,error=false){$('error').textContent=error?message:'';$('status').textContent=error?'Projection unavailable.':message}
 function invalidate(){latest=null;$('export').disabled=true;$('export-json').disabled=true;$('csv-warning').textContent='';$('results').replaceChildren();$('summary').textContent='';$('shortfall-summary').textContent='';$('coverage-summary').textContent='';}
 function eventList(){const ul=$('events');ul.replaceChildren();const select=$('shift-id');select.replaceChildren();const blank=document.createElement('option');blank.value='';blank.textContent='No shift';select.append(blank);
   if(!events.length){const li=document.createElement('li');li.textContent='No events added.';ul.append(li)}
-  for(const e of events){const li=document.createElement('li');li.append(document.createTextNode(`${e.id} — ${e.label} (${formatCents(e.cents)} USD; ${e.date}; ${e.repeat}) `));const button=document.createElement('button');button.type='button';button.textContent=`Remove ${e.id}`;button.addEventListener('click',()=>{if(!window.confirm('Remove this event from this tab? Re-enter it if needed; exported files are not changed.'))return;events.splice(events.indexOf(e),1);markEdited();eventList();invalidate();say('Event removed. Recalculate to update results.');$('event-id').focus()});li.append(button);ul.append(li);const option=document.createElement('option');option.value=e.id;option.textContent=`${e.id}: ${e.label}`;select.append(option)}
+  for(const e of events){const li=document.createElement('li');li.append(document.createTextNode(`${displaySafeText(e.id)} — ${displaySafeText(e.label)} (${formatCents(e.cents)} USD; ${e.date}; ${e.repeat}) `));const button=document.createElement('button');button.type='button';button.textContent=`Remove ${displaySafeText(e.id)}`;button.addEventListener('click',()=>{if(!window.confirm('Remove this event from this tab? Re-enter it if needed; exported files are not changed.'))return;events.splice(events.indexOf(e),1);markEdited();eventList();invalidate();say('Event removed. Recalculate to update results.');$('event-id').focus()});li.append(button);ul.append(li);const option=document.createElement('option');option.value=e.id;option.textContent=`${displaySafeText(e.id)}: ${displaySafeText(e.label)}`;select.append(option)}
 }
 const eventFields=['event-id','event-label','event-amount','event-date','event-repeat'];
 function clearEventError(){
