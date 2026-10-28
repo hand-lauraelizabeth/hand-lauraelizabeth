@@ -44,3 +44,21 @@ test('invalid projections cannot silently imply full coverage',()=>{
   assert.throws(()=>summarizeEventCoverage(events('a'),{days:[{}]},projection()),/Invalid projection event list/);
   assert.throws(()=>summarizeEventCoverage(events('a'),{},projection()),/Invalid event coverage inputs/);
 });
+
+test('rejects duplicate source IDs instead of counting ambiguous events as covered',()=>{
+  assert.throws(()=>summarizeEventCoverage(events('rent','rent'),projection('rent'),projection('rent')),/Duplicate source event ID/);
+});
+test('rejects an unrecognized baseline event ID rather than silently accepting a corrupted projection',()=>{
+  assert.throws(()=>coverageText(events('rent'),projection('rent','ghost'),projection('rent')),/Projection event ID does not match/);
+});
+test('rejects an unrecognized shifted-scenario ID independently of baseline coverage',()=>{
+  assert.throws(()=>summarizeEventCoverage(events('rent'),projection('rent'),projection('rent','other')),/Projection event ID does not match/);
+});
+test('rejects missing and nonstring projection event identities',()=>{
+  assert.throws(()=>coverageText(events('rent'),{days:[{events:[{}]}]},projection('rent')),/Projection event ID does not match/);
+  assert.throws(()=>coverageText(events('rent'),projection('rent'),{days:[{events:[{id:42}]}]}),/Projection event ID does not match/);
+});
+test('source identity matching preserves exact whitespace and unusual but valid IDs',()=>{
+  const id=' 00\u202E9 ';
+  assert.deepEqual(summarizeEventCoverage(events(id),projection(id),projection(id)),{baselineMissing:[],scenarioMissing:[]});
+});
