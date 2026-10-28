@@ -39,7 +39,14 @@
 <div id="warnings"></div><div class="overflow" id="columns"></div>
 </section>
 <section class="panel" aria-labelledby="preview"><h2 id="preview">3. Inspect rows</h2>
-<p class="muted">Only the first 20 records are shown. Very long cell values and column headings are shortened, and hidden formatting characters are shown as escapes. CSV and evidence JSON retain the original values.</p>
+<p class="muted">Inspect original logical source-record positions, including records with blank cells or exact duplicates. Filters affect only this preview, never downloads or source data. Only the first 20 matching records are shown. Long values and hidden characters are displayed safely; exports retain exact values.</p>
+<label for="previewFilter"><strong>Show source records</strong></label>
+<select id="previewFilter" disabled>
+<option value="all">All source records</option>
+<option value="missing">Records with blank cells</option>
+<option value="duplicates">Repeated exact records</option>
+</select>
+<p id="previewStatus" role="status" aria-live="polite" aria-atomic="true">Open a file to inspect records.</p>
 <div class="overflow" id="table"></div>
 </section>
 <section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
@@ -88,6 +95,8 @@ function clear(preserveFile=false){
  ++loadEpoch; loaded=null;loadedProvenance=null;loadedSourceName='';if(!preserveFile)$('file').value='';
  window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
+ $('previewFilter').value='all';$('previewFilter').disabled=true;
+ $('previewStatus').textContent='Open a file to inspect records.';
  $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;$('saveJson').disabled=true;status('No data loaded.');
 }
 function el(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
@@ -104,16 +113,32 @@ function quality(data,name,provenance=null) {
  thead.append(tr);t.append(thead);const tbody=el('tbody');
  for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',window.DataRescueCompareUI.previewText(v)));tbody.append(line);}
  t.append(tbody);$('columns').replaceChildren(t);
- $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));
+ $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;
+ $('previewFilter').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));
 }
 function preview(){
  if(!loaded)return;
- const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;
- const table=el('table'), caption=el('caption','First '+Math.min(active.rows.length,20)+' of '+active.rows.length+' rows'),head=el('thead'),r=el('tr');
- for(const h of active.normalizedHeaders)r.append(el('th',window.DataRescueCompareUI.previewText(h)));head.append(r);table.append(caption,head);
- const body=el('tbody');for(const row of active.rows.slice(0,20)){const line=el('tr');for(const v of row)line.append(el('td',window.DataRescueCompareUI.previewText(v)));body.append(line);}
+ const findings=lib.inspectSourceRecords(loaded,$('previewFilter').value,20);
+ const label=findings.mode==='missing'?'records with blank cells':
+   findings.mode==='duplicates'?'repeated exact records':'source records';
+ $('previewStatus').textContent='Showing '+findings.shown+' of '+findings.total+' '+label+
+   '. Original source-record positions; exports are unchanged.';
+ const table=el('table'),caption=el('caption','Source record preview: '+findings.shown+' of '+findings.total+' '+label);
+ const head=el('thead'),r=el('tr');
+ for(const h of ['Source record','Exact duplicate of',...loaded.normalizedHeaders])
+   {const th=el('th',window.DataRescueCompareUI.previewText(h));th.scope='col';r.append(th);}
+ head.append(r);table.append(caption,head);
+ const body=el('tbody');
+ for(const entry of findings.entries){
+   const line=el('tr');
+   const source=el('th',entry.sourceRecord);source.scope='row';line.append(source);
+   line.append(el('td',entry.duplicateOf===null?'—':entry.duplicateOf));
+   for(const value of entry.values)line.append(el('td',window.DataRescueCompareUI.previewText(value)));
+   body.append(line);
+ }
  table.append(body);$('table').replaceChildren(table);
 }
+
 $('file').addEventListener('change',async()=>{
  const file=$('file').files?.[0];
  if(!file){clear();return;}
@@ -135,7 +160,8 @@ $('sample').addEventListener('click',()=>{
 clear();const demo='Name,City,Note\n"Ada L.","New York","research"\n"Sam","Boston","=1+2"\n"Sam","Boston","=1+2"\n';
 quality(lib.parseDelimited(demo),'synthetic example');
 });
-$('reset').addEventListener('click',clear);$('dedupe').addEventListener('change',preview);
+$('reset').addEventListener('click',clear);
+$('previewFilter').addEventListener('change',preview);
 $('save').addEventListener('click',()=>{
  if(!loaded)return;
  const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;
