@@ -118,7 +118,7 @@ test('ordinary Unicode letters and visible emoji remain readable',()=>{
 test('event-list display exposes hidden directional and zero-width controls without mutating IDs',()=>{
   const id='rent\u202E\u200B-01';
   const shown=displaySafeText(id);
-  assert.match(shown,/rent\\\\u202E\\\\u200B-01/);
+  assert.match(shown,/rent\\u202E\\u200B-01/);
   assert.ok(!shown.includes('\u202E'));
   assert.ok(!shown.includes('\u200B'));
   assert.deepEqual(summarizeEventCoverage(events(id),projection(id),projection(id)).baselineMissing,[]);
@@ -127,8 +127,8 @@ test('event descriptions with embedded quotes and line breaks display as one rea
   const label='Invoice "paid"\nnext line\u2029end';
   const shown=displaySafeText(label);
   assert.ok(shown.includes('Invoice \\"paid\\"'));
-  assert.ok(shown.includes('\\\\n'));
-  assert.ok(shown.includes('\\\\u2029'));
+  assert.ok(shown.includes('\\n'));
+  assert.ok(shown.includes('\\u2029'));
   assert.equal(shown.split('\n').length,1);
 });
 test('long event descriptions use bounded display-only previews',()=>{
