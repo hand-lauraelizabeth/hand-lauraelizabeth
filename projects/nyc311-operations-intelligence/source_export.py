@@ -119,6 +119,12 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$limit": PAGE_MAX
     })
 
+    three_way_url = api_url("/resource/" + DATASET + ".json", {
+        "$select": "borough,agency,status,count(*) as n", "$where": predicate,
+        "$group": "borough,agency,status", "$order": "borough,agency,status",
+        "$limit": PAGE_MAX
+    })
+
     def official_pairs(expected_rows):
         data = fetch(aggregate_url)
         if not isinstance(data, list) or not data or len(data) >= PAGE_MAX:
@@ -144,6 +150,30 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         if sum(pairs.values()) != expected_rows:
             raise ValueError("Official aggregate total differs from source count")
         return pairs
+
+    def official_triples(expected_rows):
+        """Read full borough/agency/status evidence without logging small cells."""
+        data = fetch(three_way_url)
+        if not isinstance(data, list) or not data or len(data) >= PAGE_MAX:
+            raise ValueError("Invalid or potentially truncated official three-way aggregate")
+        triples = {}
+        for item in data:
+            if not isinstance(item, dict):
+                raise ValueError("Malformed official three-way aggregate")
+            labels = tuple("" if item.get(dim) is None else item.get(dim, "")
+                           for dim in ("borough", "agency", "status"))
+            if any(not isinstance(label, str) for label in labels):
+                raise ValueError("Invalid official three-way dimension")
+            try:
+                n = parse_publisher_count(item["n"])
+            except (KeyError, TypeError, ValueError):
+                raise ValueError("Invalid official three-way count") from None
+            if n <= 0 or labels in triples:
+                raise ValueError("Duplicate or nonpositive official three-way aggregate")
+            triples[labels] = n
+        if sum(triples.values()) != expected_rows:
+            raise ValueError("Official three-way total differs from source count")
+        return triples
 
     def metadata():
         obj = fetch(meta_url)
@@ -202,8 +232,14 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     before_update, before_schema = metadata()
     expected = counts()
     before_pairs = official_pairs(expected)
+    before_triples = official_triples(expected)
+    if dict(Counter({pair: sum(n for (b, a, _), n in before_triples.items()
+                               if (b, a) == pair)
+                     for pair in before_pairs})) != before_pairs:
+        raise ValueError("Official three-way and two-way aggregates disagree")
     seen = set()
     local_pairs = Counter()
+    local_triples = Counter()
     month_start = dt.datetime.fromisoformat(lower)
     month_end = dt.datetime.fromisoformat(upper)
     rows = 0
@@ -255,6 +291,8 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                     if record.get("closed_date") is None:
                         record = {**record, "closed_date": ""}
                     local_pairs[(record.get("borough", ""), record.get("agency", ""))] += 1
+                    local_triples[(record.get("borough", ""), record.get("agency", ""),
+                                   record.get("status", ""))] += 1
                     writer.writerow({f: record.get(f, "") for f in FIELDS})
                 rows += len(page)
                 pages += 1
@@ -271,6 +309,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Publisher source aggregates changed during export")
         if dict(local_pairs) != before_pairs:
             raise ValueError("Exported rows disagree with official cross-aggregate")
+        after_triples = official_triples(expected)
+        if after_triples != before_triples:
+            raise ValueError("Official three-way aggregates changed during export")
+        if dict(local_triples) != before_triples:
+            raise ValueError("Exported rows disagree with official three-way cross-aggregate")
         # Stamp *completed* source checks, not the start of a long paginated
         # acquisition. A caller-supplied UTC clock is only a synthetic test hook.
         if verified_at is None:
@@ -287,6 +330,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             [[b, a, n] for (b, a), n in sorted(before_pairs.items())],
             separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")).hexdigest()
+        three_way_digest = hashlib.sha256(json.dumps(
+            [[b, a, status, n] for (b, a, status), n in sorted(before_triples.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
         sha = hashlib.sha256()
         with temp_csv.open("rb") as stream:
             while chunk := stream.read(1024 * 1024):
@@ -299,6 +346,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "aggregate_cells": len(before_pairs),
             "aggregate_sha256": aggregate_digest,
             "cross_aggregate_verified": True,
+            "three_way_aggregate_query_url": three_way_url,
+            "three_way_aggregate_cells": len(before_triples),
+            "three_way_aggregate_sha256": three_way_digest,
+            "three_way_cross_aggregate_verified": True,
             "where": predicate, "ordered_by": "unique_key ASC",
             "fields": list(FIELDS), "rows": rows, "distinct_keys": len(seen),
             "pages": pages, "page_size": page_size,
