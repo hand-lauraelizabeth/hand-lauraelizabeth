@@ -62,3 +62,34 @@ test('source identity matching preserves exact whitespace and unusual but valid 
   const id=' 00\u202E9 ';
   assert.deepEqual(summarizeEventCoverage(events(id),projection(id),projection(id)),{baselineMissing:[],scenarioMissing:[]});
 });
+
+test('long source IDs have bounded, explicitly shortened status previews without changing exact identities',()=>{
+  const id='a'.repeat(60)+'b'.repeat(5000)+'z'.repeat(12);
+  const text=coverageText(events(id),projection(),projection());
+  assert.match(text,/5000 code points omitted from displayed ID/);
+  assert.ok(text.includes('a'.repeat(60)));
+  assert.ok(text.includes('z'.repeat(12)));
+  assert.ok(!text.includes('b'.repeat(5000)));
+  assert.ok(text.length<1500);
+  assert.deepEqual(summarizeEventCoverage(events(id),projection(),projection()).baselineMissing,[id]);
+});
+test('preview shortening counts Unicode code points rather than UTF-16 units',()=>{
+  const id='🧾'.repeat(100);
+  const text=coverageText(events(id),projection(),projection());
+  assert.match(text,/28 code points omitted from displayed ID/);
+  assert.deepEqual(summarizeEventCoverage(events(id),projection(),projection()).scenarioMissing,[id]);
+});
+test('status escapes additional invisible format characters but preserves exact IDs',()=>{
+  const id='ID\u00ad\u034f\ufeff\u2060\u{e0001}';
+  const text=coverageText(events(id),projection(),projection());
+  for(const ch of ['\u00ad','\u034f','\ufeff','\u2060','\u{e0001}'])assert.ok(!text.includes(ch));
+  for(const escape of ['\\u00AD','\\u034F','\\uFEFF','\\u2060','\\uE0001'])assert.ok(text.includes(escape));
+  assert.deepEqual(summarizeEventCoverage(events(id),projection(),projection()).baselineMissing,[id]);
+});
+test('four very long missing IDs cannot create an unbounded status message',()=>{
+  const ids=Array.from({length:6},(_,i)=>String(i)+'x'.repeat(10000));
+  const text=coverageText(events(...ids),projection(),projection());
+  assert.match(text,/baseline 6 of 6/);
+  assert.match(text,/2 more/);
+  assert.ok(text.length<4500);
+});
