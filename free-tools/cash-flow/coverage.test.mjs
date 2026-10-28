@@ -8,7 +8,7 @@ test('empty schedule is described without implying payments',()=>{
 });
 test('every event present in both projections',()=>{
   assert.deepEqual(summarizeEventCoverage(events('rent'),projection('rent'),projection('rent')),{baselineMissing:[],scenarioMissing:[]});
-  assert.match(coverageText(events('rent'),projection('rent'),projection('rent')),/All 1 events/);
+  assert.match(coverageText(events('rent'),projection('rent'),projection('rent')),/All 1 event has/);
 });
 test('one-off outside both projection windows remains identified',()=>{
   const text=coverageText(events('rent','future-bill'),projection('rent'),projection('rent'));
