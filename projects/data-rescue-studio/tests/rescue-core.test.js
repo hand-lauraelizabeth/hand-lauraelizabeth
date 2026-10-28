@@ -154,5 +154,5 @@ console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
   const dedup = withoutExactDuplicates(source);
   assert.deepEqual(inspectSourceRecords(dedup, 'all').entries.map(r => r.sourceRecord), [2,3,4,6]);
   assert.deepEqual(inspectSourceRecords(dedup, 'duplicates').entries, []);
-  console.log('PASS: 14 source-record issue-filter and provenance checks.');
+  console.log('PASS: 15 source-record issue-filter and provenance checks.');
 }
