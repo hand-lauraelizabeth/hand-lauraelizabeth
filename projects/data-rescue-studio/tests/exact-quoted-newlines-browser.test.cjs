@@ -31,6 +31,31 @@ async function run(label,browserType,url){
   page.on('request',r=>{if(!r.url().startsWith(url)&&!r.url().startsWith('blob:'+url))external.push(r.url());});
   const response=await page.goto(url,{waitUntil:'networkidle'});
   eq(response.status(),200,label+' served page');
+  // First-file errors must be announced, keyboard discoverable, and recoverable.
+  await page.locator('#file').setInputFiles({name:'synthetic-wrong-extension.txt',mimeType:'text/plain',buffer:Buffer.from('ID\\n1\\n')});
+  await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Choose a .csv or .tsv file'));
+  eq(await page.locator('#status').getAttribute('role'),'alert',label+' invalid extension is an alert');
+  eq(await page.locator('#status').getAttribute('aria-live'),'assertive',label+' invalid extension has assertive feedback');
+  eq(await page.locator('#file').getAttribute('aria-invalid'),'true',label+' invalid extension identifies input');
+  ok(await page.locator('#status').evaluate(el=>document.activeElement===el),label+' invalid extension focuses error');
+  ok(await page.locator('#save').isDisabled(),label+' invalid extension cannot export');
+  await page.locator('#file').setInputFiles({name:'synthetic-malformed.csv',mimeType:'text/csv',buffer:Buffer.from([0x49,0x44,0x0a,0xc3,0x28])});
+  await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Unable to open file'));
+  eq(await page.locator('#status').getAttribute('role'),'alert',label+' malformed UTF-8 is an alert');
+  eq(await page.locator('#file').getAttribute('aria-invalid'),'true',label+' malformed UTF-8 identifies input');
+  ok(await page.locator('#status').evaluate(el=>document.activeElement===el),label+' malformed UTF-8 focuses error');
+  // Keyboard activation must restore normal status and clear invalid state.
+  await page.locator('#sample').focus();await page.keyboard.press('Enter');
+  await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('synthetic example'));
+  eq(await page.locator('#status').getAttribute('role'),'status',label+' valid sample restores status role');
+  eq(await page.locator('#status').getAttribute('aria-live'),'polite',label+' valid sample restores polite feedback');
+  eq(await page.locator('#file').getAttribute('aria-invalid'),null,label+' valid sample clears invalid state');
+  await page.locator('#reset').focus();await page.keyboard.press('Enter');
+  eq(await page.locator('#status').innerText(),'No data loaded.',label+' keyboard clear resets source');
+  ok(await page.locator('#save').isDisabled(),label+' keyboard clear disables export');
+  await page.setViewportSize({width:320,height:800});
+  ok(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),label+' upload error recovery fits 320px viewport');
+  await page.setViewportSize({width:1280,height:800});
   await page.locator('#file').setInputFiles({name:'synthetic-mixed-newlines.csv',mimeType:'text/csv',buffer:source});
   await page.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
   const [jsonDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
