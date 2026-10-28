@@ -16,7 +16,7 @@ blocked('ID,Note\\n01,"ordinary\\r\\n   @SUM(1)"\\n'.replaceAll('\\r','\r').repl
 blocked('ID,Note\\n01,"\\u202Edisguised"\\n'.replaceAll('\\n','\n').replace('\\u202E','\u202E'),2,2);
 blocked('ID,Note\\n01,"\\u200B=1+1"\\n'.replaceAll('\\n','\n').replace('\\u200B','\u200B'),2,2);
 blocked('ID,Note\\n01,"\\u0001hidden"\\n'.replaceAll('\\n','\n').replace('\\u0001','\u0001'),2,2);
-blocked('=1+1,Note\\n01,ok\\n'.replaceAll('\\n','\n'),1,1); // Header is also untrusted.
+blocked('\\u200B=1+1,Note\\n01,ok\\n'.replaceAll('\\n','\n').replace('\\u200B','\u200B'),1,1); // Hidden-prefix header is also untrusted.
 const benign=parseDelimited('ID,Note\\n01,"ordinary\\r\\nmultiline"\\n'.replaceAll('\\r','\r').replaceAll('\\n','\n'));
 eq(spreadsheetExportRisk(benign),null,'ordinary multiline accepted');
 eq(parseDelimited(exportCsvDownload(benign,true)).rows,benign.rows,'benign spreadsheet CSV roundtrip');
