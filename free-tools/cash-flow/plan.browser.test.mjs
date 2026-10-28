@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
 import {chromium,firefox,webkit} from 'playwright';
+import {displaySafeText} from './coverage.mjs';
 const root=dirname(fileURLToPath(import.meta.url));
 const assets=new Map([['/','index.html'],['/index.html','index.html'],['/style.css','style.css'],
  ['/app.mjs','app.mjs'],['/engine.mjs','engine.mjs'],['/plan.mjs','plan.mjs'], ['/shortfalls.mjs','shortfalls.mjs'], ['/coverage.mjs','coverage.mjs']]);
@@ -80,7 +81,11 @@ try{
    expect(await page.locator('#opening').inputValue()==='123.45',name+' confirmed import restores opening');
    expect(await page.locator('#shift-id').inputValue()===' 00007 ',name+' confirmed import restores shift ID');
    expect(await page.locator('#shift-days').inputValue()==='2',name+' confirmed import restores shift days');
-   expect((await page.locator('#events').textContent()).includes('=HYPERLINK("x")'),name+' exact formula-like text preserved locally');
+   // Rendering escapes quotes and controls for inspection; the saved plan retains exact inputs.
+   const restoredEventText=await page.locator('#events').textContent();
+   expect(restoredEventText.includes(displaySafeText(' 00007 ')),name+' restored source ID shown safely');
+   expect(restoredEventText.includes(displaySafeText('=HYPERLINK("x")','description')),name+' restored formula-like description shown safely');
+   expect(!restoredEventText.includes('=HYPERLINK("x")'),name+' unsafe unescaped formula-like display absent');
    expect(await page.locator('#export-json').isDisabled(),name+' confirmed import invalidates prior projection');
    expect(await page.evaluate(()=>document.activeElement.id)==='event-id',name+' import restores focus');
    expect(await download(page,'#save-plan')===saved,name+' exported plan roundtrips byte-identically');
