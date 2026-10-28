@@ -75,6 +75,38 @@ async function run(label,browserType,url){
   ok(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),label+' mobile-width reflow');
   eq(errors,[],label+' no page errors');
   eq(external,[],label+' no external requests');
+  // Read-only issue filters must show original logical source records, even
+  // when a separate export-only deduplication option is enabled.
+  await page.locator('#file').setInputFiles({name:'synthetic-issue-review.csv',mimeType:'text/csv',
+    buffer:Buffer.from('ID,Note\\n01,ok\\n02," "\\n03,ok\\n03,ok\\n04,done\\n'.replaceAll('\\n','\n'),'utf8')});
+  await page.waitForFunction(()=>document.querySelector('#previewFilter')?.disabled===false);
+  eq(await page.locator('#previewFilter').getAttribute('id'),'previewFilter',label+' source filter available');
+  ok((await page.locator('#previewStatus').innerText()).includes('5 source records'),
+    label+' all original source records counted');
+  await page.locator('#previewFilter').selectOption('missing');
+  eq(await page.locator('#table tbody tr').count(),1,label+' one missing-cell record');
+  eq(await page.locator('#table tbody tr th').first().innerText(),'3',label+' missing record original position');
+  eq(await page.locator('#previewStatus').getAttribute('role'),'status',label+' filter count announced politely');
+  await page.locator('#previewFilter').selectOption('duplicates');
+  eq(await page.locator('#table tbody tr').count(),1,label+' one duplicate record');
+  eq(await page.locator('#table tbody tr th').first().innerText(),'5',label+' duplicate source position');
+  eq(await page.locator('#table tbody tr td').first().innerText(),'4',label+' duplicate cites first source position');
+  await page.locator('#dedupe').check();
+  eq(await page.locator('#table tbody tr th').first().innerText(),'5',
+    label+' export-only deduplication cannot hide source duplicate');
+  const [dedupCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#save').click()]);
+  eq(parseDelimited(readFileSync(await dedupCsv.path(),'utf8')).rows.length,4,
+    label+' separate CSV export excludes one exact duplicate');
+  const [issueJson]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
+  eq(JSON.parse(readFileSync(await issueJson.path(),'utf8')).records.map(r=>r.sourceRecord),
+    [2,3,4,5,6],label+' JSON evidence preserves all original positions');
+  await page.setViewportSize({width:320,height:800});
+  ok(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),
+    label+' issue filters reflow at 320px viewport');
+  await page.setViewportSize({width:1280,height:800});
+  eq(errors,[],label+' no errors during issue-filter workflow');
+  eq(external,[],label+' no external requests during issue-filter workflow');
+
   // Synthetic adversarial multiline cell: spreadsheet-view export must fail closed.
   await page.locator('#file').setInputFiles({name:'synthetic-guard.csv',mimeType:'text/csv',
     buffer:Buffer.from('ID,Note\r\n01,"safe\n=1+1"\r\n','utf8')});
@@ -110,11 +142,11 @@ async function run(label,browserType,url){
   await page.locator('#file').setInputFiles({name:'synthetic-bounded-preview.csv',mimeType:'text/csv',
     buffer:Buffer.from(firstPreviewCsv,'utf8')});
   await page.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
-  const previewCell=await page.locator('#table tbody tr').first().locator('td').nth(1).innerText();
+  const previewCell=await page.locator('#table tbody tr').first().locator('td').nth(2).innerText();
   ok(previewCell.includes('\\u{200B}') && previewCell.includes('\\n'),label+' first-file cell reveals hidden characters');
   ok(previewCell.includes('code points omitted') && !previewCell.includes('Z'.repeat(100)),
     label+' first-file cell preview bounded');
-  const previewHeading=await page.locator('#table thead th').nth(1).innerText();
+  const previewHeading=await page.locator('#table thead th').nth(3).innerText();
   ok(previewHeading.includes('\\u{200B}') && previewHeading.includes('code points omitted'),
     label+' first-file header preview bounded and escaped');
   const qualityHeading=await page.locator('#columns tbody tr').nth(1).locator('td').first().innerText();
