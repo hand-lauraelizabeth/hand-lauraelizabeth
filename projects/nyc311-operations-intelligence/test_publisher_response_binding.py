@@ -51,7 +51,9 @@ class BindingTests(unittest.TestCase):
 
     def test_valid_synthetic_requests_still_hold(self):
         self.assertEqual(audit_live_requests(self.urls, fetch_json=self.fetch), [HOLD, VERIFIED])
-        self.assertEqual(self.calls, [METADATA_URL, *self.urls.values(), METADATA_URL])
+        self.assertEqual(self.calls, [METADATA_URL, *self.urls.values(), METADATA_URL,
+                                      self.urls['cohort'], self.urls['pairs_primary'],
+                                      self.urls['triples_primary'], METADATA_URL])
 
     def test_unreviewed_url_rejected_before_network(self):
         self.urls["cohort"] += "&%24where=1%3D1"
@@ -98,6 +100,86 @@ class BindingTests(unittest.TestCase):
         result = repr(audit_live_requests(self.urls, fetch_json=self.fetch))
         for sensitive in ("BRONX", "QUEENS", "29", "45", "Open"):
             self.assertNotIn(sensitive, result)
+
+
+    def test_repeat_cohort_drift_fails_closed(self):
+        seen = [0]
+        def changing(request):
+            if request == self.urls["cohort"]:
+                seen[0] += 1
+                if seen[0] == 2:
+                    return [{"records": "46", "distinct_keys": "46"}]
+            return self.fetch(request)
+        codes = audit_live_requests(self.urls, fetch_json=changing)
+        self.assertIn("PUBLISHER_REPEAT_READ_DRIFT", codes)
+        self.assertNotIn(VERIFIED, codes)
+        self.assertEqual(seen[0], 2)
+
+    def test_repeat_two_way_drift_fails_closed(self):
+        seen = [0]
+        def changing(request):
+            value = self.fetch(request)
+            if request == self.urls["pairs_primary"]:
+                seen[0] += 1
+                if seen[0] == 2:
+                    value[0]["n"] = "29"
+            return value
+        codes = audit_live_requests(self.urls, fetch_json=changing)
+        self.assertIn("PUBLISHER_REPEAT_READ_DRIFT", codes)
+        self.assertNotIn(VERIFIED, codes)
+
+    def test_repeat_three_way_status_drift_fails_closed(self):
+        seen = [0]
+        def changing(request):
+            value = self.fetch(request)
+            if request == self.urls["triples_primary"]:
+                seen[0] += 1
+                if seen[0] == 2:
+                    value[0]["n"], value[1]["n"] = "17", "13"
+            return value
+        codes = audit_live_requests(self.urls, fetch_json=changing)
+        self.assertIn("PUBLISHER_REPEAT_READ_DRIFT", codes)
+        self.assertNotIn(VERIFIED, codes)
+
+    def test_final_metadata_drift_fails_closed(self):
+        seen = [0]
+        def changing(request):
+            value = self.fetch(request)
+            if request == METADATA_URL:
+                seen[0] += 1
+                if seen[0] == 3:
+                    value["rowsUpdatedAt"] += 1
+            return value
+        codes = audit_live_requests(self.urls, fetch_json=changing)
+        self.assertIn("PUBLISHER_REPEAT_READ_DRIFT", codes)
+        self.assertNotIn(VERIFIED, codes)
+        self.assertEqual(seen[0], 3)
+
+    def test_repeat_transport_failure_redacted(self):
+        seen = [0]
+        def changing(request):
+            if request == self.urls["cohort"]:
+                seen[0] += 1
+                if seen[0] == 2:
+                    raise OSError("PRIVATE_RECORD 12345")
+            return self.fetch(request)
+        self.assertEqual(audit_live_requests(self.urls, fetch_json=changing),
+                         [HOLD, FETCH_ERROR])
+
+    def test_repeat_source_values_never_exposed(self):
+        seen = [0]
+        def changing(request):
+            value = self.fetch(request)
+            if request == self.urls["pairs_primary"]:
+                seen[0] += 1
+                if seen[0] == 2:
+                    value[0]["n"] = "29"
+            return value
+        result = repr(audit_live_requests(self.urls, fetch_json=changing))
+        self.assertIn("PUBLISHER_REPEAT_READ_DRIFT", result)
+        for sensitive in ("BRONX", "QUEENS", "29", "45", "Open"):
+            self.assertNotIn(sensitive, result)
+
 
 
 class FakeResponse:

@@ -9,6 +9,7 @@ from urllib.request import build_opener, HTTPSHandler, HTTPRedirectHandler, Requ
 from urllib.error import HTTPError, URLError
 
 from aggregate_query_request_gate import _check, audit_with_requests
+from aggregate_query_variant_gate import VERIFIED
 
 METADATA_URL = "https://data.cityofnewyork.us/api/views/erm2-nwe9.json"
 MAX_JSON_BYTES = 2_000_000
@@ -75,8 +76,21 @@ def audit_live_requests(urls, *, fetch_json=None):
         after = fetch(METADATA_URL)
         if not isinstance(before, dict) or not isinstance(after, dict):
             raise ValueError("metadata shape")
-        return audit_with_requests(before, after, cohort_rows[0], pair_a,
-                                   pair_b, triple_a, triple_b, urls)
+        codes = set(audit_with_requests(before, after, cohort_rows[0], pair_a,
+                                       pair_b, triple_a, triple_b, urls))
+        # Publisher aggregate queries are not transactional. Re-read the
+        # cohort and one variant per dimension, then bracket with metadata
+        # again. Even a matching update timestamp cannot establish an
+        # immutable snapshot; any repeated-response drift fails closed.
+        cohort_repeat = fetch(urls["cohort"])
+        pair_repeat = fetch(urls["pairs_primary"])
+        triple_repeat = fetch(urls["triples_primary"])
+        final_metadata = fetch(METADATA_URL)
+        if (cohort_repeat != cohort_rows or pair_repeat != pair_a
+                or triple_repeat != triple_a or final_metadata != after):
+            codes.discard(VERIFIED)
+            codes.add("PUBLISHER_REPEAT_READ_DRIFT")
+        return sorted(codes)
     except (ValueError, TypeError, AttributeError, KeyError, UnicodeError,
             HTTPError, URLError, TimeoutError, OSError, OverflowError):
         return [HOLD, FETCH_ERROR]
