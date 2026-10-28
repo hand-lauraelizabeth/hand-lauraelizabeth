@@ -68,7 +68,7 @@ async function run(label,browserType,url){
 
   // Duplicate removal must not change the logical record cited in a blocked export.
   await page.locator('#file').setInputFiles({name:'synthetic-deduped-guard.csv',mimeType:'text/csv',
-    buffer:Buffer.from('ID,Note\\n01,ok\\n01,ok\\n02,"safe\\n=1+1"\\n03,done\\n','utf8')});
+    buffer:Buffer.from('ID,Note\n01,ok\n01,ok\n02,"safe\n=1+1"\n03,done\n','utf8')});
   await page.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
   await page.locator('#dedupe').check();
   await page.locator('#sheetSafe').check();
