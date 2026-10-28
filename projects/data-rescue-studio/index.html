@@ -39,7 +39,7 @@
 <div id="warnings"></div><div class="overflow" id="columns"></div>
 </section>
 <section class="panel" aria-labelledby="preview"><h2 id="preview">3. Inspect rows</h2>
-<p class="muted">Only the first 20 records are shown in this preview. The exported file includes all retained records.</p>
+<p class="muted">Only the first 20 records are shown. Very long cell values and column headings are shortened, and hidden formatting characters are shown as escapes. CSV and evidence JSON retain the original values.</p>
 <div class="overflow" id="table"></div>
 </section>
 <section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
@@ -94,7 +94,7 @@ function quality(data,name,provenance=null) {
  const t=el('table'),cap=el('caption','Column completeness'),thead=el('thead'),tr=el('tr');
  for(const h of ['Column','Blank','Distinct values','Rows'])tr.append(el('th',h));
  thead.append(tr);t.append(thead);const tbody=el('tbody');
- for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',v));tbody.append(line);}
+ for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',window.DataRescueCompareUI.previewText(v)));tbody.append(line);}
  t.append(tbody);$('columns').replaceChildren(t);
  $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));
 }
@@ -102,8 +102,8 @@ function preview(){
  if(!loaded)return;
  const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;
  const table=el('table'), caption=el('caption','First '+Math.min(active.rows.length,20)+' of '+active.rows.length+' rows'),head=el('thead'),r=el('tr');
- for(const h of active.normalizedHeaders)r.append(el('th',h));head.append(r);table.append(caption,head);
- const body=el('tbody');for(const row of active.rows.slice(0,20)){const line=el('tr');for(const v of row)line.append(el('td',v));body.append(line);}
+ for(const h of active.normalizedHeaders)r.append(el('th',window.DataRescueCompareUI.previewText(h)));head.append(r);table.append(caption,head);
+ const body=el('tbody');for(const row of active.rows.slice(0,20)){const line=el('tr');for(const v of row)line.append(el('td',window.DataRescueCompareUI.previewText(v)));body.append(line);}
  table.append(body);$('table').replaceChildren(table);
 }
 $('file').addEventListener('change',async()=>{

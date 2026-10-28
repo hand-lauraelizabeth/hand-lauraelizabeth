@@ -77,6 +77,33 @@ async function run(label,browserType,url){
   const [originalEvidence]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
   eq(JSON.parse(readFileSync(await originalEvidence.path(),'utf8')).records.map(r=>r.sourceRecord),
     [2,3,4,5],label+' JSON still exports all original records');
+  // The first-file table and completeness view must not render enormous or
+  // invisible cell/header text, while evidence retains exact input bytes.
+  const firstPreviewValue='start\u200B'+'Z'.repeat(210)+'\nend';
+  const firstPreviewHeader='Note\u200B'+'H'.repeat(160);
+  const firstPreviewCsv='ID,'+firstPreviewHeader+'\n1,"'+firstPreviewValue+'"\n';
+  await page.locator('#file').setInputFiles({name:'synthetic-bounded-preview.csv',mimeType:'text/csv',
+    buffer:Buffer.from(firstPreviewCsv,'utf8')});
+  await page.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
+  const previewCell=await page.locator('#table tbody tr').first().locator('td').nth(1).innerText();
+  ok(previewCell.includes('\\u{200B}') && previewCell.includes('\\n'),label+' first-file cell reveals hidden characters');
+  ok(previewCell.includes('code points omitted') && !previewCell.includes('Z'.repeat(100)),
+    label+' first-file cell preview bounded');
+  const previewHeading=await page.locator('#table thead th').nth(1).innerText();
+  ok(previewHeading.includes('\\u{200B}') && previewHeading.includes('code points omitted'),
+    label+' first-file header preview bounded and escaped');
+  const qualityHeading=await page.locator('#columns tbody tr').nth(1).locator('td').first().innerText();
+  ok(qualityHeading.includes('\\u{200B}') && qualityHeading.includes('code points omitted'),
+    label+' completeness column heading bounded and escaped');
+  const [previewJson]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
+  const exactPreviewEvidence=JSON.parse(readFileSync(await previewJson.path(),'utf8'));
+  eq(exactPreviewEvidence.headers[1],firstPreviewHeader,label+' exact original header in evidence');
+  eq(exactPreviewEvidence.records[0].values[1],firstPreviewValue,label+' exact original cell in evidence');
+  await page.locator('#sheetSafe').uncheck();
+  const [previewCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#save').click()]);
+  eq(parseDelimited(readFileSync(await previewCsv.path(),'utf8')).rows[0][1],firstPreviewValue,
+    label+' machine CSV retains exact cell despite bounded preview');
+
   // Generated duplicate-header labels must never shadow literal source headers.
   // The third column must be selectable as a distinct exact-reconciliation key.
   await page.locator('#file').setInputFiles({name:'synthetic-colliding-headers.csv',mimeType:'text/csv',
