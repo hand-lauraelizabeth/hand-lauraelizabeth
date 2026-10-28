@@ -50,6 +50,22 @@ async function run(label,browserType,url){
   ok(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),label+' mobile-width reflow');
   eq(errors,[],label+' no page errors');
   eq(external,[],label+' no external requests');
+  // Synthetic adversarial multiline cell: spreadsheet-view export must fail closed.
+  await page.locator('#file').setInputFiles({name:'synthetic-guard.csv',mimeType:'text/csv',
+    buffer:Buffer.from('ID,Note\\r\\n01,"safe\\n=1+1"\\r\\n'.replaceAll('\\\\r','\\r').replaceAll('\\\\n','\\n'),'utf8')});
+  await page.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
+  await page.locator('#sheetSafe').check();
+  let blockedDownload=false;
+  const onDownload=()=>{blockedDownload=true;};
+  page.on('download',onDownload);
+  await page.locator('#save').click();
+  ok((await page.locator('#status').innerText()).includes('Spreadsheet CSV blocked at source record 2, column 2'),label+' actionable export error');
+  ok(await page.locator('#status').evaluate(el=>document.activeElement===el),label+' error receives focus');
+  ok(!blockedDownload,label+' blocked export creates no download');
+  page.off('download',onDownload);
+  const [safeJson]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
+  eq(JSON.parse(readFileSync(await safeJson.path(),'utf8')).records[0].values[1],'safe\\n=1+1'.replace('\\n','\\n'),label+' JSON preserves multiline source');
+
   await page.close();
  }finally{await browser.close();}
 }
