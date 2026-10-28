@@ -19,6 +19,30 @@ class MultiReleaseTests(unittest.TestCase):
                 'reporting_month': '2026-09', 'group_labels': groups,
                 'minimum_disclosure_delta': 10, 'snapshots': snapshots}
 
+
+    def test_three_release_hidden_second_difference(self):
+        data = self.fixture((100, 120, 141))
+        codes = audit(data)['codes']
+        self.assertIn('SMALL_THREE_RELEASE_CELL_SECOND_DIFFERENCE', codes)
+        self.assertIn('SMALL_THREE_RELEASE_BOROUGH_SECOND_DIFFERENCE', codes)
+        self.assertIn('SMALL_THREE_RELEASE_GROUP_SECOND_DIFFERENCE', codes)
+        self.assertNotIn('SMALL_PAIR_CELL_DIFFERENCE', codes)
+
+    def test_three_release_marginal_only_second_difference(self):
+        data = self.fixture((100, 120, 140))
+        data['snapshots'][2]['cells'][0]['requests'] += 11
+        data['snapshots'][2]['cells'][1]['requests'] -= 10
+        codes = audit(data)['codes']
+        self.assertIn('SMALL_THREE_RELEASE_BOROUGH_SECOND_DIFFERENCE', codes)
+        self.assertNotIn('SMALL_THREE_RELEASE_CELL_SECOND_DIFFERENCE', codes)
+        self.assertNotIn('SMALL_THREE_RELEASE_GROUP_SECOND_DIFFERENCE', codes)
+        self.assertNotIn('SMALL_PAIR_CELL_DIFFERENCE', codes)
+
+    def test_three_release_arithmetic_progression_no_small_contrast(self):
+        data = self.fixture((100, 120, 140))
+        codes = audit(data)['codes']
+        self.assertFalse(any('THREE_RELEASE' in code for code in codes))
+
     def test_four_release_hidden_small_contrast(self):
         data = self.fixture()
         codes = audit(data)['codes']
