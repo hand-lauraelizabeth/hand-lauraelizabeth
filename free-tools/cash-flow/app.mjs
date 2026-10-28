@@ -32,7 +32,7 @@ $('event-form').addEventListener('submit',ev=>{
     const cents=parseCents($('event-amount').value);
     fieldId='event-id';
     const id=$('event-id').value,label=$('event-label').value;
-    if(!id.trim()||id.length>50||events.some(v=>v.id===id))throw Error('Provide a unique event ID that has not already been used.');
+    if(!id.trim()||id.length>50||events.some(v=>v.id===id))throw Error('Provide a unique ID that has not already been used.');
     fieldId='event-label';
     if(!label.trim()||label.length>120)throw Error('Provide an event description.');
     fieldId='event-date';
