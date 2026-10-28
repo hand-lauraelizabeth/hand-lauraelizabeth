@@ -7,7 +7,7 @@ import {dirname,join} from 'node:path';
 import {chromium,firefox,webkit} from 'playwright';
 const root=dirname(fileURLToPath(import.meta.url));
 const assets=new Map([['/','index.html'],['/index.html','index.html'],['/style.css','style.css'],
- ['/app.mjs','app.mjs'],['/engine.mjs','engine.mjs'],['/plan.mjs','plan.mjs'], ['/shortfalls.mjs','shortfalls.mjs']]);
+ ['/app.mjs','app.mjs'],['/engine.mjs','engine.mjs'],['/plan.mjs','plan.mjs'], ['/shortfalls.mjs','shortfalls.mjs'], ['/coverage.mjs','coverage.mjs']]);
 const server=createServer((req,res)=>{
  const file=assets.get(new URL(req.url,'http://localhost').pathname);
  if(!file){res.writeHead(404).end('Not found');return;}
