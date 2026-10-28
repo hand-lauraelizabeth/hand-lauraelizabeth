@@ -139,8 +139,11 @@
     for (const [rowIndex, row] of [parsed.headers, ...parsed.rows].entries()) {
       for (const [columnIndex, value] of row.entries()) {
         const text = String(value);
-        // A formula preceded by spaces then TAB is unsafe on spreadsheet re-import.
-        if (/^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*\t[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) ||
+        // Unicode LS/PS may become new rows or visible line breaks on import.
+        // Their spreadsheet behavior is not consistent enough to promise safe CSV.
+        // Keep them unchanged in exact machine CSV and evidence JSON instead.
+        if (/[\u2028\u2029]/u.test(text) ||
+            /^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*\t[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) ||
             /^[\t\r\n]/u.test(text) ||
             /[\r\n][\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) ||
             /[\u202A-\u202E\u2066-\u2069]/u.test(text) ||
