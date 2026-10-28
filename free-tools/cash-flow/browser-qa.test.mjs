@@ -198,7 +198,8 @@ async function testBrowser(name,type){
     await fill(page,'event-label',paddedLabel);
     await page.getByRole('button',{name:'Add event'}).click();
     check((await page.locator('#event-error').textContent())==='',name+': corrected input clears validation error');
-    check((await page.locator('#events').textContent()).includes(paddedId+' — '+paddedLabel),name+': exact event ID and label remain visible');
+    check((await page.locator('#events').textContent()).includes(JSON.stringify(paddedId)+' — '+JSON.stringify(paddedLabel)),name+': event list visibly quotes padded IDs and labels');
+    check((await page.locator('#shift-id option').allTextContents()).some(text=>text.includes(JSON.stringify(paddedId))),name+': shift selector displays quoted source ID');
     await page.locator('#shift-id').selectOption(paddedId);
     await fill(page,'shift-days','1');
     await page.locator('#calculate').click();
@@ -223,7 +224,8 @@ async function testBrowser(name,type){
       if(approveRemoval) await dialog.accept();
       else await dialog.dismiss();
     });
-    const removeEvent=page.getByRole('button',{name:'Remove '+paddedId});
+    const removeEvent=page.getByRole('button',{name:/Remove.*00009/});
+    check((await removeEvent.textContent()).includes(JSON.stringify(paddedId)),name+': remove-button accessible text visibly quotes padded source ID');
     await removeEvent.focus();
     await page.keyboard.press('Enter');
     check(removalDialogs.length===1,name+': removal requires confirmation');
