@@ -78,18 +78,27 @@ $('save-plan').addEventListener('click',()=>{
     say('Editable plan saved locally. Keep the file private.');
   }catch(error){say(error.message,true)}
 });
+function clearPlanError(){ $('plan-error').textContent=''; $('load-plan').removeAttribute('aria-invalid'); }
+function reportPlanError(message){
+  const alert=$('plan-error');
+  alert.textContent=message;
+  $('load-plan').setAttribute('aria-invalid','true');
+  alert.focus();
+  say('Plan not loaded. Correct the file selection; your existing plan and calculated exports were preserved.');
+}
 $('load-plan').addEventListener('change',async()=>{
   const input=$('load-plan'),file=input.files?.[0];
   input.value=''; // permit retrying the same file after an error or cancellation
   if(!file)return;
+  clearPlanError();
   const ticket=++loadTicket,startedAt=revision;
   try{
     const plan=await readPlanFile(file);
     // A superseded file read is obsolete, not a new user-facing error. Never
     // overwrite a newer import's status or confirmation with stale feedback.
     if(ticket!==loadTicket)return;
-    if(startedAt!==revision){say('Plan was not loaded because inputs changed. Choose the file again.',true);return;}
-    if(!window.confirm('Replace all events and projection settings in this tab with the selected local plan?')){say('Plan import cancelled. Current inputs and exports were preserved.');return;}
+    if(startedAt!==revision){reportPlanError('Plan was not loaded because inputs changed. Choose the file again.');return;}
+    if(!window.confirm('Replace all events and projection settings in this tab with the selected local plan?')){clearPlanError();say('Plan import cancelled. Current inputs and exports were preserved.');return;}
     $('start').value=plan.start;$('end').value=plan.end;
     $('opening').value=formatCents(plan.openingCents);
     events.splice(0,events.length,...plan.events);
@@ -100,6 +109,6 @@ $('load-plan').addEventListener('change',async()=>{
     say('Editable plan loaded locally. Recalculate to update projections.');
     $('event-id').focus();
   }catch(error){
-    if(ticket===loadTicket){say(error.message,true);input.focus();}
+    if(ticket===loadTicket){reportPlanError(error.message);}
   }
 });

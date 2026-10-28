@@ -41,7 +41,7 @@ async function testBrowser(name,type){
     check(await page.getByRole('table',{name:'Projected end-of-day balances'}).count()===1,name+': table accessible name');
     check(await page.locator('#status[role="status"]').count()===1,name+': projection status announcement');
     check(await page.locator('#csv-warning[role="status"]').count()===1,name+': CSV risk status announcement');
-    check(await page.locator('#error[role="alert"]').count()===1 && await page.locator('#event-error[role="alert"]').count()===1,name+': separate event and projection error announcements');
+    check(await page.locator('#error[role="alert"]').count()===1 && await page.locator('#event-error[role="alert"]').count()===1 && await page.locator('#plan-error[role="alert"]').count()===1,name+': separate event and projection error announcements');
     for(const id of ['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','shift-id','shift-days']){
       const label=await page.locator('#'+id).evaluate(el=>el.labels?.[0]?.textContent?.trim()||'');
       check(label.length>0,name+': unlabeled control '+id);
