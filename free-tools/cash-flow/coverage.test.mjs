@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeEventCoverage,coverageText} from './coverage.mjs';
+import {summarizeEventCoverage,coverageText,displaySafeText} from './coverage.mjs';
 const events=(...ids)=>ids.map(id=>({id}));
 const projection=(...ids)=>({days:[{events:ids.map(id=>({id}))}]});
 test('empty schedule is described without implying payments',()=>{
@@ -113,4 +113,28 @@ test('ordinary Unicode letters and visible emoji remain readable',()=>{
   const text=coverageText(events(id),projection(),projection());
   assert.ok(text.includes(id));
   assert.deepEqual(summarizeEventCoverage(events(id),projection(id),projection(id)).baselineMissing,[]);
+});
+
+test('event-list display exposes hidden directional and zero-width controls without mutating IDs',()=>{
+  const id='rent\u202E\u200B-01';
+  const shown=displaySafeText(id);
+  assert.match(shown,/rent\\\\u202E\\\\u200B-01/);
+  assert.ok(!shown.includes('\u202E'));
+  assert.ok(!shown.includes('\u200B'));
+  assert.deepEqual(summarizeEventCoverage(events(id),projection(id),projection(id)).baselineMissing,[]);
+});
+test('event descriptions with embedded quotes and line breaks display as one readable string',()=>{
+  const label='Invoice "paid"\nnext line\u2029end';
+  const shown=displaySafeText(label);
+  assert.ok(shown.includes('Invoice \\"paid\\"'));
+  assert.ok(shown.includes('\\\\n'));
+  assert.ok(shown.includes('\\\\u2029'));
+  assert.equal(shown.split('\n').length,1);
+});
+test('long event descriptions use bounded display-only previews',()=>{
+  const label='start'.repeat(12)+'X'.repeat(600)+'ending'.repeat(2);
+  const shown=displaySafeText(label);
+  assert.match(shown,/600 code points omitted from displayed ID/);
+  assert.ok(shown.length<180);
+  assert.ok(!shown.includes('X'.repeat(600)));
 });
