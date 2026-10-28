@@ -9,9 +9,43 @@ function eventList(){const ul=$('events');ul.replaceChildren();const select=$('s
   if(!events.length){const li=document.createElement('li');li.textContent='No events added.';ul.append(li)}
   for(const e of events){const li=document.createElement('li');li.append(document.createTextNode(`${e.id} — ${e.label} (${formatCents(e.cents)} USD; ${e.date}; ${e.repeat}) `));const button=document.createElement('button');button.type='button';button.textContent=`Remove ${e.id}`;button.addEventListener('click',()=>{if(!window.confirm('Remove this event from this tab? Re-enter it if needed; exported files are not changed.'))return;events.splice(events.indexOf(e),1);markEdited();eventList();invalidate();say('Event removed. Recalculate to update results.');$('event-id').focus()});li.append(button);ul.append(li);const option=document.createElement('option');option.value=e.id;option.textContent=`${e.id}: ${e.label}`;select.append(option)}
 }
-function reportEventError(message){const alert=$('event-error');alert.textContent=message;alert.focus();say('Event not added. Correct the error next to the event form.');}
-for(const id of ['event-id','event-label','event-amount','event-date','event-repeat'])$(id).addEventListener('input',()=>{$('event-error').textContent='';});
-$('event-form').addEventListener('submit',ev=>{ev.preventDefault();try{const e={id:$('event-id').value,label:$('event-label').value,date:$('event-date').value,repeat:$('event-repeat').value,cents:parseCents($('event-amount').value)};if(!e.id.trim()||!e.label.trim()||e.id.length>50||e.label.length>120||events.some(v=>v.id===e.id))throw Error('Provide a unique ID and a description.');dateUTC(e.date);events.push(e);$('event-error').textContent='';markEdited();eventList();invalidate();say('Event added. Recalculate to update results.');$('event-form').reset()}catch(error){reportEventError(error.message)}});
+const eventFields=['event-id','event-label','event-amount','event-date','event-repeat'];
+function clearEventError(){
+  $('event-error').textContent='';
+  for(const id of eventFields){$(id).removeAttribute('aria-invalid');$(id).removeAttribute('aria-describedby');}
+}
+function reportEventError(message,fieldId){
+  clearEventError();
+  const field=$(fieldId);
+  field.setAttribute('aria-invalid','true');
+  field.setAttribute('aria-describedby','event-error');
+  const alert=$('event-error');
+  alert.textContent=message;
+  alert.focus();
+  say('Event not added. Correct the highlighted field next to the event form.');
+}
+for(const id of eventFields)$(id).addEventListener('input',clearEventError);
+$('event-form').addEventListener('submit',ev=>{
+  ev.preventDefault();
+  let fieldId='event-amount';
+  try{
+    const cents=parseCents($('event-amount').value);
+    fieldId='event-id';
+    const id=$('event-id').value,label=$('event-label').value;
+    if(!id.trim()||id.length>50||events.some(v=>v.id===id))throw Error('Provide a unique ID that has not already been used.');
+    fieldId='event-label';
+    if(!label.trim()||label.length>120)throw Error('Provide an event description.');
+    fieldId='event-date';
+    const date=$('event-date').value;
+    dateUTC(date);
+    const e={id,label,date,repeat:$('event-repeat').value,cents};
+    events.push(e);
+    clearEventError();
+    markEdited();eventList();invalidate();
+    say('Event added. Recalculate to update results.');
+    $('event-form').reset();
+  }catch(error){reportEventError(error.message,fieldId)}
+});
 for(const id of ['start','end','opening','shift-id','shift-days'])$(id).addEventListener('input',()=>{markEdited();invalidate();say('Inputs changed. Recalculate to update results.')});
 $('calculate').addEventListener('click',()=>{invalidate();try{const config={start:$('start').value,end:$('end').value,openingCents:parseCents($('opening').value),events};const base=project(config),shiftId=$('shift-id').value||null,shiftDays=Number($('shift-days').value);if(!Number.isInteger(shiftDays))throw Error('Enter a whole number of days.');const scenario=project({...config,shiftId,shiftDays});const frag=document.createDocumentFragment();for(let i=0;i<base.days.length;i++){const tr=document.createElement('tr');for(const text of [base.days[i].date,formatCents(scenario.days[i].changeCents),formatCents(base.days[i].balanceCents),formatCents(scenario.days[i].balanceCents)]){const td=document.createElement('td');td.textContent=text;tr.append(td)}frag.append(tr)}$('results').append(frag);$('summary').textContent=`Baseline minimum end-of-day ${formatCents(base.minimumCents)} USD on ${base.minimumDate}; scenario minimum end-of-day ${formatCents(scenario.minimumCents)} USD on ${scenario.minimumDate}. Scenario end ${formatCents(scenario.endingCents)} USD.`;$('shortfall-summary').textContent=shortfallText('Baseline',base)+' '+shortfallText('Scenario',scenario)+' '+shortfallComparisonText(base,scenario)+' These estimates do not model intraday funds or overdraft rules.';latest=scenario;const risk=csvExportRisk(scenario);$('export').disabled=Boolean(risk);$('export-json').disabled=false;$('csv-warning').textContent=risk?`CSV export unavailable: ${risk.field} contains formula-like text, invisible direction controls, or unsupported control characters. Use lossless JSON instead.`:'';say(`Calculated ${base.days.length} days. Results are estimates.`)}catch(error){say(error.message,true)}});
 function shortfallText(label,projection){
