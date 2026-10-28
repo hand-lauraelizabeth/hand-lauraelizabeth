@@ -8,6 +8,7 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const ui = fs.readFileSync(path.join(root, 'reconcile-ui.js'), 'utf8');
 const rescue = require('../rescue-core.js');
+const strictReader = require('../file-reader.js');
 const engine = require('../reconcile-core.js');
 
 class FakeElement {
@@ -55,7 +56,17 @@ const document = {
   createElement: tag => new FakeElement(tag)
 };
 const blobs = [], downloads = [];
-const win = {DataRescue: rescue, DataReconcile: engine};
+const win = {DataRescue: rescue, DataReconcile: engine,
+  // Existing synthetic async fixtures use text(); adapt them to a byte-backed
+  // File before invoking the real strict reader. Real byte-backed fixtures
+  // pass through unchanged for negative validation cases.
+  DataRescueFileReader: {read: async (file, parser) => {
+    if (typeof file.arrayBuffer === 'function') return strictReader.read(file, parser);
+    const bytes = new TextEncoder().encode(await file.text());
+    return strictReader.read({name:file.name,size:bytes.byteLength,
+      arrayBuffer:async()=>bytes.buffer},parser);
+  }}
+};
 const ctx = {window:win, document,
   Blob,
   URL: {createObjectURL(blob){blobs.push(blob);return 'blob:synthetic-' + blobs.length;},
@@ -142,6 +153,27 @@ async function run() {
   nodes.compareFile.files=[{name:'oversized.csv',size:rescue.MAX_BYTES+1,text:async()=> {throw Error('should not read');}}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.textContent.includes('larger than 5 MB'),'size rejected before read');
+  // Fail closed when the shared strict byte reader is absent: never use text().
+  const savedReader=win.DataRescueFileReader;
+  win.DataRescueFileReader=null;
+  nodes.compareFile.files=[{name:'fallback.csv',size:4,text:async()=> 'ID\\n1'}];
+  await nodes.compareFile.handlers.change();
+  check(nodes.compareStatus.className==='error' && nodes.compareStatus.textContent.includes('Strict local file reader is unavailable'),
+    'missing strict reader fails closed rather than decoding text permissively');
+  check(nodes.rightKey.disabled && nodes.compareRun.disabled,'missing reader leaves comparison disabled');
+  win.DataRescueFileReader=savedReader;
+  // The actual reader rejects malformed UTF-8, NUL, and byte-count mismatch.
+  for (const [label, bytes, size, expected] of [
+    ['malformed UTF-8',Uint8Array.from([73,68,10,0xC3]),4,'Invalid UTF-8'],
+    ['embedded NUL',Uint8Array.from([73,68,10,0]),4,'NUL characters'],
+    ['byte count mismatch',Uint8Array.from([73,68,10,49]),3,'byte count changed']
+  ]) {
+    nodes.compareFile.files=[{name:'invalid.csv',size,arrayBuffer:async()=>bytes.buffer}];
+    await nodes.compareFile.handlers.change();
+    check(nodes.compareStatus.className==='error' && nodes.compareStatus.textContent.includes(expected),
+      label+' is rejected by strict byte reader');
+    check(nodes.rightKey.disabled && nodes.compareRun.disabled,label+' cannot enable comparison');
+  }
   win.DataRescueCompareUI.setPrimary(null);
   check(nodes.leftKey.disabled,'clearing first file disables comparison');
   const riskFirst=rescue.parseDelimited('ID\n=1+2');
