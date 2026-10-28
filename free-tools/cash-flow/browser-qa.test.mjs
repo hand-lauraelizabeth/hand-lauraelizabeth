@@ -9,7 +9,7 @@ import {chromium,firefox,webkit,devices} from 'playwright';
 const root=dirname(fileURLToPath(import.meta.url));
 const assets=new Map([
   ['/','index.html'], ['/index.html','index.html'], ['/style.css','style.css'],
-  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs'], ['/plan.mjs','plan.mjs'], ['/shortfalls.mjs','shortfalls.mjs'], ['/axe.min.js','node_modules/axe-core/axe.min.js']
+  ['/app.mjs','app.mjs'], ['/engine.mjs','engine.mjs'], ['/plan.mjs','plan.mjs'], ['/shortfalls.mjs','shortfalls.mjs'], ['/coverage.mjs','coverage.mjs'], ['/axe.min.js','node_modules/axe-core/axe.min.js']
 ]);
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8'};
 const server=createServer((req,res)=>{
@@ -41,6 +41,7 @@ async function testBrowser(name,type){
     check(await page.getByRole('table',{name:'Projected end-of-day balances'}).count()===1,name+': table accessible name');
     check(await page.locator('#status[role="status"]').count()===1,name+': projection status announcement');
     check(await page.locator('#csv-warning[role="status"]').count()===1,name+': CSV risk status announcement');
+    check(await page.locator('#coverage-summary[role="status"][aria-atomic="true"]').count()===1,name+': coverage status accessible and atomic');
     check(await page.locator('#error[role="alert"]').count()===1 && await page.locator('#event-error[role="alert"]').count()===1 && await page.locator('#plan-error[role="alert"]').count()===1,name+': separate event and projection error announcements');
     for(const id of ['start','end','opening','event-id','event-label','event-amount','event-date','event-repeat','shift-id','shift-days']){
       const label=await page.locator('#'+id).evaluate(el=>el.labels?.[0]?.textContent?.trim()||'');
@@ -112,6 +113,19 @@ async function testBrowser(name,type){
       check(overflow<=1,name+': page horizontal overflow at CSS viewport '+width+'px ('+overflow+')');
       check(await page.getByRole('button',{name:'Calculate projection'}).isVisible(),name+': calculate hidden at '+width+'px');
     }
+    // A bill outside the selected date window must not silently disappear
+    // from the user's understanding of the calculated balances.
+    await fill(page,'event-id','future-bill');
+    await fill(page,'event-label','Future bill');
+    await fill(page,'event-amount','-75.00');
+    await fill(page,'event-date','2026-10-14');
+    await page.getByRole('button',{name:'Add event'}).click();
+    check((await page.locator('#coverage-summary').textContent())==='',name+': editing clears stale coverage');
+    await page.getByRole('button',{name:'Calculate projection'}).click();
+    const coverage=await page.locator('#coverage-summary').textContent();
+    check(coverage.includes('baseline 1 of 2 ["future-bill"]'),name+': outside-window bill named in baseline coverage');
+    check(coverage.includes('shifted scenario 1 of 2 ["future-bill"]'),name+': outside-window bill named in scenario coverage');
+    check((await page.locator('#events').textContent()).includes('future-bill'),name+': outside-window bill remains in editable event list');
     await page.reload({waitUntil:'networkidle'});
     check(await page.locator('#export').isDisabled(),name+': session not persisted to storage');
     const inlineExecuted=await page.evaluate(()=>{
