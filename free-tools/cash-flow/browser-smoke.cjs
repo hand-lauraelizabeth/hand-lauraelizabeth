@@ -13,7 +13,7 @@ const {chromium}=require('playwright');
   const root=path.resolve(__dirname);
   const server=require('node:http').createServer((req,res)=>{
    const fs=require('node:fs'),p=req.url==='/'?'index.html':decodeURIComponent(req.url.slice(1));
-   if(!['index.html','app.mjs','engine.mjs','plan.mjs','shortfalls.mjs','style.css'].includes(p)){res.writeHead(404);res.end();return}
+   if(!['index.html','app.mjs','engine.mjs','plan.mjs','shortfalls.mjs','coverage.mjs','style.css'].includes(p)){res.writeHead(404);res.end();return}
    res.setHeader('Content-Type',p.endsWith('.mjs')?'text/javascript':p.endsWith('.css')?'text/css':'text/html');
    res.end(fs.readFileSync(path.join(root,p)));
   });
