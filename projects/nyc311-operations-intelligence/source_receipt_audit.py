@@ -58,6 +58,11 @@ def audit(csv_path, receipt_path):
             "$group": "borough,agency", "$order": "borough,agency",
             "$limit": 50000,
         })
+        three_way_query = resource + "?" + urlencode({
+            "$select": "borough,agency,status,count(*) as n", "$where": predicate,
+            "$group": "borough,agency,status", "$order": "borough,agency,status",
+            "$limit": 50000,
+        })
         checked_at = receipt.get("verified_at_utc")
         if not isinstance(checked_at, str):
             raise ValueError("missing verification timestamp")
@@ -72,11 +77,13 @@ def audit(csv_path, receipt_path):
                 or receipt.get("fields") != list(FIELDS)
                 or receipt.get("ordered_by") != "unique_key ASC"
                 or receipt.get("cross_aggregate_verified") is not True
+                or receipt.get("three_way_cross_aggregate_verified") is not True
                 or receipt.get("release_status") != "HOLD"
                 or receipt.get("where") != predicate
                 or receipt.get("metadata_url") != base + "/api/views/erm2-nwe9.json"
                 or receipt.get("count_query_url") != count_query
-                or receipt.get("aggregate_query_url") != aggregate_query):
+                or receipt.get("aggregate_query_url") != aggregate_query
+                or receipt.get("three_way_aggregate_query_url") != three_way_query):
             raise ValueError("receipt contract mismatch")
         n = receipt.get("rows")
         if (type(n) is not int or n <= 0
@@ -84,6 +91,8 @@ def audit(csv_path, receipt_path):
                 or receipt["distinct_keys"] != n
                 or type(receipt.get("aggregate_cells")) is not int
                 or receipt["aggregate_cells"] <= 0
+                or type(receipt.get("three_way_aggregate_cells")) is not int
+                or receipt["three_way_aggregate_cells"] <= 0
                 or type(receipt.get("publisher_rows_updated_at")) is not int
                 or receipt["publisher_rows_updated_at"] <= 0
                 or type(receipt.get("page_size")) is not int
@@ -105,7 +114,9 @@ def audit(csv_path, receipt_path):
         if (not isinstance(receipt.get("csv_sha256"), str)
                 or not HEX64.fullmatch(receipt["csv_sha256"])
                 or not isinstance(receipt.get("aggregate_sha256"), str)
-                or not HEX64.fullmatch(receipt["aggregate_sha256"])):
+                or not HEX64.fullmatch(receipt["aggregate_sha256"])
+                or not isinstance(receipt.get("three_way_aggregate_sha256"), str)
+                or not HEX64.fullmatch(receipt["three_way_aggregate_sha256"])):
             raise ValueError("receipt digests invalid")
     except (OSError, UnicodeError, ValueError, TypeError, OverflowError, KeyError):
         return ["INVALID_OR_UNREADABLE_RECEIPT"]
@@ -121,6 +132,7 @@ def audit(csv_path, receipt_path):
             if digest.hexdigest() != receipt["csv_sha256"]:
                 codes.add("CSV_SHA256_MISMATCH")
             pairs = Counter()
+            triples = Counter()
             seen = set()
             last = None
             rows = 0
@@ -152,17 +164,26 @@ def audit(csv_path, receipt_path):
                         except ValueError:
                             codes.add("CLOSED_DATE_INVALID")
                     pairs[(record["borough"], record["agency"])] += 1
+                    triples[(record["borough"], record["agency"], record["status"])] += 1
                     rows += 1
             if rows != n or len(seen) != receipt["distinct_keys"]:
                 codes.add("ROW_OR_DISTINCT_KEY_COUNT_MISMATCH")
             if len(pairs) != receipt["aggregate_cells"]:
                 codes.add("AGGREGATE_CELL_COUNT_MISMATCH")
+            if len(triples) != receipt["three_way_aggregate_cells"]:
+                codes.add("THREE_WAY_CELL_COUNT_MISMATCH")
             aggregate_digest = hashlib.sha256(json.dumps(
                 [[b, a, count] for (b, a), count in sorted(pairs.items())],
                 separators=(",", ":"), ensure_ascii=False
             ).encode("utf-8")).hexdigest()
             if aggregate_digest != receipt["aggregate_sha256"]:
                 codes.add("AGGREGATE_SHA256_MISMATCH")
+            three_way_digest = hashlib.sha256(json.dumps(
+                [[b, a, status, count] for (b, a, status), count in sorted(triples.items())],
+                separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")).hexdigest()
+            if three_way_digest != receipt["three_way_aggregate_sha256"]:
+                codes.add("THREE_WAY_SHA256_MISMATCH")
             # The parsed snapshot and the source must still contain identical
             # bytes after the audit; a pathname swap after capture is a HOLD.
             current = hashlib.sha256()
