@@ -22,6 +22,17 @@ assert.throws(() => parseDelimited('a,b\n"unclosed,x'), /Unclosed/);
 assert.throws(() => parseDelimited('a,b\n1,2,3'), /No data was discarded/);
 assert.throws(() => parseDelimited('a\nfoo"bar'), /Unexpected quote/);
 console.log('PASS: 18 Data Rescue core assertions.');
+// Reject formula-like cells with a TAB after whitespace; retain exact machine data.
+for (const value of ['  \t=1+1', '\u00A0\t+SUM(A1)', ' \t＠SUM(A1)', ' \t＝1+1']) {
+  const sample = parseDelimited('ID,Note\n1,"' + value + '"');
+  assert.throws(() => exportCsv(sample, true), /source record 2, column 2/);
+  assert.equal(parseDelimited(exportCsv(sample, false)).rows[0][1], value);
+}
+assert.throws(() => exportCsv(parseDelimited('ID,"  \t=1+1"\n1,ok'), true),
+  /source record 1, column 2/);
+assert.doesNotThrow(() => exportCsv(parseDelimited('ID,Note\n1,"  \tplain text"'), true));
+console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
+
 
 
 /*
