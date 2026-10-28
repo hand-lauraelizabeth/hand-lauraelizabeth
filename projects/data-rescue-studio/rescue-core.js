@@ -115,7 +115,29 @@
     return /^[\s\uFEFF]*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20]/u.test(String(value));
   }
 
+  // Spreadsheet importers can reinterpret line breaks and invisible controls.
+  // Refuse ambiguous spreadsheet-view exports, but preserve exact cells in JSON
+  // and in the explicitly machine-readable CSV option.
+  function spreadsheetExportRisk(parsed) {
+    for (const [rowIndex, row] of [parsed.headers, ...parsed.rows].entries()) {
+      for (const [columnIndex, value] of row.entries()) {
+        const text = String(value);
+        if (/^[\t\r\n]/u.test(text) ||
+            /[\r\n][\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) ||
+            /[\u202A-\u202E\u2066-\u2069]/u.test(text) ||
+            /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(text) ||
+            /^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) &&
+              !formulaRisk(text)) {
+          return {sourceRecord:rowIndex + 1,column:columnIndex + 1};
+        }
+      }
+    }
+    return null;
+  }
+
   function exportCsv(parsed, spreadsheetView = true) {
+    const risk = spreadsheetView ? spreadsheetExportRisk(parsed) : null;
+    if (risk) throw new Error('Spreadsheet CSV blocked at source record ' + risk.sourceRecord + ', column ' + risk.column + '. Use exact JSON, or machine CSV only outside spreadsheet software.');
     const write = v => {
       let s = String(v);
       // Spreadsheet-oriented mode adds a leading tab *inside* a quoted cell.
@@ -176,5 +198,5 @@
     });
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
+  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
 });
