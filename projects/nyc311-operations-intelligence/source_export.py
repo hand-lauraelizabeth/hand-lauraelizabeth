@@ -236,7 +236,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     if dict(Counter({pair: sum(n for (b, a, _), n in before_triples.items()
                                if (b, a) == pair)
                      for pair in before_pairs})) != before_pairs:
-        raise ValueError("Official three-way and two-way aggregates disagree")
+        raise ValueError("Official three-way and two-way cross-aggregate disagree")
     seen = set()
     local_pairs = Counter()
     local_triples = Counter()
