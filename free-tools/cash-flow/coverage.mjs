@@ -2,19 +2,25 @@
 // Exact source IDs are retained for comparisons; display-only escaping avoids invisible controls.
 export function summarizeEventCoverage(events,baseline,scenario){
   if(!Array.isArray(events)||!Array.isArray(baseline?.days)||!Array.isArray(scenario?.days))throw Error('Invalid event coverage inputs.');
-  const seen=projection=>{
-    const ids=new Set();
-    for(const day of projection.days){
-      if(!Array.isArray(day.events))throw Error('Invalid projection event list.');
-      for(const event of day.events)ids.add(event.id);
-    }
-    return ids;
-  };
-  const baselineIds=seen(baseline),scenarioIds=seen(scenario);
   const sourceIds=events.map(event=>{
     if(typeof event?.id!=='string')throw Error('Invalid source event ID.');
     return event.id;
   });
+  const sourceIdSet=new Set(sourceIds);
+  if(sourceIdSet.size!==sourceIds.length)throw Error('Duplicate source event ID.');
+  const seen=projection=>{
+    const ids=new Set();
+    for(const day of projection.days){
+      if(!Array.isArray(day.events))throw Error('Invalid projection event list.');
+      for(const event of day.events){
+        if(typeof event?.id!=='string'||!sourceIdSet.has(event.id))
+          throw Error('Projection event ID does not match an entered event.');
+        ids.add(event.id);
+      }
+    }
+    return ids;
+  };
+  const baselineIds=seen(baseline),scenarioIds=seen(scenario);
   return {
     baselineMissing:sourceIds.filter(id=>!baselineIds.has(id)),
     scenarioMissing:sourceIds.filter(id=>!scenarioIds.has(id))
