@@ -139,7 +139,9 @@
     for (const [rowIndex, row] of [parsed.headers, ...parsed.rows].entries()) {
       for (const [columnIndex, value] of row.entries()) {
         const text = String(value);
-        if (/^[\t\r\n]/u.test(text) ||
+        // A formula preceded by spaces then TAB is unsafe on spreadsheet re-import.
+        if (/^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*\t[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) ||
+            /^[\t\r\n]/u.test(text) ||
             /[\r\n][\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) ||
             /[\u202A-\u202E\u2066-\u2069]/u.test(text) ||
             /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(text) ||
