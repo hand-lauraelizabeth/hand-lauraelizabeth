@@ -32,7 +32,7 @@
 <label for="file"><strong>Choose a UTF-8 CSV or TSV (maximum 5 MB)</strong></label>
 <div><input id="file" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
 <div class="actions"><button class="secondary" id="sample">Try synthetic example</button><button class="secondary" id="reset">Clear</button></div>
-<p id="status" role="status" aria-live="polite">No data loaded.</p>
+<p id="status" role="status" aria-live="polite" tabindex="-1">No data loaded.</p>
 </section>
 <section class="panel" aria-labelledby="report"><h2 id="report">2. Review quality</h2>
 <div id="metrics" class="grid"><p>Open a file to see a data-quality summary.</p></div>
@@ -64,7 +64,7 @@
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>
 <p class="muted">Original input is not changed. Records that differ even slightly are not automatically merged.</p>
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
-<p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab and includes a UTF-8 byte-order mark for Excel compatibility. The tab changes those cell values and is not universally safe across spreadsheet programs. Machine-readable export omits both the tab precaution and byte-order mark. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
+<p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab and includes a UTF-8 byte-order mark for Excel compatibility. Ambiguous line-break formula prefixes, direction controls and unsupported controls block spreadsheet-oriented CSV, with a source record and column message; exact JSON remains available. The tab changes those cell values and is not universally safe across spreadsheet programs. Machine-readable export omits both the tab precaution and byte-order mark. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
 <p class="muted">For exact decoded cell values and logical source-record positions, export JSON instead. JSON does not add CSV formula prefixes; it is not a byte-for-byte copy or proof of authenticity. For uploaded files, a local SHA-256 fingerprint of the original bytes is included when browser cryptography is available; it can check byte equality, not establish who created the file. If cryptography is unavailable, no fingerprint is claimed. Both downloads contain your data and should be stored privately.</p>
 <div class="actions"><button id="save" disabled>Export CSV</button><button class="secondary" id="saveJson" disabled>Export exact JSON</button></div>
 </section>
@@ -130,7 +130,13 @@ $('reset').addEventListener('click',clear);$('dedupe').addEventListener('change'
 $('save').addEventListener('click',()=>{
  if(!loaded)return;
  const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;
- const csv=lib.exportCsvDownload(active,$('sheetSafe').checked);
+ let csv;
+ try { csv=lib.exportCsvDownload(active,$('sheetSafe').checked); }
+ catch(err) {
+   status(err.message+' No download was created. Use exact JSON instead; machine CSV is not intended for spreadsheet opening.',true);
+   $('status').focus();
+   return;
+ }
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  const a=el('a');a.href=url;a.download='data-rescue-reviewed.csv';document.body.append(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1000);status('CSV exported locally: '+active.rows.length+' records.');
