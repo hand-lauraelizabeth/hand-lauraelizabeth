@@ -77,35 +77,44 @@ async function run(label,browserType,url){
   eq(external,[],label+' no external requests');
   // Read-only issue filters must show original logical source records, even
   // when a separate export-only deduplication option is enabled.
-  await page.locator('#file').setInputFiles({name:'synthetic-issue-review.csv',mimeType:'text/csv',
+  const issuePage=await browser.newPage({acceptDownloads:true,viewport:{width:1280,height:800}});
+  const issueErrors=[],issueExternal=[];
+  issuePage.on('pageerror',error=>issueErrors.push(error.message));
+  issuePage.on('request',request=>{
+    if(!request.url().startsWith(url)&&!request.url().startsWith('blob:'+url))
+      issueExternal.push(request.url());
+  });
+  eq((await issuePage.goto(url,{waitUntil:'networkidle'})).status(),200,label+' separate issue review served');
+  await issuePage.locator('#file').setInputFiles({name:'synthetic-issue-review.csv',mimeType:'text/csv',
     buffer:Buffer.from('ID,Note\\n01,ok\\n02," "\\n03,ok\\n03,ok\\n04,done\\n'.replaceAll('\\n','\n'),'utf8')});
-  await page.waitForFunction(()=>document.querySelector('#previewFilter')?.disabled===false);
-  eq(await page.locator('#previewFilter').getAttribute('id'),'previewFilter',label+' source filter available');
-  ok((await page.locator('#previewStatus').innerText()).includes('5 source records'),
+  await issuePage.waitForFunction(()=>document.querySelector('#previewFilter')?.disabled===false);
+  eq(await issuePage.locator('#previewFilter').getAttribute('id'),'previewFilter',label+' source filter available');
+  ok((await issuePage.locator('#previewStatus').innerText()).includes('5 source records'),
     label+' all original source records counted');
-  await page.locator('#previewFilter').selectOption('missing');
-  eq(await page.locator('#table tbody tr').count(),1,label+' one missing-cell record');
-  eq(await page.locator('#table tbody tr th').first().innerText(),'3',label+' missing record original position');
-  eq(await page.locator('#previewStatus').getAttribute('role'),'status',label+' filter count announced politely');
-  await page.locator('#previewFilter').selectOption('duplicates');
-  eq(await page.locator('#table tbody tr').count(),1,label+' one duplicate record');
-  eq(await page.locator('#table tbody tr th').first().innerText(),'5',label+' duplicate source position');
-  eq(await page.locator('#table tbody tr td').first().innerText(),'4',label+' duplicate cites first source position');
-  await page.locator('#dedupe').check();
-  eq(await page.locator('#table tbody tr th').first().innerText(),'5',
+  await issuePage.locator('#previewFilter').selectOption('missing');
+  eq(await issuePage.locator('#table tbody tr').count(),1,label+' one missing-cell record');
+  eq(await issuePage.locator('#table tbody tr th').first().innerText(),'3',label+' missing record original position');
+  eq(await issuePage.locator('#previewStatus').getAttribute('role'),'status',label+' filter count announced politely');
+  await issuePage.locator('#previewFilter').selectOption('duplicates');
+  eq(await issuePage.locator('#table tbody tr').count(),1,label+' one duplicate record');
+  eq(await issuePage.locator('#table tbody tr th').first().innerText(),'5',label+' duplicate source position');
+  eq(await issuePage.locator('#table tbody tr td').first().innerText(),'4',label+' duplicate cites first source position');
+  await issuePage.locator('#dedupe').check();
+  eq(await issuePage.locator('#table tbody tr th').first().innerText(),'5',
     label+' export-only deduplication cannot hide source duplicate');
-  const [dedupCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#save').click()]);
+  const [dedupCsv]=await Promise.all([issuePage.waitForEvent('download'),issuePage.locator('#save').click()]);
   eq(parseDelimited(readFileSync(await dedupCsv.path(),'utf8')).rows.length,4,
     label+' separate CSV export excludes one exact duplicate');
-  const [issueJson]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);
+  const [issueJson]=await Promise.all([issuePage.waitForEvent('download'),issuePage.locator('#saveJson').click()]);
   eq(JSON.parse(readFileSync(await issueJson.path(),'utf8')).records.map(r=>r.sourceRecord),
     [2,3,4,5,6],label+' JSON evidence preserves all original positions');
-  await page.setViewportSize({width:320,height:800});
-  ok(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),
+  await issuePage.setViewportSize({width:320,height:800});
+  ok(await issuePage.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),
     label+' issue filters reflow at 320px viewport');
-  await page.setViewportSize({width:1280,height:800});
-  eq(errors,[],label+' no errors during issue-filter workflow');
-  eq(external,[],label+' no external requests during issue-filter workflow');
+  await issuePage.setViewportSize({width:1280,height:800});
+  eq(issueErrors,[],label+' no errors during issue-filter workflow');
+  eq(issueExternal,[],label+' no external requests during issue-filter workflow');
+  await issuePage.close();
 
   // Synthetic adversarial multiline cell: spreadsheet-view export must fail closed.
   await page.locator('#file').setInputFiles({name:'synthetic-guard.csv',mimeType:'text/csv',
@@ -203,13 +212,6 @@ async function run(label,browserType,url){
   ok(!auditCsvDownloaded,label+' unsafe comparison CSV produces no download');
   page.off('download',onAuditCsvDownload);
   ok(await page.locator('#compareJson').isEnabled(),label+' exact JSON recovery remains enabled after blocked audit CSV');
-  console.log('AUDIT_RECOVERY_STATE',label,JSON.stringify(await page.evaluate(()=>({
-    compareStatus:document.querySelector('#compareStatus').textContent,
-    jsonDisabled:document.querySelector('#compareJson').disabled,
-    csvDisabled:document.querySelector('#compareExport').disabled,
-    selectedFirst:document.querySelector('#leftKey').value,
-    selectedSecond:document.querySelector('#rightKey').value
-  }))));
   const [auditJsonDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#compareJson').click()]);
   const audit=JSON.parse(readFileSync(await auditJsonDownload.path(),'utf8'));
   eq(audit.format,'data-rescue-comparison-audit',label+' exact audit schema');
