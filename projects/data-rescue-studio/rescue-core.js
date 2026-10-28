@@ -103,12 +103,18 @@
   }
 
   function withoutExactDuplicates(parsed) {
-    const seen = new Set();
-    return {...parsed, rows: parsed.rows.filter(row => {
+    const seen = new Set(), rows = [], sourceRecords = [];
+    parsed.rows.forEach((row, index) => {
       const key = JSON.stringify(row);
-      if (seen.has(key)) return false;
-      seen.add(key); return true;
-    })};
+      if (seen.has(key)) return;
+      seen.add(key);
+      rows.push(row);
+      sourceRecords.push(parsed.sourceRecords ? parsed.sourceRecords[index] : index + 2);
+    });
+    // Retained records keep their ORIGINAL logical positions after deduplication.
+    // The unmodified source remains available separately for exact JSON export.
+    return {...parsed, rows, sourceRecords,
+      originalRowCount: parsed.originalRowCount ?? parsed.rows.length};
   }
 
   function formulaRisk(value) {
@@ -128,7 +134,9 @@
             /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(text) ||
             /^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) &&
               !formulaRisk(text)) {
-          return {sourceRecord:rowIndex + 1,column:columnIndex + 1};
+          return {sourceRecord:rowIndex === 0 ? 1 :
+            (parsed.sourceRecords ? parsed.sourceRecords[rowIndex - 1] : rowIndex + 1),
+            column:columnIndex + 1};
         }
       }
     }
@@ -172,6 +180,21 @@
         !parsed.rows.every(row => Array.isArray(row) && row.length === width &&
           row.every(v => typeof v === 'string')))
       throw new Error('Cannot export an incomplete or inconsistent evidence table.');
+    // If a filtered view is exported, retain original logical record positions.
+    // Reject malformed provenance rather than silently renumbering source records.
+    if (parsed.sourceRecords !== undefined && (
+        !Array.isArray(parsed.sourceRecords) ||
+        parsed.sourceRecords.length !== parsed.rows.length ||
+        !parsed.sourceRecords.every((n, i) =>
+          Number.isSafeInteger(n) && n >= 2 && n <= MAX_ROWS + 1 &&
+          (i === 0 || n > parsed.sourceRecords[i - 1]))))
+      throw new Error('Invalid source-record positions in evidence table.');
+    if (parsed.originalRowCount !== undefined && (
+        !Number.isSafeInteger(parsed.originalRowCount) ||
+        parsed.originalRowCount < parsed.rows.length ||
+        parsed.originalRowCount > MAX_ROWS ||
+        (parsed.sourceRecords && parsed.sourceRecords.some(n => n > parsed.originalRowCount + 1))))
+      throw new Error('Invalid original record count in evidence table.');
     // Optional fingerprint describes original uploaded bytes, not this JSON representation.
     // Never accept a digest without its matching validated byte count.
     if(provenance !== null && (
@@ -182,6 +205,7 @@
       throw new Error('Invalid original-file SHA-256 provenance.');
     const source = {fileName: sourceFileName, delimiter: parsed.delimiter,
       headerRecord: 1, recordUnit: 'logical CSV/TSV record'};
+    if(parsed.originalRowCount !== undefined) source.originalDataRecords = parsed.originalRowCount;
     if(provenance !== null) {
       source.byteCount = provenance.byteCount;
       source.digestAlgorithm = 'SHA-256';
@@ -193,7 +217,8 @@
       headers: parsed.headers.slice(), normalizedHeaders: parsed.normalizedHeaders.slice(),
       warnings: parsed.warnings.slice(), recordCount: parsed.rows.length,
       records: parsed.rows.map((values, index) => ({
-        sourceRecord: index + 2, values: values.slice()
+        sourceRecord: parsed.sourceRecords ? parsed.sourceRecords[index] : index + 2,
+        values: values.slice()
       }))
     });
   }
