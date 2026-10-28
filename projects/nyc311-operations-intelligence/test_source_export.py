@@ -25,6 +25,7 @@ class FakePublisher:
         self.meta_calls = 0
         self.count_calls = 0
         self.group_calls = 0
+        self.three_calls = 0
         self.urls = []
 
     def __call__(self, url):
@@ -60,6 +61,26 @@ class FakePublisher:
                 meta["rowsUpdatedAt"] = True
             return meta
         params = parse_qs(urlparse(url).query)
+        if "$group" in params and params["$group"] == ["borough,agency,status"]:
+            self.three_calls += 1
+            counts = Counter((r.get("borough", ""), r.get("agency", ""),
+                              r.get("status", "")) for r in self.rows)
+            if self.drift in ("three_balanced", "three_drift") and (
+                    self.drift == "three_balanced" or self.three_calls > 1):
+                first, second = sorted(counts)
+                counts[first] += 1
+                counts[second] -= 1
+            data = [{"borough": b, "agency": a, "status": status, "n": str(n)}
+                    for (b, a, status), n in sorted(counts.items()) if n > 0]
+            if self.drift == "three_pair_mismatch":
+                data[0]["borough"] = "SYNTHETIC OTHER BOROUGH"
+            if self.drift == "three_duplicate":
+                data.append(dict(data[0]))
+            if self.drift == "three_total":
+                data[0]["n"] = str(int(data[0]["n"]) + 1)
+            if self.drift == "three_malformed":
+                data[0]["n"] = True
+            return data
         if "$group" in params:
             self.group_calls += 1
             assert params["$group"] == ["borough,agency"]
@@ -122,6 +143,11 @@ class TestSourceExport(unittest.TestCase):
             self.assertEqual(publisher.meta_calls, 2)
             self.assertEqual(publisher.count_calls, 2)
             self.assertEqual(publisher.group_calls, 2)
+            self.assertEqual(publisher.three_calls, 2)
+            self.assertTrue(receipt["three_way_cross_aggregate_verified"])
+            self.assertEqual(receipt["three_way_aggregate_cells"], 1)
+            self.assertEqual(len(receipt["three_way_aggregate_sha256"]), 64)
+            self.assertNotIn("Open", receiptfile.read_text())
             self.assertEqual(receipt["aggregate_cells"], 1)
             self.assertEqual(len(receipt["aggregate_sha256"]), 64)
             self.assertTrue(receipt["cross_aggregate_verified"])
@@ -252,6 +278,38 @@ class TestSourceExport(unittest.TestCase):
             with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
                 csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
                 with self.assertRaisesRegex(ValueError, "aggregate"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher(drift=drift))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_three_way_balanced_status_change_and_drift_fail_closed(self):
+        # Two-way borough/agency and total counts remain identical throughout.
+        rows = [record(f"{i:03d}") for i in range(1, 5)]
+        rows[0]["status"] = rows[1]["status"] = "Closed"
+        for drift in ("three_balanced", "three_drift"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "three-way"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher(rows, drift=drift), page_size=2)
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_three_way_cross_pair_disagreement_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            with self.assertRaisesRegex(ValueError, "three-way and two-way"):
+                download("2026-09", csvfile, receiptfile,
+                         fetch=FakePublisher(drift="three_pair_mismatch"))
+            self.assertFalse(csvfile.exists())
+            self.assertFalse(receiptfile.exists())
+
+    def test_malformed_duplicate_or_inconsistent_three_way_fails_closed(self):
+        for drift in ("three_duplicate", "three_total", "three_malformed"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "three-way"):
                     download("2026-09", csvfile, receiptfile,
                              fetch=FakePublisher(drift=drift))
                 self.assertFalse(csvfile.exists())

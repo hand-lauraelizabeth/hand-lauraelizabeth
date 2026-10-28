@@ -23,7 +23,8 @@ class VerificationClockTests(unittest.TestCase):
         observed_last_check = []
         def fetch(url):
             response = publisher(url)
-            if "$group" in parse_qs(urlparse(url).query) and publisher.group_calls == 2:
+            if (parse_qs(urlparse(url).query).get("$group") == ["borough,agency,status"]
+                    and publisher.three_calls == 2):
                 observed_last_check.append(dt.datetime.now(dt.timezone.utc))
             return response
         with tempfile.TemporaryDirectory() as tmp:
