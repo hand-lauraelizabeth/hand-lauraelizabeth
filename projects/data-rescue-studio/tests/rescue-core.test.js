@@ -33,6 +33,37 @@ assert.throws(() => exportCsv(parseDelimited('ID,"  \t=1+1"\n1,ok'), true),
 assert.doesNotThrow(() => exportCsv(parseDelimited('ID,Note\n1,"  \tplain text"'), true));
 console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
 
+/*
+ * Unicode U+2028 LINE SEPARATOR and U+2029 PARAGRAPH SEPARATOR are
+ * explicit line boundaries in Unicode (Unicode Standard chapter 5).
+ * Spreadsheet re-import behavior is not established; fail closed for the
+ * spreadsheet-oriented CSV, while preserving exact machine CSV/JSON.
+ * https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-5/
+ * https://owasp.github.io/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Injection/21-CSV_Injection
+ */
+{
+  const {exportEvidenceJson} = require('../rescue-core.js');
+  for (const separator of ['\\u2028', '\\u2029']) {
+    for (const payload of ['safe' + separator + '=1+1', 'safe' + separator + 'plain']) {
+      const parsed = parseDelimited('ID,Note\\n1,"' + payload + '"');
+      assert.throws(() => exportCsv(parsed, true), /source record 2, column 2/);
+      assert.equal(parseDelimited(exportCsv(parsed, false)).rows[0][1], payload);
+      assert.equal(JSON.parse(exportEvidenceJson(parsed, 'synthetic.csv')).records[0].values[1], payload);
+    }
+    const header = parseDelimited('ID,"Name' + separator + 'Note"\\n1,ok');
+    assert.throws(() => exportCsv(header, true), /source record 1, column 2/);
+    assert.equal(parseDelimited(exportCsv(header, false)).headers[1], 'Name' + separator + 'Note');
+    const filtered = withoutExactDuplicates(parseDelimited(
+      'ID,Note\\n1,repeat\\n1,repeat\\n3,"safe' + separator + '=1+1"'));
+    assert.throws(() => exportCsv(filtered, true), /source record 4, column 2/);
+    assert.deepEqual(JSON.parse(exportEvidenceJson(filtered, 'synthetic.csv'))
+      .records.map(r => r.sourceRecord), [2, 4]);
+  }
+  assert.doesNotThrow(() => exportCsv(parseDelimited('ID,Note\\n1,"safe line"'), true));
+  console.log('PASS: Unicode line/paragraph separator spreadsheet boundary and exact export checks.');
+}
+
+
 
 
 /*
