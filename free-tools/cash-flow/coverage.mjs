@@ -39,7 +39,7 @@ function visibleId(id){
   }
   const shortened=count>80;
   const shown=shortened?first.join('')+'…'+last.join(''):id;
-  const escaped=JSON.stringify(shown).replace(/[\u007f-\u009f\u00ad\u034f\u061c\u115f-\u1160\u17b4-\u17b5\u180b-\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufe00-\ufe0f\ufeff\ufff9-\ufffb\u{e0000}-\u{e007f}\u{e0100}-\u{e01ef}]/gu,
+  const escaped=JSON.stringify(shown).replace(/[\p{Default_Ignorable_Code_Point}\p{Cc}\p{Cf}\u2028\u2029\u115f-\u1160\u17b4-\u17b5\ufff9-\ufffb]/gu,
     character=>'\\u'+character.codePointAt(0).toString(16).toUpperCase().padStart(4,'0'));
   return shortened?escaped+' ('+(count-72)+' code points omitted from displayed ID)':escaped;
 }
