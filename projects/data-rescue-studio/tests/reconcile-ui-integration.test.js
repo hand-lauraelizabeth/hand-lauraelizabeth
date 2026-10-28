@@ -106,6 +106,13 @@ async function run() {
   check(audit.rows.some(row=>row[0]==='Missing second-file key' && row[3]==='5'),'missing key trace retained');
   check(!csv.includes('Duplicate'),'source data fields omitted from audit');
   check(downloads.length===1,'blob URL revoked after download');
+  // A replacement primary must revoke an already loaded secondary source,
+  // even when the new primary uses the same normalized identifier heading.
+  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Value\n9,Replacement'),'replacement.csv');
+  check(nodes.rightKey.disabled,'replacing primary clears loaded second-file key');
+  check(nodes.compareFile.value==='','replacing primary clears second-file input');
+  check(nodes.compareRun.disabled,'replacing primary disables stale comparison');
+  check(nodes.compareExport.disabled && nodes.compareJson.disabled,'replacing primary revokes both old audits');
   nodes.compareClear.handlers.click();
   check(nodes.rightKey.disabled,'clear revokes second-file readiness');
   check(nodes.compareExport.disabled,'clear revokes stale CSV audit');
@@ -119,6 +126,15 @@ async function run() {
   await pending;
   check(nodes.rightKey.disabled,'stale async file read ignored after clear');
   check(!nodes.compareStatus.textContent.includes('Loaded second file'),'stale file never shown as loaded');
+  // A secondary read begun before primary replacement must never be adopted.
+  let finishOldPrimaryRead;
+  nodes.compareFile.files=[{name:'late.csv',size:100,text:()=>new Promise(resolve=>finishOldPrimaryRead=resolve)}];
+  const oldPrimaryRead=nodes.compareFile.handlers.change();
+  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Value\n8,Newer'),'new-primary.csv');
+  finishOldPrimaryRead('Ref,Cost\n8,80');
+  await oldPrimaryRead;
+  check(nodes.rightKey.disabled && nodes.compareRun.disabled,'old secondary read ignored after primary replacement');
+  check(!nodes.compareStatus.textContent.includes('Loaded second file'),'old secondary read cannot overwrite replacement status');
   nodes.compareFile.files=[{name:'payload.exe',size:10,text:async()=> 'x'}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.className==='error','invalid extension produces error');
