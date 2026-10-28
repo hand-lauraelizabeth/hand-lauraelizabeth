@@ -31,7 +31,34 @@ class FakePublisher:
         self.urls.append(url)
         if "/api/views/" in url:
             self.meta_calls += 1
-            return {"rowsUpdatedAt": 123456 if not (self.drift == "metadata" and self.meta_calls > 1) else 123457}
+            fields = {
+                "unique_key": "text", "created_date": "calendar_date",
+                "closed_date": "calendar_date", "agency": "text",
+                "complaint_type": "text", "borough": "text", "status": "text"
+            }
+            columns = [{"id": 100 + i, "fieldName": name, "dataTypeName": kind}
+                       for i, (name, kind) in enumerate(fields.items())]
+            meta = {"id": "erm2-nwe9", "provenance": "official",
+                    "publicationStage": "published", "assetType": "dataset",
+                    "rowIdentifierColumnId": 100, "columns": columns,
+                    "rowsUpdatedAt": (123457 if self.drift == "metadata"
+                                      and self.meta_calls > 1 else 123456)}
+            if self.drift == "schema" and self.meta_calls > 1:
+                columns.append({"id": 108, "fieldName": "new_optional_field",
+                                "dataTypeName": "text"})
+            if self.drift == "schema_type":
+                columns[0]["dataTypeName"] = "number"
+            if self.drift == "schema_duplicate":
+                columns.append(dict(columns[0]))
+            if self.drift == "schema_identifier":
+                meta["rowIdentifierColumnId"] = 999
+            if self.drift == "schema_unofficial":
+                meta["provenance"] = "community"
+            if self.drift == "schema_missing":
+                columns.pop()
+            if self.drift == "schema_bad_timestamp":
+                meta["rowsUpdatedAt"] = True
+            return meta
         params = parse_qs(urlparse(url).query)
         if "$group" in params:
             self.group_calls += 1
@@ -125,6 +152,35 @@ class TestSourceExport(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "source changed"):
                 download("2026-09", csvfile, receiptfile, page_size=2,
                          fetch=FakePublisher(drift="metadata"))
+            self.assertFalse(csvfile.exists())
+            self.assertFalse(receiptfile.exists())
+
+    def test_schema_change_with_unchanged_update_clock_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            with self.assertRaisesRegex(ValueError, "source changed"):
+                download("2026-09", csvfile, receiptfile, page_size=2,
+                         fetch=FakePublisher(drift="schema"))
+            self.assertFalse(csvfile.exists())
+            self.assertFalse(receiptfile.exists())
+
+    def test_invalid_publisher_schema_fails_before_private_export(self):
+        for drift in ("schema_type", "schema_duplicate", "schema_identifier",
+                      "schema_unofficial", "schema_missing"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "Publisher schema"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher(drift=drift))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_malformed_publisher_update_clock_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            with self.assertRaisesRegex(ValueError, "source-update timestamp"):
+                download("2026-09", csvfile, receiptfile,
+                         fetch=FakePublisher(drift="schema_bad_timestamp"))
             self.assertFalse(csvfile.exists())
             self.assertFalse(receiptfile.exists())
 
