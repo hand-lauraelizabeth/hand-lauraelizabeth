@@ -300,7 +300,9 @@ async function testMobile(label,type,profile){
     check(await page.locator('#results tr').count()===0,label+': stale results invalidated');
     let mobileRemovalDialogs=0;
     page.on('dialog',async dialog=>{mobileRemovalDialogs++;await dialog.accept();});
-    await page.getByRole('button',{name:'Remove rent'}).tap();
+    const mobileRemove=page.getByRole('button',{name:'Remove "rent"',exact:true});
+    check(await mobileRemove.count()===1,label+': touch removal accessible name quotes exact source ID');
+    await mobileRemove.tap();
     check(mobileRemovalDialogs===1,label+': touch removal requires confirmation');
     check((await page.locator('#events').textContent()).includes('No events added.'),label+': touch removes event');
     check(errors.length===0,label+': no page exceptions: '+errors.join('; '));
