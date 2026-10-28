@@ -150,7 +150,41 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         stamp = obj.get("rowsUpdatedAt") if isinstance(obj, dict) else None
         if type(stamp) is not int or stamp <= 0:
             raise ValueError("Publisher source-update timestamp unavailable")
-        return stamp
+        # A stable update clock is not enough: schema changes can silently
+        # alter the meaning of an otherwise arithmetically consistent export.
+        expected_types = {
+            "unique_key": "text", "created_date": "calendar_date",
+            "closed_date": "calendar_date", "agency": "text",
+            "complaint_type": "text", "borough": "text", "status": "text"
+        }
+        if (obj.get("id") != DATASET or obj.get("provenance") != "official"
+                or obj.get("publicationStage") != "published"
+                or obj.get("assetType") != "dataset"):
+            raise ValueError("Publisher schema identity invalid")
+        columns = obj.get("columns")
+        if not isinstance(columns, list) or not columns:
+            raise ValueError("Publisher schema columns invalid")
+        observed = {}
+        used_ids = set()
+        for column in columns:
+            if not isinstance(column, dict):
+                raise ValueError("Publisher schema column invalid")
+            name, cid, kind = (column.get("fieldName"),
+                               column.get("id"), column.get("dataTypeName"))
+            if (not isinstance(name, str) or not name
+                    or type(cid) is not int or cid <= 0
+                    or not isinstance(kind, str) or not kind
+                    or name in observed or cid in used_ids):
+                raise ValueError("Publisher schema column identity invalid")
+            observed[name] = (cid, kind)
+            used_ids.add(cid)
+        if (any(observed.get(name, (None, None))[1] != kind
+                for name, kind in expected_types.items())
+                or obj.get("rowIdentifierColumnId") != observed["unique_key"][0]):
+            raise ValueError("Publisher schema required field invalid")
+        signature = tuple(sorted((name, cid, kind)
+                                 for name, (cid, kind) in observed.items()))
+        return stamp, signature
 
     def counts():
         obj = fetch(count_url)
@@ -165,7 +199,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Invalid or nonunique publisher cohort")
         return n
 
-    before_update = metadata()
+    before_update, before_schema = metadata()
     expected = counts()
     before_pairs = official_pairs(expected)
     seen = set()
@@ -228,7 +262,9 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             os.fsync(output.fileno())
         if rows != expected or len(seen) != expected:
             raise ValueError("Publisher row/key count mismatch")
-        if metadata() != before_update or counts() != expected:
+        after_update, after_schema = metadata()
+        if (after_update != before_update or after_schema != before_schema
+                or counts() != expected):
             raise ValueError("Publisher source changed during export")
         after_pairs = official_pairs(expected)
         if after_pairs != before_pairs:
