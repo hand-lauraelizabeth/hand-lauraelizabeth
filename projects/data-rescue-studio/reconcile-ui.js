@@ -220,5 +220,5 @@
   $('compareRun').addEventListener('click', compare);
   $('compareExport').addEventListener('click', exportAudit);
   $('compareJson').addEventListener('click', exportAuditJson);
-  root.DataRescueCompareUI = {setPrimary};
+  root.DataRescueCompareUI = {setPrimary, previewText: auditPreview};
 })(window);
