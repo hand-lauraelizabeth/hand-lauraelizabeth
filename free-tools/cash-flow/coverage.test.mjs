@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeEventCoverage,coverageText,displaySafeText} from './coverage.mjs';
+import {summarizeEventCoverage,coverageText,displaySafeText,coverageEvidence} from './coverage.mjs';
 const events=(...ids)=>ids.map(id=>({id}));
 const projection=(...ids)=>({days:[{events:ids.map(id=>({id}))}]});
 test('empty schedule is described without implying payments',()=>{
@@ -137,4 +137,23 @@ test('long event descriptions use bounded display-only previews',()=>{
   assert.match(shown,/600 code points omitted from displayed description/);
   assert.ok(shown.length<180);
   assert.ok(!shown.includes('X'.repeat(600)));
+});
+
+test('downloadable coverage evidence distinguishes baseline from shifted occurrences',()=>{
+  const source=events(' 00009 ','future','shift-only');
+  const evidence=coverageEvidence(source,projection(' 00009 ','shift-only'),projection(' 00009 ','future'));
+  assert.equal(evidence.enteredEventCount,3);
+  assert.deepEqual(evidence.baseline,{modeledEventCount:2,withoutOccurrencesIds:['future']});
+  assert.deepEqual(evidence.shiftedScenario,{modeledEventCount:2,withoutOccurrencesIds:['shift-only']});
+  assert.match(evidence.note,/does not contain baseline daily balances/);
+});
+test('coverage evidence keeps exact Unicode source IDs and reports empty schedules',()=>{
+  const id=' 账单\u202E-01 ';
+  const evidence=coverageEvidence(events(id),projection(),projection(id));
+  assert.deepEqual(evidence.baseline.withoutOccurrencesIds,[id]);
+  assert.deepEqual(evidence.shiftedScenario.withoutOccurrencesIds,[]);
+  assert.deepEqual(coverageEvidence([],projection(),projection()).baseline,{modeledEventCount:0,withoutOccurrencesIds:[]});
+});
+test('corrupt projection cannot be represented as complete JSON evidence',()=>{
+  assert.throws(()=>coverageEvidence(events('bill'),projection('ghost'),projection()),/does not match/);
 });
