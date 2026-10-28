@@ -128,3 +128,31 @@ console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
   }
   console.log('PASS: 3,000 deterministic synthetic CSV/TSV and source-provenance scenarios.');
 }
+
+// Source-record review filters never mutate input or export selections.
+// Whitespace-only cells count as missing, exact duplicate records cite the first source.
+{
+  const {inspectSourceRecords, exportEvidenceJson} = require('../rescue-core.js');
+  const source = parseDelimited('ID,Note\n01,ok\n02," "\n03,ok\n03,ok\n04,"line one\nline two"\n');
+  const before = JSON.stringify(source);
+  const all = inspectSourceRecords(source, 'all');
+  assert.deepEqual(all.entries.map(r => r.sourceRecord), [2,3,4,5,6]);
+  assert.equal(all.total, 5);
+  const missing = inspectSourceRecords(source, 'missing');
+  assert.deepEqual(missing.entries.map(r => r.sourceRecord), [3]);
+  const duplicate = inspectSourceRecords(source, 'duplicates');
+  assert.deepEqual(duplicate.entries.map(r => [r.sourceRecord,r.duplicateOf]), [[5,4]]);
+  assert.deepEqual(duplicate.entries[0].values, ['03','ok']);
+  assert.deepEqual(inspectSourceRecords(source, 'all', 2).entries.map(r => r.sourceRecord), [2,3]);
+  assert.equal(inspectSourceRecords(source, 'all', 2).total, 5);
+  assert.equal(inspectSourceRecords(source, 'missing', 2).shown, 1);
+  assert.deepEqual(inspectSourceRecords(source, 'duplicates', 1).entries[0].values, ['03','ok']);
+  assert.throws(() => inspectSourceRecords(source, 'unexpected'), /review filter/);
+  assert.throws(() => inspectSourceRecords(source, 'all', 0), /review filter/);
+  assert.equal(JSON.stringify(source), before);
+  assert.deepEqual(JSON.parse(exportEvidenceJson(source, 'synthetic.csv')).records.map(r => r.sourceRecord), [2,3,4,5,6]);
+  const dedup = withoutExactDuplicates(source);
+  assert.deepEqual(inspectSourceRecords(dedup, 'all').entries.map(r => r.sourceRecord), [2,3,4,6]);
+  assert.deepEqual(inspectSourceRecords(dedup, 'duplicates').entries, []);
+  console.log('PASS: 14 source-record issue-filter and provenance checks.');
+}
