@@ -80,6 +80,7 @@ const status=(message,error=false)=>{
  messageNode.textContent=message;
  messageNode.className=error?'error':'';
  messageNode.setAttribute('role',error?'alert':'status');
+ messageNode.setAttribute('aria-live',error?'assertive':'polite');
  if(error){fileInput.setAttribute('aria-invalid','true');messageNode.focus();}
  else fileInput.removeAttribute('aria-invalid');
 };
