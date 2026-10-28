@@ -30,6 +30,11 @@ class ReceiptAuditTests(unittest.TestCase):
             w.writerow(FIELDS)
             w.writerows(self.rows)
         pairs = Counter((r[5], r[3]) for r in self.rows)
+        triples = Counter((r[5], r[3], r[6]) for r in self.rows)
+        triple_digest = hashlib.sha256(json.dumps(
+            [[b, a, status, n] for (b, a, status), n in sorted(triples.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
         pair_digest = hashlib.sha256(json.dumps(
             [[b, a, n] for (b, a), n in sorted(pairs.items())],
             separators=(",", ":"), ensure_ascii=False
@@ -45,22 +50,32 @@ class ReceiptAuditTests(unittest.TestCase):
             "$group": "borough,agency", "$order": "borough,agency",
             "$limit": 50000,
         })
+        three_way_query = resource + "?" + urlencode({
+            "$select": "borough,agency,status,count(*) as n", "$where": predicate,
+            "$group": "borough,agency,status", "$order": "borough,agency,status",
+            "$limit": 50000,
+        })
         self.receipt = {
             "where": predicate,
             "metadata_url": "https://data.cityofnewyork.us/api/views/erm2-nwe9.json",
             "count_query_url": count_query,
             "aggregate_query_url": aggregate_query,
+            "three_way_aggregate_query_url": three_way_query,
             "verified_at_utc": "2026-10-27T10:00:00+00:00",
             "dataset": "erm2-nwe9",
             "reporting_month": "2026-09",
             "publisher": "https://data.cityofnewyork.us/d/erm2-nwe9",
             "fields": list(FIELDS), "ordered_by": "unique_key ASC",
-            "cross_aggregate_verified": True, "release_status": "HOLD",
+            "cross_aggregate_verified": True,
+            "three_way_cross_aggregate_verified": True, "release_status": "HOLD",
             "rows": len(self.rows), "distinct_keys": len({r[0] for r in self.rows}),
-            "aggregate_cells": len(pairs), "publisher_rows_updated_at": 1790000000,
+            "aggregate_cells": len(pairs),
+            "three_way_aggregate_cells": len(triples),
+            "publisher_rows_updated_at": 1790000000,
             "page_size": 2, "pages": 2,
             "csv_sha256": hashlib.sha256(self.csvfile.read_bytes()).hexdigest(),
             "aggregate_sha256": pair_digest,
+            "three_way_aggregate_sha256": triple_digest,
         }
         self.save_receipt()
 
@@ -105,6 +120,7 @@ class ReceiptAuditTests(unittest.TestCase):
             ("metadata_url", "https://example.org/api/views/erm2-nwe9.json"),
             ("count_query_url", "https://example.org/count"),
             ("aggregate_query_url", "https://example.org/aggregate"),
+            ("three_way_aggregate_query_url", "https://example.org/three"),
             ("reporting_month", "2026-08"),
         ):
             with self.subTest(field=field):
@@ -142,6 +158,45 @@ class ReceiptAuditTests(unittest.TestCase):
         self.receipt["aggregate_sha256"] = "f" * 64
         self.save_receipt()
         self.assertIn("AGGREGATE_SHA256_MISMATCH", self.codes())
+
+    def test_three_way_status_change_fails_even_if_pair_and_csv_hashes_match(self):
+        # A status-only mutation preserves borough×agency and all row totals.
+        original_three_way = self.receipt["three_way_aggregate_sha256"]
+        self.rows[0][6] = "Closed"
+        self.write()
+        self.receipt["three_way_aggregate_sha256"] = original_three_way
+        self.save_receipt()
+        codes = self.codes()
+        self.assertIn("THREE_WAY_SHA256_MISMATCH", codes)
+        self.assertNotIn("AGGREGATE_SHA256_MISMATCH", codes)
+        self.assertNotIn("CSV_SHA256_MISMATCH", codes)
+        self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", codes)
+
+    def test_three_way_receipt_contract_is_mandatory(self):
+        for field, bad in (
+            ("three_way_cross_aggregate_verified", False),
+            ("three_way_aggregate_cells", True),
+            ("three_way_aggregate_cells", 0),
+            ("three_way_aggregate_sha256", "invalid"),
+            ("three_way_aggregate_query_url", "https://example.org/three"),
+        ):
+            with self.subTest(field=field, bad=bad):
+                original = self.receipt[field]
+                self.receipt[field] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+                self.receipt[field] = original
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_three_way_cell_count_and_digest_detect_forgery(self):
+        self.receipt["three_way_aggregate_cells"] += 1
+        self.save_receipt()
+        self.assertIn("THREE_WAY_CELL_COUNT_MISMATCH", self.codes())
+        self.receipt["three_way_aggregate_cells"] -= 1
+        self.receipt["three_way_aggregate_sha256"] = "0" * 64
+        self.save_receipt()
+        self.assertIn("THREE_WAY_SHA256_MISMATCH", self.codes())
 
     def test_duplicate_key_fails_even_if_receipt_is_recalculated(self):
         self.rows[1][0] = "0001"
