@@ -93,3 +93,24 @@ test('four very long missing IDs cannot create an unbounded status message',()=>
   assert.match(text,/2 more/);
   assert.ok(text.length<4500);
 });
+
+test('full Unicode default-ignorable class is visibly escaped in status, with exact matching unchanged',()=>{
+  const id='bill\u3164\uffa0\u2065\u{e0061}';
+  const text=coverageText(events(id),projection(),projection());
+  for(const ch of ['\u3164','\uffa0','\u2065','\u{e0061}'])assert.ok(!text.includes(ch));
+  for(const escaped of ['\\u3164','\\uFFA0','\\u2065','\\uE0061'])assert.ok(text.includes(escaped));
+  assert.deepEqual(summarizeEventCoverage(events(id),projection(),projection()).baselineMissing,[id]);
+});
+test('Unicode line separators and DEL are escaped without introducing new status lines',()=>{
+  const id='bill\u2028due\u2029today\u007f';
+  const text=coverageText(events(id),projection(),projection());
+  for(const ch of ['\u2028','\u2029','\u007f'])assert.ok(!text.includes(ch));
+  for(const escaped of ['\\u2028','\\u2029','\\u007F'])assert.ok(text.includes(escaped));
+  assert.equal(text.split('\n').length,1);
+});
+test('ordinary Unicode letters and visible emoji remain readable',()=>{
+  const id='café-🧾-請求書';
+  const text=coverageText(events(id),projection(),projection());
+  assert.ok(text.includes(id));
+  assert.deepEqual(summarizeEventCoverage(events(id),projection(id),projection(id)).baselineMissing,[]);
+});
