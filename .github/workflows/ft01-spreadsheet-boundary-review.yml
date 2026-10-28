@@ -1,0 +1,39 @@
+name: FT-01 spreadsheet export boundary review
+on:
+  push:
+    branches:
+      - 'review/ft01-spreadsheet-boundary-guard-*'
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-spreadsheet-boundary-review.yml'
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-spreadsheet-boundary-review.yml'
+permissions:
+  contents: read
+jobs:
+  spreadsheet-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser runner
+        run: |
+          cd projects/data-rescue-studio
+          npm install --no-save --no-package-lock playwright@1.57.0
+      - name: Syntax validation
+        run: |
+          node --check projects/data-rescue-studio/rescue-core.js
+          node --check projects/data-rescue-studio/tests/spreadsheet-export-guard.test.cjs
+          node --check projects/data-rescue-studio/tests/exact-quoted-newlines-browser.test.cjs
+      - name: Synthetic spreadsheet export boundary and exact-data checks
+        run: node projects/data-rescue-studio/tests/spreadsheet-export-guard.test.cjs
+      - name: Three-engine browser upload, blocked download and JSON evidence
+        run: node projects/data-rescue-studio/tests/exact-quoted-newlines-browser.test.cjs
