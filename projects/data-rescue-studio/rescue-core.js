@@ -128,6 +128,30 @@
       originalRowCount: parsed.originalRowCount ?? parsed.rows.length};
   }
 
+  // Read-only review filters: original logical source records are never renumbered.
+  // Filtering the preview does not filter CSV or JSON exports.
+  function inspectSourceRecords(parsed, mode = 'all', limit = 20) {
+    if (!parsed || !Array.isArray(parsed.rows) ||
+        !['all', 'missing', 'duplicates'].includes(mode) ||
+        !Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+      throw new Error('Choose a valid source-record review filter.');
+    const seen = new Map(), entries = [];
+    let total = 0;
+    parsed.rows.forEach((row, index) => {
+      const sourceRecord = parsed.sourceRecords ? parsed.sourceRecords[index] : index + 2;
+      const signature = JSON.stringify(row);
+      const duplicateOf = seen.has(signature) ? seen.get(signature) : null;
+      if (!seen.has(signature)) seen.set(signature, sourceRecord);
+      const missing = row.some(value => value.trim() === '');
+      if (mode !== 'all' && !(mode === 'missing' ? missing : duplicateOf !== null)) return;
+      total++;
+      if (entries.length < limit) entries.push({
+        sourceRecord, duplicateOf, values: row.slice()
+      });
+    });
+    return {mode, total, shown: entries.length, entries};
+  }
+
   function formulaRisk(value) {
     return /^[\s\uFEFF]*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20]/u.test(String(value));
   }
@@ -239,5 +263,5 @@
     });
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
+  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
 });
