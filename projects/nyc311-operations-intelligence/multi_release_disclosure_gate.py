@@ -1,6 +1,6 @@
 """Private NYC 311 multi-release disclosure screen; NEVER authorizes publication.
 
-Every pair and every disjoint 2+2 contrast of up to eight releases is checked,
+Every pair, every three-release second difference and every disjoint 2+2\ncontrast of up to eight releases is checked,
 including coarse cells and public marginals. Counts and labels are never emitted.
 This is a necessary-only screen; external auxiliary tables and arbitrary integer
 linear combinations remain outside its scope.
@@ -81,6 +81,21 @@ def audit(payload):
                 codes.add(code)
             if dim == 0 and any(d < 0 for d in delta):
                 codes.add('NEGATIVE_CORRECTION_REVIEW_REQUIRED')
+    # Three releases can disclose a small second difference that no pair
+    # reveals: 100 - 2*120 + 141 = 1. Test each possible middle
+    # coefficient, not only the chronological middle snapshot.
+    for chosen in combinations(range(len(rows)), 3):
+        for middle in chosen:
+            others = [idx for idx in chosen if idx != middle]
+            for dim, code in enumerate(('SMALL_THREE_RELEASE_CELL_SECOND_DIFFERENCE',
+                                        'SMALL_THREE_RELEASE_BOROUGH_SECOND_DIFFERENCE',
+                                        'SMALL_THREE_RELEASE_GROUP_SECOND_DIFFERENCE')):
+                first = projections[others[0]][dim]
+                second = projections[middle][dim]
+                third = projections[others[1]][dim]
+                if _small((a + c - 2*b for a, b, c in zip(first, second, third)),
+                          threshold):
+                    codes.add(code)
     # Four distinct public releases can disclose a small contrast even if no
     # pairwise difference is small: e.g. 100 + 162 - 120 - 141 = 1.
     for chosen in combinations(range(len(rows)), 4):
