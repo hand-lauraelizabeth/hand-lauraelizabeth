@@ -125,13 +125,17 @@
     if (omitted) visible.splice(96, 0, ' … [' + omitted + ' code points omitted] … ');
     return visible.join('');
   }
-  function render(result) {
+  function render(result, coverage) {
     const categories = [
       ['One-to-one matches', result.matches.length],
       ['Ambiguous keys', result.ambiguous.length],
       ['First file only', result.leftOnly.length],
       ['Second file only', result.rightOnly.length],
-      ['Missing identifiers', result.missingLeft.length + result.missingRight.length]
+      ['Missing identifiers', result.missingLeft.length + result.missingRight.length],
+      ['First-file records classified', coverage.counts.firstRecords],
+      ['Second-file records classified', coverage.counts.secondRecords],
+      ['First-file records in ambiguous groups', coverage.firstAmbiguous],
+      ['Second-file records in ambiguous groups', coverage.secondAmbiguous]
     ];
     const grid = $('compareMetrics');
     grid.replaceChildren();
@@ -158,13 +162,24 @@
     $('compareExport').disabled = false;
     $('compareJson').disabled = false;
     $('compareIndex').disabled = false;
-    message('Comparison complete: ' + result.matches.length + ' exact one-to-one matches; ' + result.ambiguous.length + ' ambiguous identifier groups. Unmatched and missing-key records remain separate.');
+    message('Comparison complete: ' + result.matches.length + ' exact one-to-one matches; ' + result.ambiguous.length + ' ambiguous identifier groups. Classified ' + coverage.counts.firstRecords + ' of ' + first.rows.length + ' first-file records and ' + coverage.counts.secondRecords + ' of ' + second.rows.length + ' second-file records. Unmatched and missing-key records remain separate.');
   }
+  // Use the same fail-closed source-position validator as the privacy-minimized
+  // issue index. A successful-looking result is never shown or exported unless
+  // every original logical record is classified exactly once.
+  const positions = table => table.sourceRecords || table.sourceRowNumbers ||
+    table.rows.map((_, index) => index + 2);
   function compare() {
     if (!(first && second && $('leftKey').value && $('rightKey').value)) return;
     try {
-      comparison = (engine.compare || engine.reconcile)(first, second, $('leftKey').value, $('rightKey').value);
-      render(comparison);
+      if (!root.DataRescueComparisonIndex || typeof root.DataRescueComparisonIndex.create !== 'function')
+        throw Error('The local reconciliation coverage validator is unavailable. Reload this page.');
+      const candidate = (engine.compare || engine.reconcile)(first, second, $('leftKey').value, $('rightKey').value);
+      const coverage = JSON.parse(root.DataRescueComparisonIndex.create(candidate, positions(first), positions(second)));
+      const firstAmbiguous = coverage.findings.ambiguous.reduce((n, group) => n + group.firstSourceRecords.length, 0);
+      const secondAmbiguous = coverage.findings.ambiguous.reduce((n, group) => n + group.secondSourceRecords.length, 0);
+      comparison = candidate;
+      render(candidate, {counts:coverage.counts, firstAmbiguous, secondAmbiguous});
     } catch (error) {
       invalidate();
       message('Unable to compare: ' + error.message, true);
@@ -223,8 +238,6 @@
     try {
       if (!root.DataRescueComparisonIndex || typeof root.DataRescueComparisonIndex.create !== 'function')
         throw Error('The local reconciliation index builder is unavailable. Reload this page.');
-      const positions = table => table.sourceRecords || table.sourceRowNumbers ||
-        table.rows.map((_, index) => index + 2);
       const contents = root.DataRescueComparisonIndex.create(comparison, positions(first), positions(second));
       download(contents, 'data-rescue-reconciliation-issue-index.json', 'application/json;charset=utf-8');
       message('Exported reconciliation issue index with source positions and categories only. No identifier keys, filenames or cell values. Linkage patterns may still be sensitive; keep it private.');
