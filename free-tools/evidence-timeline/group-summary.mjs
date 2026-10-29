@@ -3,11 +3,17 @@
  */
 export const MAX_PREVIEW_GROUPS = 8;
 export const MAX_PREVIEW_SOURCE_IDS = 3;
+export const MAX_PREVIEW_FIELD_CODEPOINTS = 48;
 const obscuring = /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u180e\u200b-\u200f\u2028-\u202e\u2060-\u2069\ufeff]/gu;
 function visibleQuoted(value) {
-  // Show controls as escapes only in the preview; do not alter source data.
-  return '"'+value.replaceAll('\\','\\\\').replaceAll('"','\\"')
-    .replace(obscuring, c => '\\u'+c.codePointAt(0).toString(16).padStart(4,'0'))+'"';
+  // Limit only the preview, counting Unicode code points so astral symbols
+  // are not split. Exact user-provided strings remain in the saved evidence.
+  const points=Array.from(value);
+  const prefix=points.slice(0,MAX_PREVIEW_FIELD_CODEPOINTS).join('');
+  const safe=prefix.replaceAll('\\','\\\\').replaceAll('"','\\"')
+    .replace(obscuring, c => '\\u'+c.codePointAt(0).toString(16).padStart(4,'0'));
+  const hidden=points.length-MAX_PREVIEW_FIELD_CODEPOINTS;
+  return '"'+safe+'"'+(hidden>0?' ('+hidden+' additional characters not shown)':'');
 }
 export function formatGroupSummary(groups) {
   if (!Array.isArray(groups) || groups.length > 5000) throw Error('Invalid group summary');
