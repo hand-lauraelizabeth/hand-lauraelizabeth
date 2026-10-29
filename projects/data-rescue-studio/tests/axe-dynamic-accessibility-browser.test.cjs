@@ -61,14 +61,14 @@ async function runEngine(type, name, url) {
     // Extend the same synthetic audit to the second-file/reconciliation workflow.
     // This catches accessible-state regressions that first-file-only scans miss.
     await page.setViewportSize({width:1280,height:800});
-    await page.locator('#compareFile').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('ID\\n1\\n')});
+    await page.locator('#compareFile').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('ID\n1\n')});
     await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Choose a second .csv or .tsv file'));
     assert.equal(await page.locator('#compareStatus').getAttribute('role'),'alert'); checks++;
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareStatus'); checks++;
     await scan(page,name,'second-file upload error');
     await page.locator('#compareFile').setInputFiles({
       name:'second-synthetic.csv',mimeType:'text/csv',
-      buffer:Buffer.from('ID,Note\\n002,match\\n004,new\\n,missing\\n','utf8')
+      buffer:Buffer.from('ID,Note\n002,match\n004,new\n,missing\n','utf8')
     });
     await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Loaded second file'));
     assert.equal(await page.locator('#rightKey').isEnabled(),true); checks++;
