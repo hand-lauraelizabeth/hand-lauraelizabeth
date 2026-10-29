@@ -26,6 +26,7 @@ class FakePublisher:
         self.count_calls = 0
         self.group_calls = 0
         self.three_calls = 0
+        self.closure_calls = 0
         self.urls = []
 
     def __call__(self, url):
@@ -100,6 +101,18 @@ class FakePublisher:
             if self.drift == "aggregate_missing":
                 return []
             return data
+        if "$select" in params and "count(closed_date)" in params["$select"][0]:
+            self.closure_calls += 1
+            populated = sum(bool(r.get("closed_date")) for r in self.rows)
+            if self.drift == "closure_drift" and self.closure_calls > 1:
+                populated += 1
+            if self.drift == "closure_local_mismatch":
+                populated += 1
+            if self.drift == "closure_malformed":
+                return [{"records": str(len(self.rows)), "populated": True}]
+            if self.drift == "closure_total":
+                return [{"records": str(len(self.rows) + 1), "populated": str(populated)}]
+            return [{"records": str(len(self.rows)), "populated": str(populated)}]
         if "$select" in params and "count(*)" in params["$select"][0]:
             self.count_calls += 1
             n = len(self.rows) + (1 if self.drift == "count" and self.count_calls > 1 else 0)
@@ -443,6 +456,31 @@ class TestSourceExport(unittest.TestCase):
             with csvfile.open(newline="", encoding="utf-8") as stream:
                 self.assertEqual(list(csv.DictReader(stream))[0]["closed_date"],
                                  "2026-09-15T10:01:02.123")
+
+    def test_closure_completeness_reconciles_local_and_publisher(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [record("001"), record("002"), record("003")]
+            rows[0]["closed_date"] = "2026-09-16T10:05:00"
+            publisher = FakePublisher(rows=rows)
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            receipt = download("2026-09", csvfile, receiptfile, fetch=publisher,
+                               verified_at="2026-10-29T12:00:00+00:00")
+            self.assertEqual(receipt["populated_closure_dates"], 1)
+            self.assertEqual(receipt["missing_closure_dates"], 2)
+            self.assertTrue(receipt["closure_completeness_verified"])
+            self.assertEqual(publisher.closure_calls, 2)
+            self.assertIn("count%28closed_date%29", receipt["closure_completeness_query_url"])
+
+    def test_closure_only_drift_and_mismatch_fail_closed(self):
+        for drift in ("closure_drift", "closure_local_mismatch",
+                      "closure_malformed", "closure_total"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "closure completeness"):
+                    download("2026-09", csvfile, receiptfile, fetch=FakePublisher(drift=drift),
+                             verified_at="2026-10-29T12:00:00+00:00")
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
 
 
 if __name__ == "__main__":
