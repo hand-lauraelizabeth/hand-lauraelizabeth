@@ -139,6 +139,7 @@ async function testBrowser(name,type){
     check(coverage.includes('baseline 1 of 2 ["future-bill"]'),name+': outside-window bill named in baseline coverage');
     check(coverage.includes('shifted scenario 1 of 2 ["future-bill"]'),name+': outside-window bill named in scenario coverage');
     check((await page.locator('#events').textContent()).includes('future-bill'),name+': outside-window bill remains in editable event list');
+    check(await page.locator('#shift-id').inputValue()==='rent',name+': adding a second event preserves the selected timing shift');
 
     const [coverageDownload]=await Promise.all([
       page.waitForEvent('download'),
@@ -273,6 +274,8 @@ async function testBrowser(name,type){
     check(removalDialogs.length===2,name+': confirmed removal requires a second prompt');
     check((await page.locator('#events').textContent()).includes('No events added.'),
       name+': confirmed removal clears selected event');
+    check(await page.locator('#shift-id').inputValue()===''&&await page.locator('#shift-days').inputValue()==='0',
+      name+': removing the selected event clears its orphaned timing shift');
     check(await page.locator('#export-json').isDisabled()&&await page.locator('#export').isDisabled(),
       name+': confirmed removal invalidates stale exports');
     check((await page.locator('#results tr').count())===0,
