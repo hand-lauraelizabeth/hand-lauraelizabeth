@@ -43,6 +43,64 @@ async function scan(page, name, state) {
   assert.deepEqual(failures, [], name+' '+state+' automated WCAG-tagged findings');
   checks++;
 }
+
+// Supplement axe's inconclusive short/empty-cell contrast results with an
+// independent computed-style check. This does not replace visual/AT review.
+// W3C WCAG 2.2 SC 1.4.3: normal text requires at least 4.5:1.
+async function auditReconciliationCells(page, name, state) {
+  const result = await page.evaluate(() => {
+    const parse = value => {
+      const match = /^rgba?\\(\\s*(\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\s*\\)$/.exec(value);
+      return match ? [Number(match[1]), Number(match[2]), Number(match[3]), match[4] === undefined ? 1 : Number(match[4])] : null;
+    };
+    const luminance = color => {
+      const c = color.slice(0, 3).map(v => {
+        const s = v / 255;
+        return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    };
+    const ratio = (a, b) => {
+      const x = luminance(a), y = luminance(b);
+      return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    };
+    const errors = [], cells = [...document.querySelectorAll('#compareResults table th, #compareResults table td')];
+    let populated = 0, empty = 0, minimum = Infinity;
+    for (const [index, cell] of cells.entries()) {
+      // Current renderer uses text nodes only. Fail closed if future markup
+      // introduces nested styles or visual effects this check cannot measure.
+      if (cell.children.length) { errors.push('cell ' + index + ': nested content'); continue; }
+      const value = cell.textContent.trim();
+      if (!value) { empty++; continue; }
+      populated++;
+      const style = getComputedStyle(cell), foreground = parse(style.color);
+      if (!foreground || foreground[3] !== 1 || style.opacity !== '1' ||
+          style.textShadow !== 'none') { errors.push('cell ' + index + ': unsupported text style'); continue; }
+      let background = null;
+      for (let node = cell; node && node.nodeType === 1; node = node.parentElement) {
+        const computed = getComputedStyle(node), candidate = parse(computed.backgroundColor);
+        if (computed.backgroundImage !== 'none' || computed.opacity !== '1' ||
+            !candidate || (candidate[3] !== 0 && candidate[3] !== 1)) {
+          errors.push('cell ' + index + ': unsupported background'); break;
+        }
+        if (candidate[3] === 1) { background = candidate; break; }
+      }
+      if (!background) { errors.push('cell ' + index + ': no opaque background'); continue; }
+      const measured = ratio(foreground, background);
+      minimum = Math.min(minimum, measured);
+      if (measured < 4.5) errors.push('cell ' + index + ': contrast below 4.5:1');
+    }
+    return {cells: cells.length, populated, empty, minimum, errors};
+  });
+  assert.ok(result.cells >= 8, name + ' ' + state + ': table has data cells'); checks++;
+  assert.ok(result.populated >= 8, name + ' ' + state + ': nonempty text checked'); checks++;
+  assert.ok(result.empty >= 1, name + ' ' + state + ': intentionally blank cells accounted for'); checks++;
+  assert.deepEqual(result.errors, [], name + ' ' + state + ': computed text/background contrast'); checks++;
+  console.log(name + ' ' + state + ': ' + result.populated + ' populated cells checked; ' +
+    result.empty + ' blank cells (not text); minimum computed contrast ' +
+    result.minimum.toFixed(2) + ':1; manual rendered-state review still required.');
+}
+
 async function runEngine(type, name, url) {
   const browser = await type.launch({headless:true});
   try {
@@ -90,10 +148,12 @@ async function runEngine(type, name, url) {
     assert.match(await page.locator('#compareStatus').innerText(),/1 exact one-to-one matches/); checks++;
     assert.match(await page.locator('#compareResults').innerText(),/002/); checks++;
     await scan(page,name,'reconciliation results');
+    await auditReconciliationCells(page,name,'reconciliation results');
     await page.locator('#compareResults').focus();
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareResults'); checks++;
     await page.setViewportSize({width:320,height:800});
     await scan(page,name,'reconciliation results at 320px');
+    await auditReconciliationCells(page,name,'reconciliation results at 320px');
     await page.locator('#compareClear').click();
     assert.equal(await page.locator('#compareJson').isEnabled(),false); checks++;
     assert.equal(await page.locator('#rightKey').isEnabled(),false); checks++;
