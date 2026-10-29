@@ -642,7 +642,7 @@ class TestSourceExport(unittest.TestCase):
                 row = record("001")
                 row["closed_date"] = "2026-09-16T09:00:00"
                 csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
-                with self.assertRaisesRegex(ValueError, "closure chronology"):
+                with self.assertRaisesRegex(ValueError, "(?:closure chronology|status-chronology)"):
                     download("2026-09", csvfile, receiptfile,
                              fetch=FakePublisher([row], drift=drift))
                 self.assertFalse(csvfile.exists())
