@@ -24,6 +24,7 @@ const bad=[
  {...seed,events:[{...seed.events[0],date:'2026-02-30'}]},
  {...seed,events:Array(201).fill(0).map((_,i)=>({...seed.events[0],id:String(i)}))},
  {...seed,shiftId:'missing'}, {...seed,shiftDays:61},
+ {...seed,shiftId:null,shiftDays:5}, {...seed,shiftId:null,shiftDays:-5},
  {...seed,openingCents:Infinity}, {...seed,openingCents:1.5},
  {...seed,start:'2026-12-01'}, {...seed,end:'2028-01-01'},
  {...seed,events:[{...seed.events[0],id:' '}]},
