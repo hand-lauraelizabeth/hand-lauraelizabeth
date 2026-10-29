@@ -194,6 +194,19 @@ async function run(label,browserType,url){
   ok(!JSON.stringify(issueIndex).includes('alpha'),label+' issue index excludes source cell values');
   ok(!JSON.stringify(issueIndex).includes('value-'),label+' issue index excludes other cell values');
   ok(!Object.hasOwn(issueIndex,'records'),label+' issue index does not include full record array');
+  ok(!await jumpPage.locator('#issueIncludeSource').isChecked(),label+' sensitive metadata unchecked by default');
+  ok(!Object.hasOwn(issueIndex.source,'fileName'),label+' default index omits filename');
+  ok(!Object.hasOwn(issueIndex.source,'sha256'),label+' default index omits SHA-256');
+  ok(!Object.hasOwn(issueIndex.source,'byteCount'),label+' default index omits original byte count');
+  await jumpPage.locator('#issueIncludeSource').focus();
+  await jumpPage.keyboard.press('Space');
+  ok(await jumpPage.locator('#issueIncludeSource').isChecked(),label+' keyboard opts into source metadata');
+  const [identifiedDownload]=await Promise.all([jumpPage.waitForEvent('download'),jumpPage.locator('#saveIssues').click()]);
+  const identifiedIndex=JSON.parse(readFileSync(await identifiedDownload.path(),'utf8'));
+  eq(identifiedIndex.source.fileName,'synthetic-direct-jump.csv',label+' opt-in index identifies source filename');
+  ok(/^[0-9a-f]{64}$/.test(identifiedIndex.source.sha256),label+' opt-in index includes original-byte digest');
+  eq(identifiedIndex.issues,issueIndex.issues,label+' opt-in leaves exact issue positions unchanged');
+  ok((await jumpPage.locator('#status').innerText()).includes('fingerprint included'),label+' opt-in status is explicit');
   
   const [jumpJson]=await Promise.all([jumpPage.waitForEvent('download'),jumpPage.locator('#saveJson').click()]);
   const jumpEvidence=JSON.parse(readFileSync(await jumpJson.path(),'utf8'));
@@ -264,6 +277,8 @@ async function run(label,browserType,url){
   ok(await jumpPage.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),
     label+' direct-jump controls fit 320px viewport');
   await jumpPage.locator('#reset').click();
+  ok(!await jumpPage.locator('#issueIncludeSource').isChecked(),label+' clear resets sensitive-metadata consent');
+  ok(await jumpPage.locator('#issueIncludeSource').isDisabled(),label+' clear disables metadata option');
   eq(await jumpPage.locator('#table .jump-target').count(),0,label+' clear removes target');
   ok(await jumpPage.locator('#previewJump').isDisabled(),label+' clearing file disables jump input');
   ok(await jumpPage.locator('#previewGo').isDisabled(),label+' clearing file disables jump button');
