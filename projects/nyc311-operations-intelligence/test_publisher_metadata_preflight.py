@@ -20,7 +20,8 @@ def fixture():
         for i, (name, kind) in enumerate(names.items())
     ]
     return {"id": "erm2-nwe9", "provenance": "official",
-            "publicationStage": "published", "rowsUpdatedAt": 1793237699,
+            "assetType": "dataset", "publicationStage": "published",
+            "rowsUpdatedAt": 1793237699,
             "rowIdentifierColumnId": 1, "columns": columns}
 
 
@@ -93,6 +94,34 @@ class PublisherMetadataPreflightTests(unittest.TestCase):
                                  "dataTypeName": "number"})
         self.assertEqual(len(x["columns"]), 48)
         self.assertEqual(gate.inspect_pair(x, copy.deepcopy(x)), [])
+
+    def test_nonkey_column_id_change_is_schema_drift(self):
+        x, y = fixture(), fixture()
+        # Unique Key's identifier is stable, so the old name/type-only
+        # fingerprint silently accepted this replacement.
+        y["columns"][3]["id"] = 99
+        self.assertIn("publisher_schema_changed", gate.inspect_pair(x, y))
+
+    def test_nonkey_column_id_swap_is_schema_drift(self):
+        x, y = fixture(), fixture()
+        y["columns"][3]["id"], y["columns"][4]["id"] = (
+            y["columns"][4]["id"], y["columns"][3]["id"])
+        self.assertIn("publisher_schema_changed", gate.inspect_pair(x, y))
+
+    def test_asset_type_change_fails(self):
+        x, y = fixture(), fixture()
+        y["assetType"] = "filter"
+        self.assertIn("invalid_publisher_asset_type", gate.inspect_pair(x, y))
+
+    def test_nonpositive_column_id_fails(self):
+        x, y = fixture(), fixture()
+        y["columns"][3]["id"] = 0
+        self.assertIn("invalid_column_id", gate.inspect_pair(x, y))
+
+    def test_unhashable_row_identifier_fails_closed(self):
+        x, y = fixture(), fixture()
+        y["rowIdentifierColumnId"] = {"unexpected": "value"}
+        self.assertIn("unverified_unique_key_identifier", gate.inspect_pair(x, y))
 
     def test_cli_stable_is_not_release_authorization(self):
         with tempfile.TemporaryDirectory() as d:
