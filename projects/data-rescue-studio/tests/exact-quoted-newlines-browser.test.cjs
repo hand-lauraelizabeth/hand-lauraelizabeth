@@ -139,6 +139,81 @@ async function run(label,browserType,url){
   ok(await issuePage.locator('#previewNext').isDisabled(),label+' clear disables next');
   await issuePage.close();
 
+  // Direct source-record navigation: test the actual browser interaction, not
+  // only the pure lookup helper. A separate page isolates download-heavy flows.
+  const jumpPage=await browser.newPage({viewport:{width:1280,height:800}});
+  const jumpErrors=[],jumpExternal=[];
+  jumpPage.on('pageerror',error=>jumpErrors.push(error.message));
+  jumpPage.on('request',request=>{
+    if(!request.url().startsWith(url)&&!request.url().startsWith('blob:'+url))
+      jumpExternal.push(request.url());
+  });
+  eq((await jumpPage.goto(url,{waitUntil:'networkidle'})).status(),200,
+    label+' direct-jump page served');
+  const jumpRows=Array.from({length:50},(_,i)=>
+    i===0?'01,alpha':i===1?'02,':i===49?'01,alpha':
+      String(i+1).padStart(2,'0')+',value-'+i).join('\n');
+  await jumpPage.locator('#file').setInputFiles({name:'synthetic-direct-jump.csv',
+    mimeType:'text/csv',buffer:Buffer.from('ID,Note\n'+jumpRows+'\n','utf8')});
+  await jumpPage.waitForFunction(()=>document.querySelector('#previewStatus')?.textContent?.includes('50 source records'));
+  ok(await jumpPage.locator('#previewJump').isEnabled(),label+' jump input enabled on load');
+  await jumpPage.locator('#previewJump').fill('51');
+  await jumpPage.locator('#previewJump').focus();
+  await jumpPage.keyboard.press('Enter');
+  ok((await jumpPage.locator('#previewStatus').innerText()).includes('41–50 of 50'),
+    label+' keyboard Enter jumps to last page');
+  eq(await jumpPage.locator('#table tbody tr th').first().innerText(),'42',
+    label+' direct jump shows original first source position');
+  eq(await jumpPage.locator('#table tbody tr th').last().innerText(),'51',
+    label+' direct jump shows target original source position');
+  eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),null,
+    label+' valid keyboard jump has no invalid state');
+  ok((await jumpPage.locator('#jumpStatus').innerText()).includes('Source record 51'),
+    label+' jump result is announced in text');
+  await jumpPage.locator('#previewFilter').selectOption('duplicates');
+  ok((await jumpPage.locator('#previewStatus').innerText()).includes('1 repeated exact records'),
+    label+' duplicate filter recalculates count');
+  await jumpPage.locator('#previewJump').fill('51');
+  await jumpPage.locator('#previewGo').focus();
+  await jumpPage.keyboard.press('Enter');
+  eq(await jumpPage.locator('#table tbody tr th').first().innerText(),'51',
+    label+' keyboard button jump respects duplicate filter');
+  eq(await jumpPage.locator('#table tbody tr td').first().innerText(),'2',
+    label+' duplicate target cites original first occurrence');
+  await jumpPage.locator('#previewFilter').selectOption('missing');
+  await jumpPage.locator('#previewJump').fill('51');
+  await jumpPage.locator('#previewGo').click();
+  eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),'true',
+    label+' filtered-out target identifies input error');
+  eq(await jumpPage.locator('#jumpStatus').getAttribute('role'),'alert',
+    label+' filtered-out target is announced as alert');
+  ok((await jumpPage.locator('#jumpStatus').innerText()).includes('not included in this filter'),
+    label+' filtered-out target has actionable text');
+  ok(await jumpPage.locator('#previewJump').evaluate(el=>document.activeElement===el),
+    label+' filtered-out target restores focus');
+  await jumpPage.locator('#previewJump').fill('3');
+  await jumpPage.locator('#previewJump').press('Enter');
+  eq(await jumpPage.locator('#table tbody tr th').first().innerText(),'3',
+    label+' missing-cell source record can be reached by Enter');
+  eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),null,
+    label+' valid recovery clears invalid state');
+  await jumpPage.locator('#previewJump').fill('1');
+  await jumpPage.locator('#previewGo').click();
+  ok((await jumpPage.locator('#jumpStatus').innerText()).includes('whole-number source record'),
+    label+' header record cannot be selected as a data row');
+  await jumpPage.locator('#previewFilter').selectOption('all');
+  eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),null,
+    label+' changing filter clears jump error');
+  await jumpPage.setViewportSize({width:320,height:800});
+  ok(await jumpPage.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),
+    label+' direct-jump controls fit 320px viewport');
+  await jumpPage.locator('#reset').click();
+  ok(await jumpPage.locator('#previewJump').isDisabled(),label+' clearing file disables jump input');
+  ok(await jumpPage.locator('#previewGo').isDisabled(),label+' clearing file disables jump button');
+  eq(jumpErrors,[],label+' no direct-jump page errors');
+  eq(jumpExternal,[],label+' no external requests during direct jump');
+  await jumpPage.close();
+
   // Synthetic adversarial multiline cell: spreadsheet-view export must fail closed.
   await page.locator('#file').setInputFiles({name:'synthetic-guard.csv',mimeType:'text/csv',
     buffer:Buffer.from('ID,Note\r\n01,"safe\n=1+1"\r\n','utf8')});
