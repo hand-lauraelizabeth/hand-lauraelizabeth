@@ -50,7 +50,7 @@ async function scan(page, name, state) {
 async function auditReconciliationCells(page, name, state) {
   const result = await page.evaluate(() => {
     const parse = value => {
-      const match = /^rgba?\\(\\s*(\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\s*\\)$/.exec(value);
+      const match = /^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\s*\)$/.exec(value);
       return match ? [Number(match[1]), Number(match[2]), Number(match[3]), match[4] === undefined ? 1 : Number(match[4])] : null;
     };
     const luminance = color => {
