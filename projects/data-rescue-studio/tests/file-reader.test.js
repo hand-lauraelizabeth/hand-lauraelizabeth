@@ -17,7 +17,7 @@ const file=(name,bytes,reportedSize)=>({
  eq((await reader.read(file('example.tsv',Buffer.from('id\tvalue\n1\tdata')),core.parseDelimited)).rows[0][1],'data','TSV parsed correctly');
  // File extension is authoritative: tab-containing CSV must not silently
  // become TSV and change the source column/identifier structure.
- const tabOnlyCsv=await reader.read(file('tabs.csv',Buffer.from('ID\\tNote\\n1\\tAda'.replaceAll('\\t','\t').replaceAll('\\n','\n'))),core.parseDelimited);
+ const tabOnlyCsv=await reader.read(file('tabs.csv',Buffer.from('ID\tNote\n1\tAda')),core.parseDelimited);
  eq(tabOnlyCsv.headers,['ID\tNote'],'CSV header tab remains literal text, not an extra column');
  eq(tabOnlyCsv.rows,[['1\tAda']],'CSV record tab remains exact text');
  eq((await reader.read(file('quoted.csv',Buffer.from('ID,Note\n1,"a\tb"')),core.parseDelimited)).rows[0],['1','a\tb'],'quoted CSV tab preserved within second cell');
