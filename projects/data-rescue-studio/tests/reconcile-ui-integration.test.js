@@ -141,6 +141,8 @@ async function run() {
   check(nodes.compareResults.children[0].children[2].children.length===6 && nodes.compareIdentifier.focused, 'clear restores full preview and keyboard focus');
   nodes.compareIdentifier.value=''; nodes.compareIdentifierFind.handlers.click();
   check(nodes.compareIdentifier.focused && nodes.comparePageStatus.textContent.includes('nonempty identifier'), 'empty search gives text guidance and focus');
+  nodes.compareIdentifierClear.handlers.click();
+  check(nodes.comparePageStatus.textContent.includes('of 6'), 'clearing invalid search restores normal page count');
   check(nodes.comparePageStatus.textContent.includes('of 6'), 'page status reports complete findings count');
   check(!nodes.compareExport.disabled,'CSV audit enabled only after comparing');
   check(!nodes.compareJson.disabled,'JSON audit enabled only after comparing');
