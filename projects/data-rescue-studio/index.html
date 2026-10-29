@@ -85,13 +85,16 @@
 <option value="unmatched">Unmatched records (either file)</option>
 <option value="missing">Missing identifier (either file)</option>
 </select>
+<label for="compareIdentifier"><strong>Find an exact identifier</strong></label>
+<p id="compareIdentifierHelp" class="muted">Enter the complete identifier, including leading zeros, spaces and capitalization. Case-sensitive; blank identifiers are available under Missing identifier. Search affects only the preview, not downloads.</p>
+<div class="actions"><input id="compareIdentifier" type="text" aria-describedby="compareIdentifierHelp" autocomplete="off" disabled><button type="button" class="secondary" id="compareIdentifierFind" disabled>Find identifier</button><button type="button" class="secondary" id="compareIdentifierClear" disabled>Clear identifier search</button></div>
 <div class="actions" role="group" aria-label="Reconciliation findings pages">
 <button type="button" class="secondary" id="comparePrev" disabled>Previous 30 findings</button>
 <button type="button" class="secondary" id="compareNext" disabled>Next 30 findings</button>
 </div>
 <p id="comparePageStatus" role="status" aria-live="polite" aria-atomic="true">Compare files to inspect findings.</p>
 <div id="compareResults" class="overflow" role="region" aria-label="Reconciliation record preview" tabindex="0"></div>
-<p class="muted">Filter by classification and inspect 30 findings per page with Previous/Next navigation; downloads include all findings, exact identifier keys, and original logical source-record positions, but not complete input records. Spreadsheet CSV may be blocked when untrusted keys contain ambiguous formula-like text; exact JSON remains available. The separate reconciliation issue index excludes filenames, column labels, identifier keys and cell values, but retains source positions and linkage patterns that may still be sensitive. Keep all audit files private if identifiers are sensitive. Spreadsheet formula precautions are imperfect.</p>
+<p class="muted">Filter by classification or exact identifier and inspect 30 findings per page with Previous/Next navigation; downloads include all findings, exact identifier keys, and original logical source-record positions, but not complete input records. Spreadsheet CSV may be blocked when untrusted keys contain ambiguous formula-like text; exact JSON remains available. The separate reconciliation issue index excludes filenames, column labels, identifier keys and cell values, but retains source positions and linkage patterns that may still be sensitive. Keep all audit files private if identifiers are sensitive. Spreadsheet formula precautions are imperfect.</p>
 </section>
 <section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
 <label><input id="dedupe" type="checkbox" disabled> Remove exact duplicate rows in the exported copy</label>

@@ -41,12 +41,12 @@ class FakeElement {
   remove() {}
 }
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
-  'compareRun','compareExport','compareJson','compareIndex','compareClear','comparePrev','compareNext','comparePageStatus','compareFindingFilter','leftKey','rightKey'];
+  'compareRun','compareExport','compareJson','compareIndex','compareClear','comparePrev','compareNext','comparePageStatus','compareFindingFilter','compareIdentifier','compareIdentifierFind','compareIdentifierClear','leftKey','rightKey'];
 const nodes = {};
 for (const id of ids) {
   nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' || id === 'compareFindingFilter' ? 'select' : 'div');
   // The fixture must respect initial HTML disabled attributes, not merely JS defaults.
-  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareJson','compareIndex','comparePrev','compareNext','compareFindingFilter'].includes(id);
+  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareJson','compareIndex','comparePrev','compareNext','compareFindingFilter','compareIdentifier','compareIdentifierFind','compareIdentifierClear'].includes(id);
 }
 const document = {
   body: new FakeElement('body'),
@@ -130,6 +130,19 @@ async function run() {
   nodes.compareFindingFilter.value='all'; nodes.compareFindingFilter.handlers.change();
   check(nodes.compareResults.children[0].children[2].children.length===6,'all filter restores complete findings preview');
   check(nodes.comparePrev.disabled && nodes.compareNext.disabled, 'single-page findings disable both navigation controls');
+  check(!nodes.compareIdentifier.disabled && !nodes.compareIdentifierFind.disabled, 'exact identifier lookup enabled after comparison');
+  nodes.compareIdentifier.value='2'; nodes.compareIdentifierFind.handlers.click();
+  check(nodes.compareResults.children[0].children[2].children.length===1, 'exact identifier search finds ambiguous group without normalizing key');
+  check(nodes.comparePageStatus.textContent.includes('for the exact identifier'), 'lookup status reports scoped results without repeating sensitive identifier');
+  nodes.compareIdentifier.value='02'; nodes.compareIdentifier.handlers.keydown({key:'Enter',preventDefault(){}});
+  check(nodes.compareResults.children[0].children[2].children.length===0, 'leading-zero differences are not normalized');
+  check(nodes.comparePageStatus.textContent.includes('No reconciliation findings'), 'empty lookup is explicitly explained');
+  nodes.compareIdentifierClear.handlers.click();
+  check(nodes.compareResults.children[0].children[2].children.length===6 && nodes.compareIdentifier.focused, 'clear restores full preview and keyboard focus');
+  nodes.compareIdentifier.value=''; nodes.compareIdentifierFind.handlers.click();
+  check(nodes.compareIdentifier.focused && nodes.comparePageStatus.textContent.includes('nonempty identifier'), 'empty search gives text guidance and focus');
+  nodes.compareIdentifierClear.handlers.click();
+  check(nodes.comparePageStatus.textContent.includes('of 6'), 'clearing invalid search restores normal page count');
   check(nodes.comparePageStatus.textContent.includes('of 6'), 'page status reports complete findings count');
   check(!nodes.compareExport.disabled,'CSV audit enabled only after comparing');
   check(!nodes.compareJson.disabled,'JSON audit enabled only after comparing');
@@ -150,6 +163,7 @@ async function run() {
   check(nodes.rightKey.disabled,'replacing primary clears loaded second-file key');
   check(nodes.compareFile.value==='','replacing primary clears second-file input');
   check(nodes.compareRun.disabled,'replacing primary disables stale comparison');
+  check(nodes.compareIdentifier.disabled && nodes.compareIdentifier.value==='', 'primary replacement revokes exact identifier search');
   check(nodes.compareExport.disabled && nodes.compareJson.disabled && nodes.compareIndex.disabled,'replacing primary revokes all old audits');
   nodes.compareClear.handlers.click();
   check(nodes.rightKey.disabled,'clear revokes second-file readiness');

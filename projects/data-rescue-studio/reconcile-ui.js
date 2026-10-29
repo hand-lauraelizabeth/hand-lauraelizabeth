@@ -5,7 +5,7 @@
   const lib = root.DataRescue;
   const engine = root.DataRescueProvenance || root.DataReconcile;
   let first = null, second = null, firstName = '', secondName = '';
-  let comparison = null, generation = 0, findingPage = 0;
+  let comparison = null, generation = 0, findingPage = 0, exactIdentifier = null;
   let findings = [];
   const FINDINGS_PAGE_SIZE = 30;
   const FINDING_FILTERS = Object.freeze({
@@ -48,6 +48,11 @@
     comparison = null;
     findings = [];
     findingPage = 0;
+    exactIdentifier = null;
+    $('compareIdentifier').value = '';
+    $('compareIdentifier').disabled = true;
+    $('compareIdentifierFind').disabled = true;
+    $('compareIdentifierClear').disabled = true;
     $('compareFindingFilter').value = 'all';
     $('compareFindingFilter').disabled = true;
     $('comparePrev').disabled = true;
@@ -146,10 +151,15 @@
     if (omitted) visible.splice(96, 0, ' … [' + omitted + ' code points omitted] … ');
     return visible.join('');
   }
+  function visibleFindings() {
+    const filter = $('compareFindingFilter').value;
+    return findings.filter(row => (FINDING_FILTERS[filter] || FINDING_FILTERS.all)(row) &&
+      (exactIdentifier === null || row[1] === exactIdentifier));
+  }
   function renderFindingsPage() {
     if (!comparison) return;
     const filter = $('compareFindingFilter').value;
-    const visible = findings.filter(FINDING_FILTERS[filter] || FINDING_FILTERS.all);
+    const visible = visibleFindings();
     const total = visible.length;
     const allTotal = findings.length;
     const filterLabel = $('compareFindingFilter').selectedOptions?.[0]?.textContent || 'Selected';
@@ -184,10 +194,13 @@
     $('compareNext').disabled = findingPage >= maxPage;
     $('comparePageStatus').textContent = total
       ? 'Showing findings ' + (start + 1) + ' through ' + end + ' of ' + total +
-        (filter === 'all' ? '' : ' in ' + filterLabel + ' (' + allTotal + ' findings overall)') +
+        (filter === 'all' ? '' : ' in ' + filterLabel) +
+        (exactIdentifier === null ? '' : ' for the exact identifier') +
+        (filter === 'all' && exactIdentifier === null ? '' : ' (' + allTotal + ' findings overall)') +
         '. Downloads include every finding regardless of this preview filter or page.'
       : 'No ' + (filter === 'all' ? 'reconciliation' : filterLabel) +
-        ' findings (' + allTotal + ' findings overall). Downloads retain the complete result.';
+        ' findings' + (exactIdentifier === null ? '' : ' for the exact identifier') +
+        ' (' + allTotal + ' findings overall). Downloads retain the complete result.';
   }
   function render(result, coverage) {
     const categories = [
@@ -213,6 +226,11 @@
     findingPage = 0;
     $('compareFindingFilter').value = 'all';
     $('compareFindingFilter').disabled = false;
+    exactIdentifier = null;
+    $('compareIdentifier').value = '';
+    $('compareIdentifier').disabled = false;
+    $('compareIdentifierFind').disabled = false;
+    $('compareIdentifierClear').disabled = false;
     renderFindingsPage();
     $('compareExport').disabled = false;
     $('compareJson').disabled = false;
@@ -312,11 +330,35 @@
     findingPage = 0;
     renderFindingsPage();
   });
+  function findIdentifier() {
+    if (!comparison) return;
+    const value = $('compareIdentifier').value;
+    if (!value) {
+      $('comparePageStatus').textContent = 'Enter a nonempty identifier to search, or clear the identifier filter.';
+      $('compareIdentifier').focus();
+      return;
+    }
+    exactIdentifier = value;
+    findingPage = 0;
+    renderFindingsPage();
+  }
+  $('compareIdentifierFind').addEventListener('click', findIdentifier);
+  $('compareIdentifier').addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); findIdentifier(); }
+  });
+  $('compareIdentifierClear').addEventListener('click', () => {
+    if (!comparison) return;
+    exactIdentifier = null;
+    findingPage = 0;
+    $('compareIdentifier').value = '';
+    renderFindingsPage();
+    $('compareIdentifier').focus();
+  });
   $('comparePrev').addEventListener('click', () => {
     if (comparison && findingPage > 0) { findingPage--; renderFindingsPage(); }
   });
   $('compareNext').addEventListener('click', () => {
-    if (comparison && (findingPage + 1) * FINDINGS_PAGE_SIZE < findings.length) {
+    if (comparison && (findingPage + 1) * FINDINGS_PAGE_SIZE < visibleFindings().length) {
       findingPage++; renderFindingsPage();
     }
   });

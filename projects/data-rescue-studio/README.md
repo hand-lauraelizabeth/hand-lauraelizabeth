@@ -57,3 +57,7 @@ An additional independent CSV/TSV interoperability check can be run with `node p
 This tool makes no claim to replace a full statistical, ETL, or reconciliation environment.
 
 **Issue-index privacy option:** The source metadata opt-in is off by default. The full exact evidence JSON still includes the original filename and available SHA-256. The index preserves logical source-record positions whether or not identifying metadata is included. See [W3C's form-label guidance](https://www.w3.org/WAI/tutorials/forms/labels/) and [OWASP's data-minimization principle](https://mas.owasp.org/MASVS/controls/MASVS-PRIVACY-1/).
+
+## Exact identifier lookup (review branch)
+
+After comparing two local files, enter the complete identifier to inspect matching findings without paging through the entire audit. Search is literal and case-sensitive, preserving leading zeros, spaces and Unicode; it intersects classification filters. Clear search restores the complete preview and keyboard focus. Missing identifier records remain available under the missing-key classification. CSV, exact JSON and privacy-minimized issue-index exports always include the full comparison, regardless of preview filters. Identifiers remain in the browser tab; downloaded audits may contain sensitive linkage information.
