@@ -31,6 +31,15 @@ async function scan(page, name, state) {
     id:v.id, impact:v.impact, nodes:v.nodes.map(n=>n.target.join(' ')), description:v.help
   }));
   console.log(name+' '+state+': '+result.passes.length+' rules passed; '+result.incomplete.length+' require manual inspection; '+failures.length+' violations.');
+  // Incomplete axe findings are not passes: retain the synthetic-only node
+  // and rule details in CI so a human can inspect them before release.
+  if (result.incomplete.length) {
+    const manual = result.incomplete.map(rule=>({
+      id:rule.id,
+      nodes:rule.nodes.map(node=>({target:node.target,summary:(node.failureSummary||'').slice(0,240)}))
+    }));
+    console.log(name+' '+state+' manual accessibility review needed: '+JSON.stringify(manual));
+  }
   assert.deepEqual(failures, [], name+' '+state+' automated WCAG-tagged findings');
   checks++;
 }
