@@ -39,4 +39,22 @@ for(const row of rows){const ids=byGroup.get(row.group)||[];ids.push(row.sourceI
 const result=formatGroupSummary([...byGroup].map(([group,sourceIds])=>({group,sourceIds})));
 check(result.length<2500,'10k record summary bounded');
 check(result.includes('5000 related-record groups'),'10k group accounting');
+
+const longGroup='🧪'+'L'.repeat(118); // 120 UTF-16 units, within import limit
+const longId='0'.repeat(120);
+const oversizedPreview=formatGroupSummary([{group:longGroup,sourceIds:[longId,'keep-002']}]);
+check(oversizedPreview.includes('"🧪'+'L'.repeat(47)+'"'),'astral code point preserved at preview boundary');
+check(oversizedPreview.includes('71 additional characters not shown'),'group omitted code point count');
+check(oversizedPreview.includes('72 additional characters not shown'),'ID omitted code point count');
+check(!oversizedPreview.includes(longGroup)&&!oversizedPreview.includes(longId),'full long fields absent from preview');
+check(oversizedPreview.includes('"keep-002"'),'short exact IDs remain unchanged');
+check(longGroup.length===120&&longId.length===120,'fixtures respect import field limits');
+const longGroups=Array.from({length:8},(_,i)=>({group:'G'.repeat(120),sourceIds:['A'.repeat(120),'B'.repeat(120),'C'.repeat(120),'D'.repeat(120)]}));
+const boundedLong=formatGroupSummary(longGroups);
+check(boundedLong.length<4000,'maximum visible groups with long fields stay bounded');
+check(boundedLong.includes('1 additional source IDs not shown'),'source count unaffected');
+check(longGroups[0].group.length===120&&longGroups[0].sourceIds[0].length===120,'input strings unmodified');
+const boundary=formatGroupSummary([{group:'Q'.repeat(47)+'\u202e'+'Z'.repeat(72),sourceIds:['S1','S2']}]);
+check(boundary.includes('\\u202e'),'control at preview boundary remains visible');
+
 console.log('PASS: '+n+' bounded group-summary assertions; baseline '+old.length+' chars, fixed '+short.length+' chars');
