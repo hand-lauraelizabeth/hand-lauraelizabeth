@@ -19,7 +19,7 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
   .metric{background:#edf4ef;border-radius:8px;padding:10px}
   .metric strong{display:block;font-size:1.3rem}
-  .overflow{overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;margin-top:12px}
+  .overflow:focus-visible{outline:3px solid #d58b30;outline-offset:3px}\n  .overflow{overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;margin-top:12px}
   th,td{border:1px solid #cbd8cf;text-align:left;padding:9px 10px;white-space:pre-wrap;vertical-align:top}
   th{background:#e6efe9}td{max-width:320px;overflow-wrap:anywhere}caption{text-align:left;font-weight:600;margin-bottom:6px}
   #table .jump-target>*{background:#fff0c2}
@@ -40,7 +40,7 @@
 </section>
 <section class="panel" aria-labelledby="report"><h2 id="report">2. Review quality</h2>
 <div id="metrics" class="grid"><p>Open a file to see a data-quality summary.</p></div>
-<div id="warnings"></div><div class="overflow" id="columns"></div>
+<div id="warnings"></div><div class="overflow" id="columns" role="region" aria-label="Column completeness table" tabindex="0"></div>
 </section>
 <section class="panel" aria-labelledby="preview"><h2 id="preview">3. Inspect rows</h2>
 <p class="muted">Inspect original logical source-record positions, including records with blank cells or exact duplicates. Filters affect only this preview, never downloads or source data. Results are shown 20 at a time; use Previous and Next to inspect every matching record. A successful jump highlights the exact record and moves keyboard focus to its row header. Long values and hidden characters are displayed safely; exports retain exact values.</p>
@@ -57,7 +57,7 @@
 <p class="muted" id="jumpHelp">Enter digits only (2–50001). Record 1 is the header. A record excluded by the selected filter cannot be shown until you change the filter.</p>
 <p id="jumpStatus" role="status" aria-live="polite"></p>
 <div class="actions" role="group" aria-label="Source record preview pages"><button type="button" class="secondary" id="previewPrev" disabled>Previous 20 records</button><button type="button" class="secondary" id="previewNext" disabled>Next 20 records</button></div>
-<div class="overflow" id="table"></div>
+<div class="overflow" id="table" role="region" aria-label="Source record preview table" tabindex="0"></div>
 </section>
 <section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
 <p>Choose a second CSV/TSV and select the identifier column in each file. Matching is exact and case-sensitive. Repeated keys, missing keys, and unmatched records are not automatically combined. Source positions refer to logical CSV records (header is record 1), not physical text lines when quoted cells span lines. The on-screen findings preview shortens very long values and visibly marks hidden formatting characters; downloaded JSON audits retain exact identifiers.</p>
@@ -75,7 +75,7 @@
 <button class="secondary" id="compareClear">Clear second file</button>
 </div>
 <div id="compareMetrics" class="grid" role="region" aria-label="Reconciliation summary"></div>
-<div id="compareResults" class="overflow" role="region" aria-label="Reconciliation record preview"></div>
+<div id="compareResults" class="overflow" role="region" aria-label="Reconciliation record preview" tabindex="0"></div>
 <p class="muted">Preview shows at most 30 findings. Downloads include all findings, exact identifier keys, and original logical source-record positions, but not complete input records. Spreadsheet CSV may be blocked when untrusted keys contain ambiguous formula-like text; exact JSON remains available. Keep both audit files private if identifiers are sensitive. Spreadsheet formula precautions are imperfect.</p>
 </section>
 <section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
