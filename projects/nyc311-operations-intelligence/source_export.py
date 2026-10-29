@@ -134,6 +134,20 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$select": "count(*) as n",
         "$where": predicate + " AND closed_date = created_date"
     })
+    # Cross-check *which* statuses contain reversed and zero-duration dates.
+    # Totals alone cannot detect swaps between statuses at an unchanged count.
+    chronology_status_urls = {
+        "reversed": api_url("/resource/" + DATASET + ".json", {
+            "$select": "status,count(*) as n",
+            "$where": predicate + " AND closed_date < created_date",
+            "$group": "status", "$order": "status", "$limit": PAGE_MAX
+        }),
+        "equal": api_url("/resource/" + DATASET + ".json", {
+            "$select": "status,count(*) as n",
+            "$where": predicate + " AND closed_date = created_date",
+            "$group": "status", "$order": "status", "$limit": PAGE_MAX
+        })
+    }
     aggregate_url = api_url("/resource/" + DATASET + ".json", {
         "$select": "borough,agency,count(*) as n", "$where": predicate,
         "$group": "borough,agency", "$order": "borough,agency",
@@ -202,6 +216,37 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         if sum(counts) > expected_populated:
             raise ValueError("Official closure chronology partitions exceed populated dates")
         return tuple(counts)
+
+    def official_chronology_by_status(chronology_counts, status_closure):
+        """Reconcile independent publisher chronology partitions by current status."""
+        result = {}
+        for label, expected_count in zip(("reversed", "equal"), chronology_counts):
+            data = fetch(chronology_status_urls[label])
+            if not isinstance(data, list) or len(data) >= PAGE_MAX:
+                raise ValueError("Invalid official status-chronology aggregate")
+            cells = {}
+            for item in data:
+                if not isinstance(item, dict):
+                    raise ValueError("Malformed official status-chronology cell")
+                status = item.get("status", "")
+                status = "" if status is None else status
+                if not isinstance(status, str) or status in cells or status not in status_closure:
+                    raise ValueError("Duplicate or unknown official status-chronology category")
+                try:
+                    n = parse_publisher_count(item["n"])
+                except (KeyError, TypeError, ValueError):
+                    raise ValueError("Invalid official status-chronology count") from None
+                if n <= 0 or n > status_closure[status][1]:
+                    raise ValueError("Invalid official status-chronology cell count")
+                cells[status] = n
+            if sum(cells.values()) != expected_count:
+                raise ValueError("Official status-chronology total differs from cohort")
+            result[label] = cells
+        for status in status_closure:
+            if (result["reversed"].get(status, 0) + result["equal"].get(status, 0)
+                    > status_closure[status][1]):
+                raise ValueError("Official status-chronology partitions overlap")
+        return result
 
     def official_pairs(expected_rows):
         data = fetch(aggregate_url)
@@ -314,6 +359,8 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     before_closure = official_closure_completeness(expected)
     before_status_closure = official_status_closure(expected, before_closure)
     before_chronology = official_chronology(before_closure)
+    before_chronology_status = official_chronology_by_status(
+        before_chronology, before_status_closure)
     if dict(Counter({pair: sum(n for (b, a, _), n in before_triples.items()
                                if (b, a) == pair)
                      for pair in before_pairs})) != before_pairs:
@@ -334,6 +381,8 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     local_closure_populated = 0
     local_reversed = 0
     local_equal = 0
+    local_reversed_status = Counter()
+    local_equal_status = Counter()
     pages = 0
     last_key = None
     temp_csv = temp_receipt = None
@@ -380,8 +429,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                         local_closure_populated += 1
                         if closed < timestamp:
                             local_reversed += 1
+                            local_reversed_status[record.get("status", "")] += 1
                         elif closed == timestamp:
                             local_equal += 1
+                            local_equal_status[record.get("status", "")] += 1
                     if any(not isinstance(record.get(f, ""), str) for f in FIELDS
                            if f != "closed_date"):
                         raise ValueError("Invalid publisher field type")
@@ -432,6 +483,13 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Publisher closure chronology changed during export")
         if (local_reversed, local_equal) != before_chronology:
             raise ValueError("Exported closure chronology differs from official aggregate")
+        after_chronology_status = official_chronology_by_status(
+            before_chronology, before_status_closure)
+        if after_chronology_status != before_chronology_status:
+            raise ValueError("Publisher status-chronology changed during export")
+        if (dict(local_reversed_status) != before_chronology_status["reversed"]
+                or dict(local_equal_status) != before_chronology_status["equal"]):
+            raise ValueError("Exported status-chronology disagrees with publisher")
         # Stamp *completed* source checks, not the start of a long paginated
         # acquisition. A caller-supplied UTC clock is only a synthetic test hook.
         if verified_at is None:
@@ -454,6 +512,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         ).encode("utf-8")).hexdigest()
         status_closure_digest = hashlib.sha256(json.dumps(
             [[s, n, p] for s, (n, p) in sorted(before_status_closure.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
+        chronology_status_digest = hashlib.sha256(json.dumps(
+            [[label, status, n] for label, cells in sorted(before_chronology_status.items())
+             for status, n in sorted(cells.items())],
             separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")).hexdigest()
         sha = hashlib.sha256()
@@ -487,6 +550,9 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "nonnegative_closure_dates": before_closure - before_chronology[0],
             "positive_closure_dates": before_closure - sum(before_chronology),
             "closure_chronology_verified": True,
+            "status_chronology_query_urls": chronology_status_urls,
+            "status_chronology_sha256": chronology_status_digest,
+            "status_chronology_verified": True,
             "where": predicate, "ordered_by": "unique_key ASC",
             "fields": list(FIELDS), "rows": rows, "distinct_keys": len(seen),
             "pages": pages, "page_size": page_size,
