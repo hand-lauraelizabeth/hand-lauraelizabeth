@@ -187,18 +187,28 @@ console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
   ]);
   assert.equal(result.columnCount,2);
   assert.equal(result.recordCount,5);
+  assert.deepEqual(result.source,{delimiter:',',headerRecord:1,recordUnit:'logical CSV/TSV record'});
+  assert.equal(JSON.stringify(result).includes('synthetic.csv'),false);
+  assert.equal(JSON.stringify(result).includes('sha256'),false);
   assert.equal(JSON.stringify(result).includes('clean'),false);
   assert.equal(JSON.stringify(result).includes('01'),false);
   assert.equal(JSON.stringify(result).includes('"values"'),false);
   assert.equal(JSON.stringify(source),original);
   const hashed=JSON.parse(exportIssueIndexJson(source,'synthetic.csv',
     {sha256:'a'.repeat(64),byteCount:42}));
-  assert.equal(hashed.source.sha256,'a'.repeat(64));
-  assert.equal(hashed.source.byteCount,42);
+  assert.equal(hashed.source.sha256,undefined);
+  assert.equal(hashed.source.fileName,undefined);
+  const optedIn=JSON.parse(exportIssueIndexJson(source,'synthetic.csv',
+    {sha256:'a'.repeat(64),byteCount:42},true));
+  assert.equal(optedIn.source.fileName,'synthetic.csv');
+  assert.equal(optedIn.source.sha256,'a'.repeat(64));
+  assert.equal(optedIn.source.byteCount,42);
+  assert.deepEqual(optedIn.issues,result.issues);
+  assert.throws(()=>exportIssueIndexJson(source,'synthetic.csv',null,'yes'),/source metadata/);
   assert.deepEqual(JSON.parse(exportIssueIndexJson(parseDelimited('ID,Note\n1,ok'),'clean.csv')).issues,[]);
   const dedup=withoutExactDuplicates(source);
   assert.deepEqual(JSON.parse(exportIssueIndexJson(dedup,'synthetic.csv')).issues.map(x=>x.sourceRecord),[3]);
   assert.deepEqual(JSON.parse(exportEvidenceJson(source,'synthetic.csv')).records.map(x=>x.sourceRecord),[2,3,4,5,6]);
   assert.throws(()=>exportIssueIndexJson({...source,sourceRecords:[3]},'bad.csv'),/source-record/);
-  console.log('PASS: 15 value-free issue index, provenance and no-mutation checks.');
+  console.log('PASS: value-free issue index, privacy-default, opt-in provenance and no-mutation checks.');
 }
