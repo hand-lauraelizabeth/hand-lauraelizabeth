@@ -37,6 +37,7 @@ class FakeElement {
   click() { this.clicked = true; }
   focus() { this.focused = true; }
   setAttribute(name, value) { this[name] = value; }
+  removeAttribute(name) { delete this[name]; }
   remove() {}
 }
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
@@ -163,9 +164,12 @@ async function run() {
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.className==='error','invalid extension produces error');
   check(nodes.compareRun.disabled,'invalid file cannot be compared');
+  check(nodes.compareFile['aria-invalid']==='true' && nodes.compareStatus.role==='alert' && nodes.compareStatus['aria-live']==='assertive' && nodes.compareStatus.focused,
+    'bad extension identifies secondary input and focuses assertive text error');
   nodes.compareFile.files=[{name:'oversized.csv',size:rescue.MAX_BYTES+1,text:async()=> {throw Error('should not read');}}];
   await nodes.compareFile.handlers.change();
   check(nodes.compareStatus.textContent.includes('larger than 5 MB'),'size rejected before read');
+  check(nodes.compareFile['aria-invalid']==='true','oversized file retains invalid input state');
   // Fail closed when the shared strict byte reader is absent: never use text().
   const savedReader=win.DataRescueFileReader;
   win.DataRescueFileReader=null;
@@ -174,6 +178,7 @@ async function run() {
   check(nodes.compareStatus.className==='error' && nodes.compareStatus.textContent.includes('Strict local file reader is unavailable'),
     'missing strict reader fails closed rather than decoding text permissively');
   check(nodes.rightKey.disabled && nodes.compareRun.disabled,'missing reader leaves comparison disabled');
+  check(nodes.compareFile['aria-invalid']==='true','unavailable strict reader marks upload invalid');
   win.DataRescueFileReader=savedReader;
   // The actual reader rejects malformed UTF-8, NUL, and byte-count mismatch.
   for (const [label, bytes, size, expected] of [
@@ -186,14 +191,18 @@ async function run() {
     check(nodes.compareStatus.className==='error' && nodes.compareStatus.textContent.includes(expected),
       label+' is rejected by strict byte reader');
     check(nodes.rightKey.disabled && nodes.compareRun.disabled,label+' cannot enable comparison');
+    check(nodes.compareFile['aria-invalid']==='true' && nodes.compareStatus.role==='alert',label+' marks secondary input invalid and announces error');
   }
   win.DataRescueCompareUI.setPrimary(null);
+  check(nodes.compareFile['aria-invalid']===undefined && nodes.compareStatus.role==='status', 'replacing primary clears stale secondary upload error');
   check(nodes.leftKey.disabled,'clearing first file disables comparison');
   const riskFirst=rescue.parseDelimited('ID\n=1+2');
   const riskSecond=rescue.parseDelimited('ID\n=1+2');
   win.DataRescueCompareUI.setPrimary(riskFirst,'one.csv');
   nodes.compareFile.files=[{name:'two.csv',size:8,text:async()=> 'ID\n=1+2'}];
   await nodes.compareFile.handlers.change();
+  check(nodes.compareFile['aria-invalid']===undefined && nodes.compareStatus.role==='status' && nodes.compareStatus['aria-live']==='polite',
+    'valid retry removes upload invalid state and restores polite status');
   nodes.leftKey.value='ID';nodes.rightKey.value='ID';
   nodes.leftKey.handlers.change();nodes.rightKey.handlers.change();
   nodes.compareRun.handlers.click();nodes.compareExport.handlers.click();
@@ -232,6 +241,7 @@ async function run() {
   check(blobs.length===before,'unsafe comparison CSV does not create blob');
   check(nodes.compareStatus.textContent.includes('audit record 2, column 2'),'CSV block identifies audit-output record');
   check(nodes.compareStatus.role==='alert' && nodes.compareStatus.focused,'CSV block is focused and announced');
+  check(nodes.compareFile['aria-invalid']===undefined,'blocked CSV export does not mislabel the uploaded file');
   nodes.compareJson.handlers.click();
   check(blobs.length===before+1,'exact JSON comparison recovery creates blob');
   const json=JSON.parse(await blobs[before].text());
@@ -243,6 +253,7 @@ async function run() {
   check(html.includes('<script src="reconcile-core.js"></script><script src="comparison-issue-index.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
   check(html.includes('DataRescueCompareUI.setPrimary(data,name)'),'first-file load feeds reconciliation UI');
   check(html.includes('DataRescueCompareUI.setPrimary(null)'),'clearing first file invalidates comparison');
+  check(/id="compareFile"[^>]*aria-describedby="compareStatus"/.test(html),'secondary upload is programmatically associated with error and status');
   check(html.includes('const ticket=loadEpoch') && html.includes('if(ticket!==loadEpoch)return'),'stale first file reads guarded');
   check(!/\bfetch\(|XMLHttpRequest|sendBeacon|\.submit\(/.test(html+ui),'browser interface does not upload data');
   console.log('PASS: '+count+' synthetic reconciliation UI integration assertions.');
