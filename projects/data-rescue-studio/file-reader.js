@@ -40,7 +40,9 @@
    throw Error('The selected file is larger than 5 MB.');
   if(buffer.byteLength!==file.size)
    throw Error('File byte count changed or is inconsistent. Re-select the file.');
-  const parsed=parse(decode(buffer),kind==='tsv'?'\t':undefined);
+  // The extension selects the separator. A tab inside CSV text must not
+  // silently become a new column (or a different reconciliation key).
+  const parsed=parse(decode(buffer),kind==='tsv'?'\t':',');
   return {parsed,buffer};
  }
  async function read(file,parser){

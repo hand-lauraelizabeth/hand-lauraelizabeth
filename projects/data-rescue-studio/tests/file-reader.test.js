@@ -15,6 +15,14 @@ const file=(name,bytes,reportedSize)=>({
  eq((await reader.read(valid,core.parseDelimited)).rows[0][1],'Jos\u00e9','valid UTF-8 preserved');
  eq(reader.extension('example.TsV'),'tsv','case-insensitive TSV extension');
  eq((await reader.read(file('example.tsv',Buffer.from('id\tvalue\n1\tdata')),core.parseDelimited)).rows[0][1],'data','TSV parsed correctly');
+ // File extension is authoritative: tab-containing CSV must not silently
+ // become TSV and change the source column/identifier structure.
+ const tabOnlyCsv=await reader.read(file('tabs.csv',Buffer.from('ID\tNote\n1\tAda')),core.parseDelimited);
+ eq(tabOnlyCsv.headers,['ID\tNote'],'CSV header tab remains literal text, not an extra column');
+ eq(tabOnlyCsv.rows,[['1\tAda']],'CSV record tab remains exact text');
+ eq((await reader.read(file('quoted.csv',Buffer.from('ID,Note\n1,"a\tb"')),core.parseDelimited)).rows[0],['1','a\tb'],'quoted CSV tab preserved within second cell');
+ eq((await reader.read(file('comma.tsv',Buffer.from('ID\tNote\n1\tA,B')),core.parseDelimited)).rows[0],['1','A,B'],'TSV comma preserved within second cell');
+ eq((await reader.read(file('normal.csv',Buffer.from('ID,Note\n1,Ada')),core.parseDelimited)).rows[0],['1','Ada'],'ordinary comma CSV unaffected');
  eq((await reader.read(file('bom.csv',Buffer.from([0xef,0xbb,0xbf,...Buffer.from('ID\n1')])),core.parseDelimited)).headers[0],'ID','UTF-8 BOM accepted');
  await rejects(()=>reader.read(file('bad.csv.exe',Buffer.from('ID\n1')),core.parseDelimited),/\.csv or \.tsv/);
  await rejects(()=>reader.read(file('bad.csv',Buffer.from([0xc3,0x28])),core.parseDelimited),/Invalid UTF-8/);

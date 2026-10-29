@@ -1,0 +1,23 @@
+name: FT-01 CSV and TSV delimiter integrity
+
+on:
+  pull_request:
+    paths:
+      - "projects/data-rescue-studio/file-reader.js"
+      - "projects/data-rescue-studio/tests/file-reader.test.js"
+      - ".github/workflows/ft01-upload-delimiter.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-upload-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify strict file bytes and extension-specific separators
+        run: node projects/data-rescue-studio/tests/file-reader.test.js
