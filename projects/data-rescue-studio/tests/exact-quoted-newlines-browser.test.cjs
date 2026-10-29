@@ -170,6 +170,22 @@ async function run(label,browserType,url){
     label+' valid keyboard jump has no invalid state');
   ok((await jumpPage.locator('#jumpStatus').innerText()).includes('Source record 51'),
     label+' jump result is announced in text');
+  eq(await jumpPage.locator('#table .jump-target').count(),1,label+' exactly one source row highlighted');
+  const targetHeader=jumpPage.locator('#table .jump-target th[scope="row"]');
+  eq(await targetHeader.innerText(),'51',label+' target retains exact source number');
+  eq(await targetHeader.getAttribute('aria-label'),'Source record 51, jump target',label+' accessible target name');
+  eq(await targetHeader.getAttribute('tabindex'),'-1',label+' target has no additional Tab stop');
+  ok(await targetHeader.evaluate(el=>document.activeElement===el),label+' keyboard jump focuses source row');
+  eq(await targetHeader.evaluate(el=>getComputedStyle(el).outlineStyle),'solid',label+' focused row has solid outline');
+  ok(await targetHeader.evaluate(el=>getComputedStyle(el,'::after').content.includes('Jump target')),label+' target text is visible beyond color');
+  ok((await jumpPage.locator('#jumpStatus').innerText()).includes('highlighted and focused'),label+' status explains focus');
+  const [jumpJson]=await Promise.all([jumpPage.waitForEvent('download'),jumpPage.locator('#saveJson').click()]);
+  const jumpEvidence=JSON.parse(readFileSync(await jumpJson.path(),'utf8'));
+  eq(jumpEvidence.records.length,50,label+' jump does not truncate JSON evidence');
+  eq(jumpEvidence.records[49].sourceRecord,51,label+' jump preserves last source identifier');
+  await jumpPage.locator('#previewPrev').click();
+  eq(await jumpPage.locator('#table .jump-target').count(),0,label+' paging clears old marker');
+  eq(await jumpPage.locator('#jumpStatus').innerText(),'',label+' paging clears old announcement');
   await jumpPage.locator('#previewFilter').selectOption('duplicates');
   ok((await jumpPage.locator('#previewStatus').innerText()).includes('1 repeated exact records'),
     label+' duplicate filter recalculates count');
@@ -180,9 +196,11 @@ async function run(label,browserType,url){
     label+' keyboard button jump respects duplicate filter');
   eq(await jumpPage.locator('#table tbody tr td').first().innerText(),'2',
     label+' duplicate target cites original first occurrence');
+  eq(await jumpPage.locator('#table .jump-target th[scope="row"]').getAttribute('aria-label'),'Source record 51, jump target',label+' filtered duplicate target marked');
   await jumpPage.locator('#previewFilter').selectOption('missing');
   await jumpPage.locator('#previewJump').fill('51');
   await jumpPage.locator('#previewGo').click();
+  eq(await jumpPage.locator('#table .jump-target').count(),0,label+' invalid jump has no stale marker');
   eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),'true',
     label+' filtered-out target identifies input error');
   eq(await jumpPage.locator('#jumpStatus').getAttribute('role'),'alert',
@@ -225,10 +243,12 @@ async function run(label,browserType,url){
     label+' leading-zero digits are accepted as record 3');
   ok((await jumpPage.locator('#jumpStatus').innerText()).includes('Source record 3'),
     label+' leading-zero target resolves to exact source position');
+  eq(await jumpPage.locator('#table .jump-target th[scope="row"]').getAttribute('aria-label'),'Source record 3, jump target',label+' canonical leading-zero target');
   await jumpPage.setViewportSize({width:320,height:800});
   ok(await jumpPage.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),
     label+' direct-jump controls fit 320px viewport');
   await jumpPage.locator('#reset').click();
+  eq(await jumpPage.locator('#table .jump-target').count(),0,label+' clear removes target');
   ok(await jumpPage.locator('#previewJump').isDisabled(),label+' clearing file disables jump input');
   ok(await jumpPage.locator('#previewGo').isDisabled(),label+' clearing file disables jump button');
   eq(jumpErrors,[],label+' no direct-jump page errors');

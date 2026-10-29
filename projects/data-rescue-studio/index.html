@@ -22,6 +22,9 @@
   .overflow{overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;margin-top:12px}
   th,td{border:1px solid #cbd8cf;text-align:left;padding:9px 10px;white-space:pre-wrap;vertical-align:top}
   th{background:#e6efe9}td{max-width:320px;overflow-wrap:anywhere}caption{text-align:left;font-weight:600;margin-bottom:6px}
+  #table .jump-target>*{background:#fff0c2}
+  #table .jump-target>th:first-child::after{content:' ← Jump target';display:block;font-size:.8rem;font-weight:700}
+  #table .jump-target>th:first-child:focus{outline:3px solid #9d5100;outline-offset:-3px}
   #status{font-weight:600}#status.error{color:#a02d24}#notes li{margin:4px 0}
   @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
@@ -40,7 +43,7 @@
 <div id="warnings"></div><div class="overflow" id="columns"></div>
 </section>
 <section class="panel" aria-labelledby="preview"><h2 id="preview">3. Inspect rows</h2>
-<p class="muted">Inspect original logical source-record positions, including records with blank cells or exact duplicates. Filters affect only this preview, never downloads or source data. Results are shown 20 at a time; use Previous and Next to inspect every matching record. Long values and hidden characters are displayed safely; exports retain exact values.</p>
+<p class="muted">Inspect original logical source-record positions, including records with blank cells or exact duplicates. Filters affect only this preview, never downloads or source data. Results are shown 20 at a time; use Previous and Next to inspect every matching record. A successful jump highlights the exact record and moves keyboard focus to its row header. Long values and hidden characters are displayed safely; exports retain exact values.</p>
 <label for="previewFilter"><strong>Show source records</strong></label>
 <select id="previewFilter" disabled>
 <option value="all">All source records</option>
@@ -88,7 +91,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;
-let loaded=null, loadedProvenance=null, loadedSourceName='', loadEpoch=0, previewOffset=0;
+let loaded=null, loadedProvenance=null, loadedSourceName='', loadEpoch=0, previewOffset=0, jumpTarget=null;
 const PREVIEW_PAGE_SIZE=20;
 const status=(message,error=false)=>{
  const messageNode=$('status'),fileInput=$('file');
@@ -100,7 +103,7 @@ const status=(message,error=false)=>{
  else fileInput.removeAttribute('aria-invalid');
 };
 function clear(preserveFile=false){
- ++loadEpoch; loaded=null;loadedProvenance=null;loadedSourceName='';previewOffset=0;if(!preserveFile)$('file').value='';
+ ++loadEpoch; loaded=null;loadedProvenance=null;loadedSourceName='';previewOffset=0;jumpTarget=null;if(!preserveFile)$('file').value='';
  window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
  $('previewFilter').value='all';$('previewFilter').disabled=true;
@@ -146,7 +149,12 @@ function preview(){
  const body=el('tbody');
  for(const entry of findings.entries){
    const line=el('tr');
-   const source=el('th',entry.sourceRecord);source.scope='row';line.append(source);
+   const source=el('th',entry.sourceRecord);source.scope='row';
+   if(entry.sourceRecord===jumpTarget){
+    line.classList.add('jump-target');source.tabIndex=-1;
+    source.setAttribute('aria-label','Source record '+entry.sourceRecord+', jump target');
+   }
+   line.append(source);
    line.append(el('td',entry.duplicateOf===null?'—':entry.duplicateOf));
    for(const value of entry.values)line.append(el('td',window.DataRescueCompareUI.previewText(value)));
    body.append(line);
@@ -177,6 +185,13 @@ quality(lib.parseDelimited(demo),'synthetic example');
 });
 $('reset').addEventListener('click',clear);
 function resetJumpMessage(){
+ jumpTarget=null;
+ const marked=$('table').querySelector('.jump-target');
+ if(marked){
+  marked.classList.remove('jump-target');
+  const heading=marked.querySelector('th[scope="row"]');
+  if(heading){heading.removeAttribute('tabindex');heading.removeAttribute('aria-label');}
+ }
  $('previewJump').removeAttribute('aria-invalid');
  $('jumpStatus').textContent='';$('jumpStatus').setAttribute('role','status');
 }
@@ -192,15 +207,17 @@ function jumpToSourceRecord(){
   input.focus();return;
  }
  previewOffset=Math.floor(offset/PREVIEW_PAGE_SIZE)*PREVIEW_PAGE_SIZE;
- preview();resetJumpMessage();
- $('jumpStatus').textContent='Source record '+target+' is on the displayed page. '+$('previewStatus').textContent;
+ resetJumpMessage();jumpTarget=target;preview();
+ const heading=$('table').querySelector('.jump-target th[scope="row"]');
+ if(heading)heading.focus();
+ $('jumpStatus').textContent='Source record '+target+' is highlighted and focused in the preview. '+$('previewStatus').textContent;
 }
 $('previewFilter').addEventListener('change',()=>{previewOffset=0;resetJumpMessage();preview();});
 $('previewJump').addEventListener('input',resetJumpMessage);
 $('previewJump').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();jumpToSourceRecord();}});
 $('previewGo').addEventListener('click',jumpToSourceRecord);
-$('previewPrev').addEventListener('click',()=>{if(!loaded||previewOffset===0)return;previewOffset=Math.max(0,previewOffset-PREVIEW_PAGE_SIZE);preview();});
-$('previewNext').addEventListener('click',()=>{if(!loaded||$('previewNext').disabled)return;previewOffset+=PREVIEW_PAGE_SIZE;preview();});
+$('previewPrev').addEventListener('click',()=>{if(!loaded||previewOffset===0)return;previewOffset=Math.max(0,previewOffset-PREVIEW_PAGE_SIZE);resetJumpMessage();preview();});
+$('previewNext').addEventListener('click',()=>{if(!loaded||$('previewNext').disabled)return;previewOffset+=PREVIEW_PAGE_SIZE;resetJumpMessage();preview();});
 $('save').addEventListener('click',()=>{
  if(!loaded)return;
  const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;
