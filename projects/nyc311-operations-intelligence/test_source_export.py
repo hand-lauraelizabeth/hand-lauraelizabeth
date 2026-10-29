@@ -69,6 +69,10 @@ class FakePublisher:
             populated = Counter(r.get("status", "") for r in self.rows
                                 if r.get("closed_date"))
             statuses = sorted(counts)
+            if self.drift == "closure_local_mismatch":
+                # Keep independent publisher aggregates internally consistent;
+                # the downloaded rows alone should trigger the original gate.
+                populated[statuses[0]] += 1
             if self.drift in ("status_closure_drift", "status_closure_local_mismatch"):
                 if (self.drift == "status_closure_local_mismatch"
                         or self.status_closure_calls > 1):
