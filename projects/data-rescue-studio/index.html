@@ -74,8 +74,8 @@
 <button class="secondary" id="compareJson" disabled>Export exact comparison audit JSON</button>
 <button class="secondary" id="compareClear">Clear second file</button>
 </div>
-<div id="compareMetrics" class="grid" aria-label="Reconciliation summary"></div>
-<div id="compareResults" class="overflow" aria-label="Reconciliation record preview"></div>
+<div id="compareMetrics" class="grid" role="region" aria-label="Reconciliation summary"></div>
+<div id="compareResults" class="overflow" role="region" aria-label="Reconciliation record preview"></div>
 <p class="muted">Preview shows at most 30 findings. Downloads include all findings, exact identifier keys, and original logical source-record positions, but not complete input records. Spreadsheet CSV may be blocked when untrusted keys contain ambiguous formula-like text; exact JSON remains available. Keep both audit files private if identifiers are sensitive. Spreadsheet formula precautions are imperfect.</p>
 </section>
 <section class="panel" aria-labelledby="export"><h2 id="export">5. Export original or deduplicated first file</h2>
