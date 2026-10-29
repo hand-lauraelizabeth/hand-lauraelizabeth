@@ -204,6 +204,27 @@ async function run(label,browserType,url){
   await jumpPage.locator('#previewFilter').selectOption('all');
   eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),null,
     label+' changing filter clears jump error');
+  // Lexical validation must not silently accept exponent/decimal notation as a record ID.
+  eq(await jumpPage.locator('#previewJump').getAttribute('type'),'text',
+    label+' source-record ID is text rather than a number spinner');
+  eq(await jumpPage.locator('#previewJump').getAttribute('aria-describedby'),'jumpHelp jumpStatus',
+    label+' field exposes instructions and dynamic error through accessible description');
+  for (const bad of ['2e0','2.0','+2','٥']) {
+    await jumpPage.locator('#previewJump').fill(bad);
+    await jumpPage.locator('#previewJump').press('Enter');
+    eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),'true',
+      label+' rejects non-digit source-record syntax '+bad);
+    ok((await jumpPage.locator('#jumpStatus').innerText()).includes('Enter digits only'),
+      label+' explains invalid source-record syntax '+bad);
+    ok(await jumpPage.locator('#previewJump').evaluate(el=>document.activeElement===el),
+      label+' focuses invalid source-record input '+bad);
+  }
+  await jumpPage.locator('#previewJump').fill('0003');
+  await jumpPage.locator('#previewJump').press('Enter');
+  eq(await jumpPage.locator('#previewJump').getAttribute('aria-invalid'),null,
+    label+' leading-zero digits are accepted as record 3');
+  ok((await jumpPage.locator('#jumpStatus').innerText()).includes('Source record 3'),
+    label+' leading-zero target resolves to exact source position');
   await jumpPage.setViewportSize({width:320,height:800});
   ok(await jumpPage.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1),
     label+' direct-jump controls fit 320px viewport');
