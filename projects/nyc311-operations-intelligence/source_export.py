@@ -113,6 +113,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$where": predicate
     })
 
+    # Closure completeness can drift even when cohort size and status totals do not.
+    closure_url = api_url("/resource/" + DATASET + ".json", {
+        "$select": "count(*) as records,count(closed_date) as populated",
+        "$where": predicate
+    })
     aggregate_url = api_url("/resource/" + DATASET + ".json", {
         "$select": "borough,agency,count(*) as n", "$where": predicate,
         "$group": "borough,agency", "$order": "borough,agency",
@@ -124,6 +129,19 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$group": "borough,agency,status", "$order": "borough,agency,status",
         "$limit": PAGE_MAX
     })
+
+    def official_closure_completeness(expected_rows):
+        response = fetch(closure_url)
+        if not isinstance(response, list) or len(response) != 1 or not isinstance(response[0], dict):
+            raise ValueError("Invalid official closure completeness response")
+        try:
+            records = parse_publisher_count(response[0]["records"])
+            populated = parse_publisher_count(response[0]["populated"])
+        except (KeyError, TypeError, ValueError):
+            raise ValueError("Invalid official closure completeness count") from None
+        if records != expected_rows or populated > records:
+            raise ValueError("Official closure completeness count differs from source cohort")
+        return populated
 
     def official_pairs(expected_rows):
         data = fetch(aggregate_url)
@@ -233,6 +251,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     expected = counts()
     before_pairs = official_pairs(expected)
     before_triples = official_triples(expected)
+    before_closure = official_closure_completeness(expected)
     if dict(Counter({pair: sum(n for (b, a, _), n in before_triples.items()
                                if (b, a) == pair)
                      for pair in before_pairs})) != before_pairs:
@@ -243,6 +262,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     month_start = dt.datetime.fromisoformat(lower)
     month_end = dt.datetime.fromisoformat(upper)
     rows = 0
+    local_closure_populated = 0
     pages = 0
     last_key = None
     temp_csv = temp_receipt = None
@@ -285,6 +305,8 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                     # Socrata may omit an unresolved request\'s closed_date or
                     # represent it as JSON null; both mean no closure timestamp.
                     closed = parse_floating_timestamp(record.get("closed_date"))
+                    if closed is not None:
+                        local_closure_populated += 1
                     if any(not isinstance(record.get(f, ""), str) for f in FIELDS
                            if f != "closed_date"):
                         raise ValueError("Invalid publisher field type")
@@ -314,6 +336,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Official three-way aggregates changed during export")
         if dict(local_triples) != before_triples:
             raise ValueError("Exported rows disagree with official three-way cross-aggregate")
+        after_closure = official_closure_completeness(expected)
+        if after_closure != before_closure:
+            raise ValueError("Publisher closure completeness changed during export")
+        if local_closure_populated != before_closure:
+            raise ValueError("Exported closure completeness differs from official aggregate")
         # Stamp *completed* source checks, not the start of a long paginated
         # acquisition. A caller-supplied UTC clock is only a synthetic test hook.
         if verified_at is None:
@@ -350,6 +377,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "three_way_aggregate_cells": len(before_triples),
             "three_way_aggregate_sha256": three_way_digest,
             "three_way_cross_aggregate_verified": True,
+            "closure_completeness_query_url": closure_url,
+            "populated_closure_dates": before_closure,
+            "missing_closure_dates": expected - before_closure,
+            "closure_completeness_verified": True,
             "where": predicate, "ordered_by": "unique_key ASC",
             "fields": list(FIELDS), "rows": rows, "distinct_keys": len(seen),
             "pages": pages, "page_size": page_size,
