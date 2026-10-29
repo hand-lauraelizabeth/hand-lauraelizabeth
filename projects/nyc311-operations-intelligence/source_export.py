@@ -118,6 +118,12 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$select": "count(*) as records,count(closed_date) as populated",
         "$where": predicate
     })
+    # Current status and recorded closure timestamps are distinct dimensions.
+    status_closure_url = api_url("/resource/" + DATASET + ".json", {
+        "$select": "status,count(*) as records,count(closed_date) as populated",
+        "$where": predicate, "$group": "status", "$order": "status",
+        "$limit": PAGE_MAX
+    })
     aggregate_url = api_url("/resource/" + DATASET + ".json", {
         "$select": "borough,agency,count(*) as n", "$where": predicate,
         "$group": "borough,agency", "$order": "borough,agency",
@@ -142,6 +148,32 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         if records != expected_rows or populated > records:
             raise ValueError("Official closure completeness count differs from source cohort")
         return populated
+
+    def official_status_closure(expected_rows, expected_populated):
+        """Check each status's closure-date presence without exposing fine cells."""
+        data = fetch(status_closure_url)
+        if not isinstance(data, list) or not data or len(data) >= PAGE_MAX:
+            raise ValueError("Invalid or potentially truncated official status-closure aggregate")
+        result = {}
+        for item in data:
+            if not isinstance(item, dict):
+                raise ValueError("Malformed official status-closure aggregate")
+            status = item.get("status", "")
+            status = "" if status is None else status
+            if not isinstance(status, str) or status in result:
+                raise ValueError("Duplicate or invalid official status-closure dimension")
+            try:
+                records = parse_publisher_count(item["records"])
+                populated = parse_publisher_count(item["populated"])
+            except (KeyError, TypeError, ValueError):
+                raise ValueError("Invalid official status-closure count") from None
+            if records <= 0 or populated > records:
+                raise ValueError("Invalid official status-closure cell")
+            result[status] = (records, populated)
+        if (sum(n for n, _ in result.values()) != expected_rows
+                or sum(p for _, p in result.values()) != expected_populated):
+            raise ValueError("Official status-closure totals disagree with cohort")
+        return result
 
     def official_pairs(expected_rows):
         data = fetch(aggregate_url)
@@ -252,13 +284,21 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     before_pairs = official_pairs(expected)
     before_triples = official_triples(expected)
     before_closure = official_closure_completeness(expected)
+    before_status_closure = official_status_closure(expected, before_closure)
     if dict(Counter({pair: sum(n for (b, a, _), n in before_triples.items()
                                if (b, a) == pair)
                      for pair in before_pairs})) != before_pairs:
         raise ValueError("Official three-way and two-way cross-aggregate disagree")
+    triple_status = Counter()
+    for (_, _, status), n in before_triples.items():
+        triple_status[status] += n
+    if dict(triple_status) != {s: n for s, (n, _) in before_status_closure.items()}:
+        raise ValueError("Official status-closure and three-way aggregates disagree")
     seen = set()
     local_pairs = Counter()
     local_triples = Counter()
+    local_status_totals = Counter()
+    local_status_populated = Counter()
     month_start = dt.datetime.fromisoformat(lower)
     month_end = dt.datetime.fromisoformat(upper)
     rows = 0
@@ -312,6 +352,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                         raise ValueError("Invalid publisher field type")
                     if record.get("closed_date") is None:
                         record = {**record, "closed_date": ""}
+                    status = record.get("status", "")
+                    local_status_totals[status] += 1
+                    if closed is not None:
+                        local_status_populated[status] += 1
                     local_pairs[(record.get("borough", ""), record.get("agency", ""))] += 1
                     local_triples[(record.get("borough", ""), record.get("agency", ""),
                                    record.get("status", ""))] += 1
@@ -341,6 +385,13 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Publisher closure completeness changed during export")
         if local_closure_populated != before_closure:
             raise ValueError("Exported closure completeness differs from official aggregate")
+        after_status_closure = official_status_closure(expected, before_closure)
+        if after_status_closure != before_status_closure:
+            raise ValueError("Publisher status-closure cross-aggregate changed during export")
+        local_status_closure = {s: (n, local_status_populated[s])
+                                for s, n in local_status_totals.items()}
+        if local_status_closure != before_status_closure:
+            raise ValueError("Exported status-closure cross-aggregate disagrees with publisher")
         # Stamp *completed* source checks, not the start of a long paginated
         # acquisition. A caller-supplied UTC clock is only a synthetic test hook.
         if verified_at is None:
@@ -359,6 +410,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         ).encode("utf-8")).hexdigest()
         three_way_digest = hashlib.sha256(json.dumps(
             [[b, a, status, n] for (b, a, status), n in sorted(before_triples.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
+        status_closure_digest = hashlib.sha256(json.dumps(
+            [[s, n, p] for s, (n, p) in sorted(before_status_closure.items())],
             separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")).hexdigest()
         sha = hashlib.sha256()
@@ -381,6 +436,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "populated_closure_dates": before_closure,
             "missing_closure_dates": expected - before_closure,
             "closure_completeness_verified": True,
+            "status_closure_query_url": status_closure_url,
+            "status_closure_aggregate_cells": len(before_status_closure),
+            "status_closure_aggregate_sha256": status_closure_digest,
+            "status_closure_cross_aggregate_verified": True,
             "where": predicate, "ordered_by": "unique_key ASC",
             "fields": list(FIELDS), "rows": rows, "distinct_keys": len(seen),
             "pages": pages, "page_size": page_size,
