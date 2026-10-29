@@ -29,6 +29,7 @@ class FakePublisher:
         self.closure_calls = 0
         self.status_closure_calls = 0
         self.chronology_calls = 0
+        self.chronology_status_calls = 0
         self.urls = []
 
     def __call__(self, url):
@@ -64,6 +65,41 @@ class FakePublisher:
                 meta["rowsUpdatedAt"] = True
             return meta
         params = parse_qs(urlparse(url).query)
+        if (params.get("$group") == ["status"]
+                and params.get("$select") == ["status,count(*) as n"]):
+            self.chronology_status_calls += 1
+            where = params["$where"][0]
+            reverse = "closed_date < created_date" in where
+            equal = "closed_date = created_date" in where
+            assert reverse or equal
+            counts = Counter()
+            for row in self.rows:
+                if not row.get("closed_date"):
+                    continue
+                try:
+                    created = parse_floating_timestamp(row["created_date"], required=True)
+                    closed = parse_floating_timestamp(row["closed_date"], required=True)
+                except ValueError:
+                    continue
+                if (reverse and closed < created) or (equal and closed == created):
+                    counts[row.get("status", "")] += 1
+            if (reverse and self.drift in ("chronology_status_drift",
+                                          "chronology_status_local_mismatch")
+                    and (self.drift == "chronology_status_local_mismatch"
+                         or self.chronology_status_calls > 2)):
+                counts["Closed"] -= 1
+                counts["Pending"] += 1
+            data = [{"status": status, "n": str(n)}
+                    for status, n in sorted(counts.items()) if n > 0]
+            if self.drift == "chronology_status_duplicate" and data:
+                data.append(dict(data[0]))
+            if self.drift == "chronology_status_malformed" and data:
+                data[0]["n"] = True
+            if self.drift == "chronology_status_unknown" and data:
+                data[0]["status"] = "UNKNOWN SYNTHETIC STATUS"
+            if self.drift == "chronology_status_overpopulated" and data:
+                data[0]["n"] = str(len(self.rows) + 1)
+            return data
         if "$group" in params and params["$group"] == ["status"]:
             self.status_closure_calls += 1
             counts = Counter(r.get("status", "") for r in self.rows)
@@ -609,6 +645,49 @@ class TestSourceExport(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "closure chronology"):
                     download("2026-09", csvfile, receiptfile,
                              fetch=FakePublisher([row], drift=drift))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_status_chronology_cross_tab_and_private_digest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [record(f"{i:03d}") for i in range(1, 6)]
+            for i in (0, 1):
+                rows[i]["status"] = "Closed"
+                rows[i]["closed_date"] = "2026-09-15T08:59:59"
+            rows[2]["status"] = "Pending"
+            rows[2]["closed_date"] = "2026-09-15T08:59:59"
+            rows[3]["status"] = "Pending"
+            rows[3]["closed_date"] = "2026-09-15T09:00:00"
+            publisher = FakePublisher(rows)
+            receipt = download("2026-09", Path(tmp)/"source.csv",
+                               Path(tmp)/"receipt.json", fetch=publisher)
+            self.assertEqual((receipt["reversed_closure_dates"],
+                              receipt["equal_closure_dates"]), (3, 1))
+            self.assertEqual(publisher.chronology_status_calls, 4)
+            self.assertTrue(receipt["status_chronology_verified"])
+            self.assertEqual(len(receipt["status_chronology_sha256"]), 64)
+            self.assertNotIn("status_chronology_counts", receipt)
+            self.assertIn("%24group=status", receipt["status_chronology_query_urls"]["reversed"])
+            self.assertNotIn("Closed", Path(tmp, "receipt.json").read_text())
+            self.assertNotIn("Pending", Path(tmp, "receipt.json").read_text())
+
+    def test_status_chronology_balanced_swaps_and_bad_cells_fail_closed(self):
+        for drift in ("chronology_status_drift", "chronology_status_local_mismatch",
+                      "chronology_status_duplicate", "chronology_status_malformed",
+                      "chronology_status_unknown", "chronology_status_overpopulated"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                rows = [record(f"{i:03d}") for i in range(1, 6)]
+                for i in (0, 1):
+                    rows[i]["status"] = "Closed"
+                    rows[i]["closed_date"] = "2026-09-15T08:59:59"
+                rows[2]["status"] = "Pending"
+                rows[2]["closed_date"] = "2026-09-15T08:59:59"
+                rows[3]["status"] = "Pending"
+                rows[3]["closed_date"] = "2026-09-15T09:00:00"
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "status-chronology"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher(rows, drift=drift))
                 self.assertFalse(csvfile.exists())
                 self.assertFalse(receiptfile.exists())
 
