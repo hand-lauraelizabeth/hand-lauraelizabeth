@@ -27,6 +27,7 @@ class FakePublisher:
         self.group_calls = 0
         self.three_calls = 0
         self.closure_calls = 0
+        self.status_closure_calls = 0
         self.urls = []
 
     def __call__(self, url):
@@ -62,6 +63,31 @@ class FakePublisher:
                 meta["rowsUpdatedAt"] = True
             return meta
         params = parse_qs(urlparse(url).query)
+        if "$group" in params and params["$group"] == ["status"]:
+            self.status_closure_calls += 1
+            counts = Counter(r.get("status", "") for r in self.rows)
+            populated = Counter(r.get("status", "") for r in self.rows
+                                if r.get("closed_date"))
+            statuses = sorted(counts)
+            if self.drift in ("status_closure_drift", "status_closure_local_mismatch"):
+                if (self.drift == "status_closure_local_mismatch"
+                        or self.status_closure_calls > 1):
+                    # Swap closure presence across statuses, preserving all totals.
+                    populated[statuses[0]] -= 1
+                    populated[statuses[1]] += 1
+            data = [{"status": s, "records": str(counts[s]),
+                     "populated": str(populated[s])} for s in statuses]
+            if self.drift == "status_closure_duplicate":
+                data.append(dict(data[0]))
+            if self.drift == "status_closure_malformed":
+                data[0]["populated"] = True
+            if self.drift == "status_closure_total":
+                data[0]["records"] = str(counts[statuses[0]] + 1)
+            if self.drift == "status_closure_overpopulated":
+                data[0]["populated"] = str(counts[statuses[0]] + 1)
+            if self.drift == "status_closure_empty":
+                return []
+            return data
         if "$group" in params and params["$group"] == ["borough,agency,status"]:
             self.three_calls += 1
             counts = Counter((r.get("borough", ""), r.get("agency", ""),
@@ -157,6 +183,7 @@ class TestSourceExport(unittest.TestCase):
             self.assertEqual(publisher.count_calls, 2)
             self.assertEqual(publisher.group_calls, 2)
             self.assertEqual(publisher.three_calls, 2)
+            self.assertEqual(publisher.status_closure_calls, 2)
             self.assertTrue(receipt["three_way_cross_aggregate_verified"])
             self.assertEqual(receipt["three_way_aggregate_cells"], 1)
             self.assertEqual(len(receipt["three_way_aggregate_sha256"]), 64)
@@ -479,6 +506,39 @@ class TestSourceExport(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "closure completeness"):
                     download("2026-09", csvfile, receiptfile, fetch=FakePublisher(drift=drift),
                              verified_at="2026-10-29T12:00:00+00:00")
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_status_closure_cross_tab_reconciles_and_receipt_is_aggregate_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [record("001"), record("002"), record("003")]
+            rows[0]["status"] = "Closed"
+            rows[0]["closed_date"] = "2026-09-16T10:05:00"
+            rows[1]["closed_date"] = "2026-09-16T11:05:00"  # Open with timestamp
+            publisher = FakePublisher(rows=rows)
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            receipt = download("2026-09", csvfile, receiptfile, fetch=publisher)
+            self.assertEqual((receipt["rows"], receipt["populated_closure_dates"]), (3, 2))
+            self.assertEqual(receipt["status_closure_aggregate_cells"], 2)
+            self.assertEqual(publisher.status_closure_calls, 2)
+            self.assertTrue(receipt["status_closure_cross_aggregate_verified"])
+            self.assertEqual(len(receipt["status_closure_aggregate_sha256"]), 64)
+            self.assertNotIn("status_closure_counts", receipt)
+            self.assertIn("%24group=status", receipt["status_closure_query_url"])
+
+    def test_status_closure_same_total_swap_and_invalid_cells_fail_closed(self):
+        for drift in ("status_closure_drift", "status_closure_local_mismatch",
+                      "status_closure_duplicate", "status_closure_malformed",
+                      "status_closure_total", "status_closure_overpopulated",
+                      "status_closure_empty"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                rows = [record("001"), record("002"), record("003")]
+                rows[0]["status"] = "Closed"
+                rows[0]["closed_date"] = "2026-09-16T10:05:00"
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "status-closure"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher(rows=rows, drift=drift))
                 self.assertFalse(csvfile.exists())
                 self.assertFalse(receiptfile.exists())
 
