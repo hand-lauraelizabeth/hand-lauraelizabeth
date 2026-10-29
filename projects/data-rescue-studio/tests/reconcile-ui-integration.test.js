@@ -41,12 +41,12 @@ class FakeElement {
   remove() {}
 }
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
-  'compareRun','compareExport','compareJson','compareIndex','compareClear','comparePrev','compareNext','comparePageStatus','leftKey','rightKey'];
+  'compareRun','compareExport','compareJson','compareIndex','compareClear','comparePrev','compareNext','comparePageStatus','compareFindingFilter','leftKey','rightKey'];
 const nodes = {};
 for (const id of ids) {
-  nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' ? 'select' : 'div');
+  nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' || id === 'compareFindingFilter' ? 'select' : 'div');
   // The fixture must respect initial HTML disabled attributes, not merely JS defaults.
-  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareJson','compareIndex','comparePrev','compareNext'].includes(id);
+  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareJson','compareIndex','comparePrev','compareNext','compareFindingFilter'].includes(id);
 }
 const document = {
   body: new FakeElement('body'),
@@ -117,6 +117,18 @@ async function run() {
   nodes.compareRun.handlers.click();
   check(!nodes.compareExport.disabled && !nodes.compareJson.disabled && !nodes.compareIndex.disabled, 'valid retry restores exports after coverage failure');
   check(nodes.compareResults.children.length===1,'visible result table created');
+  check(!nodes.compareFindingFilter.disabled,'classification filter enabled after valid comparison');
+  nodes.compareFindingFilter.value='ambiguous'; nodes.compareFindingFilter.handlers.change();
+  check(nodes.compareResults.children[0].children[2].children.length===1,'ambiguous filter displays only repeated-key group');
+  check(nodes.comparePageStatus.textContent.includes('6 findings overall'),'filtered status retains full result count');
+  nodes.compareFindingFilter.value='missing'; nodes.compareFindingFilter.handlers.change();
+  check(nodes.compareResults.children[0].children[2].children.length===2,'missing-key filter includes both files');
+  nodes.compareFindingFilter.value='unmatched'; nodes.compareFindingFilter.handlers.change();
+  check(nodes.compareResults.children[0].children[2].children.length===2,'unmatched filter includes both files');
+  nodes.compareFindingFilter.value='matches'; nodes.compareFindingFilter.handlers.change();
+  check(nodes.compareResults.children[0].children[2].children.length===1,'one-to-one filter excludes ambiguous keys');
+  nodes.compareFindingFilter.value='all'; nodes.compareFindingFilter.handlers.change();
+  check(nodes.compareResults.children[0].children[2].children.length===6,'all filter restores complete findings preview');
   check(nodes.comparePrev.disabled && nodes.compareNext.disabled, 'single-page findings disable both navigation controls');
   check(nodes.comparePageStatus.textContent.includes('of 6'), 'page status reports complete findings count');
   check(!nodes.compareExport.disabled,'CSV audit enabled only after comparing');
@@ -277,17 +289,26 @@ async function run() {
   check(nodes.compareResults.children[0].children[2].children.length===6,'last page renders remaining six findings');
   check(!nodes.comparePrev.disabled && nodes.compareNext.disabled,'last page navigation state');
   check(nodes.comparePageStatus.textContent.includes('61 through 66 of 66'),'last page announces complete count');
+  nodes.compareFindingFilter.value='matches'; nodes.compareFindingFilter.handlers.change();
+  check(nodes.compareResults.children[0].children[2].children.length===0,'zero-match filter renders no fabricated records');
+  check(nodes.comparePrev.disabled && nodes.compareNext.disabled,'zero-match filter disables navigation');
+  check(nodes.comparePageStatus.textContent.includes('66 findings overall'),'empty filter still announces complete result count');
+  nodes.compareFindingFilter.value='unmatched'; nodes.compareFindingFilter.handlers.change();
+  check(nodes.comparePageStatus.textContent.includes('1 through 30 of 66'),'filter change resets pagination to first page');
   const beforePagedExport=blobs.length;
   nodes.compareJson.handlers.click();
   const pagedAudit=JSON.parse(await blobs[beforePagedExport].text());
   check(pagedAudit.leftOnly.length===65 && pagedAudit.rightOnly.length===1,
     'JSON export retains all 66 findings independent of preview page');
+  nodes.compareFindingFilter.value='all'; nodes.compareFindingFilter.handlers.change();
+  nodes.compareNext.handlers.click(); nodes.compareNext.handlers.click();
   nodes.comparePrev.handlers.click();
-  check(nodes.comparePageStatus.textContent.includes('31 through 60 of 66'),'previous page navigates backward');
+  check(nodes.comparePageStatus.textContent.includes('31 through 60 of 66'),'previous page navigates backward after restoring all findings');
   nodes.compareClear.handlers.click();
   check(nodes.comparePrev.disabled && nodes.compareNext.disabled && nodes.compareResults.children.length===0,
     'clearing second file revokes all paginated findings');
   check(nodes.comparePageStatus.textContent.includes('Compare files'),'clearing restores empty page status');
+  check(nodes.compareFindingFilter.disabled && nodes.compareFindingFilter.value==='all','clearing resets and disables stale filter');
   console.log('PASS: '+count+' synthetic reconciliation UI integration assertions.');
 }
 run().catch(error=>{console.error(error);process.exitCode=1;});
