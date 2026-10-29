@@ -153,6 +153,31 @@
     return {mode, total, offset, shown: entries.length, entries};
   }
 
+  // Locate an original logical source record within the active preview filter.
+  // Returns its zero-based position among matching records, or null when absent
+  // or excluded. No values are normalized or copied into an index.
+  function findSourceRecordOffset(parsed, mode, target) {
+    if (!parsed || !Array.isArray(parsed.rows) ||
+        !['all', 'missing', 'duplicates'].includes(mode) ||
+        !Number.isSafeInteger(target) || target < 2 || target > MAX_ROWS + 1)
+      throw new Error('Enter a valid original source-record number.');
+    const seen = new Set();
+    let matchingOffset = 0;
+    for (let i = 0; i < parsed.rows.length; i++) {
+      const row = parsed.rows[i];
+      const signature = JSON.stringify(row);
+      const duplicate = seen.has(signature);
+      seen.add(signature);
+      const included = mode === 'all' ||
+        (mode === 'missing' && row.some(value => value.trim() === '')) ||
+        (mode === 'duplicates' && duplicate);
+      const sourceRecord = parsed.sourceRecords ? parsed.sourceRecords[i] : i + 2;
+      if (sourceRecord === target) return included ? matchingOffset : null;
+      if (included) matchingOffset++;
+    }
+    return null;
+  }
+
   function formulaRisk(value) {
     return /^[\s\uFEFF]*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20]/u.test(String(value));
   }
@@ -264,5 +289,5 @@
     });
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
+  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, findSourceRecordOffset, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
 });
