@@ -1,0 +1,34 @@
+name: FT-01 CSS zoom and keyboard reflow stress review
+on:
+  push:
+    branches:
+      - 'review/ft01-css-zoom-reflow-*'
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-css-zoom-reflow-review.yml'
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-css-zoom-reflow-review.yml'
+permissions:
+  contents: read
+jobs:
+  css-zoom-reflow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser runner
+        run: |
+          cd projects/data-rescue-studio
+          npm install --no-save --no-package-lock playwright@1.57.0
+      - name: Validate synthetic browser test syntax
+        run: node --check projects/data-rescue-studio/tests/css-zoom-reflow-browser.test.cjs
+      - name: Test 200 and 400 percent CSS zoom, keyboard navigation, and private exports in three browsers
+        run: node projects/data-rescue-studio/tests/css-zoom-reflow-browser.test.cjs
