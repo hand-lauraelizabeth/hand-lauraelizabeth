@@ -101,10 +101,26 @@ def verify(browser_type, url, width):
     assert "label" in page.locator("#error").inner_text()
     assert page.evaluate("document.activeElement.id") == "error", "error focus"
     assert "CSV unavailable" in page.locator("#status").inner_text()
+    # Current-only download deliberately excludes prior correction values, not current user-entered data.
+    assert page.get_by_role("button", name="Current-state JSON (no correction history)").count() == 1
+    assert page.get_by_role("button", name="Evidence JSON (with correction history)").count() == 1
+    with page.expect_download() as current_info:
+        page.locator("#downloadCurrentJSON").click()
+    assert current_info.value.suggested_filename == "grant-current-state.json"
+    import json
+    current_state_text = Path(current_info.value.path()).read_text(encoding="utf-8")
+    current_state = json.loads(current_state_text)
+    assert "correctionHistory" not in current_state, "current-only export must omit correction log"
+    assert " SRC-0007 " not in current_state_text, "old source ID must not leak from history"
+    assert current_state["expenses"][0]["sourceId"] == " SRC-CORRECTED "
+    assert current_state["expenses"][0]["totalCents"] == 800
+    assert current_state["expenses"][0]["note"] == "Corrección – 日本語"
+    assert current_state["lines"][1]["label"] == "=2+2", "current data preserved exactly"
+    assert "grant-current-state.json downloaded" in page.locator("#status").inner_text()
+    assert page.locator("#error").is_hidden(), "current-state JSON clears stale CSV error"
     with page.expect_download() as info:
         page.locator("#downloadJSON").click()
     data = Path(info.value.path()).read_text(encoding="utf-8")
-    import json
     evidence = json.loads(data)
     assert evidence["lines"][1]["label"] == "=2+2", "JSON retains risky original"
     assert evidence["expenses"][0]["transactionId"] == "000123", "correction preserves transaction ID"
