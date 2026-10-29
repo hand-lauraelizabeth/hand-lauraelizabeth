@@ -230,7 +230,7 @@ async function run() {
     'JSON audit preserves exact multiline key and source positions');
   check(!JSON.stringify(json).includes('private-field'),'JSON audit excludes non-key source cells');
   check(nodes.compareStatus.role==='status','JSON recovery restores normal status role');
-  check(html.includes('<script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
+  check(html.includes('<script src="reconcile-core.js"></script><script src="comparison-issue-index.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
   check(html.includes('DataRescueCompareUI.setPrimary(data,name)'),'first-file load feeds reconciliation UI');
   check(html.includes('DataRescueCompareUI.setPrimary(null)'),'clearing first file invalidates comparison');
   check(html.includes('const ticket=loadEpoch') && html.includes('if(ticket!==loadEpoch)return'),'stale first file reads guarded');
