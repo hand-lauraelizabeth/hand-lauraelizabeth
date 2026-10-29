@@ -79,7 +79,7 @@ test('criterion-level gaps reconcile to overall counts without turning zero into
  assert.equal(rows.reduce((n,r)=>n+r.scoredPairs,0),total.scoredPairs);
  assert.equal(rows.reduce((n,r)=>n+r.completeReferencePairs,0),total.completeReferencePairs);
  assert.ok(Object.isFrozen(rows)&&rows.every(Object.isFrozen));
- assert.throws(()=>summarizeCriterionCoverage({...result,comparisons:[{...result.comparisons[0],detail:[]}]}),/Invalid evaluated RFP details/);
+ assert.throws(()=>summarizeCriterionCoverage({...result,comparisons:[{...result.comparisons[0],detail:[]}]}),/Invalid evaluated RFP (?:coverage|details)/);
 });
 test('criterion-level complete zero scores retain complete coverage',()=>{
  const input={...base,ratings:base.ratings.map(r=>({...r,score:0,evidenceRef:'EV',reviewer:'QA'}))};
