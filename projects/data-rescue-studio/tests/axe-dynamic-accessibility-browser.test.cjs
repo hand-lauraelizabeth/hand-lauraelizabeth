@@ -11,7 +11,8 @@ const root = join(__dirname, '..');
 const allowed = new Map([
   ['/', 'index.html'], ['/index.html', 'index.html'],
   ['/rescue-core.js', 'rescue-core.js'], ['/file-reader.js', 'file-reader.js'],
-  ['/reconcile-core.js', 'reconcile-core.js'], ['/reconcile-ui.js', 'reconcile-ui.js']
+  ['/reconcile-core.js', 'reconcile-core.js'], ['/comparison-issue-index.js', 'comparison-issue-index.js'],
+  ['/reconcile-ui.js', 'reconcile-ui.js']
 ]);
 const server = createServer((req, res) => {
   const path = allowed.get(new URL(req.url, 'http://localhost').pathname);
@@ -104,7 +105,7 @@ async function auditReconciliationCells(page, name, state) {
 async function runEngine(type, name, url) {
   const browser = await type.launch({headless:true});
   try {
-    const page = await browser.newPage({viewport:{width:1280,height:800}});
+    const page = await browser.newPage({acceptDownloads:true,viewport:{width:1280,height:800}});
     const external = [], errors = [];
     page.on('pageerror', e=>errors.push(e.message));
     page.on('request', r=>{if(!r.url().startsWith(url) && !r.url().startsWith('blob:'+url))external.push(r.url());});
@@ -155,6 +156,37 @@ async function runEngine(type, name, url) {
     assert.ok(await page.locator('#compareResults table tbody tr').count()>0); checks++;
     assert.equal(await page.locator('#compareResults table tbody tr').evaluateAll(rows=>rows.every(row=>row.firstElementChild?.tagName==='TH' && row.firstElementChild.getAttribute('scope')==='row' && [...row.children].slice(1).every(cell=>cell.tagName==='TD'))),true); checks++;
     await auditReconciliationCells(page,name,'reconciliation results');
+    // Privacy-minimized export must retain exact source coverage, not identifier keys.
+    assert.equal(await page.locator('#compareIndex').isEnabled(),true); checks++;
+    const [indexDownload] = await Promise.all([
+      page.waitForEvent('download'), page.locator('#compareIndex').click()
+    ]);
+    const index = JSON.parse(readFileSync(await indexDownload.path(), 'utf8'));
+    assert.equal(index.format,'data-rescue-reconciliation-issue-index'); checks++;
+    assert.equal(index.counts.firstRecords,4); checks++;
+    assert.equal(index.counts.secondRecords,3); checks++;
+    assert.deepEqual(index.findings.matches,[{firstSourceRecord:3,secondSourceRecord:2}]); checks++;
+    assert.deepEqual(index.findings.ambiguous,[{firstSourceRecords:[2,5],secondSourceRecords:[]}]); checks++;
+    assert.deepEqual(index.findings.firstOnly,[4]); checks++;
+    assert.deepEqual(index.findings.secondOnly,[3]); checks++;
+    assert.deepEqual(index.findings.missingSecondKey,[4]); checks++;
+    assert.equal(/synthetic\\.csv|second-synthetic|=1\\+1|alpha|match|"key"/.test(JSON.stringify(index)),false); checks++;
+    assert.match(await page.locator('#compareStatus').innerText(),/No identifier keys, filenames or cell values/); checks++;
+    const invalid = await page.evaluate(() => {
+      const result={matches:[{key:'SECRET',leftRow:2,rightRow:2}],ambiguous:[],
+        leftOnly:[],rightOnly:[],missingLeft:[],missingRight:[]};
+      const build=window.DataRescueComparisonIndex.create;
+      const rejected=(a,b,c)=>{try{build(a,b,c);return false;}catch{return true;}};
+      return [
+        rejected(result,[2,2],[2]), // repeated source identifier
+        rejected(result,[2,3],[2]), // incomplete source coverage
+        rejected({...result,missingLeft:[2]},[2],[2]), // duplicate coverage
+        rejected({...result,matches:[{key:'SECRET',leftRow:999,rightRow:2}]},[2],[2]), // unknown source
+        !build(result,[2],[2]).includes('SECRET') // never copy raw identifier
+      ];
+    });
+    assert.deepEqual(invalid,[true,true,true,true,true]); checks++;
+
     await page.locator('#compareResults').focus();
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareResults'); checks++;
     await page.setViewportSize({width:320,height:800});
@@ -162,6 +194,7 @@ async function runEngine(type, name, url) {
     await auditReconciliationCells(page,name,'reconciliation results at 320px');
     await page.locator('#compareClear').click();
     assert.equal(await page.locator('#compareJson').isEnabled(),false); checks++;
+    assert.equal(await page.locator('#compareIndex').isEnabled(),false); checks++;
     assert.equal(await page.locator('#rightKey').isEnabled(),false); checks++;
     await scan(page,name,'cleared reconciliation');
     assert.deepEqual(errors, [],name+' no JavaScript exceptions'); checks++;
