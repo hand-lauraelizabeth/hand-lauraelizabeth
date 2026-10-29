@@ -1,4 +1,4 @@
-import {calculateLedger,exportTransactionsCSV,exportBudgetCSV,exportReviewCSV} from './core.mjs';
+import {calculateLedger,exportTransactionsCSV,exportBudgetCSV,exportReviewCSV,exportJSON} from './core.mjs';
 import {appendExpenseCorrection,exportEvidenceWithCorrections} from './correction-history.mjs';
 import {assertSafeLedgerCSV} from './csv-preflight.mjs';
 import {buildInterface} from './view.mjs';
@@ -91,6 +91,17 @@ function safeCSV(kind, filename, exporter) {
 $('downloadTransactions').addEventListener('click',()=>safeCSV('transactions','grant-transactions.csv',exportTransactionsCSV));
 $('downloadBudget').addEventListener('click',()=>safeCSV('budget','grant-budget.csv',exportBudgetCSV));
 $('downloadReview').addEventListener('click',()=>safeCSV('review','grant-review-flags.csv',exportReviewCSV));
+$('downloadCurrentJSON').addEventListener('click',()=>{
+ try {
+  // Deliberately omit the in-tab correction history; current records still contain user-entered data.
+  const evidence = exportJSON(current());
+  error('');
+  download('grant-current-state.json','application/json;charset=utf-8',evidence);
+ } catch (e) {
+  error(e.message);
+  $('status').textContent='Current-state JSON unavailable.';
+ }
+});
 $('downloadJSON').addEventListener('click',()=>{
  try {
   // Validate and serialize before clearing any earlier CSV-specific error.

@@ -43,8 +43,8 @@ export function buildInterface(){
  table(['Category','Planned','Assigned','Difference'],'budgetRows');
  add(report,'h3','Expenditures');table(['Transaction','Source','Date','Assigned','Unassigned','Action'],'expenseRows');
  add(report,'h3','Items requiring human review');add(report,'ul','','reviewList');
- add(report,'p','CSV export is blocked when a field contains spreadsheet-formula or control-character risks. Evidence JSON preserves your original IDs and text. All exports stay on your device.');
+ add(report,'p','CSV export is blocked when a field contains spreadsheet-formula or control-character risks. Current-state JSON contains the latest saved values only; Evidence JSON with correction history also includes previous values. Both JSON files contain user-entered source IDs, notes and references. Keep downloads private. All exports stay on your device.');
  const actions=add(report,'div');actions.className='actions';
- button(actions,'Transactions CSV','downloadTransactions');button(actions,'Budget CSV','downloadBudget');button(actions,'Review flags CSV','downloadReview');button(actions,'Evidence JSON','downloadJSON');
+ button(actions,'Transactions CSV','downloadTransactions');button(actions,'Budget CSV','downloadBudget');button(actions,'Review flags CSV','downloadReview');button(actions,'Current-state JSON (no correction history)','downloadCurrentJSON');button(actions,'Evidence JSON (with correction history)','downloadJSON');
  const footer=add(root,'footer');add(footer,'p','Review award terms and 2 CFR 200.302, 200.403, and 200.405; no automatic accounting determination.');
 }

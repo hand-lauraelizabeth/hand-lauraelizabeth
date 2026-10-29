@@ -39,7 +39,12 @@ eq(evidence.correctionHistory.entries.length,2);
 eq(evidence.correctionHistory.entries[0].before.note,'=1+2');
 eq(evidence.correctionHistory.entries[0].after.note,'Corrección – 日本語');
 eq(evidence.expenses[0].sourceId,' SRC-002 ');
-eq(JSON.parse(exportJSON(current)).correctionHistory,undefined);
+const currentOnly=exportJSON(current);
+eq(JSON.parse(currentOnly).correctionHistory,undefined);
+eq(currentOnly.includes(' SRC-001 '),false); // old source ID exists only in the correction history
+eq(JSON.parse(currentOnly).expenses[0].sourceId,' SRC-002 ');
+eq(JSON.parse(currentOnly).expenses[0].note,'Corrección – 日本語');
+eq(evidence.correctionHistory.entries[0].before.sourceId,' SRC-001 ');
 rejects(()=>calculateLedger(award,categories,[{...corrected,amount:'invalid'}]));
 eq(second.length,2); // failed validation must not mutate history
 console.log('PASS: '+checks+' FT-06 exact correction-history assertions');
