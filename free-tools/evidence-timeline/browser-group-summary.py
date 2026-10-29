@@ -48,7 +48,7 @@ def main():
             assert page.locator('#records > li').count()==2
             with page.expect_download() as dl: page.locator('#json').click()
             evidence=json.loads(Path(dl.value.path()).read_text(encoding='utf-8'))
-            assert evidence['records']==records,(engine,'full exact export')
+            assert evidence['records']==sorted(records,key=lambda row:(row['date'],row['sourceId'])),(engine,'full exact export in canonical chronology order')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),(engine,'320px reflow')
             assert not errors and not external,(engine,errors,external)
             browser.close()
