@@ -54,8 +54,18 @@ async function run(name,type,url){
   const auditRows=parseDelimited(audit.toString('utf8')).rows;
   ok(auditRows.some(row=>row[1]==='\t=x'),name+' audit identifier formula precaution');
   await page.setViewportSize({width:320,height:800});
-  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
-  ok(overflow<=1,name+' 320 CSS-pixel outer page reflow');
+  const overflow=await page.evaluate(()=>({
+    delta:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+    viewport:document.documentElement.clientWidth,
+    overflowing:[...document.querySelectorAll('body *')].filter(e=>{
+      const box=e.getBoundingClientRect();
+      return box.width && (box.right>document.documentElement.clientWidth+1 || box.left < -1);
+    }).slice(0,12).map(e=>({tag:e.tagName,id:e.id,cls:e.className,rect:{
+      left:Math.round(e.getBoundingClientRect().left),right:Math.round(e.getBoundingClientRect().right)
+    }}))
+  }));
+  if(overflow.delta>1) console.error(name+' 320px overflow diagnostics: '+JSON.stringify(overflow));
+  ok(overflow.delta<=1,name+' 320 CSS-pixel outer page reflow');
   eq(errors,[],name+' no page errors');
   eq(external,[],name+' no external requests');
   await page.close();
