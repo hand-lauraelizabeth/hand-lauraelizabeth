@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {evaluateWithProvenance} from './evidence-coverage.mjs';
-import {summarizeCoverage,describeCoverage} from './coverage-summary.mjs';
+import {summarizeCoverage,describeCoverage,summarizeCriterionCoverage} from './coverage-summary.mjs';
 
 // Synthetic records only. A zero score is not missing.
 const base={
@@ -66,4 +66,26 @@ test('scored pairs without visible reviewer IDs are counted and flagged in expor
  assert.ok(result.comparisons[0].reviewFlags.some(x=>x==='Reviewer identifier missing: C-02'));
  assert.ok(!result.comparisons[0].reviewFlags.some(x=>x==='Reviewer identifier missing: C-01'));
  assert.ok(!result.comparisons[1].reviewFlags.some(x=>x==='Reviewer identifier missing: C-01'));
+});
+
+test('criterion-level gaps reconcile to overall counts without turning zero into missing',()=>{
+ const input={...base,ratings:base.ratings.map((r,i)=>i===0?{...r,reviewer:'QA'}:i===1?{...r,reviewer:'\u200b\u0301'}:r)};
+ const result=evaluateWithProvenance(input),rows=summarizeCriterionCoverage(result);
+ assert.deepEqual(rows,[
+  {criterionId:'C-01',scoredPairs:1,completeReferencePairs:1,missingScores:1,scoredMissingAnyReference:0},
+  {criterionId:'C-02',scoredPairs:2,completeReferencePairs:0,missingScores:0,scoredMissingAnyReference:2}
+ ]);
+ const total=summarizeCoverage(result);
+ assert.equal(rows.reduce((n,r)=>n+r.scoredPairs,0),total.scoredPairs);
+ assert.equal(rows.reduce((n,r)=>n+r.completeReferencePairs,0),total.completeReferencePairs);
+ assert.ok(Object.isFrozen(rows)&&rows.every(Object.isFrozen));
+ assert.throws(()=>summarizeCriterionCoverage({...result,comparisons:[{...result.comparisons[0],detail:[]}]}),/Invalid evaluated RFP details/);
+});
+test('criterion-level complete zero scores retain complete coverage',()=>{
+ const input={...base,ratings:base.ratings.map(r=>({...r,score:0,evidenceRef:'EV',reviewer:'QA'}))};
+ const rows=summarizeCriterionCoverage(evaluateWithProvenance(input));
+ for(const row of rows){
+  assert.equal(row.scoredPairs,2);assert.equal(row.completeReferencePairs,2);
+  assert.equal(row.missingScores,0);assert.equal(row.scoredMissingAnyReference,0);
+ }
 });
