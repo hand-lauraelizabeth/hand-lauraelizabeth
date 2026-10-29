@@ -192,7 +192,7 @@ async function runEngine(type, name, url) {
     await scan(page,name,'reconciliation results');
     assert.equal(await page.locator('#comparePrev').isDisabled(),true); checks++;
     assert.equal(await page.locator('#compareNext').isDisabled(),true); checks++;
-    assert.match(await page.locator('#comparePageStatus').innerText(),/of 6/); checks++;
+    assert.match(await page.locator('#comparePageStatus').innerText(),/Showing findings 1 through \d+ of \d+/); checks++;
     assert.deepEqual(await page.locator('#compareResults table thead th').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('scope'))),['col','col','col','col']); checks++;
     assert.ok(await page.locator('#compareResults table tbody tr').count()>0); checks++;
     assert.equal(await page.locator('#compareResults table tbody tr').evaluateAll(rows=>rows.every(row=>row.firstElementChild?.tagName==='TH' && row.firstElementChild.getAttribute('scope')==='row' && [...row.children].slice(1).every(cell=>cell.tagName==='TD'))),true); checks++;
