@@ -5,7 +5,9 @@
   const lib = root.DataRescue;
   const engine = root.DataRescueProvenance || root.DataReconcile;
   let first = null, second = null, firstName = '', secondName = '';
-  let comparison = null, generation = 0;
+  let comparison = null, generation = 0, findingPage = 0;
+  let findings = [];
+  const FINDINGS_PAGE_SIZE = 30;
   const el = (tag, text) => {
     const node = document.createElement(tag);
     if (text !== undefined) node.textContent = String(text);
@@ -37,6 +39,11 @@
   }
   function invalidate() {
     comparison = null;
+    findings = [];
+    findingPage = 0;
+    $('comparePrev').disabled = true;
+    $('compareNext').disabled = true;
+    $('comparePageStatus').textContent = 'Compare files to inspect findings.';
     $('compareMetrics').replaceChildren();
     $('compareResults').replaceChildren();
     $('compareExport').disabled = true;
@@ -130,6 +137,43 @@
     if (omitted) visible.splice(96, 0, ' … [' + omitted + ' code points omitted] … ');
     return visible.join('');
   }
+  function renderFindingsPage() {
+    if (!comparison) return;
+    const total = findings.length;
+    const maxPage = Math.max(0, Math.ceil(total / FINDINGS_PAGE_SIZE) - 1);
+    findingPage = Math.min(Math.max(0, findingPage), maxPage);
+    const start = findingPage * FINDINGS_PAGE_SIZE;
+    const end = Math.min(start + FINDINGS_PAGE_SIZE, total);
+    const table = el('table');
+    table.append(el('caption', total
+      ? 'Reconciliation findings ' + (start + 1) + '–' + end + ' of ' + total
+      : 'No reconciliation findings'));
+    const head = el('thead'), heading = el('tr');
+    ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'].forEach(text => {
+      const cell = el('th', text);
+      cell.scope = 'col';
+      heading.append(cell);
+    });
+    head.append(heading); table.append(head);
+    const body = el('tbody');
+    findings.slice(start, end).forEach(record => {
+      const line = el('tr');
+      record.forEach((value, index) => {
+        const cell = el(index === 0 ? 'th' : 'td', auditPreview(value));
+        if (index === 0) cell.scope = 'row';
+        line.append(cell);
+      });
+      body.append(line);
+    });
+    table.append(body);
+    $('compareResults').replaceChildren(table);
+    $('comparePrev').disabled = findingPage === 0;
+    $('compareNext').disabled = findingPage >= maxPage;
+    $('comparePageStatus').textContent = total
+      ? 'Showing findings ' + (start + 1) + ' through ' + end + ' of ' + total +
+        '. Downloads include every finding regardless of this preview page.'
+      : 'No reconciliation findings. Downloads retain the complete result.';
+  }
   function render(result, coverage) {
     const categories = [
       ['One-to-one matches', result.matches.length],
@@ -150,20 +194,9 @@
       metric.append(el('span', name), el('strong', count));
       grid.append(metric);
     }
-    const rows = auditRows(result);
-    const table = el('table');
-    table.append(el('caption', 'First ' + Math.min(30, rows.length) + ' of ' + rows.length + ' reconciliation findings'));
-    const head = el('thead'), heading = el('tr');
-    ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'].forEach(text => {const cell=el('th',text);cell.scope='col';heading.append(cell);});
-    head.append(heading); table.append(head);
-    const body = el('tbody');
-    rows.slice(0, 30).forEach(record => {
-      const line = el('tr');
-      record.forEach((value,index) => {const cell=el(index===0?'th':'td',auditPreview(value));if(index===0)cell.scope='row';line.append(cell);});
-      body.append(line);
-    });
-    table.append(body);
-    $('compareResults').replaceChildren(table);
+    findings = auditRows(result);
+    findingPage = 0;
+    renderFindingsPage();
     $('compareExport').disabled = false;
     $('compareJson').disabled = false;
     $('compareIndex').disabled = false;
@@ -258,5 +291,13 @@
   $('compareExport').addEventListener('click', exportAudit);
   $('compareJson').addEventListener('click', exportAuditJson);
   $('compareIndex').addEventListener('click', exportIssueIndex);
+  $('comparePrev').addEventListener('click', () => {
+    if (comparison && findingPage > 0) { findingPage--; renderFindingsPage(); }
+  });
+  $('compareNext').addEventListener('click', () => {
+    if (comparison && (findingPage + 1) * FINDINGS_PAGE_SIZE < findings.length) {
+      findingPage++; renderFindingsPage();
+    }
+  });
   root.DataRescueCompareUI = {setPrimary, previewText: auditPreview};
 })(window);
