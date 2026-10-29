@@ -48,6 +48,11 @@
 <option value="duplicates">Repeated exact records</option>
 </select>
 <p id="previewStatus" role="status" aria-live="polite" aria-atomic="true">Open a file to inspect records.</p>
+<div class="grid"><div><label for="previewJump"><strong>Jump to original source record</strong></label>
+<input id="previewJump" type="number" min="2" max="50001" step="1" inputmode="numeric" disabled></div>
+<div class="actions"><button type="button" class="secondary" id="previewGo" disabled>Show source record</button></div></div>
+<p class="muted">Record 1 is the header. A record excluded by the selected filter cannot be shown until you change the filter.</p>
+<p id="jumpStatus" role="status" aria-live="polite"></p>
 <div class="actions" role="group" aria-label="Source record preview pages"><button type="button" class="secondary" id="previewPrev" disabled>Previous 20 records</button><button type="button" class="secondary" id="previewNext" disabled>Next 20 records</button></div>
 <div class="overflow" id="table"></div>
 </section>
@@ -99,6 +104,8 @@ function clear(preserveFile=false){
  window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
  $('previewFilter').value='all';$('previewFilter').disabled=true;
+ $('previewJump').value='';$('previewJump').disabled=true;$('previewGo').disabled=true;
+ $('previewJump').removeAttribute('aria-invalid');$('jumpStatus').textContent='';$('jumpStatus').setAttribute('role','status');
  $('previewPrev').disabled=true;$('previewNext').disabled=true;
  $('previewStatus').textContent='Open a file to inspect records.';
  $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;$('saveJson').disabled=true;status('No data loaded.');
@@ -118,7 +125,7 @@ function quality(data,name,provenance=null) {
  for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',window.DataRescueCompareUI.previewText(v)));tbody.append(line);}
  t.append(tbody);$('columns').replaceChildren(t);
  $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;
- $('previewFilter').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));
+ $('previewFilter').disabled=false;$('previewJump').disabled=false;$('previewGo').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));
 }
 function preview(){
  if(!loaded)return;
@@ -169,7 +176,29 @@ clear();const demo='Name,City,Note\n"Ada L.","New York","research"\n"Sam","Bosto
 quality(lib.parseDelimited(demo),'synthetic example');
 });
 $('reset').addEventListener('click',clear);
-$('previewFilter').addEventListener('change',()=>{previewOffset=0;preview();});
+function resetJumpMessage(){
+ $('previewJump').removeAttribute('aria-invalid');
+ $('jumpStatus').textContent='';$('jumpStatus').setAttribute('role','status');
+}
+function jumpToSourceRecord(){
+ if(!loaded)return;
+ const input=$('previewJump'),raw=input.value.trim(),target=Number(raw);
+ const valid=raw!==''&&Number.isSafeInteger(target)&&target>=2&&target<=lib.MAX_ROWS+1;
+ const offset=valid?lib.findSourceRecordOffset(loaded,$('previewFilter').value,target):null;
+ if(offset===null){
+  input.setAttribute('aria-invalid','true');
+  $('jumpStatus').setAttribute('role','alert');
+  $('jumpStatus').textContent=valid?'Source record '+target+' is not included in this filter or file. Choose All source records or another number.':'Enter a whole-number source record from 2 to 50001.';
+  input.focus();return;
+ }
+ previewOffset=Math.floor(offset/PREVIEW_PAGE_SIZE)*PREVIEW_PAGE_SIZE;
+ preview();resetJumpMessage();
+ $('jumpStatus').textContent='Source record '+target+' is on the displayed page. '+$('previewStatus').textContent;
+}
+$('previewFilter').addEventListener('change',()=>{previewOffset=0;resetJumpMessage();preview();});
+$('previewJump').addEventListener('input',resetJumpMessage);
+$('previewJump').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();jumpToSourceRecord();}});
+$('previewGo').addEventListener('click',jumpToSourceRecord);
 $('previewPrev').addEventListener('click',()=>{if(!loaded||previewOffset===0)return;previewOffset=Math.max(0,previewOffset-PREVIEW_PAGE_SIZE);preview();});
 $('previewNext').addEventListener('click',()=>{if(!loaded||$('previewNext').disabled)return;previewOffset+=PREVIEW_PAGE_SIZE;preview();});
 $('save').addEventListener('click',()=>{
