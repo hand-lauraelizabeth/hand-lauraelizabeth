@@ -179,6 +179,22 @@ async function run(label,browserType,url){
   eq(await targetHeader.evaluate(el=>getComputedStyle(el).outlineStyle),'solid',label+' focused row has solid outline');
   ok(await targetHeader.evaluate(el=>getComputedStyle(el,'::after').content.includes('Jump target')),label+' target text is visible beyond color');
   ok((await jumpPage.locator('#jumpStatus').innerText()).includes('highlighted and focused'),label+' status explains focus');
+  // The issue index is value-free, complete beyond the visible 20-row page,
+  // and preserves original source positions and first duplicate occurrence.
+  ok(await jumpPage.locator('#saveIssues').isEnabled(),label+' issue index available after upload');
+  const [issueDownload]=await Promise.all([jumpPage.waitForEvent('download'),jumpPage.locator('#saveIssues').click()]);
+  const issueIndex=JSON.parse(readFileSync(await issueDownload.path(),'utf8'));
+  eq(issueIndex.format,'data-rescue-issue-index',label+' issue index format');
+  eq(issueIndex.recordCount,50,label+' issue index covers all source records');
+  eq(issueIndex.counts,{recordsWithBlankCells:1,repeatedExactRecords:1,issueRecords:2},label+' issue index counts');
+  eq(issueIndex.issues,[
+    {sourceRecord:3,blankColumns:[2],duplicateOf:null},
+    {sourceRecord:51,blankColumns:[],duplicateOf:2}
+  ],label+' issue index exact source positions');
+  ok(!JSON.stringify(issueIndex).includes('alpha'),label+' issue index excludes source cell values');
+  ok(!JSON.stringify(issueIndex).includes('value-'),label+' issue index excludes other cell values');
+  ok(!Object.hasOwn(issueIndex,'records'),label+' issue index does not include full record array');
+  
   const [jumpJson]=await Promise.all([jumpPage.waitForEvent('download'),jumpPage.locator('#saveJson').click()]);
   const jumpEvidence=JSON.parse(readFileSync(await jumpJson.path(),'utf8'));
   eq(jumpEvidence.records.length,50,label+' jump does not truncate JSON evidence');

@@ -289,5 +289,36 @@
     });
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, findSourceRecordOffset, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, MAX_BYTES, MAX_ROWS};
+  // Export only source positions, blank column numbers and exact-duplicate links.
+  // Cell values are deliberately excluded; filenames and hashes can still be sensitive.
+  function exportIssueIndexJson(parsed, sourceFileName = '', provenance = null) {
+    // Reuse the exact evidence validator for headers, dimensions, original source
+    // positions and optional SHA-256 metadata; do not put its records in the output.
+    const validated = JSON.parse(exportEvidenceJson(parsed, sourceFileName, provenance));
+    const seen = new Map(), issues = [];
+    let recordsWithBlankCells = 0, repeatedExactRecords = 0;
+    for (const record of validated.records) {
+      const signature = JSON.stringify(record.values);
+      const duplicateOf = seen.has(signature) ? seen.get(signature) : null;
+      if (!seen.has(signature)) seen.set(signature, record.sourceRecord);
+      const blankColumns = [];
+      record.values.forEach((value, index) => {
+        if (value.trim() === '') blankColumns.push(index + 1);
+      });
+      if (blankColumns.length) recordsWithBlankCells++;
+      if (duplicateOf !== null) repeatedExactRecords++;
+      if (blankColumns.length || duplicateOf !== null)
+        issues.push({sourceRecord: record.sourceRecord, blankColumns, duplicateOf});
+    }
+    return JSON.stringify({
+      format: 'data-rescue-issue-index', schemaVersion: 1,
+      source: validated.source,
+      columnCount: validated.headers.length,
+      recordCount: validated.recordCount,
+      counts: {recordsWithBlankCells, repeatedExactRecords, issueRecords: issues.length},
+      issues
+    });
+  }
+
+  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, findSourceRecordOffset, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, exportIssueIndexJson, MAX_BYTES, MAX_ROWS};
 });
