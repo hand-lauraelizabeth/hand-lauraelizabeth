@@ -8,6 +8,13 @@
   let comparison = null, generation = 0, findingPage = 0;
   let findings = [];
   const FINDINGS_PAGE_SIZE = 30;
+  const FINDING_FILTERS = Object.freeze({
+    all: () => true,
+    matches: row => row[0] === 'Match',
+    ambiguous: row => row[0] === 'Ambiguous — not merged',
+    unmatched: row => row[0] === 'First file only' || row[0] === 'Second file only',
+    missing: row => row[0] === 'Missing first-file key' || row[0] === 'Missing second-file key'
+  });
   const el = (tag, text) => {
     const node = document.createElement(tag);
     if (text !== undefined) node.textContent = String(text);
@@ -41,6 +48,8 @@
     comparison = null;
     findings = [];
     findingPage = 0;
+    $('compareFindingFilter').value = 'all';
+    $('compareFindingFilter').disabled = true;
     $('comparePrev').disabled = true;
     $('compareNext').disabled = true;
     $('comparePageStatus').textContent = 'Compare files to inspect findings.';
@@ -139,7 +148,11 @@
   }
   function renderFindingsPage() {
     if (!comparison) return;
-    const total = findings.length;
+    const filter = $('compareFindingFilter').value;
+    const visible = findings.filter(FINDING_FILTERS[filter] || FINDING_FILTERS.all);
+    const total = visible.length;
+    const allTotal = findings.length;
+    const filterLabel = $('compareFindingFilter').selectedOptions[0]?.textContent || 'Selected';
     const maxPage = Math.max(0, Math.ceil(total / FINDINGS_PAGE_SIZE) - 1);
     findingPage = Math.min(Math.max(0, findingPage), maxPage);
     const start = findingPage * FINDINGS_PAGE_SIZE;
@@ -156,7 +169,7 @@
     });
     head.append(heading); table.append(head);
     const body = el('tbody');
-    findings.slice(start, end).forEach(record => {
+    visible.slice(start, end).forEach(record => {
       const line = el('tr');
       record.forEach((value, index) => {
         const cell = el(index === 0 ? 'th' : 'td', auditPreview(value));
@@ -171,8 +184,10 @@
     $('compareNext').disabled = findingPage >= maxPage;
     $('comparePageStatus').textContent = total
       ? 'Showing findings ' + (start + 1) + ' through ' + end + ' of ' + total +
-        '. Downloads include every finding regardless of this preview page.'
-      : 'No reconciliation findings. Downloads retain the complete result.';
+        (filter === 'all' ? '' : ' in ' + filterLabel + ' (' + allTotal + ' findings overall)') +
+        '. Downloads include every finding regardless of this preview filter or page.'
+      : 'No ' + (filter === 'all' ? 'reconciliation' : filterLabel) +
+        ' findings (' + allTotal + ' findings overall). Downloads retain the complete result.';
   }
   function render(result, coverage) {
     const categories = [
@@ -196,6 +211,8 @@
     }
     findings = auditRows(result);
     findingPage = 0;
+    $('compareFindingFilter').value = 'all';
+    $('compareFindingFilter').disabled = false;
     renderFindingsPage();
     $('compareExport').disabled = false;
     $('compareJson').disabled = false;
@@ -291,6 +308,10 @@
   $('compareExport').addEventListener('click', exportAudit);
   $('compareJson').addEventListener('click', exportAuditJson);
   $('compareIndex').addEventListener('click', exportIssueIndex);
+  $('compareFindingFilter').addEventListener('change', () => {
+    findingPage = 0;
+    renderFindingsPage();
+  });
   $('comparePrev').addEventListener('click', () => {
     if (comparison && findingPage > 0) { findingPage--; renderFindingsPage(); }
   });
