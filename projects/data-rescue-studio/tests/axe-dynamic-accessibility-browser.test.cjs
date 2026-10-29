@@ -170,7 +170,7 @@ async function runEngine(type, name, url) {
     assert.deepEqual(index.findings.firstOnly,[4]); checks++;
     assert.deepEqual(index.findings.secondOnly,[3]); checks++;
     assert.deepEqual(index.findings.missingSecondKey,[4]); checks++;
-    assert.equal(/synthetic\\.csv|second-synthetic|=1\\+1|alpha|match|"key"/.test(JSON.stringify(index)),false); checks++;
+    assert.equal(/synthetic\\.csv|second-synthetic|=1\\+1|alpha|"key":|"fileName":/.test(JSON.stringify(index)),false); checks++;
     assert.match(await page.locator('#compareStatus').innerText(),/No identifier keys, filenames or cell values/); checks++;
     const invalid = await page.evaluate(() => {
       const result={matches:[{key:'SECRET',leftRow:2,rightRow:2}],ambiguous:[],
