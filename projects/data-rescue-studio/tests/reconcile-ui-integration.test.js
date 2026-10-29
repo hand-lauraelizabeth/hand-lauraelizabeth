@@ -40,12 +40,12 @@ class FakeElement {
   remove() {}
 }
 const ids = ['compareFile','compareStatus','compareMetrics','compareResults',
-  'compareRun','compareExport','compareJson','compareClear','leftKey','rightKey'];
+  'compareRun','compareExport','compareJson','compareIndex','compareClear','leftKey','rightKey'];
 const nodes = {};
 for (const id of ids) {
   nodes[id] = new FakeElement(id === 'leftKey' || id === 'rightKey' ? 'select' : 'div');
   // The fixture must respect initial HTML disabled attributes, not merely JS defaults.
-  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareJson'].includes(id);
+  nodes[id].disabled = ['leftKey','rightKey','compareRun','compareExport','compareJson','compareIndex'].includes(id);
 }
 const document = {
   body: new FakeElement('body'),
@@ -57,6 +57,7 @@ const document = {
 };
 const blobs = [], downloads = [];
 const win = {DataRescue: rescue, DataReconcile: engine,
+  DataRescueComparisonIndex: require('../comparison-issue-index.js'),
   // Existing synthetic async fixtures use text(); adapt them to a byte-backed
   // File before invoking the real strict reader. Real byte-backed fixtures
   // pass through unchanged for negative validation cases.
@@ -107,6 +108,7 @@ async function run() {
   check(nodes.compareResults.children.length===1,'visible result table created');
   check(!nodes.compareExport.disabled,'CSV audit enabled only after comparing');
   check(!nodes.compareJson.disabled,'JSON audit enabled only after comparing');
+  check(!nodes.compareIndex.disabled,'privacy-minimized reconciliation index enabled after comparing');
   check(nodes.compareStatus.textContent.includes('ambiguous identifier groups'),'ambiguity reported in status');
   nodes.compareExport.handlers.click();
   check(blobs.length===1,'export creates one local blob');
@@ -123,11 +125,12 @@ async function run() {
   check(nodes.rightKey.disabled,'replacing primary clears loaded second-file key');
   check(nodes.compareFile.value==='','replacing primary clears second-file input');
   check(nodes.compareRun.disabled,'replacing primary disables stale comparison');
-  check(nodes.compareExport.disabled && nodes.compareJson.disabled,'replacing primary revokes both old audits');
+  check(nodes.compareExport.disabled && nodes.compareJson.disabled && nodes.compareIndex.disabled,'replacing primary revokes all old audits');
   nodes.compareClear.handlers.click();
   check(nodes.rightKey.disabled,'clear revokes second-file readiness');
   check(nodes.compareExport.disabled,'clear revokes stale CSV audit');
   check(nodes.compareJson.disabled,'clear revokes stale JSON audit');
+  check(nodes.compareIndex.disabled,'clear revokes stale privacy index');
   // Replacing a file mid-read must ignore the older async completion.
   let finishRead;
   nodes.compareFile.files=[{name:'slow.csv',size:100,text:()=>new Promise(resolve=>finishRead=resolve)}];
@@ -227,7 +230,7 @@ async function run() {
     'JSON audit preserves exact multiline key and source positions');
   check(!JSON.stringify(json).includes('private-field'),'JSON audit excludes non-key source cells');
   check(nodes.compareStatus.role==='status','JSON recovery restores normal status role');
-  check(html.includes('<script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
+  check(html.includes('<script src="reconcile-core.js"></script><script src="comparison-issue-index.js"></script><script src="reconcile-ui.js"></script>'),'scripts loaded before inline controller');
   check(html.includes('DataRescueCompareUI.setPrimary(data,name)'),'first-file load feeds reconciliation UI');
   check(html.includes('DataRescueCompareUI.setPrimary(null)'),'clearing first file invalidates comparison');
   check(html.includes('const ticket=loadEpoch') && html.includes('if(ticket!==loadEpoch)return'),'stale first file reads guarded');

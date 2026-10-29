@@ -11,7 +11,7 @@ const root = join(__dirname, '..');
 const allowed = new Map([
   ['/', 'index.html'], ['/index.html', 'index.html'],
   ['/rescue-core.js', 'rescue-core.js'], ['/file-reader.js', 'file-reader.js'],
-  ['/reconcile-core.js', 'reconcile-core.js'], ['/reconcile-ui.js', 'reconcile-ui.js']
+  ['/reconcile-core.js', 'reconcile-core.js'], ['/comparison-issue-index.js','comparison-issue-index.js'],['/reconcile-ui.js', 'reconcile-ui.js']
 ]);
 const server = createServer((req, res) => {
   const path = allowed.get(new URL(req.url, 'http://localhost').pathname);
