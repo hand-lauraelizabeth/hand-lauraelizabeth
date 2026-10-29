@@ -59,7 +59,7 @@ class NativePreviewRegression(unittest.TestCase):
     def test_01_native_mobile_and_desktop_layout(self):
         # setUp already navigated and verified 20 rows. CDP viewport changes
         # reflow the current document without additional renderer navigations.
-        # The earlier four redundant reloads occasionally timed out in CI.
+        # Extra reloads add renderer work without testing additional behavior.
         try:
             for width in (320, 375, 768, 1440):
                 with self.subTest(width=width):
