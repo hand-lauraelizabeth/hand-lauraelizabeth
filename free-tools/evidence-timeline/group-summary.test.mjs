@@ -57,4 +57,16 @@ check(longGroups[0].group.length===120&&longGroups[0].sourceIds[0].length===120,
 const boundary=formatGroupSummary([{group:'Q'.repeat(47)+'\u202e'+'Z'.repeat(72),sourceIds:['S1','S2']}]);
 check(boundary.includes('\\u202e'),'control at preview boundary remains visible');
 
+// Default-ignorable characters can make different exact identifiers look alike.
+// The preview must reveal them without modifying source IDs or evidence.
+const invisibleRows=[{group:'lab\u034f\ufe0f\u{e0100}\u206f',sourceIds:['A\u3164\u115f','B']}];
+const invisibleBefore=JSON.stringify(invisibleRows);
+const invisiblePreview=formatGroupSummary(invisibleRows);
+for(const escaped of ['\\u034f','\\ufe0f','\\u{e0100}','\\u206f','\\u3164','\\u115f'])
+  check(invisiblePreview.includes(escaped),'preview reveals '+escaped);
+check(!invisiblePreview.includes(invisibleRows[0].group),'raw invisible group not rendered in preview');
+check(!invisiblePreview.includes(invisibleRows[0].sourceIds[0]),'raw invisible identifier not rendered in preview');
+check(JSON.stringify(invisibleRows)===invisibleBefore,'original default-ignorable source data remains exact');
+check(invisiblePreview.length<1200,'escaped invisible preview stays bounded');
+
 console.log('PASS: '+n+' bounded group-summary assertions; baseline '+old.length+' chars, fixed '+short.length+' chars');
