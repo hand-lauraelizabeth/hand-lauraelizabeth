@@ -1,6 +1,5 @@
 """Offline adversarial tests for private NYC 311 publisher-cohort acquisition."""
 import csv
-import datetime as dt
 from collections import Counter
 import json
 import os
@@ -10,7 +9,7 @@ from unittest.mock import patch
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from source_export import download, month_bounds, FIELDS
+from source_export import download, month_bounds, FIELDS, parse_floating_timestamp
 
 
 def record(key):
@@ -144,8 +143,13 @@ class FakePublisher:
                 closed = row.get("closed_date")
                 if not closed:
                     continue
-                created_dt = dt.datetime.fromisoformat(row["created_date"])
-                closed_dt = dt.datetime.fromisoformat(closed)
+                # A fake publisher's aggregate must not preempt the exporter's
+                # separate malformed-row validation with a datetime exception.
+                try:
+                    created_dt = parse_floating_timestamp(row["created_date"], required=True)
+                    closed_dt = parse_floating_timestamp(closed, required=True)
+                except ValueError:
+                    continue
                 if (reverse and closed_dt < created_dt) or (equal and closed_dt == created_dt):
                     n += 1
             if reverse and self.drift == "chronology_drift" and self.chronology_calls > 2:
