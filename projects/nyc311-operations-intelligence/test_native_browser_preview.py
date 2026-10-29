@@ -57,27 +57,34 @@ class NativePreviewRegression(unittest.TestCase):
         )
 
     def test_01_native_mobile_and_desktop_layout(self):
-        for width in (320, 375, 768, 1440):
-            with self.subTest(width=width):
-                self.browser.execute_cdp_cmd("Emulation.setDeviceMetricsOverride", {
-                    "width": width, "height": 900, "deviceScaleFactor": 1, "mobile": False
-                })
-                self.browser.get(self.preview_url)
-                self.assertEqual(
-                    len(self.browser.find_elements(By.CSS_SELECTOR, "#results tr")), 20
-                )
-                sizes = self.browser.execute_script(
-                    "return [innerWidth, document.documentElement.scrollWidth, "
-                    "document.querySelector('.scroll').scrollWidth, "
-                    "document.querySelector('.scroll').clientWidth]"
-                )
-                self.assertEqual(sizes[0], width)
-                self.assertLessEqual(sizes[1], width + 1,
-                                     "Document must not overflow horizontally")
-                if width <= 375:
-                    self.assertGreater(sizes[2], sizes[3],
-                                       "Wide table must scroll inside labeled region")
-        self.browser.execute_cdp_cmd("Emulation.clearDeviceMetricsOverride", {})
+        # setUp already navigated and verified 20 rows. CDP viewport changes
+        # reflow the current document without additional renderer navigations.
+        # Extra reloads add renderer work without testing additional behavior.
+        try:
+            for width in (320, 375, 768, 1440):
+                with self.subTest(width=width):
+                    self.browser.execute_cdp_cmd("Emulation.setDeviceMetricsOverride", {
+                        "width": width, "height": 900, "deviceScaleFactor": 1, "mobile": False
+                    })
+                    WebDriverWait(self.browser, 10).until(
+                        lambda b: b.execute_script("return innerWidth") == width
+                    )
+                    self.assertEqual(
+                        len(self.browser.find_elements(By.CSS_SELECTOR, "#results tr")), 20
+                    )
+                    sizes = self.browser.execute_script(
+                        "return [innerWidth, document.documentElement.scrollWidth, "
+                        "document.querySelector('.scroll').scrollWidth, "
+                        "document.querySelector('.scroll').clientWidth]"
+                    )
+                    self.assertEqual(sizes[0], width)
+                    self.assertLessEqual(sizes[1], width + 1,
+                                         "Document must not overflow horizontally")
+                    if width <= 375:
+                        self.assertGreater(sizes[2], sizes[3],
+                                           "Wide table must scroll inside labeled region")
+        finally:
+            self.browser.execute_cdp_cmd("Emulation.clearDeviceMetricsOverride", {})
 
     def test_02_semantics_and_filter_sort_reset(self):
         self.assertEqual(len(self.browser.find_elements(
