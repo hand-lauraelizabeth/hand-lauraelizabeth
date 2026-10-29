@@ -130,10 +130,11 @@
 
   // Read-only review filters: original logical source records are never renumbered.
   // Filtering the preview does not filter CSV or JSON exports.
-  function inspectSourceRecords(parsed, mode = 'all', limit = 20) {
+  function inspectSourceRecords(parsed, mode = 'all', limit = 20, offset = 0) {
     if (!parsed || !Array.isArray(parsed.rows) ||
         !['all', 'missing', 'duplicates'].includes(mode) ||
-        !Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+        !Number.isSafeInteger(limit) || limit < 1 || limit > 100 ||
+        !Number.isSafeInteger(offset) || offset < 0)
       throw new Error('Choose a valid source-record review filter.');
     const seen = new Map(), entries = [];
     let total = 0;
@@ -145,11 +146,11 @@
       const missing = row.some(value => value.trim() === '');
       if (mode !== 'all' && !(mode === 'missing' ? missing : duplicateOf !== null)) return;
       total++;
-      if (entries.length < limit) entries.push({
+      if (total > offset && entries.length < limit) entries.push({
         sourceRecord, duplicateOf, values: row.slice()
       });
     });
-    return {mode, total, shown: entries.length, entries};
+    return {mode, total, offset, shown: entries.length, entries};
   }
 
   function formulaRisk(value) {

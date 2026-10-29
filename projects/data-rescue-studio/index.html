@@ -39,7 +39,7 @@
 <div id="warnings"></div><div class="overflow" id="columns"></div>
 </section>
 <section class="panel" aria-labelledby="preview"><h2 id="preview">3. Inspect rows</h2>
-<p class="muted">Inspect original logical source-record positions, including records with blank cells or exact duplicates. Filters affect only this preview, never downloads or source data. Only the first 20 matching records are shown. Long values and hidden characters are displayed safely; exports retain exact values.</p>
+<p class="muted">Inspect original logical source-record positions, including records with blank cells or exact duplicates. Filters affect only this preview, never downloads or source data. Results are shown 20 at a time; use Previous and Next to inspect every matching record. Long values and hidden characters are displayed safely; exports retain exact values.</p>
 <label for="previewFilter"><strong>Show source records</strong></label>
 <select id="previewFilter" disabled>
 <option value="all">All source records</option>
@@ -47,6 +47,7 @@
 <option value="duplicates">Repeated exact records</option>
 </select>
 <p id="previewStatus" role="status" aria-live="polite" aria-atomic="true">Open a file to inspect records.</p>
+<div class="actions" role="group" aria-label="Source record preview pages"><button type="button" class="secondary" id="previewPrev" disabled>Previous 20 records</button><button type="button" class="secondary" id="previewNext" disabled>Next 20 records</button></div>
 <div class="overflow" id="table"></div>
 </section>
 <section class="panel" aria-labelledby="compare"><h2 id="compare">4. Reconcile two files</h2>
@@ -81,7 +82,8 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id), lib=window.DataRescue;
-let loaded=null, loadedProvenance=null, loadedSourceName='', loadEpoch=0;
+let loaded=null, loadedProvenance=null, loadedSourceName='', loadEpoch=0, previewOffset=0;
+const PREVIEW_PAGE_SIZE=20;
 const status=(message,error=false)=>{
  const messageNode=$('status'),fileInput=$('file');
  messageNode.textContent=message;
@@ -92,10 +94,11 @@ const status=(message,error=false)=>{
  else fileInput.removeAttribute('aria-invalid');
 };
 function clear(preserveFile=false){
- ++loadEpoch; loaded=null;loadedProvenance=null;loadedSourceName='';if(!preserveFile)$('file').value='';
+ ++loadEpoch; loaded=null;loadedProvenance=null;loadedSourceName='';previewOffset=0;if(!preserveFile)$('file').value='';
  window.DataRescueCompareUI.setPrimary(null);$('metrics').replaceChildren(document.createTextNode('Open a file to see a data-quality summary.'));
  $('columns').replaceChildren();$('table').replaceChildren();$('warnings').replaceChildren();
  $('previewFilter').value='all';$('previewFilter').disabled=true;
+ $('previewPrev').disabled=true;$('previewNext').disabled=true;
  $('previewStatus').textContent='Open a file to inspect records.';
  $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;$('saveJson').disabled=true;status('No data loaded.');
 }
@@ -118,12 +121,16 @@ function quality(data,name,provenance=null) {
 }
 function preview(){
  if(!loaded)return;
- const findings=lib.inspectSourceRecords(loaded,$('previewFilter').value,20);
+ const findings=lib.inspectSourceRecords(loaded,$('previewFilter').value,PREVIEW_PAGE_SIZE,previewOffset);
  const label=findings.mode==='missing'?'records with blank cells':
    findings.mode==='duplicates'?'repeated exact records':'source records';
- $('previewStatus').textContent='Showing '+findings.shown+' of '+findings.total+' '+label+
+ $('previewPrev').disabled=previewOffset===0;
+ $('previewNext').disabled=previewOffset+findings.shown>=findings.total;
+ const start=findings.shown?previewOffset+1:0;
+ const end=previewOffset+findings.shown;
+ $('previewStatus').textContent='Showing '+start+'–'+end+' of '+findings.total+' '+label+
    '. Original source-record positions; exports are unchanged.';
- const table=el('table'),caption=el('caption','Source record preview: '+findings.shown+' of '+findings.total+' '+label);
+ const table=el('table'),caption=el('caption','Source record preview: '+start+'–'+end+' of '+findings.total+' '+label);
  const head=el('thead'),r=el('tr');
  for(const h of ['Source record','Exact duplicate of',...loaded.normalizedHeaders])
    {const th=el('th',window.DataRescueCompareUI.previewText(h));th.scope='col';r.append(th);}
@@ -161,7 +168,9 @@ clear();const demo='Name,City,Note\n"Ada L.","New York","research"\n"Sam","Bosto
 quality(lib.parseDelimited(demo),'synthetic example');
 });
 $('reset').addEventListener('click',clear);
-$('previewFilter').addEventListener('change',preview);
+$('previewFilter').addEventListener('change',()=>{previewOffset=0;preview();});
+$('previewPrev').addEventListener('click',()=>{if(!loaded||previewOffset===0)return;previewOffset=Math.max(0,previewOffset-PREVIEW_PAGE_SIZE);preview();});
+$('previewNext').addEventListener('click',()=>{if(!loaded||$('previewNext').disabled)return;previewOffset+=PREVIEW_PAGE_SIZE;preview();});
 $('save').addEventListener('click',()=>{
  if(!loaded)return;
  const active=$('dedupe').checked?lib.withoutExactDuplicates(loaded):loaded;

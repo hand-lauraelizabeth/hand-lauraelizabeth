@@ -114,6 +114,29 @@ async function run(label,browserType,url){
   await issuePage.setViewportSize({width:1280,height:800});
   eq(issueErrors,[],label+' no errors during issue-filter workflow');
   eq(issueExternal,[],label+' no external requests during issue-filter workflow');
+  // A 47-record synthetic input must remain inspectable beyond the first 20.
+  const pageRows=Array.from({length:47},(_,i)=>
+    String(i+1).padStart(3,'0')+',value-'+i).join('\\n').replaceAll('\\n','\n');
+  await issuePage.locator('#file').setInputFiles({name:'synthetic-pages.csv',mimeType:'text/csv',
+    buffer:Buffer.from('ID,Note\n'+pageRows+'\n','utf8')});
+  await issuePage.waitForFunction(()=>document.querySelector('#previewStatus')?.textContent?.includes('47 source records'));
+  ok(await issuePage.locator('#previewPrev').isDisabled(),label+' first page has no previous');
+  ok(await issuePage.locator('#previewNext').isEnabled(),label+' first page has next');
+  await issuePage.locator('#previewNext').focus();await issuePage.keyboard.press('Enter');
+  eq(await issuePage.locator('#table tbody tr th').first().innerText(),'22',label+' keyboard next retains source record 22');
+  ok((await issuePage.locator('#previewStatus').innerText()).includes('21–40 of 47'),label+' second-page range announced');
+  await issuePage.locator('#previewNext').click();
+  eq(await issuePage.locator('#table tbody tr').count(),7,label+' last page contains seven records');
+  eq(await issuePage.locator('#table tbody tr th').first().innerText(),'42',label+' last page original position');
+  ok(await issuePage.locator('#previewNext').isDisabled(),label+' last page next disabled');
+  await issuePage.locator('#previewPrev').click();
+  eq(await issuePage.locator('#table tbody tr th').first().innerText(),'22',label+' previous returns to original position');
+  await issuePage.locator('#previewFilter').selectOption('missing');
+  ok(await issuePage.locator('#previewPrev').isDisabled(),label+' filter resets page');
+  ok(await issuePage.locator('#previewNext').isDisabled(),label+' empty filter disables next');
+  await issuePage.locator('#reset').click();
+  ok(await issuePage.locator('#previewPrev').isDisabled(),label+' clear disables previous');
+  ok(await issuePage.locator('#previewNext').isDisabled(),label+' clear disables next');
   await issuePage.close();
 
   // Synthetic adversarial multiline cell: spreadsheet-view export must fail closed.

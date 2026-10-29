@@ -154,5 +154,20 @@ console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
   const dedup = withoutExactDuplicates(source);
   assert.deepEqual(inspectSourceRecords(dedup, 'all').entries.map(r => r.sourceRecord), [2,3,4,6]);
   assert.deepEqual(inspectSourceRecords(dedup, 'duplicates').entries, []);
-  console.log('PASS: 15 source-record issue-filter and provenance checks.');
+  const many = parseDelimited('ID,Note\n'+Array.from({length:47},(_,i)=>
+    String(i+1).padStart(3,'0')+',value-'+i).join('\n')+'\n');
+  const page2=inspectSourceRecords(many,'all',20,20);
+  assert.equal(page2.total,47);
+  assert.equal(page2.offset,20);
+  assert.equal(page2.shown,20);
+  assert.deepEqual(page2.entries.map(r=>r.sourceRecord),Array.from({length:20},(_,i)=>i+22));
+  const last=inspectSourceRecords(many,'all',20,40);
+  assert.equal(last.shown,7);
+  assert.deepEqual(last.entries.map(r=>r.sourceRecord),[42,43,44,45,46,47,48]);
+  assert.equal(inspectSourceRecords(many,'all',20,60).shown,0);
+  assert.throws(()=>inspectSourceRecords(many,'all',20,-1),/review filter/);
+  assert.throws(()=>inspectSourceRecords(many,'all',20,1.5),/review filter/);
+  assert.throws(()=>inspectSourceRecords(many,'all',20,Number.MAX_SAFE_INTEGER+1),/review filter/);
+  assert.equal(many.rows.length,47);
+  console.log('PASS: source-record issue filters, pagination and provenance checks.');
 }
