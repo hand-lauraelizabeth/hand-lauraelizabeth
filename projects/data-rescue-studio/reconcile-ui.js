@@ -152,7 +152,7 @@
     const visible = findings.filter(FINDING_FILTERS[filter] || FINDING_FILTERS.all);
     const total = visible.length;
     const allTotal = findings.length;
-    const filterLabel = $('compareFindingFilter').selectedOptions[0]?.textContent || 'Selected';
+    const filterLabel = $('compareFindingFilter').selectedOptions?.[0]?.textContent || 'Selected';
     const maxPage = Math.max(0, Math.ceil(total / FINDINGS_PAGE_SIZE) - 1);
     findingPage = Math.min(Math.max(0, findingPage), maxPage);
     const start = findingPage * FINDINGS_PAGE_SIZE;
