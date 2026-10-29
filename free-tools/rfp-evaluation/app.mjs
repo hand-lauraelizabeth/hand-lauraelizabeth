@@ -1,7 +1,7 @@
 import {exportMatrixJSON,exportMatrixCSV,exportEvidenceCSV} from './core.mjs';
 import {evaluateWithProvenance,exportEvidenceCoverageCSV} from './evidence-coverage.mjs';
 import {readWorkspaceFile} from './reopen.mjs';
-import {describeCoverage} from './coverage-summary.mjs';
+import {describeCoverage,summarizeCriterionCoverage} from './coverage-summary.mjs';
 import {createReplacementGate} from './replacement-gate.mjs';
 import {createResetGate} from './reset-gate.mjs';
 const $=id=>document.getElementById(id);
@@ -56,6 +56,16 @@ function evaluate(event){event.preventDefault();cancelPendingImport();invalidate
  const data={criteria:rows('criterion'),vendors:rows('vendor'),ratings:rows('rating')};
  current=evaluateWithProvenance(data);const body=$('result-body');body.replaceChildren();
  for(const item of current.comparisons){const tr=document.createElement('tr');const values=[item.vendorId,item.name,item.scorePercent===null?'Incomplete':item.scorePercent.toFixed(1)+'%',item.priceCents===null?'Not supplied':'$'+(item.priceCents/100).toFixed(2),item.reviewFlags.length?item.reviewFlags.join('; '):'No flags'];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}body.append(tr);}
+ const criterionBody=$('criterion-coverage-body');criterionBody.replaceChildren();
+ for(const item of summarizeCriterionCoverage(current)){
+  const tr=document.createElement('tr');
+  for(const [index,value] of [item.criterionId,item.scoredPairs,item.completeReferencePairs,item.missingScores,item.scoredMissingAnyReference].entries()){
+   const cell=document.createElement(index===0?'th':'td');
+   if(index===0)cell.scope='row';
+   cell.textContent=String(value);tr.append(cell);
+  }
+  criterionBody.append(tr);
+ }
  $('result-summary').textContent=`${current.comparisons.length} proposal(s) evaluated. ${describeCoverage(current)}`;$('results-section').hidden=false;$('status').textContent='Evaluation complete. '+describeCoverage(current)+' Review flags before exporting.';
  }catch(e){showError(e);}}
 function download(kind){if(!current){showError('Evaluate proposals before exporting.');return;}try{
