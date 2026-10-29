@@ -36,6 +36,7 @@
     $('compareResults').replaceChildren();
     $('compareExport').disabled = true;
     $('compareJson').disabled = true;
+    $('compareIndex').disabled = true;
     $('compareRun').disabled = !(first && second && $('leftKey').value && $('rightKey').value);
   }
   function setPrimary(data, name = '') {
@@ -156,6 +157,7 @@
     $('compareResults').replaceChildren(table);
     $('compareExport').disabled = false;
     $('compareJson').disabled = false;
+    $('compareIndex').disabled = false;
     message('Comparison complete: ' + result.matches.length + ' exact one-to-one matches; ' + result.ambiguous.length + ' ambiguous identifier groups. Unmatched and missing-key records remain separate.');
   }
   function compare() {
@@ -216,6 +218,20 @@
       message('Unable to export comparison audit JSON: ' + error.message, true);
     }
   }
+  function exportIssueIndex() {
+    if (!comparison) return;
+    try {
+      if (!root.DataRescueComparisonIndex || typeof root.DataRescueComparisonIndex.create !== 'function')
+        throw Error('The local reconciliation index builder is unavailable. Reload this page.');
+      const positions = table => table.sourceRecords || table.sourceRowNumbers ||
+        table.rows.map((_, index) => index + 2);
+      const contents = root.DataRescueComparisonIndex.create(comparison, positions(first), positions(second));
+      download(contents, 'data-rescue-reconciliation-issue-index.json', 'application/json;charset=utf-8');
+      message('Exported reconciliation issue index with source positions and categories only. No identifier keys, filenames or cell values. Linkage patterns may still be sensitive; keep it private.');
+    } catch (error) {
+      message('Unable to export reconciliation issue index: ' + error.message, true);
+    }
+  }
   $('compareFile').addEventListener('change', loadSecond);
   $('compareClear').addEventListener('click', clearSecond);
   $('leftKey').addEventListener('change', invalidate);
@@ -223,5 +239,6 @@
   $('compareRun').addEventListener('click', compare);
   $('compareExport').addEventListener('click', exportAudit);
   $('compareJson').addEventListener('click', exportAuditJson);
+  $('compareIndex').addEventListener('click', exportIssueIndex);
   root.DataRescueCompareUI = {setPrimary, previewText: auditPreview};
 })(window);
