@@ -190,6 +190,9 @@ async function runEngine(type, name, url) {
     assert.equal(await page.locator('#compareIndex').isEnabled(),true); checks++;
     assert.equal(await page.locator('#compareMetrics .metric').count(),9); checks++;
     await scan(page,name,'reconciliation results');
+    assert.equal(await page.locator('#comparePrev').isDisabled(),true); checks++;
+    assert.equal(await page.locator('#compareNext').isDisabled(),true); checks++;
+    assert.match(await page.locator('#comparePageStatus').innerText(),/of 6/); checks++;
     assert.deepEqual(await page.locator('#compareResults table thead th').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('scope'))),['col','col','col','col']); checks++;
     assert.ok(await page.locator('#compareResults table tbody tr').count()>0); checks++;
     assert.equal(await page.locator('#compareResults table tbody tr').evaluateAll(rows=>rows.every(row=>row.firstElementChild?.tagName==='TH' && row.firstElementChild.getAttribute('scope')==='row' && [...row.children].slice(1).every(cell=>cell.tagName==='TD'))),true); checks++;
@@ -231,6 +234,8 @@ async function runEngine(type, name, url) {
     await scan(page,name,'reconciliation results at 320px');
     await auditReconciliationCells(page,name,'reconciliation results at 320px');
     await page.locator('#compareClear').click();
+    assert.equal(await page.locator('#comparePrev').isDisabled(),true); checks++;
+    assert.equal(await page.locator('#compareNext').isDisabled(),true); checks++;
     assert.equal(await page.locator('#compareJson').isEnabled(),false); checks++;
     assert.equal(await page.locator('#compareIndex').isEnabled(),false); checks++;
     assert.equal(await page.locator('#rightKey').isEnabled(),false); checks++;
