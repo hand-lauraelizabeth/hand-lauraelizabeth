@@ -31,6 +31,8 @@ def fingerprint(metadata):
         issues.add("unverified_publisher_identity")
     if metadata.get("publicationStage") != "published":
         issues.add("unpublished_source")
+    if metadata.get("assetType") != "dataset":
+        issues.add("invalid_publisher_asset_type")
     revision = metadata.get("rowsUpdatedAt")
     if type(revision) is not int or revision <= 0:
         issues.add("invalid_rows_revision")
@@ -49,21 +51,25 @@ def fingerprint(metadata):
             continue
         if name in names:
             issues.add("duplicate_api_field")
-        names[name] = kind
-        if type(cid) is not int:
+        names[name] = (cid, kind)
+        if type(cid) is not int or cid <= 0:
             issues.add("invalid_column_id")
         elif cid in ids:
             issues.add("duplicate_column_id")
         else:
             ids[cid] = name
     for name, kind in REQUIRED.items():
-        if names.get(name) != kind:
+        if names.get(name, (None, None))[1] != kind:
             issues.add("missing_or_changed_required_field")
-    if ids.get(metadata.get("rowIdentifierColumnId")) != "unique_key":
+    identifier = metadata.get("rowIdentifierColumnId")
+    if type(identifier) is not int or ids.get(identifier) != "unique_key":
         issues.add("unverified_unique_key_identifier")
     # Include computed region fields in signature, but do not require the
     # portal's 44 displayed columns to equal the API's 48 metadata columns.
-    signature = tuple(sorted(names.items()))
+    # Column IDs are part of publisher schema identity: stable names/types
+    # alone can conceal an API-column replacement during an export.
+    signature = tuple(sorted((name, cid, kind)
+                             for name, (cid, kind) in names.items()))
     return signature, revision, sorted(issues)
 
 
