@@ -132,36 +132,6 @@ async function run() {
   check(audit.rows.some(row=>row[0]==='Missing second-file key' && row[3]==='5'),'missing key trace retained');
   check(!csv.includes('Duplicate'),'source data fields omitted from audit');
   check(downloads.length===1,'blob URL revoked after download');
-  // Pagination must expose every finding without truncating any export.
-  const manyLeft='ID\n'+Array.from({length:65},(_,i)=>'L'+String(i+1).padStart(3,'0')).join('\n');
-  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited(manyLeft),'many-left.csv');
-  const oneRight='ID\nR999';
-  nodes.compareFile.files=[{name:'one-right.csv',size:oneRight.length,text:async()=>oneRight}];
-  await nodes.compareFile.handlers.change();
-  nodes.leftKey.value='ID'; nodes.rightKey.value='ID';
-  nodes.leftKey.handlers.change(); nodes.rightKey.handlers.change();
-  nodes.compareRun.handlers.click();
-  check(nodes.compareResults.children[0].children[2].children.length===30,'first page renders exactly 30 findings');
-  check(nodes.comparePrev.disabled && !nodes.compareNext.disabled,'first page navigation state');
-  check(nodes.comparePageStatus.textContent.includes('1 through 30 of 66'),'first page announces complete count');
-  nodes.compareNext.handlers.click();
-  check(nodes.compareResults.children[0].children[2].children.length===30,'second page renders next 30 findings');
-  check(!nodes.comparePrev.disabled && !nodes.compareNext.disabled,'middle page navigation state');
-  nodes.compareNext.handlers.click();
-  check(nodes.compareResults.children[0].children[2].children.length===6,'last page renders remaining six findings');
-  check(!nodes.comparePrev.disabled && nodes.compareNext.disabled,'last page navigation state');
-  check(nodes.comparePageStatus.textContent.includes('61 through 66 of 66'),'last page announces complete count');
-  const beforePagedExport=blobs.length;
-  nodes.compareJson.handlers.click();
-  const pagedAudit=JSON.parse(await blobs[beforePagedExport].text());
-  check(pagedAudit.leftOnly.length===65 && pagedAudit.rightOnly.length===1,
-    'JSON export retains all 66 findings independent of preview page');
-  nodes.comparePrev.handlers.click();
-  check(nodes.comparePageStatus.textContent.includes('31 through 60 of 66'),'previous page navigates backward');
-  nodes.compareClear.handlers.click();
-  check(nodes.comparePrev.disabled && nodes.compareNext.disabled && nodes.compareResults.children.length===0,
-    'clearing second file revokes all paginated findings');
-  check(nodes.comparePageStatus.textContent.includes('Compare files'),'clearing restores empty page status');
   // A replacement primary must revoke an already loaded secondary source,
   // even when the new primary uses the same normalized identifier heading.
   win.DataRescueCompareUI.setPrimary(rescue.parseDelimited('ID,Value\n9,Replacement'),'replacement.csv');
@@ -288,6 +258,36 @@ async function run() {
   check(/id="compareFile"[^>]*aria-describedby="compareStatus"/.test(html),'secondary upload is programmatically associated with error and status');
   check(html.includes('const ticket=loadEpoch') && html.includes('if(ticket!==loadEpoch)return'),'stale first file reads guarded');
   check(!/\bfetch\(|XMLHttpRequest|sendBeacon|\.submit\(/.test(html+ui),'browser interface does not upload data');
+  // Pagination must expose every finding without truncating any export.
+  const manyLeft='ID\n'+Array.from({length:65},(_,i)=>'L'+String(i+1).padStart(3,'0')).join('\n');
+  win.DataRescueCompareUI.setPrimary(rescue.parseDelimited(manyLeft),'many-left.csv');
+  const oneRight='ID\nR999';
+  nodes.compareFile.files=[{name:'one-right.csv',size:oneRight.length,text:async()=>oneRight}];
+  await nodes.compareFile.handlers.change();
+  nodes.leftKey.value='ID'; nodes.rightKey.value='ID';
+  nodes.leftKey.handlers.change(); nodes.rightKey.handlers.change();
+  nodes.compareRun.handlers.click();
+  check(nodes.compareResults.children[0].children[2].children.length===30,'first page renders exactly 30 findings');
+  check(nodes.comparePrev.disabled && !nodes.compareNext.disabled,'first page navigation state');
+  check(nodes.comparePageStatus.textContent.includes('1 through 30 of 66'),'first page announces complete count');
+  nodes.compareNext.handlers.click();
+  check(nodes.compareResults.children[0].children[2].children.length===30,'second page renders next 30 findings');
+  check(!nodes.comparePrev.disabled && !nodes.compareNext.disabled,'middle page navigation state');
+  nodes.compareNext.handlers.click();
+  check(nodes.compareResults.children[0].children[2].children.length===6,'last page renders remaining six findings');
+  check(!nodes.comparePrev.disabled && nodes.compareNext.disabled,'last page navigation state');
+  check(nodes.comparePageStatus.textContent.includes('61 through 66 of 66'),'last page announces complete count');
+  const beforePagedExport=blobs.length;
+  nodes.compareJson.handlers.click();
+  const pagedAudit=JSON.parse(await blobs[beforePagedExport].text());
+  check(pagedAudit.leftOnly.length===65 && pagedAudit.rightOnly.length===1,
+    'JSON export retains all 66 findings independent of preview page');
+  nodes.comparePrev.handlers.click();
+  check(nodes.comparePageStatus.textContent.includes('31 through 60 of 66'),'previous page navigates backward');
+  nodes.compareClear.handlers.click();
+  check(nodes.comparePrev.disabled && nodes.compareNext.disabled && nodes.compareResults.children.length===0,
+    'clearing second file revokes all paginated findings');
+  check(nodes.comparePageStatus.textContent.includes('Compare files'),'clearing restores empty page status');
   console.log('PASS: '+count+' synthetic reconciliation UI integration assertions.');
 }
 run().catch(error=>{console.error(error);process.exitCode=1;});
