@@ -124,6 +124,16 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$where": predicate, "$group": "status", "$order": "status",
         "$limit": PAGE_MAX
     })
+    # Two publisher-side chronology partitions: reversals are invalid durations;
+    # equal timestamps are valid zero durations, not reversals.
+    reversed_url = api_url("/resource/" + DATASET + ".json", {
+        "$select": "count(*) as n",
+        "$where": predicate + " AND closed_date < created_date"
+    })
+    equal_url = api_url("/resource/" + DATASET + ".json", {
+        "$select": "count(*) as n",
+        "$where": predicate + " AND closed_date = created_date"
+    })
     aggregate_url = api_url("/resource/" + DATASET + ".json", {
         "$select": "borough,agency,count(*) as n", "$where": predicate,
         "$group": "borough,agency", "$order": "borough,agency",
@@ -174,6 +184,24 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                 or sum(p for _, p in result.values()) != expected_populated):
             raise ValueError("Official status-closure totals disagree with cohort")
         return result
+
+    def official_chronology(expected_populated):
+        """Read independent publisher chronology counts; never expose row data."""
+        counts = []
+        for label, url in (("reversed", reversed_url), ("equal", equal_url)):
+            data = fetch(url)
+            if not isinstance(data, list) or len(data) != 1 or not isinstance(data[0], dict):
+                raise ValueError("Invalid official closure chronology response")
+            try:
+                n = parse_publisher_count(data[0]["n"])
+            except (KeyError, TypeError, ValueError):
+                raise ValueError("Invalid official closure chronology count") from None
+            if n > expected_populated:
+                raise ValueError("Official closure chronology exceeds populated dates")
+            counts.append(n)
+        if sum(counts) > expected_populated:
+            raise ValueError("Official closure chronology partitions exceed populated dates")
+        return tuple(counts)
 
     def official_pairs(expected_rows):
         data = fetch(aggregate_url)
@@ -285,6 +313,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     before_triples = official_triples(expected)
     before_closure = official_closure_completeness(expected)
     before_status_closure = official_status_closure(expected, before_closure)
+    before_chronology = official_chronology(before_closure)
     if dict(Counter({pair: sum(n for (b, a, _), n in before_triples.items()
                                if (b, a) == pair)
                      for pair in before_pairs})) != before_pairs:
@@ -303,6 +332,8 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     month_end = dt.datetime.fromisoformat(upper)
     rows = 0
     local_closure_populated = 0
+    local_reversed = 0
+    local_equal = 0
     pages = 0
     last_key = None
     temp_csv = temp_receipt = None
@@ -347,6 +378,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                     closed = parse_floating_timestamp(record.get("closed_date"))
                     if closed is not None:
                         local_closure_populated += 1
+                        if closed < timestamp:
+                            local_reversed += 1
+                        elif closed == timestamp:
+                            local_equal += 1
                     if any(not isinstance(record.get(f, ""), str) for f in FIELDS
                            if f != "closed_date"):
                         raise ValueError("Invalid publisher field type")
@@ -392,6 +427,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                                 for s, n in local_status_totals.items()}
         if local_status_closure != before_status_closure:
             raise ValueError("Exported status-closure cross-aggregate disagrees with publisher")
+        after_chronology = official_chronology(before_closure)
+        if after_chronology != before_chronology:
+            raise ValueError("Publisher closure chronology changed during export")
+        if (local_reversed, local_equal) != before_chronology:
+            raise ValueError("Exported closure chronology differs from official aggregate")
         # Stamp *completed* source checks, not the start of a long paginated
         # acquisition. A caller-supplied UTC clock is only a synthetic test hook.
         if verified_at is None:
@@ -440,6 +480,13 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "status_closure_aggregate_cells": len(before_status_closure),
             "status_closure_aggregate_sha256": status_closure_digest,
             "status_closure_cross_aggregate_verified": True,
+            "reversed_closure_query_url": reversed_url,
+            "equal_closure_query_url": equal_url,
+            "reversed_closure_dates": before_chronology[0],
+            "equal_closure_dates": before_chronology[1],
+            "nonnegative_closure_dates": before_closure - before_chronology[0],
+            "positive_closure_dates": before_closure - sum(before_chronology),
+            "closure_chronology_verified": True,
             "where": predicate, "ordered_by": "unique_key ASC",
             "fields": list(FIELDS), "rows": rows, "distinct_keys": len(seen),
             "pages": pages, "page_size": page_size,
