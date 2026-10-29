@@ -50,8 +50,14 @@ async function review(browserType, name, scale, url) {
       scroll: document.documentElement.scrollWidth
     }));
     eq(Number(initial.zoom), scale, name + ' applied CSS zoom stress factor');
-    ok(initial.client <= 1280 / scale + 2, name + ' reduced effective CSS layout width');
-    ok(initial.scroll <= initial.client + 1, name + ' upload controls reflow without page-level horizontal overflow');
+    ok(initial.client > 0, name + ' CSS zoom probe has measurable layout');
+    // Root CSS zoom does not consistently resize the layout viewport across engines.
+    // Reset it and test W3C's 640/320 CSS-pixel zoom-equivalent widths explicitly.
+    await page.evaluate(() => { document.documentElement.style.zoom = '1'; });
+    await page.setViewportSize({width:Math.round(1280 / scale),height:800});
+    const equivalent = await page.evaluate(() => ({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
+    ok(equivalent.client <= Math.round(1280 / scale) + 1, name + ' zoom-equivalent viewport width');
+    ok(equivalent.scroll <= equivalent.client + 1, name + ' upload controls reflow without page-level horizontal overflow');
 
     await page.locator('#file').setInputFiles({
       name:'synthetic-invalid.txt', mimeType:'text/plain', buffer:Buffer.from('ID\n1\n')
@@ -72,7 +78,7 @@ async function review(browserType, name, scale, url) {
       scroll: document.documentElement.scrollWidth,
       zoom: Number(getComputedStyle(document.documentElement).zoom)
     }));
-    eq(loaded.zoom, scale, name + ' CSS zoom persists after upload');
+    eq(loaded.zoom, 1, name + ' equivalent viewport uses native CSS layout');
     ok(loaded.scroll <= loaded.client + 1, name + ' loaded interface reflows without page-level horizontal overflow');
 
     await page.locator('#previewJump').fill('48');
@@ -130,6 +136,6 @@ async function review(browserType, name, scale, url) {
       for (const scale of [2, 4]) await review(type, name + ' CSS ' + (scale * 100) + '%', scale, url);
     }
     console.log('PASS: ' + checks + ' synthetic CSS-zoom stress assertions across Chromium, Firefox and WebKit');
-    console.log('NOTE: CSS zoom is a proxy stress test, NOT native browser zoom, physical device or screen-reader verification.');
+    console.log('NOTE: CSS zoom is probed then reset; functional checks use 640/320 CSS-pixel zoom-equivalent viewports, NOT native browser zoom, physical device or screen-reader verification.');
   } finally { await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
