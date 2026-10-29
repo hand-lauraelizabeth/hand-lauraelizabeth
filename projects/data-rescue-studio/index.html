@@ -84,7 +84,8 @@
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
 <p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab and includes a UTF-8 byte-order mark for Excel compatibility. Ambiguous line-break formula prefixes, direction controls and unsupported controls block spreadsheet-oriented CSV, with a source record and column message; exact JSON remains available. The tab changes those cell values and is not universally safe across spreadsheet programs. Machine-readable export omits both the tab precaution and byte-order mark. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
 <p class="muted">For exact decoded cell values and logical source-record positions, export JSON instead. JSON does not add CSV formula prefixes; it is not a byte-for-byte copy or proof of authenticity. For uploaded files, a local SHA-256 fingerprint of the original bytes is included when browser cryptography is available; it can check byte equality, not establish who created the file. If cryptography is unavailable, no fingerprint is claimed. Both downloads contain your data and should be stored privately.</p>
-<div class="actions"><button id="save" disabled>Export CSV</button><button class="secondary" id="saveJson" disabled>Export exact JSON</button></div>
+<p class="muted">The separate issue index JSON lists original source-record numbers, blank column positions and exact-duplicate links for all findings, not only the visible page. It excludes cell values and header labels, but the filename and optional fingerprint can still be sensitive. It does not identify which duplicates should be deleted.</p>
+<div class="actions"><button id="save" disabled>Export CSV</button><button class="secondary" id="saveJson" disabled>Export exact JSON</button><button class="secondary" id="saveIssues" disabled>Export issue index JSON (no cell values)</button></div>
 </section>
 <footer><p class="muted">Preview version: CSV/TSV inspection and exact-identifier comparison. It does not perform fuzzy matching or validate business-specific rules. Spreadsheet export precautions do not guarantee security.</p></footer>
 </main><script src="rescue-core.js"></script><script src="file-reader.js"></script><script src="reconcile-core.js"></script><script src="reconcile-ui.js"></script><script>
@@ -111,7 +112,7 @@ function clear(preserveFile=false){
  $('previewJump').removeAttribute('aria-invalid');$('jumpStatus').textContent='';$('jumpStatus').setAttribute('role','status');
  $('previewPrev').disabled=true;$('previewNext').disabled=true;
  $('previewStatus').textContent='Open a file to inspect records.';
- $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;$('saveJson').disabled=true;status('No data loaded.');
+ $('dedupe').checked=false;$('dedupe').disabled=true;$('save').disabled=true;$('saveJson').disabled=true;$('saveIssues').disabled=true;status('No data loaded.');
 }
 function el(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
 function quality(data,name,provenance=null) {
@@ -127,7 +128,7 @@ function quality(data,name,provenance=null) {
  thead.append(tr);t.append(thead);const tbody=el('tbody');
  for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',window.DataRescueCompareUI.previewText(v)));tbody.append(line);}
  t.append(tbody);$('columns').replaceChildren(t);
- $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;
+ $('dedupe').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;$('saveIssues').disabled=false;
  $('previewFilter').disabled=false;$('previewJump').disabled=false;$('previewGo').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));
 }
 function preview(){
@@ -231,6 +232,15 @@ $('save').addEventListener('click',()=>{
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  const a=el('a');a.href=url;a.download='data-rescue-reviewed.csv';document.body.append(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1000);status('CSV exported locally: '+active.rows.length+' records.');
+});
+$('saveIssues').addEventListener('click',()=>{
+ if(!loaded)return;
+ const json=lib.exportIssueIndexJson(loaded,loadedSourceName,loadedProvenance);
+ const count=JSON.parse(json).counts.issueRecords;
+ const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'}));
+ const a=el('a');a.href=url;a.download='data-rescue-issue-index.json';document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ status('Issue index JSON exported locally: '+count+' source records with blank cells or exact duplicates. No cell values included.');
 });
 $('saveJson').addEventListener('click',()=>{
  if(!loaded)return;
