@@ -43,3 +43,20 @@ export function describeCoverage(result){
   const c=summarizeCoverage(result);
   return `Coverage: ${c.scoredPairs} of ${c.totalPairs} vendor–criterion pairs scored; ${c.documentedPairs} scored pairs have visible evidence and criterion source; ${c.missingScores} missing scores; ${c.scoredWithoutReferences} scored pairs missing evidence or source; ${c.scoredWithoutReviewer} scored pairs missing a visible reviewer identifier; ${c.completeReferencePairs} scored pairs have visible criterion source, evidence and reviewer identifiers; ${c.scoredMissingAnyReference} scored pairs missing at least one of those references; ${c.withheld} proposal scores withheld; ${c.conflictReview} conflict statuses require review; ${c.missingPrices} prices not supplied. Counts are descriptive, not an award decision.`;
 }
+
+/** Per-criterion descriptive gaps; source IDs remain exact and must be rendered as text. */
+export function summarizeCriterionCoverage(result){
+ summarizeCoverage(result); // Reject malformed comparison structures.
+ return Object.freeze(result.criteria.map((criterion,index)=>{
+  let scoredPairs=0,completeReferencePairs=0;
+  for(const comparison of result.comparisons){
+   const detail=comparison.detail[index];
+   if(detail.score!==null){
+    scoredPairs++;
+    if(hasVisibleReference(criterion.sourceRef)&&hasVisibleReference(detail.evidenceRef)&&hasVisibleReference(detail.reviewer))completeReferencePairs++;
+   }
+  }
+  return Object.freeze({criterionId:criterion.id,scoredPairs,completeReferencePairs,
+   missingScores:result.vendors.length-scoredPairs,scoredMissingAnyReference:scoredPairs-completeReferencePairs});
+ }));
+}
