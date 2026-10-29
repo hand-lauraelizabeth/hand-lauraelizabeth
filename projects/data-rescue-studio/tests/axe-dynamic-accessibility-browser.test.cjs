@@ -23,7 +23,7 @@ const server = createServer((req, res) => {
   } catch { res.writeHead(500).end('Unavailable'); }
 });
 const fixture = Buffer.from('ID,Note\n001,alpha\n002,\n003,=1+1\n001,alpha\n', 'utf8');
-let checks = 0;
+let checks = 0, scans = 0;
 async function scan(page, name, state) {
   const result = await page.evaluate(async () => window.axe.run(document, {
     runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}
@@ -43,6 +43,7 @@ async function scan(page, name, state) {
   }
   assert.deepEqual(failures, [], name+' '+state+' automated WCAG-tagged findings');
   checks++;
+  scans++;
 }
 
 // Supplement axe's inconclusive short/empty-cell contrast results with an
@@ -262,6 +263,6 @@ async function runEngine(type, name, url) {
   const url='http://127.0.0.1:'+server.address().port+'/';
   try {
     for(const [name,type] of [['Chromium',chromium],['Firefox',firefox],['WebKit',webkit]]) await runEngine(type,name,url);
-    console.log('PASS: '+checks+' synthetic browser checks including 33 dynamic axe-core state scans; NOT native screen-reader testing or WCAG certification.');
+    console.log('PASS: '+checks+' synthetic browser checks including '+scans+' dynamic axe-core state scans; NOT native screen-reader testing or WCAG certification.');
   } finally {await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});
