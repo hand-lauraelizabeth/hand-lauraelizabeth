@@ -8,7 +8,7 @@ const {join}=require('node:path');
 const {createHash}=require('node:crypto');
 const {chromium,firefox,webkit}=require('playwright');
 const root=join(__dirname,'..');
-const assets=new Map([['/','index.html'],['/index.html','index.html'],['/rescue-core.js','rescue-core.js'],['/file-reader.js','file-reader.js'],['/reconcile-core.js','reconcile-core.js'],['/reconcile-ui.js','reconcile-ui.js']]);
+const assets=new Map([['/','index.html'],['/index.html','index.html'],['/rescue-core.js','rescue-core.js'],['/file-reader.js','file-reader.js'],['/reconcile-core.js','reconcile-core.js'],['/comparison-issue-index.js','comparison-issue-index.js'],['/reconcile-ui.js','reconcile-ui.js']]);
 const server=createServer((req,res)=>{
  const asset=assets.get(new URL(req.url,'http://localhost').pathname);
  if(!asset){res.writeHead(404).end('Not found');return;}
