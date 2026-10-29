@@ -1,5 +1,6 @@
 """Offline adversarial tests for private NYC 311 publisher-cohort acquisition."""
 import csv
+import datetime as dt
 from collections import Counter
 import json
 import os
@@ -28,6 +29,7 @@ class FakePublisher:
         self.three_calls = 0
         self.closure_calls = 0
         self.status_closure_calls = 0
+        self.chronology_calls = 0
         self.urls = []
 
     def __call__(self, url):
@@ -131,6 +133,30 @@ class FakePublisher:
             if self.drift == "aggregate_missing":
                 return []
             return data
+        if params.get("$select") == ["count(*) as n"]:
+            self.chronology_calls += 1
+            where = params["$where"][0]
+            reverse = "closed_date < created_date" in where
+            equal = "closed_date = created_date" in where
+            assert reverse or equal
+            n = 0
+            for row in self.rows:
+                closed = row.get("closed_date")
+                if not closed:
+                    continue
+                created_dt = dt.datetime.fromisoformat(row["created_date"])
+                closed_dt = dt.datetime.fromisoformat(closed)
+                if (reverse and closed_dt < created_dt) or (equal and closed_dt == created_dt):
+                    n += 1
+            if reverse and self.drift == "chronology_drift" and self.chronology_calls > 2:
+                n += 1
+            if reverse and self.drift == "chronology_local_mismatch":
+                n += 1
+            if self.drift == "chronology_malformed":
+                return [{"n": True}]
+            if self.drift == "chronology_overpopulated":
+                return [{"n": len(self.rows) + 1}]
+            return [{"n": str(n)}]
         if "$select" in params and "count(closed_date)" in params["$select"][0]:
             self.closure_calls += 1
             populated = sum(bool(r.get("closed_date")) for r in self.rows)
@@ -543,6 +569,42 @@ class TestSourceExport(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "status-closure"):
                     download("2026-09", csvfile, receiptfile,
                              fetch=FakePublisher(rows=rows, drift=drift))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+
+    def test_closure_chronology_partition_and_aggregate_only_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [record(f"{i:03d}") for i in range(1, 5)]
+            rows[0]["status"] = "Closed"
+            rows[0]["closed_date"] = "2026-09-15T08:59:59"  # reversed, same day
+            rows[1]["status"] = "Pending"
+            rows[1]["closed_date"] = "2026-09-15T09:00:00"  # equal, not negative
+            rows[2]["closed_date"] = "2026-09-16T09:00:00"  # positive, Open
+            publisher = FakePublisher(rows)
+            receipt = download("2026-09", Path(tmp)/"source.csv",
+                               Path(tmp)/"receipt.json", fetch=publisher)
+            self.assertEqual((receipt["reversed_closure_dates"],
+                              receipt["equal_closure_dates"],
+                              receipt["nonnegative_closure_dates"],
+                              receipt["positive_closure_dates"]), (1, 1, 2, 1))
+            self.assertEqual(publisher.chronology_calls, 4)
+            self.assertTrue(receipt["closure_chronology_verified"])
+            self.assertIn("closed_date+%3C+created_date", receipt["reversed_closure_query_url"])
+            self.assertIn("closed_date+%3D+created_date", receipt["equal_closure_query_url"])
+            self.assertNotIn("unique_key", str({k: v for k, v in receipt.items()
+                                                 if k.startswith("reversed_closure")}))
+
+    def test_closure_chronology_drift_and_local_mismatch_fail_closed(self):
+        for drift in ("chronology_drift", "chronology_local_mismatch",
+                      "chronology_malformed", "chronology_overpopulated"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                row = record("001")
+                row["closed_date"] = "2026-09-16T09:00:00"
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "closure chronology"):
+                    download("2026-09", csvfile, receiptfile,
+                             fetch=FakePublisher([row], drift=drift))
                 self.assertFalse(csvfile.exists())
                 self.assertFalse(receiptfile.exists())
 
