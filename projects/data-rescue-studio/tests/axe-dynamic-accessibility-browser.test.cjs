@@ -136,12 +136,25 @@ async function runEngine(type, name, url) {
     await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Choose a second .csv or .tsv file'));
     assert.equal(await page.locator('#compareStatus').getAttribute('role'),'alert'); checks++;
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareStatus'); checks++;
+    assert.equal(await page.locator('#compareFile').getAttribute('aria-invalid'),'true'); checks++;
+    assert.equal(await page.locator('#compareFile').getAttribute('aria-describedby'),'compareStatus'); checks++;
+    assert.equal(await page.locator('#compareStatus').getAttribute('aria-live'),'assertive'); checks++;
     await scan(page,name,'second-file upload error');
+    await page.locator('#compareFile').setInputFiles({
+      name:'malformed.csv',mimeType:'text/csv',buffer:Buffer.from([0x49,0x44,0x0A,0xC3])
+    });
+    await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Invalid UTF-8'));
+    assert.equal(await page.locator('#compareFile').getAttribute('aria-invalid'),'true'); checks++;
+    assert.equal(await page.locator('#compareRun').isDisabled(),true); checks++;
+    await scan(page,name,'second-file invalid UTF-8');
     await page.locator('#compareFile').setInputFiles({
       name:'second-synthetic.csv',mimeType:'text/csv',
       buffer:Buffer.from('ID,Note\n002,match\n004,new\n,missing\n','utf8')
     });
     await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Loaded second file'));
+    assert.equal(await page.locator('#compareFile').getAttribute('aria-invalid'),null); checks++;
+    assert.equal(await page.locator('#compareStatus').getAttribute('role'),'status'); checks++;
+    assert.equal(await page.locator('#compareStatus').getAttribute('aria-live'),'polite'); checks++;
     assert.equal(await page.locator('#rightKey').isEnabled(),true); checks++;
     await scan(page,name,'second file loaded');
     await page.locator('#leftKey').selectOption('ID');
