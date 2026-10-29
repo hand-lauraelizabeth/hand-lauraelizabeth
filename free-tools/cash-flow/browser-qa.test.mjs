@@ -66,6 +66,19 @@ async function testBrowser(name,type){
     assert.deepEqual(visited,expected,name+': keyboard control traversal order');
     checks++;
 
+    // A nonzero shift without a selected event previously produced an unchanged,
+    // misleading scenario. Require a text error, field identification and recovery.
+    await fill(page,'shift-days','5');
+    await page.locator('#calculate').click();
+    check((await page.locator('#error').textContent()).includes('Choose an event to shift'),name+': no-op shift has actionable text error');
+    check(await page.locator('#shift-id').getAttribute('aria-invalid')==='true',name+': missing shift event identified');
+    check(await page.locator('#shift-id').getAttribute('aria-describedby')==='error',name+': error associated with shift selector');
+    check(await page.evaluate(()=>document.activeElement.id)==='shift-id',name+': keyboard focus on shift selector');
+    check(await page.locator('#export-json').isDisabled(),name+': invalid no-op scenario cannot export');
+    await fill(page,'shift-days','0');
+    check(await page.locator('#shift-id').getAttribute('aria-invalid')===null,name+': correction clears invalid field state');
+    await page.locator('#calculate').click();
+    check(await page.locator('#export-json').isEnabled(),name+': zero-shift baseline is valid');
     await fill(page,'start','2024-02-01');
     await fill(page,'end','2024-05-10');
     await fill(page,'opening','100.00');
