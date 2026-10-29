@@ -300,8 +300,10 @@ async function run() {
   const pagedAudit=JSON.parse(await blobs[beforePagedExport].text());
   check(pagedAudit.leftOnly.length===65 && pagedAudit.rightOnly.length===1,
     'JSON export retains all 66 findings independent of preview page');
+  nodes.compareFindingFilter.value='all'; nodes.compareFindingFilter.handlers.change();
+  nodes.compareNext.handlers.click(); nodes.compareNext.handlers.click();
   nodes.comparePrev.handlers.click();
-  check(nodes.comparePageStatus.textContent.includes('31 through 60 of 66'),'previous page navigates backward');
+  check(nodes.comparePageStatus.textContent.includes('31 through 60 of 66'),'previous page navigates backward after restoring all findings');
   nodes.compareClear.handlers.click();
   check(nodes.comparePrev.disabled && nodes.compareNext.disabled && nodes.compareResults.children.length===0,
     'clearing second file revokes all paginated findings');
