@@ -144,12 +144,12 @@
     const table = el('table');
     table.append(el('caption', 'First ' + Math.min(30, rows.length) + ' of ' + rows.length + ' reconciliation findings'));
     const head = el('thead'), heading = el('tr');
-    ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'].forEach(text => heading.append(el('th', text)));
+    ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'].forEach(text => {const cell=el('th',text);cell.scope='col';heading.append(cell);});
     head.append(heading); table.append(head);
     const body = el('tbody');
     rows.slice(0, 30).forEach(record => {
       const line = el('tr');
-      record.forEach(value => line.append(el('td', auditPreview(value))));
+      record.forEach((value,index) => {const cell=el(index===0?'th':'td',auditPreview(value));if(index===0)cell.scope='row';line.append(cell);});
       body.append(line);
     });
     table.append(body);

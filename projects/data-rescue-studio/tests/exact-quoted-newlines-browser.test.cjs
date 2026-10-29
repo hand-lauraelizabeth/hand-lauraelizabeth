@@ -328,7 +328,7 @@ async function run(label,browserType,url){
   const previewHeading=await page.locator('#table thead th').nth(3).innerText();
   ok(previewHeading.includes('\\u{200B}') && previewHeading.includes('code points omitted'),
     label+' first-file header preview bounded and escaped');
-  const qualityHeading=await page.locator('#columns tbody tr').nth(1).locator('td').first().innerText();
+  const qualityHeading=await page.locator('#columns tbody tr').nth(1).locator('th[scope="row"]').innerText();
   ok(qualityHeading.includes('\\u{200B}') && qualityHeading.includes('code points omitted'),
     label+' completeness column heading bounded and escaped');
   const [previewJson]=await Promise.all([page.waitForEvent('download'),page.locator('#saveJson').click()]);

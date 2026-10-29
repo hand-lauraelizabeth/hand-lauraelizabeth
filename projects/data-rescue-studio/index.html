@@ -126,9 +126,9 @@ function quality(data,name,provenance=null) {
  if (result.duplicateRows.length)notes.append(el('li','Exact duplicate pairs: '+result.duplicateRows.slice(0,10).map(x=>x.row+' matches '+x.firstSeen).join('; ')+(result.duplicateRows.length>10?'…':'')));
  $('warnings').replaceChildren(notes);
  const t=el('table'),cap=el('caption','Column completeness'),thead=el('thead'),tr=el('tr');
- for(const h of ['Column','Blank','Distinct values','Rows'])tr.append(el('th',h));
+ for(const h of ['Column','Blank','Distinct values','Rows']){const cell=el('th',h);cell.scope='col';tr.append(cell);}
  thead.append(tr);t.append(thead);const tbody=el('tbody');
- for(const col of result.columns){const line=el('tr');for(const v of [col.name,col.blank,col.unique,col.total])line.append(el('td',window.DataRescueCompareUI.previewText(v)));tbody.append(line);}
+ for(const col of result.columns){const line=el('tr');for(const [index,v] of [col.name,col.blank,col.unique,col.total].entries()){const cell=el(index===0?'th':'td',window.DataRescueCompareUI.previewText(v));if(index===0)cell.scope='row';line.append(cell);}tbody.append(line);}
  t.append(tbody);$('columns').replaceChildren(t);
  $('dedupe').disabled=false;$('issueIncludeSource').disabled=false;$('save').disabled=false;$('saveJson').disabled=false;$('saveIssues').disabled=false;
  $('previewFilter').disabled=false;$('previewJump').disabled=false;$('previewGo').disabled=false;preview();status('Loaded '+name+': '+result.rowCount+' data rows. No file was transmitted. '+(provenance?'Original-byte SHA-256 is available for the evidence export.':'Original-byte SHA-256 is unavailable; the evidence export will not include a source fingerprint.'));

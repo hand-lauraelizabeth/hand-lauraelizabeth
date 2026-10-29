@@ -117,6 +117,9 @@ async function runEngine(type, name, url) {
     await page.locator('#file').setInputFiles({name:'synthetic.csv',mimeType:'text/csv',buffer:fixture});
     await page.waitForFunction(()=>document.querySelector('#previewStatus')?.textContent?.includes('4 source records'));
     await scan(page,name,'loaded with missing and duplicate');
+    assert.deepEqual(await page.locator('#columns table thead th').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('scope'))),['col','col','col','col']); checks++;
+    assert.ok(await page.locator('#columns table tbody tr').count()>0); checks++;
+    assert.equal(await page.locator('#columns table tbody tr').evaluateAll(rows=>rows.every(row=>row.firstElementChild?.tagName==='TH' && row.firstElementChild.getAttribute('scope')==='row' && [...row.children].slice(1).every(cell=>cell.tagName==='TD'))),true); checks++;
     await page.locator('#previewFilter').selectOption('duplicates');
     await scan(page,name,'filtered duplicates');
     await page.locator('#previewJump').fill('5');
@@ -148,6 +151,9 @@ async function runEngine(type, name, url) {
     assert.match(await page.locator('#compareStatus').innerText(),/1 exact one-to-one matches/); checks++;
     assert.match(await page.locator('#compareResults').innerText(),/002/); checks++;
     await scan(page,name,'reconciliation results');
+    assert.deepEqual(await page.locator('#compareResults table thead th').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('scope'))),['col','col','col','col']); checks++;
+    assert.ok(await page.locator('#compareResults table tbody tr').count()>0); checks++;
+    assert.equal(await page.locator('#compareResults table tbody tr').evaluateAll(rows=>rows.every(row=>row.firstElementChild?.tagName==='TH' && row.firstElementChild.getAttribute('scope')==='row' && [...row.children].slice(1).every(cell=>cell.tagName==='TD'))),true); checks++;
     await auditReconciliationCells(page,name,'reconciliation results');
     await page.locator('#compareResults').focus();
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareResults'); checks++;
