@@ -31,6 +31,15 @@ async function scan(page, name, state) {
     id:v.id, impact:v.impact, nodes:v.nodes.map(n=>n.target.join(' ')), description:v.help
   }));
   console.log(name+' '+state+': '+result.passes.length+' rules passed; '+result.incomplete.length+' require manual inspection; '+failures.length+' violations.');
+  // Incomplete axe findings are not passes: retain the synthetic-only node
+  // and rule details in CI so a human can inspect them before release.
+  if (result.incomplete.length) {
+    const manual = result.incomplete.map(rule=>({
+      id:rule.id,
+      nodes:rule.nodes.map(node=>({target:node.target,summary:(node.failureSummary||'').slice(0,240)}))
+    }));
+    console.log(name+' '+state+' manual accessibility review needed: '+JSON.stringify(manual));
+  }
   assert.deepEqual(failures, [], name+' '+state+' automated WCAG-tagged findings');
   checks++;
 }
@@ -58,6 +67,37 @@ async function runEngine(type, name, url) {
     await scan(page,name,'focused jump target');
     await page.setViewportSize({width:320,height:800});
     await scan(page,name,'320px reflow');
+    // Extend the same synthetic audit to the second-file/reconciliation workflow.
+    // This catches accessible-state regressions that first-file-only scans miss.
+    await page.setViewportSize({width:1280,height:800});
+    await page.locator('#compareFile').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('ID\n1\n')});
+    await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Choose a second .csv or .tsv file'));
+    assert.equal(await page.locator('#compareStatus').getAttribute('role'),'alert'); checks++;
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareStatus'); checks++;
+    await scan(page,name,'second-file upload error');
+    await page.locator('#compareFile').setInputFiles({
+      name:'second-synthetic.csv',mimeType:'text/csv',
+      buffer:Buffer.from('ID,Note\n002,match\n004,new\n,missing\n','utf8')
+    });
+    await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Loaded second file'));
+    assert.equal(await page.locator('#rightKey').isEnabled(),true); checks++;
+    await scan(page,name,'second file loaded');
+    await page.locator('#leftKey').selectOption('ID');
+    await page.locator('#rightKey').selectOption('ID');
+    assert.equal(await page.locator('#compareRun').isEnabled(),true); checks++;
+    await page.locator('#compareRun').click();
+    await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Comparison complete'));
+    assert.match(await page.locator('#compareStatus').innerText(),/1 exact one-to-one matches/); checks++;
+    assert.match(await page.locator('#compareResults').innerText(),/002/); checks++;
+    await scan(page,name,'reconciliation results');
+    await page.locator('#compareResults').focus();
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareResults'); checks++;
+    await page.setViewportSize({width:320,height:800});
+    await scan(page,name,'reconciliation results at 320px');
+    await page.locator('#compareClear').click();
+    assert.equal(await page.locator('#compareJson').isEnabled(),false); checks++;
+    assert.equal(await page.locator('#rightKey').isEnabled(),false); checks++;
+    await scan(page,name,'cleared reconciliation');
     assert.deepEqual(errors, [],name+' no JavaScript exceptions'); checks++;
     assert.deepEqual(external, [],name+' no off-origin requests'); checks++;
     await page.close();
@@ -68,6 +108,6 @@ async function runEngine(type, name, url) {
   const url='http://127.0.0.1:'+server.address().port+'/';
   try {
     for(const [name,type] of [['Chromium',chromium],['Firefox',firefox],['WebKit',webkit]]) await runEngine(type,name,url);
-    console.log('PASS: '+checks+' synthetic browser checks including 18 dynamic axe-core state scans; NOT native screen-reader testing or WCAG certification.');
+    console.log('PASS: '+checks+' synthetic browser checks including 33 dynamic axe-core state scans; NOT native screen-reader testing or WCAG certification.');
   } finally {await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});
