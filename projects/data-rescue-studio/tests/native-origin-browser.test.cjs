@@ -10,7 +10,7 @@ const root=join(__dirname,'..');
 const assets=new Map([
  ['/', 'index.html'],['/index.html','index.html'],
  ['/rescue-core.js','rescue-core.js'],['/file-reader.js','file-reader.js'],
- ['/reconcile-core.js','reconcile-core.js'],['/reconcile-ui.js','reconcile-ui.js']
+ ['/reconcile-core.js','reconcile-core.js'],['/comparison-issue-index.js','comparison-issue-index.js'],['/reconcile-ui.js','reconcile-ui.js']
 ]);
 const fixture=Buffer.from('ID,Note\r\n0007,"=1+2"\r\n0008,"café"\r\n','utf8');
 const expectedHash=createHash('sha256').update(fixture).digest('hex');
