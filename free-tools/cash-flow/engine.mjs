@@ -46,7 +46,8 @@ export function project({start,end,openingCents,events,shiftId=null,shiftDays=0}
   if(span<1||span>LIMITS.days)throw Error('Choose 1–366 days.');
   if(!Number.isSafeInteger(openingCents)||Math.abs(openingCents)>LIMITS.maxAbsCents)throw Error('Invalid opening balance.');
   if(!Array.isArray(events)||events.length>LIMITS.events)throw Error('Too many events.');
-  if(shiftId!==null&&(!Number.isSafeInteger(shiftDays)||Math.abs(shiftDays)>60))throw Error('Invalid scenario shift.');
+  if(!Number.isSafeInteger(shiftDays)||Math.abs(shiftDays)>60)throw Error('Shift days must be a whole number between -60 and 60.');
+  if(shiftId===null&&shiftDays!==0)throw Error('Choose an event to shift, or set shift days to 0.');
   const ids=new Set(),byDate=new Map();
   for(const e of events){
     if(typeof e.id!=='string'||!e.id.trim()||ids.has(e.id))throw Error('Event IDs must be unique and nonempty.');

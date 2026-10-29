@@ -66,6 +66,19 @@ async function testBrowser(name,type){
     assert.deepEqual(visited,expected,name+': keyboard control traversal order');
     checks++;
 
+    // A nonzero shift without a selected event previously produced an unchanged,
+    // misleading scenario. Require a text error, field identification and recovery.
+    await fill(page,'shift-days','5');
+    await page.locator('#calculate').click();
+    check((await page.locator('#error').textContent()).includes('Choose an event to shift'),name+': no-op shift has actionable text error');
+    check(await page.locator('#shift-id').getAttribute('aria-invalid')==='true',name+': missing shift event identified');
+    check(await page.locator('#shift-id').getAttribute('aria-describedby')==='error',name+': error associated with shift selector');
+    check(await page.evaluate(()=>document.activeElement.id)==='shift-id',name+': keyboard focus on shift selector');
+    check(await page.locator('#export-json').isDisabled(),name+': invalid no-op scenario cannot export');
+    await fill(page,'shift-days','0');
+    check(await page.locator('#shift-id').getAttribute('aria-invalid')===null,name+': correction clears invalid field state');
+    await page.locator('#calculate').click();
+    check(await page.locator('#export-json').isEnabled(),name+': zero-shift baseline is valid');
     await fill(page,'start','2024-02-01');
     await fill(page,'end','2024-05-10');
     await fill(page,'opening','100.00');
@@ -126,6 +139,7 @@ async function testBrowser(name,type){
     check(coverage.includes('baseline 1 of 2 ["future-bill"]'),name+': outside-window bill named in baseline coverage');
     check(coverage.includes('shifted scenario 1 of 2 ["future-bill"]'),name+': outside-window bill named in scenario coverage');
     check((await page.locator('#events').textContent()).includes('future-bill'),name+': outside-window bill remains in editable event list');
+    check(await page.locator('#shift-id').inputValue()==='rent',name+': adding a second event preserves the selected timing shift');
 
     const [coverageDownload]=await Promise.all([
       page.waitForEvent('download'),
@@ -260,6 +274,8 @@ async function testBrowser(name,type){
     check(removalDialogs.length===2,name+': confirmed removal requires a second prompt');
     check((await page.locator('#events').textContent()).includes('No events added.'),
       name+': confirmed removal clears selected event');
+    check(await page.locator('#shift-id').inputValue()===''&&await page.locator('#shift-days').inputValue()==='0',
+      name+': removing the selected event clears its orphaned timing shift');
     check(await page.locator('#export-json').isDisabled()&&await page.locator('#export').isDisabled(),
       name+': confirmed removal invalidates stale exports');
     check((await page.locator('#results tr').count())===0,
