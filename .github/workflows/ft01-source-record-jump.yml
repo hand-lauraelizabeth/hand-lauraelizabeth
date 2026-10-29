@@ -1,0 +1,24 @@
+name: FT-01 direct source-record navigation
+
+on:
+  pull_request:
+    paths:
+      - "projects/data-rescue-studio/rescue-core.js"
+      - "projects/data-rescue-studio/index.html"
+      - "projects/data-rescue-studio/tests/source-record-jump.test.js"
+      - ".github/workflows/ft01-source-record-jump.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  source-record-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify exact source-record jump and provenance
+        run: node projects/data-rescue-studio/tests/source-record-jump.test.js
