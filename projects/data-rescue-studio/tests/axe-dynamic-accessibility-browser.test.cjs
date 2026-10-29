@@ -151,6 +151,31 @@ async function runEngine(type, name, url) {
     await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Comparison complete'));
     assert.match(await page.locator('#compareStatus').innerText(),/1 exact one-to-one matches/); checks++;
     assert.match(await page.locator('#compareResults').innerText(),/002/); checks++;
+    assert.equal(await page.locator('#compareMetrics .metric').count(),9); checks++;
+    assert.match(await page.locator('#compareStatus').innerText(),/Classified 4 of 4 first-file records and 3 of 3 second-file records/); checks++;
+    // Simulate a reconciliation engine that silently omits one original record.
+    // The UI must refuse to show or export a partial result, then recover.
+    await page.evaluate(() => {
+      window.__originalReconcileForCoverageTest = window.DataReconcile.reconcile;
+      window.DataReconcile.reconcile = (...args) => ({
+        ...window.__originalReconcileForCoverageTest(...args), missingRight:[]
+      });
+    });
+    await page.locator('#compareRun').click();
+    assert.match(await page.locator('#compareStatus').innerText(),/Incomplete source-record coverage/); checks++;
+    assert.equal(await page.locator('#compareStatus').getAttribute('role'),'alert'); checks++;
+    assert.equal(await page.locator('#compareMetrics .metric').count(),0); checks++;
+    assert.equal(await page.locator('#compareResults table').count(),0); checks++;
+    for (const id of ['compareExport','compareJson','compareIndex']) {
+      assert.equal(await page.locator('#'+id).isEnabled(),false); checks++;
+    }
+    await page.evaluate(() => {
+      window.DataReconcile.reconcile = window.__originalReconcileForCoverageTest;
+      delete window.__originalReconcileForCoverageTest;
+    });
+    await page.locator('#compareRun').click();
+    assert.equal(await page.locator('#compareIndex').isEnabled(),true); checks++;
+    assert.equal(await page.locator('#compareMetrics .metric').count(),9); checks++;
     await scan(page,name,'reconciliation results');
     assert.deepEqual(await page.locator('#compareResults table thead th').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('scope'))),['col','col','col','col']); checks++;
     assert.ok(await page.locator('#compareResults table tbody tr').count()>0); checks++;

@@ -104,7 +104,17 @@ async function run() {
   check(!nodes.compareRun.disabled,'compare enabled when both keys chosen');
   nodes.compareRun.handlers.click();
   const counts=nodes.compareMetrics.children.map(node=>Number(node.children[1].textContent));
-  assert.deepEqual(counts,[1,1,1,1,2]);count++;
+  assert.deepEqual(counts,[1,1,1,1,2,5,4,2,1]);count++;
+  check(nodes.compareStatus.textContent.includes('Classified 5 of 5 first-file records and 4 of 4 second-file records'), 'completion status distinguishes source records from key groups');
+  const originalReconcile=engine.reconcile;
+  engine.reconcile=(...args)=>({...originalReconcile(...args),missingRight:[]});
+  nodes.compareRun.handlers.click();
+  check(nodes.compareExport.disabled && nodes.compareJson.disabled && nodes.compareIndex.disabled, 'incomplete reconciliation fails closed for every export');
+  check(nodes.compareMetrics.children.length===0 && nodes.compareResults.children.length===0, 'incomplete reconciliation never displays misleading findings');
+  check(nodes.compareStatus.role==='alert' && /Incomplete source-record coverage/.test(nodes.compareStatus.textContent), 'incomplete comparison produces actionable accessible error');
+  engine.reconcile=originalReconcile;
+  nodes.compareRun.handlers.click();
+  check(!nodes.compareExport.disabled && !nodes.compareJson.disabled && !nodes.compareIndex.disabled, 'valid retry restores exports after coverage failure');
   check(nodes.compareResults.children.length===1,'visible result table created');
   check(!nodes.compareExport.disabled,'CSV audit enabled only after comparing');
   check(!nodes.compareJson.disabled,'JSON audit enabled only after comparing');
