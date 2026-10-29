@@ -18,8 +18,8 @@ def serve():
 def main():
     records=[]
     for i in range(20):
-        group='<img src=x onerror=alert(1)>\u202e' if i//2==0 else f'g{i//2}'
-        records.append({'sourceId':f'{i:04d}','date':'2026-10-25',
+        group='<img src=x onerror=alert(1)>\u202e' if i//2==0 else ('L'*120 if i//2==1 else f'g{i//2}')
+        records.append({'sourceId':('I'*120 if i==2 else f'{i:04d}'),'date':'2026-10-25',
                         'claim':f'Synthetic claim {i}','kind':'source','status':'reported','group':group})
     with serve() as url, sync_playwright() as pw:
         origin=url.rsplit('/',1)[0]+'/'
@@ -40,6 +40,8 @@ def main():
             assert '2 additional groups not shown' in preview
             assert 'g7' in preview and 'g8' not in preview and 'g9' not in preview
             assert len(preview)<2500,(engine,len(preview))
+            assert '72 additional characters not shown' in preview,(engine,'long group/ID truncated')
+            assert 'I'*120 not in preview and 'L'*120 not in preview,(engine,'preview-only clipping')
             assert '\\u202e' in preview and '<img src=x onerror=alert(1)>' in preview
             assert page.locator('#groups img').count()==0
             page.locator('#group-find').fill('g9')
