@@ -21,6 +21,12 @@ check(()=>assert.equal(config.events[1].date,'2026-10-16'));
 check(()=>assert.throws(()=>project({...config,events:[events[0],events[0]]}),/unique/));
 check(()=>assert.throws(()=>project({...config,end:'2028-01-01'}),/366/));
 check(()=>assert.throws(()=>project({...config,shiftId:'missing',shiftDays:1}),/not found/));
+// A nonzero shift with no selected event must never be silently presented as a scenario.
+check(()=>assert.throws(()=>project({...config,shiftId:null,shiftDays:5}),/Choose an event to shift/));
+check(()=>assert.throws(()=>project({...config,shiftId:null,shiftDays:-5}),/Choose an event to shift/));
+check(()=>assert.throws(()=>project({...config,shiftId:null,shiftDays:NaN}),/whole number/));
+check(()=>assert.throws(()=>project({...config,shiftId:null,shiftDays:61}),/between -60 and 60/));
+check(()=>assert.deepEqual(project({...config,shiftId:null,shiftDays:0}).days,base.days));
 check(()=>assert.ok(csvCell('=HYPERLINK(\"evil\")').includes("'=HYPERLINK")));
 check(()=>assert.ok(csvCell('\t+SUM(1)').includes("'\t+SUM")));
 check(()=>assert.ok(exportCSV(project({...config,events:[{...events[0],label:'=FORMULA'}]})).includes("'=FORMULA")));
