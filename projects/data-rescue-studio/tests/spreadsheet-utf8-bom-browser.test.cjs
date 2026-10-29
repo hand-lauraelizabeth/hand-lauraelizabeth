@@ -56,11 +56,11 @@ async function run(name,type,url){
   await page.setViewportSize({width:320,height:800});
   const overflow=await page.evaluate(()=>({
     delta:document.documentElement.scrollWidth-document.documentElement.clientWidth,
-    viewport:document.documentElement.clientWidth,
+    viewport:document.documentElement.clientWidth, bodyWidth:document.body.scrollWidth, regions:['columns','table','compareMetrics','compareResults'].map(id=>{const e=document.getElementById(id);return {id,client:e.clientWidth,scroll:e.scrollWidth,rect:e.getBoundingClientRect().toJSON()};}),
     overflowing:[...document.querySelectorAll('body *')].filter(e=>{
       const box=e.getBoundingClientRect();
       return box.width && (box.right>document.documentElement.clientWidth+1 || box.left < -1);
-    }).slice(0,12).map(e=>({tag:e.tagName,id:e.id,cls:e.className,rect:{
+    }).sort((a,b)=>b.getBoundingClientRect().right-a.getBoundingClientRect().right).slice(0,15).map(e=>({tag:e.tagName,id:e.id,cls:e.className,parent:e.parentElement?.id||e.parentElement?.className,rect:{
       left:Math.round(e.getBoundingClientRect().left),right:Math.round(e.getBoundingClientRect().right)
     }}))
   }));
