@@ -171,3 +171,34 @@ console.log('PASS: 10 additional leading-TAB formula-boundary assertions.');
   assert.equal(many.rows.length,47);
   console.log('PASS: source-record issue filters, pagination and provenance checks.');
 }
+
+/* Value-free issue index: all source issues, no raw values, exact source IDs. */
+{
+  const {exportIssueIndexJson, exportEvidenceJson} = require('../rescue-core.js');
+  const source=parseDelimited('ID,Note\n01,ok\n02," "\n02," "\n01,ok\n03,clean');
+  const original=JSON.stringify(source);
+  const result=JSON.parse(exportIssueIndexJson(source,'synthetic.csv'));
+  assert.equal(result.format,'data-rescue-issue-index');
+  assert.deepEqual(result.counts,{recordsWithBlankCells:2,repeatedExactRecords:2,issueRecords:3});
+  assert.deepEqual(result.issues,[
+    {sourceRecord:3,blankColumns:[2],duplicateOf:null},
+    {sourceRecord:4,blankColumns:[2],duplicateOf:3},
+    {sourceRecord:5,blankColumns:[],duplicateOf:2}
+  ]);
+  assert.equal(result.columnCount,2);
+  assert.equal(result.recordCount,5);
+  assert.equal(JSON.stringify(result).includes('clean'),false);
+  assert.equal(JSON.stringify(result).includes('01'),false);
+  assert.equal(JSON.stringify(result).includes('"values"'),false);
+  assert.equal(JSON.stringify(source),original);
+  const hashed=JSON.parse(exportIssueIndexJson(source,'synthetic.csv',
+    {sha256:'a'.repeat(64),byteCount:42}));
+  assert.equal(hashed.source.sha256,'a'.repeat(64));
+  assert.equal(hashed.source.byteCount,42);
+  assert.deepEqual(JSON.parse(exportIssueIndexJson(parseDelimited('ID,Note\n1,ok'),'clean.csv')).issues,[]);
+  const dedup=withoutExactDuplicates(source);
+  assert.deepEqual(JSON.parse(exportIssueIndexJson(dedup,'synthetic.csv')).issues.map(x=>x.sourceRecord),[3]);
+  assert.deepEqual(JSON.parse(exportEvidenceJson(source,'synthetic.csv')).records.map(x=>x.sourceRecord),[2,3,4,5,6]);
+  assert.throws(()=>exportIssueIndexJson({...source,sourceRecords:[3]},'bad.csv'),/source-record/);
+  console.log('PASS: 15 value-free issue index, provenance and no-mutation checks.');
+}
