@@ -290,8 +290,10 @@
   }
 
   // Export only source positions, blank column numbers and exact-duplicate links.
-  // Cell values are deliberately excluded; filenames and hashes can still be sensitive.
-  function exportIssueIndexJson(parsed, sourceFileName = '', provenance = null) {
+  // Cell values are excluded. Sensitive filename and fingerprint metadata require explicit opt-in.
+  function exportIssueIndexJson(parsed, sourceFileName = '', provenance = null, includeSourceMetadata = false) {
+    if (typeof includeSourceMetadata !== 'boolean')
+      throw new Error('Choose whether to include sensitive source metadata.');
     // Reuse the exact evidence validator for headers, dimensions, original source
     // positions and optional SHA-256 metadata; do not put its records in the output.
     const validated = JSON.parse(exportEvidenceJson(parsed, sourceFileName, provenance));
@@ -312,7 +314,13 @@
     }
     return JSON.stringify({
       format: 'data-rescue-issue-index', schemaVersion: 1,
-      source: validated.source,
+      source: includeSourceMetadata ? validated.source : {
+        delimiter: validated.source.delimiter,
+        headerRecord: validated.source.headerRecord,
+        recordUnit: validated.source.recordUnit,
+        ...(validated.source.originalDataRecords === undefined ? {} :
+          {originalDataRecords: validated.source.originalDataRecords})
+      },
       columnCount: validated.headers.length,
       recordCount: validated.recordCount,
       counts: {recordsWithBlankCells, repeatedExactRecords, issueRecords: issues.length},
