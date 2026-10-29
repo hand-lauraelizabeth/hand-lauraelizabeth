@@ -133,9 +133,9 @@ async function run() {
   check(!csv.includes('Duplicate'),'source data fields omitted from audit');
   check(downloads.length===1,'blob URL revoked after download');
   // Pagination must expose every finding without truncating any export.
-  const manyLeft='ID\\n'+Array.from({length:65},(_,i)=>'L'+String(i+1).padStart(3,'0')).join('\\n');
+  const manyLeft='ID\n'+Array.from({length:65},(_,i)=>'L'+String(i+1).padStart(3,'0')).join('\n');
   win.DataRescueCompareUI.setPrimary(rescue.parseDelimited(manyLeft),'many-left.csv');
-  const oneRight='ID\\nR999';
+  const oneRight='ID\nR999';
   nodes.compareFile.files=[{name:'one-right.csv',size:oneRight.length,text:async()=>oneRight}];
   await nodes.compareFile.handlers.change();
   nodes.leftKey.value='ID'; nodes.rightKey.value='ID';
