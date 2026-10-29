@@ -9,7 +9,7 @@
   main{max-width:1100px;margin:auto;padding:clamp(16px,4vw,36px)}h1{font-size:clamp(1.75rem,5vw,2.5rem);line-height:1.2}h2{font-size:1.25rem}
   .panel{background:white;border:1px solid var(--edge);border-radius:12px;padding:20px;margin-top:18px}
   p{max-width:78ch}.muted{color:var(--muted)}button,input,select{font:inherit}
-  input[type=file],select{display:block;width:100%;max-width:100%;min-width:0}
+  input[type=file],select,#previewJump{display:block;width:100%;max-width:100%;min-width:0}
   .grid>*{min-width:0}
   .actions button{max-width:100%;overflow-wrap:anywhere;white-space:normal}
   button{border:1px solid var(--forest);background:var(--forest);color:white;border-radius:7px;padding:9px 14px;cursor:pointer}
@@ -49,9 +49,9 @@
 </select>
 <p id="previewStatus" role="status" aria-live="polite" aria-atomic="true">Open a file to inspect records.</p>
 <div class="grid"><div><label for="previewJump"><strong>Jump to original source record</strong></label>
-<input id="previewJump" type="number" min="2" max="50001" step="1" inputmode="numeric" disabled></div>
+<input id="previewJump" type="text" inputmode="numeric" autocomplete="off" aria-describedby="jumpHelp jumpStatus" disabled></div>
 <div class="actions"><button type="button" class="secondary" id="previewGo" disabled>Show source record</button></div></div>
-<p class="muted">Record 1 is the header. A record excluded by the selected filter cannot be shown until you change the filter.</p>
+<p class="muted" id="jumpHelp">Enter digits only (2–50001). Record 1 is the header. A record excluded by the selected filter cannot be shown until you change the filter.</p>
 <p id="jumpStatus" role="status" aria-live="polite"></p>
 <div class="actions" role="group" aria-label="Source record preview pages"><button type="button" class="secondary" id="previewPrev" disabled>Previous 20 records</button><button type="button" class="secondary" id="previewNext" disabled>Next 20 records</button></div>
 <div class="overflow" id="table"></div>
@@ -183,12 +183,12 @@ function resetJumpMessage(){
 function jumpToSourceRecord(){
  if(!loaded)return;
  const input=$('previewJump'),raw=input.value.trim(),target=Number(raw);
- const valid=raw!==''&&Number.isSafeInteger(target)&&target>=2&&target<=lib.MAX_ROWS+1;
+ const valid=/^[0-9]+$/.test(raw)&&Number.isSafeInteger(target)&&target>=2&&target<=lib.MAX_ROWS+1;
  const offset=valid?lib.findSourceRecordOffset(loaded,$('previewFilter').value,target):null;
  if(offset===null){
   input.setAttribute('aria-invalid','true');
   $('jumpStatus').setAttribute('role','alert');
-  $('jumpStatus').textContent=valid?'Source record '+target+' is not included in this filter or file. Choose All source records or another number.':'Enter a whole-number source record from 2 to 50001.';
+  $('jumpStatus').textContent=valid?'Source record '+target+' is not included in this filter or file. Choose All source records or another number.':'Enter digits only: a whole-number source record from 2 to 50001.';
   input.focus();return;
  }
  previewOffset=Math.floor(offset/PREVIEW_PAGE_SIZE)*PREVIEW_PAGE_SIZE;
