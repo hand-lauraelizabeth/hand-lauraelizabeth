@@ -209,6 +209,21 @@ async function runEngine(type, name, url) {
     assert.equal(await page.locator('#compareResults tbody tr').count(),1); checks++;
     await page.locator('#compareFindingFilter').selectOption('all');
     assert.equal(await page.locator('#compareResults tbody tr').count(),5); checks++;
+    await page.locator('#compareIdentifier').fill('002');
+    await page.locator('#compareIdentifier').press('Enter');
+    assert.equal(await page.locator('#compareResults tbody tr').count(),1); checks++;
+    assert.match(await page.locator('#comparePageStatus').innerText(),/for the exact identifier/); checks++;
+    await scan(page,name,'exact identifier lookup');
+    await page.locator('#compareIdentifier').fill('0002');
+    await page.locator('#compareIdentifierFind').click();
+    assert.equal(await page.locator('#compareResults tbody tr').count(),0); checks++;
+    assert.match(await page.locator('#comparePageStatus').innerText(),/No reconciliation findings/); checks++;
+    await page.locator('#compareIdentifierClear').click();
+    assert.equal(await page.locator('#compareResults tbody tr').count(),5); checks++;
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareIdentifier'); checks++;
+    await page.setViewportSize({width:320,height:800});
+    await scan(page,name,'identifier lookup 320px');
+    await page.setViewportSize({width:1280,height:800});
     // Privacy-minimized export must retain exact source coverage, not identifier keys.
     assert.equal(await page.locator('#compareIndex').isEnabled(),true); checks++;
     const [indexDownload] = await Promise.all([
