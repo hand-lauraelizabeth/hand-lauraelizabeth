@@ -31,6 +31,7 @@
 <section class="panel" aria-labelledby="start"><h2 id="start">1. Open a file</h2>
 <label for="file"><strong>Choose a UTF-8 CSV or TSV (maximum 5 MB)</strong></label>
 <div><input id="file" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values"></div>
+<p class="muted">CSV uses commas between columns; TSV uses tabs. The file extension determines which separator is used, so tabs within CSV text will not silently become new columns.</p>
 <div class="actions"><button class="secondary" id="sample">Try synthetic example</button><button class="secondary" id="reset">Clear</button></div>
 <p id="status" role="status" aria-live="polite" tabindex="-1">No data loaded.</p>
 </section>
