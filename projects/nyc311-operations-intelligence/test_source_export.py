@@ -303,7 +303,26 @@ class TestSourceExport(unittest.TestCase):
             self.assertIn("%24group=borough%2Cagency", receipt["aggregate_query_url"])
             self.assertNotIn("QUEENS", receiptfile.read_text())
 
-    def test_duplicate_or_out_of_order_keys_fail_closed(self):
+    def test_spreadsheet_active_csv_cells_fail_closed(self):
+        # CSV quoting is insufficient against spreadsheet formula execution.
+        # All fixtures are synthetic and no active formula is evaluated.
+        for field, unsafe in (("complaint_type", "=1+1"),
+                              ("agency", "+SUM(1,1)"),
+                              ("borough", "@SUM(1,1)"),
+                              ("status", "-1+2"),
+                              ("unique_key", " =1+1"),
+                              ("complaint_type", "Safe\\n=1+1"),
+                              ("agency", "Safe\\tvalue")):
+            with self.subTest(field=field, unsafe=unsafe), tempfile.TemporaryDirectory() as tmp:
+                row = record("001")
+                row[field] = unsafe
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "Unsafe CSV"):
+                    download("2026-09", csvfile, receiptfile, fetch=FakePublisher([row]))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+
         with tempfile.TemporaryDirectory() as tmp:
             csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
             publisher = FakePublisher([record("001"), record("001"), record("003")])
