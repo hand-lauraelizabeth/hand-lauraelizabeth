@@ -53,3 +53,4 @@ render();
 // Enable controls only after the local catalog and event handlers are ready.
 // Without scripting, the visible noscript explanation accompanies disabled controls.
 root.querySelector('fieldset').disabled=false;
+root.querySelector('#ft15-load-status').hidden=true;

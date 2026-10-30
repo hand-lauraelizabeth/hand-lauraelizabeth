@@ -45,6 +45,8 @@ try{
  eq(response.status(),200,'initial HTTP load');
  eq(await page.locator('fieldset').isEnabled(),true,'local initialization enables controls');
  eq(await page.locator('.ft15-card').count(),17,'initial catalog rendered');
+ eq(await page.locator('#ft15-load-status').isHidden(),true,
+  'successful initialization hides the fail-closed loading explanation');
  eq(await page.locator('noscript p').count(),0,'no-script explanation not rendered with scripting enabled');
  const requests=[];
  page.on('request',request=>requests.push(request.url()));
@@ -79,6 +81,8 @@ try{
  eq(staticResponse.status(),200,'no-script HTML loads');
  eq(await staticPage.locator('#ft15-no-script').isVisible(),true,
   'visible no-script explanation');
+ eq(await staticPage.locator('#ft15-load-status').isVisible(),true,
+  'initialization explanation remains visible when scripting is disabled');
  eq((await staticPage.locator('#ft15-no-script').textContent()).includes('Enable JavaScript and reload'),true,
   'no-script explanation provides a corrective action');
  eq(await staticPage.locator('#tool-query').isDisabled(),true,
@@ -93,6 +97,34 @@ try{
   'no-script mode does not pretend to display a loaded catalog');
  eq(await staticPage.locator('main h1').textContent(),'Find a Tool',
   'no-script mode retains main landmark and heading');
+
+ // Negative controls: scripting may be enabled but its module or dependency
+ // can fail to load. In either case, the directory must not appear ready.
+ for(const missingModule of ['app.mjs','catalog.mjs']){
+  const failedContext=await browser.newContext({viewport:{width:320,height:720}});
+  const failedPage=await failedContext.newPage();
+  const intercepted=[];
+  await failedPage.route('**/'+missingModule,route=>{
+   intercepted.push(route.request().url());
+   return route.abort('failed');
+  });
+  const failedResponse=await failedPage.goto(origin,{waitUntil:'load'});
+  eq(failedResponse.status(),200,'HTML loads when '+missingModule+' is unavailable');
+  eq(intercepted.length,1,missingModule+' failure was actually injected');
+  eq(await failedPage.locator('#ft15-load-status').isVisible(),true,
+   'load failure retains visible recovery instructions: '+missingModule);
+  eq((await failedPage.locator('#ft15-load-status').textContent()).includes('reload'),true,
+   'load failure gives actionable recovery: '+missingModule);
+  eq(await failedPage.locator('#tool-query').isDisabled(),true,
+   'search remains disabled when '+missingModule+' fails');
+  eq(await failedPage.locator('#tool-clear').isDisabled(),true,
+   'clear remains disabled when '+missingModule+' fails');
+  eq(await failedPage.locator('.ft15-card').count(),0,
+   'load failure does not misrepresent an empty catalog: '+missingModule);
+  eq(await failedPage.locator('#ft15-no-script').count(),0,
+   'no-script text is not falsely shown when scripts are enabled: '+missingModule);
+  await failedContext.close();
+ }
  console.log('FT-16 '+name+' offline/no-script: '+checks+'/'+checks+' PASS');
  await nojs.close();
 }finally{
