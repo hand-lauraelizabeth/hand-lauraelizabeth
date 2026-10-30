@@ -85,12 +85,12 @@ try {
   equal(await page.locator('.ft15-card').count(),TOOLS.length,'clear restores all after invalid query');
   equal(await page.locator('#tool-query').evaluate(el=>el===document.activeElement),true,'clear restores focus after invalid query');
   // Pasted invisible formatting must be identified, not silently accepted.
-  await page.locator('#tool-query').fill('text\\u202e lens');
+  await page.locator('#tool-query').fill('text\u202e lens');
   equal(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','bidi override flagged as invalid');
   equal(await page.locator('#tool-query-error').isVisible(),true,'bidi override shows visible error');
   equal((await page.locator('#tool-query-error').textContent()).includes('invisible or control'),true,'bidi override receives specific guidance');
   equal(await page.locator('.ft15-card').count(),0,'bidi override cannot show partial results');
-  await page.locator('#tool-query').fill('text\\u200b lens');
+  await page.locator('#tool-query').fill('text\u200b lens');
   equal(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','zero-width space flagged as invalid');
   equal(await page.locator('#tool-query').getAttribute('aria-describedby'),'tool-query-error','hidden control error described by text');
   await page.locator('#tool-query').fill('text lens');
@@ -98,10 +98,10 @@ try {
   equal(await page.locator('.ft15-card h3').allTextContents(),['Text Lens'],'search recovers after hidden control');
   const joiningControls=await page.evaluate(async()=>{
    const {filterTools,queryIssue}=await import('./directory.mjs');
-   const rows=[{id:'persian',title:'می\\u200cروم',category:'Language',description:'Persian',status:'development'},
-    {id:'emoji',title:'👩\\u200d💻',category:'Language',description:'Emoji',status:'development'}];
-   return {persian:filterTools(rows,{query:'می\\u200cروم'}).map(t=>t.id),emoji:filterTools(rows,{query:'👩\\u200d💻'}).map(t=>t.id),
-    validPersian:queryIssue('می\\u200cروم'),validEmoji:queryIssue('👩\\u200d💻')};
+   const rows=[{id:'persian',title:'می\u200cروم',category:'Language',description:'Persian',status:'development'},
+    {id:'emoji',title:'👩\u200d💻',category:'Language',description:'Emoji',status:'development'}];
+   return {persian:filterTools(rows,{query:'می\u200cروم'}).map(t=>t.id),emoji:filterTools(rows,{query:'👩\u200d💻'}).map(t=>t.id),
+    validPersian:queryIssue('می\u200cروم'),validEmoji:queryIssue('👩\u200d💻')};
   });
   equal(joiningControls,{persian:['persian'],emoji:['emoji'],validPersian:null,validEmoji:null},'legitimate Persian/emoji shaping preserved in browser');
   await page.locator('#tool-clear').click();
