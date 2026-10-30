@@ -139,6 +139,29 @@ try:
             verify(replaced["comparison"] is None and replaced["source_file"]["sha256"] == hashlib.sha256(replacement_csv.encode()).hexdigest(),
                    engine_name + ": replacement JSON hash and comparison reset")
             verify(page.evaluate("document.documentElement.scrollWidth <= innerWidth"), engine_name + ": replacement 320px reflow")
+            # Preview and JSON retain a decimal that JavaScript Number would round.
+            precision_csv = ("source_id,geography,variable,series,period_start,period_end,estimate,moe\n"
+                             "P-001,Example,B01002_001E,acs5,2015,2019,0,0.3\n"
+                             "P-002,Example,B01002_001E,acs5,2020,2024,1000000000000.000001,0.4\n")
+            page.once("dialog", lambda dialog: dialog.accept())
+            page.locator("#csv").set_input_files({"name":"synthetic-precision.csv","mimeType":"text/csv","buffer":precision_csv.encode()})
+            page.locator("#status").filter(has_text="2 records loaded locally").wait_for(timeout=15000)
+            verify("1000000000000.000001" in page.locator("#records").inner_text(),
+                   engine_name + ": preview retains high-magnitude decimal")
+            page.locator("#compare").click()
+            verify("1000000000000.000001" in page.locator("#comparison").inner_text(),
+                   engine_name + ": comparison displays exact decimal")
+            verify("number conversion" in page.locator("#comparison").inner_text(),
+                   engine_name + ": rounding caution visible")
+            with page.expect_download() as precision_download:
+                page.locator("#export").click()
+            precise = json.loads(Path(precision_download.value.path()).read_text())
+            verify(precise["records"][1]["estimate_raw"] == "1000000000000.000001",
+                   engine_name + ": JSON retains original decimal string")
+            verify(precise["comparison"]["difference_exact"] == "1000000000000.000001" and precise["comparison"]["difference"] is None,
+                   engine_name + ": JSON omits rounded numeric difference")
+            verify(page.evaluate("document.documentElement.scrollWidth <= innerWidth"),
+                   engine_name + ": precision preview maintains 320px reflow")
             # Exercise the actual served module in each browser with synthetic WebCrypto failure providers.
             fingerprint_fallbacks = page.evaluate("""async () => {
                 const {fingerprintCsv} = await import("./engine.mjs");
