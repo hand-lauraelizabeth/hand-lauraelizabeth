@@ -31,6 +31,8 @@ These workspaces remain independently usable. A shared candidate profile now sup
 
 For a specific opportunity, open **Role Evidence Analysis**, use the sample job and fictional sample candidate to explore the workflow, or paste your own job and experience. Read the requirement matrix and evidence-review panel before drawing conclusions.
 
+For a guided first visit, use the [10-minute fictional worked example](WORKED_EXAMPLE.md) to inspect a duration requirement, distinguish coordination from authority, and produce an evidence-recovery plan.
+
 To discover possible directions from your experience and record opportunities, expand **Career Discovery & Tracking**. Build a profile from materials, adjust the filters, and export the tracker when needed.
 
 ## Transferring evidence between workspaces
