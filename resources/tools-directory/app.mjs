@@ -1,5 +1,5 @@
 import {TOOLS,STATUS_LABELS} from './catalog.mjs';
-import {filterTools,queryTooLong} from './directory.mjs';
+import {filterTools,queryIssue} from './directory.mjs';
 const root=document.getElementById('ft15-directory');
 const query=root.querySelector('#tool-query'),category=root.querySelector('#tool-category'),status=root.querySelector('#tool-status');
 const cards=root.querySelector('#tool-results'),count=root.querySelector('#tool-count');
@@ -11,9 +11,12 @@ function element(tag,cls,text){const e=document.createElement(tag);if(cls)e.clas
 function render(){
  // Never silently truncate or index an overlong query. Keep the exact input
  // available for correction, announce the error, and skip catalog work.
- const invalid=queryTooLong(query.value);
- queryError.hidden=!invalid;
- if(invalid){
+ const issue=queryIssue(query.value);
+ queryError.hidden=!issue;
+ if(issue){
+  queryError.textContent=issue==='too-long'
+   ?'Search is limited to 256 Unicode code points. Shorten your query or clear the filters.'
+   :'Search includes invisible or control characters. Remove hidden formatting and try again.';
   query.setAttribute('aria-invalid','true');
   query.setAttribute('aria-describedby','tool-query-error');
   cards.replaceChildren();

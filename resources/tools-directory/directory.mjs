@@ -47,6 +47,16 @@ export function queryTooLong(query){
  for(const _ of value)if(++count>MAX_QUERY_CODE_POINTS)return true;
  return false;
 }
+// Reject a narrow set of pasted invisible format and directional controls rather
+// than silently normalizing them into misleading search terms. Keep ordinary
+// whitespace, Arabic/Persian ZWNJ and emoji/Indic ZWJ valid.
+// Unicode UTS #39 rev 34 (2026-08-27): https://www.unicode.org/reports/tr39/
+const unsafeQueryControls=/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u061c\u180e\u200b\u200e\u200f\u2028\u2029\u202a-\u202e\u2060\u2066-\u2069\ufeff]/u;
+export function queryIssue(query){
+ if(queryTooLong(query))return 'too-long';
+ if(unsafeQueryControls.test(String(query)))return 'invisible-control';
+ return null;
+}
 function searchKey(value){
  return String(value).normalize('NFD')
   .replace(/(\p{Script=Latin})\p{M}+/gu,'$1')
@@ -67,7 +77,7 @@ function includesGraphemes(index,term){
  return false;
 }
 export function filterTools(rows=TOOLS,{query='',category='all',status='all'}={}){
- if(queryTooLong(query))return [];
+ if(queryIssue(query))return [];
  const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean).map(graphemes);
  return rows.filter(t=>{
   if(category!=='all'&&t.category!==category)return false;
