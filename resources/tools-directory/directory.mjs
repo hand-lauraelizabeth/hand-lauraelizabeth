@@ -15,8 +15,11 @@ export function validateCatalog(rows=TOOLS){
    // Unicode line/paragraph separators and BOM before rendering or indexing.
    if(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\ufeff]/u.test(t[key]))throw Error('Control character in '+key);
    // Non-printing format characters can conceal different visible labels and search terms.
-   // Keep ZWNJ/ZWJ for languages that require them; reject only the listed catalog obfuscators.
-   if(/[\u00ad\u180e\u200b\u2060]/u.test(t[key]))throw Error('Invisible format character in '+key);
+   // Keep ZWNJ/ZWJ for languages that require them; reject only listed obfuscators.
+   // Unicode 17.0 ch23: deprecated U+206A–U+206F; Unicode FAQ: invisible CGJ U+034F.
+   // https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-23/
+   // https://www.unicode.org/faq/char_combmark.html
+   if(/[\u00ad\u034f\u180e\u200b\u2060\u206a-\u206f\u3164\uffa0]/u.test(t[key]))throw Error('Invisible format character in '+key);
   }
   if(!Object.hasOwn(STATUS_LABELS,t.status))throw Error('Invalid availability');
   if(t.status==='live'||t.status==='preview'){
@@ -51,7 +54,9 @@ export function queryTooLong(query){
 // than silently normalizing them into misleading search terms. Keep ordinary
 // whitespace, Arabic/Persian ZWNJ and emoji/Indic ZWJ valid.
 // Unicode UTS #39 rev 34 (2026-08-27): https://www.unicode.org/reports/tr39/
-const unsafeQueryControls=/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u061c\u180e\u200b\u200e\u200f\u2028\u2029\u202a-\u202e\u2060\u2066-\u2069\ufeff]/u;
+// Also flag invisible CGJ, compatibility Hangul fillers and deprecated U+206A–U+206F.
+// Keep meaningful combining marks and Korean Jamo U+115F/U+1160 untouched.
+const unsafeQueryControls=/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u034f\u061c\u180e\u200b\u200e\u200f\u2028\u2029\u202a-\u202e\u2060\u2066-\u206f\u3164\ufeff\uffa0]/u;
 export function queryIssue(query){
  if(queryTooLong(query))return 'too-long';
  if(unsafeQueryControls.test(String(query)))return 'invisible-control';
