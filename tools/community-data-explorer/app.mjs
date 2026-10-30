@@ -15,8 +15,9 @@ function addText(parent, tag, value) {
   const element = document.createElement(tag); element.textContent = String(value); parent.append(element); return element;
 }
 // Explain annotation semantics without implying that a suppressed or controlled MOE is zero.
-function displayMeasure(value, status) {
-  if (status === "available") return value;
+function displayMeasure(raw, status) {
+  // Preserve exact supplied digits in the preview; Number may round large decimals.
+  if (status === "available") return raw;
   const labels = {
     missing:"missing",
     suppressed_insufficient_cases:"suppressed: insufficient cases",
@@ -42,7 +43,7 @@ function render() {
   for (const r of records.slice(0,100)) {
     const tr = document.createElement("tr");
     for (const value of [r.source_id,r.geography,r.variable,r.series,r.period_start+"–"+r.period_end,
-      displayMeasure(r.estimate,r.estimate_status),displayMeasure(r.moe,r.moe_status)]) addText(tr,"td",value);
+      displayMeasure(r.estimate_raw,r.estimate_status),displayMeasure(r.moe_raw,r.moe_status)]) addText(tr,"td",value);
     body.append(tr);
   }
   table.replaceChildren(body);
