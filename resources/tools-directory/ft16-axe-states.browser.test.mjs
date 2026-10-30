@@ -78,10 +78,11 @@ try{
  await page.evaluate(()=>{
   const input=document.getElementById('tool-query');
   input.closest('label').replaceWith(input);
+  input.removeAttribute('placeholder'); // placeholder can be treated as a fallback name
  });
  const negative=await new AxeBuilder({page}).withRules(['label']).analyze();
  assert.ok(negative.violations.some(v=>v.id==='label'&&
-  v.nodes.some(n=>n.target.includes('#tool-query'))),
+  v.nodes.some(n=>n.target.some(selector=>selector.includes('#tool-query')))),
   'negative control must detect intentionally unlabeled search input');
  assertions++;
  console.log('FT-16 axe '+name+' NEGATIVE CONTROL: unlabeled search detected');
