@@ -6,6 +6,8 @@ An interactive, evidence-centered career decision workspace. It helps people exp
 
 [Read the design and evidence method](ROLE_EVIDENCE_METHOD.md) for the reasoning behind requirement mapping, verification, confidentiality, and claim-strength controls.
 
+[Read the published design case study](https://www.lauraelizabethhand.com/case-studies/role-evidence-studio-career-claims-case-study/) for the problem, decisions, verification evidence, and limitations.
+
 ## Two active workspaces
 
 ### Role Evidence Analysis
@@ -62,3 +64,6 @@ The analysis workspace now distinguishes covered calendar years from elapsed exp
 - CI: [Role Evidence Studio validation](../../.github/workflows/role-evidence-validation.yml).
 
 These checks cover the standalone application and its local embedding contract. They do not establish hiring outcomes, screen-reader compatibility, native browser zoom, or every surrounding WordPress interaction.
+
+
+**WordPress deployment note (October 30, 2026):** The embedded website page uses an older analysis build with a targeted duration-safeguard patch. Its exact parity with this v2.6 source, and live-page browser/assistive-technology acceptance, remain unverified. Track [site parity and QA](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/issues/342) before describing the website embed as a fully validated v2.6 release.
