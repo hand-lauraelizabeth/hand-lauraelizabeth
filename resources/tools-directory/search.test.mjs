@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {TOOLS} from './catalog.mjs';
-import {filterTools,validateCatalog,queryTooLong,queryIssue,MAX_QUERY_CODE_POINTS} from './directory.mjs';
+import {filterTools,validateCatalog,queryTooLong,queryIssue,firstUnsafeQueryControl,MAX_QUERY_CODE_POINTS} from './directory.mjs';
 
 // Synthetic-only names exercise composed/decomposed Unicode without modifying public metadata.
 const synthetic=[
@@ -112,6 +112,15 @@ for(const cp of unsafe){
  same(queryIssue(q),'invisible-control','reject pasted control U+'+cp.toString(16));
  same(ids(q),[],'control cannot yield a partial result U+'+cp.toString(16));
 }
+// Diagnostic locations are Unicode code-point positions, never UTF-16 offsets.
+same(firstUnsafeQueryControl('resume'),null,'ordinary search has no unsafe character');
+same(firstUnsafeQueryControl('a\u202eb'),{position:2,codePoint:'U+202E'},'first bidi override located');
+same(firstUnsafeQueryControl('🧪\u200btest'),{position:2,codePoint:'U+200B'},'supplementary code point counts once');
+same(firstUnsafeQueryControl('a\u200b\u202e'),{position:2,codePoint:'U+200B'},'first of multiple controls reported');
+same(firstUnsafeQueryControl('a\u0000'),{position:2,codePoint:'U+0000'},'NUL padded to four hex digits');
+same(firstUnsafeQueryControl('می\u200cروم'),null,'legitimate Persian joiner is not flagged');
+same(firstUnsafeQueryControl('👩\u200d💻'),null,'legitimate emoji joiner is not flagged');
+same(firstUnsafeQueryControl('a'.repeat(256)+'\u202e'),{position:257,codePoint:'U+202E'},'diagnostic position independent of length validation');
 same(queryIssue('resume'),null,'ordinary search accepted');
 same(queryIssue('x'.repeat(257)),'too-long','length checked first');
 same(queryIssue('x'.repeat(257)+'\u202e'),'too-long','oversize checked before hidden controls');

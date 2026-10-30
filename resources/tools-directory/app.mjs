@@ -1,5 +1,5 @@
 import {TOOLS,STATUS_LABELS} from './catalog.mjs';
-import {filterTools,queryIssue} from './directory.mjs';
+import {filterTools,queryIssue,firstUnsafeQueryControl} from './directory.mjs';
 const root=document.getElementById('ft15-directory');
 const query=root.querySelector('#tool-query'),category=root.querySelector('#tool-category'),status=root.querySelector('#tool-status');
 const cards=root.querySelector('#tool-results'),count=root.querySelector('#tool-count');
@@ -16,11 +16,15 @@ function render(){
  if(issue){
   queryError.textContent=issue==='too-long'
    ?'Search is limited to 256 Unicode code points. Shorten your query or clear the filters.'
-   :'Search includes invisible or control characters. Remove hidden formatting and try again.';
+   :(()=>{const detail=firstUnsafeQueryControl(query.value);
+     return 'Search includes invisible or control characters at Unicode code point '+detail.position+
+      ' ('+detail.codePoint+'). Remove that character and try again.';})();
   query.setAttribute('aria-invalid','true');
   query.setAttribute('aria-describedby','tool-query-error');
   cards.replaceChildren();
-  count.textContent='Search paused until the query is shortened';
+  count.textContent=issue==='too-long'
+   ?'Search paused until the query is shortened'
+   :'Search paused until invisible formatting is removed';
   return;
  }
  query.removeAttribute('aria-invalid');
