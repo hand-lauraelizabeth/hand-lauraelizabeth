@@ -25,6 +25,7 @@ class FakePublisher:
         self.meta_calls = 0
         self.count_calls = 0
         self.group_calls = 0
+        self.complaint_calls = 0
         self.three_calls = 0
         self.closure_calls = 0
         self.status_closure_calls = 0
@@ -129,6 +130,20 @@ class FakePublisher:
                 data[0]["populated"] = str(counts[statuses[0]] + 1)
             if self.drift == "status_closure_empty":
                 return []
+            return data
+        if params.get("$group") == ["complaint_type"]:
+            self.complaint_calls += 1
+            counts = Counter(r.get("complaint_type", "") for r in self.rows)
+            if self.drift in ("complaint_balanced", "complaint_drift") and (
+                    self.drift == "complaint_balanced" or self.complaint_calls > 1):
+                counts["Synthetic A"] += 1
+                counts["Synthetic B"] -= 1
+            data = [{"complaint_type": label, "n": str(n)}
+                    for label, n in sorted(counts.items()) if n > 0]
+            if self.drift == "complaint_duplicate":
+                data.append(dict(data[0]))
+            if self.drift == "complaint_malformed":
+                data[0]["n"] = True
             return data
         if "$group" in params and params["$group"] == ["borough,agency,status"]:
             self.three_calls += 1
@@ -271,6 +286,11 @@ class TestSourceExport(unittest.TestCase):
             self.assertEqual(len(receipt["key_membership_sha256"]), 64)
             self.assertIn("%24select=unique_key", receipt["key_membership_query_url"])
             self.assertEqual(publisher.group_calls, 2)
+            self.assertEqual(publisher.complaint_calls, 2)
+            self.assertTrue(receipt["complaint_distribution_verified"])
+            self.assertEqual(receipt["complaint_aggregate_cells"], 1)
+            self.assertEqual(len(receipt["complaint_aggregate_sha256"]), 64)
+            self.assertIn("%24group=complaint_type", receipt["complaint_query_url"])
             self.assertEqual(publisher.three_calls, 2)
             self.assertEqual(publisher.status_closure_calls, 2)
             self.assertTrue(receipt["three_way_cross_aggregate_verified"])
@@ -301,6 +321,22 @@ class TestSourceExport(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "key membership"):
                     download("2026-09", csvfile, receiptfile, page_size=2,
                              fetch=FakePublisher(drift=drift))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
+
+    def test_problem_distribution_drift_fails_closed(self):
+        # Balanced label changes can leave all existing aggregates and keys
+        # unchanged. Only the independent Problem distribution detects them.
+        rows = [dict(record("001"), complaint_type="Synthetic A"),
+                dict(record("002"), complaint_type="Synthetic B"),
+                dict(record("003"), complaint_type="Synthetic B")]
+        for drift in ("complaint_balanced", "complaint_drift",
+                      "complaint_duplicate", "complaint_malformed"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "complaint"):
+                    download("2026-09", csvfile, receiptfile, page_size=2,
+                             fetch=FakePublisher(rows, drift=drift))
                 self.assertFalse(csvfile.exists())
                 self.assertFalse(receiptfile.exists())
 
