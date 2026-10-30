@@ -221,6 +221,12 @@ def audit(csv_path, receipt_path):
                     pairs[(record["borough"], record["agency"])] += 1
                     triples[(record["borough"], record["agency"], record["status"])] += 1
                     rows += 1
+            # csv.reader silently skips empty physical lines. A source-export
+            # receipt must not validate those unaccounted bytes even when a
+            # recomputed CSV digest and all aggregate counts agree. Quoted
+            # multiline cells also fail the single-line export contract.
+            if reader.line_num != rows + 1:  # one header + one line per record
+                codes.add("CSV_UNREADABLE_OR_MALFORMED")
             if populated_closures != receipt["populated_closure_dates"]:
                 codes.add("CLOSURE_COMPLETENESS_MISMATCH")
             if rows != n or len(seen) != receipt["distinct_keys"]:
