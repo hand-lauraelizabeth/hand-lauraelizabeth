@@ -35,6 +35,22 @@ test("unsupported numeric syntax and unsafe precision fail closed", () => {
       "9007199254740992","NaN","Infinity","+4","=1+1"])
     assert.throws(() => normalizeRows(parseCsv(csv(bad,"1"))));
 });
+test("large decimal evidence does not silently round the numeric difference field", () => {
+  const records = normalizeRows(parseCsv(csv("0","1000000000000.000001")));
+  assert.equal(records[1].estimate_raw,"1000000000000.000001");
+  const result = compareRecords(records,"00001","00002");
+  assert.equal(result.comparable,true);
+  assert.equal(result.difference_exact,"1000000000000.000001");
+  assert.equal(result.difference,null);
+  assert.ok(result.cautions.some(message=>message.includes("number conversion") && message.includes("difference_exact")));
+  const evidence = JSON.parse(JSON.stringify(evidenceExport(records,"Synthetic precision fixture",result)));
+  assert.equal(evidence.records[1].estimate_raw,"1000000000000.000001");
+  assert.equal(evidence.comparison.difference,null);
+  assert.equal(evidence.comparison.difference_exact,"1000000000000.000001");
+  const ordinary = compareRecords(normalizeRows(parseCsv(csv("37.4","38.1"))),"00001","00002");
+  assert.equal(ordinary.difference,0.7);
+});
+
 test("missing values remain missing and block arithmetic", () => {
   // The Census ***** annotation is MOE-only; -666666666 is an estimate missing-code.
   const rows = normalizeRows(parseCsv(csv("","-666666666","","-666666666")));

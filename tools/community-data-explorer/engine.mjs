@@ -160,8 +160,14 @@ export function compareRecords(records, leftId, rightId) {
   cautions.push("Read ACS variable definitions, geography changes and margins of error; no statistical significance determination is made");
   const difference_exact = reasons.length === 0
     ? exactMeasureDifference(left.estimate_raw,right.estimate_raw) : null;
+  // Numeric JSON fields are conveniences; exact decimal evidence is authoritative.
+  const candidate = difference_exact === null ? null : Number(difference_exact);
+  const difference = candidate !== null && Number.isFinite(candidate) &&
+    candidate.toString() === difference_exact ? candidate : null;
+  if (difference_exact !== null && difference === null)
+    cautions.push("Numeric difference omitted because number conversion would lose decimal digits; use difference_exact.");
   return {left_id:leftId,right_id:rightId,comparable:reasons.length === 0,reasons,cautions,
-    difference: difference_exact === null ? null : Number(difference_exact),difference_exact};
+    difference,difference_exact};
 }
 export function evidenceExport(records, datasetLabel, comparison = null, sourceFile = null) {
   safeLabel(datasetLabel, "Dataset label");
