@@ -20,7 +20,7 @@ function render(){
      return 'Search includes invisible or control characters at Unicode code point '+detail.position+
       ' ('+detail.codePoint+'). Remove that character and try again.';})();
   query.setAttribute('aria-invalid','true');
-  query.setAttribute('aria-describedby','tool-query-error');
+  query.setAttribute('aria-describedby','tool-search-help tool-query-error');
   cards.replaceChildren();
   count.textContent=issue==='too-long'
    ?'Search paused until the query is shortened'
@@ -28,7 +28,7 @@ function render(){
   return;
  }
  query.removeAttribute('aria-invalid');
- query.removeAttribute('aria-describedby');
+ query.setAttribute('aria-describedby','tool-search-help');
  const visible=filterTools(TOOLS,{query:query.value,category:category.value,status:status.value});
  const fragment=document.createDocumentFragment();
  for(const tool of visible){
