@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {SCHEMA,updateClaim,analyzeProject,exportProject,importProject} from "./core.mjs";
+import {SCHEMA,updateClaim,hasUnsavedClaimChanges,analyzeProject,exportProject,importProject} from "./core.mjs";
 const p={schema:SCHEMA,sources:[{id:"0001",title:"Synthetic source",year:null,doi:""},{id:"β-02",title:"Second synthetic source",year:null,doi:""}],claims:[{id:"finding-001",sourceId:"0001",question:"Q",summary:"Original",stance:"supports",locator:"p. 1",methods:"Method A",limitations:"Unknown",quote:""},{id:"finding-002",sourceId:"β-02",question:"Q",summary:"Other",stance:"challenges",locator:"p. 2",methods:"Method B",limitations:"Unknown",quote:""}]};
 test("correct finding immutably while preserving exact ID, unrelated evidence and export",()=>{
  const before=JSON.stringify(p);
@@ -28,4 +28,14 @@ test("correction recalculates candidate pairs from validated source assignments"
  const changed=updateClaim(p,"finding-002",{sourceId:"0001"});
  assert.equal(analyzeProject(p).tensionTotal,1);
  assert.equal(analyzeProject(changed).tensionTotal,0);
+});
+
+test("unsaved correction detection compares all saved fields without changing evidence",()=>{
+ const unchanged={...p.claims[0]},before=JSON.stringify(p);
+ assert.equal(hasUnsavedClaimChanges(p,"finding-001",unchanged),false);
+ for(const patch of [{summary:"Unsaved β"},{sourceId:"β-02"},{locator:""},{stance:"uncertain"},{quote:"=1+1"}])
+  assert.equal(hasUnsavedClaimChanges(p,"finding-001",{...unchanged,...patch}),true);
+ assert.equal(hasUnsavedClaimChanges(p,"finding-001",{...unchanged,extra:"ignored"}),false);
+ assert.equal(JSON.stringify(p),before);
+ assert.throws(()=>hasUnsavedClaimChanges(p,"unknown",unchanged),/not found/);
 });
