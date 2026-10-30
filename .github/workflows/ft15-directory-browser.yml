@@ -30,6 +30,7 @@ jobs:
       - run: node resources/tools-directory/directory.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-acceptance.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-axe-states.browser.test.mjs ${{ matrix.browser }}
+      - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
       - name: Confirm acceptance rejects unsafe HTML rendering
         if: matrix.browser == 'chromium'
         shell: bash
