@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import re
 import tempfile
+import unicodedata
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -50,7 +51,8 @@ def reject_spreadsheet_active_cell(value):
     """
     if any(ord(char) < 32 or ord(char) == 127 for char in value):
         raise ValueError("Unsafe CSV control character in publisher field")
-    if value.lstrip().startswith(("=", "+", "-", "@")):
+    if unicodedata.normalize("NFKC", value.lstrip("\\ufeff\\u200b").lstrip()).startswith(
+            ("=", "+", "-", "@")):
         raise ValueError("Unsafe CSV spreadsheet formula prefix in publisher field")
 
 
