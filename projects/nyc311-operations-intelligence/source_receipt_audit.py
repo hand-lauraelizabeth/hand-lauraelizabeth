@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 import re
 import tempfile
+import unicodedata
 from urllib.parse import urlencode
 
 FIELDS = ("unique_key", "created_date", "closed_date", "agency",
@@ -182,6 +183,16 @@ def audit(csv_path, receipt_path):
                     if len(row) != len(FIELDS):
                         raise ValueError("CSV column mismatch")
                     record = dict(zip(FIELDS, row))
+                    # Independently enforce the exporter's fail-closed CSV
+                    # safety contract, even if a receipt and every digest
+                    # have been recomputed for a different CSV. Do not alter
+                    # or echo publisher text in the diagnostic output.
+                    for value in record.values():
+                        if (any(unicodedata.category(char) in ("Cc", "Cf", "Zl", "Zp")
+                                for char in value)
+                                or unicodedata.normalize("NFKC", value).lstrip().startswith(
+                                    ("=", "+", "-", "@"))):
+                            codes.add("CSV_SPREADSHEET_ACTIVE_FIELD")
                     key = record["unique_key"]
                     if not key or key in seen or (last is not None and key <= last):
                         codes.add("KEY_DUPLICATE_OR_ORDER_INVALID")

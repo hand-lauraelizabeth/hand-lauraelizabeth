@@ -178,6 +178,30 @@ class ReceiptAuditTests(unittest.TestCase):
         self.save_receipt()
         self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
 
+    def test_receipt_rejects_spreadsheet_active_fields_even_with_recomputed_digests(self):
+        """An independently forged internally consistent receipt cannot clear unsafe CSV."""
+        original_rows = [row[:] for row in self.rows]
+        for field_index, unsafe in (
+            (3, "=1+1"),
+            (4, " +SUM(1,1)"),
+            (6, "@SUM(1,1)"),
+            (3, "\uff1d1+1"),
+            (6, " \u200b=1+1"),
+            (3, "Safe\u2060label"),
+            (4, "Safe\u2028label"),
+            (6, "Safe\n=1+1"),
+        ):
+            with self.subTest(field_index=field_index, unsafe=repr(unsafe)):
+                self.rows = [row[:] for row in original_rows]
+                self.rows[0][field_index] = unsafe
+                self.write()  # Rebuilds receipt, CSV SHA and category digests.
+                codes = self.codes()
+                self.assertIn("CSV_SPREADSHEET_ACTIVE_FIELD", codes)
+                self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", codes)
+        self.rows = [row[:] for row in original_rows]
+        self.write()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
     def test_tampered_csv_fails_digest(self):
         self.csvfile.write_bytes(self.csvfile.read_bytes().replace(b"Category Y", b"Category Z"))
         self.assertIn("CSV_SHA256_MISMATCH", self.codes())
