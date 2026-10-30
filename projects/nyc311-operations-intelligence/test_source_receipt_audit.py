@@ -205,7 +205,7 @@ class ReceiptAuditTests(unittest.TestCase):
     def test_unaccounted_blank_csv_lines_fail_with_recomputed_sha(self):
         """csv.reader skips blank physical lines; receipt must not."""
         original = self.csvfile.read_bytes()
-        for mutated in (original.replace(b"\\n", b"\\n\\n", 1), original + b"\\n"):
+        for mutated in (original.replace(b"\n", b"\n\n", 1), original + b"\n"):
             with self.subTest(extra_bytes=len(mutated) - len(original)):
                 self.csvfile.write_bytes(mutated)
                 self.receipt["csv_sha256"] = hashlib.sha256(mutated).hexdigest()
@@ -221,7 +221,7 @@ class ReceiptAuditTests(unittest.TestCase):
 
     def test_final_newline_omission_does_not_trigger_blank_line_guard(self):
         """A final record without a line terminator is still one CSV record."""
-        without_terminal_newline = self.csvfile.read_bytes().rstrip(b"\\n")
+        without_terminal_newline = self.csvfile.read_bytes().rstrip(b"\n")
         self.csvfile.write_bytes(without_terminal_newline)
         self.receipt["csv_sha256"] = hashlib.sha256(without_terminal_newline).hexdigest()
         self.save_receipt()
