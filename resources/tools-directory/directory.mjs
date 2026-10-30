@@ -1,4 +1,16 @@
 import {TOOLS,STATUS_LABELS} from './catalog.mjs';
+// Recheck destinations at the rendering boundary, even if catalog validation
+// was skipped by an embedding page or future integration.
+// WHATWG URL Standard (2026-10-19): https://url.spec.whatwg.org/
+// OWASP URL validation: https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
+export function approvedLiveURL(t){
+ if(!t||t.status!=='live'||typeof t.url!=='string')return false;
+ try{
+  const u=new URL(t.url);
+  return u.origin==='https://www.lauraelizabethhand.com'&&!u.username&&!u.password&&!u.search&&!u.hash&&
+   u.href===t.url&&/^\/resources\/(?:[a-z0-9-]+\/)+$/.test(u.pathname);
+ }catch{return false;}
+}
 export function validateCatalog(rows=TOOLS){
  if(!Array.isArray(rows))throw Error('Catalog must be an array');
  const ids=new Set();
@@ -23,12 +35,7 @@ export function validateCatalog(rows=TOOLS){
   // Only an explicitly live resource can receive an approved destination.
   if(t.status==='live'){
    if(typeof t.url!=='string')throw Error('Available tool must have URL');
-   const u=new URL(t.url);
-   // URL parsing can silently strip whitespace and normalize path segments. Only
-   // canonical, lower-case ASCII resource paths are suitable as public live links.
-   // WHATWG URL Standard (2026-10-19): https://url.spec.whatwg.org/
-   if(u.origin!=='https://www.lauraelizabethhand.com'||u.username||u.password||u.search||u.hash||
-      u.href!==t.url||!/^\/resources\/(?:[a-z0-9-]+\/)+$/.test(u.pathname))throw Error('Unapproved tool URL');
+   if(!approvedLiveURL(t))throw Error('Unapproved tool URL');
   }else if(t.url)throw Error('Unreleased tool cannot have a link');
  }
  return true;

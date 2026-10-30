@@ -24,6 +24,17 @@ const url='https://www.lauraelizabethhand.com/resources/synthetic-tool/';
 const live={id:'synthetic-live',title:'Synthetic live tool',category:'Research',description:'Synthetic live resource',status:'live',url};
 const preview={id:'synthetic-preview',title:'Synthetic preview tool',category:'Research',description:'Not publicly available',status:'preview'};
 const development={id:'synthetic-development',title:'Synthetic development tool',category:'Research',description:'Planned only',status:'development'};
+const unsafeLive=[
+ 'javascript:alert(1)',
+ 'https://outside.invalid/resources/synthetic-tool/',
+ 'https://user@www.lauraelizabethhand.com/resources/synthetic-tool/',
+ 'https://www.lauraelizabethhand.com/resources/synthetic-tool/?token=synthetic',
+ 'https://www.lauraelizabethhand.com/resources/synthetic-tool/#fragment',
+ 'https://www.lauraelizabethhand.com/resources/../admin/'
+].map((badUrl,i)=>({
+ id:'synthetic-unsafe-'+i,title:'Synthetic invalid destination '+i,category:'Research',
+ description:'Invalid URL test only',status:'live',url:badUrl
+}));
 let checks=0;
 function eq(actual,expected,label){assert.deepEqual(actual,expected,label);checks++;}
 eq(validateCatalog([live,preview,development]),true,'preview without URL is valid metadata');
@@ -32,7 +43,8 @@ for(const entry of [preview,development]){
   'unreleased '+entry.status+' URL rejected by validator');checks++;
 }
 eq(validateCatalog([live]),true,'live approved URL remains valid');
-const fixture=[live,{...preview,url},development];
+for(const bad of unsafeLive){assert.throws(()=>validateCatalog([bad]),/Unapproved tool URL/,'reject invalid live URL');checks++;}
+const fixture=[live,{...preview,url},development,...unsafeLive];
 const allowed=new Set(['index.html','app.mjs','catalog.mjs','directory.mjs','styles.css','layout.css','controls.css','focus.css']);
 const csp="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self' data:; font-src 'self'; object-src 'none'; form-action 'none'; base-uri 'none'";
 const server=createServer(async(req,res)=>{
@@ -48,7 +60,7 @@ const server=createServer(async(req,res)=>{
    source=source.replace(guard,'/* Synthetic test only: bypass catalog validation to exercise app-layer release gate. */');
   }
   if(negative&&name==='app.mjs'){
-   const guard="if(tool.status==='live' && tool.url){";
+   const guard="if(approvedLiveURL(tool)){";
    assert.ok(source.includes(guard),'negative control must alter exact live-only guard');
    source=source.replace(guard,'if(tool.url){');
   }
@@ -70,12 +82,13 @@ try{
  eq(response.status(),200,'HTTP-served app');
  eq(response.headers()['content-security-policy'],csp,'enforced CSP');
  eq(await page.locator('#tool-query').isEnabled(),true,'directory initialized');
- eq(await page.locator('.ft15-card').count(),3,'all synthetic availability states visible');
+ eq(await page.locator('.ft15-card').count(),3+unsafeLive.length,'all synthetic availability and invalid-URL states visible');
  eq(await page.locator('.ft15-link').count(),1,'only explicitly live entry is navigable');
  eq(await page.locator('.ft15-link').getAttribute('href'),url,'live destination unchanged');
  eq(await page.locator('.ft15-link').getAttribute('rel'),'noreferrer','live link suppresses referrer');
- eq(await page.locator('.ft15-unavailable').count(),2,'preview and development both unavailable');
- eq(await page.locator('.ft15-badge').allTextContents(),['Live','Preview','In development'],'statuses remain accurately labeled');
+ eq(await page.locator('.ft15-unavailable').count(),2+unsafeLive.length,'preview, development and invalid live destinations unavailable');
+ eq(await page.locator('.ft15-unavailable').allTextContents(),['Not yet available','Not yet available',...unsafeLive.map(()=> 'Link unavailable')],'invalid live destinations explicitly unavailable');
+ eq(await page.locator('.ft15-badge').allTextContents(),['Live','Preview','In development',...unsafeLive.map(()=> 'Live')],'source availability labels retained');
  await page.locator('#tool-status').selectOption('preview');
  eq(await page.locator('.ft15-card h3').allTextContents(),[preview.title],'preview filter works');
  eq(await page.locator('.ft15-link').count(),0,'preview filter exposes no link');
@@ -83,7 +96,8 @@ try{
  await page.locator('#tool-status').selectOption('development');
  eq(await page.locator('.ft15-link').count(),0,'development filter exposes no link');
  await page.locator('#tool-status').selectOption('live');
- eq(await page.locator('.ft15-link').count(),1,'live filter preserves approved link');
+ eq(await page.locator('.ft15-link').count(),1,'live filter preserves only approved link');
+ eq(await page.locator('.ft15-unavailable').count(),unsafeLive.length,'invalid live destinations remain unlinked in live filter');
  await page.locator('#tool-clear').click();
  eq(await page.locator('.ft15-link').count(),1,'clearing filters does not release preview URL');
  eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'320px reflow');

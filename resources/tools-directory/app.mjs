@@ -1,5 +1,5 @@
 import {TOOLS,STATUS_LABELS} from './catalog.mjs';
-import {filterTools,queryIssue,firstUnsafeQueryControl} from './directory.mjs';
+import {filterTools,queryIssue,firstUnsafeQueryControl,approvedLiveURL} from './directory.mjs';
 const root=document.getElementById('ft15-directory');
 const query=root.querySelector('#tool-query'),category=root.querySelector('#tool-category'),status=root.querySelector('#tool-status');
 const cards=root.querySelector('#tool-results'),count=root.querySelector('#tool-count');
@@ -37,11 +37,11 @@ function render(){
   badge.setAttribute('data-status',tool.status);
   article.append(badge,heading,element('p',null,tool.description));
   // Defense in depth: even if metadata validation is bypassed, previews never become links.
-  if(tool.status==='live' && tool.url){const a=element('a','ft15-link','Open '+tool.title);a.href=tool.url;
+  if(approvedLiveURL(tool)){const a=element('a','ft15-link','Open '+tool.title);a.href=tool.url;
    // Do not disclose the directory URL as a Referer when navigating to a live tool.
    // HTML Standard, link type noreferrer: https://html.spec.whatwg.org/dev/links.html
    a.rel='noreferrer';article.append(a)}
-  else article.append(element('p','ft15-unavailable','Not yet available'));
+  else article.append(element('p','ft15-unavailable',tool.status==='live'?'Link unavailable':'Not yet available'));
   fragment.append(article);
  }
  cards.replaceChildren(fragment);
