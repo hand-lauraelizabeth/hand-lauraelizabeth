@@ -97,8 +97,32 @@
     return { headers, normalizedHeaders, rows: data, warnings, delimiter: sep };
   }
 
+  // A retained row has no recoverable original ID unless the source supplies it.
+  // Reuse this check for previews, summaries, deduplication and CSV warnings.
+  function validatedSourceRecords(parsed) {
+    if (!parsed || !Array.isArray(parsed.rows) || parsed.rows.length > MAX_ROWS)
+      throw new Error('Invalid source-record positions.');
+    const count = parsed.originalRowCount, source = parsed.sourceRecords;
+    if (count !== undefined && (!Number.isSafeInteger(count) ||
+        count < parsed.rows.length || count > MAX_ROWS))
+      throw new Error('Invalid original source-record count.');
+    if (source === undefined) {
+      if (count !== undefined && count > parsed.rows.length)
+        throw new Error('Filtered input requires original source-record positions.');
+      return null;
+    }
+    if (!Array.isArray(source) || source.length !== parsed.rows.length ||
+        !source.every((n, i) => Number.isSafeInteger(n) && n >= 2 &&
+          n <= MAX_ROWS + 1 && (i === 0 || n > source[i - 1]) &&
+          (count === undefined || n <= count + 1)))
+      throw new Error('Invalid source-record positions.');
+    return source;
+  }
+
   function summarize(parsed) {
     const {rows, normalizedHeaders: headers} = parsed;
+    const source = validatedSourceRecords(parsed);
+    const position = i => source ? source[i] : i + 2;
     const counts = headers.map((name, column) => {
       const values = rows.map(r => r[column]);
       return {name, blank: values.filter(v => v.trim() === '').length,
@@ -107,25 +131,21 @@
     const seen = new Map(), duplicateRows = [];
     rows.forEach((row, i) => {
       const key = JSON.stringify(row);
-      if (seen.has(key)) duplicateRows.push({row: i + 2, firstSeen: seen.get(key) + 2});
+      if (seen.has(key)) duplicateRows.push({row: position(i), firstSeen: position(seen.get(key))});
       else seen.set(key, i);
     });
     return {rowCount: rows.length, columnCount: headers.length, columns: counts, duplicateRows};
   }
 
   function withoutExactDuplicates(parsed) {
-    // A filtered input cannot recover original positions from its retained rows.
-    // Do not manufacture sequential evidence IDs during deduplication.
-    if (parsed.sourceRecords === undefined && parsed.originalRowCount !== undefined &&
-        parsed.originalRowCount > parsed.rows.length)
-      throw new Error('Cannot deduplicate filtered input without original source-record positions.');
+    const source = validatedSourceRecords(parsed);
     const seen = new Set(), rows = [], sourceRecords = [];
     parsed.rows.forEach((row, index) => {
       const key = JSON.stringify(row);
       if (seen.has(key)) return;
       seen.add(key);
       rows.push(row);
-      sourceRecords.push(parsed.sourceRecords ? parsed.sourceRecords[index] : index + 2);
+      sourceRecords.push(source ? source[index] : index + 2);
     });
     // Retained records keep their ORIGINAL logical positions after deduplication.
     // The unmodified source remains available separately for exact JSON export.
@@ -141,10 +161,11 @@
         !Number.isSafeInteger(limit) || limit < 1 || limit > 100 ||
         !Number.isSafeInteger(offset) || offset < 0)
       throw new Error('Choose a valid source-record review filter.');
+    const source = validatedSourceRecords(parsed);
     const seen = new Map(), entries = [];
     let total = 0;
     parsed.rows.forEach((row, index) => {
-      const sourceRecord = parsed.sourceRecords ? parsed.sourceRecords[index] : index + 2;
+      const sourceRecord = source ? source[index] : index + 2;
       const signature = JSON.stringify(row);
       const duplicateOf = seen.has(signature) ? seen.get(signature) : null;
       if (!seen.has(signature)) seen.set(signature, sourceRecord);
@@ -166,6 +187,7 @@
         !['all', 'missing', 'duplicates'].includes(mode) ||
         !Number.isSafeInteger(target) || target < 2 || target > MAX_ROWS + 1)
       throw new Error('Enter a valid original source-record number.');
+    const source = validatedSourceRecords(parsed);
     const seen = new Set();
     let matchingOffset = 0;
     for (let i = 0; i < parsed.rows.length; i++) {
@@ -176,7 +198,7 @@
       const included = mode === 'all' ||
         (mode === 'missing' && row.some(value => value.trim() === '')) ||
         (mode === 'duplicates' && duplicate);
-      const sourceRecord = parsed.sourceRecords ? parsed.sourceRecords[i] : i + 2;
+      const sourceRecord = source ? source[i] : i + 2;
       if (sourceRecord === target) return included ? matchingOffset : null;
       if (included) matchingOffset++;
     }
@@ -191,6 +213,7 @@
   // Refuse ambiguous spreadsheet-view exports, but preserve exact cells in JSON
   // and in the explicitly machine-readable CSV option.
   function spreadsheetExportRisk(parsed) {
+    const source = validatedSourceRecords(parsed);
     for (const [rowIndex, row] of [parsed.headers, ...parsed.rows].entries()) {
       for (const [columnIndex, value] of row.entries()) {
         const text = String(value);
@@ -206,7 +229,7 @@
             /^[\p{White_Space}\p{Default_Ignorable_Code_Point}]*[=+\-@＝＋－＠]/u.test(text) &&
               !formulaRisk(text)) {
           return {sourceRecord:rowIndex === 0 ? 1 :
-            (parsed.sourceRecords ? parsed.sourceRecords[rowIndex - 1] : rowIndex + 1),
+            (source ? source[rowIndex - 1] : rowIndex + 1),
             column:columnIndex + 1};
         }
       }
