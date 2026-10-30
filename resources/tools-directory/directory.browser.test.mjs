@@ -43,6 +43,8 @@ try {
   equal(await page.locator('.ft15-link').count(), TOOLS.filter(t => t.status === 'live').length, 'only live resources linked');
   const renderedLinks = await page.locator('.ft15-link').evaluateAll(links => links.map(a => a.href).sort());
   equal(renderedLinks, TOOLS.filter(t => t.status === 'live').map(t => t.url).sort(), 'exact approved live destinations');
+  equal(await page.locator('.ft15-link').evaluateAll(links => links.every(link => link.relList.contains('noreferrer'))),
+    true, 'all live links suppress the directory Referer');
   equal(await page.locator('.ft15-unavailable').count(), TOOLS.filter(t => t.status === 'development').length, 'development cards explicitly unavailable');
   equal(errors, [], 'no startup script errors');
   await page.evaluate(() => {
@@ -51,6 +53,27 @@ try {
     document.head.append(injected);
   });
   equal(await page.evaluate(() => Boolean(window.__ft15_untrusted_inline_executed)), false, 'HTML CSP blocks injected inline script');
+
+  // Prove the request monitor observes an allowed same-origin resource, then
+  // assert that synthetic search text and correction never trigger network I/O.
+  const searchRequests = [];
+  page.on('request', request => searchRequests.push(request.url()));
+  const monitorCanary = await page.evaluate(() => new Promise(resolve => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet'; link.href = './styles.css?ft16-request-canary=1';
+    link.onload = () => { link.remove(); resolve(true); };
+    link.onerror = () => { link.remove(); resolve(false); };
+    document.head.append(link);
+  }));
+  equal(monitorCanary, true, 'same-origin request-monitor canary loaded');
+  equal(searchRequests.some(url => url.includes('ft16-request-canary=1')), true,
+    'network monitor detects the canary before privacy assertions');
+  searchRequests.length = 0;
+  await page.locator('#tool-query').fill('synthetic-private-FT16@example.test');
+  await page.locator('#tool-query').fill('text\\u202e lens');
+  await page.locator('#tool-query').fill('text lens');
+  await page.locator('#tool-clear').click();
+  equal(searchRequests, [], 'search, invalid correction and clear make no network requests');
 
   await page.locator('#tool-status').selectOption('development');
   equal(await page.locator('.ft15-card').count(), 11, 'development filter');
@@ -262,6 +285,24 @@ try {
   await page.keyboard.press('Shift+Tab');
   equal(await page.locator('#tool-clear').evaluate(el => el === document.activeElement),
     true, 'reverse keyboard traversal returns to Clear filters');
+  // Intercept the approved destination: verify actual browser navigation
+  // omits Referer without requesting the real production WordPress page.
+  const navigation = await browser.newPage();
+  const capturedHeaders = [];
+  await navigation.route('https://www.lauraelizabethhand.com/**', async route => {
+    capturedHeaders.push(await route.request().allHeaders());
+    await route.fulfill({status: 200, contentType: 'text/html',
+      body: '<!doctype html><title>Intercepted synthetic destination</title>'});
+  });
+  await navigation.goto('http://127.0.0.1:' + server.address().port + '/', {waitUntil: 'networkidle'});
+  await navigation.locator('#tool-query').fill('text lens');
+  await navigation.locator('.ft15-link').click();
+  equal(await navigation.title(), 'Intercepted synthetic destination',
+    'approved live-tool link navigates to intercepted destination');
+  equal(capturedHeaders.length, 1, 'one approved destination navigation intercepted');
+  equal(Object.hasOwn(capturedHeaders[0], 'referer'), false,
+    'real browser navigation sends no Referer header');
+  await navigation.close();
   equal(errors, [], 'no runtime script errors');
   console.log('FT-15 ' + browserName + ' HTTP browser integration: ' + checks + '/' + checks + ' PASS');
 } finally {
