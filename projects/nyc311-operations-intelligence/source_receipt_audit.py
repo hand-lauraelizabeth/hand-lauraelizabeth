@@ -63,6 +63,11 @@ def audit(csv_path, receipt_path):
             "$group": "borough,agency,status", "$order": "borough,agency,status",
             "$limit": 50000,
         })
+        # Reconstruct the publisher's closure completeness query independently.
+        closure_query = resource + "?" + urlencode({
+            "$select": "count(*) as records,count(closed_date) as populated",
+            "$where": predicate,
+        })
         # Reconstruct the two source checks added after the original audit.
         complaint_query = resource + "?" + urlencode({
             "$select": "complaint_type,count(*) as n", "$where": predicate,
@@ -88,6 +93,8 @@ def audit(csv_path, receipt_path):
                 or receipt.get("ordered_by") != "unique_key ASC"
                 or receipt.get("cross_aggregate_verified") is not True
                 or receipt.get("three_way_cross_aggregate_verified") is not True
+                or receipt.get("closure_completeness_verified") is not True
+                or receipt.get("closure_completeness_query_url") != closure_query
                 or receipt.get("complaint_distribution_verified") is not True
                 or receipt.get("key_membership_verified") is not True
                 or receipt.get("complaint_query_url") != complaint_query
@@ -103,6 +110,10 @@ def audit(csv_path, receipt_path):
         if (type(n) is not int or n <= 0
                 or type(receipt.get("distinct_keys")) is not int
                 or receipt["distinct_keys"] != n
+                or type(receipt.get("populated_closure_dates")) is not int
+                or not 0 <= receipt["populated_closure_dates"] <= n
+                or type(receipt.get("missing_closure_dates")) is not int
+                or receipt["missing_closure_dates"] != n - receipt["populated_closure_dates"]
                 or type(receipt.get("aggregate_cells")) is not int
                 or receipt["aggregate_cells"] <= 0
                 or type(receipt.get("complaint_aggregate_cells")) is not int
@@ -162,6 +173,7 @@ def audit(csv_path, receipt_path):
             seen = set()
             last = None
             rows = 0
+            populated_closures = 0
             with snapshot.open("r", encoding="utf-8", newline="") as stream:
                 reader = csv.reader(stream, strict=True)
                 if tuple(next(reader)) != FIELDS:
@@ -192,10 +204,14 @@ def audit(csv_path, receipt_path):
                             parse_source_timestamp(record["closed_date"])
                         except ValueError:
                             codes.add("CLOSED_DATE_INVALID")
+                        else:
+                            populated_closures += 1
                     complaints[record["complaint_type"]] += 1
                     pairs[(record["borough"], record["agency"])] += 1
                     triples[(record["borough"], record["agency"], record["status"])] += 1
                     rows += 1
+            if populated_closures != receipt["populated_closure_dates"]:
+                codes.add("CLOSURE_COMPLETENESS_MISMATCH")
             if rows != n or len(seen) != receipt["distinct_keys"]:
                 codes.add("ROW_OR_DISTINCT_KEY_COUNT_MISMATCH")
             if key_membership.hexdigest() != receipt["key_membership_sha256"]:
