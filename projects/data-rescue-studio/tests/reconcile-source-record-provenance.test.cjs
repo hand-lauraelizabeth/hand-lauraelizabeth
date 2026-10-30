@@ -47,6 +47,17 @@ for(const originalRowCount of [-1,0,1,50001,2.5,'20']){
 }
 rejects({normalizedHeaders:['ID'],rows:[['A'],['B']],sourceRecords:[2,4],originalRowCount:2},
  rawRight,'reject source position beyond declared original record count');
+// A partial input with a declared larger original count must not fall back
+// to fabricated sequential source IDs when its sourceRecords were omitted.
+rejects({normalizedHeaders:['ID'],rows:[['A'],['B']],originalRowCount:5},rawRight,
+ 'reject missing source IDs on filtered first file');
+rejects(rawLeft,{normalizedHeaders:['ID'],rows:[['A']],originalRowCount:3},
+ 'reject missing source IDs on filtered second file');
+same(reconcile(
+ {normalizedHeaders:['ID'],rows:[['A'],['B']],originalRowCount:2},
+ {normalizedHeaders:['ID'],rows:[['A'],['B']],originalRowCount:2},'ID','ID').matches,
+ [{key:'A',leftRow:2,rightRow:2},{key:'B',leftRow:3,rightRow:3}],
+ 'unfiltered sequential input without sourceRecords remains supported');
 rejects({normalizedHeaders:['ID'],rows:[['A'],[null]],sourceRecords:[2,4]},rawRight,
  'reject nonstring identifier');
 // Deterministic synthetic oracle: both sides contain the same unique key,
