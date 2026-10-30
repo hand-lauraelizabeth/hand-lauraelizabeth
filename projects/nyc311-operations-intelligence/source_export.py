@@ -62,7 +62,7 @@ def reject_spreadsheet_active_cell(value):
 
 def parse_publisher_count(value):
     """Accept exact nonnegative integer counts, never coerced booleans/floats."""
-    if type(value) is int:
+    if type(value) is int and value >= 0:
         return value
     if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
         return int(value)
