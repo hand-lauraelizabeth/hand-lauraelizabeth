@@ -12,6 +12,10 @@ function reconcile(left,right,leftKey,rightKey){
   // Filtered or deduplicated inputs may retain noncontiguous original positions.
   // Never silently renumber them as sequential rows in reconciliation evidence.
   const source=table.sourceRecords;
+  // A declared larger source cannot be mapped to retained rows without explicit IDs.
+  if(source===undefined&&table.originalRowCount!==undefined&&
+      table.originalRowCount>table.rows.length)
+   throw Error('Invalid original source-record positions: filtered input requires sourceRecords.');
   if(source!==undefined&&(!Array.isArray(source)||source.length!==table.rows.length||
       !source.every((n,i)=>Number.isSafeInteger(n)&&n>=2&&n<=50001&&
         (i===0||n>source[i-1]))))
