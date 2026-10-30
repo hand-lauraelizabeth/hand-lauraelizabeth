@@ -92,7 +92,7 @@ try {
   await page.locator('#tool-query').fill('a'.repeat(257));
   equal(await page.locator('#tool-query').inputValue(),'a'.repeat(257),'oversized paste remains editable, not silently truncated');
   equal(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','oversized query identified as invalid');
-  equal(await page.locator('#tool-query').getAttribute('aria-describedby'),'tool-query-error','error associated with search input');
+  equal(await page.locator('#tool-query').getAttribute('aria-describedby'),'tool-search-help tool-query-error','error and instructions associated with search input');
   equal(await page.locator('#tool-query-error[role="alert"]').isVisible(),true,'oversized query has visible alert');
   equal(await page.locator('.ft15-card').count(),0,'invalid query does not render partial results');
   equal(await page.locator('#tool-count').textContent(),'Search paused until the query is shortened','invalid query announced in status');
@@ -122,7 +122,7 @@ try {
   equal(await page.locator('#tool-count').textContent(),'1 of 17 resources shown','valid correction restores accurate count');
   await page.locator('#tool-query').fill('text\u200b lens');
   equal(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','zero-width space flagged as invalid');
-  equal(await page.locator('#tool-query').getAttribute('aria-describedby'),'tool-query-error','hidden control error described by text');
+  equal(await page.locator('#tool-query').getAttribute('aria-describedby'),'tool-search-help tool-query-error','hidden control error and instructions described by text');
   await page.locator('#tool-query').fill('text lens');
   equal(await page.locator('#tool-query').getAttribute('aria-invalid'),null,'corrected hidden control clears error');
   equal(await page.locator('.ft15-card h3').allTextContents(),['Text Lens'],'search recovers after hidden control');
