@@ -49,9 +49,13 @@ def reject_spreadsheet_active_cell(value):
     CSV quoting does not neutralize spreadsheet formulas. A rejected cohort
     requires private investigation; never silently prefix or rewrite evidence.
     """
-    if any(ord(char) < 32 or ord(char) == 127 for char in value):
-        raise ValueError("Unsafe CSV control character in publisher field")
-    if unicodedata.normalize("NFKC", value.lstrip("\ufeff\u200b").lstrip()).startswith(
+    # Invisible format characters can conceal a formula after leading spaces,
+    # and Unicode line/paragraph separators can change spreadsheet row layout.
+    # Reject these rather than rewriting publisher evidence in the raw CSV.
+    if any(unicodedata.category(char) in ("Cc", "Cf", "Zl", "Zp")
+           for char in value):
+        raise ValueError("Unsafe CSV control or format character in publisher field")
+    if unicodedata.normalize("NFKC", value).lstrip().startswith(
             ("=", "+", "-", "@")):
         raise ValueError("Unsafe CSV spreadsheet formula prefix in publisher field")
 
