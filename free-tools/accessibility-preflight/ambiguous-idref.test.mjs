@@ -62,6 +62,17 @@ expect([p('first'),p('second'),element('INPUT',{id:'q','aria-describedby':'first
 expect([element('TH',{id:'head\u00a001'}),element('TD',{headers:'head\u00a001'})],[]);
 expect([element('TH',{id:'head\u00a001'}),element('TH',{id:'head\u00a001'}),element('TD',{headers:'head\u00a001'})],['ambiguous-table-header']);
 expect([p('claim\u00a001'),element('BUTTON',{id:'q','aria-activedescendant':'claim\u00a001'})],[]);
+// WAI-ARIA 1.2: details and error-message targets are singular; flowto is a list.
+expect([p('a'),p('b'),element('INPUT',{id:'q','aria-details':'a b'})],['single-id-reference']);
+expect([p('a'),p('b'),element('INPUT',{id:'q','aria-errormessage':'a b','aria-invalid':'true'})],['single-id-reference']);
+expect([p('a'),p('b'),element('INPUT',{id:'q','aria-describedby':'a b'})],[]);
+expect([p('a'),p('b'),element('INPUT',{id:'q','aria-flowto':'a b'})],[]);
+expect([p('a'),element('INPUT',{id:'q','aria-flowto':'a missing'})],['unresolved-id-reference']);
+expect([p('a'),p('a'),element('INPUT',{id:'q','aria-flowto':'a'})],['ambiguous-id-reference']);
+expect([p('a'),element('INPUT',{id:'q','aria-flowto':'a a'})],['repeated-id-reference']);
+expect([p('a\u00a0b'),element('INPUT',{id:'q','aria-details':'a\u00a0b'})],[]);
+expect([p('a\u00a0b'),element('INPUT',{id:'q','aria-errormessage':'a\u00a0b','aria-invalid':'true'})],[]);
+expect([p('a\u00a0b'),element('INPUT',{id:'q','aria-flowto':'a\u00a0b'})],[]);
 const sample=rules([p('safe','One'),p('safe','Two'),element('INPUT',{id:'q','aria-labelledby':'safe'})])[0];
 assert.match(sample.message,/multiple elements/);count++;
 assert.match(sample.reference,/4\.1\.2/);count++;

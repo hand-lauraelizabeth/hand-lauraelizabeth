@@ -1,6 +1,6 @@
 // Static HTML relationship checks. Findings are review prompts, not conformance verdicts.
-const IDREF_LIST = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'aria-owns', 'aria-details', 'aria-errormessage'];
-const IDREF_SINGLE = ['aria-activedescendant'];
+const IDREF_LIST = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'aria-owns', 'aria-flowto'];
+const IDREF_SINGLE = ['aria-activedescendant', 'aria-details', 'aria-errormessage'];
 const LABELABLE = new Set(['INPUT','BUTTON','SELECT','TEXTAREA','METER','OUTPUT','PROGRESS']);
 const tidy = value => String(value ?? '').replace(/\s+/g, ' ').trim();
 // HTML/ARIA IDREF lists use ASCII whitespace, not JavaScript's broader \s.
