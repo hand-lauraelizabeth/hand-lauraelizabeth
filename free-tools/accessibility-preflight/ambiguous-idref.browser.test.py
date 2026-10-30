@@ -84,8 +84,8 @@ def main():
          {"unresolved-id-reference"}),
         ('<span id="a">A</span><span id="a">B</span>'
          '<input aria-flowto="a">', {"ambiguous-id-reference"}),
-        ('<span id="a\\u00a0b">A</span><input aria-details="a\\u00a0b">', set()),
-        ('<span id="a\\u00a0b">A</span><input aria-flowto="a\\u00a0b">', set()),
+        ('<span id="a\u00a0b">A</span><input aria-details="a\u00a0b">', set()),
+        ('<span id="a\u00a0b">A</span><input aria-flowto="a\u00a0b">', set()),
     ]
     with served() as origin, sync_playwright() as pw:
         browser = getattr(pw, engine).launch(headless=True)
