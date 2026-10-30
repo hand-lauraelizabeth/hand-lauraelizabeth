@@ -36,7 +36,10 @@ function render(){
   const heading=element('h3',null,tool.title),badge=element('span','ft15-badge',STATUS_LABELS[tool.status]);
   badge.setAttribute('data-status',tool.status);
   article.append(badge,heading,element('p',null,tool.description));
-  if(tool.url){const a=element('a','ft15-link','Open '+tool.title);a.href=tool.url;article.append(a)}
+  if(tool.url){const a=element('a','ft15-link','Open '+tool.title);a.href=tool.url;
+   // Do not disclose the directory URL as a Referer when navigating to a live tool.
+   // HTML Standard, link type noreferrer: https://html.spec.whatwg.org/dev/links.html
+   a.rel='noreferrer';article.append(a)}
   else article.append(element('p','ft15-unavailable','Not yet available'));
   fragment.append(article);
  }
