@@ -282,7 +282,7 @@ test('non-finite table metrics remain explicitly missing in CSV and JSON, withou
  const riskStart=html.indexOf('function cueCsvRisk(value){');
  const riskEnd=html.indexOf('function cueCsvCell(',riskStart);
  assert.ok(start>0&&end>start&&riskStart>0&&riskEnd>riskStart);
- const source=html.slice(riskStart,riskEnd)+'\\n'+html.slice(start,end);
+ const source=html.slice(riskStart,riskEnd)+'\n'+html.slice(start,end);
  const marker='not available (non-finite metric)';
  for(const metric of [NaN,Infinity,-Infinity,0,-3.125,42]){
   for(let i=0;i<25;i++){
