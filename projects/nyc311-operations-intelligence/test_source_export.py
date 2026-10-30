@@ -30,6 +30,7 @@ class FakePublisher:
         self.status_closure_calls = 0
         self.chronology_calls = 0
         self.chronology_status_calls = 0
+        self.key_membership_calls = 0
         self.urls = []
 
     def __call__(self, url):
@@ -213,6 +214,19 @@ class FakePublisher:
             self.count_calls += 1
             n = len(self.rows) + (1 if self.drift == "count" and self.count_calls > 1 else 0)
             return [{"records": str(n), "distinct_keys": str(n)}]
+        if params.get("$select") == ["unique_key"]:
+            self.key_membership_calls += 1
+            offset, limit = int(params["$offset"][0]), int(params["$limit"][0])
+            keys = [{"unique_key": r["unique_key"]} for r in self.rows[offset:offset + limit]]
+            if self.drift == "key_membership" and keys:
+                keys[0]["unique_key"] += "x"
+            if self.drift == "key_truncated" and offset > 0:
+                return []
+            if self.drift == "key_order" and len(keys) > 1:
+                keys[1]["unique_key"] = keys[0]["unique_key"]
+            if self.drift == "key_malformed" and keys:
+                keys[0]["unique_key"] = 42
+            return keys
         assert params["$order"] == ["unique_key ASC"]
         assert "2026-09-01T00:00:00" in params["$where"][0]
         assert "2026-10-01T00:00:00" in params["$where"][0]
@@ -249,8 +263,13 @@ class TestSourceExport(unittest.TestCase):
             self.assertNotIn("incident_address", csvfile.read_text())
             import hashlib
             self.assertEqual(hashlib.sha256(csvfile.read_bytes()).hexdigest(), receipt["csv_sha256"])
-            self.assertEqual(publisher.meta_calls, 2)
-            self.assertEqual(publisher.count_calls, 2)
+            self.assertEqual(publisher.meta_calls, 3)
+            self.assertEqual(publisher.count_calls, 3)
+            self.assertEqual(publisher.key_membership_calls, 2)
+            self.assertTrue(receipt["key_membership_verified"])
+            self.assertEqual(receipt["key_membership_pages"], 2)
+            self.assertEqual(len(receipt["key_membership_sha256"]), 64)
+            self.assertIn("%24select=unique_key", receipt["key_membership_query_url"])
             self.assertEqual(publisher.group_calls, 2)
             self.assertEqual(publisher.three_calls, 2)
             self.assertEqual(publisher.status_closure_calls, 2)
@@ -272,6 +291,18 @@ class TestSourceExport(unittest.TestCase):
                 download("2026-09", csvfile, receiptfile, page_size=2, fetch=publisher)
             self.assertFalse(csvfile.exists())
             self.assertFalse(receiptfile.exists())
+
+    def test_independent_key_membership_drift_fails_closed(self):
+        # Equal cohort sizes, categorical counts and closure partitions can
+        # conceal a different key population in the independent publisher pass.
+        for drift in ("key_membership", "key_truncated", "key_order", "key_malformed"):
+            with self.subTest(drift=drift), tempfile.TemporaryDirectory() as tmp:
+                csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+                with self.assertRaisesRegex(ValueError, "key membership"):
+                    download("2026-09", csvfile, receiptfile, page_size=2,
+                             fetch=FakePublisher(drift=drift))
+                self.assertFalse(csvfile.exists())
+                self.assertFalse(receiptfile.exists())
 
     def test_truncated_page_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
