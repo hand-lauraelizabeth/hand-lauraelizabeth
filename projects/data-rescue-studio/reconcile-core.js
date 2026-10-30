@@ -9,12 +9,26 @@ function reconcile(left,right,leftKey,rightKey){
  const l=left.normalizedHeaders.indexOf(leftKey),r=right.normalizedHeaders.indexOf(rightKey);
  if(l<0||r<0)throw Error('Choose a valid key column in both tables.');
  const index=(table,col)=>{
+  // Filtered or deduplicated inputs may retain noncontiguous original positions.
+  // Never silently renumber them as sequential rows in reconciliation evidence.
+  const source=table.sourceRecords;
+  if(source!==undefined&&(!Array.isArray(source)||source.length!==table.rows.length||
+      !source.every((n,i)=>Number.isSafeInteger(n)&&n>=2&&n<=50001&&
+        (i===0||n>source[i-1]))))
+   throw Error('Invalid original source-record positions.');
+  if(table.originalRowCount!==undefined&&(
+      !Number.isSafeInteger(table.originalRowCount)||
+      table.originalRowCount<table.rows.length||table.originalRowCount>50000||
+      (source&&source.some(n=>n>table.originalRowCount+1))))
+   throw Error('Invalid original source-record count.');
   const out=new Map(),missing=[];
   table.rows.forEach((row,i)=>{
+   const position=source?source[i]:i+2;
    const key=row[col];
-   if(!key||!key.trim()){missing.push(i+2);return;}
+   if(typeof key!=='string')throw Error('Invalid reconciliation identifier.');
+   if(!key.trim()){missing.push(position);return;}
    if(!out.has(key))out.set(key,[]);
-   out.get(key).push(i+2);
+   out.get(key).push(position);
   });
   return {out,missing};
  };
