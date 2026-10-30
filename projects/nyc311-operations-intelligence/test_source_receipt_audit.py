@@ -185,11 +185,11 @@ class ReceiptAuditTests(unittest.TestCase):
             (3, "=1+1"),
             (4, " +SUM(1,1)"),
             (6, "@SUM(1,1)"),
-            (3, "\\uff1d1+1"),
-            (6, " \\u200b=1+1"),
-            (3, "Safe\\u2060label"),
-            (4, "Safe\\u2028label"),
-            (6, "Safe\\n=1+1"),
+            (3, "\uff1d1+1"),
+            (6, " \u200b=1+1"),
+            (3, "Safe\u2060label"),
+            (4, "Safe\u2028label"),
+            (6, "Safe\n=1+1"),
         ):
             with self.subTest(field_index=field_index, unsafe=repr(unsafe)):
                 self.rows = [row[:] for row in original_rows]
