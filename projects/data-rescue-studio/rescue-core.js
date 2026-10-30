@@ -97,7 +97,28 @@
     return { headers, normalizedHeaders, rows: data, warnings, delimiter: sep };
   }
 
+  // Validate original logical record provenance before any displayed source ID.
+  function requireSourceRecordPositions(parsed) {
+    if (!parsed || !Array.isArray(parsed.rows) || parsed.rows.length > MAX_ROWS)
+      throw new Error('Invalid source-record positions.');
+    const source = parsed.sourceRecords;
+    if (source !== undefined && (!Array.isArray(source) ||
+        source.length !== parsed.rows.length ||
+        !source.every((n,i) => Number.isSafeInteger(n) && n >= 2 &&
+          n <= MAX_ROWS + 1 && (i === 0 || n > source[i-1]))))
+      throw new Error('Invalid source-record positions.');
+    const count = parsed.originalRowCount;
+    if (count !== undefined && (!Number.isSafeInteger(count) ||
+        count < parsed.rows.length || count > MAX_ROWS ||
+        (source && source.some(n => n > count + 1))))
+      throw new Error('Invalid original source-record count.');
+    if (source === undefined && count !== undefined &&
+        count > parsed.rows.length)
+      throw new Error('Filtered input requires original source-record positions.');
+  }
+
   function summarize(parsed) {
+    requireSourceRecordPositions(parsed);
     const {rows, normalizedHeaders: headers} = parsed;
     const counts = headers.map((name, column) => {
       const values = rows.map(r => r[column]);
@@ -105,20 +126,17 @@
         unique: new Set(values).size, total: values.length};
     });
     const seen = new Map(), duplicateRows = [];
+    const sourceAt = i => parsed.sourceRecords ? parsed.sourceRecords[i] : i + 2;
     rows.forEach((row, i) => {
       const key = JSON.stringify(row);
-      if (seen.has(key)) duplicateRows.push({row: i + 2, firstSeen: seen.get(key) + 2});
+      if (seen.has(key)) duplicateRows.push({row: sourceAt(i), firstSeen: sourceAt(seen.get(key))});
       else seen.set(key, i);
     });
     return {rowCount: rows.length, columnCount: headers.length, columns: counts, duplicateRows};
   }
 
   function withoutExactDuplicates(parsed) {
-    // A filtered input cannot recover original positions from its retained rows.
-    // Do not manufacture sequential evidence IDs during deduplication.
-    if (parsed.sourceRecords === undefined && parsed.originalRowCount !== undefined &&
-        parsed.originalRowCount > parsed.rows.length)
-      throw new Error('Cannot deduplicate filtered input without original source-record positions.');
+    requireSourceRecordPositions(parsed);
     const seen = new Set(), rows = [], sourceRecords = [];
     parsed.rows.forEach((row, index) => {
       const key = JSON.stringify(row);
@@ -129,8 +147,10 @@
     });
     // Retained records keep their ORIGINAL logical positions after deduplication.
     // The unmodified source remains available separately for exact JSON export.
+    // An explicit mapping does not establish an unknown original row count.
     return {...parsed, rows, sourceRecords,
-      originalRowCount: parsed.originalRowCount ?? parsed.rows.length};
+      ...(parsed.originalRowCount === undefined && parsed.sourceRecords !== undefined
+        ? {} : {originalRowCount: parsed.originalRowCount ?? parsed.rows.length})};
   }
 
   // Read-only review filters: original logical source records are never renumbered.
@@ -141,6 +161,7 @@
         !Number.isSafeInteger(limit) || limit < 1 || limit > 100 ||
         !Number.isSafeInteger(offset) || offset < 0)
       throw new Error('Choose a valid source-record review filter.');
+    requireSourceRecordPositions(parsed);
     const seen = new Map(), entries = [];
     let total = 0;
     parsed.rows.forEach((row, index) => {
@@ -166,6 +187,7 @@
         !['all', 'missing', 'duplicates'].includes(mode) ||
         !Number.isSafeInteger(target) || target < 2 || target > MAX_ROWS + 1)
       throw new Error('Enter a valid original source-record number.');
+    requireSourceRecordPositions(parsed);
     const seen = new Set();
     let matchingOffset = 0;
     for (let i = 0; i < parsed.rows.length; i++) {
