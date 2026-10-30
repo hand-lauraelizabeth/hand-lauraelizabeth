@@ -27,6 +27,18 @@ $('event-form').addEventListener('submit',e=>{e.preventDefault();const f=e.curre
 function eventButton(eventId){
   return [...$('events-list').querySelectorAll('button[data-event-id]')].find(b=>b.dataset.eventId===eventId);
 }
+// Compare only the active draft with its saved event; do not expose entered values in status text.
+function pendingEventCorrection(){
+  if(editingEventId===null) return false;
+  const saved=events.find(e=>e.eventId===editingEventId);
+  if(!saved) return false;
+  const description=$('edit-description').value===editingDisplayedDescription
+    ? editingOriginalDescription : $('edit-description').value;
+  return $('edit-event-date').value!==saved.date ||
+    $('edit-amount').value!==(saved.amountCents===null?'':String(saved.amountCents)) ||
+    description!==saved.description ||
+    $('edit-source-links').value!==saved.sourceIds.join('\n');
+}
 function closeEventEditor(focusButton=false){
   const id=editingEventId;
   editingEventId=null;
@@ -36,6 +48,8 @@ function closeEventEditor(focusButton=false){
   if(focusButton && id!==null) eventButton(id)?.focus();
 }
 function openEventEditor(eventId){
+  if(editingEventId!==null && editingEventId!==eventId && pendingEventCorrection() &&
+     !window.confirm('Discard the unsaved event correction and edit another event?')) return;
   const event=buildHousingLedger({sources,events}).events.find(e=>e.eventId===eventId);
   if(!event) return;
   editingEventId=eventId;
@@ -103,6 +117,17 @@ $('import').addEventListener('click',async()=>{
     $('import-file').value='';
   }
 });
-$('download').addEventListener('click',()=>{attempt(()=>{const blob=new Blob([exportHousingJSON(buildHousingLedger({sources,events}))],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='housing-evidence-ledger.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});});
+$('download').addEventListener('click',()=>{
+  const unsaved=pendingEventCorrection();
+  attempt(()=>{
+    const blob=new Blob([exportHousingJSON(buildHousingLedger({sources,events}))],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=url;a.download='housing-evidence-ledger.json';document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+  if(error.hidden) status.textContent+=unsaved
+    ? ' Download contains saved records only; one unsaved event correction was excluded. Save the correction and download again to include it.'
+    : ' Download contains saved records.';
+});
 $('clear').addEventListener('click',()=>{if(!sources.length&&!events.length)return;if(!window.confirm('Clear all sources and events from this tab? Export JSON first if you need a copy.'))return; sources.length=0;events.length=0;mutationVersion++;closeEventEditor();clearError();render();});
 render();
