@@ -313,8 +313,8 @@ class TestSourceExport(unittest.TestCase):
                               ("unique_key", " =1+1"),
                               ("complaint_type", "Safe\\n=1+1"),
                               ("agency", "Safe\\tvalue"),
-                              ("complaint_type", "\\uff1d1+1"),
-                              ("status", "\\u200b=1+1")):
+                              ("complaint_type", "\uff1d1+1"),
+                              ("status", "\u200b=1+1")):
             with self.subTest(field=field, unsafe=unsafe), tempfile.TemporaryDirectory() as tmp:
                 row = record("001")
                 row[field] = unsafe
