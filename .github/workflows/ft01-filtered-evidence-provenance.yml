@@ -1,0 +1,14 @@
+name: FT-01 filtered evidence source-record integrity
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  filtered-evidence-provenance:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify filtered evidence fails closed without original IDs
+        run: node projects/data-rescue-studio/tests/filtered-evidence-provenance.test.cjs
