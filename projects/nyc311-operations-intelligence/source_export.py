@@ -339,6 +339,42 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                                  for name, (cid, kind) in observed.items()))
         return stamp, signature
 
+    def official_key_membership(expected_rows, local_digest):
+        """Independently reread all publisher keys; compare exact ordered membership.
+
+        This is a second, non-atomic API pass, not proof of an immutable
+        source snapshot. Only the SHA-256 digest is retained in the receipt.
+        """
+        checked = 0
+        previous = None
+        digest = hashlib.sha256()
+        pages_checked = 0
+        while checked < expected_rows:
+            limit = min(page_size, expected_rows - checked)
+            url = api_url("/resource/" + DATASET + ".json", {
+                "$select": "unique_key", "$where": predicate,
+                "$order": "unique_key ASC", "$limit": limit, "$offset": checked
+            })
+            page = fetch(url)
+            if not isinstance(page, list) or not page or len(page) > limit:
+                raise ValueError("Publisher key membership page truncated or oversized")
+            for item in page:
+                if not isinstance(item, dict) or set(item) != {"unique_key"}:
+                    raise ValueError("Malformed publisher key membership row")
+                key = item["unique_key"]
+                if not isinstance(key, str) or not key or (
+                        previous is not None and key <= previous):
+                    raise ValueError("Invalid publisher key membership order or key")
+                encoded = key.encode("utf-8")
+                digest.update(len(encoded).to_bytes(4, "big"))
+                digest.update(encoded)
+                previous = key
+            checked += len(page)
+            pages_checked += 1
+        if digest.hexdigest() != local_digest:
+            raise ValueError("Publisher key membership differs from exported source")
+        return pages_checked
+
     def counts():
         obj = fetch(count_url)
         if not isinstance(obj, list) or len(obj) != 1:
@@ -371,6 +407,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     if dict(triple_status) != {s: n for s, (n, _) in before_status_closure.items()}:
         raise ValueError("Official status-closure and three-way aggregates disagree")
     seen = set()
+    local_key_digest = hashlib.sha256()
     local_pairs = Counter()
     local_triples = Counter()
     local_status_totals = Counter()
@@ -418,6 +455,9 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                     if key in seen:
                         raise ValueError("Duplicate publisher unique_key")
                     seen.add(key)
+                    encoded_key = key.encode("utf-8")
+                    local_key_digest.update(len(encoded_key).to_bytes(4, "big"))
+                    local_key_digest.update(encoded_key)
                     last_key = key
                     timestamp = parse_floating_timestamp(record.get("created_date"), required=True)
                     if not month_start <= timestamp < month_end:
@@ -490,6 +530,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         if (dict(local_reversed_status) != before_chronology_status["reversed"]
                 or dict(local_equal_status) != before_chronology_status["equal"]):
             raise ValueError("Exported status-chronology disagrees with publisher")
+        # A second complete publisher key-only pass detects balanced key swaps
+        # that leave all count and categorical aggregates unchanged.
+        key_membership_pages = official_key_membership(expected, local_key_digest.hexdigest())
+        if metadata() != (before_update, before_schema) or counts() != expected:
+            raise ValueError("Publisher source changed during key membership verification")
         # Stamp *completed* source checks, not the start of a long paginated
         # acquisition. A caller-supplied UTC clock is only a synthetic test hook.
         if verified_at is None:
@@ -553,6 +598,13 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "status_chronology_query_urls": chronology_status_urls,
             "status_chronology_sha256": chronology_status_digest,
             "status_chronology_verified": True,
+            "key_membership_verified": True,
+            "key_membership_sha256": local_key_digest.hexdigest(),
+            "key_membership_pages": key_membership_pages,
+            "key_membership_query_url": api_url("/resource/" + DATASET + ".json", {
+                "$select": "unique_key", "$where": predicate,
+                "$order": "unique_key ASC"
+            }),
             "where": predicate, "ordered_by": "unique_key ASC",
             "fields": list(FIELDS), "rows": rows, "distinct_keys": len(seen),
             "pages": pages, "page_size": page_size,
