@@ -258,16 +258,18 @@ class ReceiptAuditTests(unittest.TestCase):
     def test_status_closure_distribution_fails_with_recomputed_csv_digest(self):
         """Moving closure from one status to another preserves overall count."""
         self.rows[0][2] = "2026-09-01T02:00:00"
-        self.rows[1][2] = "2026-09-15T13:00:00"
         self.write()
         original_digest = self.receipt["status_closure_aggregate_sha256"]
         self.rows[0][2] = ""
-        self.rows[1][2] = ""
+        self.rows[1][2] = "2026-09-15T13:00:00"
         self.write()
         self.receipt["status_closure_aggregate_sha256"] = original_digest
         self.save_receipt()
         codes = self.codes()
         self.assertIn("STATUS_CLOSURE_SHA256_MISMATCH", codes)
+        self.assertNotIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
+        self.assertNotIn("CLOSURE_CHRONOLOGY_MISMATCH", codes)
+        self.assertNotIn("STATUS_CHRONOLOGY_SHA256_MISMATCH", codes)
         self.assertNotIn("CSV_SHA256_MISMATCH", codes)
 
     def test_chronology_counts_and_status_digest_fail_with_valid_csv_sha(self):
