@@ -24,7 +24,7 @@ That distinction changes how an application is revised. A visibility gap may jus
 
 ## Work across a career history
 
-Career histories can involve overlapping roles, consulting, academic appointments, volunteer work, and projects that cross institutional boundaries. The prototype supports reviewed date intervals and checks overlapping years when assessing duration requirements. It does not treat two concurrent positions as twice the passage of time.
+Career histories can involve overlapping roles, consulting, academic appointments, volunteer work, and projects that cross institutional boundaries. The workspace highlights the distinct calendar years touched by reviewed year ranges and flags overlap. That is calendar coverage, not a calculation of elapsed experience: work in December and the following January touches two years without establishing two years of experience. A duration requirement therefore remains unresolved even when the visible evidence is marked verified. Confirm exact relevant start and end dates, gaps, and overlapping roles separately before making a duration claim.
 
 The separate Career Discovery & Tracking workspace helps people explore possible role families, organize opportunities, and record application progress. A shared candidate profile can be transferred between the two workspaces, with controls intended to exclude evidence that should not travel with it.
 

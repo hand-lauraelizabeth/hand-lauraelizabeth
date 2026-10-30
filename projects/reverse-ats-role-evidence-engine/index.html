@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reverse ATS / Role Evidence Studio — v2.5</title>
+<title>Reverse ATS / Role Evidence Studio — v2.6</title>
 <style>
 :root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -21,7 +21,7 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <body>
 <header>
   <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
-  <h1>Reverse ATS · Role Evidence Studio <span style="font-size:.42em;font-weight:600">v2.5</span></h1>
+  <h1>Reverse ATS · Role Evidence Studio <span style="font-size:.42em;font-weight:600">v2.6</span></h1>
   <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
 </header>
 <main>
@@ -141,8 +141,8 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <div class="matrix"><table><thead><tr><th>Type</th><th>Requirement</th><th>Evidence found</th><th>Visibility</th><th>Reviewed support</th><th>Gap type</th><th>Next action</th></tr></thead><tbody id="rows"><tr><td colspan="7" class="muted">No analysis yet.</td></tr></tbody></table></div>
 </section>
 
-<details class="panel"><summary>How v2.4 classifies text and evidence</summary>
-<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. v2.4 adds human-reviewed metadata and claim-strength guardrails. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency; stronger wording should depend on reviewed evidence, not keyword presence.</p>
+<details class="panel"><summary>How this workspace classifies text and evidence</summary>
+<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. Human-reviewed metadata and claim-strength guardrails remain separate from automatic detection. Calendar-year coverage is not elapsed experience; duration requirements remain unresolved until exact relevant dates and overlapping roles have been reviewed. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency; stronger wording should depend on reviewed evidence, not keyword presence.</p>
 </details>
 </main>
 <script>
@@ -162,7 +162,9 @@ function terms(s){return [...new Set((s.toLowerCase().match(/[a-z][a-z0-9+#./-]{
 function phraseCandidates(s){const out=[]; const patterns=[/\b\d+\+?\s+years?[^,.;]*/ig,/\b(?:bachelor'?s?|master'?s?|phd|doctorate)[^,.;]*/ig,/\b(?:budget|portfolio|roadmap|governance|direct reports?|supervis\w*|manage\w*)[^,.;]*/ig];patterns.forEach(r=>{const m=s.match(r);if(m)out.push(...m)});return out}
 function hardConditions(s){
  const out=[];
- const yrs=s.match(/\b(\d+)\+?\s+years?\s+(?:of\s+)?experience/i);if(yrs)out.push({kind:'years',value:+yrs[1],label:yrs[0]});
+ const numberWords={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,fifteen:15,twenty:20};
+ const yrs=s.match(/\b(\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty)\s*\+?(?:\s*(?:[–—-]|to)\s*\d+(?:\.\d+)?\s*\+?)?\s+years?\b/i);
+ if(yrs)out.push({kind:'years',value:numberWords[yrs[1].toLowerCase()]||+yrs[1],label:yrs[0]});
  const deg=s.match(/\b(bachelor'?s?|master'?s?|phd|doctorate)(?:\s+degree)?\b/i);if(deg)out.push({kind:'degree',value:deg[1].toLowerCase(),label:deg[0]});
  const tools=['salesforce','hubspot','workday','tableau','power bi','sql','python','excel','adobe','asana','jira','google analytics'];
  tools.forEach(t=>{if(new RegExp('\\b'+t.replace(' ','\\s+')+'\\b','i').test(s)&&/(required|must|minimum|proficien|expert|advanced|experience with)/i.test(s))out.push({kind:'tool',value:t,label:t})});
@@ -185,9 +187,9 @@ function chronologyYears(graph){
 }
 function hardConditionStatus(req,graph,ev){
  const cs=hardConditions(req);if(!cs.length)return '';
- const chrono=chronologyYears(graph),notes=[];
+ const notes=[];
  cs.forEach(c=>{
-  if(c.kind==='years')notes.push(chrono.years==null?'years unresolved':chrono.years>=c.value?'reviewed chronology supports '+c.value+'+ years':'reviewed chronology does not yet support '+c.value+'+ years');
+  if(c.kind==='years')notes.push('Experience duration unresolved for '+c.label+' requirement: calendar-year coverage does not establish elapsed experience. Verify exact relevant dates, gaps, and overlapping roles.');
   if(c.kind==='degree')notes.push(/degree|b\.a\.|bachelor|m\.a\.|master|phd|doctorate/i.test(graph.map(n=>n.statement).join(' '))?'degree text visible':'degree evidence not visible');
   if(c.kind==='tool')notes.push(ev.status==='strong'||ev.status==='visible'?c.value+' visible; depth still requires review':c.value+' requirement not clearly supported');
  });
@@ -304,7 +306,7 @@ function analyze(){
  const risk=xs.filter(x=>/material|Verification|Authority|verification pending|corroboration pending|not usable externally/i.test(x.g)).length;
  $('#stats').innerHTML=[[xs.length,'requirements/signals'],[hard.length?Math.round(hardVisible/hard.length*100)+'%':'–','hard req. visibility'],[Math.round(allVisible/xs.length*100)+'%','overall visibility'],[reviewed,'reviewed-support matches']].map(x=>'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
  $('#structure').innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<span class="tag '+k+'">'+k+': '+v+'</span>').join(' ')+'<p class="muted" style="margin-top:12px">'+(job.match(/\$\s?\d{2,3}(?:,\d{3})?/g)||[]).slice(0,4).join(' · ')+'</p>';
- const chrono=chronologyYears(GRAPH);const chronoMsg=chrono.years==null?'Reviewed chronology is not yet sufficient to calculate non-duplicated experience years.':'Reviewed chronology covers about '+chrono.years+' distinct calendar years'+(chrono.concurrent?' with overlapping/concurrent roles detected; overlap is counted once.':'.');
+ const chrono=chronologyYears(GRAPH);const chronoMsg=chrono.years==null?'No usable reviewed year ranges are available. Experience duration remains unresolved; verify exact relevant start and end dates.':'Reviewed ranges touch '+chrono.years+' distinct calendar '+(chrono.years===1?'year':'years')+'. This is calendar coverage, not elapsed experience. Verify exact relevant dates and gaps before making a duration claim.'+(chrono.concurrent?' Overlapping roles share calendar years; they do not add extra elapsed time.':'');
  $('#interpret').innerHTML='<div class="signal"><b>Chronology check.</b><br>'+esc(chronoMsg)+'</div>'+(risk?'<div class="signal warn"><b>'+risk+' higher-attention items.</b><br>These include possible hard-requirement, chronology, or authority/scope gaps. Review before rewriting materials.</div>':'<div class="signal"><b>No major heuristic risk flags.</b><br>Still verify depth, recency, authority, and source provenance.</div>')+'<div class="signal"><b>Use the matrix as a diagnostic.</b><br>A visibility gap means “not legible in the supplied evidence,” not automatically “you lack the capability.” Evidence sources contributing to visible matches: '+(sources.join(', ')||'none')+'.</div>';
  $('#rows').innerHTML=xs.map(x=>'<tr><td><span class="tag '+x.type+'">'+x.type+'</span></td><td>'+esc(x.text)+(x.hard_check?'<div class="muted" style="margin-top:6px"><b>Hard-condition check:</b> '+esc(x.hard_check)+'</div>':'')+'</td><td>'+esc(x.ev.found||'None found')+'</td><td>'+x.ev.status+'</td><td>'+esc(reviewedSupport(x.ev))+'</td><td>'+esc(x.g)+'</td><td>'+esc(x.action)+'</td></tr>').join('');
 }
