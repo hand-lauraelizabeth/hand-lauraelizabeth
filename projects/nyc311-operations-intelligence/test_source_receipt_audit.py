@@ -381,6 +381,8 @@ class ReceiptAuditTests(unittest.TestCase):
         # Both numbers still sum to three, but the CSV has no closed dates.
         self.receipt["populated_closure_dates"] = 1
         self.receipt["missing_closure_dates"] = 2
+        self.receipt["nonnegative_closure_dates"] = 1
+        self.receipt["positive_closure_dates"] = 1
         self.save_receipt()
         codes = self.codes()
         self.assertIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
@@ -393,6 +395,8 @@ class ReceiptAuditTests(unittest.TestCase):
         self.write()
         self.receipt["populated_closure_dates"] = 0
         self.receipt["missing_closure_dates"] = len(self.rows)
+        self.receipt["nonnegative_closure_dates"] = 0
+        self.receipt["positive_closure_dates"] = 0
         self.save_receipt()
         codes = self.codes()
         self.assertIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
