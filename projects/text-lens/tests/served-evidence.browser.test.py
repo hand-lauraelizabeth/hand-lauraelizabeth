@@ -159,6 +159,14 @@ def main():
             assert any(row[0] == "document_summary" and row[2] == "archive.txt"
                        for row in csv.reader(io.StringIO(safe_tables)))
             checks += 1
+            safe_tables_json = json.loads(download_bytes(page, "#downloadTablesJson").decode("utf-8"))
+            assert "non-finite metrics" in safe_tables_json["source_note"]
+            checks += 1
+            assert all(value is not None for row in safe_tables_json["rows"] for value in row)
+            checks += 1
+            assert any(row[0] == "document_summary" and row[2] == "archive.txt"
+                       for row in safe_tables_json["rows"])
+            checks += 1
 
 
             page.locator("#a").fill("An unrelated sentence with no evaluative cue.")

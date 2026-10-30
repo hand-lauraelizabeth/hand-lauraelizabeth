@@ -274,3 +274,44 @@ test('table CSV fails closed on formula-like source names and retains exact JSON
  assert.match(html,/id="downloadTablesJson"/);
  assert.match(html,/\$\('downloadTablesJson'\)\.onclick=downloadTablesJson/);
 });
+
+
+test('non-finite table metrics remain explicitly missing in CSV and JSON, without changing finite values',()=>{
+ const start=html.indexOf('function csvEscape(v){');
+ const end=html.indexOf('function docDescriptor(',start);
+ const riskStart=html.indexOf('function cueCsvRisk(value){');
+ const riskEnd=html.indexOf('function cueCsvCell(',riskStart);
+ assert.ok(start>0&&end>start&&riskStart>0&&riskEnd>riskStart);
+ const source=html.slice(riskStart,riskEnd)+'\n'+html.slice(start,end);
+ const marker='not available (non-finite metric)';
+ for(const metric of [NaN,Infinity,-Infinity,0,-3.125,42]){
+  for(let i=0;i<25;i++){
+   const name='0007-Café-東京-'+i+'.md';
+   const context={
+    sourceDocs:{a:[{id:'a-0007',name,text:'sample'}],b:[]},
+    lastA:{W:2,freq:{word:2},collocs:[{term:'two words',count:1,pmi:metric}]},
+    lastB:null,lastCompare:false,topEntries:f=>Object.entries(f),
+    corpusRows:()=>[],corpusComparison:()=>({similarity:[],keyness:[]}),
+    kwicTarget:()=>null,kwic:()=>[],analyze:()=>({W:2,flesch:metric,mattr50:NaN,herdan:0,S:1}),
+    $:()=>({value:'',checked:false}),Number,Blob,JSON
+   };
+   const api=vm.runInNewContext(source+';({tableRows,tableCsv})',context);
+   const rows=api.tableRows();
+   const colloc=rows.find(row=>row[0]==='collocation');
+   const summary=rows.find(row=>row[0]==='document_summary');
+   const expected=Number.isFinite(metric)?metric:marker;
+   assert.equal(colloc[4],expected);
+   assert.equal(summary[4],expected);
+   assert.equal(summary[2],name);
+   assert.equal(rows.find(row=>row[0]==='frequency')[3],2);
+   const json=JSON.parse(JSON.stringify({rows}));
+   assert.equal(json.rows.find(row=>row[0]==='collocation')[4],expected);
+   assert.equal(json.rows.find(row=>row[0]==='document_summary')[4],expected);
+   assert.ok(!json.rows.some(row=>row.some(value=>value===null)));
+   const csv=api.tableCsv();
+   assert.ok(csv.includes(name));
+   assert.ok(csv.includes(String(expected)));
+   assert.ok(!csv.includes('NaN')&&!csv.includes('Infinity'));
+  }
+ }
+});
