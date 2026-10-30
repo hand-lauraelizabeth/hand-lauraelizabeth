@@ -69,6 +69,7 @@ class EventDraftRetention(unittest.TestCase):
                         second.locator("summary").click()
                         second.locator("textarea").fill("Second pending — é")
                         self.assertEqual(export(), original, "Unsaved edits must not enter evidence exports")
+                        self.assertIn("2 unsaved corrections were excluded", page.locator("#status").inner_text())
 
                         request = page.locator("#requests .card").first
                         request.locator("select").select_option("submitted")
@@ -109,6 +110,7 @@ class EventDraftRetention(unittest.TestCase):
                         self.assertIsNotNone(second.locator("details").get_attribute("open"))
                         self.assertEqual(second.locator("textarea").input_value(), "Second pending — é")
                         after_first = export()
+                        self.assertIn("1 unsaved correction was excluded", page.locator("#status").inner_text())
                         self.assertEqual(after_first["events"][0]["sourceId"], " SRC-0001-漢字 ")
                         self.assertEqual(after_first["events"][0]["date"], "2026-10-02")
                         self.assertEqual(after_first["events"][1], original["events"][1])
@@ -117,6 +119,7 @@ class EventDraftRetention(unittest.TestCase):
                         second = editor("EV-0002")
                         self.assertIsNone(second.locator("details").get_attribute("open"))
                         self.assertEqual(export(), after_first)
+                        self.assertNotIn("unsaved correction", page.locator("#status").inner_text())
 
                         first = editor("EV-0001")
                         first.locator("summary").click()
@@ -191,6 +194,7 @@ class EventDraftRetention(unittest.TestCase):
                         self.assertIn("real calendar date", first.locator('[role="alert"]').inner_text())
                         second.locator("input").nth(1).fill("B-UNSAVED-é")
                         self.assertEqual(evidence(), original, "Unsaved request fields must not enter JSON")
+                        self.assertIn("2 unsaved corrections were excluded", page.locator("#status").inner_text())
 
                         event_form = page.locator("#event-form")
                         event_form.locator('[name="id"]').fill("EV-0001")
@@ -217,11 +221,13 @@ class EventDraftRetention(unittest.TestCase):
                         self.assertEqual(first.locator("input").nth(1).input_value(), "TRACK-漢字-0001")
                         self.assertEqual(second.locator("input").nth(1).input_value(), "B-UNSAVED-é")
                         self.assertEqual(evidence()["requests"][1]["agencyTrackingId"], "B-UNSAVED-é")
+                        self.assertIn("1 unsaved correction was excluded", page.locator("#status").inner_text())
                         self.assertEqual(evidence()["requests"][0], original["requests"][0])
 
                         first.locator("input").nth(0).fill("2026-10-02")
                         first.locator("button").click()
                         saved = evidence()
+                        self.assertNotIn("unsaved correction", page.locator("#status").inner_text())
                         self.assertEqual(saved["requests"][0]["submittedOn"], "2026-10-02")
                         self.assertEqual(saved["requests"][0]["stage"], "processing")
                         self.assertEqual(saved["requests"][0]["agencyTrackingId"], "TRACK-漢字-0001")
