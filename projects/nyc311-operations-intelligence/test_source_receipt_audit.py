@@ -231,7 +231,7 @@ class ReceiptAuditTests(unittest.TestCase):
 
     def test_key_membership_detects_balanced_id_change(self):
         original_membership = self.receipt["key_membership_sha256"]
-        self.rows[1][0] = "0004"  # Unique and ordered, same row/cell totals.
+        self.rows[1][0] = "0002a"  # Unique and ordered, same row/cell totals.
         self.write()
         self.receipt["key_membership_sha256"] = original_membership
         self.save_receipt()
