@@ -213,6 +213,8 @@
   // Refuse ambiguous spreadsheet-view exports, but preserve exact cells in JSON
   // and in the explicitly machine-readable CSV option.
   function spreadsheetExportRisk(parsed) {
+    // Spreadsheet warnings must never cite fabricated or malformed source IDs.
+    requireSourceRecordPositions(parsed);
     for (const [rowIndex, row] of [parsed.headers, ...parsed.rows].entries()) {
       for (const [columnIndex, value] of row.entries()) {
         const text = String(value);
