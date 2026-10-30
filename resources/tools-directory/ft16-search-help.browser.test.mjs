@@ -58,7 +58,7 @@ try{
  eq(await page.locator('#tool-query').isEnabled(),true,'search initialized');
  eq(await page.locator('.ft15-card').count(),17,'public catalog loaded');
  const description=()=>page.locator('#tool-query').evaluate(el=>{
-  const ids=(el.getAttribute('aria-describedby')||'').split(/\\s+/).filter(Boolean);
+  const ids=(el.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean);
   return {ids,texts:ids.map(id=>document.getElementById(id)?.textContent||null),
    visible:ids.map(id=>!!document.getElementById(id)?.getClientRects().length)};
  });
