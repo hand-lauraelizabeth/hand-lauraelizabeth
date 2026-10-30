@@ -1,0 +1,21 @@
+// Public-facing availability reflects verified destinations, not development test results.
+export const TOOLS = Object.freeze([
+  {id:'text-lens',title:'Text Lens',category:'Research & Writing',status:'live',description:'Explore lexical patterns, concordance, readability, and contextual cues in your own text.',url:'https://www.lauraelizabethhand.com/resources/research-writing-tools/text-lens/'},
+  {id:'prompt-lab',title:'Prompt Lab',category:'Learning & Curriculum',status:'live',description:'Build, inspect, and review prompts with explicit evidence and human verification.',url:'https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-lab/'},
+  {id:'ai-use',title:'AI Use Decision Lab',category:'Learning & Curriculum',status:'live',description:'Plan appropriate AI use, review risk signals, and document human oversight.',url:'https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ai-use-decision-lab/'},
+  {id:'nlp-lesson',title:'Teaching NLP with Python',category:'Learning & Curriculum',status:'live',description:'Explore an interactive lesson in text analysis and Python methods.',url:'https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/'},
+  {id:'stats-lesson',title:'Teaching Statistics with R',category:'Learning & Curriculum',status:'live',description:'Explore an interactive lesson in statistical reasoning and R.',url:'https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-statistics-with-r/'},
+  {id:'reverse-ats',title:'Role Evidence Studio',category:'Career & Professional Development',status:'live',description:'Map role requirements to documented experience and plan next steps.',url:'https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/'},
+  {id:'data-rescue',title:'Data Rescue Studio',category:'Data & Decision-Making',status:'development',description:'Clean CSV files and reconcile multiple datasets with traceable transformations.'},
+  {id:'cash-flow',title:'Cash Flow & Bill Timing Simulator',category:'Data & Decision-Making',status:'development',description:'Explore bill timing and cash-flow scenarios without financial determinations.'},
+  {id:'timeline',title:'Evidence & Timeline Builder',category:'Research & Writing',status:'development',description:'Organize source-linked events and identify missing documentation.'},
+  {id:'grants',title:'Grant Allocation & Impact Reporting',category:'Project & Operations',status:'development',description:'Review allocations, supporting records, and reporting gaps.'},
+  {id:'rfp',title:'RFP & Vendor Evaluation Matrix',category:'Project & Operations',status:'development',description:'Compare proposals using transparent criteria, weights, and evidence.'},
+  {id:'public-records',title:'Public Records Workspace',category:'Research & Writing',status:'development',description:'Organize requests, responses, sources, and follow-up records.'},
+  {id:'document-access',title:'Document Accessibility Preflight',category:'Research & Writing',status:'development',description:'Review common document-accessibility issues before sharing.'},
+  {id:'qualitative',title:'Qualitative Coding & Evidence Matrix',category:'Research & Writing',status:'development',description:'Connect passage codes to exact source positions and reviewer notes.'},
+  {id:'housing',title:'Housing Evidence Ledger',category:'Project & Operations',status:'development',description:'Keep a source-linked chronology of housing documents and events.'},
+  {id:'community',title:'Community Data Explorer',category:'Data & Decision-Making',status:'development',description:'Compare public indicators while preserving vintage, geography, and uncertainty.'},
+  {id:'literature',title:'Literature Evidence Matrix',category:'Research & Writing',status:'development',description:'Synthesize source-linked research findings and reviewer-coded tensions.'}
+]);
+export const STATUS_LABELS=Object.freeze({live:'Live',preview:'Preview',development:'In development'});

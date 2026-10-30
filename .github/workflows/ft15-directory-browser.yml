@@ -1,0 +1,76 @@
+name: FT-15 accessible tools directory
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  catalog-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node resources/tools-directory/live-destinations.test.mjs
+      - run: node resources/tools-directory/ft16-canonical-url.test.mjs
+      - run: node resources/tools-directory/search.test.mjs
+      - run: node resources/tools-directory/accessible.test.mjs
+  browser:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock playwright@1.56.1 @axe-core/playwright@4.13.0
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node resources/tools-directory/directory.browser.test.mjs ${{ matrix.browser }}
+      - run: node resources/tools-directory/ft16-acceptance.browser.test.mjs ${{ matrix.browser }}
+      - run: node resources/tools-directory/ft16-axe-states.browser.test.mjs ${{ matrix.browser }}
+      - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
+      - run: node resources/tools-directory/ft16-forced-colors.browser.test.mjs ${{ matrix.browser }}
+      - run: node resources/tools-directory/ft16-search-help.browser.test.mjs ${{ matrix.browser }}
+      - name: Verify preview entries cannot become live links
+        run: node resources/tools-directory/ft16-preview-release-gate.browser.test.mjs ${{ matrix.browser }}
+      - name: Verify broken preview release gate is detected
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-preview-release-gate.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: preview URL unexpectedly became navigable without detection"
+            exit 1
+          fi
+          echo "PASS: unsafe preview link detected by release-gate test"
+      - name: Check computed Chromium accessibility descriptions
+        if: matrix.browser == 'chromium'
+        run: node resources/tools-directory/ft16-computed-ax.browser.test.mjs
+      - name: Confirm broken computed description is detected
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-computed-ax.browser.test.mjs --negative-control; then
+            echo "ERROR: missing help relationship unexpectedly passed AX check"
+            exit 1
+          fi
+          echo "PASS: missing computed description detected"
+      - name: Confirm missing search instructions are caught
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-search-help.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: broken aria-describedby target unexpectedly passed"
+            exit 1
+          fi
+          echo "PASS: broken search instructions detected by acceptance checks"
+      - name: Confirm acceptance rejects unsafe HTML rendering
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-acceptance.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: unsafe HTML sink unexpectedly passed"
+            exit 1
+          fi
+          echo "PASS: unsafe HTML sink detected by acceptance checks"

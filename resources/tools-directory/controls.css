@@ -1,0 +1,13 @@
+@import "./focus.css";
+fieldset{margin:1.4rem 0;padding:1.1rem;border:1px solid var(--line);border-radius:.75rem;background:var(--surface);min-width:0}
+legend{padding:0 .4rem;font-weight:700}
+.ft15-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.85rem;align-items:end}
+.ft15-filters label{display:block;min-width:0;font-weight:650}
+input,select,button{font:inherit;max-width:100%;min-width:0}
+input,select{display:block;width:100%;min-height:2.75rem;margin-top:.3rem;padding:.45rem .65rem;border:1px solid #718a7d;border-radius:.35rem;background:#fff;color:var(--ink)}
+button{min-height:2.75rem;padding:.5rem .85rem;border:1px solid var(--green);border-radius:.4rem;background:#fff;color:var(--green-deep);font-weight:700;cursor:pointer}
+button:hover{background:#eaf2ec}
+
+/* WebKit exposes native select option widths through ancestor scrollWidth at enlarged text.
+   Contain that intrinsic overflow while preserving room for the keyboard focus ring. */
+.ft15-filters label{overflow:hidden;padding:7px}
