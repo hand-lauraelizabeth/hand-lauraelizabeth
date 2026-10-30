@@ -126,3 +126,24 @@ const noHiddenScan=new Proxy([],{get(target,key,receiver){if(key==='filter')thro
 same(filterTools(noHiddenScan,{query:'text\u202e lens'}),[],'invisible controls rejected before scanning');
 same(ids('resume'),['resume'],'normal search recovers after invalid control');
 console.log('FT-15 invisible-query controls: '+checks+'/'+checks+' PASS');
+
+
+// Synthetic regression: invisible CGJ, deprecated format controls, and
+// compatibility Hangul fillers must not silently enter queries or public labels.
+// These checks do not reject meaningful Korean syllables/Jamo, Arabic marks,
+// Persian ZWNJ, emoji ZWJ, or ordinary whitespace.
+const hiddenCompat=[0x034f,0x206a,0x206b,0x206c,0x206d,0x206e,0x206f,0x3164,0xffa0];
+for(const cp of hiddenCompat){
+ const hidden=String.fromCodePoint(cp);
+ same(queryIssue('resume'+hidden),'invisible-control','hidden compatibility search U+'+cp.toString(16));
+ same(ids('resume'+hidden),[],'hidden compatibility query skips search U+'+cp.toString(16));
+ const altered=[{id:'hidden',title:'Research'+hidden,category:'Research',description:'Notes',status:'development'}];
+ assert.throws(()=>validateCatalog(altered),/Invisible format character/,'reject hidden catalog title U+'+cp.toString(16));
+ checks++;
+}
+for(const value of ['한글','한','किताब','عَلَم','می\u200cروم','👩\u200d💻','  research\n evidence\t']){
+ same(queryIssue(value),null,'meaningful multilingual text remains valid');
+}
+same(queryIssue('resume'),null,'normal query recovers after hidden compatibility control');
+same(validateCatalog([{id:'korean',title:'한글',category:'Research',description:'한',status:'development'}]),true,'meaningful Korean catalog labels accepted');
+console.log('FT-15 compatibility-invisible regression: '+checks+'/'+checks+' PASS');
