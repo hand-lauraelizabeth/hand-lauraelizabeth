@@ -32,6 +32,22 @@ class ReceiptAuditTests(unittest.TestCase):
         pairs = Counter((r[5], r[3]) for r in self.rows)
         triples = Counter((r[5], r[3], r[6]) for r in self.rows)
         complaints = Counter(r[4] for r in self.rows)
+        status_totals = Counter(r[6] for r in self.rows)
+        status_populated = Counter(r[6] for r in self.rows if r[2])
+        reverse_by_status = Counter(r[6] for r in self.rows if r[2] and r[2] < r[1])
+        equal_by_status = Counter(r[6] for r in self.rows if r[2] and r[2] == r[1])
+        reverse_count = sum(reverse_by_status.values())
+        equal_count = sum(equal_by_status.values())
+        status_closure_digest = hashlib.sha256(json.dumps(
+            [[status, count, status_populated[status]] for status, count in sorted(status_totals.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
+        chronology_digest = hashlib.sha256(json.dumps(
+            [[label, status, count] for label, cells in
+             (("equal", equal_by_status), ("reversed", reverse_by_status))
+             for status, count in sorted(cells.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
         key_membership = hashlib.sha256()
         for key in sorted(r[0] for r in self.rows):
             encoded = key.encode("utf-8")
@@ -78,7 +94,44 @@ class ReceiptAuditTests(unittest.TestCase):
             "$select": "unique_key", "$where": predicate,
             "$order": "unique_key ASC",
         })
+        status_closure_query = resource + "?" + urlencode({
+            "$select": "status,count(*) as records,count(closed_date) as populated",
+            "$where": predicate, "$group": "status", "$order": "status", "$limit": 50000,
+        })
+        reversed_query = resource + "?" + urlencode({
+            "$select": "count(*) as n",
+            "$where": predicate + " AND closed_date < created_date",
+        })
+        equal_query = resource + "?" + urlencode({
+            "$select": "count(*) as n",
+            "$where": predicate + " AND closed_date = created_date",
+        })
+        status_chronology_urls = {
+            label: resource + "?" + urlencode({
+                "$select": "status,count(*) as n",
+                "$where": predicate + " AND " + condition,
+                "$group": "status", "$order": "status", "$limit": 50000,
+            })
+            for label, condition in (
+                ("reversed", "closed_date < created_date"),
+                ("equal", "closed_date = created_date"),
+            )
+        }
         self.receipt = {
+            "status_closure_query_url": status_closure_query,
+            "status_closure_aggregate_cells": len(status_totals),
+            "status_closure_aggregate_sha256": status_closure_digest,
+            "status_closure_cross_aggregate_verified": True,
+            "reversed_closure_query_url": reversed_query,
+            "equal_closure_query_url": equal_query,
+            "reversed_closure_dates": reverse_count,
+            "equal_closure_dates": equal_count,
+            "nonnegative_closure_dates": sum(bool(r[2]) for r in self.rows) - reverse_count,
+            "positive_closure_dates": sum(bool(r[2]) for r in self.rows) - reverse_count - equal_count,
+            "closure_chronology_verified": True,
+            "status_chronology_query_urls": status_chronology_urls,
+            "status_chronology_sha256": chronology_digest,
+            "status_chronology_verified": True,
             "where": predicate,
             "metadata_url": "https://data.cityofnewyork.us/api/views/erm2-nwe9.json",
             "count_query_url": count_query,
@@ -202,6 +255,66 @@ class ReceiptAuditTests(unittest.TestCase):
         self.write()
         self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
 
+    def test_status_closure_distribution_fails_with_recomputed_csv_digest(self):
+        """Moving closure from one status to another preserves overall count."""
+        self.rows[0][2] = "2026-09-01T02:00:00"
+        self.write()
+        original_digest = self.receipt["status_closure_aggregate_sha256"]
+        self.rows[0][2] = ""
+        self.rows[1][2] = "2026-09-15T13:00:00"
+        self.write()
+        self.receipt["status_closure_aggregate_sha256"] = original_digest
+        self.save_receipt()
+        codes = self.codes()
+        self.assertIn("STATUS_CLOSURE_SHA256_MISMATCH", codes)
+        self.assertNotIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
+        self.assertNotIn("CLOSURE_CHRONOLOGY_MISMATCH", codes)
+        self.assertNotIn("STATUS_CHRONOLOGY_SHA256_MISMATCH", codes)
+        self.assertNotIn("CSV_SHA256_MISMATCH", codes)
+
+    def test_chronology_counts_and_status_digest_fail_with_valid_csv_sha(self):
+        """Reversed and equal timestamps must agree with independent receipt."""
+        self.rows[0][2] = "2026-08-31T23:00:00"
+        self.rows[1][2] = "2026-09-15T12:30:00"
+        self.write()
+        self.receipt["reversed_closure_dates"] = 0
+        self.receipt["equal_closure_dates"] = 0
+        self.receipt["nonnegative_closure_dates"] = 2
+        self.receipt["positive_closure_dates"] = 2
+        self.save_receipt()
+        codes = self.codes()
+        self.assertIn("CLOSURE_CHRONOLOGY_MISMATCH", codes)
+        self.assertNotIn("CSV_SHA256_MISMATCH", codes)
+        self.receipt["reversed_closure_dates"] = 1
+        self.receipt["equal_closure_dates"] = 1
+        self.receipt["nonnegative_closure_dates"] = 1
+        self.receipt["positive_closure_dates"] = 0
+        self.receipt["status_chronology_sha256"] = "0" * 64
+        self.save_receipt()
+        self.assertIn("STATUS_CHRONOLOGY_SHA256_MISMATCH", self.codes())
+
+    def test_status_and_chronology_contract_fields_required(self):
+        for field, bad in (
+            ("status_closure_cross_aggregate_verified", False),
+            ("closure_chronology_verified", False),
+            ("status_chronology_verified", False),
+            ("status_closure_query_url", "https://example.org/altered"),
+            ("reversed_closure_query_url", "https://example.org/altered"),
+            ("equal_closure_query_url", "https://example.org/altered"),
+            ("status_chronology_query_urls", {}),
+            ("status_closure_aggregate_cells", True),
+            ("status_closure_aggregate_sha256", "invalid"),
+            ("status_chronology_sha256", "invalid"),
+        ):
+            with self.subTest(field=field):
+                original = self.receipt[field]
+                self.receipt[field] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+                self.receipt[field] = original
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
     def test_tampered_csv_fails_digest(self):
         self.csvfile.write_bytes(self.csvfile.read_bytes().replace(b"Category Y", b"Category Z"))
         self.assertIn("CSV_SHA256_MISMATCH", self.codes())
@@ -270,6 +383,8 @@ class ReceiptAuditTests(unittest.TestCase):
         # Both numbers still sum to three, but the CSV has no closed dates.
         self.receipt["populated_closure_dates"] = 1
         self.receipt["missing_closure_dates"] = 2
+        self.receipt["nonnegative_closure_dates"] = 1
+        self.receipt["positive_closure_dates"] = 1
         self.save_receipt()
         codes = self.codes()
         self.assertIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
@@ -282,6 +397,8 @@ class ReceiptAuditTests(unittest.TestCase):
         self.write()
         self.receipt["populated_closure_dates"] = 0
         self.receipt["missing_closure_dates"] = len(self.rows)
+        self.receipt["nonnegative_closure_dates"] = 0
+        self.receipt["positive_closure_dates"] = 0
         self.save_receipt()
         codes = self.codes()
         self.assertIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
