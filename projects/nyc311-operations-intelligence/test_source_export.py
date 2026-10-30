@@ -564,6 +564,47 @@ class TestSourceExport(unittest.TestCase):
             self.assertEqual(list(Path(tmp).glob(".nyc311-*")), [])
 
 
+    def test_publisher_count_parser_rejects_negative_integers(self):
+        # Native JSON integers must obey the same nonnegative contract as
+        # numeric strings. Previously -1 was accepted as an exact count.
+        from source_export import parse_publisher_count
+        for good in (0, 1, 17, "0", "0017"):
+            with self.subTest(good=good):
+                self.assertGreaterEqual(parse_publisher_count(good), 0)
+        for bad in (-1, -17, "-1", True, 1.0, None):
+            with self.subTest(bad=repr(bad)), self.assertRaises(ValueError):
+                parse_publisher_count(bad)
+
+    def test_negative_status_closure_count_rejected_before_export(self):
+        # Balanced malformed status counts can have the correct grand total;
+        # reject the negative value at the source boundary, not only after
+        # downloading and comparing the local CSV.
+        rows = [record("001"), record("002"), record("003")]
+        rows[0]["status"] = "Closed"
+        rows[0]["closed_date"] = "2026-09-15T10:00:00"
+        rows[1]["status"] = rows[2]["status"] = "Open"
+        publisher = FakePublisher(rows)
+
+        def malformed(url):
+            result = publisher(url)
+            params = parse_qs(urlparse(url).query)
+            if (params.get("$group") == ["status"] and
+                    params.get("$select") ==
+                    ["status,count(*) as records,count(closed_date) as populated"]):
+                result[0]["populated"] = -1
+                result[1]["populated"] = 2
+            return result
+
+        with tempfile.TemporaryDirectory() as tmp:
+            csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
+            with self.assertRaisesRegex(ValueError, "Invalid official status-closure count"):
+                download("2026-09", csvfile, receiptfile, fetch=malformed)
+            self.assertEqual(publisher.status_closure_calls, 1)
+            self.assertEqual(publisher.count_calls, 1)
+            self.assertFalse(csvfile.exists())
+            self.assertFalse(receiptfile.exists())
+            self.assertEqual(list(Path(tmp).glob(".nyc311-*")), [])
+
     def test_reject_coerced_publisher_cohort_counts(self):
         # Prior int(value) silently accepted True, 1.0 and padded strings.
         for field in ("records", "distinct_keys"):
