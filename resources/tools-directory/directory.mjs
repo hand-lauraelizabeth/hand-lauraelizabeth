@@ -52,6 +52,20 @@ export function queryTooLong(query){
 // whitespace, Arabic/Persian ZWNJ and emoji/Indic ZWJ valid.
 // Unicode UTS #39 rev 34 (2026-08-27): https://www.unicode.org/reports/tr39/
 const unsafeQueryControls=/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u061c\u180e\u200b\u200e\u200f\u2028\u2029\u202a-\u202e\u2060\u2066-\u2069\ufeff]/u;
+// Identify the first rejected character without displaying or transmitting the query.
+// Positions count Unicode code points (not UTF-16 units); supplementary characters
+// before the problem count as one. This is diagnostic guidance, not normalization.
+export function firstUnsafeQueryControl(query){
+ let position=0;
+ for(const character of String(query)){
+  position++;
+  if(unsafeQueryControls.test(character))return {
+   position,
+   codePoint:'U+'+character.codePointAt(0).toString(16).toUpperCase().padStart(4,'0')
+  };
+ }
+ return null;
+}
 export function queryIssue(query){
  if(queryTooLong(query))return 'too-long';
  if(unsafeQueryControls.test(String(query)))return 'invisible-control';
