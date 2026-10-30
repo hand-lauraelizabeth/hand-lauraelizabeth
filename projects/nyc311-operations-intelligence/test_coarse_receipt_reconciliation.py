@@ -32,6 +32,7 @@ class CoarseReceiptBridgeTests(unittest.TestCase):
         self.fixture.write()
         self.fixture.receipt["page_size"] = 50
         self.fixture.receipt["pages"] = 5
+        self.fixture.receipt["key_membership_pages"] = 5
         self.fixture.save_receipt()
         self.manifest_path = Path(self.fixture.tmp.name) / "coarse.json"
         pairs = Counter((b, a) for a, b, _ in rows)
