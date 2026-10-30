@@ -31,12 +31,22 @@ class ReceiptAuditTests(unittest.TestCase):
             w.writerows(self.rows)
         pairs = Counter((r[5], r[3]) for r in self.rows)
         triples = Counter((r[5], r[3], r[6]) for r in self.rows)
+        complaints = Counter(r[4] for r in self.rows)
+        key_membership = hashlib.sha256()
+        for key in sorted(r[0] for r in self.rows):
+            encoded = key.encode("utf-8")
+            key_membership.update(len(encoded).to_bytes(4, "big"))
+            key_membership.update(encoded)
         triple_digest = hashlib.sha256(json.dumps(
             [[b, a, status, n] for (b, a, status), n in sorted(triples.items())],
             separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")).hexdigest()
         pair_digest = hashlib.sha256(json.dumps(
             [[b, a, n] for (b, a), n in sorted(pairs.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
+        complaint_digest = hashlib.sha256(json.dumps(
+            [[label, n] for label, n in sorted(complaints.items())],
             separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")).hexdigest()
         predicate = "created_date >= '2026-09-01T00:00:00' AND created_date < '2026-10-01T00:00:00'"
@@ -55,12 +65,29 @@ class ReceiptAuditTests(unittest.TestCase):
             "$group": "borough,agency,status", "$order": "borough,agency,status",
             "$limit": 50000,
         })
+        complaint_query = resource + "?" + urlencode({
+            "$select": "complaint_type,count(*) as n", "$where": predicate,
+            "$group": "complaint_type", "$order": "complaint_type",
+            "$limit": 50000,
+        })
+        key_query = resource + "?" + urlencode({
+            "$select": "unique_key", "$where": predicate,
+            "$order": "unique_key ASC",
+        })
         self.receipt = {
             "where": predicate,
             "metadata_url": "https://data.cityofnewyork.us/api/views/erm2-nwe9.json",
             "count_query_url": count_query,
             "aggregate_query_url": aggregate_query,
             "three_way_aggregate_query_url": three_way_query,
+            "complaint_query_url": complaint_query,
+            "key_membership_query_url": key_query,
+            "complaint_distribution_verified": True,
+            "key_membership_verified": True,
+            "complaint_aggregate_cells": len(complaints),
+            "complaint_aggregate_sha256": complaint_digest,
+            "key_membership_sha256": key_membership.hexdigest(),
+            "key_membership_pages": 2,
             "verified_at_utc": "2026-10-27T10:00:00+00:00",
             "dataset": "erm2-nwe9",
             "reporting_month": "2026-09",
@@ -188,6 +215,61 @@ class ReceiptAuditTests(unittest.TestCase):
                 self.receipt[field] = original
         self.save_receipt()
         self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_problem_distribution_detects_category_change_with_valid_other_hashes(self):
+        original_complaint_digest = self.receipt["complaint_aggregate_sha256"]
+        self.rows[0][4] = "Category Z"
+        self.write()  # Recompute CSV, borough/agency, and status receipts.
+        self.receipt["complaint_aggregate_sha256"] = original_complaint_digest
+        self.save_receipt()
+        codes = self.codes()
+        self.assertIn("COMPLAINT_SHA256_MISMATCH", codes)
+        self.assertNotIn("CSV_SHA256_MISMATCH", codes)
+        self.assertNotIn("AGGREGATE_SHA256_MISMATCH", codes)
+        self.assertNotIn("THREE_WAY_SHA256_MISMATCH", codes)
+        self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", codes)
+
+    def test_key_membership_detects_balanced_id_change(self):
+        original_membership = self.receipt["key_membership_sha256"]
+        self.rows[1][0] = "0004"  # Unique and ordered, same row/cell totals.
+        self.write()
+        self.receipt["key_membership_sha256"] = original_membership
+        self.save_receipt()
+        codes = self.codes()
+        self.assertIn("KEY_MEMBERSHIP_SHA256_MISMATCH", codes)
+        self.assertNotIn("KEY_DUPLICATE_OR_ORDER_INVALID", codes)
+        self.assertNotIn("CSV_SHA256_MISMATCH", codes)
+        self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", codes)
+
+    def test_new_receipt_source_contracts_are_mandatory(self):
+        for field, bad in (
+            ("complaint_distribution_verified", False),
+            ("key_membership_verified", False),
+            ("complaint_query_url", "https://example.org/problem"),
+            ("key_membership_query_url", "https://example.org/keys"),
+            ("complaint_aggregate_cells", 0),
+            ("complaint_aggregate_sha256", "not-sha"),
+            ("key_membership_sha256", "not-sha"),
+            ("key_membership_pages", 0),
+            ("key_membership_pages", True),
+        ):
+            with self.subTest(field=field, bad=bad):
+                original = self.receipt[field]
+                self.receipt[field] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+                self.receipt[field] = original
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_problem_cell_count_and_digest_are_both_checked(self):
+        self.receipt["complaint_aggregate_cells"] += 1
+        self.save_receipt()
+        self.assertIn("COMPLAINT_CELL_COUNT_MISMATCH", self.codes())
+        self.receipt["complaint_aggregate_cells"] -= 1
+        self.receipt["complaint_aggregate_sha256"] = "0" * 64
+        self.save_receipt()
+        self.assertIn("COMPLAINT_SHA256_MISMATCH", self.codes())
 
     def test_three_way_cell_count_and_digest_detect_forgery(self):
         self.receipt["three_way_aggregate_cells"] += 1
