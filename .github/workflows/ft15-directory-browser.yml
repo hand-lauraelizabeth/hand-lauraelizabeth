@@ -33,6 +33,18 @@ jobs:
       - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-forced-colors.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-search-help.browser.test.mjs ${{ matrix.browser }}
+      - name: Check computed Chromium accessibility descriptions
+        if: matrix.browser == 'chromium'
+        run: node resources/tools-directory/ft16-computed-ax.browser.test.mjs
+      - name: Confirm broken computed description is detected
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-computed-ax.browser.test.mjs --negative-control; then
+            echo "ERROR: missing help relationship unexpectedly passed AX check"
+            exit 1
+          fi
+          echo "PASS: missing computed description detected"
       - name: Confirm missing search instructions are caught
         if: matrix.browser == 'chromium'
         shell: bash
