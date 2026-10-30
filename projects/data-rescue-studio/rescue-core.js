@@ -114,6 +114,11 @@
   }
 
   function withoutExactDuplicates(parsed) {
+    // A filtered input cannot recover original positions from its retained rows.
+    // Do not manufacture sequential evidence IDs during deduplication.
+    if (parsed.sourceRecords === undefined && parsed.originalRowCount !== undefined &&
+        parsed.originalRowCount > parsed.rows.length)
+      throw new Error('Cannot deduplicate filtered input without original source-record positions.');
     const seen = new Set(), rows = [], sourceRecords = [];
     parsed.rows.forEach((row, index) => {
       const key = JSON.stringify(row);
@@ -261,6 +266,11 @@
         parsed.originalRowCount > MAX_ROWS ||
         (parsed.sourceRecords && parsed.sourceRecords.some(n => n > parsed.originalRowCount + 1))))
       throw new Error('Invalid original record count in evidence table.');
+    // If an upstream filter omitted original positions, sequential IDs would be fabricated.
+    // Keep the exact JSON and its privacy-minimized issue index fail-closed.
+    if (parsed.sourceRecords === undefined && parsed.originalRowCount !== undefined &&
+        parsed.originalRowCount > parsed.rows.length)
+      throw new Error('Filtered evidence requires original source-record positions.');
     // Optional fingerprint describes original uploaded bytes, not this JSON representation.
     // Never accept a digest without its matching validated byte count.
     if(provenance !== null && (
