@@ -23,3 +23,7 @@ Readability and syllable counts are English-language heuristics. The sentiment p
 The public WordPress version uses the same dark-navy / sage / cream system as the rest of Laura Elizabeth Hand's portfolio and is scoped to avoid leaking CSS into the surrounding theme.
 
 The standalone file is `text-lens.html`.
+
+## Exporting unavailable metrics
+
+Analysis-table CSV and JSON downloads explicitly label non-finite calculated values as `not available (non-finite metric)` rather than showing `NaN`/`Infinity` in CSV or silently converting them to `null` in JSON. Finite numeric scores, including negative values and zero, remain numeric; original source names and identifiers remain unchanged. A missing score is not zero. Table CSV refuses formula-like or control-character text; use the exact table JSON for such source values. These local exports may contain sensitive passages.
