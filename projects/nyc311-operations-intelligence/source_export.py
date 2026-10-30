@@ -154,6 +154,15 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
         "$limit": PAGE_MAX
     })
 
+    # The publisher labels complaint_type "Problem"; the API field is unchanged.
+    # This independent distribution detects label drift invisible to borough,
+    # agency, status, closure and exact-key checks.
+    complaint_url = api_url("/resource/" + DATASET + ".json", {
+        "$select": "complaint_type,count(*) as n", "$where": predicate,
+        "$group": "complaint_type", "$order": "complaint_type",
+        "$limit": PAGE_MAX
+    })
+
     three_way_url = api_url("/resource/" + DATASET + ".json", {
         "$select": "borough,agency,status,count(*) as n", "$where": predicate,
         "$group": "borough,agency,status", "$order": "borough,agency,status",
@@ -274,6 +283,30 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Official aggregate total differs from source count")
         return pairs
 
+    def official_complaints(expected_rows):
+        """Reconcile publisher Problem/complaint_type distribution privately."""
+        data = fetch(complaint_url)
+        if not isinstance(data, list) or not data or len(data) >= PAGE_MAX:
+            raise ValueError("Invalid or potentially truncated official complaint aggregate")
+        cells = {}
+        for item in data:
+            if not isinstance(item, dict):
+                raise ValueError("Malformed official complaint aggregate")
+            label = item.get("complaint_type", "")
+            label = "" if label is None else label
+            if not isinstance(label, str) or label in cells:
+                raise ValueError("Duplicate or invalid official complaint dimension")
+            try:
+                n = parse_publisher_count(item["n"])
+            except (KeyError, TypeError, ValueError):
+                raise ValueError("Invalid official complaint count") from None
+            if n <= 0:
+                raise ValueError("Nonpositive official complaint count")
+            cells[label] = n
+        if sum(cells.values()) != expected_rows:
+            raise ValueError("Official complaint aggregate differs from cohort")
+        return cells
+
     def official_triples(expected_rows):
         """Read full borough/agency/status evidence without logging small cells."""
         data = fetch(three_way_url)
@@ -391,6 +424,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     before_update, before_schema = metadata()
     expected = counts()
     before_pairs = official_pairs(expected)
+    before_complaints = official_complaints(expected)
     before_triples = official_triples(expected)
     before_closure = official_closure_completeness(expected)
     before_status_closure = official_status_closure(expected, before_closure)
@@ -409,6 +443,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
     seen = set()
     local_key_digest = hashlib.sha256()
     local_pairs = Counter()
+    local_complaints = Counter()
     local_triples = Counter()
     local_status_totals = Counter()
     local_status_populated = Counter()
@@ -483,6 +518,7 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                     if closed is not None:
                         local_status_populated[status] += 1
                     local_pairs[(record.get("borough", ""), record.get("agency", ""))] += 1
+                    local_complaints[record.get("complaint_type", "")] += 1
                     local_triples[(record.get("borough", ""), record.get("agency", ""),
                                    record.get("status", ""))] += 1
                     writer.writerow({f: record.get(f, "") for f in FIELDS})
@@ -501,6 +537,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             raise ValueError("Publisher source aggregates changed during export")
         if dict(local_pairs) != before_pairs:
             raise ValueError("Exported rows disagree with official cross-aggregate")
+        after_complaints = official_complaints(expected)
+        if after_complaints != before_complaints:
+            raise ValueError("Publisher complaint distribution changed during export")
+        if dict(local_complaints) != before_complaints:
+            raise ValueError("Exported complaint distribution disagrees with publisher")
         after_triples = official_triples(expected)
         if after_triples != before_triples:
             raise ValueError("Official three-way aggregates changed during export")
@@ -551,6 +592,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             [[b, a, n] for (b, a), n in sorted(before_pairs.items())],
             separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")).hexdigest()
+        complaint_digest = hashlib.sha256(json.dumps(
+            [[label, n] for label, n in sorted(before_complaints.items())],
+            separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")).hexdigest()
         three_way_digest = hashlib.sha256(json.dumps(
             [[b, a, status, n] for (b, a, status), n in sorted(before_triples.items())],
             separators=(",", ":"), ensure_ascii=False
@@ -576,6 +621,10 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
             "aggregate_cells": len(before_pairs),
             "aggregate_sha256": aggregate_digest,
             "cross_aggregate_verified": True,
+            "complaint_query_url": complaint_url,
+            "complaint_aggregate_cells": len(before_complaints),
+            "complaint_aggregate_sha256": complaint_digest,
+            "complaint_distribution_verified": True,
             "three_way_aggregate_query_url": three_way_url,
             "three_way_aggregate_cells": len(before_triples),
             "three_way_aggregate_sha256": three_way_digest,
