@@ -114,15 +114,15 @@ for(const cp of unsafe){
 }
 same(queryIssue('resume'),null,'ordinary search accepted');
 same(queryIssue('x'.repeat(257)),'too-long','length checked first');
-same(queryIssue('x'.repeat(257)+'\\u202e'),'too-long','oversize checked before hidden controls');
+same(queryIssue('x'.repeat(257)+'\u202e'),'too-long','oversize checked before hidden controls');
 same(queryIssue('  research\\n evidence\\t'),null,'ordinary whitespace accepted');
-same(queryIssue('می\\u200cروم'),null,'Persian joining control preserved');
-same(queryIssue('👩\\u200d💻'),null,'emoji joining control preserved');
-const legitimate=[{id:'persian',title:'می\\u200cروم',category:'Language',description:'Persian',status:'development'},
- {id:'emoji',title:'👩\\u200d💻',category:'Language',description:'Emoji',status:'development'}];
-same(filterTools(legitimate,{query:'می\\u200cروم'}).map(t=>t.id),['persian'],'Persian ZWNJ searchable');
-same(filterTools(legitimate,{query:'👩\\u200d💻'}).map(t=>t.id),['emoji'],'emoji ZWJ searchable');
+same(queryIssue('می\u200cروم'),null,'Persian joining control preserved');
+same(queryIssue('👩\u200d💻'),null,'emoji joining control preserved');
+const legitimate=[{id:'persian',title:'می\u200cروم',category:'Language',description:'Persian',status:'development'},
+ {id:'emoji',title:'👩\u200d💻',category:'Language',description:'Emoji',status:'development'}];
+same(filterTools(legitimate,{query:'می\u200cروم'}).map(t=>t.id),['persian'],'Persian ZWNJ searchable');
+same(filterTools(legitimate,{query:'👩\u200d💻'}).map(t=>t.id),['emoji'],'emoji ZWJ searchable');
 const noHiddenScan=new Proxy([],{get(target,key,receiver){if(key==='filter')throw Error('invalid query scanned catalog');return Reflect.get(target,key,receiver)}});
-same(filterTools(noHiddenScan,{query:'text\\u202e lens'}),[],'invisible controls rejected before scanning');
+same(filterTools(noHiddenScan,{query:'text\u202e lens'}),[],'invisible controls rejected before scanning');
 same(ids('resume'),['resume'],'normal search recovers after invalid control');
 console.log('FT-15 invisible-query controls: '+checks+'/'+checks+' PASS');
