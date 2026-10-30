@@ -42,6 +42,18 @@ def parse_floating_timestamp(value, *, required=False):
         raise ValueError("Malformed publisher floating timestamp") from None
 
 
+def reject_spreadsheet_active_cell(value):
+    """Fail closed rather than modify the publisher's raw text in a CSV.
+
+    CSV quoting does not neutralize spreadsheet formulas. A rejected cohort
+    requires private investigation; never silently prefix or rewrite evidence.
+    """
+    if any(ord(char) < 32 or ord(char) == 127 for char in value):
+        raise ValueError("Unsafe CSV control character in publisher field")
+    if value.lstrip().startswith(("=", "+", "-", "@")):
+        raise ValueError("Unsafe CSV spreadsheet formula prefix in publisher field")
+
+
 def parse_publisher_count(value):
     """Accept exact nonnegative integer counts, never coerced booleans/floats."""
     if type(value) is int:
@@ -521,6 +533,11 @@ def download(month, csv_path, receipt_path, *, page_size=50000,
                     local_complaints[record.get("complaint_type", "")] += 1
                     local_triples[(record.get("borough", ""), record.get("agency", ""),
                                    record.get("status", ""))] += 1
+                    # Preserve raw evidence; reject cells that spreadsheet
+                    # software could interpret as formulas or row delimiters.
+                    for field in ("unique_key", "agency", "complaint_type",
+                                  "borough", "status"):
+                        reject_spreadsheet_active_cell(record.get(field, ""))
                     writer.writerow({f: record.get(f, "") for f in FIELDS})
                 rows += len(page)
                 pages += 1
