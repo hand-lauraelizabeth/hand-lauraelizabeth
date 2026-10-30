@@ -349,6 +349,7 @@ class ReceiptAuditTests(unittest.TestCase):
     def test_row_count_mismatch(self):
         self.receipt["rows"] = 4
         self.receipt["distinct_keys"] = 4
+        self.receipt["missing_closure_dates"] = 4  # Keep new receipt arithmetic valid.
         self.save_receipt()
         self.assertIn("ROW_OR_DISTINCT_KEY_COUNT_MISMATCH", self.codes())
 
