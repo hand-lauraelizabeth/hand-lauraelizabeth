@@ -40,7 +40,7 @@ const server=createServer(async(req,res)=>{
  if(!allowed.has(name)){res.writeHead(404);res.end('Not found');return;}
  try{
   let source=name==='catalog.mjs'
-   ? 'export const TOOLS='+JSON.stringify(fixture)+';\\nexport const STATUS_LABELS={live:"Live",preview:"Preview",development:"In development"};\\n'
+   ? 'export const TOOLS='+JSON.stringify(fixture)+';\nexport const STATUS_LABELS={live:"Live",preview:"Preview",development:"In development"};\n'
    : await readFile(join(dir,name),'utf8');
   if(name==='directory.mjs'){
    const guard='validateCatalog();';
