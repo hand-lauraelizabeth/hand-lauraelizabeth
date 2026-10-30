@@ -32,6 +32,16 @@ jobs:
       - run: node resources/tools-directory/ft16-axe-states.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-forced-colors.browser.test.mjs ${{ matrix.browser }}
+      - run: node resources/tools-directory/ft16-search-help.browser.test.mjs ${{ matrix.browser }}
+      - name: Confirm missing search instructions are caught
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-search-help.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: broken aria-describedby target unexpectedly passed"
+            exit 1
+          fi
+          echo "PASS: broken search instructions detected by acceptance checks"
       - name: Confirm acceptance rejects unsafe HTML rendering
         if: matrix.browser == 'chromium'
         shell: bash
