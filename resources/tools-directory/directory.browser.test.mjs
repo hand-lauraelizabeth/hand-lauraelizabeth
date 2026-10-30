@@ -92,9 +92,9 @@ try {
   equal(await page.locator('.ft15-card').count(),0,'bidi override cannot show partial results');
   equal((await page.locator('#tool-query-error').textContent()).includes('code point 5 (U+202E)'),true,'bidi error locates exact Unicode code point');
   equal(await page.locator('#tool-count').textContent(),'Search paused until invisible formatting is removed','hidden formatting has accurate status, not shortening instruction');
-  await page.locator('#tool-query').fill('🧪\\u200btest');
+  await page.locator('#tool-query').fill('🧪\u200btest');
   equal((await page.locator('#tool-query-error').textContent()).includes('code point 2 (U+200B)'),true,'emoji before hidden character counts as one code point');
-  equal(await page.locator('#tool-query').inputValue(),'🧪\\u200btest','diagnostic preserves exact editable query');
+  equal(await page.locator('#tool-query').inputValue(),'🧪\u200btest','diagnostic preserves exact editable query');
   await page.locator('#tool-query').fill('text lens');
   equal(await page.locator('#tool-count').textContent(),'1 of 17 resources shown','valid correction restores accurate count');
   await page.locator('#tool-query').fill('text\u200b lens');
