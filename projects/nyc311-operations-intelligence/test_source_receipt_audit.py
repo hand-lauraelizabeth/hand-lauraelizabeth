@@ -70,6 +70,10 @@ class ReceiptAuditTests(unittest.TestCase):
             "$group": "complaint_type", "$order": "complaint_type",
             "$limit": 50000,
         })
+        closure_query = resource + "?" + urlencode({
+            "$select": "count(*) as records,count(closed_date) as populated",
+            "$where": predicate,
+        })
         key_query = resource + "?" + urlencode({
             "$select": "unique_key", "$where": predicate,
             "$order": "unique_key ASC",
@@ -82,6 +86,10 @@ class ReceiptAuditTests(unittest.TestCase):
             "three_way_aggregate_query_url": three_way_query,
             "complaint_query_url": complaint_query,
             "key_membership_query_url": key_query,
+            "closure_completeness_query_url": closure_query,
+            "closure_completeness_verified": True,
+            "populated_closure_dates": sum(bool(r[2]) for r in self.rows),
+            "missing_closure_dates": sum(not r[2] for r in self.rows),
             "complaint_distribution_verified": True,
             "key_membership_verified": True,
             "complaint_aggregate_cells": len(complaints),
@@ -215,6 +223,46 @@ class ReceiptAuditTests(unittest.TestCase):
                 self.receipt[field] = original
         self.save_receipt()
         self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_closure_completeness_receipt_is_mandatory(self):
+        for field, bad in (
+            ("closure_completeness_verified", False),
+            ("closure_completeness_query_url", "https://example.org/closure"),
+            ("populated_closure_dates", True),
+            ("populated_closure_dates", -1),
+            ("missing_closure_dates", "3"),
+            ("missing_closure_dates", -1),
+        ):
+            with self.subTest(field=field, bad=bad):
+                original = self.receipt[field]
+                self.receipt[field] = bad
+                self.save_receipt()
+                self.assertEqual(self.codes(), ["INVALID_OR_UNREADABLE_RECEIPT"])
+                self.receipt[field] = original
+        self.save_receipt()
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_balanced_forged_closure_receipt_fails_even_with_matching_csv_hash(self):
+        # Both numbers still sum to three, but the CSV has no closed dates.
+        self.receipt["populated_closure_dates"] = 1
+        self.receipt["missing_closure_dates"] = 2
+        self.save_receipt()
+        codes = self.codes()
+        self.assertIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
+        self.assertNotIn("CSV_SHA256_MISMATCH", codes)
+        self.assertNotIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", codes)
+
+    def test_closure_timestamp_change_detected_with_updated_csv_hash(self):
+        # Other source distributions, keys, and aggregate digests are unchanged.
+        self.rows[0][2] = "2026-09-01T01:00:00"
+        self.write()
+        self.receipt["populated_closure_dates"] = 0
+        self.receipt["missing_closure_dates"] = len(self.rows)
+        self.save_receipt()
+        codes = self.codes()
+        self.assertIn("CLOSURE_COMPLETENESS_MISMATCH", codes)
+        self.assertNotIn("CSV_SHA256_MISMATCH", codes)
+        self.assertNotIn("AGGREGATE_SHA256_MISMATCH", codes)
 
     def test_problem_distribution_detects_category_change_with_valid_other_hashes(self):
         original_complaint_digest = self.receipt["complaint_aggregate_sha256"]
