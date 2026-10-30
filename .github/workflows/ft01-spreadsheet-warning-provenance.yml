@@ -1,0 +1,14 @@
+name: FT-01 spreadsheet warning source-record integrity
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  warning-provenance:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact source IDs in spreadsheet export warnings
+        run: node projects/data-rescue-studio/tests/spreadsheet-warning-provenance.test.cjs
