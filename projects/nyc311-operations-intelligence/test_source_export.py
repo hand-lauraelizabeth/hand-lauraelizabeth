@@ -322,7 +322,7 @@ class TestSourceExport(unittest.TestCase):
                 self.assertFalse(csvfile.exists())
                 self.assertFalse(receiptfile.exists())
 
-
+    def test_duplicate_or_out_of_order_keys_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             csvfile, receiptfile = Path(tmp)/"source.csv", Path(tmp)/"receipt.json"
             publisher = FakePublisher([record("001"), record("001"), record("003")])
