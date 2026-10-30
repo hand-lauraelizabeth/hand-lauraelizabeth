@@ -71,6 +71,21 @@ def main():
         ('<span id="one">A</span><span id="two">B</span>'
          '<input aria-describedby="one\ttwo">', set()),
 
+        # WAI-ARIA 1.2 single-target cardinality and alternate reading order.
+        ('<span id="a">A</span><span id="b">B</span>'
+         '<input aria-details="a b">', {"single-id-reference"}),
+        ('<span id="a">A</span><span id="b">B</span>'
+         '<input aria-invalid="true" aria-errormessage="a b">', {"single-id-reference"}),
+        ('<span id="a">A</span><span id="b">B</span>'
+         '<input aria-describedby="a b">', set()),
+        ('<span id="a">A</span><span id="b">B</span>'
+         '<input aria-flowto="a b">', set()),
+        ('<span id="a">A</span><input aria-flowto="a missing">',
+         {"unresolved-id-reference"}),
+        ('<span id="a">A</span><span id="a">B</span>'
+         '<input aria-flowto="a">', {"ambiguous-id-reference"}),
+        ('<span id="a\\u00a0b">A</span><input aria-details="a\\u00a0b">', set()),
+        ('<span id="a\\u00a0b">A</span><input aria-flowto="a\\u00a0b">', set()),
     ]
     with served() as origin, sync_playwright() as pw:
         browser = getattr(pw, engine).launch(headless=True)
@@ -92,7 +107,8 @@ def main():
                 rules = {heading.split(": ", 1)[1].split(" (", 1)[0]
                          for heading in headings if ": " in heading}
                 selected = rules & {"ambiguous-id-reference", "unresolved-id-reference",
-                                    "ambiguous-label-target", "ambiguous-table-header"}
+                                    "ambiguous-label-target", "ambiguous-table-header",
+                                    "single-id-reference"}
                 assert selected == expected, (markup, selected, expected)
                 assert "preliminary checks" in page.locator("#summary").inner_text()
                 checks += 2
