@@ -50,3 +50,6 @@ function render(){
 for(const input of [query,category,status])input.addEventListener(input===query?'input':'change',render);
 root.querySelector('#tool-clear').addEventListener('click',()=>{query.value='';category.value='all';status.value='all';render();query.focus()});
 render();
+// Enable controls only after the local catalog and event handlers are ready.
+// Without scripting, the visible noscript explanation accompanies disabled controls.
+root.querySelector('fieldset').disabled=false;
