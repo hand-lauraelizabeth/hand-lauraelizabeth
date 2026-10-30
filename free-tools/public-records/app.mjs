@@ -132,6 +132,22 @@ function captureRequestDrafts(){
   }
   return drafts;
 }
+function pendingCorrectionCount(){
+  // Report changed correction panels without exposing any field contents.
+  const requests=captureRequestDrafts(),events=captureEventDrafts();
+  let count=0;
+  for(const record of state.requests){
+    const draft=requests.get(record.id);
+    if(draft && (draft.stage!==record.stage || draft.submittedOn!==record.submittedOn ||
+      draft.agencyTrackingId!==record.agencyTrackingId))count++;
+  }
+  for(const record of state.events){
+    const draft=events.get(record.id);
+    if(draft && (draft.date!==record.date || draft.kind!==record.kind ||
+      draft.sourceId!==record.sourceId || draft.description!==record.description))count++;
+  }
+  return count;
+}
 function render({discardEventDraftId=null,discardRequestDraftId=null}={}){
   const requestDrafts=captureRequestDrafts();
   if(discardRequestDraftId!==null)requestDrafts.delete(discardRequestDraftId);
@@ -236,6 +252,6 @@ function add(formId,kind){
   });
 }
 add('request-form','request');add('event-form','event');
-bindExports(()=>state,say);
+bindExports(()=>state,say,pendingCorrectionCount);
 bindReopen(()=>state, next=>{state=next;render();},say);
 render();
