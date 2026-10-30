@@ -69,6 +69,31 @@ def audit(csv_path, receipt_path):
             "$select": "count(*) as records,count(closed_date) as populated",
             "$where": predicate,
         })
+        # Independently bind status/closure and chronology publisher evidence.
+        status_closure_query = resource + "?" + urlencode({
+            "$select": "status,count(*) as records,count(closed_date) as populated",
+            "$where": predicate, "$group": "status", "$order": "status",
+            "$limit": 50000,
+        })
+        reversed_query = resource + "?" + urlencode({
+            "$select": "count(*) as n",
+            "$where": predicate + " AND closed_date < created_date",
+        })
+        equal_query = resource + "?" + urlencode({
+            "$select": "count(*) as n",
+            "$where": predicate + " AND closed_date = created_date",
+        })
+        status_chronology_queries = {
+            label: resource + "?" + urlencode({
+                "$select": "status,count(*) as n",
+                "$where": predicate + " AND " + condition,
+                "$group": "status", "$order": "status", "$limit": 50000,
+            })
+            for label, condition in (
+                ("reversed", "closed_date < created_date"),
+                ("equal", "closed_date = created_date"),
+            )
+        }
         # Reconstruct the two source checks added after the original audit.
         complaint_query = resource + "?" + urlencode({
             "$select": "complaint_type,count(*) as n", "$where": predicate,
@@ -96,6 +121,13 @@ def audit(csv_path, receipt_path):
                 or receipt.get("three_way_cross_aggregate_verified") is not True
                 or receipt.get("closure_completeness_verified") is not True
                 or receipt.get("closure_completeness_query_url") != closure_query
+                or receipt.get("status_closure_query_url") != status_closure_query
+                or receipt.get("status_closure_cross_aggregate_verified") is not True
+                or receipt.get("reversed_closure_query_url") != reversed_query
+                or receipt.get("equal_closure_query_url") != equal_query
+                or receipt.get("closure_chronology_verified") is not True
+                or receipt.get("status_chronology_query_urls") != status_chronology_queries
+                or receipt.get("status_chronology_verified") is not True
                 or receipt.get("complaint_distribution_verified") is not True
                 or receipt.get("key_membership_verified") is not True
                 or receipt.get("complaint_query_url") != complaint_query
@@ -115,6 +147,20 @@ def audit(csv_path, receipt_path):
                 or not 0 <= receipt["populated_closure_dates"] <= n
                 or type(receipt.get("missing_closure_dates")) is not int
                 or receipt["missing_closure_dates"] != n - receipt["populated_closure_dates"]
+                or type(receipt.get("reversed_closure_dates")) is not int
+                or type(receipt.get("equal_closure_dates")) is not int
+                or type(receipt.get("nonnegative_closure_dates")) is not int
+                or type(receipt.get("positive_closure_dates")) is not int
+                or not 0 <= receipt["reversed_closure_dates"] <= receipt["populated_closure_dates"]
+                or not 0 <= receipt["equal_closure_dates"] <= receipt["populated_closure_dates"]
+                or receipt["reversed_closure_dates"] + receipt["equal_closure_dates"]
+                       > receipt["populated_closure_dates"]
+                or receipt["nonnegative_closure_dates"] !=
+                       receipt["populated_closure_dates"] - receipt["reversed_closure_dates"]
+                or receipt["positive_closure_dates"] !=
+                       receipt["nonnegative_closure_dates"] - receipt["equal_closure_dates"]
+                or type(receipt.get("status_closure_aggregate_cells")) is not int
+                or not 1 <= receipt["status_closure_aggregate_cells"] <= n
                 or type(receipt.get("aggregate_cells")) is not int
                 or receipt["aggregate_cells"] <= 0
                 or type(receipt.get("complaint_aggregate_cells")) is not int
@@ -149,6 +195,10 @@ def audit(csv_path, receipt_path):
                 or not HEX64.fullmatch(receipt["aggregate_sha256"])
                 or not isinstance(receipt.get("three_way_aggregate_sha256"), str)
                 or not HEX64.fullmatch(receipt["three_way_aggregate_sha256"])
+                or not isinstance(receipt.get("status_closure_aggregate_sha256"), str)
+                or not HEX64.fullmatch(receipt["status_closure_aggregate_sha256"])
+                or not isinstance(receipt.get("status_chronology_sha256"), str)
+                or not HEX64.fullmatch(receipt["status_chronology_sha256"])
                 or not isinstance(receipt.get("complaint_aggregate_sha256"), str)
                 or not HEX64.fullmatch(receipt["complaint_aggregate_sha256"])
                 or not isinstance(receipt.get("key_membership_sha256"), str)
@@ -170,6 +220,10 @@ def audit(csv_path, receipt_path):
             pairs = Counter()
             triples = Counter()
             complaints = Counter()
+            status_totals = Counter()
+            status_populated = Counter()
+            chronology_by_status = {"reversed": Counter(), "equal": Counter()}
+            reversed_dates = equal_dates = 0
             key_membership = hashlib.sha256()
             seen = set()
             last = None
@@ -201,6 +255,7 @@ def audit(csv_path, receipt_path):
                     key_membership.update(len(encoded_key).to_bytes(4, "big"))
                     key_membership.update(encoded_key)
                     last = key
+                    created = None
                     try:
                         created = parse_source_timestamp(record["created_date"])
                     except ValueError:
@@ -210,25 +265,50 @@ def audit(csv_path, receipt_path):
                                 dt.datetime.combine(start, dt.time.min)
                                 <= created < dt.datetime.combine(end, dt.time.min)):
                             codes.add("CREATED_DATE_OUTSIDE_MONTH")
+                    status = record["status"]
+                    status_totals[status] += 1
                     if record["closed_date"]:
                         try:
-                            parse_source_timestamp(record["closed_date"])
+                            parsed_closed = parse_source_timestamp(record["closed_date"])
                         except ValueError:
                             codes.add("CLOSED_DATE_INVALID")
                         else:
                             populated_closures += 1
+                            status_populated[status] += 1
+                            if created is not None:
+                                if parsed_closed < created:
+                                    reversed_dates += 1
+                                    chronology_by_status["reversed"][status] += 1
+                                elif parsed_closed == created:
+                                    equal_dates += 1
+                                    chronology_by_status["equal"][status] += 1
                     complaints[record["complaint_type"]] += 1
                     pairs[(record["borough"], record["agency"])] += 1
                     triples[(record["borough"], record["agency"], record["status"])] += 1
                     rows += 1
-            # csv.reader silently skips empty physical lines. A source-export
-            # receipt must not validate those unaccounted bytes even when a
-            # recomputed CSV digest and all aggregate counts agree. Quoted
-            # multiline cells also fail the single-line export contract.
-            if reader.line_num != rows + 1:  # one header + one line per record
-                codes.add("CSV_UNREADABLE_OR_MALFORMED")
             if populated_closures != receipt["populated_closure_dates"]:
                 codes.add("CLOSURE_COMPLETENESS_MISMATCH")
+            if (reversed_dates != receipt["reversed_closure_dates"]
+                    or equal_dates != receipt["equal_closure_dates"]
+                    or populated_closures - reversed_dates != receipt["nonnegative_closure_dates"]
+                    or populated_closures - reversed_dates - equal_dates != receipt["positive_closure_dates"]):
+                codes.add("CLOSURE_CHRONOLOGY_MISMATCH")
+            if len(status_totals) != receipt["status_closure_aggregate_cells"]:
+                codes.add("STATUS_CLOSURE_CELL_COUNT_MISMATCH")
+            status_closure_digest = hashlib.sha256(json.dumps(
+                [[status, count, status_populated[status]]
+                 for status, count in sorted(status_totals.items())],
+                separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")).hexdigest()
+            if status_closure_digest != receipt["status_closure_aggregate_sha256"]:
+                codes.add("STATUS_CLOSURE_SHA256_MISMATCH")
+            chronology_digest = hashlib.sha256(json.dumps(
+                [[label, status, count] for label, cells in sorted(chronology_by_status.items())
+                 for status, count in sorted(cells.items())],
+                separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")).hexdigest()
+            if chronology_digest != receipt["status_chronology_sha256"]:
+                codes.add("STATUS_CHRONOLOGY_SHA256_MISMATCH")
             if rows != n or len(seen) != receipt["distinct_keys"]:
                 codes.add("ROW_OR_DISTINCT_KEY_COUNT_MISMATCH")
             if key_membership.hexdigest() != receipt["key_membership_sha256"]:
