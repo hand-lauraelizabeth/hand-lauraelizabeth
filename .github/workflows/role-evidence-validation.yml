@@ -1,0 +1,35 @@
+name: Role Evidence Studio validation
+
+on:
+  push:
+    branches: [main, 'review/role-evidence-*']
+    paths:
+      - 'projects/reverse-ats-role-evidence-engine/**'
+      - '.github/workflows/role-evidence-validation.yml'
+  pull_request:
+    paths:
+      - 'projects/reverse-ats-role-evidence-engine/**'
+      - '.github/workflows/role-evidence-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chronology-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test elapsed-duration interpretation
+        run: node projects/reverse-ats-role-evidence-engine/tests/chronology.test.mjs
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install browser-test driver
+        run: python -m pip install --disable-pip-version-check selenium
+      - name: Test HTTP-served application, profile transfers, and embedding
+        run: python projects/reverse-ats-role-evidence-engine/tests/browser_scenarios.py

@@ -66,6 +66,14 @@ def run():
   assert "Chronology check" in body
   assert "Hard-condition check" in body
   assert "Application-facing wording ceiling" in body
+  assert "calendar coverage, not elapsed experience" in driver.find_element(By.ID,"interpret").text
+  duration_rows=[row.text for row in driver.find_elements(By.CSS_SELECTOR,"#rows tr")
+                 if "8+ years of experience" in row.text]
+  assert duration_rows, "Synthetic posting's duration requirement must remain visible"
+  assert all("Experience duration unresolved" in row and
+             "Hard-condition verification gap" in row for row in duration_rows)
+  assert not any("reviewed chronology supports" in row for row in duration_rows)
+  print("PASS elapsed experience is unresolved after verified year-only review")
 
   # Shared profile: reviewed nodes transfer to the discovery workspace.
   click(driver,wait,"profileSave")

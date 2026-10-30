@@ -13,6 +13,7 @@ An interactive, evidence-centered career decision workspace. It helps people exp
 - Classify required qualifications, preferred signals, responsibilities, tools, context, seniority, and scope.
 - Inspect requirement-by-requirement visibility, source provenance, human-reviewed support, and gap explanations.
 - Detect chronology and scope cues without turning them into verified claims.
+- Keep elapsed-experience requirements unresolved when only calendar-year coverage is available, including decimal, range, and written-number requirements.
 - Review evidence nodes, record source references, note confidential material, and set verification status.
 - Export a requirement matrix (CSV) and appropriately filtered evidence graph (JSON).
 
@@ -49,3 +50,13 @@ Input text and files are handled in the browser by default. The discovery tracke
 - [`evidence-graph.schema.json`](./evidence-graph.schema.json): evidence graph structure
 
 The website implementation keeps the two applications isolated within the site's layout, so each can evolve without losing the other application's functionality.
+
+## Release 2.6 — October 30, 2026
+
+The analysis workspace now distinguishes covered calendar years from elapsed experience. A year-only chronology cannot satisfy a duration requirement, even when the underlying evidence node has been reviewed. The shared profile format and discovery tracker are unchanged.
+
+- Deterministic chronology regressions: `node projects/reverse-ats-role-evidence-engine/tests/chronology.test.mjs`.
+- HTTP-served Chromium integration: `python projects/reverse-ats-role-evidence-engine/tests/browser_scenarios.py` (Selenium and Chrome required).
+- CI: [Role Evidence Studio validation](../../.github/workflows/role-evidence-validation.yml).
+
+These checks cover the standalone application and its local embedding contract. They do not establish hiring outcomes, screen-reader compatibility, native browser zoom, or every surrounding WordPress interaction.
