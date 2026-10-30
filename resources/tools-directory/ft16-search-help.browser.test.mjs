@@ -80,7 +80,7 @@ try{
  state=await description();
  eq(state.ids,['tool-search-help','tool-query-error'],'Unicode error preserves help');
  eq(state.texts[1]?.includes('U+202E'),true,'error identifies Unicode code point');
- eq(state.texts[1]?.includes('position 2'),true,'supplementary emoji counts as one point');
+ eq(state.texts[1]?.includes('code point 2 (U+202E)'),true,'supplementary emoji counts as one point');
  eq(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','Unicode marked invalid');
  await page.locator('#tool-query').fill('research');
  state=await description();
