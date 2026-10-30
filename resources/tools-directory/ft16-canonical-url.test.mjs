@@ -36,6 +36,8 @@ for(const url of [
   checks++;
 }
 assert.equal(validateCatalog(TOOLS),true,'preserve actual public catalog');checks++;
-assert.equal(validateCatalog([{...good,status:'preview'}]),true,'canonical preview permitted');checks++;
+assert.throws(()=>validateCatalog([{...good,status:'preview'}]),'preview URL must not be linked');checks++;
+const {url: _url, ...unlinked}=good;
+assert.equal(validateCatalog([{...unlinked,status:'preview'}]),true,'unlinked preview remains discoverable');checks++;
 assert.throws(()=>validateCatalog([{...good,status:'development'}]),'unreleased resource must not link');checks++;
 console.log('FT-16 canonical URL contract '+checks+'/'+checks+' PASS');

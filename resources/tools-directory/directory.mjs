@@ -19,7 +19,9 @@ export function validateCatalog(rows=TOOLS){
    if(/[\u00ad\u180e\u200b\u2060]/u.test(t[key]))throw Error('Invisible format character in '+key);
   }
   if(!Object.hasOwn(STATUS_LABELS,t.status))throw Error('Invalid availability');
-  if(t.status==='live'||t.status==='preview'){
+  // Preview and development entries are informational, never navigable.
+  // Only an explicitly live resource can receive an approved destination.
+  if(t.status==='live'){
    if(typeof t.url!=='string')throw Error('Available tool must have URL');
    const u=new URL(t.url);
    // URL parsing can silently strip whitespace and normalize path segments. Only

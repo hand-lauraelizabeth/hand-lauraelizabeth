@@ -36,7 +36,8 @@ function render(){
   const heading=element('h3',null,tool.title),badge=element('span','ft15-badge',STATUS_LABELS[tool.status]);
   badge.setAttribute('data-status',tool.status);
   article.append(badge,heading,element('p',null,tool.description));
-  if(tool.url){const a=element('a','ft15-link','Open '+tool.title);a.href=tool.url;
+  // Defense in depth: even if metadata validation is bypassed, previews never become links.
+  if(tool.status==='live' && tool.url){const a=element('a','ft15-link','Open '+tool.title);a.href=tool.url;
    // Do not disclose the directory URL as a Referer when navigating to a live tool.
    // HTML Standard, link type noreferrer: https://html.spec.whatwg.org/dev/links.html
    a.rel='noreferrer';article.append(a)}

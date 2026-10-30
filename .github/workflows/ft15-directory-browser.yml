@@ -33,6 +33,17 @@ jobs:
       - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-forced-colors.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-search-help.browser.test.mjs ${{ matrix.browser }}
+      - name: Verify preview entries cannot become live links
+        run: node resources/tools-directory/ft16-preview-release-gate.browser.test.mjs ${{ matrix.browser }}
+      - name: Verify broken preview release gate is detected
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-preview-release-gate.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: preview URL unexpectedly became navigable without detection"
+            exit 1
+          fi
+          echo "PASS: unsafe preview link detected by release-gate test"
       - name: Check computed Chromium accessibility descriptions
         if: matrix.browser == 'chromium'
         run: node resources/tools-directory/ft16-computed-ax.browser.test.mjs
