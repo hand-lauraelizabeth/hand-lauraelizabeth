@@ -27,6 +27,13 @@ export function updateClaim(input,claimId,changes){
  const claims=project.claims.map((claim,i)=>i===index?updated:claim);
  return validateProject({...project,claims});
 }
+// Compare editor drafts with saved findings without changing either.
+export function hasUnsavedClaimChanges(input,claimId,draft){
+ const project=validateProject(input),key=id(claimId,"Finding ID"),values=obj(draft,"Finding draft");
+ const saved=project.claims.find(c=>c.id===key);
+ if(!saved)throw Error("Finding ID not found");
+ return Object.keys(saved).some(field=>values[field]!==saved[field]);
+}
 export function analyzeProject(input){
  const project=validateProject(input),issues=[],groups=new Map();
  for(const s of project.sources)if(!s.doi)issues.push({kind:"missing-doi",sourceId:s.id});
