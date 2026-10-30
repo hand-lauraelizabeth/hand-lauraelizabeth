@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {TOOLS} from './catalog.mjs';
-import {filterTools,validateCatalog,queryTooLong,MAX_QUERY_CODE_POINTS} from './directory.mjs';
+import {filterTools,validateCatalog,queryTooLong,queryIssue,MAX_QUERY_CODE_POINTS} from './directory.mjs';
 
 // Synthetic-only names exercise composed/decomposed Unicode without modifying public metadata.
 const synthetic=[
@@ -103,3 +103,26 @@ const noScan=new Proxy([], {get(target,key,receiver){
 same(filterTools(noScan,{query:'x'.repeat(257)}),[],'invalid query short-circuits catalog scan');
 same(ids('resume'),['resume'],'normal search recovers after oversized query');
 console.log('FT-15 Unicode multi-term search: '+checks+'/'+checks+' PASS');
+
+// Unsafe invisible/directional pasted characters must fail closed without
+// stripping valid non-Latin shaping characters or normal whitespace.
+const unsafe=[0x0000,0x0007,0x007f,0x009f,0x00ad,0x061c,0x180e,0x200b,0x200e,0x200f,0x2028,0x2029,0x202a,0x202b,0x202c,0x202d,0x202e,0x2060,0x2066,0x2067,0x2068,0x2069,0xfeff];
+for(const cp of unsafe){
+ const q='resume'+String.fromCodePoint(cp);
+ same(queryIssue(q),'invisible-control','reject pasted control U+'+cp.toString(16));
+ same(ids(q),[],'control cannot yield a partial result U+'+cp.toString(16));
+}
+same(queryIssue('resume'),null,'ordinary search accepted');
+same(queryIssue('x'.repeat(257)),'too-long','length checked first');
+same(queryIssue('x'.repeat(257)+'\\u202e'),'too-long','oversize checked before hidden controls');
+same(queryIssue('  research\\n evidence\\t'),null,'ordinary whitespace accepted');
+same(queryIssue('می\\u200cروم'),null,'Persian joining control preserved');
+same(queryIssue('👩\\u200d💻'),null,'emoji joining control preserved');
+const legitimate=[{id:'persian',title:'می\\u200cروم',category:'Language',description:'Persian',status:'development'},
+ {id:'emoji',title:'👩\\u200d💻',category:'Language',description:'Emoji',status:'development'}];
+same(filterTools(legitimate,{query:'می\\u200cروم'}).map(t=>t.id),['persian'],'Persian ZWNJ searchable');
+same(filterTools(legitimate,{query:'👩\\u200d💻'}).map(t=>t.id),['emoji'],'emoji ZWJ searchable');
+const noHiddenScan=new Proxy([],{get(target,key,receiver){if(key==='filter')throw Error('invalid query scanned catalog');return Reflect.get(target,key,receiver)}});
+same(filterTools(noHiddenScan,{query:'text\\u202e lens'}),[],'invisible controls rejected before scanning');
+same(ids('resume'),['resume'],'normal search recovers after invalid control');
+console.log('FT-15 invisible-query controls: '+checks+'/'+checks+' PASS');
