@@ -50,7 +50,8 @@ async function audit(page,label){
 }
 try{
  browser=await engine.launch({headless:true});
- const page=await browser.newPage({viewport:{width:1280,height:900}});
+ const context=await browser.newContext({viewport:{width:1280,height:900}});
+ const page=await context.newPage();
  const response=await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
  assert.equal(response.status(),200,'HTTP fixture loaded');assertions++;
  await page.locator('.ft15-card').first().waitFor();
