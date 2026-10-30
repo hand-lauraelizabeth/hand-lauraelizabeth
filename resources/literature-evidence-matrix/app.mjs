@@ -1,4 +1,4 @@
-import {SCHEMA,validateProject,updateClaim,analyzeProject,exportProject,importProject} from "./core.mjs";
+import {SCHEMA,validateProject,updateClaim,hasUnsavedClaimChanges,analyzeProject,exportProject,importProject} from "./core.mjs";
 let project={schema:SCHEMA,sources:[],claims:[]};
 let pendingImport=null, importGeneration=0, editingClaimId=null;
 const byId=id=>document.getElementById(id);
@@ -12,10 +12,19 @@ showList("sources",project.sources,s=>s.id+" — "+s.title);
 showList("claims",project.claims,c=>c.id+" — "+c.sourceId+" — "+c.summary+" ("+c.stance+")");
 showList("issues",a.issues,x=>x.kind+" — "+(x.claimId||x.sourceId));
 showList("tensions",a.tensions,x=>x.question+": "+x.supportClaimId+" / "+x.challengeClaimId+" (user-coded)")}
+function hasUnsavedCorrection(){
+ return editingClaimId!==null&&hasUnsavedClaimChanges(project,editingClaimId,Object.fromEntries(new FormData(byId("claim")).entries()));
+}
+function blockUnsavedCorrection(){
+ if(!hasUnsavedCorrection())return false;
+ showError(Error("Unsaved finding correction: save or cancel it before loading another finding or adding a source."));
+ return true;
+}
 function stopEditing(){editingClaimId=null;const form=byId("claim");form.reset();form.elements.namedItem("id").readOnly=false;byId("claim-submit").textContent="Add finding";byId("cancel-claim-edit").hidden=true}
 byId("load-claim").addEventListener("click",()=>{
  const key=byId("edit-claim-id").value,claim=project.claims.find(c=>c.id===key);
  if(!claim){showError(Error("Choose an existing finding to correct."));return}
+ if(blockUnsavedCorrection())return;
  editingClaimId=key;const form=byId("claim");
  for(const [field,value] of Object.entries(claim))form.elements.namedItem(field).value=value;
  form.elements.namedItem("id").readOnly=true;
@@ -25,7 +34,8 @@ byId("load-claim").addEventListener("click",()=>{
 });
 byId("cancel-claim-edit").addEventListener("click",()=>{stopEditing();status("Finding correction cancelled. Existing evidence is unchanged.");byId("edit-claim-id").focus()});
 for(const name of ["source","claim"]){byId(name).addEventListener("submit",event=>{
- event.preventDefault();const form=event.currentTarget,v=Object.fromEntries(new FormData(form).entries());
+ event.preventDefault();if(name==="source"&&blockUnsavedCorrection())return;
+ const form=event.currentTarget,v=Object.fromEntries(new FormData(form).entries());
  if(name==="source")v.year=v.year===""?null:Number(v.year);
  try{
   if(name==="claim"&&editingClaimId){
@@ -38,7 +48,7 @@ for(const name of ["source","claim"]){byId(name).addEventListener("submit",event
   }
  }catch(e){showError(e)}
 })}
-byId("download").addEventListener("click",()=>{try{const blob=new Blob([exportProject(project)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="literature-evidence-matrix.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){showError(e)}});
+byId("download").addEventListener("click",()=>{try{const blob=new Blob([exportProject(project)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="literature-evidence-matrix.json";a.click();status(hasUnsavedCorrection()?"Downloaded saved matrix. One unsaved finding correction was excluded; save it and download again to include it.":"Downloaded saved matrix.");setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){showError(e)}});
 byId("upload").addEventListener("change",async event=>{
  const input=event.currentTarget,file=input.files[0],generation=++importGeneration;
  clearPreview();status("");byId("error").textContent="";
@@ -51,7 +61,7 @@ byId("upload").addEventListener("change",async event=>{
   const candidate=importProject(new TextDecoder("utf-8",{fatal:true}).decode(bytes));
   if(generation!==importGeneration)return;
   pendingImport={candidate,generation};
-  byId("import-summary").textContent="Replace the current "+project.sources.length+" sources and "+project.claims.length+" findings with "+candidate.sources.length+" sources and "+candidate.claims.length+" findings? Your current work will be lost unless you downloaded it first.";
+  byId("import-summary").textContent="Replace the current "+project.sources.length+" sources and "+project.claims.length+" findings with "+candidate.sources.length+" sources and "+candidate.claims.length+" findings? Your current work will be lost unless you downloaded it first."+(hasUnsavedCorrection()?" An unsaved finding correction will also be discarded.":"");
   byId("import-preview").hidden=false;
   byId("confirm-import").focus();
   status("File validated locally. No entries have been replaced.");
