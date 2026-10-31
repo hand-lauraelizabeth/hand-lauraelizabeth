@@ -30,7 +30,10 @@
 
   function parseDelimited(text, delimiter) {
     if (typeof text !== 'string') throw new Error('Input must be text.');
-    if (text.length > MAX_BYTES) throw new Error('File exceeds the 5 MB text limit.');
+    // Keep the parser's direct-text entry point consistent with File.size (bytes).
+    // A short UTF-16 string can exceed the advertised 5 MB after UTF-8 encoding.
+    if (text.length > MAX_BYTES || new TextEncoder().encode(text).byteLength > MAX_BYTES)
+      throw new Error('File exceeds the 5 MB UTF-8 byte limit.');
     if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
     if (!text.trim()) throw new Error('File contains no data.');
     const sep = delimiter || detectDelimiter(text);
