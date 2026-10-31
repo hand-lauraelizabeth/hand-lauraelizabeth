@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {evaluateWithProvenance} from './evidence-coverage.mjs';
-import {summarizeCoverage,describeCoverage,summarizeCriterionCoverage} from './coverage-summary.mjs';
+import {summarizeCoverage,describeCoverage,summarizeCriterionCoverage,summarizeVendorCoverage} from './coverage-summary.mjs';
 
 // Synthetic records only. A zero score is not missing.
 const base={
@@ -88,4 +88,28 @@ test('criterion-level complete zero scores retain complete coverage',()=>{
   assert.equal(row.scoredPairs,2);assert.equal(row.completeReferencePairs,2);
   assert.equal(row.missingScores,0);assert.equal(row.scoredMissingAnyReference,0);
  }
+});
+
+test('vendor-level coverage identifies per-proposal gaps and reconciles to totals',()=>{
+ const input={...base,ratings:base.ratings.map((r,i)=>i===0?{...r,reviewer:'QA'}:r)};
+ const result=evaluateWithProvenance(input);
+ const rows=summarizeVendorCoverage(result);
+ assert.deepEqual(rows,[
+  {vendorId:'V-01',scoredPairs:2,completeReferencePairs:1,missingScores:0,scoredMissingAnyReference:1},
+  {vendorId:'V-02',scoredPairs:1,completeReferencePairs:0,missingScores:1,scoredMissingAnyReference:1}
+ ]);
+ const overall=summarizeCoverage(result);
+ for(const key of ['scoredPairs','completeReferencePairs','missingScores','scoredMissingAnyReference'])
+  assert.equal(rows.reduce((sum,row)=>sum+row[key],0),overall[key],key+' parity');
+ assert.ok(Object.isFrozen(rows)&&rows.every(Object.isFrozen));
+ assert.equal(rows[0].scoredPairs,2); // Includes legitimate zero.
+});
+test('vendor-level coverage rejects shuffled comparison identities',()=>{
+ const result=evaluateWithProvenance(base);
+ assert.throws(()=>summarizeVendorCoverage({...result,comparisons:result.comparisons.toReversed()}),/vendor reference/);
+});
+test('vendor-level fully documented zero scores remain complete',()=>{
+ const input={...base,ratings:base.ratings.map(r=>({...r,score:0,evidenceRef:'EV',reviewer:'QA'}))};
+ const rows=summarizeVendorCoverage(evaluateWithProvenance(input));
+ assert.ok(rows.every(r=>r.scoredPairs===2&&r.completeReferencePairs===2&&r.missingScores===0&&r.scoredMissingAnyReference===0));
 });
