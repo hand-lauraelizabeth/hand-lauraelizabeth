@@ -258,12 +258,28 @@
     return null;
   }
 
+  // A lone UTF-16 surrogate is replaced by U+FFFD when a browser encodes
+  // a CSV download as UTF-8. Refuse silent changes to source cell values.
+  function hasUnpairedSurrogate(text) {
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code >= 0xD800 && code <= 0xDBFF) {
+        const next = text.charCodeAt(++i);
+        if (!(next >= 0xDC00 && next <= 0xDFFF)) return true;
+      } else if (code >= 0xDC00 && code <= 0xDFFF) return true;
+    }
+    return false;
+  }
+
   function exportCsv(parsed, spreadsheetView = true) {
     requireExportTableShape(parsed);
     const risk = spreadsheetView ? spreadsheetExportRisk(parsed) : null;
     if (risk) throw new Error('Spreadsheet CSV blocked at source record ' + risk.sourceRecord + ', column ' + risk.column + '. Use exact JSON, or machine CSV only outside spreadsheet software.');
-    const write = v => {
+    const write = (v, recordIndex, columnIndex) => {
       let s = String(v);
+      if (hasUnpairedSurrogate(s))
+        throw new Error('CSV export cannot preserve an unmatched UTF-16 surrogate at table record ' +
+          (recordIndex + 1) + ', column ' + (columnIndex + 1) + '. Use exact JSON instead.');
       // Spreadsheet-oriented mode adds a leading tab *inside* a quoted cell.
       // This may alter exported data; machine-readable users should disable it.
       if (spreadsheetView && formulaRisk(s)) s = '\t' + s;
@@ -276,7 +292,7 @@
     let bytes = spreadsheetView ? 3 : 0;
     for (let index = 0; index <= parsed.rows.length; index++) {
       const row = index === 0 ? parsed.headers : parsed.rows[index - 1];
-      const line = row.map(write).join(',');
+      const line = row.map((value, column) => write(value, index, column)).join(',');
       bytes += encoder.encode(line).byteLength + (index === 0 ? 0 : 2);
       if (bytes > MAX_EXPORT_BYTES)
         throw new Error('CSV export exceeds the 15 MB output limit. Reduce the data or export a smaller file.');
