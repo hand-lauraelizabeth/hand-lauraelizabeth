@@ -37,7 +37,7 @@ check(()=>assert.deepEqual(occurrences({date:'1900-01-31',repeat:'monthly'},'210
 
 // A CSV cell may be quoted today but later resaved with altered escaping.
 // Reject separator/quote-adjacent formulas and any tab; preserve exact JSON.
-const riskInputs=['safe,=1+1','safe;=1+1','safe"=1+1',"safe'=1+1",'safe\\t=1+1','safe, \\u200D＝SUM(1)'];
+const riskInputs=['safe,=1+1','safe;=1+1','safe"=1+1',"safe'=1+1",'safe\t=1+1','safe, \u200D＝SUM(1)'];
 for(const label of riskInputs){
   const result=project({...config,events:[{...events[0],label}]});
   check(()=>assert.equal(csvExportRisk(result)?.field,'label'));
