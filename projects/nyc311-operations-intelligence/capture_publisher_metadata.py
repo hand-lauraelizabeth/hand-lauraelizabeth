@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
+import stat
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -101,6 +102,22 @@ def acquire_metadata(opener=None, now=None):
     return raw, receipt
 
 
+def _ensure_private_dir(target):
+    """Refuse public-permission directories and repository checkout destinations.
+
+    Checking happens BEFORE network acquisition; raw metadata must never be
+    written into a Git working tree even when its directory mode is private.
+    """
+    target.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if os.name != "posix":
+        raise AcquisitionError("PRIVATE_DIRECTORY_MODE_UNVERIFIABLE")
+    mode = stat.S_IMODE(target.stat().st_mode)
+    if mode & 0o077:
+        raise AcquisitionError("PRIVATE_DIRECTORY_PERMISSIONS_UNSAFE")
+    if any((parent / ".git").exists() for parent in (target, *target.parents)):
+        raise AcquisitionError("PRIVATE_DIRECTORY_INSIDE_GIT_CHECKOUT")
+
+
 def _write_private_new(path, data):
     """Create only; do not overwrite an earlier acquisition."""
     fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -113,7 +130,7 @@ def main():
     parser.add_argument("--private-dir", required=True, help="Private output directory, never the public repository")
     args = parser.parse_args()
     target = Path(args.private_dir).expanduser().resolve()
-    target.mkdir(mode=0o700, parents=True, exist_ok=True)
+    _ensure_private_dir(target)
     raw, receipt = acquire_metadata()
     stamp = receipt["captured_at_utc"].replace("-", "").replace(":", "").replace("+00:00", "Z").split(".")[0]
     prefix = "nyc311_metadata_" + stamp
