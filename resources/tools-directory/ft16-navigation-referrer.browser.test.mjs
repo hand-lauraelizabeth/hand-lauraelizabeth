@@ -5,6 +5,8 @@
  * W3C Referrer Policy: https://www.w3.org/TR/referrer-policy/#referrer-policy-no-referrer
  * The fixture deliberately sets an unsafe document referrer policy so the
  * missing-noreferrer negative control is observable in real browsers.
+ * Touch mode uses Playwright's hasTouch context and locator.tap(), not a
+ * physical device. Source: https://playwright.dev/docs/api/class-locator#locator-tap
  */
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
@@ -15,6 +17,7 @@ import {chromium,firefox,webkit} from 'playwright';
 
 const browserName=process.argv[2]||'chromium';
 const negative=process.argv.includes('--negative-control');
+const touch=process.argv.includes('--touch');
 const engine={chromium,firefox,webkit}[browserName];
 if(!engine)throw Error('Unsupported browser '+browserName);
 const dir=dirname(fileURLToPath(import.meta.url));
@@ -52,7 +55,7 @@ let browser,checks=0;
 const eq=(actual,expected,label)=>{assert.deepEqual(actual,expected,label);checks++;};
 try{
  browser=await engine.launch({headless:true});
- const page=await browser.newPage({viewport:{width:320,height:720}});
+ const page=await browser.newPage({hasTouch:touch,viewport:{width:touch?375:320,height:720}});
  const errors=[],outbound=[],intercepted=[];
  const local='http://127.0.0.1:'+server.address().port;
  page.on('pageerror',e=>errors.push(e.message));
@@ -74,11 +77,17 @@ try{
  eq(await page.locator('.ft15-link').getAttribute('href'),target,'exact canonical destination');
  eq(await page.locator('.ft15-link').getAttribute('rel'),negative?'':'noreferrer','actual link relation');
  eq(outbound,[],'no outbound request from search');
- await page.locator('.ft15-link').focus();
- eq(await page.locator('.ft15-link').evaluate(el=>el===document.activeElement),true,'link keyboard-focusable');
+ eq(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),
+  true,'narrow viewport reflows without horizontal overflow');
+ if(touch){
+  eq(await page.evaluate(()=>'ontouchstart' in window),true,'browser touch input enabled');
+ }else{
+  await page.locator('.ft15-link').focus();
+  eq(await page.locator('.ft15-link').evaluate(el=>el===document.activeElement),true,'link keyboard-focusable');
+ }
  await Promise.all([
   page.waitForURL(target),
-  page.keyboard.press('Enter')
+  touch?page.locator('.ft15-link').tap():page.keyboard.press('Enter')
  ]);
  eq(await page.title(),'Synthetic destination','keyboard navigation reached intercepted page');
  eq(intercepted.length,1,'exactly one intercepted destination request');
@@ -87,7 +96,8 @@ try{
   'actual navigation must omit Referer even under unsafe-url document policy');
  eq(outbound,[target],'only the deliberately intercepted navigation leaves local origin');
  eq(errors,[],'no application exceptions');
- console.log('FT-16 '+browserName+' intercepted navigation privacy '+checks+'/'+checks+' PASS');
+ console.log('FT-16 '+browserName+' '+(touch?'touch':'keyboard')+
+  ' intercepted navigation privacy '+checks+'/'+checks+' PASS');
 }finally{
  if(browser)await browser.close();
  await new Promise(resolve=>server.close(resolve));
