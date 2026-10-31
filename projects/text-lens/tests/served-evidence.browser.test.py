@@ -169,6 +169,79 @@ def main():
             checks += 1
 
 
+            # Fault-inject real browser download boundaries after a safe local import.
+            # These tests exercise the page event handler under the served CSP,
+            # not merely a copied function in a synthetic JavaScript sandbox.
+            for selector, label in [("#downloadcsv", "CSV"), ("#downloadTablesJson", "JSON")]:
+                for fault in ("url", "append", "click"):
+                    page.evaluate("""fault => {
+                        const original = {
+                            create: URL.createObjectURL,
+                            revoke: URL.revokeObjectURL,
+                            append: document.body.appendChild,
+                            click: HTMLAnchorElement.prototype.click
+                        };
+                        const state = {created: [], revoked: [],
+                            initialLinks: document.querySelectorAll('a[download]').length};
+                        URL.createObjectURL = function(blob) {
+                            if (fault === 'url') throw new Error('synthetic URL refusal');
+                            const url = original.create.call(URL, blob);
+                            state.created.push(url);
+                            return url;
+                        };
+                        URL.revokeObjectURL = function(url) {
+                            state.revoked.push(url);
+                            return original.revoke.call(URL, url);
+                        };
+                        document.body.appendChild = function(node) {
+                            if (fault === 'append' && node.tagName === 'A' && node.download)
+                                throw new Error('synthetic append refusal');
+                            return original.append.call(this, node);
+                        };
+                        HTMLAnchorElement.prototype.click = function() {
+                            if (fault === 'click' && this.download)
+                                throw new Error('synthetic click refusal');
+                            return original.click.call(this);
+                        };
+                        window.__ft11Fault = {state, restore() {
+                            URL.createObjectURL = original.create;
+                            URL.revokeObjectURL = original.revoke;
+                            document.body.appendChild = original.append;
+                            HTMLAnchorElement.prototype.click = original.click;
+                            return {...state,
+                                remainingLinks: document.querySelectorAll('a[download]').length};
+                        }};
+                    }""", fault)
+                    try:
+                        no_download(page, selector)
+                        checks += 1
+                        expect(page.locator("#status")).to_contain_text(
+                            label + " download could not be started")
+                        checks += 1
+                        assert page.evaluate("document.activeElement.id") == "status"
+                        checks += 1
+                        assert "archive.txt" not in page.locator("#status").inner_text()
+                        checks += 1
+                    finally:
+                        state = page.evaluate("window.__ft11Fault.restore()")
+                    assert state["remainingLinks"] == state["initialLinks"], state
+                    checks += 1
+                    expected = 0 if fault == "url" else 1
+                    assert len(state["created"]) == expected, state
+                    assert state["revoked"] == state["created"], state
+                    checks += 1
+
+                # A failure must not poison the next successful download.
+                if label == "CSV":
+                    recovered = download_bytes(page, selector).decode("utf-8-sig")
+                    assert any(row[0] == "document_summary" and row[2] == "archive.txt"
+                               for row in csv.reader(io.StringIO(recovered)))
+                else:
+                    recovered = json.loads(download_bytes(page, selector).decode("utf-8"))
+                    assert any(row[0] == "document_summary" and row[2] == "archive.txt"
+                               for row in recovered["rows"])
+                checks += 1
+
             page.locator("#a").fill("An unrelated sentence with no evaluative cue.")
             expect(page.locator("#cueCsv")).to_be_disabled(timeout=10000)
             checks += 1
