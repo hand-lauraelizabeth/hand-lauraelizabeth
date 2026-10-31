@@ -1,0 +1,14 @@
+name: FT-03 bounded reconciliation preview
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  bounded-preview:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check bounded Unicode previews and exact omitted counts
+        run: node projects/data-rescue-studio/tests/reconciliation-preview-bounded.test.cjs
