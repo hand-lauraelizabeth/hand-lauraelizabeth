@@ -1,5 +1,6 @@
 """Synthetic-only adversarial tests for independent NYC 311 receipt auditing."""
 import csv
+import datetime as dt
 import hashlib
 import json
 from pathlib import Path
@@ -34,8 +35,28 @@ class ReceiptAuditTests(unittest.TestCase):
         complaints = Counter(r[4] for r in self.rows)
         status_totals = Counter(r[6] for r in self.rows)
         status_populated = Counter(r[6] for r in self.rows if r[2])
-        reverse_by_status = Counter(r[6] for r in self.rows if r[2] and r[2] < r[1])
-        equal_by_status = Counter(r[6] for r in self.rows if r[2] and r[2] == r[1])
+        # Compare instants, not lexical strings: .0 and .000 are equal.
+        # Invalid synthetic timestamps are deliberately retained for negative
+        # parser tests; the production auditor must reject those rows itself.
+        def chronology_class(row):
+            if not row[2]:
+                return None
+            try:
+                created = dt.datetime.fromisoformat(row[1])
+                closed = dt.datetime.fromisoformat(row[2])
+                if closed < created:
+                    return "reversed"
+                if closed == created:
+                    return "equal"
+            except (ValueError, TypeError):
+                # Mixed naive/aware timestamps are intentionally malformed
+                # fixtures and must be diagnosed by the independent auditor.
+                return None
+            return None
+
+        chronology = [(r[6], chronology_class(r)) for r in self.rows]
+        reverse_by_status = Counter(status for status, kind in chronology if kind == "reversed")
+        equal_by_status = Counter(status for status, kind in chronology if kind == "equal")
         reverse_count = sum(reverse_by_status.values())
         equal_count = sum(equal_by_status.values())
         status_closure_digest = hashlib.sha256(json.dumps(
@@ -254,6 +275,33 @@ class ReceiptAuditTests(unittest.TestCase):
         self.rows = [row[:] for row in original_rows]
         self.write()
         self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_fractional_timestamp_precision_does_not_forge_chronology(self):
+        """Publisher floating timestamps can express one instant at varied precision."""
+        for created, closed in (
+            ("2026-09-15T12:30:00", "2026-09-15T12:30:00.000"),
+            ("2026-09-15T12:30:00.100", "2026-09-15T12:30:00.1"),
+            ("2026-09-15T12:30:00.1", "2026-09-15T12:30:00.100000"),
+        ):
+            with self.subTest(created=created, closed=closed):
+                self.rows[1][1], self.rows[1][2] = created, closed
+                self.write()
+                self.assertEqual(self.receipt["equal_closure_dates"], 1)
+                self.assertEqual(self.receipt["reversed_closure_dates"], 0)
+                self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+
+    def test_fractional_timestamp_true_reversal_still_fails_forged_receipt(self):
+        """A genuine subsecond reversal must be counted and source-bound."""
+        self.rows[1][1] = "2026-09-15T12:30:00.100"
+        self.rows[1][2] = "2026-09-15T12:30:00.099"
+        self.write()
+        self.assertEqual(self.receipt["reversed_closure_dates"], 1)
+        self.assertIn("INTERNAL_RECEIPT_CONSISTENCY_VERIFIED", self.codes())
+        self.receipt["reversed_closure_dates"] = 0
+        self.receipt["nonnegative_closure_dates"] = 1
+        self.receipt["positive_closure_dates"] = 1
+        self.save_receipt()
+        self.assertIn("CLOSURE_CHRONOLOGY_MISMATCH", self.codes())
 
     def test_status_closure_distribution_fails_with_recomputed_csv_digest(self):
         """Moving closure from one status to another preserves overall count."""
