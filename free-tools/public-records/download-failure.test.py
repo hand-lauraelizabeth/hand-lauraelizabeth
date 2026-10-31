@@ -49,7 +49,7 @@ class DownloadFailureRecovery(unittest.TestCase):
                         self.assertNotIn("PRIVATE", page.locator("#status").inner_text())
                         page.locator("#save-csv").click()
                         self.assertIn("CSV download could not start", page.locator("#status").inner_text())
-                        page.evaluate("URL.createObjectURL = window.__ft09Create")
+                        page.evaluate("() => { URL.createObjectURL = window.__ft09Create; }")
 
                         # If a link click fails after URL creation, cleanup is still required.
                         page.evaluate("""() => {
