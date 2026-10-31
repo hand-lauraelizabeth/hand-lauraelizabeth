@@ -96,10 +96,10 @@ async function auditReconciliationCells(page, name, state) {
   });
   assert.ok(result.cells >= 8, name + ' ' + state + ': table has data cells'); checks++;
   assert.ok(result.populated >= 8, name + ' ' + state + ': nonempty text checked'); checks++;
-  assert.ok(result.empty >= 1, name + ' ' + state + ': intentionally blank cells accounted for'); checks++;
+  assert.equal(result.empty, 0, name + ' ' + state + ': no unexplained empty preview cells'); checks++;
   assert.deepEqual(result.errors, [], name + ' ' + state + ': computed text/background contrast'); checks++;
   console.log(name + ' ' + state + ': ' + result.populated + ' populated cells checked; ' +
-    result.empty + ' blank cells (not text); minimum computed contrast ' +
+    result.empty + ' unlabeled blank cells; minimum computed contrast ' +
     result.minimum.toFixed(2) + ':1; manual rendered-state review still required.');
 }
 
@@ -198,6 +198,18 @@ async function runEngine(type, name, url) {
     assert.ok(await page.locator('#compareResults table tbody tr').count()>0); checks++;
     assert.equal(await page.locator('#compareResults table tbody tr').evaluateAll(rows=>rows.every(row=>row.firstElementChild?.tagName==='TH' && row.firstElementChild.getAttribute('scope')==='row' && [...row.children].slice(1).every(cell=>cell.tagName==='TD'))),true); checks++;
     await auditReconciliationCells(page,name,'reconciliation results');
+    const previewLabels = await page.locator('#compareResults tbody td').allTextContents();
+    for (const label of ['Missing identifier','No first-file record','No second-file record']) {
+      assert.ok(previewLabels.includes(label), name + ' explains ' + label); checks++;
+    }
+    const [exactAuditDownload] = await Promise.all([
+      page.waitForEvent('download'), page.locator('#compareJson').click()
+    ]);
+    const exactAudit = JSON.parse(readFileSync(await exactAuditDownload.path(), 'utf8'));
+    assert.deepEqual(exactAudit.missingRight, [4], name + ' exact audit retains source record'); checks++;
+    for (const label of ['Missing identifier','No first-file record','No second-file record']) {
+      assert.equal(JSON.stringify(exactAudit).includes(label), false, name + ' preview labels never enter exact audit'); checks++;
+    }
     assert.equal(await page.locator('#compareFindingFilter').isEnabled(),true); checks++;
     await page.locator('#compareFindingFilter').selectOption('ambiguous');
     assert.equal(await page.locator('#compareResults tbody tr').count(),1); checks++;
@@ -260,6 +272,10 @@ async function runEngine(type, name, url) {
     await page.setViewportSize({width:320,height:800});
     await scan(page,name,'reconciliation results at 320px');
     await auditReconciliationCells(page,name,'reconciliation results at 320px');
+    const narrowLabels = await page.locator('#compareResults tbody td').allTextContents();
+    for (const label of ['Missing identifier','No first-file record','No second-file record']) {
+      assert.ok(narrowLabels.includes(label), name + ' 320px retains ' + label); checks++;
+    }
     await page.locator('#compareClear').click();
     assert.equal(await page.locator('#comparePrev').isDisabled(),true); checks++;
     assert.equal(await page.locator('#compareNext').isDisabled(),true); checks++;
