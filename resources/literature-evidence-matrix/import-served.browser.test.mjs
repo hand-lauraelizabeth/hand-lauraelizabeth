@@ -124,6 +124,52 @@ try{
  check(corrected.claims[0].sourceId,'β-0020','download includes corrected source reference');
  check(corrected.claims[0].summary,'Corrected <script>inert</script> β','download preserves corrected Unicode text');
  check(corrected.claims[0].methods,'Method A','unmodified methods retained');
+ // Inject three distinct browser download failures; no source text may appear in errors.
+ let unexpectedDownloads=0;
+ const downloadWatch=()=>{unexpectedDownloads++};
+ page.on('download',downloadWatch);
+ for(const fault of ['url','append','click']){
+  await page.evaluate(fault=>{
+   const originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL;
+   const originalAppend=document.body.append,originalClick=HTMLAnchorElement.prototype.click;
+   const events={created:[],revoked:[]};
+   window.__ft14FaultEvents=events;
+   window.__ft14Restore=()=>{
+    URL.createObjectURL=originalCreate;URL.revokeObjectURL=originalRevoke;
+    document.body.append=originalAppend;HTMLAnchorElement.prototype.click=originalClick;
+   };
+   URL.createObjectURL=function(blob){
+    if(fault==='url')throw Error('private-source-ID');
+    const url=originalCreate.call(URL,blob);events.created.push(url);return url;
+   };
+   URL.revokeObjectURL=function(url){events.revoked.push(url);return originalRevoke.call(URL,url)};
+   document.body.append=function(...nodes){
+    if(fault==='append')throw Error('private-source-ID');
+    return originalAppend.apply(this,nodes);
+   };
+   HTMLAnchorElement.prototype.click=function(){
+    if(fault==='click')throw Error('private-source-ID');
+    return originalClick.call(this);
+   };
+  },fault);
+  await page.locator('#download').click();
+  check((await page.locator('#error').textContent()).includes('Download could not start'),true,fault+' has actionable error');
+  check((await page.locator('#error').textContent()).includes('private-source-ID'),false,fault+' error does not expose identifiers');
+  check(await page.locator('#error').evaluate(el=>el===document.activeElement),true,fault+' error receives focus');
+  check(await page.locator('a[download]').count(),0,fault+' leaves no temporary download link');
+  check(await page.evaluate(()=>window.__ft14FaultEvents.created.every(url=>window.__ft14FaultEvents.revoked.includes(url))),true,fault+' revokes failed object URLs');
+  await page.evaluate(()=>window.__ft14Restore());
+ }
+ page.off('download',downloadWatch);
+ check(unexpectedDownloads,0,'blocked downloads never start');
+ const retryDownloadPromise=page.waitForEvent('download');
+ await page.locator('#download').click();
+ const retryDownload=await retryDownloadPromise;
+ const retryJSON=JSON.parse(await readFile(await retryDownload.path(),'utf8'));
+ check(retryJSON.claims[0].summary,'Corrected <script>inert</script> β','retry preserves saved Unicode evidence');
+ check(await page.locator('#error').textContent(),'','successful retry clears stale error');
+ check((await page.locator('#status').textContent()).includes('download started'),true,'success reports initiation, not guaranteed save');
+
  await page.locator('#edit-claim-id').selectOption('finding-0001');
  await page.locator('#load-claim').click();
  await page.locator('#claim textarea[name="summary"]').fill('Discarded edit');
