@@ -190,7 +190,8 @@ def main():
                             return url;
                         };
                         URL.revokeObjectURL = function(url) {
-                            state.revoked.push(url);
+                            // Ignore earlier successful exports' delayed revocations.
+                            if (state.created.includes(url)) state.revoked.push(url);
                             return original.revoke.call(URL, url);
                         };
                         document.body.appendChild = function(node) {
