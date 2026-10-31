@@ -47,6 +47,12 @@ def text_contains(driver,id,required):
 
 def check(driver,name,url,key,source):
     driver.get(url)
+    if source=="published" and "/.well-known/captcha/" in driver.current_url:
+        raise RuntimeError(
+            "Published WordPress verification blocked by the host CAPTCHA; "
+            f"{name} interactive behavior remains unverified. "
+            "No challenge bypass or application pass is claimed."
+        )
     enter_app(driver,key)
     wait=WebDriverWait(driver,12)
     if name=="standards-check":
@@ -120,7 +126,8 @@ def main():
             check(driver,name,f"http://127.0.0.1:{port}/{path}",key,"versioned")
             if os.environ.get("LEH_TEST_LIVE_TOOLS","1")=="1":
                 check(driver,name,live,key,"published")
-        print("PASS five tools: local and WordPress",flush=True)
+        scope="versioned source and published WordPress" if os.environ.get("LEH_TEST_LIVE_TOOLS","1")=="1" else "versioned source only; published WordPress not tested"
+        print("PASS five tools:",scope,flush=True)
     finally:
         if driver: driver.quit()
         server.shutdown();server.server_close()
