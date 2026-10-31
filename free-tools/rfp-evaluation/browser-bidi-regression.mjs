@@ -64,6 +64,10 @@ try{
       check((await page.locator('#criterion-coverage-body tr').first().innerText()).includes('C-0001'),name+' exact criterion ID');
       check((await page.locator('#criterion-coverage-body tr').first().locator('td').allTextContents()).join(',')==='1,1,0,0',name+' full criterion reference coverage');
       check(await page.locator('#criterion-coverage-body th[scope=row]').count()===1,name+' semantic criterion row header');
+      check(await page.locator('#vendor-coverage-body tr').count()===1,name+' vendor gap row');
+      check((await page.locator('#vendor-coverage-body tr').first().locator('th').textContent())==='V-0007',name+' exact vendor ID in row header');
+      check((await page.locator('#vendor-coverage-body tr').first().locator('td').allTextContents()).join(',')==='1,1,0,0',name+' complete vendor reference coverage');
+      check(await page.locator('#vendor-coverage-body th[scope=row]').count()===1,name+' semantic vendor row header');
       await page.locator('#download-matrix').click();
       check((await page.locator('#error').textContent()).includes('CSV export blocked'),name+' matrix blocked');
       check(await page.evaluate(()=>document.activeElement?.id)==='error',name+' blocked export focuses error');
@@ -94,6 +98,7 @@ try{
       await page.locator('button[type=submit]').click();
       check((await page.locator('#result-summary').innerText()).includes('1 scored pairs missing a visible reviewer identifier'),name+' reviewer coverage disclosed');
       check((await page.locator('#criterion-coverage-body tr').first().locator('td').allTextContents()).join(',')==='1,0,0,1',name+' criterion gap reflects reviewer omission');
+      check((await page.locator('#vendor-coverage-body tr').first().locator('td').allTextContents()).join(',')==='1,0,0,1',name+' vendor gap reflects reviewer omission');
       check((await page.locator('#result-summary').innerText()).includes('0 scored pairs have visible criterion source, evidence and reviewer identifiers'),name+' missing reviewer lowers combined reference coverage');
       check((await page.locator('#result-summary').innerText()).includes('1 scored pairs missing at least one of those references'),name+' combined gap visible');
       check((await page.locator('#result-body').innerText()).includes('Reviewer identifier missing: C-0001'),name+' unattributed score flagged');
@@ -115,6 +120,7 @@ try{
       await page.locator('button[type=submit]').click();
       check((await page.locator('#result-summary').innerText()).includes('0 of 1 vendor–criterion pairs scored'),name+' missing score not treated as zero');
       check((await page.locator('#result-summary').innerText()).includes('1 missing scores'),name+' missing score explicitly counted');
+      check((await page.locator('#vendor-coverage-body tr').first().locator('td').allTextContents()).join(',')==='0,0,1,0',name+' vendor gap distinguishes missing score');
       await page.locator('#rating-1-score').fill('4');
       await page.locator('button[type=submit]').click();
       // Removing an entry is destructive: keyboard cancellation must preserve the
