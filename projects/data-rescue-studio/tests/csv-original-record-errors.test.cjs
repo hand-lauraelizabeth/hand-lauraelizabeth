@@ -51,5 +51,5 @@ for (const mode of [false,true]) {
   check(()=>assert.throws(()=>exportCsv({...table(['safe']),headers:['\uD800']},mode),
     /at table record 1, column 1 \(original source record 1\)/));
 }
-check(()=>assert.throws(()=>exportCsv(table(['=1+2']),true),/Spreadsheet CSV blocked/));
+check(()=>assert.equal(parseDelimited(exportCsv(table(['=1+2']),true),',').rows[0][0], '\t=1+2'));
 console.log('FT-01 CSV original-record integrity: '+checks+'/'+checks+' PASS');
