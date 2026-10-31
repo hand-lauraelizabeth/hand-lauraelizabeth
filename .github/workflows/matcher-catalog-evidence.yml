@@ -1,0 +1,24 @@
+name: Matcher current-catalog evidence QA
+
+on:
+  pull_request:
+    paths:
+      - "projects/college-career-matching/data/catalog-evidence/**"
+      - "projects/college-career-matching/tests/test_catalog_evidence.cjs"
+      - ".github/workflows/matcher-catalog-evidence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalog-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Verify catalog provenance and credential boundaries
+        run: node --test projects/college-career-matching/tests/test_catalog_evidence.cjs
