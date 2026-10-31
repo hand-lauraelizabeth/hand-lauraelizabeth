@@ -212,7 +212,21 @@
   // Spreadsheet importers can reinterpret line breaks and invisible controls.
   // Refuse ambiguous spreadsheet-view exports, but preserve exact cells in JSON
   // and in the explicitly machine-readable CSV option.
+  // Exports must not silently drop, add or stringify cells from malformed tables.
+  // Keep machine CSV exact and spreadsheet CSV conservative.
+  function requireExportTableShape(parsed) {
+    if (!parsed || !Array.isArray(parsed.headers) ||
+        parsed.headers.length < 1 || parsed.headers.length > MAX_COLUMNS ||
+        !parsed.headers.every(v => typeof v === 'string') ||
+        !Array.isArray(parsed.rows) || parsed.rows.length > MAX_ROWS ||
+        !parsed.rows.every(row => Array.isArray(row) &&
+          row.length === parsed.headers.length &&
+          row.every(v => typeof v === 'string')))
+      throw new Error('Cannot export an incomplete or inconsistent CSV table.');
+  }
+
   function spreadsheetExportRisk(parsed) {
+    requireExportTableShape(parsed);
     // Spreadsheet warnings must never cite fabricated or malformed source IDs.
     requireSourceRecordPositions(parsed);
     for (const [rowIndex, row] of [parsed.headers, ...parsed.rows].entries()) {
@@ -239,6 +253,7 @@
   }
 
   function exportCsv(parsed, spreadsheetView = true) {
+    requireExportTableShape(parsed);
     const risk = spreadsheetView ? spreadsheetExportRisk(parsed) : null;
     if (risk) throw new Error('Spreadsheet CSV blocked at source record ' + risk.sourceRecord + ', column ' + risk.column + '. Use exact JSON, or machine CSV only outside spreadsheet software.');
     const write = v => {
