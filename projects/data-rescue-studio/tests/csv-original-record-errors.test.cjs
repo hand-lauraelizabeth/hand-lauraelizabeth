@@ -34,12 +34,18 @@ const invalid = [
 ];
 for (const metadata of invalid) {
   const parsed=table(['safe','safe'],metadata);
-  for (const mode of [false,true]) {
-    check(()=>assert.throws(()=>exportCsv(parsed,mode),
-      /source-record|original source-record/i));
-    check(()=>assert.throws(()=>exportCsvDownload(parsed,mode),
-      /source-record|original source-record/i));
-  }
+  // Exact machine CSV does not claim source IDs and must remain available.
+  check(()=>assert.deepEqual(parseDelimited(exportCsv(parsed,false),',').rows,parsed.rows));
+  check(()=>assert.deepEqual(parseDelimited(exportCsvDownload(parsed,false),',').rows,parsed.rows));
+  // Spreadsheet CSV reports original positions when evaluating risky cells.
+  check(()=>assert.throws(()=>exportCsv(parsed,true),
+    /source-record|original source-record/i));
+  check(()=>assert.throws(()=>exportCsvDownload(parsed,true),
+    /source-record|original source-record/i));
+  // If machine CSV must report a Unicode error, it cannot invent its source ID.
+  const malformed=table(['safe','\\uD800'],metadata);
+  check(()=>assert.throws(()=>exportCsv(malformed,false),
+    /source-record|original source-record/i));
 }
 for (const mode of [false,true]) {
   const clean=table(['é','😀'],{sourceRecords:[2,7],originalRowCount:6});
