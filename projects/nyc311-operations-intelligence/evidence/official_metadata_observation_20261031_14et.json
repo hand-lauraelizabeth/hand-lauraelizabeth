@@ -1,0 +1,318 @@
+{
+  "record_type": "publisher_metadata_observation",
+  "verified_date_et": "2026-10-31 14:00 EDT",
+  "source_url": "https://data.cityofnewyork.us/api/views/erm2-nwe9.json",
+  "retrieval_method": "read-only TinyFish public content fetch; JSON parsed after extraction",
+  "dataset_id": "erm2-nwe9",
+  "dataset_name": "311 Service Requests from 2020 to Present",
+  "publication_stage": "published",
+  "publisher_reported_rows_updated_at_unix": 1793410850,
+  "publisher_reported_view_last_modified_unix": 1767021900,
+  "publisher_column_count": 48,
+  "required_backend_field_types": {
+    "unique_key": "text",
+    "created_date": "calendar_date",
+    "closed_date": "calendar_date",
+    "agency": "text",
+    "complaint_type": "text",
+    "borough": "text",
+    "status": "text"
+  },
+  "columns": [
+    {
+      "id": 623546861,
+      "fieldName": "unique_key",
+      "name": "Unique Key",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546862,
+      "fieldName": "created_date",
+      "name": "Created Date",
+      "dataTypeName": "calendar_date"
+    },
+    {
+      "id": 623546863,
+      "fieldName": "closed_date",
+      "name": "Closed Date",
+      "dataTypeName": "calendar_date"
+    },
+    {
+      "id": 623546864,
+      "fieldName": "agency",
+      "name": "Agency",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546865,
+      "fieldName": "agency_name",
+      "name": "Agency Name",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546866,
+      "fieldName": "complaint_type",
+      "name": "Problem (formerly Complaint Type)",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546867,
+      "fieldName": "descriptor",
+      "name": "Problem Detail (formerly Descriptor)",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546868,
+      "fieldName": "descriptor_2",
+      "name": "Additional Details",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546869,
+      "fieldName": "location_type",
+      "name": "Location Type",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546870,
+      "fieldName": "incident_zip",
+      "name": "Incident Zip",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546871,
+      "fieldName": "incident_address",
+      "name": "Incident Address",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546872,
+      "fieldName": "street_name",
+      "name": "Street Name",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546873,
+      "fieldName": "cross_street_1",
+      "name": "Cross Street 1",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546874,
+      "fieldName": "cross_street_2",
+      "name": "Cross Street 2",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546875,
+      "fieldName": "intersection_street_1",
+      "name": "Intersection Street 1",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546876,
+      "fieldName": "intersection_street_2",
+      "name": "Intersection Street 2",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546877,
+      "fieldName": "address_type",
+      "name": "Address Type",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546878,
+      "fieldName": "city",
+      "name": "City",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546879,
+      "fieldName": "landmark",
+      "name": "Landmark",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546880,
+      "fieldName": "facility_type",
+      "name": "Facility Type",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546881,
+      "fieldName": "status",
+      "name": "Status",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546882,
+      "fieldName": "due_date",
+      "name": "Due Date",
+      "dataTypeName": "calendar_date"
+    },
+    {
+      "id": 623546883,
+      "fieldName": "resolution_description",
+      "name": "Resolution Description",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546884,
+      "fieldName": "resolution_action_updated_date",
+      "name": "Resolution Action Updated Date",
+      "dataTypeName": "calendar_date"
+    },
+    {
+      "id": 623546885,
+      "fieldName": "community_board",
+      "name": "Community Board",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546886,
+      "fieldName": "council_district",
+      "name": "Council District",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546887,
+      "fieldName": "police_precinct",
+      "name": "Police Precinct",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546888,
+      "fieldName": "bbl",
+      "name": "BBL",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546889,
+      "fieldName": "borough",
+      "name": "Borough",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546890,
+      "fieldName": "x_coordinate_state_plane",
+      "name": "X Coordinate (State Plane)",
+      "dataTypeName": "number"
+    },
+    {
+      "id": 623546891,
+      "fieldName": "y_coordinate_state_plane",
+      "name": "Y Coordinate (State Plane)",
+      "dataTypeName": "number"
+    },
+    {
+      "id": 623546892,
+      "fieldName": "open_data_channel_type",
+      "name": "Open Data Channel Type",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546893,
+      "fieldName": "park_facility_name",
+      "name": "Park Facility Name",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546894,
+      "fieldName": "park_borough",
+      "name": "Park Borough",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546895,
+      "fieldName": "vehicle_type",
+      "name": "Vehicle Type",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546896,
+      "fieldName": "taxi_company_borough",
+      "name": "Taxi Company Borough",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546897,
+      "fieldName": "taxi_pick_up_location",
+      "name": "Taxi Pick Up Location",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546898,
+      "fieldName": "bridge_highway_name",
+      "name": "Bridge Highway Name",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546899,
+      "fieldName": "bridge_highway_direction",
+      "name": "Bridge Highway Direction",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546900,
+      "fieldName": "road_ramp",
+      "name": "Road Ramp",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546901,
+      "fieldName": "bridge_highway_segment",
+      "name": "Bridge Highway Segment",
+      "dataTypeName": "text"
+    },
+    {
+      "id": 623546902,
+      "fieldName": "latitude",
+      "name": "Latitude",
+      "dataTypeName": "number"
+    },
+    {
+      "id": 623546903,
+      "fieldName": "longitude",
+      "name": "Longitude",
+      "dataTypeName": "number"
+    },
+    {
+      "id": 623546905,
+      "fieldName": "location",
+      "name": "Location",
+      "dataTypeName": "point"
+    },
+    {
+      "id": 623546906,
+      "fieldName": ":@computed_region_f5dn_yrer",
+      "name": "Community Districts",
+      "dataTypeName": "number"
+    },
+    {
+      "id": 623546907,
+      "fieldName": ":@computed_region_yeji_bk3q",
+      "name": "Borough Boundaries",
+      "dataTypeName": "number"
+    },
+    {
+      "id": 623546908,
+      "fieldName": ":@computed_region_sbqj_enih",
+      "name": "Police Precincts",
+      "dataTypeName": "number"
+    },
+    {
+      "id": 623546909,
+      "fieldName": ":@computed_region_92fq_4b7q",
+      "name": "City Council Districts",
+      "dataTypeName": "number"
+    }
+  ],
+  "limitations": [
+    "Derived observation of a public JSON endpoint, not a byte-for-byte archive of its HTTP response.",
+    "No HTTP status/header/ETag/TLS-chain or raw-body checksum is attested here.",
+    "Schema agreement does not authenticate any September 2026 CSV export or its row identifiers.",
+    "No individual 311 service-request rows were acquired, processed, or published.",
+    "No disclosure-control, source-count reconciliation, or WordPress publication authorization."
+  ]
+}
