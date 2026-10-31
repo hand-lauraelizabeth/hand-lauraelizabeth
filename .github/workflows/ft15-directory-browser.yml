@@ -31,6 +31,17 @@ jobs:
       - run: node resources/tools-directory/ft16-acceptance.browser.test.mjs ${{ matrix.browser }}
       - name: Verify keyboard link navigation does not disclose the directory Referer
         run: node resources/tools-directory/ft16-navigation-referrer.browser.test.mjs ${{ matrix.browser }}
+      - name: Verify touch-activated navigation protects private search and Referer
+        run: node resources/tools-directory/ft16-navigation-referrer.browser.test.mjs ${{ matrix.browser }} --touch
+      - name: Confirm touch privacy regression is detected
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-navigation-referrer.browser.test.mjs chromium --touch --negative-control; then
+            echo "ERROR: broken touch noreferrer protection unexpectedly passed"
+            exit 1
+          fi
+          echo "PASS: touch navigation without noreferrer was rejected"
       - name: Confirm missing noreferrer leaks synthetic Referer and is caught
         if: matrix.browser == 'chromium'
         shell: bash
