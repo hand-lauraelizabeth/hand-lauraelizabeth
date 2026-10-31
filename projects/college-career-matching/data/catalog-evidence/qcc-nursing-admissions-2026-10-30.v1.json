@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "verified_local_date": "2026-10-30",
+  "scope": "Current first-party QCC Nursing Department pages; not a real-time application, exam-registration, seat, program-registration, or licensure determination.",
+  "institution": {
+    "unitid": "190673",
+    "program": "Nursing A.A.S.",
+    "cip2020": "51.3801"
+  },
+  "sources": {
+    "nursing_department": "https://www.qcc.cuny.edu/nursing/",
+    "prospective_nursing_students": "https://www.qcc.cuny.edu/nursing/prospective.html",
+    "catalog_nursing": "https://qcc.catalog.cuny.edu/programs/NS-AAS"
+  },
+  "crosschecked_plan_codes": [
+    {
+      "plan": "NS-AAS",
+      "school_reported_nysed_code": "01513"
+    },
+    {
+      "plan": "NH-AAS",
+      "school_reported_nysed_code": "34693"
+    },
+    {
+      "plan": "NY-AAS",
+      "school_reported_nysed_code": "36043"
+    },
+    {
+      "plan": "NPS-AAS",
+      "school_reported_nysed_code": "37062"
+    }
+  ],
+  "plan_code_verification": "Four code-to-plan mappings independently corroborated by the QCC Nursing Department page, not by an NYSED registration database; do not assert independent state registration verification.",
+  "exam_evidence": {
+    "current_department_page": "NEX",
+    "prospective_department_page": "NEX",
+    "catalog_application_section": "NEX",
+    "catalog_admission_section": "RN PAX",
+    "operational_preference": "Current Nursing Department and prospective-student instructions both describe NEX, but catalog still conflicts; advise direct confirmation with Nursing Department before purchasing or scheduling.",
+    "authoritative_resolution": false,
+    "nursing_department_contact": "Nursing@qcc.cuny.edu",
+    "nursing_department_phone": "718-631-6080"
+  },
+  "spring_2027_clinical_application": {
+    "announced_open_date": "2026-10-05",
+    "announced_close_date": "2026-10-16",
+    "status_as_of_verification": "published application window elapsed as of 2026-10-30; late exceptions, subsequent windows and seat availability not verified",
+    "college_general_admissions_distinct": true,
+    "no_current_seat_claim": true
+  },
+  "published_exam_price_conflict": {
+    "nursing_home_price_usd": 80,
+    "prospective_page_prose_price_usd": 80,
+    "prospective_page_estimated_fees_table_usd": 68.5,
+    "price_verified_for_purchase": false,
+    "guidance": "Conflicting QCC figures; check actual NLN checkout and department before payment. Do not display an authoritative current price."
+  },
+  "limitations": [
+    "Four college plan codes are not four federal CIP codes or four distinct licensure categories.",
+    "Departmental code corroboration is not NYSED registration-code confirmation.",
+    "Published NEX instructions are stronger current operational evidence than an internally contradictory catalog, but do not erase the RN PAX mention.",
+    "The October 5–16 application dates concern Spring 2027 clinical Nursing applications, not all college applications or every future nursing intake.",
+    "No admissions-policy conclusion about SAT/ACT is inferred from score data.",
+    "NCLEX-RN examination eligibility is not an RN license or guarantee of eligibility for an individual.",
+    "Do not show fee estimates as a verified current checkout price."
+  ]
+}
