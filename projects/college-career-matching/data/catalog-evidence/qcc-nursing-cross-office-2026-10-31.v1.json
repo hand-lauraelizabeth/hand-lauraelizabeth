@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "verified_local_date": "2026-10-31",
+  "evidence_type": "qcc_cross_office_historical_perkins_and_current_nursing_department_mapping",
+  "institution": {
+    "unitid": "190673",
+    "name": "CUNY Queensborough Community College",
+    "cip2020": "51.3801"
+  },
+  "sources": [
+    {
+      "url": "https://www.qcc.cuny.edu/cteq/perkins.html",
+      "publisher": "QCC Career and Technical Education / Perkins",
+      "scope": "The page explicitly discusses a 2023–2024 grant; its table lists NYSED codes, degree labels, HEGIS codes and 'Perkins Funded' values. It is NOT proof of 2026–27 Perkins funding or student eligibility.",
+      "source_time_scope": "2023-2024"
+    },
+    {
+      "url": "https://www.qcc.cuny.edu/nursing/",
+      "publisher": "QCC Nursing Department",
+      "scope": "Current department page separately maps all four codes to named nursing paths and describes NEX; it does not establish state registry institution headers.",
+      "source_time_scope": "2026-10-31 access"
+    },
+    {
+      "url": "https://qcc.catalog.cuny.edu/about/programs-of-study",
+      "publisher": "QCC official 2026–27 catalog",
+      "scope": "School-published current program/award table, distinct from state licensure decisions.",
+      "source_time_scope": "2026-2027"
+    }
+  ],
+  "cross_office_code_matches": [
+    {
+      "code": "01513",
+      "plan": "NS-AAS",
+      "perkins_label": "Nursing AAS",
+      "hegis_as_printed": "5208.1",
+      "perkins_funded_as_printed": "Yes",
+      "nursing_department_label": "Nursing Degree Program"
+    },
+    {
+      "code": "34693",
+      "plan": "NH-AAS",
+      "perkins_label": "QCC/Hunter-Bellevue Dual/Joint Nursing, AAS/BS",
+      "hegis_as_printed": "5208.10",
+      "perkins_funded_as_printed": "Yes",
+      "nursing_department_label": "Dual/Joint Degree Program Hunter Bellevue School of Nursing"
+    },
+    {
+      "code": "36043",
+      "plan": "NY-AAS",
+      "perkins_label": "QCC/York Dual/Joint Nursing AAS/BS",
+      "hegis_as_printed": "5208.10",
+      "perkins_funded_as_printed": "Yes",
+      "nursing_department_label": "Dual/Joint Degree Program York College/CUNY"
+    },
+    {
+      "code": "37062",
+      "plan": "NPS-AAS",
+      "perkins_label": "QCC/School of Professional Studies Dual/Joint Nuring AAS/BS",
+      "hegis_as_printed": "5208.10",
+      "perkins_funded_as_printed": "Yes",
+      "nursing_department_label": "Dual/Joint Degree Program CUNY School of Professional Studies (SPS)"
+    }
+  ],
+  "verification": {
+    "four_codes_matched_between_two_qcc_offices": true,
+    "perkins_table_year": "2023-2024",
+    "current_perkins_funding_verified": false,
+    "student_perkins_eligibility_verified": false,
+    "independent_state_institution_binding_for_three_dual_codes_verified": false,
+    "current_catalog_availability_inferred_from_perkins": false,
+    "hegis_is_cip2020": false,
+    "individual_nursing_licensure_verified": false,
+    "conditional_bachelors_guaranteed": false,
+    "cross_office_corroboration_not_independent_state_registration": true
+  },
+  "publication_status": "review_only_not_integrated_into_live_matcher",
+  "limitations": [
+    "QCC's 2023–24 Perkins table is historical and cannot establish current-year funding, program admission or individual student grant eligibility.",
+    "QCC's nursing department and Perkins office are two first-party QCC sources, not two independent state registration records. Three NYSED detail-page bodies still lack visible institution headers.",
+    "HEGIS 5208.1 and 5208.10 are printed school classification labels, not CIP2020 51.3801, and cannot be used as a direct CIP equivalence or professional licensure crosswalk.",
+    "School-described AAS/BS dual/joint pathways do not guarantee a BS award or professional license.",
+    "Preserve the exact source typo 'Nuring' in evidence transcription only; never expose it as the canonical program name."
+  ]
+}
