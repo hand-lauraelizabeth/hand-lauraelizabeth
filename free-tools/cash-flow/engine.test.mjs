@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {dateUTC,addDays,parseCents,formatCents,occurrences,project,csvCell,exportCSV} from './engine.mjs';
+import {dateUTC,addDays,parseCents,formatCents,occurrences,project,csvCell,exportCSV,csvExportRisk,exportSafeCSV,exportJSON} from './engine.mjs';
 let n=0;const check=(fn)=>{fn();n++};
 check(()=>assert.equal(addDays('2024-02-28',1),'2024-02-29'));
 check(()=>assert.equal(addDays('2024-02-29',1),'2024-03-01'));
@@ -34,4 +34,19 @@ check(()=>assert.ok(exportCSV(base).includes(',-180.00,20.00,')));
 check(()=>assert.ok(!exportCSV(base).includes("'-180.00")));
 check(()=>assert.deepEqual(occurrences({date:'2100-12-31',repeat:'monthly'},'2100-12-01','2100-12-31'),['2100-12-31']));
 check(()=>assert.deepEqual(occurrences({date:'1900-01-31',repeat:'monthly'},'2100-12-01','2100-12-31'),['2100-12-31']));
+
+// A CSV cell may be quoted today but later resaved with altered escaping.
+// Reject separator/quote-adjacent formulas and any tab; preserve exact JSON.
+const riskInputs=['safe,=1+1','safe;=1+1','safe"=1+1',"safe'=1+1",'safe\\t=1+1','safe, \\u200D＝SUM(1)'];
+for(const label of riskInputs){
+  const result=project({...config,events:[{...events[0],label}]});
+  check(()=>assert.equal(csvExportRisk(result)?.field,'label'));
+  check(()=>assert.throws(()=>exportSafeCSV(result),/CSV export blocked/));
+  check(()=>assert.equal(JSON.parse(exportJSON(result)).days[1].events[0].label,label));
+}
+for(const label of ['Budget, October','Rent - November','Paycheck + tips']){
+  const result=project({...config,events:[{...events[0],label}]});
+  check(()=>assert.equal(csvExportRisk(result),null));
+  check(()=>assert.ok(exportSafeCSV(result).includes(label)));
+}
 console.log(`${n} FT-04 deterministic assertions PASS`);
