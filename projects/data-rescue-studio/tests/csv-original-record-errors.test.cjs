@@ -43,7 +43,7 @@ for (const metadata of invalid) {
   check(()=>assert.throws(()=>exportCsvDownload(parsed,true),
     /source-record|original source-record/i));
   // If machine CSV must report a Unicode error, it cannot invent its source ID.
-  const malformed=table(['safe','\\uD800'],metadata);
+  const malformed=table(['safe','\uD800'],metadata);
   check(()=>assert.throws(()=>exportCsv(malformed,false),
     /source-record|original source-record/i));
 }
