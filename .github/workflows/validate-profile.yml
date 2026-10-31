@@ -84,11 +84,11 @@ jobs:
         run: python projects/text-lens/tests/text_lens_browser_scenarios.py
       - name: Run Role Evidence Engine browser scenarios
         run: python projects/reverse-ats-role-evidence-engine/tests/browser_scenarios.py
-      - name: Test five published interactive tool workflows
-        run: python scripts/test_live_tool_interactions.py
-      - name: Test Curriculum Planning Canvas on local source and live WordPress
+      - name: Test five versioned interactive tool workflows
         env:
-          LEH_LIVE_CANVAS_URL: https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/
+          LEH_TEST_LIVE_TOOLS: "0"
+        run: python scripts/test_live_tool_interactions.py
+      - name: Test Curriculum Planning Canvas on versioned source
         run: python projects/curriculum-planning-canvas/tests/browser_scenarios.py
       - name: Live CIP-SOC ingestion smoke test
         if: contains(github.event.head_commit.message, '[live-source-smoke]')
@@ -150,3 +150,24 @@ jobs:
           python scripts/college_career_ingest.py --source ipeds_directory_2025 --output-dir "${{ runner.temp }}/college-career-smoke"
           python scripts/college_career_ingest.py --source dapip_accreditation --output-dir "${{ runner.temp }}/college-career-smoke"
           python scripts/college_career_ingest.py --build-institution-coverage --enforce-coverage-baseline --output-dir "${{ runner.temp }}/college-career-smoke"
+
+  live-wordpress:
+    name: Published WordPress verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install browser-test driver
+        run: python -m pip install --disable-pip-version-check selenium
+      - name: Test five published interactive tool workflows
+        env:
+          LEH_TEST_LIVE_TOOLS: "1"
+        run: python scripts/test_live_tool_interactions.py
+      - name: Test published Curriculum Planning Canvas
+        if: always()
+        env:
+          LEH_LIVE_CANVAS_URL: https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/
+        run: python projects/curriculum-planning-canvas/tests/browser_scenarios.py
