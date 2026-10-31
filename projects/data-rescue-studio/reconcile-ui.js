@@ -278,25 +278,26 @@
   }
   function exportAudit() {
     if (!comparison) return;
-    // Source positions are numeric in the reconciliation model; CSV cells are text.
-    // Convert only verified integer positions, preserving identifier strings exactly.
-    const rows = auditRows(comparison).map(record => record.map(value =>
-      Number.isSafeInteger(value) ? String(value) : value));
-    const headers = ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'];
-    const parsed = {headers, normalizedHeaders: headers, rows, warnings: [], delimiter: ','};
-    // Identifier keys are untrusted. Do not download a CSV when spreadsheet
-    // import could reinterpret them; retain exact findings in the JSON option.
-    const risk = lib.spreadsheetExportRisk(parsed);
-    if (risk) {
-      message('Comparison CSV blocked at audit record ' + risk.sourceRecord +
-        ', column ' + risk.column + '. No CSV was downloaded. Use Export exact comparison audit JSON instead.', true);
-      return;
-    }
     try {
+      // Source positions are numeric in the reconciliation model; CSV cells are text.
+      // Convert only verified integer positions, preserving identifier strings exactly.
+      const rows = auditRows(comparison).map(record => record.map(value =>
+        Number.isSafeInteger(value) ? String(value) : value));
+      const headers = ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'];
+      const parsed = {headers, normalizedHeaders: headers, rows, warnings: [], delimiter: ','};
+      // Fail closed if the safety validator itself errors: never proceed to
+      // download without a completed CSV formula-risk check.
+      const risk = lib.spreadsheetExportRisk(parsed);
+      if (risk) {
+        message('Comparison CSV blocked at audit record ' + risk.sourceRecord +
+          ', column ' + risk.column + '. No CSV was downloaded. Use Export exact comparison audit JSON instead.', true);
+        return;
+      }
       download(lib.exportCsvDownload(parsed, true), 'data-rescue-comparison-audit.csv', 'text/csv;charset=utf-8');
       message('Exported ' + rows.length + ' findings. Contains identifier keys and source record positions, not full input records. Keep it private if identifiers are sensitive.');
     } catch (error) {
-      message('Unable to export comparison CSV: ' + error.message + ' Use exact comparison audit JSON instead.', true);
+      message('Unable to verify or export comparison CSV: ' + error.message +
+        '. No CSV was downloaded. Use Export exact comparison audit JSON instead.', true);
     }
   }
   function exportAuditJson() {
