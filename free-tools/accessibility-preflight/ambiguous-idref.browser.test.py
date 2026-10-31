@@ -86,6 +86,13 @@ def main():
          '<input aria-flowto="a">', {"ambiguous-id-reference"}),
         ('<span id="a\u00a0b">A</span><input aria-details="a\u00a0b">', set()),
         ('<span id="a\u00a0b">A</span><input aria-flowto="a\u00a0b">', set()),
+        # Only one explicit aria-owns owner; do not confuse a repeated token
+        # with a second owner or a duplicate target ID.
+        ('<span id="target">T</span><div id="a" aria-owns="target"></div>'
+         '<div id="b" aria-owns="target"></div>', {"multiple-explicit-owners"}),
+        ('<span id="target">T</span><div id="a" aria-owns="target"></div>', set()),
+        ('<div id="owner" aria-owns="owner"></div>', {"self-owned-element"}),
+        ('<div id="owner" aria-labelledby="owner"></div>', set()),
     ]
     with served() as origin, sync_playwright() as pw:
         browser = getattr(pw, engine).launch(headless=True)
@@ -108,7 +115,8 @@ def main():
                          for heading in headings if ": " in heading}
                 selected = rules & {"ambiguous-id-reference", "unresolved-id-reference",
                                     "ambiguous-label-target", "ambiguous-table-header",
-                                    "single-id-reference"}
+                                    "single-id-reference", "multiple-explicit-owners",
+                                    "self-owned-element"}
                 assert selected == expected, (markup, selected, expected)
                 assert "preliminary checks" in page.locator("#summary").inner_text()
                 checks += 2
