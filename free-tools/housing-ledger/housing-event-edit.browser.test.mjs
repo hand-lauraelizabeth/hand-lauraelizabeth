@@ -104,12 +104,14 @@ try{
     await page.evaluate(mode=>{
       const create=URL.createObjectURL, revoke=URL.revokeObjectURL;
       const append=document.body.append, click=HTMLAnchorElement.prototype.click;
-      const revoked=[];
+      // A previous successful download may revoke its URL on a delayed timer.
+      // Count only URLs created by this fault-injection attempt.
+      const created=[],revoked=[];
       URL.createObjectURL=function(blob){
         if(mode==='url')throw Error('synthetic blocked object URL');
-        return create.call(URL,blob);
+        const url=create.call(URL,blob);created.push(url);return url;
       };
-      URL.revokeObjectURL=function(url){revoked.push(url);return revoke.call(URL,url);};
+      URL.revokeObjectURL=function(url){if(created.includes(url))revoked.push(url);return revoke.call(URL,url);};
       document.body.append=function(...nodes){
         if(mode==='append'&&nodes.some(n=>n instanceof HTMLAnchorElement&&n.download==='housing-evidence-ledger.json'))
           throw Error('synthetic blocked link append');
