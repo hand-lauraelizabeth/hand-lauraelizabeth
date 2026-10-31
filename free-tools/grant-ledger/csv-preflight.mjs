@@ -6,12 +6,14 @@ const COLUMNS = Object.freeze({
 });
 const DANGEROUS_CONTROL = /[\u0000-\u001F\u007F-\u009F\u00AD\u034F\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFE00-\uFE0F\uFEFF]/u;
 const FORMULA_PREFIX = /^[\s\u00A0\uFEFF\u200B-\u200F\u202A-\u202E\u2060-\u206F]*[=+\-@＝＋－＠]/u;
+// A separator or quote can become a new cell boundary after spreadsheet reopen/resave.
+const FORMULA_AFTER_SEPARATOR = /[,;"'][ \u00A0\uFEFF]*[=+\-@＝＋－＠]/u;
 function checkCell(value, column) {
   if (typeof value === 'number') {
-    if (!Number.isFinite(value)) throw new Error(`CSV export blocked: invalid ${column}. Use Evidence JSON.`);
+    if (!Number.isSafeInteger(value)) throw new Error(`CSV export blocked: invalid ${column}. Use Evidence JSON.`);
     return;
   }
-  if (typeof value !== 'string' || DANGEROUS_CONTROL.test(value) || FORMULA_PREFIX.test(value)) {
+  if (typeof value !== 'string' || DANGEROUS_CONTROL.test(value) || FORMULA_PREFIX.test(value) || FORMULA_AFTER_SEPARATOR.test(value)) {
     throw new Error(`CSV export blocked: ${column} cannot be safely exported to a spreadsheet. Use Evidence JSON to preserve the original value.`);
   }
 }
