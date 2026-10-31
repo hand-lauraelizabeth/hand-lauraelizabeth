@@ -65,7 +65,8 @@ class DownloadFailureRecovery(unittest.TestCase):
                         page.locator("#save-json").click()
                         self.assertIn("JSON download could not start", page.locator("#status").inner_text())
                         self.assertEqual(page.locator("a[download]").count(), 0)
-                        page.wait_for_function("window.__ft09Revoked.length === 1", timeout=5000)
+                        page.wait_for_timeout(1250)
+                        self.assertEqual(page.evaluate("() => window.__ft09Revoked.length"), 1)
                         page.evaluate("""() => {
                             HTMLAnchorElement.prototype.click = window.__ft09Click;
                             URL.revokeObjectURL = window.__ft09Revoke;
