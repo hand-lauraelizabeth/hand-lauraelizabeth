@@ -1,0 +1,14 @@
+name: FT-01 UTF-8 CSV export budget
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  export-budget:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify UTF-8 output cap and synthetic round trips
+        run: node projects/data-rescue-studio/tests/export-size-budget.test.cjs
