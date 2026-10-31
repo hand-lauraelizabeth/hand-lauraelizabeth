@@ -44,12 +44,14 @@ class ReceiptAuditTests(unittest.TestCase):
             try:
                 created = dt.datetime.fromisoformat(row[1])
                 closed = dt.datetime.fromisoformat(row[2])
-            except ValueError:
+                if closed < created:
+                    return "reversed"
+                if closed == created:
+                    return "equal"
+            except (ValueError, TypeError):
+                # Mixed naive/aware timestamps are intentionally malformed
+                # fixtures and must be diagnosed by the independent auditor.
                 return None
-            if closed < created:
-                return "reversed"
-            if closed == created:
-                return "equal"
             return None
 
         chronology = [(r[6], chronology_class(r)) for r in self.rows]
