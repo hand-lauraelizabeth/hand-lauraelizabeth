@@ -69,4 +69,26 @@ check(!invisiblePreview.includes(invisibleRows[0].sourceIds[0]),'raw invisible i
 check(JSON.stringify(invisibleRows)===invisibleBefore,'original default-ignorable source data remains exact');
 check(invisiblePreview.length<1200,'escaped invisible preview stays bounded');
 
+
+// Unicode separators and ill-formed UTF-16 must be visible in the preview,
+// without altering exact evidence or creating line breaks in summary text.
+const separatorRows=[{group:'G\u2028P\u2029H\uD800Z',sourceIds:['A\u2028B\uDC00C','S2']}];
+const separatorBefore=JSON.stringify(separatorRows);
+const separatorPreview=formatGroupSummary(separatorRows);
+for(const escaped of ['\\u2028','\\u2029','\\ud800','\\udc00'])
+  check(separatorPreview.includes(escaped),'visible separator/surrogate '+escaped);
+for(const raw of ['\u2028','\u2029','\uD800','\uDC00'])
+  check(!separatorPreview.includes(raw),'no raw separator/surrogate '+raw.codePointAt(0).toString(16));
+check(JSON.stringify(separatorRows)===separatorBefore,'exact evidence preserved after separator preview');
+// Direct callers may pass longer strings than the 120-unit form/import limit.
+// Rendering must remain bounded in memory while accurately counting Unicode code points.
+const hugeField='🧪'+'x'.repeat(1200000)+'\u2028\u2029';
+const savedArrayFrom=Array.from;
+try {
+  Array.from=()=>{throw Error('Do not materialize untrusted strings as code-point arrays');};
+  const hugePreview=formatGroupSummary([{group:hugeField,sourceIds:['one','two']}]);
+  check(hugePreview.includes('1199955 additional characters not shown'),'large exact code-point count');
+  check(hugePreview.length<500,'large preview stays bounded');
+} finally {Array.from=savedArrayFrom; }
+
 console.log('PASS: '+n+' bounded group-summary assertions; baseline '+old.length+' chars, fixed '+short.length+' chars');

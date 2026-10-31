@@ -18,7 +18,7 @@ def serve():
 def main():
     records=[]
     for i in range(20):
-        group='<img src=x onerror=alert(1)>\u202e\u034f\U000e0100' if i//2==0 else ('L'*120 if i//2==1 else f'g{i//2}')
+        group='<img src=x onerror=alert(1)>\u202e\u034f\U000e0100\u2028\u2029' if i//2==0 else ('L'*120 if i//2==1 else f'g{i//2}')
         records.append({'sourceId':('I'*120 if i==2 else (f'{i:04d}'+'\ufe0f' if i==0 else f'{i:04d}')),'date':'2026-10-25',
                         'claim':f'Synthetic claim {i}','kind':'source','status':'reported','group':group})
     with serve() as url, sync_playwright() as pw:
@@ -44,7 +44,8 @@ def main():
             assert 'I'*120 not in preview and 'L'*120 not in preview,(engine,'preview-only clipping')
             assert '\\u202e' in preview and '<img src=x onerror=alert(1)>' in preview
             assert '\\u034f' in preview and '\\u{e0100}' in preview and '\\ufe0f' in preview,(engine,'default-ignorable characters visible')
-            assert '\u034f' not in preview and '\U000e0100' not in preview and '\ufe0f' not in preview,(engine,'raw invisible characters not rendered')
+            assert '\\u2028' in preview and '\\u2029' in preview,(engine,'line and paragraph separators visible')
+            assert '\u034f' not in preview and '\U000e0100' not in preview and '\ufe0f' not in preview and '\u2028' not in preview and '\u2029' not in preview,(engine,'raw invisible characters not rendered')
             assert page.locator('#groups img').count()==0
             page.locator('#group-find').fill('g9')
             assert page.locator('#records > li').count()==2

@@ -5,15 +5,19 @@ export const MAX_PREVIEW_GROUPS = 8;
 export const MAX_PREVIEW_SOURCE_IDS = 3;
 export const MAX_PREVIEW_FIELD_CODEPOINTS = 48;
 // Render Unicode default-ignorable characters visibly in the preview, not in saved evidence.
-const obscuring = /[\u0000-\u001f\u007f-\u009f]|\p{Default_Ignorable_Code_Point}/gu;
+const obscuring = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\uD800-\uDFFF]|\p{Default_Ignorable_Code_Point}/gu;
 function visibleQuoted(value) {
   // Limit only the preview, counting Unicode code points so astral symbols
   // are not split. Exact user-provided strings remain in the saved evidence.
-  const points=Array.from(value);
-  const prefix=points.slice(0,MAX_PREVIEW_FIELD_CODEPOINTS).join('');
+  // Count all code points without allocating an array of untrusted input length.
+  let count=0, prefix='';
+  for (const point of value) {
+    if (count < MAX_PREVIEW_FIELD_CODEPOINTS) prefix += point;
+    count++;
+  }
   const safe=prefix.replaceAll('\\','\\\\').replaceAll('"','\\"')
     .replace(obscuring, c => { const cp=c.codePointAt(0); return cp<=0xffff?'\\u'+cp.toString(16).padStart(4,'0'):'\\u{'+cp.toString(16)+'}'; });
-  const hidden=points.length-MAX_PREVIEW_FIELD_CODEPOINTS;
+  const hidden=count-MAX_PREVIEW_FIELD_CODEPOINTS;
   return '"'+safe+'"'+(hidden>0?' ('+hidden+' additional characters not shown)':'');
 }
 export function formatGroupSummary(groups) {
