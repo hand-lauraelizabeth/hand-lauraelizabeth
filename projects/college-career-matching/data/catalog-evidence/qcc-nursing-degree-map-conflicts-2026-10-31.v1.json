@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "verified_local_date": "2026-10-31",
+  "evidence_scope": "First-party QCC 2026–27 degree map, clinical Nursing application, and general admissions; dated evidence only, not live seat, exam-registration, repeat, license, or individual eligibility advice.",
+  "institution": {
+    "unitid": "190673",
+    "name": "CUNY Queensborough Community College",
+    "cip2020": "51.3801",
+    "award": "A.A.S. in Nursing"
+  },
+  "sources": {
+    "degree_map": "https://www.qcc.cuny.edu/academics/degree-programs/maps/qcc/aas-nursing.html",
+    "clinical_application": "https://www.qcc.cuny.edu/nursing/clinical-application.html",
+    "general_college_admissions": "https://www.qcc.cuny.edu/admissions/apply.html",
+    "nursing_department": "https://www.qcc.cuny.edu/nursing/",
+    "catalog": "https://qcc.catalog.cuny.edu/programs/NS-AAS"
+  },
+  "degree_map": {
+    "catalog_year": "2026-2027",
+    "total_required_credits": 65,
+    "preclinical_credits_before_application": 13,
+    "nu101_repeat": "Repeat of NU-101 requires Nursing Department Appeals Committee approval; one nursing course may be repeated.",
+    "nu101_exam": "RN PAX",
+    "status": "listed_curriculum_not_live_seat_confirmation"
+  },
+  "clinical_application": {
+    "spring_2027_open": "2026-10-05",
+    "spring_2027_close": "2026-10-16",
+    "nu101_repeat": "Unable to repeat NU-101 after withdrawal or grade below C.",
+    "required_exam": "NEX",
+    "clinical_seat_guaranteed": false,
+    "late_exception_verified": false
+  },
+  "general_admissions": {
+    "term": "Spring 2027",
+    "freshman_deadline": "2027-01-25",
+    "transfer_readmit_deadline": "2027-01-29",
+    "distinct_from_clinical_nursing_application": true,
+    "establishes_clinical_admission": false
+  },
+  "conflicts": {
+    "nu101_repeat": {
+      "status": "unresolved_first_party_conflict",
+      "degree_map_position": "committee_approval_exception",
+      "clinical_application_position": "categorical_no_repeat_after_withdrawal_or_below_C",
+      "authoritative_resolution": false,
+      "public_guidance": "QCC's 2026–27 degree map describes committee approval for repeating NU-101, while its clinical application page says repetition is unavailable after withdrawal or a grade below C. Confirm directly with Nursing; do not promise an appeal outcome."
+    },
+    "entrance_exam": {
+      "status": "unresolved_first_party_conflict",
+      "degree_map_position": "RN PAX",
+      "clinical_application_position": "NEX",
+      "authoritative_resolution": false,
+      "public_guidance": "Current clinical application instructions require NEX, but the 2026–27 degree map mentions RN PAX. Confirm with Nursing before purchasing or scheduling either exam."
+    }
+  },
+  "limitations": [
+    "2026–27 degree map corroborates a named A.A.S. curriculum, not current clinical seats or individualized admission.",
+    "General college Spring 2027 deadlines are NOT clinical Nursing deadlines; the announced October 5–16 clinical window elapsed.",
+    "No authority adjudicates the contradictory NU-101 repeat rules or exam labels in these sources.",
+    "A CIP classification is not a school-specific credential, RN/LPN license or automatic BSN.",
+    "NEX/RN PAX are clinical nursing-entry exams; neither determines SAT/ACT policy.",
+    "No claim of individual NCLEX-RN or state licensure eligibility."
+  ]
+}

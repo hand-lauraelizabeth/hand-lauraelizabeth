@@ -8,6 +8,7 @@ on:
       - "projects/college-career-matching/tests/test_qcc_nursing_admissions.cjs"
       - "projects/college-career-matching/tests/test_qcc_nysed_registration.cjs"
       - "projects/college-career-matching/tests/test_qcc_cross_office_registration.cjs"
+      - "projects/college-career-matching/tests/test_qcc_degree_map_conflicts.cjs"
       - ".github/workflows/matcher-catalog-evidence.yml"
   workflow_dispatch:
 
@@ -24,4 +25,4 @@ jobs:
         with:
           node-version: "20"
       - name: Verify catalog and operational admissions provenance
-        run: node --test projects/college-career-matching/tests/test_catalog_evidence.cjs projects/college-career-matching/tests/test_qcc_nursing_admissions.cjs projects/college-career-matching/tests/test_qcc_nysed_registration.cjs projects/college-career-matching/tests/test_qcc_cross_office_registration.cjs
+        run: node --test projects/college-career-matching/tests/test_catalog_evidence.cjs projects/college-career-matching/tests/test_qcc_nursing_admissions.cjs projects/college-career-matching/tests/test_qcc_nysed_registration.cjs projects/college-career-matching/tests/test_qcc_cross_office_registration.cjs projects/college-career-matching/tests/test_qcc_degree_map_conflicts.cjs
