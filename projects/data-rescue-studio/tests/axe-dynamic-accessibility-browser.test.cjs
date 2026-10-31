@@ -241,6 +241,35 @@ async function runEngine(type, name, url) {
     for (const label of ['Missing identifier','No first-file record','No second-file record']) {
       assert.equal(JSON.stringify(exactAudit).includes(label), false, name + ' preview labels never enter exact audit'); checks++;
     }
+    // If the CSV formula-risk validator fails, no download is permitted and
+    // the error must be announced without an unhandled browser exception.
+    let reconciliationCsvDownloads = 0;
+    const countReconciliationCsv = download => {
+      if (download.suggestedFilename() === 'data-rescue-comparison-audit.csv') reconciliationCsvDownloads++;
+    };
+    page.on('download', countReconciliationCsv);
+    await page.evaluate(() => {
+      window.__originalRiskForRecoveryTest = window.DataRescue.spreadsheetExportRisk;
+      window.DataRescue.spreadsheetExportRisk = () => { throw new Error('Synthetic risk-check failure'); };
+    });
+    await page.locator('#compareExport').click();
+    assert.match(await page.locator('#compareStatus').innerText(),/Unable to verify or export comparison CSV: Synthetic risk-check failure/); checks++;
+    assert.match(await page.locator('#compareStatus').innerText(),/No CSV was downloaded/); checks++;
+    assert.equal(await page.locator('#compareStatus').getAttribute('role'),'alert'); checks++;
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'compareStatus'); checks++;
+    assert.equal(reconciliationCsvDownloads,0); checks++;
+    assert.deepEqual(errors,[],name+' risk validator error handled'); checks++;
+    await page.evaluate(() => {
+      window.DataRescue.spreadsheetExportRisk = window.__originalRiskForRecoveryTest;
+      delete window.__originalRiskForRecoveryTest;
+    });
+    const [recoveredAuditCsv] = await Promise.all([
+      page.waitForEvent('download'), page.locator('#compareExport').click()
+    ]);
+    assert.equal(recoveredAuditCsv.suggestedFilename(),'data-rescue-comparison-audit.csv'); checks++;
+    assert.match(readFileSync(await recoveredAuditCsv.path(),'utf8'),/First file only/); checks++;
+    assert.match(await page.locator('#compareStatus').innerText(),/Exported 5 findings/); checks++;
+    page.off('download', countReconciliationCsv);
     assert.equal(await page.locator('#compareFindingFilter').isEnabled(),true); checks++;
     await page.locator('#compareFindingFilter').selectOption('ambiguous');
     assert.equal(await page.locator('#compareResults tbody tr').count(),1); checks++;
