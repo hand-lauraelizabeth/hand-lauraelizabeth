@@ -1,0 +1,14 @@
+name: FT-01 CSV original-record integrity
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  csv-original-record-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check original-record identifiers and fail-closed CSV exports
+        run: node projects/data-rescue-studio/tests/csv-original-record-errors.test.cjs
