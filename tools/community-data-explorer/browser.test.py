@@ -179,6 +179,64 @@ try:
                    engine_name + ": malformed/rejected digests never export fake hashes")
             verify(all("unavailable" in item["verification"] and "authenticity not verified" in item["verification"]
                        for item in fingerprint_fallbacks), engine_name + ": explicit missing-fingerprint provenance")
+            # Synthetic browser-level fault injection: blocked JSON downloads must not leak resources.
+            for failure in ("create", "append", "click"):
+                outcome = page.evaluate("""(failure) => {
+                    const originalCreate = URL.createObjectURL;
+                    const originalRevoke = URL.revokeObjectURL;
+                    const originalAppend = document.body.append;
+                    const originalClick = HTMLAnchorElement.prototype.click;
+                    const created = [], revoked = [];
+                    try {
+                        URL.createObjectURL = function(blob) {
+                            if (failure === "create") throw new Error("private-source-id.csv");
+                            const url = originalCreate.call(URL, blob);
+                            created.push(url);
+                            return url;
+                        };
+                        URL.revokeObjectURL = function(url) {
+                            if (created.includes(url)) revoked.push(url);
+                            return originalRevoke.call(URL, url);
+                        };
+                        document.body.append = function(...nodes) {
+                            if (failure === "append" && nodes.some(node => node.tagName === "A"))
+                                throw new Error("private-source-id.csv");
+                            return originalAppend.apply(this, nodes);
+                        };
+                        HTMLAnchorElement.prototype.click = function() {
+                            if (failure === "click") throw new Error("private-source-id.csv");
+                            return originalClick.call(this);
+                        };
+                        document.getElementById("export").click();
+                        const message = document.getElementById("error");
+                        return {
+                            message: message.textContent,
+                            focused: document.activeElement === message,
+                            status: document.getElementById("status").textContent,
+                            created: created.length,
+                            revoked: revoked.length,
+                            attached: document.querySelectorAll('a[download="community-data-evidence.json"]').length
+                        };
+                    } finally {
+                        URL.createObjectURL = originalCreate;
+                        URL.revokeObjectURL = originalRevoke;
+                        document.body.append = originalAppend;
+                        HTMLAnchorElement.prototype.click = originalClick;
+                    }
+                }""", failure)
+                verify("Could not start the JSON download" in outcome["message"],
+                       engine_name + ": " + failure + " failure has actionable error")
+                verify(outcome["focused"], engine_name + ": " + failure + " error receives focus")
+                verify("private-source-id" not in outcome["message"] and "preserved" in outcome["status"],
+                       engine_name + ": " + failure + " error privacy and preservation")
+                verify(outcome["attached"] == 0 and outcome["created"] == outcome["revoked"],
+                       engine_name + ": " + failure + " link and URL cleanup")
+            with page.expect_download() as recovered_download:
+                page.locator("#export").click()
+            recovered = json.loads(Path(recovered_download.value.path()).read_text())
+            verify(recovered == precise, engine_name + ": exact evidence survives failed downloads")
+            verify("download started" in page.locator("#status").inner_text().lower(),
+                   engine_name + ": successful click does not claim file saved")
             verify(not outbound, engine_name + ": no outbound requests")
             verify(not errors, engine_name + ": no JavaScript page errors")
             context.close()

@@ -98,13 +98,35 @@ compareButton.addEventListener("click", () => {
 for(const select of [left,right]) select.addEventListener("change", () => { latest = null; output.replaceChildren(); setStatus("Selection changed; run comparison again."); });
 exportButton.addEventListener("click", () => {
   clearError();
+  let url = null;
+  let anchor = null;
+  let started = false;
   try {
     const evidence = evidenceExport(records,label.value,latest,fingerprint);
     const blob = new Blob([JSON.stringify(evidence,null,2)],{type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a"); anchor.href = url; anchor.download = "community-data-evidence.json";
-    document.body.append(anchor); anchor.click(); anchor.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    setStatus("Local JSON evidence exported; no CSV spreadsheet export is provided.");
-  } catch (e) { showError(e.message); }
+    url = URL.createObjectURL(blob);
+    anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "community-data-evidence.json";
+    document.body.append(anchor);
+    anchor.click();
+    started = true;
+    // A click initiates a download; the browser may still refuse to save it.
+    setStatus("Local JSON download started. Check your browser downloads; no CSV spreadsheet export is provided.");
+  } catch {
+    // Browser errors can contain local paths or filenames. Never display them.
+    showError("Could not start the JSON download. Check browser download permissions and retry; your local records are preserved.");
+    setStatus("JSON download could not be started; existing evidence preserved.");
+  } finally {
+    if (anchor) {
+      try { anchor.remove(); } catch { /* The browser may already have detached it. */ }
+    }
+    if (url !== null) {
+      if (started) {
+        setTimeout(() => { try { URL.revokeObjectURL(url); } catch { /* Best-effort cleanup. */ } }, 1000);
+      } else {
+        try { URL.revokeObjectURL(url); } catch { /* Best-effort cleanup. */ }
+      }
+    }
+  }
 });
