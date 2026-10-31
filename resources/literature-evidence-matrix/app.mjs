@@ -48,7 +48,29 @@ for(const name of ["source","claim"]){byId(name).addEventListener("submit",event
   }
  }catch(e){showError(e)}
 })}
-byId("download").addEventListener("click",()=>{try{const blob=new Blob([exportProject(project)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="literature-evidence-matrix.json";a.click();status(hasUnsavedCorrection()?"Downloaded saved matrix. One unsaved finding correction was excluded; save it and download again to include it.":"Downloaded saved matrix.");setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){showError(e)}});
+byId("download").addEventListener("click",()=>{
+ let url=null,link=null,started=false;
+ try{
+  const blob=new Blob([exportProject(project)],{type:"application/json"});
+  url=URL.createObjectURL(blob);
+  link=document.createElement("a");
+  link.href=url;link.download="literature-evidence-matrix.json";
+  document.body.append(link);
+  link.click();
+  started=true;
+  byId("error").textContent="";
+  status(hasUnsavedCorrection()?"Saved matrix download started. One unsaved finding correction was excluded; save it and download again to include it.":"Saved matrix download started.");
+ }catch{
+  status("");
+  showError(Error("Download could not start. Your saved evidence is unchanged. Try again or use another browser."));
+ }finally{
+  if(link?.isConnected)link.remove();
+  if(url){
+   if(started)setTimeout(()=>URL.revokeObjectURL(url),1000);
+   else URL.revokeObjectURL(url);
+  }
+ }
+});
 byId("upload").addEventListener("change",async event=>{
  const input=event.currentTarget,file=input.files[0],generation=++importGeneration;
  clearPreview();status("");byId("error").textContent="";
