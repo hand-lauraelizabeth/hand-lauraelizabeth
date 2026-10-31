@@ -270,7 +270,10 @@
   }
   function exportAudit() {
     if (!comparison) return;
-    const rows = auditRows(comparison);
+    // Source positions are numeric in the reconciliation model; CSV cells are text.
+    // Convert only verified integer positions, preserving identifier strings exactly.
+    const rows = auditRows(comparison).map(record => record.map(value =>
+      Number.isSafeInteger(value) ? String(value) : value));
     const headers = ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'];
     const parsed = {headers, normalizedHeaders: headers, rows, warnings: [], delimiter: ','};
     // Identifier keys are untrusted. Do not download a CSV when spreadsheet
