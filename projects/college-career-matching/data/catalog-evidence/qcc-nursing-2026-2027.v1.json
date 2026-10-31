@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "verified_local_date": "2026-10-30",
+  "evidence_scope": "Current college catalog and publicly indexed state-board evidence; NOT a live admission, license, or career-eligibility determination.",
+  "institution": {
+    "name": "CUNY Queensborough Community College",
+    "unitid": "190673",
+    "unitid_source": "https://carnegieclassifications.acenet.edu/institution/cuny-queensborough-community-college/"
+  },
+  "classification": {
+    "cip2020": "51.3801",
+    "cip6": "513801",
+    "cip_title_scope": "Federal classification; not a school-specific credential or a license."
+  },
+  "catalog": {
+    "academic_year": "2026-2027",
+    "home_award": "Associate in Applied Science (A.A.S.)",
+    "status": "listed_in_current_catalog_not_enrollment_confirmed",
+    "plans": [
+      {
+        "code": "NS-AAS",
+        "nysed_program_code": "01513",
+        "pathway": "standard A.A.S. Nursing",
+        "catalog_url": "https://qcc.catalog.cuny.edu/programs/NS-AAS",
+        "home_award": "A.A.S.",
+        "additional_degree": "none_asserted"
+      },
+      {
+        "code": "NH-AAS",
+        "nysed_program_code": "34693",
+        "pathway": "dual/joint with Hunter-Bellevue",
+        "catalog_url": "https://qcc.catalog.cuny.edu/programs/NH-AAS/general-aoYks",
+        "home_award": "A.A.S.",
+        "additional_degree": "conditional B.S. Nursing pathway; separate admission"
+      },
+      {
+        "code": "NY-AAS",
+        "nysed_program_code": "36043",
+        "pathway": "dual/joint with York College",
+        "catalog_url": "https://qcc.catalog.cuny.edu/programs/NY-AAS",
+        "home_award": "A.A.S.",
+        "additional_degree": "conditional B.S. Nursing pathway; separate admission"
+      },
+      {
+        "code": "NPS-AAS",
+        "nysed_program_code": "37062",
+        "pathway": "dual/joint with CUNY School of Professional Studies",
+        "catalog_url": "https://qcc.catalog.cuny.edu/programs/NPS-AAS/general-aoYks",
+        "home_award": "A.A.S.",
+        "additional_degree": "conditional B.S. Nursing pathway; separate admission"
+      }
+    ],
+    "programs_of_study_source": "https://qcc.catalog.cuny.edu/about/programs-of-study"
+  },
+  "admissions": {
+    "clinical_entry": "competitive; college matriculation and pre-clinical requirements do not guarantee admission",
+    "college_catalog_exam_mentions": [
+      "NEX",
+      "RN PAX"
+    ],
+    "exam_rule_status": "conflicting mentions in same current catalog; confirm with nursing department; do not choose or normalize an exam",
+    "evidence_url": "https://qcc.catalog.cuny.edu/programs/NS-AAS"
+  },
+  "licensure": {
+    "school_claim": "Standard A.A.S. catalog says graduates are eligible to take NCLEX-RN; passing examination and licensure are separate decisions.",
+    "school_claim_url": "https://qcc.catalog.cuny.edu/programs/NS-AAS",
+    "state_board_accreditation": "NYS Office of the Professions lists Queensborough associate nursing program, accreditation term through Spring 2028",
+    "state_board_source": "https://www.op.nysed.gov/nursing-accreditation/accreditation-actions-nursing",
+    "state_board_source_access": "official search-index excerpt; full page fetch returned 502 during this review",
+    "nysed_program_code_independently_verified": false,
+    "license_eligibility_individually_verified": false,
+    "lpn_credential_inferred": false
+  },
+  "evidence_limitations": [
+    "One federal CIP6 corresponds to four distinct college plan codes; do not collapse them into one credential or claim four separate IPEDS completions categories.",
+    "The three dual/joint pathways are conditional, not automatic BSN awards or guaranteed transfer admission.",
+    "Current catalog listing does not verify that applications or clinical seats are available now.",
+    "RN NCLEX eligibility stated by the college does not itself confer an RN license; NYSED licensure rules and individual eligibility apply.",
+    "No SAT/ACT admission-policy conclusion can be drawn from missing score overlays.",
+    "NYSED program-code values originate from QCC catalog; independent NYSED code-level lookup not completed.",
+    "Catalog references both NEX and RN PAX; verify the current test directly with the department before advising applicants."
+  ]
+}
