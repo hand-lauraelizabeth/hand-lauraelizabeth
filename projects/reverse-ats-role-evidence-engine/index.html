@@ -149,15 +149,36 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 const $=s=>document.querySelector(s);
 const STOP=new Set(('the a an and or to of in on for with from by as at is are be will this that you your our we they their role position candidate candidates including include such ability required preferred plus minimum must should strong demonstrated experience years year work working skills skill responsible responsibilities qualifications qualification').split(' '));
 const TYPE_RULES=[
- ['hard',/(required|must have|minimum qualification|minimum of|at least|bachelor|master|degree|years? of experience|certification|license)/i],
+ ['hard',/(required|must have|mandatory|minimum qualification|minimum of|at least|years? of experience)/i],
  ['preferred',/(preferred|nice to have|plus\b|ideally|bonus|desired)/i],
  ['scope',/(lead|manage|supervise|direct reports?|budget|fiscal|portfolio|roadmap|governance|strategy|strategic|executive|enterprise|cross-functional|change management)/i],
- ['tool',/(salesforce|hubspot|workday|tableau|power bi|sql|python|r\b|excel|adobe|asana|jira|cms|crm|google analytics)/i],
+ ['tool',/(salesforce|hubspot|workday|tableau|power bi|sql|python|\br\b|excel|adobe|asana|jira|cms|crm|google analytics)/i],
  ['responsibility',/(responsible for|you will|lead |manage |develop |build |create |oversee |coordinate |design |analyze |deliver |drive |partner with|implement|own )/i]
 ];
 function clean(s){return s.replace(/^[-•*\d.)\s]+/,'').replace(/\s+/g,' ').trim()}
 function lines(text){return text.split(/\n+/).flatMap(x=>x.split(/(?<=[.;!?])\s+/)).map(clean).filter(x=>x.length>18)}
-function classify(s){for(const [t,re] of TYPE_RULES)if(re.test(s))return t;return 'context'}
+function jobClauses(text){
+ const rows=[];let context='';
+ text.split(/\n/).forEach(line=>{
+  const s=clean(line);if(!s)return;
+  if(/^(?:required|minimum|essential|mandatory)(?:\s+(?:qualifications?|requirements?|skills?|experience))?\s*:?$/i.test(s)){context='hard';return}
+  if(/^(?:preferred|desired|optional)(?:\s+(?:qualifications?|requirements?|skills?|experience))?\s*:?$/i.test(s)){context='preferred';return}
+  if(/^(?:responsibilities|duties|benefits|role overview|job description|about (?:the|this) (?:role|position))\s*:?$/i.test(s)){context='';return}
+  s.split(/;\s*|(?<=[.!?])\s+|,\s*(?=(?:bachelor(?:['’]s)?|master(?:['’]s)?|phd|doctorate)\b)/i)
+   .map(clean).filter(x=>x.length>=9).forEach(x=>rows.push({text:x,context}));
+ });
+ return rows
+}
+function classify(s,context=''){
+ const explicitHard=/(?:\brequired\b|\bmust have\b|\bmandatory\b|\bminimum\b|\bat least\b|\bessential\b)/i.test(s);
+ const explicitPreferred=/(?:\bpreferred\b|\bnice to have\b|\bbonus\b|\bideally\b|\bdesired\b|\bdesirable\b|\boptional\b|\bplus\b)/i.test(s);
+ if(explicitPreferred&&!explicitHard)return 'preferred';
+ if(explicitHard)return 'hard'; // If a line is mixed and inseparable, preserve the mandatory review.
+ if(context==='preferred')return 'preferred';
+ if(context==='hard')return 'hard';
+ for(const [t,re] of TYPE_RULES)if(re.test(s))return t;
+ return 'context'
+}
 function terms(s){return [...new Set((s.toLowerCase().match(/[a-z][a-z0-9+#./-]{2,}/g)||[]).map(x=>x.replace(/[.,;:]+$/,'')).filter(x=>!STOP.has(x)&&x.length>3))]}
 function phraseCandidates(s){const out=[]; const patterns=[/\b\d+\+?\s+years?[^,.;]*/ig,/\b(?:bachelor'?s?|master'?s?|phd|doctorate)[^,.;]*/ig,/\b(?:budget|portfolio|roadmap|governance|direct reports?|supervis\w*|manage\w*)[^,.;]*/ig];patterns.forEach(r=>{const m=s.match(r);if(m)out.push(...m)});return out}
 function hardConditions(s){
@@ -268,13 +289,13 @@ function reviewedSupport(ev){
  return 'unreviewed';
 }
 function gap(type,ev,req,graph){
- const rs=reviewedSupport(ev),hc=hardConditionStatus(req,graph,ev);
+ const rs=reviewedSupport(ev),hc=type==='hard'?hardConditionStatus(req,graph,ev):'';
  if(/does not yet support|unresolved|not visible|not clearly supported/.test(hc))return 'Hard-condition verification gap';
  if((ev.status==='strong'||ev.status==='visible')&&['verified','source-corroborated'].includes(rs))return 'No supported gap';
  if((ev.status==='strong'||ev.status==='visible')&&rs==='blocked for external use')return 'Evidence exists but is not usable externally';
  if((ev.status==='strong'||ev.status==='visible')&&rs==='self-attested')return 'Evidence visible; source corroboration pending';
  if(ev.status==='strong'||ev.status==='visible')return 'Evidence visible; verification pending';
- if(/years?|degree|certif|license/i.test(req)&&ev.status==='not visible')return 'Verification / chronology gap';
+ if(type==='hard'&&/years?|degree|certif|license/i.test(req)&&ev.status==='not visible')return 'Verification / chronology gap';
  if(type==='scope'&&ev.status!=='visible')return 'Authority / scope visibility gap';
  if(type==='tool'&&ev.status==='partial')return 'Depth / recency gap';
  if(ev.status==='partial')return 'Evidence visibility gap';
@@ -297,7 +318,7 @@ function analyze(){
  const job=$('#job').value.trim(), cand=$('#candidate').value.trim();
  if(!job){alert('Paste a job description first.');return}
  GRAPH=buildGraph(cand,GRAPH);renderGraph(GRAPH);
- const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text,GRAPH),hard_check=hardConditionStatus(text,GRAPH,ev);return{id:i+1,type,text,ev,g,hard_check,action:action(type,g)}});
+ const xs=jobClauses(job).map(({text,context},i)=>{const type=classify(text,context),ev=evidence(text,GRAPH),g=gap(type,ev,text,GRAPH),hard_check=type==='hard'?hardConditionStatus(text,GRAPH,ev):'';return{id:i+1,type,text,ev,g,hard_check,action:action(type,g)}});
  DATA=xs;
  const counts={};xs.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
  const hard=xs.filter(x=>x.type==='hard'), hardVisible=hard.filter(x=>['strong','visible'].includes(x.ev.status)).length;

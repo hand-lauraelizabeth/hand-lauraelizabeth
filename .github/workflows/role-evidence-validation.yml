@@ -26,6 +26,8 @@ jobs:
           node-version: '22'
       - name: Test elapsed-duration interpretation
         run: node projects/reverse-ats-role-evidence-engine/tests/chronology.test.mjs
+      - name: Test required-versus-preferred requirement context
+        run: node projects/reverse-ats-role-evidence-engine/tests/requirements.test.mjs
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
