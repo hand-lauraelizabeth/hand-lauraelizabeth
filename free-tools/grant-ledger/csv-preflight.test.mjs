@@ -13,6 +13,24 @@ for(const value of ['@cmd','text\u202dtext']){const data=base();data.review[0].f
 for(const value of ['ordinary - hyphen','Évidence – text','quoted "field"','2026-01-01','00009',' 00009 ','Narrative - note','a,b;c']){
   const data=base();data.expenses[0].note=value;ok(assertSafeLedgerCSV(data,'transactions'),true);
 }
+// Spreadsheet reopen/resave may reinterpret separators and quotes as cell boundaries.
+for (const value of ['memo,=2+2','memo; +SUM(1,2)','memo"@HYPERLINK("x")','memo\'=1','memo, ＝1','memo;－3','memo, -1','memo"; @x']) {
+  for (const kind of ['transactions','budget','review']) {
+    const data=base();
+    if(kind==='transactions') data.expenses[0].note=value;
+    if(kind==='budget') data.lines[0].label=value;
+    if(kind==='review') data.review[0].flag=value;
+    blocks(data,kind,kind==='transactions'?'note':kind==='budget'?'label':'flag');
+  }
+}
+for (const value of ['ordinary, text','semicolon; ordinary','quoted "field"','word, + narrative?']) {
+  const data=base();data.expenses[0].note=value;
+  if(value==='word, + narrative?') blocks(data,'transactions','note');
+  else ok(assertSafeLedgerCSV(data,'transactions'),true);
+}
+for (const bad of [1.5,Number.MAX_SAFE_INTEGER+1,NaN,Infinity]) {
+  const data=base();data.expenses[0].totalCents=bad;blocks(data,'transactions','totalCents');
+}
 const data=base();ok(data.expenses[0].sourceId,' SRC-09 ');ok(data.award.awardId,' 0007 ');ok(data.lines[0].differenceCents,-20);
 assert.throws(()=>assertSafeLedgerCSV(base(),'unknown'));passed++;
 assert.throws(()=>assertSafeLedgerCSV({...base(),review:null},'review'));passed++;
