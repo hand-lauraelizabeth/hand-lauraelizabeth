@@ -152,7 +152,7 @@ const TYPE_RULES=[
  ['hard',/(required|must have|mandatory|minimum qualification|minimum of|at least|years? of experience)/i],
  ['preferred',/(preferred|nice to have|plus\b|ideally|bonus|desired)/i],
  ['scope',/(lead|manage|supervise|direct reports?|budget|fiscal|portfolio|roadmap|governance|strategy|strategic|executive|enterprise|cross-functional|change management)/i],
- ['tool',/(salesforce|hubspot|workday|tableau|power bi|sql|python|r\b|excel|adobe|asana|jira|cms|crm|google analytics)/i],
+ ['tool',/(salesforce|hubspot|workday|tableau|power bi|sql|python|\br\b|excel|adobe|asana|jira|cms|crm|google analytics)/i],
  ['responsibility',/(responsible for|you will|lead |manage |develop |build |create |oversee |coordinate |design |analyze |deliver |drive |partner with|implement|own )/i]
 ];
 function clean(s){return s.replace(/^[-•*\d.)\s]+/,'').replace(/\s+/g,' ').trim()}
