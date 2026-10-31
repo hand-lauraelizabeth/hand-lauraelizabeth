@@ -29,6 +29,18 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: node resources/tools-directory/directory.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-acceptance.browser.test.mjs ${{ matrix.browser }}
+      - name: Verify keyboard link navigation does not disclose the directory Referer
+        run: node resources/tools-directory/ft16-navigation-referrer.browser.test.mjs ${{ matrix.browser }}
+      - name: Confirm missing noreferrer leaks synthetic Referer and is caught
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-navigation-referrer.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: broken noreferrer protection unexpectedly passed"
+            exit 1
+          fi
+          echo "PASS: actual navigation without noreferrer was rejected"
+
       - run: node resources/tools-directory/ft16-axe-states.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-forced-colors.browser.test.mjs ${{ matrix.browser }}
