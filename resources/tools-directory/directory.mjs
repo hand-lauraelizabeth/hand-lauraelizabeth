@@ -77,6 +77,9 @@ export function firstUnsafeQueryControl(query){
 }
 export function queryIssue(query){
  if(queryTooLong(query))return 'too-long';
+ // Reject lone UTF-16 surrogates rather than silently matching U+FFFD.
+ // WHATWG Infra, Strings: https://infra.spec.whatwg.org/#strings
+ if(!String(query).isWellFormed())return 'malformed-unicode';
  if(unsafeQueryControls.test(String(query)))return 'invisible-control';
  return null;
 }
