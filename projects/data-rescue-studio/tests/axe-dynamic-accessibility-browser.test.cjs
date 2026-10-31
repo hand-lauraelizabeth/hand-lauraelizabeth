@@ -115,10 +115,41 @@ async function runEngine(type, name, url) {
     await scan(page,name,'empty');
     await page.locator('#file').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('ID\n1\n')});
     await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Choose a .csv or .tsv file'));
+    assert.equal(await page.locator('#file').getAttribute('aria-describedby'),'status'); checks++;
+    assert.equal(await page.locator('#file').getAttribute('aria-invalid'),'true'); checks++;
+    assert.equal(await page.locator('#status').getAttribute('role'),'alert'); checks++;
+    assert.equal(await page.locator('#status').getAttribute('aria-live'),'assertive'); checks++;
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'status'); checks++;
     await scan(page,name,'upload error');
     await page.locator('#file').setInputFiles({name:'synthetic.csv',mimeType:'text/csv',buffer:fixture});
     await page.waitForFunction(()=>document.querySelector('#previewStatus')?.textContent?.includes('4 source records'));
+    assert.equal(await page.locator('#file').getAttribute('aria-invalid'),null); checks++;
+    assert.equal(await page.locator('#status').getAttribute('role'),'status'); checks++;
+    assert.equal(await page.locator('#status').getAttribute('aria-live'),'polite'); checks++;
     await scan(page,name,'loaded with missing and duplicate');
+    // An export failure is not a file-selection error: keep the valid input
+    // accessible and avoid an incorrect invalid-file announcement.
+    await page.evaluate(() => {
+      window.__originalExportForStatusTest = window.DataRescue.exportCsvDownload;
+      window.DataRescue.exportCsvDownload = () => {throw new Error('Synthetic export-only failure');};
+    });
+    await page.locator('#save').click();
+    assert.match(await page.locator('#status').innerText(),/Synthetic export-only failure/); checks++;
+    assert.equal(await page.locator('#status').getAttribute('role'),'alert'); checks++;
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'status'); checks++;
+    assert.equal(await page.locator('#file').getAttribute('aria-invalid'),null); checks++;
+    assert.equal(await page.locator('#file').getAttribute('aria-describedby'),'status'); checks++;
+    await page.evaluate(() => {
+      window.DataRescue.exportCsvDownload = window.__originalExportForStatusTest;
+      delete window.__originalExportForStatusTest;
+    });
+    const [recoveredCsv] = await Promise.all([
+      page.waitForEvent('download'), page.locator('#save').click()
+    ]);
+    assert.equal(recoveredCsv.suggestedFilename(),'data-rescue-reviewed.csv'); checks++;
+    assert.match(await page.locator('#status').innerText(),/CSV exported locally/); checks++;
+    assert.equal(await page.locator('#status').getAttribute('role'),'status'); checks++;
+    assert.equal(await page.locator('#file').getAttribute('aria-invalid'),null); checks++;
     assert.deepEqual(await page.locator('#columns table thead th').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('scope'))),['col','col','col','col']); checks++;
     assert.ok(await page.locator('#columns table tbody tr').count()>0); checks++;
     assert.equal(await page.locator('#columns table tbody tr').evaluateAll(rows=>rows.every(row=>row.firstElementChild?.tagName==='TH' && row.firstElementChild.getAttribute('scope')==='row' && [...row.children].slice(1).every(cell=>cell.tagName==='TD'))),true); checks++;
