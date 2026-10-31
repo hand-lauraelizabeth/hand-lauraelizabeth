@@ -35,15 +35,26 @@ class ReceiptAuditTests(unittest.TestCase):
         complaints = Counter(r[4] for r in self.rows)
         status_totals = Counter(r[6] for r in self.rows)
         status_populated = Counter(r[6] for r in self.rows if r[2])
-        # Compare parsed instants, not lexical strings: .0 and .000 are equal.
-        reverse_by_status = Counter(
-            r[6] for r in self.rows if r[2] and
-            dt.datetime.fromisoformat(r[2]) < dt.datetime.fromisoformat(r[1])
-        )
-        equal_by_status = Counter(
-            r[6] for r in self.rows if r[2] and
-            dt.datetime.fromisoformat(r[2]) == dt.datetime.fromisoformat(r[1])
-        )
+        # Compare instants, not lexical strings: .0 and .000 are equal.
+        # Invalid synthetic timestamps are deliberately retained for negative
+        # parser tests; the production auditor must reject those rows itself.
+        def chronology_class(row):
+            if not row[2]:
+                return None
+            try:
+                created = dt.datetime.fromisoformat(row[1])
+                closed = dt.datetime.fromisoformat(row[2])
+            except ValueError:
+                return None
+            if closed < created:
+                return "reversed"
+            if closed == created:
+                return "equal"
+            return None
+
+        chronology = [(r[6], chronology_class(r)) for r in self.rows]
+        reverse_by_status = Counter(status for status, kind in chronology if kind == "reversed")
+        equal_by_status = Counter(status for status, kind in chronology if kind == "equal")
         reverse_count = sum(reverse_by_status.values())
         equal_count = sum(equal_by_status.values())
         status_closure_digest = hashlib.sha256(json.dumps(
