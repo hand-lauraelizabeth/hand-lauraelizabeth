@@ -7,11 +7,15 @@ from datetime import datetime, timezone
 import hashlib
 import io
 import json
+import os
+from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
 from capture_publisher_metadata import (
     AcquisitionError, MAX_BODY_BYTES, SOURCE_URL, acquire_metadata,
+    _ensure_private_dir,
 )
 from source_metadata_contract import REQUIRED_TYPES
 
@@ -57,6 +61,37 @@ def mock_acquire(payload=None, **kwargs):
         opener=lambda req, timeout: Response(body, **kwargs),
         now=datetime(2026, 10, 31, 21, 0, tzinfo=timezone.utc),
     )
+
+
+class PrivateDirectorySafetyTests(unittest.TestCase):
+    def test_new_private_directory_created_with_restrictive_permissions(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / "private" / "receipts"
+            _ensure_private_dir(target)
+            self.assertEqual(target.stat().st_mode & 0o777, 0o700)
+
+    def test_existing_secure_directory_is_accepted(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / "private"
+            target.mkdir(mode=0o700)
+            _ensure_private_dir(target)
+
+    def test_existing_world_readable_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / "public"
+            target.mkdir()
+            os.chmod(target, 0o755)
+            with self.assertRaisesRegex(AcquisitionError, "PRIVATE_DIRECTORY_PERMISSIONS_UNSAFE"):
+                _ensure_private_dir(target)
+
+    def test_git_checkout_destination_is_rejected_even_if_private(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = Path(root) / "checkout"
+            repo.mkdir(mode=0o700)
+            (repo / ".git").write_text("gitdir: /tmp/example\\n")
+            target = repo / "private"
+            with self.assertRaisesRegex(AcquisitionError, "PRIVATE_DIRECTORY_INSIDE_GIT_CHECKOUT"):
+                _ensure_private_dir(target)
 
 
 class PrivateHttpMetadataReceiptTests(unittest.TestCase):
