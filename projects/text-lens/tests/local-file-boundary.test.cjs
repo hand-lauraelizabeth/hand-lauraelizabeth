@@ -315,3 +315,52 @@ test('non-finite table metrics remain explicitly missing in CSV and JSON, withou
   }
  }
 });
+
+
+test('table CSV and JSON download failures preserve evidence, clean up resources, and support retry',()=>{
+ const start=html.indexOf('function startTableDownload(');
+ const end=html.indexOf('function docDescriptor(',start);
+ assert.ok(start>0&&end>start);
+ const code=html.slice(start,end);
+ const rows=[['section','text','item','count','score','left_context','match','right_context'],['document_summary','A','0007-東京.md',2,'not available (non-finite metric)','','','']];
+ for(const format of ['CSV','JSON']){
+  for(const failure of ['url','append','click','success']){
+   const status={textContent:'',tabIndex:0,focused:false,focus(){this.focused=true}};
+   const links=[],revoked=[],blobs=[];
+   class TestBlob{constructor(parts,options){this.parts=parts;this.options=options;blobs.push(this)}}
+   const context={
+    Blob:TestBlob,Date,JSON,setTimeout(fn){fn()},
+    tableRows:()=>rows,tableCsv:()=>'"safe","0007-東京.md"\r\n',
+    $:()=>status,
+    URL:{
+     createObjectURL(){if(failure==='url')throw Error('blocked URL');return 'blob:synthetic'},
+     revokeObjectURL(url){revoked.push(url)}
+    },
+    document:{
+     createElement(){return {href:'',download:'',remove(){const index=links.indexOf(this);if(index>=0)links.splice(index,1)},click(){if(failure==='click')throw Error('blocked click')}}},
+     body:{appendChild(link){if(failure==='append')throw Error('blocked append');links.push(link)}}
+    }
+   };
+   const api=vm.runInNewContext(code+';({downloadTables,downloadTablesJson})',context);
+   assert.doesNotThrow(()=>format==='CSV'?api.downloadTables():api.downloadTablesJson());
+   assert.equal(links.length,0,'no dangling temporary link');
+   assert.equal(revoked.length,failure==='url'?0:1,'release created object URL');
+   if(failure==='success'){
+    assert.match(status.textContent,/Started local/);
+    assert.equal(status.focused,false);
+    assert.equal(blobs.length,1);
+    if(format==='JSON'){
+     const payload=JSON.parse(blobs[0].parts.join(''));
+     assert.equal(payload.rows[0][2],'0007-東京.md');
+     assert.equal(payload.rows[0][4],'not available (non-finite metric)');
+    }
+   }else{
+    assert.match(status.textContent,new RegExp(format+' download could not be started'));
+    assert.equal(status.focused,true);
+    assert.equal(status.tabIndex,-1);
+    assert.doesNotMatch(status.textContent,/0007-東京/);
+   }
+   assert.equal(rows[1][2],'0007-東京.md');
+  }
+ }
+});
