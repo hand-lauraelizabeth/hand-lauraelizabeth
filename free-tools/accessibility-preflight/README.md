@@ -21,3 +21,5 @@ Additional official references (reviewed October 14, 2026):
 - [W3C WAI-ARIA 1.2, ID reference error processing](https://www.w3.org/TR/wai-aria-1.2/)
 - [W3C WAI accessible names and descriptions](https://www.w3.org/WAI/ARIA/apg/practices/names-and-descriptions/)
 - [W3C WCAG 2.2, Label in Name](https://www.w3.org/WAI/WCAG22/Understanding/label-in-name)
+
+The checker also reports when two different elements explicitly own the same uniquely resolved target through `aria-owns`, or when an element owns itself. Duplicate IDs, unresolved targets and repeated tokens retain their separate findings. These are static review prompts; complex ownership cycles and assistive-technology behavior still require manual review. Source: [WAI-ARIA 1.2, `aria-owns`](https://www.w3.org/TR/wai-aria-1.2/#aria-owns) (reviewed October 31, 2026).

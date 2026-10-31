@@ -16,6 +16,8 @@ export function checkRelationships(doc, add) {
     idCounts.set(el.id, (idCounts.get(el.id) || 0) + 1);
     if (!byId.has(el.id)) byId.set(el.id, el);
   }
+  // One ID may have only one explicit aria-owns owner (WAI-ARIA 1.2).
+  const explicitOwners = new Map();
   for (const attr of [...IDREF_LIST, ...IDREF_SINGLE]) {
     for (const el of doc.querySelectorAll('[' + attr + ']')) {
       const raw = el.getAttribute(attr) ?? '';
@@ -35,6 +37,18 @@ export function checkRelationships(doc, add) {
           add('unresolved-id-reference', 'review', el, attr + ' references missing ID ' + ref.slice(0, 100) + '.', 'WAI-ARIA 1.2 ID reference processing');
         } else if (idCounts.get(ref) > 1) {
           add('ambiguous-id-reference', 'review', el, attr + ' references ID ' + ref.slice(0, 100) + ' used by multiple elements. The first match may provide the wrong name, description, or relationship.', 'WAI-ARIA 1.2 ID reference processing / WCAG 4.1.2');
+        }
+        // Check ownership only for uniquely resolved targets. Duplicate IDs
+        // already receive an ambiguity finding; missing IDs remain unresolved.
+        if (attr === 'aria-owns' && !visited.has(ref) && idCounts.get(ref) === 1) {
+          const owned = byId.get(ref);
+          if (owned === el) {
+            add('self-owned-element', 'review', el, 'aria-owns references the owning element itself; review the circular ownership relationship.', 'WAI-ARIA 1.2 aria-owns');
+          } else if (explicitOwners.has(ref) && explicitOwners.get(ref) !== el) {
+            add('multiple-explicit-owners', 'review', el, 'aria-owns references an element already explicitly owned by another element.', 'WAI-ARIA 1.2 aria-owns');
+          } else if (owned) {
+            explicitOwners.set(ref, el);
+          }
         }
         visited.add(ref);
       }

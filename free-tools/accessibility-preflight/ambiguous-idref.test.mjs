@@ -73,6 +73,15 @@ expect([p('a'),element('INPUT',{id:'q','aria-flowto':'a a'})],['repeated-id-refe
 expect([p('a\u00a0b'),element('INPUT',{id:'q','aria-details':'a\u00a0b'})],[]);
 expect([p('a\u00a0b'),element('INPUT',{id:'q','aria-errormessage':'a\u00a0b','aria-invalid':'true'})],[]);
 expect([p('a\u00a0b'),element('INPUT',{id:'q','aria-flowto':'a\u00a0b'})],[]);
+// WAI-ARIA 1.2: a resolved element may have only one explicit owner.
+expect([p('target'),element('DIV',{id:'owner-a','aria-owns':'target'}),element('DIV',{id:'owner-b','aria-owns':'target'})],['multiple-explicit-owners']);
+expect([p('target'),element('DIV',{id:'owner-a','aria-owns':'target'})],[]);
+expect([p('target'),element('DIV',{id:'owner-a','aria-owns':'target target'})],['repeated-id-reference']);
+expect([p('target'),p('target'),element('DIV',{id:'owner-a','aria-owns':'target'}),element('DIV',{id:'owner-b','aria-owns':'target'})],['ambiguous-id-reference','ambiguous-id-reference']);
+expect([element('DIV',{id:'owner','aria-owns':'owner'})],['self-owned-element']);
+expect([element('DIV',{id:'owner','aria-labelledby':'owner'})],[]);
+expect([p('target\\u00a0one'),element('DIV',{id:'a','aria-owns':'target\\u00a0one'}),element('DIV',{id:'b','aria-owns':'target\\u00a0one'})],['multiple-explicit-owners']);
+expect([element('DIV',{id:'a','aria-owns':'missing'})],['unresolved-id-reference']);
 const sample=rules([p('safe','One'),p('safe','Two'),element('INPUT',{id:'q','aria-labelledby':'safe'})])[0];
 assert.match(sample.message,/multiple elements/);count++;
 assert.match(sample.reference,/4\.1\.2/);count++;
