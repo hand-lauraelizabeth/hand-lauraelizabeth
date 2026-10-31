@@ -151,6 +151,14 @@
     if (omitted) visible.splice(96, 0, ' … [' + omitted + ' code points omitted] … ');
     return visible.join('');
   }
+  // Preview-only descriptions distinguish a missing key from a record absent
+  // on one side. Exact CSV/JSON audits keep their original empty fields.
+  function auditPreviewCell(value, column) {
+    if (value !== '') return auditPreview(value);
+    return column === 1 ? 'Missing identifier' :
+      column === 2 ? 'No first-file record' :
+      column === 3 ? 'No second-file record' : '';
+  }
   function visibleFindings() {
     const filter = $('compareFindingFilter').value;
     return findings.filter(row => (FINDING_FILTERS[filter] || FINDING_FILTERS.all)(row) &&
@@ -182,7 +190,7 @@
     visible.slice(start, end).forEach(record => {
       const line = el('tr');
       record.forEach((value, index) => {
-        const cell = el(index === 0 ? 'th' : 'td', auditPreview(value));
+        const cell = el(index === 0 ? 'th' : 'td', auditPreviewCell(value, index));
         if (index === 0) cell.scope = 'row';
         line.append(cell);
       });
