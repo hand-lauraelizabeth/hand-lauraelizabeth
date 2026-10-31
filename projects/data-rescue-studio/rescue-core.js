@@ -273,13 +273,19 @@
 
   function exportCsv(parsed, spreadsheetView = true) {
     requireExportTableShape(parsed);
+    // Validate original positions for both CSV modes before reporting row IDs.
+    // An incomplete filtered view must never masquerade as sequential records.
+    requireSourceRecordPositions(parsed);
     const risk = spreadsheetView ? spreadsheetExportRisk(parsed) : null;
     if (risk) throw new Error('Spreadsheet CSV blocked at source record ' + risk.sourceRecord + ', column ' + risk.column + '. Use exact JSON, or machine CSV only outside spreadsheet software.');
     const write = (v, recordIndex, columnIndex) => {
       let s = String(v);
       if (hasUnpairedSurrogate(s))
         throw new Error('CSV export cannot preserve an unmatched UTF-16 surrogate at table record ' +
-          (recordIndex + 1) + ', column ' + (columnIndex + 1) + '. Use exact JSON instead.');
+          (recordIndex + 1) + ', column ' + (columnIndex + 1) +
+          ' (original source record ' + (recordIndex === 0 ? 1 :
+            (parsed.sourceRecords ? parsed.sourceRecords[recordIndex - 1] : recordIndex + 1)) +
+          '). Use exact JSON instead.');
       // Spreadsheet-oriented mode adds a leading tab *inside* a quoted cell.
       // This may alter exported data; machine-readable users should disable it.
       if (spreadsheetView && formulaRisk(s)) s = '\t' + s;
