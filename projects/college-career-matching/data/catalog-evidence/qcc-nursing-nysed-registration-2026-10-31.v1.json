@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0",
+  "verified_local_date": "2026-10-31",
+  "evidence_type": "historical_nysed_inventory_registration_details",
+  "institution": {
+    "unitid": "190673",
+    "college": "CUNY Queensborough Community College",
+    "school_plan_mapping_source": "https://www.qcc.cuny.edu/nursing/",
+    "school_catalog_source": "https://qcc.catalog.cuny.edu/about/programs-of-study",
+    "cip2020": "51.3801"
+  },
+  "state_inventory_reference": "https://www.op.nysed.gov/professions/nurse-practitioners/nursing-education/new-york-state-nursing-programs/nursing-education",
+  "state_registry_records": [
+    {
+      "plan": "NS-AAS",
+      "code": "01513",
+      "awards": [
+        {
+          "award": "AAS",
+          "lic_qual": "RN",
+          "first_registration": "09/1967",
+          "last_registration_action": "08/2023"
+        }
+      ],
+      "extraction_header": "institution_name_and_program_title_visible",
+      "official_state_record_url": "https://www2.nysed.gov/COMS/RP090/IRPSL3?PROGCD=01513"
+    },
+    {
+      "plan": "NH-AAS",
+      "code": "34693",
+      "awards": [
+        {
+          "award": "AAS",
+          "lic_qual": "RN",
+          "first_registration": "08/2011",
+          "last_registration_action": "09/2020"
+        },
+        {
+          "award": "BS",
+          "lic_qual": "NONE",
+          "first_registration": "08/2011",
+          "last_registration_action": "09/2020"
+        }
+      ],
+      "extraction_header": "not_in_extracted_page_body",
+      "official_state_record_url": "https://www2.nysed.gov/COMS/RP090/IRPSL3?PROGCD=34693"
+    },
+    {
+      "plan": "NY-AAS",
+      "code": "36043",
+      "awards": [
+        {
+          "award": "AAS",
+          "lic_qual": "RN",
+          "first_registration": "04/2013",
+          "last_registration_action": "09/2020"
+        },
+        {
+          "award": "BS",
+          "lic_qual": "NONE",
+          "first_registration": "04/2013",
+          "last_registration_action": "09/2020"
+        }
+      ],
+      "extraction_header": "not_in_extracted_page_body",
+      "official_state_record_url": "https://www2.nysed.gov/COMS/RP090/IRPSL3?PROGCD=36043"
+    },
+    {
+      "plan": "NPS-AAS",
+      "code": "37062",
+      "awards": [
+        {
+          "award": "AAS",
+          "lic_qual": "RN",
+          "first_registration": "12/2014",
+          "last_registration_action": "09/2021"
+        },
+        {
+          "award": "BS",
+          "lic_qual": "NONE",
+          "first_registration": "12/2014",
+          "last_registration_action": "09/2021"
+        }
+      ],
+      "extraction_header": "not_in_extracted_page_body",
+      "official_state_record_url": "https://www2.nysed.gov/COMS/RP090/IRPSL3?PROGCD=37062"
+    }
+  ],
+  "verification": {
+    "state_code_pages_retrieved": 4,
+    "code_level_record_existence_verified": true,
+    "exact_state_registration_action_dates_not_current_status": true,
+    "independent_state_page_institution_name_visible_for_codes": [
+      "01513"
+    ],
+    "other_three_school_association_requires_institution_level_registry_confirmation": true,
+    "individual_license_or_nclex_eligibility_verified": false,
+    "conditional_bachelors_award_guaranteed": false,
+    "professional_accreditation_current_status_verified": false,
+    "admissions_seats_exam_or_fee_verified": false,
+    "source_retrieval_method": "Rendered public NYSED Inventory of Registered Programs detail pages, direct state URLs; 2026-10-31; search-engine direct opens returned 403 but independent rendered fetch succeeded.",
+    "scope": "These pages substantiate registered program-code records and historic award/licensure-qualifier fields, not current admission availability, licensure, transfer entitlement, or current registration status."
+  },
+  "publication_status": "review_only_not_integrated_into_live_matcher",
+  "limitations": [
+    "NYSED state page for 01513 visibly identifies Queensborough; the extracted detail bodies for the three dual/joint codes omit institution headers. School-to-code mapping comes from QCC's first-party catalog and Nursing Department; do not represent those three state page bodies as independently identifying the college.",
+    "The state field RN LIC QUAL is a program descriptor, not proof of an individual's eligibility or issuance of an RN license.",
+    "The BS award rows explicitly say NONE for license qualifier; a dual/joint academic plan is not a guaranteed BS award.",
+    "Last registration action dates are historical metadata and do not establish that a program currently accepts applications or holds active accreditation.",
+    "Prior October 30 school-only evidence snapshots are retained unchanged; this October 31 state evidence is a separately dated corroboration."
+  ]
+}
