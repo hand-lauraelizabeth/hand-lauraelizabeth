@@ -52,6 +52,17 @@ jobs:
           fi
           echo "PASS: actual navigation without noreferrer was rejected"
 
+      - name: Verify private search does not persist or leave the browser
+        run: node resources/tools-directory/ft16-search-privacy.browser.test.mjs ${{ matrix.browser }}
+      - name: Confirm persistent-search privacy regression is detected
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-search-privacy.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: synthetic query persisted without detection"
+            exit 1
+          fi
+          echo "PASS: synthetic query persistence was rejected"
       - run: node resources/tools-directory/ft16-axe-states.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-forced-colors.browser.test.mjs ${{ matrix.browser }}
