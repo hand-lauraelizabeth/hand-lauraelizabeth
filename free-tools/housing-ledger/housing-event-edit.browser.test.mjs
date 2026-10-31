@@ -97,6 +97,51 @@ try{
   await check(async()=>assert.equal(afterCancelJSON.events.length,2));
   await check(async()=>assert.equal(afterCancelJSON.events.find(e=>e.eventId==='E-001').description,enteredDescription));
   await check(async()=>assert.doesNotMatch(await page.locator('#status').innerText(),/unsaved event correction/i));
+  // Exercise browser download API failures under the served CSP, not only a mocked Node DOM.
+  const failedDownloads=[];
+  page.on('download',d=>failedDownloads.push(d.suggestedFilename()));
+  for(const mode of ['url','append','click']){
+    await page.evaluate(mode=>{
+      const create=URL.createObjectURL, revoke=URL.revokeObjectURL;
+      const append=document.body.append, click=HTMLAnchorElement.prototype.click;
+      // A previous successful download may revoke its URL on a delayed timer.
+      // Count only URLs created by this fault-injection attempt.
+      const created=[],revoked=[];
+      URL.createObjectURL=function(blob){
+        if(mode==='url')throw Error('synthetic blocked object URL');
+        const url=create.call(URL,blob);created.push(url);return url;
+      };
+      URL.revokeObjectURL=function(url){if(created.includes(url))revoked.push(url);return revoke.call(URL,url);};
+      document.body.append=function(...nodes){
+        if(mode==='append'&&nodes.some(n=>n instanceof HTMLAnchorElement&&n.download==='housing-evidence-ledger.json'))
+          throw Error('synthetic blocked link append');
+        return append.apply(this,nodes);
+      };
+      HTMLAnchorElement.prototype.click=function(){
+        if(mode==='click'&&this.download==='housing-evidence-ledger.json')throw Error('synthetic blocked click');
+        return click.call(this);
+      };
+      window.__housingFault={revoked,restore(){
+        URL.createObjectURL=create;URL.revokeObjectURL=revoke;
+        document.body.append=append;HTMLAnchorElement.prototype.click=click;
+      }};
+    },mode);
+    await page.locator('#download').click();
+    await check(async()=>assert.equal(await page.evaluate(()=>document.activeElement.id),'error'));
+    await check(async()=>assert.match(await page.locator('#error').innerText(),/Could not start the JSON download.*try again/));
+    await check(async()=>assert.doesNotMatch(await page.locator('#error').innerText(),/000-Δ|E-001|synthetic blocked/));
+    await check(async()=>assert.equal(await page.locator('a[download]').count(),0));
+    await check(async()=>assert.equal(await page.evaluate(()=>window.__housingFault.revoked.length),mode==='url'?0:1));
+    await check(async()=>assert.equal(failedDownloads.length,0));
+    await page.evaluate(()=>{window.__housingFault.restore();delete window.__housingFault;});
+  }
+  const recoveryDl=page.waitForEvent('download');
+  await page.locator('#download').click();
+  const recovered=JSON.parse(readFileSync(await (await recoveryDl).path(),'utf8'));
+  await check(async()=>assert.equal(recovered.events.find(e=>e.eventId==='E-001').description,enteredDescription));
+  await check(async()=>assert.deepEqual(recovered.events.find(e=>e.eventId==='E-001').sourceIds,['000-Δ/１']));
+  await check(async()=>assert.match(await page.locator('#status').innerText(),/JSON download started with saved records/));
+  await check(async()=>assert.equal(await page.locator('#error').isHidden(),true));
   await check(async()=>assert.equal(await page.locator('#download').getAttribute('aria-describedby'),'download-help'));
   await check(async()=>assert.equal(await page.locator('img').count(),0));
   const widths=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth}));

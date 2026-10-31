@@ -119,15 +119,31 @@ $('import').addEventListener('click',async()=>{
 });
 $('download').addEventListener('click',()=>{
   const unsaved=pendingEventCorrection();
-  attempt(()=>{
+  clearError();
+  let objectUrl=null,link=null,started=false;
+  try {
     const blob=new Blob([exportHousingJSON(buildHousingLedger({sources,events}))],{type:'application/json;charset=utf-8'});
-    const url=URL.createObjectURL(blob);const a=document.createElement('a');
-    a.href=url;a.download='housing-evidence-ledger.json';document.body.append(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  });
-  if(error.hidden) status.textContent+=unsaved
-    ? ' Download contains saved records only; one unsaved event correction was excluded. Save the correction and download again to include it.'
-    : ' Download contains saved records.';
+    objectUrl=URL.createObjectURL(blob);
+    link=document.createElement('a');
+    link.href=objectUrl;
+    link.download='housing-evidence-ledger.json';
+    document.body.append(link);
+    link.click();
+    started=true;
+    status.textContent=unsaved
+      ? 'JSON download started with saved records only; one unsaved event correction was excluded. Save the correction and download again to include it.'
+      : 'JSON download started with saved records. Check your browser downloads to confirm the file was saved.';
+  } catch {
+    // Browser download errors must not disclose sensitive record IDs or values.
+    message('Could not start the JSON download. Saved records remain in this browser tab. Check browser download permissions and try again.');
+  } finally {
+    link?.remove();
+    if(objectUrl!==null){
+      const revoke=()=>{try{URL.revokeObjectURL(objectUrl);}catch{/* Browser cleanup may be unavailable. */}};
+      if(started)setTimeout(revoke,1000);
+      else revoke();
+    }
+  }
 });
 $('clear').addEventListener('click',()=>{if(!sources.length&&!events.length)return;if(!window.confirm('Clear all sources and events from this tab? Export JSON first if you need a copy.'))return; sources.length=0;events.length=0;mutationVersion++;closeEventEditor();clearError();render();});
 render();
