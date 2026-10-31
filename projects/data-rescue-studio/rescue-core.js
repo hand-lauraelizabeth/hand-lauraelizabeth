@@ -8,6 +8,9 @@
   const MAX_BYTES = 5_000_000;
   const MAX_ROWS = 50_000;
   const MAX_COLUMNS = 100;
+  // A 5 MB input can grow when CSV quotes are escaped; cap generated downloads
+  // separately to avoid unbounded memory and oversized browser-local exports.
+  const MAX_EXPORT_BYTES = 15_000_000;
 
   function detectDelimiter(text) {
     let quote = false, commas = 0, tabs = 0;
@@ -263,7 +266,20 @@
       if (spreadsheetView && formulaRisk(s)) s = '\t' + s;
       return '"' + s.replace(/"/g, '""') + '"';
     };
-    return [parsed.headers, ...parsed.rows].map(row => row.map(write).join(',')).join('\r\n');
+    // Count UTF-8 bytes incrementally, including CRLF and the optional download
+    // BOM, before assembling the final string. UTF-16 length is not byte size.
+    const encoder = new TextEncoder();
+    const lines = [];
+    let bytes = spreadsheetView ? 3 : 0;
+    for (let index = 0; index <= parsed.rows.length; index++) {
+      const row = index === 0 ? parsed.headers : parsed.rows[index - 1];
+      const line = row.map(write).join(',');
+      bytes += encoder.encode(line).byteLength + (index === 0 ? 0 : 2);
+      if (bytes > MAX_EXPORT_BYTES)
+        throw new Error('CSV export exceeds the 15 MB output limit. Reduce the data or export a smaller file.');
+      lines.push(line);
+    }
+    return lines.join('\r\n');
   }
 
   // Spreadsheet download adds a UTF-8 BOM for Excel's direct-open behavior.
