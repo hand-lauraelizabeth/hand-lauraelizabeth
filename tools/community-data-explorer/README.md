@@ -22,6 +22,8 @@ After importing, select two source IDs. The comparison gate blocks mixed ACS 1-y
 
 Export **JSON** to retain original numeric strings, exact IDs, missing-value markers, selected comparison, a user-supplied (unverified) dataset label, and—when WebCrypto is available—an SHA-256 fingerprint of the original file bytes. A fingerprint establishes byte identity, **not** Census authenticity. When WebCrypto is unavailable, the export explicitly records that no fingerprint was computed.
 
+If a browser blocks the JSON download, the page displays a focused recovery message without exposing local filenames or source identifiers. Your imported records and comparison remain available for another attempt. A successful download click means the download **started**; confirm that the browser saved the file before relying on it. Temporary browser download links and object URLs are cleaned up after attempts.
+
 There is no spreadsheet CSV export, to avoid turning untrusted source values into executable formulas. Uploaded data is processed locally in the browser; the application code does not issue network requests. The optional Census guidance link navigates away only if selected.
 
 ## Official interpretation guidance
