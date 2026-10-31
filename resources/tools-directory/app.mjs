@@ -16,6 +16,8 @@ function render(){
  if(issue){
   queryError.textContent=issue==='too-long'
    ?'Search is limited to 256 Unicode code points. Shorten your query or clear the filters.'
+   :issue==='malformed-unicode'
+   ?'Search contains an incomplete Unicode character. Re-enter the affected text or clear the filters.'
    :(()=>{const detail=firstUnsafeQueryControl(query.value);
      return 'Search includes invisible or control characters at Unicode code point '+detail.position+
       ' ('+detail.codePoint+'). Remove that character and try again.';})();
@@ -24,6 +26,8 @@ function render(){
   cards.replaceChildren();
   count.textContent=issue==='too-long'
    ?'Search paused until the query is shortened'
+   :issue==='malformed-unicode'
+   ?'Search paused until incomplete Unicode text is corrected'
    :'Search paused until invisible formatting is removed';
   return;
  }
