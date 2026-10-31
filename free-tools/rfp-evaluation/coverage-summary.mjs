@@ -60,3 +60,24 @@ export function summarizeCriterionCoverage(result){
    missingScores:result.vendors.length-scoredPairs,scoredMissingAnyReference:scoredPairs-completeReferencePairs});
  }));
 }
+
+/** Vendor-level review gaps; a zero score is scored, not missing. */
+export function summarizeVendorCoverage(result){
+ summarizeCoverage(result); // Validate dimensions and criterion alignment.
+ return Object.freeze(result.vendors.map((vendor,index)=>{
+  const comparison=result.comparisons[index];
+  if(comparison.vendorId!==vendor.id)
+   throw Error('Invalid evaluated RFP vendor reference');
+  let scoredPairs=0,completeReferencePairs=0;
+  for(let i=0;i<result.criteria.length;i++){
+   const detail=comparison.detail[i],criterion=result.criteria[i];
+   if(detail.score!==null){
+    scoredPairs++;
+    if(hasVisibleReference(criterion.sourceRef)&&hasVisibleReference(detail.evidenceRef)&&hasVisibleReference(detail.reviewer))
+     completeReferencePairs++;
+   }
+  }
+  return Object.freeze({vendorId:vendor.id,scoredPairs,completeReferencePairs,
+   missingScores:result.criteria.length-scoredPairs,scoredMissingAnyReference:scoredPairs-completeReferencePairs});
+ }));
+}

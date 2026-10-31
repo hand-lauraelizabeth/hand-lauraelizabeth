@@ -1,7 +1,7 @@
 import {exportMatrixJSON,exportMatrixCSV,exportEvidenceCSV} from './core.mjs';
 import {evaluateWithProvenance,exportEvidenceCoverageCSV} from './evidence-coverage.mjs';
 import {readWorkspaceFile} from './reopen.mjs';
-import {describeCoverage,summarizeCriterionCoverage} from './coverage-summary.mjs';
+import {describeCoverage,summarizeCriterionCoverage,summarizeVendorCoverage} from './coverage-summary.mjs';
 import {createReplacementGate} from './replacement-gate.mjs';
 import {createResetGate} from './reset-gate.mjs';
 const $=id=>document.getElementById(id);
@@ -65,6 +65,16 @@ function evaluate(event){event.preventDefault();cancelPendingImport();invalidate
    cell.textContent=String(value);tr.append(cell);
   }
   criterionBody.append(tr);
+ }
+ const vendorBody=$('vendor-coverage-body');vendorBody.replaceChildren();
+ for(const item of summarizeVendorCoverage(current)){
+  const tr=document.createElement('tr');
+  for(const [index,value] of [item.vendorId,item.scoredPairs,item.completeReferencePairs,item.missingScores,item.scoredMissingAnyReference].entries()){
+   const cell=document.createElement(index===0?'th':'td');
+   if(index===0)cell.scope='row';
+   cell.textContent=String(value);tr.append(cell);
+  }
+  vendorBody.append(tr);
  }
  $('result-summary').textContent=`${current.comparisons.length} proposal(s) evaluated. ${describeCoverage(current)}`;$('results-section').hidden=false;$('status').textContent='Evaluation complete. '+describeCoverage(current)+' Review flags before exporting.';
  }catch(e){showError(e);}}
