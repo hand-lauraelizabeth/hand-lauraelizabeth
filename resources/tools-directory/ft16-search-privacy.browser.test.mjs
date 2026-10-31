@@ -97,6 +97,27 @@ try{
  eq(await page.evaluate(()=>[localStorage.length,sessionStorage.length,document.cookie]),
   [0,0,''],'clear leaves no persistent search data');
  eq(requests,initialRequests,'clear makes no network requests');
+ // Programmatic DOMString input can contain an unpaired surrogate. Reject it
+ // without replacing it with U+FFFD, searching a partial prefix, or leaking it.
+ const retainedLoneSurrogate=await page.locator('#tool-query').evaluate(el=>{
+  el.value='synthetic'+String.fromCharCode(0xd800);
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+  return el.value.charCodeAt(el.value.length-1)===0xd800;
+ });
+ eq(retainedLoneSurrogate,true,'DOMString preserves synthetic lone surrogate');
+ eq(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','malformed query identified');
+ eq(await page.locator('#tool-query-error').isVisible(),true,'malformed query error visible');
+ eq((await page.locator('#tool-query-error').innerText()).includes('incomplete Unicode character'),
+  true,'actionable error explains incomplete Unicode');
+ eq(await page.locator('.ft15-card').count(),0,'no partial matches for malformed Unicode');
+ eq((await page.locator('#tool-count').innerText()).includes('paused'),true,'paused result count announced');
+ eq(requests,initialRequests,'malformed Unicode triggers no network request');
+ await page.locator('#tool-clear').click();
+ eq(await page.locator('#tool-query').inputValue(),'','clear recovers malformed input');
+ eq(await page.locator('.ft15-card').count(),2,'recovered catalog remains intact');
+ eq(await page.locator('#tool-query-error').isHidden(),true,'recovery clears error');
+ eq(await page.evaluate(()=>[localStorage.length,sessionStorage.length,document.cookie]),
+  [0,0,''],'malformed input never persists');
  eq(errors,[],'no application exceptions');
  console.log('FT-16 '+browserName+' local search privacy '+checks+'/'+checks+' PASS');
 }finally{
