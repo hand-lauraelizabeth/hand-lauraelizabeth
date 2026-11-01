@@ -102,3 +102,21 @@ test("SHA-256 failure and malformed digest never become false source fingerprint
   assert.equal(correct.sha256,createHash("sha256").update(new Uint8Array(buffer)).digest("hex"));
   assert.match(correct.sha256,/^[0-9a-f]{64}$/);
 });
+
+
+test("reject multiline and invisible source-label controls without rejecting ordinary Unicode", () => {
+  const controls = [0x2028, 0x2029, 0x061c, 0x00ad, 0x034f, 0x180e];
+  for (const codepoint of controls) {
+    const character = String.fromCodePoint(codepoint);
+    const idRow = "A" + character + "B,Place,B19013_001E,acs5,2015,2019,1,2";
+    const geoRow = "A001,Pl" + character + "ace,B19013_001E,acs5,2015,2019,1,2";
+    assert.throws(() => normalizeRows(parseCsv(header + "\n" + idRow)), /source_id/);
+    assert.throws(() => normalizeRows(parseCsv(header + "\n" + geoRow)), /geography/);
+    const valid = normalizeRows(parseCsv(header + "\nA001,Place,B19013_001E,acs5,2015,2019,1,2"));
+    assert.throws(() => evidenceExport(valid, "Local" + character + " label"), /Dataset label/);
+  }
+  const unicode = normalizeRows(parseCsv(header + "\n源-É,القاهرة,B19013_001E,acs5,2015,2019,1,2"));
+  assert.equal(unicode[0].source_id, "源-É");
+  assert.equal(unicode[0].geography, "القاهرة");
+  assert.equal(evidenceExport(unicode, "Données بيانات").dataset_label, "Données بيانات");
+});
