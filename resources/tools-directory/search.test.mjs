@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {TOOLS} from './catalog.mjs';
-import {filterTools,validateCatalog,queryTooLong,queryIssue,firstUnsafeQueryControl,MAX_QUERY_CODE_POINTS} from './directory.mjs';
+import {filterTools,validateCatalog,queryTooLong,queryIssue,firstUnsafeQueryControl,MAX_QUERY_CODE_POINTS,MAX_CATALOG_ENTRIES,MAX_CATALOG_ID_LENGTH,MAX_CATALOG_URL_LENGTH} from './directory.mjs';
 
 // Synthetic-only names exercise composed/decomposed Unicode without modifying public metadata.
 const synthetic=[
@@ -204,3 +204,45 @@ for(const [field,limit] of Object.entries(catalogBudgets)){
 }
 same(validateCatalog(TOOLS),true,'all public catalog entries fit the field budgets');
 console.log('FT-16 bounded catalog metadata: '+checks+'/'+checks+' cumulative PASS');
+
+
+// FT-15/16: bound public catalog arrays, identifiers and destinations before
+// costly validation/indexing. All records are synthetic, and rejection is atomic.
+// OWASP Input Validation: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+same(MAX_CATALOG_ENTRIES,200,'documented catalog entry budget');
+same(MAX_CATALOG_ID_LENGTH,64,'documented catalog identifier budget');
+same(MAX_CATALOG_URL_LENGTH,2048,'documented canonical destination budget');
+const syntheticCatalogRows=Array.from({length:MAX_CATALOG_ENTRIES},(_,i)=>({
+ ...catalogFixture,id:'synthetic-'+i
+}));
+same(validateCatalog(syntheticCatalogRows),true,'200 unique synthetic entries accepted');
+const tooManyRows=[...syntheticCatalogRows,{...catalogFixture,id:'synthetic-extra'}];
+const tooManySnapshot=JSON.stringify(tooManyRows);
+assert.throws(()=>validateCatalog(tooManyRows),error=>error.message==='Too many catalog entries',
+ '201 synthetic entries rejected before indexing');checks++;
+same(JSON.stringify(tooManyRows),tooManySnapshot,'rejected catalog unchanged');
+const oversizedSparse=new Array(100000);
+Object.defineProperty(oversizedSparse,0,{get(){throw Error('must reject before reading rows')}});
+assert.throws(()=>validateCatalog(oversizedSparse),error=>error.message==='Too many catalog entries',
+ 'oversized array rejected without reading entries');checks++;
+const idAtLimit={...catalogFixture,id:'a'.repeat(MAX_CATALOG_ID_LENGTH)};
+same(validateCatalog([idAtLimit]),true,'64-character ASCII ID accepted exactly');
+const idOverLimit={...catalogFixture,id:'a'.repeat(MAX_CATALOG_ID_LENGTH+1)};
+const idBefore=JSON.stringify(idOverLimit);
+assert.throws(()=>validateCatalog([idOverLimit]),error=>error.message==='Invalid or duplicate ID',
+ '65-character ASCII ID rejected');checks++;
+same(JSON.stringify(idOverLimit),idBefore,'rejected ID unchanged');
+const hugeId={...catalogFixture,id:'a'.repeat(100000)};
+assert.throws(()=>validateCatalog([hugeId]),error=>error.message==='Invalid or duplicate ID',
+ '100000-character ID rejected before regex');checks++;
+const urlPrefix='https://www.lauraelizabethhand.com/resources/';
+const exactURL=urlPrefix+'a'.repeat(MAX_CATALOG_URL_LENGTH-urlPrefix.length-1)+'/';
+same(exactURL.length,MAX_CATALOG_URL_LENGTH,'URL fixture exactly 2048 characters');
+same(validateCatalog([{...catalogFixture,status:'live',url:exactURL}]),true,
+ 'canonical live destination at URL limit accepted');
+const overURL=exactURL.slice(0,-1)+'a/';
+same(overURL.length,MAX_CATALOG_URL_LENGTH+1,'over-limit URL fixture exactly 2049 characters');
+assert.throws(()=>validateCatalog([{...catalogFixture,status:'live',url:overURL}]),
+ error=>error.message==='Unapproved tool URL','2049-character URL rejected');checks++;
+same(validateCatalog(TOOLS),true,'existing public directory remains valid after structural limits');
+console.log('FT-16 catalog structural budgets: '+checks+'/'+checks+' cumulative PASS');
