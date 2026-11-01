@@ -1,7 +1,7 @@
 'use strict';
 // Synthetic-only FT-01 evidence-size and value-free issue-index regression.
 const assert=require('node:assert/strict');
-const {exportEvidenceJson,exportIssueIndexJson,MAX_EVIDENCE_BYTES}=require('../rescue-core.js');
+const {exportEvidenceJson,exportIssueIndexJson,requireJsonBudget,MAX_EVIDENCE_BYTES}=require('../rescue-core.js');
 let checks=0;
 function eq(a,b,label){assert.deepStrictEqual(a,b,label);checks++;}
 function ok(a,label){assert.ok(a,label);checks++;}
@@ -38,6 +38,19 @@ try{
 }finally{JSON.stringify=oldStringify;}
 eq(fullEvidenceAttempted,false,'issue index never builds full-value evidence JSON');
 eq(MAX_EVIDENCE_BYTES,32_000_000,'explicit JSON byte cap');
+// FT-03 comparison JSON shares the exact byte budget, including UTF-8 and escaping.
+eq(requireJsonBudget('x'.repeat(MAX_EVIDENCE_BYTES),'Comparison audit').length,MAX_EVIDENCE_BYTES,
+ 'comparison exact byte boundary accepted');
+blocked(()=>requireJsonBudget('x'.repeat(MAX_EVIDENCE_BYTES+1),'Comparison audit'),
+ 'comparison ASCII over limit rejected');
+blocked(()=>requireJsonBudget('é'.repeat(16_000_001),'Comparison audit'),
+ 'comparison UTF-8 byte limit enforced');
+blocked(()=>requireJsonBudget('\\"'.repeat(16_000_001),'Comparison audit'),
+ 'comparison escaped JSON expansion enforced');
+eq(requireJsonBudget('{"id":"😀","key":"=1+1"}','Comparison audit'),
+ '{"id":"😀","key":"=1+1"}','comparison exact Unicode and formula-like keys unchanged');
+eq(requireJsonBudget('{"empty":""}','Comparison audit'),'{"empty":""}',
+ 'comparison empty identifier preserved');
 const empty={...table([['','']])};
 const baselineBytes=Buffer.byteLength(exportEvidenceJson(empty),'utf8');
 const atLimit={...table([['x'.repeat(MAX_EVIDENCE_BYTES-baselineBytes),'']])};
