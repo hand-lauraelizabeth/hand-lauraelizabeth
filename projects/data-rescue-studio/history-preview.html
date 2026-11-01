@@ -34,8 +34,8 @@ th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
 <section aria-labelledby="comparison"><h2 id="comparison">3. Reconcile with source record positions</h2>
 <p>Compare the transformed first dataset with a second CSV or TSV using exact, case-sensitive identifiers. Matching results use original logical record numbers, even after duplicate removal. A quoted multiline cell counts as one record, not multiple text lines.</p>
 <label for="compareFile"><strong>Second UTF-8 CSV or TSV (up to 5 MB)</strong></label>
-<input id="compareFile" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values">
-<p id="compareStatus" role="status" aria-live="polite">Open a first file above to compare.</p>
+<input id="compareFile" type="file" aria-describedby="compareStatus" accept=".csv,.tsv,text/csv,text/tab-separated-values">
+<p id="compareStatus" role="status" aria-live="polite" tabindex="-1">Open a first file above to compare.</p>
 <div class="fieldgrid">
 <div><label for="leftKey"><strong>First-file identifier</strong></label><select id="leftKey" disabled></select></div>
 <div><label for="rightKey"><strong>Second-file identifier</strong></label><select id="rightKey" disabled></select></div>
