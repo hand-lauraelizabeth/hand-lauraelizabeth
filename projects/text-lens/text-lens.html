@@ -150,6 +150,12 @@ function downloadTablesJson(){
 }
 function docDescriptor(doc,source,order){return{source,name:doc.name,size:Number(doc.size||0),last_modified:Number(doc.lastModified||0),order}}function descriptorForId(id){for(const key of ['a','b']){const i=sourceDocs[key].findIndex(d=>d.id===id);if(i>=0)return docDescriptor(sourceDocs[key][i],key,i)}return null}function descriptorMatch(desc,doc,source){ if(!desc||desc.source!==source||desc.name!==doc.name)return false; const sizeOk=!desc.size||!doc.size||Number(desc.size)===Number(doc.size); const timeOk=!desc.last_modified||!doc.lastModified||Number(desc.last_modified)===Number(doc.lastModified); return sizeOk&&timeOk}function findByDescriptor(desc){if(!desc)return null;const docs=sourceDocs[desc.source]||[],matches=docs.filter(d=>descriptorMatch(desc,d,desc.source));return matches.length===1?matches[0]:null}function containsSourcePayload(value){ if(Array.isArray(value))return value.some(containsSourcePayload); if(value&&typeof value==='object')return Object.entries(value).some(([k,v])=>['text','source_text','content','raw_text'].includes(k.toLowerCase())||containsSourcePayload(v)); return false}function buildCorpusSetup(){ const focus=descriptorForId($('focusDoc').value),refMode=$('keyRef').value; const singleRef=refMode!=='remainder'&&refMode!=='custom'?descriptorForId(refMode):null; return{tool:'Text Lens',kind:'corpus_setup',schema_version:'1.0',contains_source_text:false,generated_at:new Date().toISOString(),settings:{ignore_common_words:$('stop').checked,phrase_size:Number($('ngram').value),collocation_minimum:Number($('collMin').value),keyness_minimum:Number($('keyMin').value),document_chart:$('vizMetric').value,comparison:$('cmp').checked},documents:[...sourceDocs.a.map((d,i)=>docDescriptor(d,'a',i)),...sourceDocs.b.map((d,i)=>docDescriptor(d,'b',i))],focus_document:focus,keyness_reference:{mode:refMode,document:singleRef,custom_documents:[...customRefIds].map(descriptorForId).filter(Boolean)}}}function saveCorpusSetup(){ const setup=buildCorpusSetup(),blob=new Blob([JSON.stringify(setup,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='text-lens-corpus-setup.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);$('status').textContent='Saved corpus setup without source text.'}function applyCorpusSetup(config){ const settings=config.settings||{}; if(typeof settings.ignore_common_words==='boolean')$('stop').checked=settings.ignore_common_words; if([2,3,4].includes(Number(settings.phrase_size)))$('ngram').value=String(settings.phrase_size); if([2,3,5].includes(Number(settings.collocation_minimum)))$('collMin').value=String(settings.collocation_minimum); if([2,3,5,10].includes(Number(settings.keyness_minimum)))$('keyMin').value=String(settings.keyness_minimum); if(['words','mattr','flesch','sentences'].includes(settings.document_chart))$('vizMetric').value=settings.document_chart; if(typeof settings.comparison==='boolean')$('cmp').checked=settings.comparison; const desired=Array.isArray(config.documents)?config.documents:[],missing=[]; for(const key of ['a','b']){  const specs=desired.filter(x=>x&&x.source===key).sort((a,b)=>(a.order||0)-(b.order||0)),docs=sourceDocs[key],used=new Set(),ordered=[];  for(const spec of specs){const d=docs.find(x=>!used.has(x.id)&&descriptorMatch(spec,x,key));if(d){used.add(d.id);ordered.push(d)}else missing.push(spec)}  sourceDocs[key]=[...ordered,...docs.filter(x=>!used.has(x.id))];rebuildTextFromDocs(key) } customRefIds.clear(); for(const desc of config.keyness_reference?.custom_documents||[]){const d=findByDescriptor(desc);if(d)customRefIds.add(d.id)} run(); const focus=findByDescriptor(config.focus_document);$('focusDoc').value=focus?focus.id:''; const mode=config.keyness_reference?.mode||'remainder'; if(mode==='custom')$('keyRef').value='custom'; else if(mode==='remainder')$('keyRef').value='remainder'; else{const d=findByDescriptor(config.keyness_reference?.document);$('keyRef').value=d?d.id:'remainder'} renderCorpus();renderKwic(); pendingCorpusConfig=missing.length?config:null; $('status').textContent=missing.length?('Setup applied where possible; '+missing.length+' referenced local file'+(missing.length===1?' is':'s are')+' not loaded yet.'):'Corpus setup restored. Source text was not stored in the setup file.'; return missing.length}async function loadCorpusSetup(file){ try{const config=JSON.parse(await file.text());if(config.tool!=='Text Lens'||config.kind!=='corpus_setup'||config.schema_version!=='1.0')throw new Error('Unsupported corpus setup file');if(config.contains_source_text!==false||containsSourcePayload(config))throw new Error('Corpus setup must not contain source text or content fields');pendingCorpusConfig=config;applyCorpusSetup(config)} catch(err){$('status').textContent=err.message||String(err)} finally{$('loadCorpusSetup').value=''}}// Bound browser-local inputs before decoding; a failed replacement never clears prior evidence.
 const MAX_LOCAL_FILES=20,MAX_LOCAL_BYTES=5000000;
+function validLocalSourceName(name){
+ // Keep the displayed evidence label unambiguous, without normalizing legitimate Unicode.
+ if(typeof name!=='string'||!name.trim()||name.length>255||
+    /[\u0000-\u001F\u007F-\u009F\u061C\u200E\u200F\u2028\u2029\u202A-\u202E\u2066-\u2069]/u.test(name))return false;
+ return new TextDecoder('utf-8',{ignoreBOM:true}).decode(new TextEncoder().encode(name))===name;
+}
 const fileLoadRevision={a:0,b:0};
 async function loadFiles(input,targetId,metaId,key){
  const files=[...(input.files||[])];
@@ -159,6 +165,7 @@ async function loadFiles(input,targetId,metaId,key){
   if(files.length>MAX_LOCAL_FILES)throw new Error('Select at most '+MAX_LOCAL_FILES+' local files.');
   let totalBytes=0;
   for(const file of files){
+   if(!validLocalSourceName(file.name))throw new Error('Invalid source filename: remove control or directional formatting characters.');
    const ext=(String(file.name).split('.').pop()||'').toLowerCase();
    if(!['txt','md','markdown','csv'].includes(ext))throw new Error('Unsupported file type: '+file.name);
    if(!Number.isSafeInteger(file.size)||file.size<=0)throw new Error('Invalid or empty file: '+file.name);
@@ -351,12 +358,17 @@ let evidenceRows=[],evidencePage=0;let lastA=null,lastB=null,lastCompare=false;f
  // Imported event details are untrusted even when another local component dispatches them.
  // Reject before canceling an in-flight file read or changing existing source evidence.
  try{
-  if(typeof d.text!=='string'||d.text.length>MAX_CHARS||d.text.includes('\u0000'))
+  if(typeof d.text!=='string'||!d.text.length||d.text.length>MAX_CHARS||d.text.includes('\u0000'))
    throw new Error('Text must contain at most '+MAX_CHARS.toLocaleString()+' characters and no binary/NUL content.');
-  if(typeof d.name!=='string'||!d.name.trim()||d.name.length>255||d.name.includes('\u0000'))
-   throw new Error('Source name must contain 1–255 characters and no binary/NUL content.');
-  if(!Number.isSafeInteger(d.size)||d.size<0||d.size>MAX_LOCAL_BYTES)
-   throw new Error('Source byte size must be between 0 and '+MAX_LOCAL_BYTES.toLocaleString()+'.');
+  if(!validLocalSourceName(d.name))
+   throw new Error('Source name must contain 1–255 characters without control or directional formatting characters.');
+  if(!Number.isSafeInteger(d.size)||d.size<=0||d.size>MAX_LOCAL_BYTES)
+   throw new Error('Source byte size must be between 1 and '+MAX_LOCAL_BYTES.toLocaleString()+'.');
+  const encoded=new TextEncoder().encode(d.text);
+  if(encoded.byteLength!==d.size)
+   throw new Error('Source byte size does not match the imported UTF-8 text.');
+  if(new TextDecoder('utf-8',{ignoreBOM:true}).decode(encoded)!==d.text)
+   throw new Error('Imported text contains an invalid Unicode surrogate.');
   if(d.lastModified!==undefined&&(!Number.isSafeInteger(d.lastModified)||d.lastModified<0))
    throw new Error('Source modification time must be a nonnegative integer.');
  }catch(error){
