@@ -1,0 +1,8 @@
+:focus-visible{outline:3px solid #a44615;outline-offset:3px}
+/* Native select controls can expose only a thin UA auto outline after Tab.
+   Keep a consistent explicit indicator for all interactive controls on focus,
+   including pointer focus; do not rely on :focus-visible alone. */
+input:focus,select:focus,button:focus,.ft15-link:focus{outline:3px solid #a44615;outline-offset:3px}
+.skip{position:absolute;left:.75rem;top:-10rem;z-index:10;padding:.5rem .85rem;background:#fff;color:#164636}
+.skip:focus{top:.75rem}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:0s!important}}
