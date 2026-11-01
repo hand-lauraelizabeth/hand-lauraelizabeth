@@ -57,11 +57,11 @@ try{
  await page.evaluate(()=>{
   const input=document.getElementById('tool-query');
   input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:''}));
-  input.value='text\\uD800';
+  input.value='text\uD800';
   input.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
    inputType:'insertCompositionText',data:'x'}));
  });
- eq(await page.locator('#tool-query').inputValue(),'text\\uD800','intermediate IME text stays editable');
+ eq(await page.locator('#tool-query').inputValue(),'text\uD800','intermediate IME text stays editable');
  eq(await page.locator('.ft15-card').count(),17,'composition does not prematurely replace results');
  eq(await page.locator('#tool-query-error').isHidden(),true,'no transient invalid-Unicode alert');
  eq(await page.locator('#tool-query').getAttribute('aria-invalid'),null,'no premature invalid state');
@@ -81,7 +81,7 @@ try{
  await page.evaluate(()=>{
   const input=document.getElementById('tool-query');
   input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));
-  input.value='text\\u202e lens';
+  input.value='text\u202e lens';
   input.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
    inputType:'insertCompositionText',data:'x'}));
  });
@@ -89,7 +89,7 @@ try{
  eq(await page.locator('.ft15-card h3').allTextContents(),['Text Lens'],'second composition preserves previous cards');
  eq(await page.locator('#tool-query-error').isHidden(),true,'second composition has no transient alert');
  await page.locator('#tool-query').evaluate(input=>
-  input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'text\\u202e lens'})));
+  input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'text\u202e lens'})));
  eq(await page.locator('#tool-query-error').isVisible(),true,'committed control character shows error');
  eq(await page.locator('#tool-query').getAttribute('aria-invalid'),'true','committed unsafe query marked invalid');
  eq(await page.locator('.ft15-card').count(),0,'committed unsafe query has no partial matches');
@@ -101,7 +101,7 @@ try{
  await page.evaluate(()=>{
   const input=document.getElementById('tool-query');
   input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));
-  input.value='x\\uD800';
+  input.value='x\uD800';
   input.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,
    inputType:'insertCompositionText',data:'x'}));
   input.value='text lens';
