@@ -11,6 +11,7 @@
   // A 5 MB input can grow when CSV quotes are escaped; cap generated downloads
   // separately to avoid unbounded memory and oversized browser-local exports.
   const MAX_EXPORT_BYTES = 15_000_000;
+  const MAX_EVIDENCE_BYTES = 32_000_000;
 
   function detectDelimiter(text) {
     let quote = false, commas = 0, tabs = 0;
@@ -317,9 +318,18 @@
     return spreadsheetView ? '\uFEFF' + csv : csv;
   }
 
+  // Bound browser-local JSON downloads by their encoded UTF-8 size, not JS
+  // string length. This prevents unbounded output from direct API callers.
+  function requireJsonBudget(json, kind) {
+    if (json.length > MAX_EVIDENCE_BYTES ||
+        new TextEncoder().encode(json).byteLength > MAX_EVIDENCE_BYTES)
+      throw new Error(kind + ' JSON exceeds the 32 MB output limit. Reduce the input or export a smaller file.');
+    return json;
+  }
+
   // Exact decoded cells and logical source record positions, without CSV formula rewriting.
   // This is not a byte-for-byte copy or a cryptographic authenticity record.
-  function exportEvidenceJson(parsed, sourceFileName = '', provenance = null) {
+  function validateEvidenceSource(parsed, sourceFileName = '', provenance = null) {
     if (!parsed || !Array.isArray(parsed.headers) || !Array.isArray(parsed.rows) ||
         !Array.isArray(parsed.normalizedHeaders) || !Array.isArray(parsed.warnings) ||
         (parsed.delimiter !== ',' && parsed.delimiter !== '\t') ||
@@ -370,7 +380,21 @@
       source.digestAlgorithm = 'SHA-256';
       source.sha256 = provenance.sha256;
     }
-    return JSON.stringify({
+    return source;
+  }
+
+  function exportEvidenceJson(parsed, sourceFileName = '', provenance = null) {
+    const source = validateEvidenceSource(parsed, sourceFileName, provenance);
+    // Each UTF-16 code unit contributes at least one UTF-8 output byte in JSON.
+    // Reject an oversized cell before allocating its serialized copy.
+    let rawCharacters = sourceFileName.length;
+    for (const field of [...parsed.headers, ...parsed.normalizedHeaders, ...parsed.warnings])
+      rawCharacters += field.length;
+    for (const row of parsed.rows)
+      for (const field of row) rawCharacters += field.length;
+    if (rawCharacters > MAX_EVIDENCE_BYTES)
+      throw new Error('Evidence JSON exceeds the 32 MB output limit. Reduce the input or export a smaller file.');
+    return requireJsonBudget(JSON.stringify({
       format: 'data-rescue-evidence', schemaVersion: 1,
       source,
       headers: parsed.headers.slice(), normalizedHeaders: parsed.normalizedHeaders.slice(),
@@ -379,7 +403,7 @@
         sourceRecord: parsed.sourceRecords ? parsed.sourceRecords[index] : index + 2,
         values: values.slice()
       }))
-    });
+    }), 'Evidence');
   }
 
   // Export only source positions, blank column numbers and exact-duplicate links.
@@ -387,12 +411,14 @@
   function exportIssueIndexJson(parsed, sourceFileName = '', provenance = null, includeSourceMetadata = false) {
     if (typeof includeSourceMetadata !== 'boolean')
       throw new Error('Choose whether to include sensitive source metadata.');
-    // Reuse the exact evidence validator for headers, dimensions, original source
-    // positions and optional SHA-256 metadata; do not put its records in the output.
-    const validated = JSON.parse(exportEvidenceJson(parsed, sourceFileName, provenance));
+    // Validate dimensions, provenance and source metadata without materializing
+    // a second full evidence JSON containing sensitive cell values.
+    const source = validateEvidenceSource(parsed, sourceFileName, provenance);
     const seen = new Map(), issues = [];
     let recordsWithBlankCells = 0, repeatedExactRecords = 0;
-    for (const record of validated.records) {
+    for (let index = 0; index < parsed.rows.length; index++) {
+      const record = {sourceRecord: parsed.sourceRecords ? parsed.sourceRecords[index] : index + 2,
+        values: parsed.rows[index]};
       const signature = JSON.stringify(record.values);
       const duplicateOf = seen.has(signature) ? seen.get(signature) : null;
       if (!seen.has(signature)) seen.set(signature, record.sourceRecord);
@@ -405,21 +431,21 @@
       if (blankColumns.length || duplicateOf !== null)
         issues.push({sourceRecord: record.sourceRecord, blankColumns, duplicateOf});
     }
-    return JSON.stringify({
+    return requireJsonBudget(JSON.stringify({
       format: 'data-rescue-issue-index', schemaVersion: 1,
-      source: includeSourceMetadata ? validated.source : {
-        delimiter: validated.source.delimiter,
-        headerRecord: validated.source.headerRecord,
-        recordUnit: validated.source.recordUnit,
-        ...(validated.source.originalDataRecords === undefined ? {} :
-          {originalDataRecords: validated.source.originalDataRecords})
+      source: includeSourceMetadata ? source : {
+        delimiter: source.delimiter,
+        headerRecord: source.headerRecord,
+        recordUnit: source.recordUnit,
+        ...(source.originalDataRecords === undefined ? {} :
+          {originalDataRecords: source.originalDataRecords})
       },
-      columnCount: validated.headers.length,
-      recordCount: validated.recordCount,
+      columnCount: parsed.headers.length,
+      recordCount: parsed.rows.length,
       counts: {recordsWithBlankCells, repeatedExactRecords, issueRecords: issues.length},
       issues
-    });
+    }), 'Issue index');
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, findSourceRecordOffset, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, exportIssueIndexJson, MAX_BYTES, MAX_ROWS};
+  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, findSourceRecordOffset, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, exportIssueIndexJson, MAX_BYTES, MAX_ROWS, MAX_EVIDENCE_BYTES};
 });
