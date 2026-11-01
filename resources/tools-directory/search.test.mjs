@@ -149,3 +149,58 @@ same(ids('resume\uD800'),[],'malformed query cannot match a valid prefix');
 same(filterTools(noHiddenScan,{query:'resume\uD800'}),[],'malformed query cannot scan catalog');
 same(ids('resume'),['resume'],'valid search recovers after malformed input');
 console.log('FT-15 invisible-query controls: '+checks+'/'+checks+' PASS');
+
+// Public catalog metadata must be well-formed Unicode before it can be indexed,
+// rendered, or used to name a link. No user files or private records are used.
+// WHATWG Infra strings: https://infra.spec.whatwg.org/#strings
+const catalogFixture={id:'synthetic-unicode',title:'Synthetic tool',category:'Research',
+ description:'Synthetic evidence',status:'development'};
+const badUnits=[['high','\uD800'],['low','\uDC00']];
+for(const key of ['title','category','description']){
+ for(const [kind,unit] of badUnits){
+  for(const [position,malformed] of [
+   ['start',unit+'value'],['middle','va'+unit+'lue'],['end','value'+unit]
+  ]){
+   const candidate={...catalogFixture,[key]:malformed};
+   const before=JSON.stringify(candidate);
+   assert.throws(()=>validateCatalog([candidate]),
+    error=>error.message==='Malformed Unicode in '+key,
+    key+' rejects lone '+kind+' surrogate at '+position);
+   checks++;
+   same(JSON.stringify(candidate),before,'failed validation never edits '+key);
+  }
+ }
+}
+same(validateCatalog([{...catalogFixture,title:'👩‍💻 evidence',
+ category:'研究 🧪',description:'می‌رویم and café'}]),true,
+ 'valid emoji pairs, multilingual letters and joiners are preserved');
+same(validateCatalog([{...catalogFixture,title:'🧪',
+ category:'Research',description:'Synthetic evidence'}]),true,
+ 'valid supplementary character is not rejected');
+console.log('FT-16 catalog Unicode boundary: '+checks+'/'+checks+' cumulative PASS');
+
+
+// Bound each public metadata field before indexing or DOM rendering. The limits
+// are product decisions, not WCAG thresholds. Synthetic values only.
+// OWASP Input Validation: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+const catalogBudgets={title:120,category:80,description:600};
+for(const [field,limit] of Object.entries(catalogBudgets)){
+ for(const [label,character] of [['Latin','a'],['supplementary','🧪']]){
+  const atLimit={...catalogFixture,[field]:character.repeat(limit)};
+  same(validateCatalog([atLimit]),true,field+' accepts '+limit+' '+label+' code points');
+  const overLimit={...catalogFixture,[field]:character.repeat(limit+1)};
+  const original=JSON.stringify(overLimit);
+  assert.throws(()=>validateCatalog([overLimit]),
+   error=>error.message==='Overlong '+field,
+   field+' rejects '+(limit+1)+' '+label+' code points');
+  checks++;
+  same(JSON.stringify(overLimit),original,field+' overlimit input stays unchanged');
+ }
+ const massive={...catalogFixture,[field]:'🧪'.repeat(100000)};
+ assert.throws(()=>validateCatalog([massive]),
+  error=>error.message==='Overlong '+field,
+  field+' rejects a massive value before indexing');
+ checks++;
+}
+same(validateCatalog(TOOLS),true,'all public catalog entries fit the field budgets');
+console.log('FT-16 bounded catalog metadata: '+checks+'/'+checks+' cumulative PASS');

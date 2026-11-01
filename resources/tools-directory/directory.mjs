@@ -11,6 +11,17 @@ export function approvedLiveURL(t){
    u.href===t.url&&/^\/resources\/(?:[a-z0-9-]+\/)+$/.test(u.pathname);
  }catch{return false;}
 }
+// Public catalog metadata has explicit, product-defined code-point budgets.
+// Fail closed before normalization, regex validation, indexing, or DOM rendering.
+// OWASP Input Validation: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+// Limits are product choices, not OWASP or WCAG numeric requirements.
+export const CATALOG_CODE_POINT_LIMITS=Object.freeze({title:120,category:80,description:600});
+function catalogTooLong(value,limit){
+ if(value.length>limit*2)return true; // fast UTF-16 code-unit bound
+ let count=0;
+ for(const _ of value)if(++count>limit)return true;
+ return false;
+}
 export function validateCatalog(rows=TOOLS){
  if(!Array.isArray(rows))throw Error('Catalog must be an array');
  const ids=new Set();
@@ -18,7 +29,13 @@ export function validateCatalog(rows=TOOLS){
   if(!t||typeof t!=='object'||typeof t.id!=='string'||!/^[a-z][a-z0-9-]*$/.test(t.id)||ids.has(t.id))throw Error('Invalid or duplicate ID');
   ids.add(t.id);
   for(const key of ['title','category','description']){
-   if(typeof t[key]!=='string'||!t[key].trim())throw Error('Missing '+key);
+   if(typeof t[key]!=='string')throw Error('Missing '+key);
+   if(catalogTooLong(t[key],CATALOG_CODE_POINT_LIMITS[key]))throw Error('Overlong '+key);
+   if(!t[key].trim())throw Error('Missing '+key);
+   // Reject malformed UTF-16 metadata before indexing or rendering: browsers can
+   // replace lone surrogates with U+FFFD and obscure the original public label.
+   // WHATWG Infra strings: https://infra.spec.whatwg.org/#strings
+   if(!t[key].isWellFormed())throw Error('Malformed Unicode in '+key);
    // Catalog labels are controlled metadata, not arbitrary document text: prevent invisible
    // direction controls from visually reordering resource names or availability context.
    // Legitimate RTL/CJK letters and combining marks remain valid.
