@@ -42,7 +42,9 @@ for(const name of ["source","claim"]){byId(name).addEventListener("submit",event
    project=updateClaim(project,editingClaimId,v);
    stopEditing();invalidateImport();render();status("Finding corrected. Exact finding ID and other evidence preserved.");byId("edit-claim-id").focus();
   }else{
-   project=validateProject({...project,[name==="source"?"sources":"claims"]:[...project[name==="source"?"sources":"claims"],v]});
+   const candidate=validateProject({...project,[name==="source"?"sources":"claims"]:[...project[name==="source"?"sources":"claims"],v]});
+   exportProject(candidate); // Do not commit entries that the user cannot back up.
+   project=candidate;
    if(name==="source")stopEditing();
    form.reset();invalidateImport();render();status("Entry added. Any pending replacement was cancelled.");
   }
