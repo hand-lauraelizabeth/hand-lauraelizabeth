@@ -147,7 +147,7 @@ try{
    // throttle repeated downloads in a single page. Earlier downloads already
    // verify exact saved-plan bytes; here validate save succeeds after the race.
    await page.locator('#save-plan').click();
-   expect((await page.locator('#status').innerText()).includes('saved locally'),name+' edited plan validates for save');
+   expect((await page.locator('#status').innerText()).includes('download started'),name+' edited plan validates for download initiation');
    expect(await page.locator('#error').innerText()==='',name+' edited plan save clears obsolete error');
    expect(await page.locator('#export-json').isDisabled(),name+' user edit keeps old projection invalidated');
 

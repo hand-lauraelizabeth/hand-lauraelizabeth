@@ -2,3 +2,5 @@
 main{overflow-wrap:anywhere;min-width:0}section{min-width:0}.table-wrap{max-width:100%}
 
 #event-error,#plan-error{color:#a31d1d;font-weight:600;overflow-wrap:anywhere}#event-error:focus,#plan-error:focus{outline:3px solid #d18923;outline-offset:2px}
+
+#download-error{color:#a31d1d;font-weight:600;overflow-wrap:anywhere}#download-error:focus{outline:3px solid #d18923;outline-offset:2px}

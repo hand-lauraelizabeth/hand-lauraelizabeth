@@ -118,6 +118,57 @@ async function testBrowser(name,type){
     check(csv.includes('"2024-03-31",-20.00,60.00,"rent","Rent"'),name+': CSV shifted value');
     check(csv.endsWith('\r\n'),name+': CSV CRLF rows');
 
+
+    // Deliberate browser fault injection: the original handler threw uncaught
+    // exceptions and left no recoverable, focused download error.
+    await page.evaluate(()=>{
+      const state={blockCreate:false,blockClick:false,created:[],revoked:[]};
+      window.__ft04DownloadProbe=state;
+      const create=URL.createObjectURL.bind(URL),revoke=URL.revokeObjectURL.bind(URL);
+      URL.createObjectURL=blob=>{
+        if(state.blockCreate)throw Error('Synthetic blocked object URL');
+        const url=create(blob);state.created.push(url);return url;
+      };
+      URL.revokeObjectURL=url=>{state.revoked.push(url);return revoke(url);};
+      const click=HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click=function(){
+        if(state.blockClick)throw Error('Synthetic blocked anchor activation');
+        return click.call(this);
+      };
+    });
+    const originalSummary=await page.locator('#summary').textContent();
+    await page.evaluate(()=>{window.__ft04DownloadProbe.blockCreate=true;});
+    await page.locator('#export').click();
+    check((await page.locator('#download-error').textContent()).includes('Download could not start'),name+': blocked CSV URL has actionable text error');
+    check(await page.evaluate(()=>document.activeElement.id)==='download-error',name+': blocked CSV URL focuses alert');
+    check(await page.locator('#export').isEnabled(),name+': failed CSV retains calculated export');
+    check(await page.locator('#summary').textContent()===originalSummary,name+': failed CSV retains projection');
+    check(await page.locator('a[download]').count()===0,name+': blocked CSV creates no temporary anchor');
+    await page.evaluate(()=>{const p=window.__ft04DownloadProbe;p.blockCreate=false;p.blockClick=true;});
+    await page.locator('#export-json').click();
+    const failedClick=await page.evaluate(()=>{
+      const p=window.__ft04DownloadProbe;
+      return {created:p.created.at(-1),revoked:p.revoked.includes(p.created.at(-1)),links:document.querySelectorAll('a[download]').length};
+    });
+    check(Boolean(failedClick.created)&&failedClick.revoked,name+': failed JSON click revokes object URL');
+    check(failedClick.links===0,name+': failed JSON click removes temporary anchor');
+    check(await page.evaluate(()=>document.activeElement.id)==='download-error',name+': failed JSON click focuses error');
+    check(await page.locator('#export-json').isEnabled(),name+': failed JSON click retains retry');
+    await page.evaluate(()=>{window.__ft04DownloadProbe.blockClick=false;});
+    const [retryJSON]=await Promise.all([page.waitForEvent('download'),page.locator('#export-json').click()]);
+    check(JSON.parse(readFileSync(await retryJSON.path(),'utf8')).schema==='cash-flow-scenario/v1',name+': JSON retry preserves exact schema');
+    check((await page.locator('#download-error').textContent())==='',name+': successful retry clears download error');
+    check((await page.locator('#status').textContent()).includes('download started'),name+': success does not claim saved file');
+    await page.evaluate(()=>{window.__ft04DownloadProbe.blockCreate=true;});
+    await page.locator('#save-plan').click();
+    check(await page.evaluate(()=>document.activeElement.id)==='download-error',name+': blocked plan URL focuses alert');
+    check(await page.locator('#summary').textContent()===originalSummary,name+': blocked plan download preserves projection');
+    await page.evaluate(()=>{window.__ft04DownloadProbe.blockCreate=false;});
+    const [retryPlan]=await Promise.all([page.waitForEvent('download'),page.locator('#save-plan').click()]);
+    check(JSON.parse(readFileSync(await retryPlan.path(),'utf8')).schema==='cash-flow-plan/v1',name+': plan retry preserves editable schema');
+    check((await page.locator('#download-error').textContent())==='',name+': successful plan retry clears error');
+    check((await page.locator('#status').textContent()).includes('download started'),name+': plan status distinguishes initiation from saved file');
+
     // Equivalent CSS viewport widths for 200% and 400% reflow at a 1280px viewport;
     // NOT a substitute for manual native browser zoom testing.
     for(const width of [640,320]){
