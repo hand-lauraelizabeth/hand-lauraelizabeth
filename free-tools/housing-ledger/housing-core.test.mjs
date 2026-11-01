@@ -20,7 +20,7 @@ for(const [name,change] of [
 for(let seed=0;seed<200;seed++){const id=`00${seed}-Δ`;const d=`2026-10-${String(seed%28+1).padStart(2,'0')}`;const out=buildHousingLedger({sources:[{...source,sourceId:id}],events:[{...event,eventId:`e${seed}`,date:d,sourceIds:[id],amountCents:seed}]});check(()=>assert.equal(JSON.parse(exportHousingJSON(out)).events[0].sourceIds[0],id));check(()=>assert.equal(out.findings.length,0));}
 // A valid ledger near the import ceiling must still be exportable byte-for-byte.
 const near=buildHousingLedger({sources:[],events:Array.from({length:1999},(_,i)=>({
-  eventId:'near-'+i,date:'2026-10-01',category:'repair',
+  eventId:'E-'+i,date:'2026-10-01',category:'repair',
   description:'é'.repeat(1129),sourceIds:[],amountCents:null
 }))});
 check(()=>assert.ok(Buffer.byteLength(exportHousingJSON(near),'utf8')<=5_000_000));
