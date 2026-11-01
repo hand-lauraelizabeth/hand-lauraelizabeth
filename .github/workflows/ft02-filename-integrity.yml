@@ -1,0 +1,37 @@
+name: FT-02 browser-local filename integrity
+on:
+  pull_request:
+    paths:
+      - "projects/data-rescue-studio/file-reader.js"
+      - "projects/data-rescue-studio/history-preview.html"
+      - "projects/data-rescue-studio/tests/file-reader.test.js"
+      - "projects/data-rescue-studio/tests/file-boundary-browser.cjs"
+      - ".github/workflows/ft02-filename-integrity.yml"
+permissions:
+  contents: read
+jobs:
+  node-filename-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify strict local byte and filename validation
+        run: node projects/data-rescue-studio/tests/file-reader.test.js
+  chromium-upload-recovery:
+    # Playwright 1.55.1 does not support ubuntu26.04 dependency installation.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser test dependency
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Verify primary and secondary upload recovery with synthetic files
+        run: node projects/data-rescue-studio/tests/file-boundary-browser.cjs
