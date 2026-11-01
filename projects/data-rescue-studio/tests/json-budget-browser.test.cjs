@@ -41,6 +41,43 @@ async function run(name,engine,url){
    {sourceRecord:4,blankColumns:[2],duplicateOf:null}],name+' exact index findings');
   ok(!Object.hasOwn(index.source,'fileName'),name+' filename omitted by default');
   ok(!JSON.stringify(index).includes('0007'),name+' values excluded');
+  // The parent CSV handler threw an uncaught error if blob URLs were blocked.
+  await page.evaluate(()=>{
+   window.__csvURL=URL.createObjectURL;
+   URL.createObjectURL=()=>{throw Error('SECRET_CSV_URL');};
+  });
+  const csvBefore=downloads;
+  await page.locator('#save').click();
+  ok((await page.locator('#status').innerText()).includes('CSV download could not be started'),name+' CSV URL error');
+  eq(await page.locator('#status').getAttribute('role'),'alert',name+' CSV error alert');
+  ok(await page.locator('#status').evaluate(el=>el===document.activeElement),name+' CSV error focused');
+  eq(await page.locator('#file').getAttribute('aria-invalid'),null,name+' CSV input remains valid');
+  ok(await page.locator('#save').isEnabled(),name+' CSV retry enabled');
+  ok(!(await page.locator('#status').innerText()).includes('SECRET_CSV_URL'),name+' no exception leak');
+  await page.waitForTimeout(100);
+  eq(downloads,csvBefore,name+' failed CSV did not download');
+  await page.evaluate(()=>{
+   URL.createObjectURL=window.__csvURL;
+   window.__csvClick=HTMLAnchorElement.prototype.click;
+   window.__csvRevoke=URL.revokeObjectURL;
+   window.__csvRevoked=0;
+   URL.revokeObjectURL=function(url){window.__csvRevoked++;return window.__csvRevoke.call(URL,url);};
+   HTMLAnchorElement.prototype.click=function(){throw Error('SECRET_CSV_CLICK');};
+  });
+  await page.locator('#save').click();
+  ok((await page.locator('#status').innerText()).includes('CSV download could not be started'),name+' CSV click error');
+  ok(await page.evaluate(()=>window.__csvRevoked>=1),name+' failed CSV blob URL revoked');
+  eq(await page.evaluate(()=>document.querySelectorAll('a[download]').length),0,name+' CSV anchor removed');
+  await page.evaluate(()=>{
+   HTMLAnchorElement.prototype.click=window.__csvClick;
+   URL.revokeObjectURL=window.__csvRevoke;
+  });
+  const [csvDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#save').click()]);
+  const csvContent=readFileSync(await csvDownload.path(),'utf8');
+  ok(csvContent.startsWith('\\uFEFF'.replace('\\uFEFF','\uFEFF')),name+' CSV BOM retained');
+  ok(csvContent.includes('"\\t=2+2"'.replace('\\t','\t')),name+' formula precaution retained');
+  ok((await page.locator('#status').innerText()).includes('CSV download started'),name+' CSV initiation message');
+
   await page.evaluate(()=>{
    window.__evidenceExport=window.DataRescue.exportEvidenceJson;
    window.DataRescue.exportEvidenceJson=()=>{throw Error('Evidence JSON exceeds the 32 MB output limit.');};
