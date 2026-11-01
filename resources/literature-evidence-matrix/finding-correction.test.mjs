@@ -39,3 +39,14 @@ test("unsaved correction detection compares all saved fields without changing ev
  assert.equal(JSON.stringify(p),before);
  assert.throws(()=>hasUnsavedClaimChanges(p,"unknown",unchanged),/not found/);
 });
+
+test("a correction that would make the saved JSON unexportable is rejected atomically",()=>{
+ const large={schema:SCHEMA,sources:[{id:"s-01",title:"Synthetic",year:null,doi:""}],
+  claims:Array.from({length:1750},(_,i)=>({id:"f"+i,sourceId:"s-01",question:"Q",
+   summary:"A".repeat(i===0?1500:926),stance:"supports",locator:"",methods:"",limitations:"",quote:""}))};
+ const before=exportProject(large);
+ assert.ok(new TextEncoder().encode(before).length<2000000);
+ assert.throws(()=>updateClaim(large,"f1",{methods:"m".repeat(1000)}),/2 MB JSON export limit/);
+ assert.equal(exportProject(large),before);
+ assert.equal(updateClaim({schema:SCHEMA,sources:large.sources,claims:[large.claims[1]]},"f1",{methods:"m"}).claims[0].methods,"m");
+});
