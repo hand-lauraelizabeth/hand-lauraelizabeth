@@ -265,4 +265,54 @@ class TestStrictMalformedClosureDate(unittest.TestCase):
             self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 1)
 
 
+
+class TestStrictTimestampPrecision(unittest.TestCase):
+    """Synthetic full-month fixtures: date-only values cannot imply a time."""
+
+    def _run(self, created, closed, expected_error=None):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "output.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", created, closed, "DOT",
+                                 "Synthetic", "Queens", "Closed"])
+            sha = hashlib.sha256(source.read_bytes()).hexdigest()
+            output.write_text("existing output", encoding="utf-8")
+            kwargs = dict(as_of="2026-10-25", reporting_month="2026-09",
+                          expected_sha256=sha, expected_rows=1, min_cell=1)
+            if expected_error:
+                with self.assertRaisesRegex(ValueError, expected_error):
+                    ingest(source, output, **kwargs)
+                self.assertEqual(output.read_text(encoding="utf-8"),
+                                 "existing output")
+            else:
+                result = ingest(source, output, **kwargs)
+                self.assertEqual(result["quality"]["unique_keys_verified"], 1)
+                self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 1)
+
+    def test_date_only_created_date_fails_closed(self):
+        self._run("2026-09-10", "2026-09-11T09:00:00.000",
+                  "Invalid created_date timestamp precision")
+
+    def test_date_only_closed_date_fails_closed(self):
+        self._run("2026-09-10T09:00:00.000", "2026-09-11",
+                  "Invalid closed_date timestamp precision")
+
+    def test_full_precision_and_offsets_are_accepted(self):
+        self._run("2026-09-10T09:00:00-04:00", "2026-09-11T10:00:00Z")
+
+    def test_non_strict_legacy_date_only_remains_supported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "out.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10", "", "DOT",
+                                 "Synthetic", "Queens", "Open"])
+            result = ingest(source, output, as_of="2026-10-25", min_cell=1)
+            self.assertEqual(result["quality"]["valid_records"], 1)
+            self.assertNotIn("strict_reporting_month", result["rules"])
+
 if __name__ == "__main__": unittest.main()
