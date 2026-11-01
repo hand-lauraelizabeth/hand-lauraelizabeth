@@ -13,7 +13,7 @@ const assets=new Map([['/','index.html'],['/index.html','index.html'],
 const server=createServer((req,res)=>{
  const path=assets.get(new URL(req.url,'http://localhost').pathname);
  if(!path){res.writeHead(404).end('Not found');return;}
- try{res.writeHead(200,{'Content-Type':path.endsWith('.html')?'text/html; charset=utf-8':'text/javascript; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'"});res.end(readFileSync(join(root,path)));}
+ try{res.writeHead(200,{'Content-Type':path.endsWith('.html')?'text/html; charset=utf-8':'text/javascript; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'"});res.end(readFileSync(join(root,path)));}
  catch{res.writeHead(500).end('Unavailable');}
 });
 let checks=0;
@@ -29,6 +29,10 @@ async function run(name,engine,url){
   page.on('request',r=>{if(!r.url().startsWith(url)&&!r.url().startsWith('blob:'+url))outside.push(r.url());});
   page.on('download',()=>downloads++);
   eq((await page.goto(url,{waitUntil:'networkidle'})).status(),200,name+' HTTP served');
+  // The page uses an inline stylesheet. If the test CSP blocks it, native
+  // file controls can overflow even though the product CSS is correct.
+  eq(await page.evaluate(()=>getComputedStyle(document.body).marginLeft),'0px',name+' inline CSS active under CSP');
+  eq(await page.locator('#file').evaluate(el=>getComputedStyle(el).minWidth),'0px',name+' file-input responsive CSS active');
   await page.locator('#file').setInputFiles({name:'synthetic.csv',mimeType:'text/csv',buffer:input});
   await page.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
   const [issue]=await Promise.all([page.waitForEvent('download'),page.locator('#saveIssues').click()]);
