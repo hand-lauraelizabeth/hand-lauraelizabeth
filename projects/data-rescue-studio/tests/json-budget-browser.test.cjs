@@ -104,6 +104,11 @@ async function run(name,engine,url){
    return {delta,scrollWidth:root.scrollWidth,clientWidth:root.clientWidth,offenders};
   });
   ok(geometry.delta<=1,name+' 320px reflow '+JSON.stringify(geometry));
+  await page.locator('#file').setInputFiles({name:'narrow.csv',mimeType:'text/csv',buffer:input});
+  await page.waitForFunction(()=>document.querySelector('#status')?.textContent?.includes('Loaded narrow.csv'));
+  ok(await page.locator('#saveJson').isEnabled(),name+' primary file picker remains usable at 320px');
+  await page.locator('#compareFile').setInputFiles({name:'second.csv',mimeType:'text/csv',buffer:input});
+  ok(await page.locator('#compareFile').evaluate(el=>el.files?.length===1),name+' second picker remains usable at 320px');
   eq(errors,[],name+' no uncaught errors');
   eq(outside,[],name+' no off-origin requests');
   await page.close();
