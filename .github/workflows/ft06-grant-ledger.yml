@@ -12,6 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node free-tools/grant-ledger/download-guard.test.mjs
       - run: node free-tools/grant-ledger/core.test.mjs
       - run: node free-tools/grant-ledger/correction-history.test.mjs
       - run: node free-tools/grant-ledger/boundary-regression.test.mjs
