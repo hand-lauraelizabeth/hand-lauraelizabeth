@@ -67,6 +67,17 @@ jobs:
       - run: node resources/tools-directory/ft16-offline-nojs.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-forced-colors.browser.test.mjs ${{ matrix.browser }}
       - run: node resources/tools-directory/ft16-search-help.browser.test.mjs ${{ matrix.browser }}
+      - name: Verify IME composition does not announce intermediate invalid search
+        run: node resources/tools-directory/ft16-ime-composition.browser.test.mjs ${{ matrix.browser }}
+      - name: Confirm missing composition guard is detected
+        if: matrix.browser == 'chromium'
+        shell: bash
+        run: |
+          if node resources/tools-directory/ft16-ime-composition.browser.test.mjs chromium --negative-control; then
+            echo "ERROR: intermediate IME input unexpectedly passed without guard"
+            exit 1
+          fi
+          echo "PASS: premature IME search rendering was rejected"
       - name: Verify preview entries cannot become live links
         run: node resources/tools-directory/ft16-preview-release-gate.browser.test.mjs ${{ matrix.browser }}
       - name: Verify broken preview release gate is detected
