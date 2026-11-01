@@ -69,6 +69,8 @@ def verify_pair(raw_path, receipt_path):
                              object_pairs_hook=_reject_duplicate_json_keys)
         metadata = json.loads(raw.decode('utf-8'),
                               object_pairs_hook=_reject_duplicate_json_keys)
+    except VerificationError:
+        raise  # Preserve precise fail-closed duplicate-key diagnostics.
     except (ValueError, UnicodeError) as exc:
         raise VerificationError('INVALID_JSON') from exc
     if not isinstance(receipt, dict):
