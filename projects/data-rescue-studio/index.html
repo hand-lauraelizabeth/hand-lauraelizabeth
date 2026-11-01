@@ -248,7 +248,7 @@ $('save').addEventListener('click',()=>{
    status(err.message+' No download was started. Use exact JSON instead; machine CSV is not intended for spreadsheet opening.',true,false);
    return;
  }
- if(!startLocalDownload(csv,'data-rescue-reviewed.csv','text/csv;charset=utf-8','CSV'))return;
+ if(!startLocalDownload(new Blob([csv],{type:'text/csv;charset=utf-8'}),'data-rescue-reviewed.csv','CSV'))return;
  status('CSV download started locally for '+active.rows.length+' records. Check your browser downloads; the original input remains loaded.');
 });
 function exportJsonError(error,kind) {
@@ -258,10 +258,10 @@ function exportJsonError(error,kind) {
    ' No download was started; the original input remains loaded.',true,false);
 }
 // Shared browser-local download lifecycle for CSV and JSON.
-function startLocalDownload(contents,name,mime,kind) {
+function startLocalDownload(blob,name,kind) {
  let url=null,anchor=null;
  try {
-  url=URL.createObjectURL(new Blob([contents],{type:mime}));
+  url=URL.createObjectURL(blob);
   anchor=el('a');anchor.href=url;anchor.download=name;document.body.append(anchor);anchor.click();
  } catch {
   if(url){try{URL.revokeObjectURL(url);}catch{}}
@@ -273,7 +273,7 @@ function startLocalDownload(contents,name,mime,kind) {
  return true;
 }
 function startJsonDownload(json,name) {
- return startLocalDownload(json,name,'application/json;charset=utf-8','JSON');
+ return startLocalDownload(new Blob([json],{type:'application/json;charset=utf-8'}),name,'JSON');
 }
 $('saveIssues').addEventListener('click',()=>{
  if(!loaded)return;
