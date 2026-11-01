@@ -78,6 +78,36 @@ try{
       check(json.name==='rfp-evidence.json',name+' JSON downloaded');
       check(parsed.vendors[0].name==='Example\u202E vendor',name+' JSON retains exact unsafe text');
       check(parsed.vendors[0].id==='V-0007'&&parsed.criteria[0].sourceRef==='REQ-0001',name+' exact IDs');
+
+      // Browser-level fault injection: failed downloads must preserve local results,
+      // focus the text alert, clean resources and allow byte-identical retry.
+      await page.evaluate(()=>{window.__ft07Create=URL.createObjectURL;URL.createObjectURL=()=>{throw Error('PRIVATE TEST PATH');};});
+      await page.locator('#download-json').click();
+      check((await page.locator('#error').innerText()).includes('browser could not start this download'),name+' blocked object URL has actionable error');
+      check(!(await page.locator('#error').innerText()).includes('PRIVATE TEST PATH'),name+' browser exception redacted');
+      check(await page.evaluate(()=>document.activeElement?.id)==='error',name+' blocked object URL focuses error');
+      check(await page.locator('#results-section').isVisible(),name+' failed URL retains results');
+      check(await page.locator('a[download]').count()===0,name+' failed URL leaves no link');
+      await page.evaluate(()=>{URL.createObjectURL=window.__ft07Create;});
+      await page.evaluate(()=>{
+        window.__ft07Click=HTMLAnchorElement.prototype.click;
+        window.__ft07Revoke=URL.revokeObjectURL;
+        window.__ft07Revoked=[];
+        URL.revokeObjectURL=function(url){window.__ft07Revoked.push(url);return window.__ft07Revoke.call(URL,url);};
+        HTMLAnchorElement.prototype.click=function(){if(this.hasAttribute('download'))throw Error('PRIVATE CLICK PATH');return window.__ft07Click.call(this);};
+      });
+      await page.locator('#download-coverage').click();
+      check((await page.locator('#error').innerText()).includes('browser could not start this download'),name+' blocked link has actionable error');
+      check(!(await page.locator('#error').innerText()).includes('PRIVATE CLICK PATH'),name+' click exception redacted');
+      check(await page.evaluate(()=>document.activeElement?.id)==='error',name+' blocked link focuses error');
+      check(await page.locator('a[download]').count()===0,name+' blocked link cleaned');
+      check(await page.evaluate(()=>window.__ft07Revoked.length)===1,name+' failed blob URL revoked');
+      check(await page.locator('#results-section').isVisible(),name+' failed click retains results');
+      await page.evaluate(()=>{HTMLAnchorElement.prototype.click=window.__ft07Click;URL.revokeObjectURL=window.__ft07Revoke;});
+      const recovered=await textDownload(page,'#download-json');
+      check(recovered.text===json.text,name+' retry exact JSON bytes preserved');
+      check((await page.locator('#status').innerText()).includes('download started locally'),name+' status does not assert file saved');
+
       await page.locator('#vendor-1-name').fill('Café 供應商');
       await page.locator('button[type=submit]').click();
       const safe=await textDownload(page,'#download-matrix');
