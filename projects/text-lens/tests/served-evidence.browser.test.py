@@ -340,6 +340,10 @@ def main():
                     analysis_b["document_profiles"]["text_b"][0]["analysis"]["counts"]["words"])
             checks += 1
 
+            # Earlier textarea fill schedules a 220ms analysis debounce. Allow
+            # that pre-existing work to finish before asserting import errors;
+            # otherwise it can overwrite #status independently of this import.
+            page.wait_for_timeout(350)
             dispatch_import("a", "invalid.txt", "rejected", size=-1)
             expect(page.locator("#status")).to_contain_text("Import rejected")
             checks += 1
