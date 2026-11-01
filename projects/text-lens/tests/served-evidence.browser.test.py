@@ -351,11 +351,10 @@ def main():
             # Untrusted cross-tool events must not spoof UTF-8 size or display a
             # misleading filename. Rejections retain the last valid source.
             for bad_name, bad_size, reason in [
-                ("reverse\\u202Etxt.md", len(imported_a.encode("utf-8")), "Source name"),
-                ("line\\nname.md", len(imported_a.encode("utf-8")), "Source name"),
+                ("reverse" + chr(0x202E) + "txt.md", len(imported_a.encode("utf-8")), "Source name"),
+                ("line" + chr(10) + "name.md", len(imported_a.encode("utf-8")), "Source name"),
                 ("0001-東京.md", 1, "byte size does not match"),
             ]:
-                bad_name = bad_name.replace("\\\\u202E", chr(0x202E)).replace("\\\\n", "\\n")
                 dispatch_import("a", bad_name, imported_a, size=bad_size)
                 expect(page.locator("#status")).to_contain_text(reason)
                 checks += 1
