@@ -22,8 +22,8 @@ function render(){const ledger=buildHousingLedger({sources,events});
   return ledger;
 }
 function attempt(fn){try{clearError();fn();render();}catch(e){message(`Could not complete action: ${e instanceof Error?e.message:'Invalid input'}. Existing records were kept.`);}}
-$('source-form').addEventListener('submit',e=>{e.preventDefault();const f=e.currentTarget;attempt(()=>{const entry={sourceId:$('source-id').value,kind:$('source-kind').value,label:$('source-label').value,date:$('source-date').value||null};buildHousingLedger({sources:[...sources,entry],events});sources.push(entry);mutationVersion++;f.reset();});});
-$('event-form').addEventListener('submit',e=>{e.preventDefault();const f=e.currentTarget;attempt(()=>{const raw=$('amount').value; if(raw && !/^[0-9]{1,12}$/.test(raw))throw Error('Amount must be whole cents');const amountCents=raw===''?null:Number(raw);const links=$('source-links').value===''?[]:$('source-links').value.split(/\r?\n/u);const entry={eventId:$('event-id').value,date:$('event-date').value,category:$('category').value,description:$('description').value,sourceIds:links,amountCents};buildHousingLedger({sources,events:[...events,entry]});events.push(entry);mutationVersion++;f.reset();});});
+$('source-form').addEventListener('submit',e=>{e.preventDefault();const f=e.currentTarget;attempt(()=>{const entry={sourceId:$('source-id').value,kind:$('source-kind').value,label:$('source-label').value,date:$('source-date').value||null};exportHousingJSON(buildHousingLedger({sources:[...sources,entry],events}));sources.push(entry);mutationVersion++;f.reset();});});
+$('event-form').addEventListener('submit',e=>{e.preventDefault();const f=e.currentTarget;attempt(()=>{const raw=$('amount').value; if(raw && !/^[0-9]{1,12}$/.test(raw))throw Error('Amount must be whole cents');const amountCents=raw===''?null:Number(raw);const links=$('source-links').value===''?[]:$('source-links').value.split(/\r?\n/u);const entry={eventId:$('event-id').value,date:$('event-date').value,category:$('category').value,description:$('description').value,sourceIds:links,amountCents};exportHousingJSON(buildHousingLedger({sources,events:[...events,entry]}));events.push(entry);mutationVersion++;f.reset();});});
 function eventButton(eventId){
   return [...$('events-list').querySelectorAll('button[data-event-id]')].find(b=>b.dataset.eventId===eventId);
 }
@@ -78,6 +78,7 @@ $('event-edit-form').addEventListener('submit',e=>{
       sourceIds:$('edit-source-links').value===''?[]:$('edit-source-links').value.split(/\r?\n/u)
     };
     const ledger=reviseHousingEvent({sources,events},id,changes);
+    exportHousingJSON(ledger); // Validate the exact reopenable byte budget before changing saved records.
     events.splice(0,events.length,...ledger.events);
     mutationVersion++;
     clearError();
@@ -133,9 +134,13 @@ $('download').addEventListener('click',()=>{
     status.textContent=unsaved
       ? 'JSON download started with saved records only; one unsaved event correction was excluded. Save the correction and download again to include it.'
       : 'JSON download started with saved records. Check your browser downloads to confirm the file was saved.';
-  } catch {
+  } catch (e) {
     // Browser download errors must not disclose sensitive record IDs or values.
-    message('Could not start the JSON download. Saved records remain in this browser tab. Check browser download permissions and try again.');
+    if (e instanceof Error && e.message === 'JSON exceeds the 5,000,000-byte reopen limit') {
+      message('Could not start the JSON download: this ledger exceeds the 5,000,000-byte reopen limit. Reduce records before exporting. Saved records remain in this browser tab.');
+    } else {
+      message('Could not start the JSON download. Saved records remain in this browser tab. Check browser download permissions and try again.');
+    }
   } finally {
     link?.remove();
     if(objectUrl!==null){
