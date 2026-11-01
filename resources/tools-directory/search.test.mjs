@@ -134,4 +134,18 @@ same(filterTools(legitimate,{query:'👩\u200d💻'}).map(t=>t.id),['emoji'],'em
 const noHiddenScan=new Proxy([],{get(target,key,receiver){if(key==='filter')throw Error('invalid query scanned catalog');return Reflect.get(target,key,receiver)}});
 same(filterTools(noHiddenScan,{query:'text\u202e lens'}),[],'invisible controls rejected before scanning');
 same(ids('resume'),['resume'],'normal search recovers after invalid control');
+// Incomplete UTF-16 sequences must never be normalized into replacement-character
+// searches. Valid supplementary characters and language-shaping joiners remain usable.
+// WHATWG Infra Strings: https://infra.spec.whatwg.org/#strings
+same(queryIssue('a\uD800'),'malformed-unicode','lone high surrogate rejected');
+same(queryIssue('\uDFFFb'),'malformed-unicode','lone low surrogate rejected');
+same(queryIssue('🧪\uD800'),'malformed-unicode','lone surrogate after valid pair rejected');
+same(queryIssue('a\uD800b'),'malformed-unicode','embedded high surrogate rejected');
+same(queryIssue('a\uDFFFb'),'malformed-unicode','embedded low surrogate rejected');
+same(queryIssue('🧪'),null,'valid surrogate pair accepted');
+same(queryIssue('👩\u200d💻'),null,'valid joined emoji remains accepted');
+same(queryIssue('x'.repeat(257)+'\uD800'),'too-long','length gate remains first');
+same(ids('resume\uD800'),[],'malformed query cannot match a valid prefix');
+same(filterTools(noHiddenScan,{query:'resume\uD800'}),[],'malformed query cannot scan catalog');
+same(ids('resume'),['resume'],'valid search recovers after malformed input');
 console.log('FT-15 invisible-query controls: '+checks+'/'+checks+' PASS');
