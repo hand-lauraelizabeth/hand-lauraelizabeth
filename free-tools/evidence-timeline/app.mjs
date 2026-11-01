@@ -1,4 +1,5 @@
 import {summary} from './core.mjs';
+import {startLocalDownload} from './download-guard.mjs';
 import {csvExportRisk,exportSafeEvidenceCSV} from './safe-export.mjs';
 import {normalizeExact as normalizeEvidence} from './exact-core.mjs';
 import {readExactJSON} from './json-import.mjs';
@@ -154,9 +155,22 @@ form.addEventListener('submit',event=>{
   try{records=normalizeEvidence([...records,data]);clearStatusUndo();form.reset();$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();}
   catch(e){const message=String(e.message||e);const field=/source ID/i.test(message)?'sourceId':/date/i.test(message)?'date':/claim/i.test(message)?'claim':null;showError(message,field);}
 });
-function download(filename,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
-$('csv').addEventListener('click',()=>download('evidence-timeline-spreadsheet.csv',exportSafeEvidenceCSV(records),'text/csv;charset=utf-8'));
-$('json').addEventListener('click',()=>download('evidence-timeline-exact.json',JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n','application/json'));
+function exportRecords(kind) {
+  const failure=$('export-error'), status=$('export-status');
+  failure.hidden=true;failure.textContent='';status.textContent='';
+  try {
+    const csv=kind==='csv';
+    const content=csv?exportSafeEvidenceCSV(records):JSON.stringify({schema:'evidence-timeline-v1',records},null,2)+'\n';
+    startLocalDownload({filename:csv?'evidence-timeline-spreadsheet.csv':'evidence-timeline-exact.json',
+      content,type:csv?'text/csv;charset=utf-8':'application/json'});
+    status.textContent=(csv?'CSV':'Exact JSON')+' download started. Check your browser downloads; saving is not guaranteed.';
+  } catch {
+    failure.textContent=(kind==='csv'?'CSV':'Exact JSON')+' download could not be started. Your records are unchanged. Try again or use the other export when available.';
+    failure.hidden=false;failure.focus();
+  }
+}
+$('csv').addEventListener('click',()=>exportRecords('csv'));
+$('json').addEventListener('click',()=>exportRecords('json'));
 $('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];stopGroupEdit();clearStatusUndo();$('review-filter').value='all';$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();}});
 
 const timeline=document.querySelector('[aria-labelledby="timeline-heading"]');
