@@ -24,6 +24,18 @@ const {pathToFileURL}=require('node:url'),{chromium}=require('playwright');
    await upload(page,'#file','misnamed.csv.exe','ID\n1');
    await status('.csv or .tsv');
    ok(await page.locator('#save').isDisabled(),html+': disguised extension fails closed');
+   // Untrusted filenames can contain embedded newlines or bidi overrides.
+   // Neither may be echoed as an apparently normal source in evidence/status.
+   for(const [label,name] of [
+    ['line break','report\nprivate.csv'],
+    ['bidi override','report\u202Etxt.csv'],
+    ['bidi isolate','report\u2066private.csv']
+   ]){
+    await upload(page,'#file',name,'ID\n1');
+    await status('unsupported control or direction');
+    ok(await page.locator('#save').isDisabled(),html+': '+label+' filename blocked before parsing');
+    ok(await page.locator('#file').getAttribute('aria-invalid')==='true',html+': '+label+' upload error announced');
+   }
    await upload(page,'#file','oversize.csv',oversized);
    await status('5 MB');
    ok(await page.locator('#save').isDisabled(),html+': 5 MB over-limit blocked');
@@ -38,6 +50,10 @@ const {pathToFileURL}=require('node:url'),{chromium}=require('playwright');
    const csv=fs.readFileSync(await download.path(),'utf8');
    ok(csv.includes('"\t=1+2"')&&csv.includes('"\t+2"')&&csv.includes('"\t@SUM(A1)"')&&csv.includes('"\t -4"'),html+': local CSV spreadsheet precaution prefixes formula-like rows');
    ok(csv.includes('\u00e9'),html+': Unicode characters preserved on export');
+   await upload(page,'#compareFile','misleading\u202Etxt.csv','Code,Value\n1,ok');
+   await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent.includes('unsupported control or direction'));
+   ok(await page.locator('#compareRun').isDisabled(),html+': second-file bidi metadata rejected');
+   ok(await page.locator('#compareFile').getAttribute('aria-invalid')==='true',html+': second-file error linked to input');
    await upload(page,'#compareFile','right.csv',Buffer.from([0x49,0x44,0x0a,0xc3,0x28]));
    await page.waitForFunction(()=>document.querySelector('#compareStatus').textContent.includes('Invalid UTF-8'));
    ok(await page.locator('#compareRun').isDisabled(),html+': secondary invalid UTF-8 blocks reconciliation');
