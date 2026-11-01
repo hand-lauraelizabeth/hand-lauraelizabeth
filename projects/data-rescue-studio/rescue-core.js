@@ -447,5 +447,5 @@
     }), 'Issue index');
   }
 
-  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, findSourceRecordOffset, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, exportIssueIndexJson, MAX_BYTES, MAX_ROWS, MAX_EVIDENCE_BYTES};
+  return {parseDelimited, summarize, withoutExactDuplicates, inspectSourceRecords, findSourceRecordOffset, formulaRisk, spreadsheetExportRisk, exportCsv, exportCsvDownload, exportEvidenceJson, exportIssueIndexJson, requireJsonBudget, MAX_BYTES, MAX_ROWS, MAX_EVIDENCE_BYTES};
 });
