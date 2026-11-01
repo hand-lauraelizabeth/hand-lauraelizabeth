@@ -315,4 +315,42 @@ class TestStrictTimestampPrecision(unittest.TestCase):
             self.assertEqual(result["quality"]["valid_records"], 1)
             self.assertNotIn("strict_reporting_month", result["rules"])
 
+class TestProgrammaticPrivacyThreshold(unittest.TestCase):
+    """Synthetic fixtures: invalid API thresholds must not disable suppression."""
+
+    def test_invalid_min_cell_rejected_without_replacing_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "result.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10T09:00:00",
+                                 "", "DOT", "Synthetic", "Queens", "Open"])
+            for invalid in (0, -1, False, True, 1.5, "10", None):
+                with self.subTest(min_cell=repr(invalid)):
+                    output.write_text("existing output", encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "positive integer"):
+                        ingest(source, output, as_of="2026-10-25",
+                               min_cell=invalid)
+                    self.assertEqual(output.read_text(encoding="utf-8"),
+                                     "existing output")
+
+    def test_valid_positive_thresholds_keep_existing_semantics(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "result.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10T09:00:00",
+                                 "", "DOT", "Synthetic", "Queens", "Open"])
+            withheld = ingest(source, output, as_of="2026-10-25",
+                              min_cell=10)
+            self.assertEqual(withheld["aggregates"], [])
+            self.assertEqual(withheld["quality"]["small_cells_suppressed"], 1)
+            # A one-record threshold is useful only for synthetic private tests.
+            private_fixture = ingest(source, output, as_of="2026-10-25",
+                                     min_cell=1)
+            self.assertEqual(private_fixture["aggregates"][0]["requests"], 1)
+
+
 if __name__ == "__main__": unittest.main()
