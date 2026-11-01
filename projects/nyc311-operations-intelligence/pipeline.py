@@ -24,6 +24,14 @@ REQUIRED = {"unique_key", "created_date", "closed_date", "agency", "complaint_ty
 BOROUGHS = {"BRONX", "BROOKLYN", "MANHATTAN", "QUEENS", "STATEN ISLAND"}
 SOURCE_URL = "https://data.cityofnewyork.us/d/erm2-nwe9"
 
+# Strict monthly receipts require an actual timestamp, not a date-only value.
+# Python datetime.fromisoformat also accepts YYYY-MM-DD as midnight; allowing
+# that silently fabricates time precision for an official timestamp field.
+FULL_TIMESTAMP = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?")
+
+def has_full_timestamp(value):
+    return bool(FULL_TIMESTAMP.fullmatch((value or "").strip()))
+
 def dateparse(s):
     s = (s or "").strip()
     if not s: return None
@@ -118,6 +126,14 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None,
                         normalize(row["closed_date"]) and finished is None):
                     raise ValueError("Invalid closed_date in required month cohort")
                 if reporting_month is not None:
+                    # A date-only CSV value is parseable as midnight by Python,
+                    # but does not supply the timestamp precision promised by
+                    # the publisher. Reject it in strict-cohort mode.
+                    if not has_full_timestamp(row["created_date"]):
+                        raise ValueError("Invalid created_date timestamp precision")
+                    if (normalize(row["closed_date"]) and
+                            not has_full_timestamp(row["closed_date"])):
+                        raise ValueError("Invalid closed_date timestamp precision")
                     # Compare New York calendar dates, not UTC date strings.
                     # Never silently skip invalid, out-of-cohort or future rows.
                     if created is None:
