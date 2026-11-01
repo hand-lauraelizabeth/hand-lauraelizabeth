@@ -29,3 +29,9 @@ The standalone file is `text-lens.html`.
 Analysis-table CSV and JSON downloads explicitly label non-finite calculated values as `not available (non-finite metric)` rather than showing `NaN`/`Infinity` in CSV or silently converting them to `null` in JSON. Finite numeric scores, including negative values and zero, remain numeric; original source names and identifiers remain unchanged. A missing score is not zero. Table CSV refuses formula-like or control-character text; use the exact table JSON for such source values. These local exports may contain sensitive passages.
 
 Table CSV/JSON downloads report when a browser download was **started**, not when the file was saved. If a download is blocked, Text Lens reports a recoverable error, retains local analysis and exact source identifiers, and cleans up temporary browser resources. Check the browser downloads list to confirm completion.
+
+## Local source identity
+
+Local file names and cross-tool source labels may contain ordinary Unicode, including accents, CJK characters, and emoji. Text Lens rejects source labels with control characters, line breaks, Unicode directional formatting marks, or invalid surrogate sequences rather than displaying a misleading filename. The text and exact accepted label are not normalized.
+
+A local `text-lens:import` integration must supply a nonempty UTF-8 text string, its **actual UTF-8 byte count** as `size`, and a display-safe `name`. UTF-16 character counts are not UTF-8 byte counts. A mismatched byte count, malformed Unicode, or deceptive label produces a text error without replacing the previously analyzed source. This consistency check does not prove that the supplied text came from a particular external file; verify file identity separately when it matters.
