@@ -3,8 +3,13 @@ import {TOOLS,STATUS_LABELS} from './catalog.mjs';
 // was skipped by an embedding page or future integration.
 // WHATWG URL Standard (2026-10-19): https://url.spec.whatwg.org/
 // OWASP URL validation: https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
+// Product-defined limits bound public metadata before parsing, regex matching, or rendering.
+// OWASP Input Validation: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+export const MAX_CATALOG_ENTRIES=200;
+export const MAX_CATALOG_ID_LENGTH=64;
+export const MAX_CATALOG_URL_LENGTH=2048;
 export function approvedLiveURL(t){
- if(!t||t.status!=='live'||typeof t.url!=='string')return false;
+ if(!t||t.status!=='live'||typeof t.url!=='string'||t.url.length>MAX_CATALOG_URL_LENGTH)return false;
  try{
   const u=new URL(t.url);
   return u.origin==='https://www.lauraelizabethhand.com'&&!u.username&&!u.password&&!u.search&&!u.hash&&
@@ -24,9 +29,12 @@ function catalogTooLong(value,limit){
 }
 export function validateCatalog(rows=TOOLS){
  if(!Array.isArray(rows))throw Error('Catalog must be an array');
+ // Reject oversized catalogs before inspecting entries or building a search index.
+ if(rows.length>MAX_CATALOG_ENTRIES)throw Error('Too many catalog entries');
  const ids=new Set();
  for(const t of rows){
-  if(!t||typeof t!=='object'||typeof t.id!=='string'||!/^[a-z][a-z0-9-]*$/.test(t.id)||ids.has(t.id))throw Error('Invalid or duplicate ID');
+  // Bound IDs before the allowlist regular expression; do not truncate provenance keys.
+  if(!t||typeof t!=='object'||typeof t.id!=='string'||t.id.length>MAX_CATALOG_ID_LENGTH||!/^[a-z][a-z0-9-]*$/.test(t.id)||ids.has(t.id))throw Error('Invalid or duplicate ID');
   ids.add(t.id);
   for(const key of ['title','category','description']){
    if(typeof t[key]!=='string')throw Error('Missing '+key);
