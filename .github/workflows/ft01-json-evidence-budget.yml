@@ -1,5 +1,10 @@
 name: FT-01 bounded JSON evidence and privacy index
-on: [pull_request, workflow_dispatch]
+on:
+  pull_request:
+    paths:
+      - 'projects/data-rescue-studio/**'
+      - '.github/workflows/ft01-json-evidence-budget.yml'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
