@@ -102,7 +102,7 @@
 <label><input id="sheetSafe" type="checkbox" checked> Add a spreadsheet-oriented formula precaution</label>
 <p class="muted">Spreadsheet-oriented export prefixes potentially dangerous formula-like cells with a tab and includes a UTF-8 byte-order mark for Excel compatibility. Ambiguous line-break formula prefixes, direction controls and unsupported controls block spreadsheet-oriented CSV, with a source record and column message; exact JSON remains available. The tab changes those cell values and is not universally safe across spreadsheet programs. Machine-readable export omits both the tab precaution and byte-order mark. Turn it off for machine-readable CSV and review untrusted data before opening it in spreadsheet software.</p>
 <p class="muted">Generated CSV downloads are limited to 15 MB of UTF-8 data, including quoting, record separators and the spreadsheet byte-order mark. If an export exceeds the limit, upload a smaller source file or try removing exact duplicates. The original file is not changed.</p>
-<p class="muted">For exact decoded cell values and logical source-record positions, export JSON instead. JSON does not add CSV formula prefixes; it is not a byte-for-byte copy or proof of authenticity. For uploaded files, a local SHA-256 fingerprint of the original bytes is included when browser cryptography is available; it can check byte equality, not establish who created the file. If cryptography is unavailable, no fingerprint is claimed. Both downloads contain your data and should be stored privately.</p>
+<p class="muted">Exact evidence JSON is limited to 32 MB of UTF-8 output; a larger export is blocked with a text error, without changing the original input. The value-free issue index can still be exported independently. For exact decoded cell values and logical source-record positions, export JSON instead. JSON does not add CSV formula prefixes; it is not a byte-for-byte copy or proof of authenticity. For uploaded files, a local SHA-256 fingerprint of the original bytes is included when browser cryptography is available; it can check byte equality, not establish who created the file. If cryptography is unavailable, no fingerprint is claimed. Both downloads contain your data and should be stored privately.</p>
 <p class="muted">The separate issue index JSON lists original source-record numbers, blank column positions and exact-duplicate links for all findings, not only the visible page. By default it excludes cell values, column labels, the source filename and its fingerprint. Select the optional checkbox to include the filename and available SHA-256 fingerprint for traceability; these can identify the source. Even the default index may reveal sensitive patterns. No duplicate is automatically deleted.</p>
 <label><input id="issueIncludeSource" type="checkbox" disabled> Include source filename and available SHA-256 in issue index (potentially sensitive)</label>
 <div class="actions"><button id="save" disabled>Export CSV</button><button class="secondary" id="saveJson" disabled>Export exact JSON</button><button class="secondary" id="saveIssues" disabled>Export issue index JSON (no cell values)</button></div>
@@ -114,13 +114,13 @@
 const $=id=>document.getElementById(id), lib=window.DataRescue;
 let loaded=null, loadedProvenance=null, loadedSourceName='', loadEpoch=0, previewOffset=0, jumpTarget=null;
 const PREVIEW_PAGE_SIZE=20;
-const status=(message,error=false)=>{
+const status=(message,error=false,inputError=true)=>{
  const messageNode=$('status'),fileInput=$('file');
  messageNode.textContent=message;
  messageNode.className=error?'error':'';
  messageNode.setAttribute('role',error?'alert':'status');
  messageNode.setAttribute('aria-live',error?'assertive':'polite');
- if(error){fileInput.setAttribute('aria-invalid','true');messageNode.focus();}
+ if(error){if(inputError)fileInput.setAttribute('aria-invalid','true');else fileInput.removeAttribute('aria-invalid');messageNode.focus();}
  else fileInput.removeAttribute('aria-invalid');
 };
 function clear(preserveFile=false){
@@ -253,23 +253,43 @@ $('save').addEventListener('click',()=>{
  const a=el('a');a.href=url;a.download='data-rescue-reviewed.csv';document.body.append(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1000);status('CSV exported locally: '+active.rows.length+' records.');
 });
+function exportJsonError(error,kind) {
+ const overLimit=error && typeof error.message==='string' && /JSON exceeds the 32 MB output limit/.test(error.message);
+ status((overLimit ? kind+' JSON exceeds the 32 MB output limit. Use a smaller source file.' :
+   'Could not prepare '+kind.toLowerCase()+' JSON. Check the source and retry.')+
+   ' No download was started; the original input remains loaded.',true,false);
+}
+function startJsonDownload(json,name) {
+ let url=null,anchor=null;
+ try {
+  url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'}));
+  anchor=el('a');anchor.href=url;anchor.download=name;document.body.append(anchor);anchor.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  return true;
+ } catch {
+  if(url)URL.revokeObjectURL(url);
+  status('JSON download could not be started. The original input remains loaded; retry or choose a smaller file.',true,false);
+  return false;
+ } finally {if(anchor)anchor.remove();}
+}
 $('saveIssues').addEventListener('click',()=>{
  if(!loaded)return;
  const includeSource=$('issueIncludeSource').checked;
- const json=lib.exportIssueIndexJson(loaded,loadedSourceName,loadedProvenance,includeSource);
- const count=JSON.parse(json).counts.issueRecords;
- const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'}));
- const a=el('a');a.href=url;a.download='data-rescue-issue-index.json';document.body.append(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1000);
+ let json,count;
+ try {
+  json=lib.exportIssueIndexJson(loaded,loadedSourceName,loadedProvenance,includeSource);
+  count=JSON.parse(json).counts.issueRecords;
+ } catch(error){exportJsonError(error,'Issue index');return;}
+ if(!startJsonDownload(json,'data-rescue-issue-index.json'))return;
  status('Issue index JSON exported locally: '+count+' source records with blank cells or exact duplicates. No cell values included. '+(includeSource?'Source filename and available fingerprint included.':'Source filename and fingerprint omitted.'));
 });
 $('saveJson').addEventListener('click',()=>{
  if(!loaded)return;
  // JSON always includes all original parsed records, even if CSV deduplication is selected.
- const json=lib.exportEvidenceJson(loaded,loadedSourceName,loadedProvenance);
- const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'}));
- const a=el('a');a.href=url;a.download='data-rescue-evidence.json';document.body.append(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1000);
+ let json;
+ try {json=lib.exportEvidenceJson(loaded,loadedSourceName,loadedProvenance);}
+ catch(error){exportJsonError(error,'Evidence');return;}
+ if(!startJsonDownload(json,'data-rescue-evidence.json'))return;
  status('Exact decoded JSON exported locally: '+loaded.rows.length+' source records. No rows were removed. '+(loadedProvenance?'Original-byte SHA-256 included.':'No original-byte fingerprint available.'));
 });
 })();
