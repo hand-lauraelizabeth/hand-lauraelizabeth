@@ -142,6 +142,42 @@ try{
   await check(async()=>assert.deepEqual(recovered.events.find(e=>e.eventId==='E-001').sourceIds,['000-Δ/１']));
   await check(async()=>assert.match(await page.locator('#status').innerText(),/JSON download started with saved records/));
   await check(async()=>assert.equal(await page.locator('#error').isHidden(),true));
+  // Inject a synthetic oversized Blob measurement to exercise atomic UI recovery
+  // without storing personal data or requiring a multi-megabyte browser fixture.
+  const blockExportBudget=async()=>page.evaluate(()=>{
+    const NativeBlob=window.Blob;
+    window.Blob=class extends NativeBlob { get size(){return super.size+5_000_001;} };
+    window.__restoreHousingBlob=()=>{window.Blob=NativeBlob;delete window.__restoreHousingBlob;};
+  });
+  const restoreExportBudget=async()=>page.evaluate(()=>window.__restoreHousingBlob());
+  await page.locator('#source-id').fill('source-new');
+  await blockExportBudget();
+  await page.locator('#source-form button').click();
+  await check(async()=>assert.equal(await page.evaluate(()=>document.activeElement.id),'error'));
+  await check(async()=>assert.match(await page.locator('#error').innerText(),/5,000,000-byte reopen limit.*Existing records were kept/));
+  await check(async()=>assert.doesNotMatch(await page.locator('#sources-list').innerText(),/source-new/));
+  await restoreExportBudget();
+  await page.locator('#source-form button').click();
+  await check(async()=>assert.match(await page.locator('#sources-list').innerText(),/source-new/));
+  await page.locator('#event-id').fill('E-003');
+  await page.locator('#event-date').fill('2026-10-05');
+  await blockExportBudget();
+  await page.locator('#event-form button').click();
+  await check(async()=>assert.equal(await page.evaluate(()=>document.activeElement.id),'error'));
+  await check(async()=>assert.doesNotMatch(await page.locator('#events-list').innerText(),/E-003/));
+  await restoreExportBudget();
+  await page.locator('#event-form button').click();
+  await check(async()=>assert.match(await page.locator('#events-list').innerText(),/E-003/));
+  await page.getByRole('button',{name:'Edit event E-001'}).click();
+  await page.locator('#edit-description').fill('Synthetic corrected after limit retry');
+  await blockExportBudget();
+  await page.getByRole('button',{name:'Save event correction'}).click();
+  await check(async()=>assert.equal(await page.evaluate(()=>document.activeElement.id),'error'));
+  await check(async()=>assert.doesNotMatch(await page.locator('#events-list').innerText(),/corrected after limit retry/));
+  await restoreExportBudget();
+  await page.getByRole('button',{name:'Save event correction'}).click();
+  await check(async()=>assert.match(await page.locator('#events-list').innerText(),/corrected after limit retry/));
+  await check(async()=>assert.equal(await page.locator('#error').isHidden(),true));
   await check(async()=>assert.equal(await page.locator('#download').getAttribute('aria-describedby'),'download-help'));
   await check(async()=>assert.equal(await page.locator('img').count(),0));
   const widths=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth}));
