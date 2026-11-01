@@ -23,3 +23,5 @@ Additional official references (reviewed October 14, 2026):
 - [W3C WCAG 2.2, Label in Name](https://www.w3.org/WAI/WCAG22/Understanding/label-in-name)
 
 The checker also reports when two different elements explicitly own the same uniquely resolved target through `aria-owns`, or when an element owns itself. Duplicate IDs, unresolved targets and repeated tokens retain their separate findings. These are static review prompts; complex ownership cycles and assistive-technology behavior still require manual review. Source: [WAI-ARIA 1.2, `aria-owns`](https://www.w3.org/TR/wai-aria-1.2/#aria-owns) (reviewed October 31, 2026).
+
+The preflight also flags circular chains of uniquely resolved explicit `aria-owns` relationships (including two- and three-element cycles). Acyclic chains and `aria-labelledby` references are not flagged as ownership cycles. This is a static review prompt, not a statement about a specific screen reader. Source: [WAI-ARIA 1.2, author-error checking](https://www.w3.org/TR/wai-aria-1.2/#authorError) (reviewed November 1, 2026).

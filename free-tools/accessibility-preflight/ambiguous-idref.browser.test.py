@@ -93,6 +93,15 @@ def main():
         ('<span id="target">T</span><div id="a" aria-owns="target"></div>', set()),
         ('<div id="owner" aria-owns="owner"></div>', {"self-owned-element"}),
         ('<div id="owner" aria-labelledby="owner"></div>', set()),
+        # Two- and three-element circular ownership; acyclic references remain valid.
+        ('<div id="a" aria-owns="b"></div><div id="b" aria-owns="a"></div>',
+         {"circular-aria-ownership"}),
+        ('<div id="a" aria-owns="b"></div><div id="b" aria-owns="c"></div>'
+         '<div id="c" aria-owns="a"></div>', {"circular-aria-ownership"}),
+        ('<div id="a" aria-owns="b"></div><div id="b" aria-owns="c"></div>'
+         '<div id="c"></div>', set()),
+        ('<div id="a" aria-labelledby="b"></div><div id="b" aria-labelledby="a"></div>',
+         set()),
     ]
     with served() as origin, sync_playwright() as pw:
         browser = getattr(pw, engine).launch(headless=True)
@@ -116,7 +125,7 @@ def main():
                 selected = rules & {"ambiguous-id-reference", "unresolved-id-reference",
                                     "ambiguous-label-target", "ambiguous-table-header",
                                     "single-id-reference", "multiple-explicit-owners",
-                                    "self-owned-element"}
+                                    "self-owned-element", "circular-aria-ownership"}
                 assert selected == expected, (markup, selected, expected)
                 assert "preliminary checks" in page.locator("#summary").inner_text()
                 checks += 2
