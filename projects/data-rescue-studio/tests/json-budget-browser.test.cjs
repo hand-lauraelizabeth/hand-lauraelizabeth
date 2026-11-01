@@ -122,6 +122,24 @@ async function run(name,engine,url){
   const [compareCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#compareExport').click()]);
   ok(readFileSync(await compareCsv.path(),'utf8').startsWith('\uFEFF'),name+' comparison CSV retry BOM');
   ok((await page.locator('#compareStatus').innerText()).includes('download started'),name+' comparison CSV truthful status');
+  // FT-03 exact comparison JSON must honor the shared 32 MB UTF-8 cap.
+  // A synthetic fault checks that an over-budget export cannot start a download
+  // or invalidate either uploaded source; the value-free index remains usable.
+  await page.evaluate(()=>{
+   window.__compareBudget=window.DataRescue.requireJsonBudget;
+   window.DataRescue.requireJsonBudget=()=>{throw Error('Comparison audit JSON exceeds the 32 MB output limit.');};
+  });
+  const compareBefore=downloads;
+  await page.locator('#compareJson').click();
+  ok((await page.locator('#compareStatus').innerText()).includes('32 MB output limit'),name+' comparison JSON budget error');
+  eq(await page.locator('#compareStatus').getAttribute('role'),'alert',name+' comparison JSON budget alert');
+  ok(await page.locator('#compareStatus').evaluate(el=>el===document.activeElement),name+' comparison JSON budget focused');
+  eq(await page.locator('#compareFile').getAttribute('aria-invalid'),null,name+' valid comparison input not invalidated by budget');
+  ok(await page.locator('#compareJson').isEnabled(),name+' comparison JSON retry enabled');
+  ok(await page.locator('#compareIndex').isEnabled(),name+' value-free index available after JSON budget');
+  await page.waitForTimeout(100);
+  eq(downloads,compareBefore,name+' over-budget comparison starts no download');
+  await page.evaluate(()=>{window.DataRescue.requireJsonBudget=window.__compareBudget;});
   const [compareJson]=await Promise.all([page.waitForEvent('download'),page.locator('#compareJson').click()]);
   const comparisonAudit=JSON.parse(readFileSync(await compareJson.path(),'utf8'));
   eq(comparisonAudit.source.firstKey,'ID',name+' comparison JSON exact first key');
