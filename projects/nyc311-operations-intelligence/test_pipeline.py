@@ -223,4 +223,46 @@ class TestStrictReportingMonthClosure(unittest.TestCase):
             self.assertEqual(result["quality"]["rows_read"], 1)
             self.assertNotIn("strict_reporting_month", result["rules"])
 
+class TestStrictMalformedClosureDate(unittest.TestCase):
+    """Synthetic fixtures: invalid nonempty closure dates must fail closed."""
+
+    def test_strict_cohort_rejects_malformed_nonempty_closure(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "output.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10T09:00:00.000",
+                                 "not-a-timestamp", "DOT", "Synthetic",
+                                 "Queens", "Closed"])
+            sha = hashlib.sha256(source.read_bytes()).hexdigest()
+            output.write_text("preserve original", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Invalid closed_date"):
+                ingest(source, output, as_of="2026-10-25",
+                       reporting_month="2026-09", expected_sha256=sha,
+                       expected_rows=1, min_cell=1)
+            self.assertEqual(output.read_text(encoding="utf-8"), "preserve original")
+
+    def test_strict_cohort_accepts_valid_and_blank_closure_dates(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "source.csv", Path(tmp) / "output.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10T09:00:00.000",
+                                 "2026-09-11T09:00:00.000", "DOT",
+                                 "Synthetic", "Queens", "Closed"])
+                writer.writerow(["fixture-2", "2026-09-10T09:00:00.000",
+                                 "", "DOT", "Synthetic", "Queens", "Open"])
+            sha = hashlib.sha256(source.read_bytes()).hexdigest()
+            result = ingest(source, output, as_of="2026-10-25",
+                            reporting_month="2026-09", expected_sha256=sha,
+                            expected_rows=2, min_cell=1)
+            self.assertEqual(result["quality"]["unique_keys_verified"], 2)
+            self.assertEqual(result["aggregates"][0]["requests"], 2)
+            self.assertEqual(result["aggregates"][0]["closed_with_valid_interval"], 1)
+
+
 if __name__ == "__main__": unittest.main()
