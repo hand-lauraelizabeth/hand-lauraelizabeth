@@ -54,6 +54,28 @@ export function checkRelationships(doc, add) {
       }
     }
   }
+  // An explicit ownership graph must not contain circular parent/child paths.
+  // Follow each uniquely identified target's single explicit owner; this is
+  // linear in the number of resolved ownership edges, even for long chains.
+  const completedOwners = new Set();
+  for (const ref of explicitOwners.keys()) {
+    let node = byId.get(ref);
+    const chain = [];
+    const inChain = new Set();
+    while (node && idCounts.get(node.id) === 1 &&
+           explicitOwners.has(node.id) && !completedOwners.has(node)) {
+      if (inChain.has(node)) {
+        add('circular-aria-ownership', 'review', node,
+          'aria-owns creates a circular ownership relationship; review the referenced elements and their parent/child order.',
+          'WAI-ARIA 1.2 author error checking');
+        break;
+      }
+      inChain.add(node);
+      chain.push(node);
+      node = explicitOwners.get(node.id);
+    }
+    for (const member of chain) completedOwners.add(member);
+  }
   for (const label of doc.querySelectorAll('label[for]')) {
     const target = byId.get(label.getAttribute('for'));
     if (!target || !LABELABLE.has(target.tagName) || (target.tagName === 'INPUT' && target.type === 'hidden')) {
