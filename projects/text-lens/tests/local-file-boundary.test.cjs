@@ -25,7 +25,7 @@ function harness(withExternalImport=false){
   root:{addEventListener(type,handler){handlers[type]=handler}},
   MAX_CHARS:400000,sourceDocs:{a:[],b:[]},sourceFiles:{a:[],b:[]},
   docSeq:0,pendingCorpusConfig:null,run(){runs++},applyCorpusSetup(){runs++},
-  $(id){return els[id]},TextDecoder,Uint8Array,ArrayBuffer,Number,String,Error
+  $(id){return els[id]},TextDecoder,TextEncoder,Uint8Array,ArrayBuffer,Number,String,Error
  };
  const eventStart=html.indexOf("root.addEventListener('text-lens:import',e=>{");
  const eventEnd=html.indexOf('});run();})();',eventStart);
@@ -153,10 +153,18 @@ test('external import rejects malformed or oversized event data without altering
   {text:'x'.repeat(400001)},
   {text:'x\u0000y'},
   {text:null},
+  {text:''},
+  {text:'bad\uD800'},
   {name:''},
+  {name:'reverse\u202Etxt.md'},
+  {name:'line\nname.md'},
+  {name:'isolate\u2066.txt'},
+  {name:'bad\uD800.md'},
   {name:'x'.repeat(256)},
   {name:'bad\u0000.txt'},
   {size:-1},
+  {size:0},
+  {size:2},
   {size:5000001},
   {size:NaN},
   {lastModified:-1},
@@ -180,6 +188,41 @@ test('external import rejects malformed or oversized event data without altering
   assert.equal(h.els.status.focused,true);
  }
 });
+test('local file source labels reject directional controls without replacing evidence',async()=>{
+ for(const name of ['reversal\\u202Etxt.md','newline\\nname.md','isolate\\u2066.txt','bad\\uD800.md']){
+  const actual=name.replace(/\\\\u202E/g,'\\u202E').replace(/\\\\n/g,'\\n').replace(/\\\\u2066/g,'\\u2066').replace(/\\\\uD800/g,'\\uD800');
+  const h=harness();h.els.a.value='keep';
+  const input={files:[file(actual,'safe')],value:'chosen'};
+  await h.api.loadFiles(input,'a','fileMetaA','a');
+  assert.equal(h.els.a.value,'keep');
+  assert.equal(h.api.getDocSeq(),0);
+  assert.equal(h.runs,0);
+  assert.match(h.els.status.textContent,/Invalid source filename/);
+  assert.equal(h.els.status.focused,true);
+  assert.equal(input.value,'');
+ }
+});
+
+test('cross-component imports require truthful UTF-8 bytes and preserve exact Unicode',()=>{
+ const h=harness(true);
+ const dispatch=(text,size,name='0007-Café-東京.md')=>
+  h.handlers['text-lens:import']({detail:{key:'a',name,size,text}});
+ const text='Café 😀 東京';
+ dispatch(text,1);
+ assert.equal(h.api.getDocSeq(),0);
+ assert.equal(h.runs,0);
+ assert.match(h.els.status.textContent,/byte size does not match/);
+ dispatch('bad\\uD800',Buffer.byteLength('bad\\uD800','utf8'));
+ assert.equal(h.api.getDocSeq(),0);
+ assert.match(h.els.status.textContent,/invalid Unicode surrogate/);
+ dispatch(text,Buffer.byteLength(text,'utf8'));
+ assert.equal(h.api.getDocSeq(),1);
+ assert.equal(h.runs,1);
+ assert.equal(h.env.sourceDocs.a[0].name,'0007-Café-東京.md');
+ assert.equal(h.env.sourceDocs.a[0].size,Buffer.byteLength(text,'utf8'));
+ assert.equal(h.els.a.value,text);
+});
+
 test('rejected external event does not cancel an in-flight valid local read',async()=>{
  const h=harness(true);let resolve;
  const pending=h.api.loadFiles({files:[file('valid.txt','yes',{arrayBuffer:()=>new Promise(r=>resolve=r)})],value:'valid'},'a','fileMetaA','a');
@@ -194,7 +237,7 @@ test('valid external event recovers after rejection with Unicode source ID intac
  const h=harness(true);
  const dispatch=detail=>h.handlers['text-lens:import']({detail});
  dispatch({key:'a',name:'bad',size:5000001,text:'bad'});
- dispatch({key:'a',name:'0001-東京.md',size:4,lastModified:0,text:'Café'});
+ dispatch({key:'a',name:'0001-東京.md',size:5,lastModified:0,text:'Café'});
  assert.deepEqual(Array.from(h.env.sourceDocs.a,x=>x.name),['0001-東京.md']);
  assert.equal(h.env.sourceDocs.a[0].text,'Café');
  assert.equal(h.api.fileLoadRevision.a,1);
