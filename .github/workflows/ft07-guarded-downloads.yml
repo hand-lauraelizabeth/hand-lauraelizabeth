@@ -1,0 +1,34 @@
+name: FT-07 guarded browser downloads
+on:
+  push:
+    branches:
+      - 'review/ft07-guarded-downloads-*'
+    paths:
+      - 'free-tools/rfp-evaluation/**'
+      - '.github/workflows/ft07-guarded-downloads.yml'
+  pull_request:
+    paths:
+      - 'free-tools/rfp-evaluation/**'
+      - '.github/workflows/ft07-guarded-downloads.yml'
+permissions:
+  contents: read
+jobs:
+  download-unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test free-tools/rfp-evaluation/download-guard.test.mjs
+  served-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.55.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: node free-tools/rfp-evaluation/browser-bidi-regression.mjs

@@ -4,6 +4,7 @@ import {readWorkspaceFile} from './reopen.mjs';
 import {describeCoverage,summarizeCriterionCoverage,summarizeVendorCoverage} from './coverage-summary.mjs';
 import {createReplacementGate} from './replacement-gate.mjs';
 import {createResetGate} from './reset-gate.mjs';
+import {startLocalDownload} from './download-guard.mjs';
 const $=id=>document.getElementById(id);
 let current=null;
 let importSequence=0;
@@ -81,8 +82,8 @@ function evaluate(event){event.preventDefault();cancelPendingImport();invalidate
 function download(kind){if(!current){showError('Evaluate proposals before exporting.');return;}try{
  const data=kind==='json'?exportMatrixJSON(current):kind==='matrix'?exportMatrixCSV(current):kind==='coverage'?exportEvidenceCoverageCSV(current):exportEvidenceCSV(current);
  const mime=kind==='json'?'application/json':'text/csv';const filename=kind==='json'?'rfp-evidence.json':kind==='matrix'?'rfp-comparison.csv':kind==='coverage'?'rfp-coverage.csv':'rfp-ratings.csv';
- const url=URL.createObjectURL(new Blob([data],{type:mime+';charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
- $('error').hidden=true;$('status').textContent=`${filename} prepared locally. Verify contents before sharing.`;
+ startLocalDownload({data,filename,mime});
+ $('error').hidden=true;$('status').textContent=`${filename} download started locally. Confirm the file was saved and verify its contents before sharing.`;
  }catch(e){showError(e);}}
 for(const kind of Object.keys(containers)){$('add-'+kind).addEventListener('click',()=>{cancelPendingImport();addRow(kind);});addRow(kind);}
 $('matrix-form').addEventListener('submit',evaluate);
