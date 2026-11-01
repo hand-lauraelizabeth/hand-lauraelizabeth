@@ -101,7 +101,13 @@ async function run(name,engine,url){
     const rect=el.getBoundingClientRect();
     return rect.right>root.clientWidth+1 && getComputedStyle(el).overflowX!=='auto';
    }).slice(0,6).map(el=>({tag:el.tagName,id:el.id,width:Math.round(el.getBoundingClientRect().width)}));
-   return {delta,scrollWidth:root.scrollWidth,clientWidth:root.clientWidth,offenders};
+   const pickers=[...document.querySelectorAll('input[type=file]')].map(el=>{
+    const rect=el.getBoundingClientRect(),parent=el.parentElement.getBoundingClientRect();
+    return {id:el.id,left:Math.round(rect.left),right:Math.round(rect.right),
+      width:Math.round(rect.width),cssWidth:getComputedStyle(el).width,
+      parentWidth:Math.round(parent.width),parentOverflow:getComputedStyle(el.parentElement).overflowX};
+   });
+   return {delta,scrollWidth:root.scrollWidth,clientWidth:root.clientWidth,offenders,pickers};
   });
   ok(geometry.delta<=1,name+' 320px reflow '+JSON.stringify(geometry));
   await page.locator('#file').setInputFiles({name:'narrow.csv',mimeType:'text/csv',buffer:input});
