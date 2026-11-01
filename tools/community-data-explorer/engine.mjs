@@ -2,7 +2,8 @@
 export const MAX_BYTES = 2_000_000;
 export const MAX_RECORDS = 5_000;
 export const COLUMNS = ["source_id","geography","variable","series","period_start","period_end","estimate","moe"];
-const dangerous = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
+// Reject line/paragraph separators and invisible format controls in labels and exact IDs.
+const dangerous = /[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u180e\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/u;
 const formulaPrefix = /^[\s\u00a0]*[=+\-@\uff1d\uff0b\uff0d\uff20]/u;
 // Census annotation sentinels are not numeric estimates or numeric margins of error.
 const annotationCodes = new Map([
