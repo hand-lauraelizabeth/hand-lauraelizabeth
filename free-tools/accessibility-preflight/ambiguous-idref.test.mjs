@@ -82,6 +82,16 @@ expect([element('DIV',{id:'owner','aria-owns':'owner'})],['self-owned-element'])
 expect([element('DIV',{id:'owner','aria-labelledby':'owner'})],[]);
 expect([p('target\\u00a0one'),element('DIV',{id:'a','aria-owns':'target\\u00a0one'}),element('DIV',{id:'b','aria-owns':'target\\u00a0one'})],['multiple-explicit-owners']);
 expect([element('DIV',{id:'a','aria-owns':'missing'})],['unresolved-id-reference']);
+// Explicit ownership cycles require a review finding; ordinary chains do not.
+expect([element('DIV',{id:'a','aria-owns':'b'}),element('DIV',{id:'b','aria-owns':'a'})],['circular-aria-ownership']);
+expect([element('DIV',{id:'a','aria-owns':'b'}),element('DIV',{id:'b','aria-owns':'c'}),element('DIV',{id:'c','aria-owns':'a'})],['circular-aria-ownership']);
+expect([element('DIV',{id:'a','aria-owns':'b c'}),element('DIV',{id:'b','aria-owns':'a'}),p('c')],['circular-aria-ownership']);
+expect([element('DIV',{id:'a','aria-owns':'b'}),element('DIV',{id:'b','aria-owns':'a'}),element('DIV',{id:'c','aria-owns':'d'}),element('DIV',{id:'d','aria-owns':'c'})],['circular-aria-ownership','circular-aria-ownership']);
+expect([element('DIV',{id:'a','aria-owns':'b'}),element('DIV',{id:'b','aria-owns':'c'}),p('c')],[]);
+expect([element('DIV',{id:'a','aria-labelledby':'b'}),element('DIV',{id:'b','aria-labelledby':'a'})],[]);
+expect([element('DIV',{id:'a','aria-owns':'b'}),element('DIV',{id:'a'}),element('DIV',{id:'b','aria-owns':'a'})],['ambiguous-id-reference']);
+const longChain=Array.from({length:1000},(_,i)=>element('DIV',{id:'n'+i,'aria-owns':'n'+((i+1)%1000)}));
+expect(longChain,['circular-aria-ownership']);
 const sample=rules([p('safe','One'),p('safe','Two'),element('INPUT',{id:'q','aria-labelledby':'safe'})])[0];
 assert.match(sample.message,/multiple elements/);count++;
 assert.match(sample.reference,/4\.1\.2/);count++;
