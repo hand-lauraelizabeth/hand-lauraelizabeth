@@ -1,6 +1,8 @@
 // Browser-local literature synthesis. Metadata is user-entered, not independently verified.
 export const SCHEMA="literature-matrix-v1";
 const STANCES=new Set(["supports","challenges","mixed","uncertain"]);
+// The local JSON import and all saved edits must remain re-exportable.
+const MAX_JSON_BYTES=2000000;
 function obj(v,n){if(!v||typeof v!=="object"||Array.isArray(v))throw Error(n+" must be an object");return v}
 function str(v,n,max,req=false){if(v==null)v="";if(typeof v!=="string"||v.length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(v))throw Error(n+" invalid");if(req&&!v.trim())throw Error(n+" required");return v}
 function id(v,n){const s=str(v,n,128,true);if(s!==s.trim()||/[\r\n\t]/u.test(s))throw Error(n+" invalid whitespace");return s}
@@ -25,7 +27,9 @@ export function updateClaim(input,claimId,changes){
  const original=project.claims[index];
  const updated={...original,...patch,id:key};
  const claims=project.claims.map((claim,i)=>i===index?updated:claim);
- return validateProject({...project,claims});
+ const updatedProject=validateProject({...project,claims});
+ exportProject(updatedProject);
+ return updatedProject;
 }
 // Compare editor drafts with saved findings without changing either.
 export function hasUnsavedClaimChanges(input,claimId,draft){
@@ -57,5 +61,5 @@ export function analyzeProject(input){
  return {project,issues,tensions,tensionTotal,tensionsOmitted:tensionTotal-tensions.length};
 }
 function bytes(s){return unescape(encodeURIComponent(s)).length}
-export function exportProject(input){const json=JSON.stringify(validateProject(input),null,2);if(bytes(json)>2000000)throw Error("Export exceeds 2 MB");return json}
-export function importProject(json){if(typeof json!=="string"||bytes(json)>2000000)throw Error("Import exceeds 2 MB");let p;try{p=JSON.parse(json)}catch{throw Error("Invalid JSON")};return validateProject(p)}
+export function exportProject(input){const json=JSON.stringify(validateProject(input),null,2);if(bytes(json)>MAX_JSON_BYTES)throw Error("Matrix exceeds the 2 MB JSON export limit; shorten entries before saving.");return json}
+export function importProject(json){if(typeof json!=="string"||bytes(json)>MAX_JSON_BYTES)throw Error("Import exceeds 2 MB");let p;try{p=JSON.parse(json)}catch{throw Error("Invalid JSON")};const validated=validateProject(p);try{exportProject(validated)}catch(e){if(e.message.startsWith("Matrix exceeds the 2 MB JSON export limit"))throw Error("Imported matrix would exceed the 2 MB JSON export limit; reduce its contents.");throw e}return validated}

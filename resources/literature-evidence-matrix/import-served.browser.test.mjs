@@ -90,6 +90,18 @@ try{
  await page.waitForFunction(()=>document.querySelector('#error').textContent.includes('up to 2 MB'));
  check(await page.locator('#import-preview').isHidden(),true,'oversized file cannot replace data');
  check(await page.locator('#counts').textContent(),'2 sources, 0 findings, 2 gaps, 0 user-coded candidate pairs.','oversized file leaves data intact');
+ // Compact input below 2 MB must not replace evidence if formatted JSON cannot be downloaded.
+ const compactUnexportable={schema:SCHEMA,sources:[{id:"s",title:"Synthetic",year:null,doi:""}],
+  claims:Array.from({length:1700},(_,i)=>({id:"f"+i,sourceId:"s",question:"Q",
+   summary:"A".repeat(1000),stance:"supports",locator:"",methods:"",limitations:"",quote:""}))};
+ const compactBytes=Buffer.from(JSON.stringify(compactUnexportable),'utf8');
+ check(compactBytes.byteLength<2000000,true,'compact test fixture is under import limit');
+ check(Buffer.byteLength(JSON.stringify(compactUnexportable,null,2),'utf8')>2000000,true,'canonical export would exceed limit');
+ await upload(page,'compact-but-unexportable.json',compactBytes);
+ await page.waitForFunction(()=>document.querySelector('#error').textContent.includes('Imported matrix would exceed'));
+ check(await page.locator('#error').evaluate(el=>el===document.activeElement),true,'canonical-overflow import error receives focus');
+ check(await page.locator('#import-preview').isHidden(),true,'unexportable import cannot be confirmed');
+ check(await page.locator('#counts').textContent(),'2 sources, 0 findings, 2 gaps, 0 user-coded candidate pairs.','unexportable import preserves saved matrix');
 
 
  // Existing evidence can be corrected without re-entering the record or losing its ID.

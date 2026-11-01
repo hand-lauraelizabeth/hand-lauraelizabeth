@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
-import {SCHEMA} from "./core.mjs";
+import {SCHEMA,importProject,exportProject} from "./core.mjs";
 
 const nodes=new Map();
 let focused="";
@@ -122,4 +122,42 @@ test("imported 1,600 candidate pairs announce the full count while rendering at 
  assert.equal(node("tensions").items.length,1000);
  assert.match(node("tensions").items[0].textContent,/C0 \/ C40/);
  assert.equal(node("claims").items.length,80);
+});
+
+function largeSyntheticMatrix(count,summaryLength){
+ return {schema:SCHEMA,sources:[{id:"s-01",title:"Synthetic",year:null,doi:""}],
+  claims:Array.from({length:count},(_,i)=>({id:"f"+i,sourceId:"s-01",question:"Q",
+   summary:"A".repeat(i===0&&count===1750?1500:summaryLength),stance:"supports",
+   locator:"",methods:"",limitations:"",quote:""}))};
+}
+test("compact JSON is rejected if its formatted evidence export exceeds 2 MB",async()=>{
+ const candidate=largeSyntheticMatrix(1700,1000),compact=JSON.stringify(candidate);
+ assert.ok(new TextEncoder().encode(compact).length<2000000);
+ assert.ok(new TextEncoder().encode(JSON.stringify(candidate,null,2)).length>2000000);
+ assert.throws(()=>importProject(compact),/Imported matrix would exceed the 2 MB JSON export limit/);
+ const previous=node("counts").textContent;
+ node("upload").files=[fileFor(compact)];
+ await emit("upload","change");
+ assert.equal(node("import-preview").hidden,true);
+ assert.equal(node("counts").textContent,previous);
+ assert.match(node("error").textContent,/Imported matrix would exceed the 2 MB JSON export limit/);
+ assert.equal(focused,"error");
+});
+test("near-limit JSON roundtrips, but an oversized new source cannot change saved evidence",async()=>{
+ const candidate=largeSyntheticMatrix(1750,926),compact=JSON.stringify(candidate);
+ assert.ok(new TextEncoder().encode(compact).length<2000000);
+ assert.ok(new TextEncoder().encode(exportProject(candidate)).length<2000000);
+ node("upload").files=[fileFor(compact)];
+ await emit("upload","change");
+ assert.equal(node("import-preview").hidden,false);
+ await emit("confirm-import","click");
+ assert.match(node("counts").textContent,/1 sources, 1750 findings/);
+ const previous=node("counts").textContent;
+ node("source").fields=[["id","new"],["title","T".repeat(500)],["year",""],["doi",""]];
+ await emit("source","submit");
+ assert.match(node("error").textContent,/2 MB JSON export limit/);
+ assert.equal(focused,"error");
+ assert.equal(node("counts").textContent,previous);
+ assert.equal(node("sources").items.length,1);
+ assert.equal(node("source").fields[0][1],"new");
 });
