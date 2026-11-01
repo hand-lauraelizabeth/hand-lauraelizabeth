@@ -39,7 +39,7 @@
 </form>
 </section>
 <ol id="records" aria-label="Chronological evidence records"></ol><p id="empty">No records yet. Add a record to build your timeline.</p>
-<div class="actions"><button id="csv" type="button" disabled>Export spreadsheet CSV</button><button id="json" type="button" disabled>Export exact JSON</button><button id="clear" type="button" disabled>Clear all records</button></div><p id="csv-warning" role="status" aria-live="polite"></p>
+<div class="actions"><button id="csv" type="button" disabled>Export spreadsheet CSV</button><button id="json" type="button" disabled>Export exact JSON</button><button id="clear" type="button" disabled>Clear all records</button></div><p id="csv-warning" role="status" aria-live="polite"></p><p id="export-error" class="error" role="alert" tabindex="-1" hidden></p><p id="export-status" role="status" aria-live="polite"></p>
 <p class="hint">Filtering changes only the visible chronology. Both exports include all records, including those hidden by source, status, or group filters.</p><p class="hint">CSV export is disabled if a field contains formula-like text, invisible or control characters, or suspicious cell-boundary patterns. Use exact JSON instead; it preserves the original values. Spreadsheet programs can reinterpret CSV after reopening or resaving, so verify the result before reuse. Treat either file as sensitive.</p>
 </section>
 </main><footer><p>Local-only review prototype · Not a finding or determination</p></footer>
