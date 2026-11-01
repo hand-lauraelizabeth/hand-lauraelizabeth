@@ -28,7 +28,7 @@ th{background:#eaf2ec}td{overflow-wrap:anywhere;max-width:260px}
 <button id="removeDuplicates" disabled>Remove exact duplicate rows</button>
 <button id="historyUndo" disabled>Undo last step</button><button id="historyRedo" disabled>Redo step</button>
 <button id="historyExport" disabled>Export operations JSON</button></div>
-<p id="historyStatus" role="status" aria-live="polite">No transformations yet.</p>
+<p id="historyStatus" role="status" aria-live="polite" tabindex="-1">No transformations yet.</p>
 <div class="overflow" id="historyLog"></div>
 <p class="muted">The manifest records step types, affected counts, and source dimensions without cell values. It is not a data backup. Redo history is replaced by new changes after undo.</p></section>
 <section aria-labelledby="comparison"><h2 id="comparison">3. Reconcile with source record positions</h2>
@@ -87,12 +87,12 @@ function render(parsed,name){
  list.append(table);$('rowCount').textContent=parsed.rows.length+' current records; preview shows at most 15.';$('save').disabled=false;
 }
 window.DataRescueRenderFromHistory=render;
-function uploadMessage(text,error=false){
+function uploadMessage(text,error=false,inputError=true){
  const node=$('loadStatus');
  node.textContent=text;
  node.setAttribute('role',error?'alert':'status');
  node.setAttribute('aria-live',error?'assertive':'polite');
- if(error){$('file').setAttribute('aria-invalid','true');node.focus();}
+ if(error){if(inputError)$('file').setAttribute('aria-invalid','true');else $('file').removeAttribute('aria-invalid');node.focus();}
  else $('file').removeAttribute('aria-invalid');
 }
 function clear(keepFile=false){
@@ -115,13 +115,33 @@ $('sample').addEventListener('click',()=>{
  clear();load(lib.parseDelimited('ID,Name\n1, Ada \n2, Bea \n2, Bea '),'fictional example');
 });
 $('reset').addEventListener('click',()=>clear());
+// Both transformation exports share a guarded browser-local Blob URL lifecycle.
+function startLocalDownload(contents, filename, mime){
+ let url=null,link=null;
+ try{
+  url=URL.createObjectURL(new Blob([contents],{type:mime}));
+  link=document.createElement('a');link.href=url;link.download=filename;
+  document.body.append(link);link.click();
+ }catch{
+  if(url){try{URL.revokeObjectURL(url);}catch{}}
+  return false;
+ }finally{if(link)link.remove();}
+ // A download was initiated, not necessarily saved by the browser.
+ try{setTimeout(()=>{try{URL.revokeObjectURL(url);}catch{}},1000);}catch{}
+ return true;
+}
+window.DataRescueHistoryDownload=startLocalDownload;
 $('save').addEventListener('click',()=>{
- if(!current)return;const csv=lib.exportCsv(current,true);
- const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
- const a=document.createElement('a');a.href=url;a.download='data-rescue-working-copy.csv';document.body.append(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1000);
+ if(!current)return;
+ let csv;
+ try{csv=lib.exportCsv(current,true);}
+ catch{uploadMessage('Unable to prepare working-copy CSV. The current data remains available; review it and retry.',true,false);return;}
+ if(!startLocalDownload(csv,'data-rescue-working-copy.csv','text/csv;charset=utf-8')){
+  uploadMessage('Working-copy CSV download could not be started. The current data remains available; retry.',true,false);
+  return;
+ }
  window.DataRescueHistoryUI.recordExport({outputRows:current.rows.length,exportOnlyDedupe:false,spreadsheetPrecaution:true});
- $('loadStatus').textContent='Exported '+current.rows.length+' rows. The manifest records this export setting.';
+ uploadMessage('Working-copy CSV download started for '+current.rows.length+' rows. Check your browser downloads. The manifest records this export setting.');
 });
 })();
 </script></body></html>
