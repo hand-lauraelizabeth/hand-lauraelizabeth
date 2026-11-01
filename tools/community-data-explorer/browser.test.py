@@ -237,6 +237,25 @@ try:
             verify(recovered == precise, engine_name + ": exact evidence survives failed downloads")
             verify("download started" in page.locator("#status").inner_text().lower(),
                    engine_name + ": successful click does not claim file saved")
+            # Untrusted identifiers may contain Unicode separators or invisible format controls.
+            # Rejected replacement inputs must not erase the last successfully exported evidence.
+            for codepoint in (0x2028, 0x2029, 0x061c, 0x00ad, 0x034f, 0x180e):
+                control = chr(codepoint)
+                deceptive = precision_csv.replace("P-001", "P-" + control + "001")
+                page.locator("#csv").set_input_files({
+                    "name": "synthetic-unicode-control.csv", "mimeType": "text/csv",
+                    "buffer": deceptive.encode("utf-8")
+                })
+                page.locator("#status").filter(has_text="Import failed; existing records preserved.").wait_for(timeout=15000)
+                verify(page.locator("#error").is_visible(), engine_name + ": Unicode control rejected with text error")
+                verify(page.evaluate("document.activeElement === document.getElementById('error')"),
+                       engine_name + ": Unicode control error receives keyboard focus")
+                verify("source_id" in page.locator("#error").inner_text(),
+                       engine_name + ": Unicode control error identifies affected field")
+            with page.expect_download() as after_rejection:
+                page.locator("#export").click()
+            unchanged = json.loads(Path(after_rejection.value.path()).read_text())
+            verify(unchanged == precise, engine_name + ": invalid Unicode replacements preserve exact evidence")
             verify(not outbound, engine_name + ": no outbound requests")
             verify(not errors, engine_name + ": no JavaScript page errors")
             context.close()
