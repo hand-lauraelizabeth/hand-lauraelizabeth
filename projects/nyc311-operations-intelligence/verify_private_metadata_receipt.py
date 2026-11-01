@@ -23,6 +23,16 @@ class VerificationError(ValueError):
     """Private acquisition does not pass independent offline verification."""
 
 
+def _reject_duplicate_json_keys(pairs):
+    """Reject ambiguous JSON object members at every nesting level."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise VerificationError('DUPLICATE_JSON_KEY')
+        result[key] = value
+    return result
+
+
 def _read_private(path, max_bytes):
     path = Path(path)
     if os.name != 'posix':
@@ -55,8 +65,12 @@ def verify_pair(raw_path, receipt_path):
     raw = _read_private(raw_path, MAX_BODY_BYTES)
     receipt_bytes = _read_private(receipt_path, MAX_RECEIPT_BYTES)
     try:
-        receipt = json.loads(receipt_bytes.decode('utf-8'))
-        metadata = json.loads(raw.decode('utf-8'))
+        receipt = json.loads(receipt_bytes.decode('utf-8'),
+                             object_pairs_hook=_reject_duplicate_json_keys)
+        metadata = json.loads(raw.decode('utf-8'),
+                              object_pairs_hook=_reject_duplicate_json_keys)
+    except VerificationError:
+        raise  # Preserve precise fail-closed duplicate-key diagnostics.
     except (ValueError, UnicodeError) as exc:
         raise VerificationError('INVALID_JSON') from exc
     if not isinstance(receipt, dict):
