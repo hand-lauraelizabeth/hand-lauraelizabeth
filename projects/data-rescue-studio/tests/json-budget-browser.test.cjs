@@ -92,7 +92,18 @@ async function run(name,engine,url){
   const [recovered]=await Promise.all([page.waitForEvent('download'),page.locator('#saveIssues').click()]);
   eq(JSON.parse(readFileSync(await recovered.path(),'utf8')).counts.issueRecords,2,name+' issue download recovers');
   await page.setViewportSize({width:320,height:800});
-  ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth<=1),name+' 320px reflow');
+  // Wait for two layout frames after resizing, especially in WebKit.
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const geometry=await page.evaluate(()=>{
+   const root=document.documentElement;
+   const delta=root.scrollWidth-root.clientWidth;
+   const offenders=[...document.querySelectorAll('body *')].filter(el=>{
+    const rect=el.getBoundingClientRect();
+    return rect.right>root.clientWidth+1 && getComputedStyle(el).overflowX!=='auto';
+   }).slice(0,6).map(el=>({tag:el.tagName,id:el.id,width:Math.round(el.getBoundingClientRect().width)}));
+   return {delta,scrollWidth:root.scrollWidth,clientWidth:root.clientWidth,offenders};
+  });
+  ok(geometry.delta<=1,name+' 320px reflow '+JSON.stringify(geometry));
   eq(errors,[],name+' no uncaught errors');
   eq(outside,[],name+' no off-origin requests');
   await page.close();
