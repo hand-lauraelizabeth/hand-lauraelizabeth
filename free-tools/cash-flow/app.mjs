@@ -67,9 +67,45 @@ function shortfallComparisonText(baseline,scenario){
     (changes.firstNewlyBelowZeroDate?' (first '+changes.firstNewlyBelowZeroDate+')':'');
   return 'Compared with baseline: '+noLonger+'; '+newly+'.';
 }
-function download(content,type,filename){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-$('export').addEventListener('click',()=>{if(!latest)return;try{download(exportSafeCSV(latest),'text/csv;charset=utf-8','cash-flow-scenario.csv')}catch(error){say(error.message,true)}});
-$('export-json').addEventListener('click',()=>{if(!latest)return;try{download(exportJSON(latest),'application/json;charset=utf-8','cash-flow-scenario.json')}catch(error){say(error.message,true)}});
+// Initiating a browser download does not prove that the user saved the file.
+function clearDownloadError(){$('download-error').textContent='';}
+function reportDownloadError(){
+  const alert=$('download-error');
+  alert.textContent='Download could not start. Check browser download permissions and try again. Your inputs and results are unchanged.';
+  alert.focus();
+  $('status').textContent='Download did not start. Your inputs and results remain available.';
+}
+function download(content,type,filename){
+  let url=null,link=null,started=false;
+  try{
+    url=URL.createObjectURL(new Blob([content],{type}));
+    link=document.createElement('a');
+    link.href=url;link.download=filename;
+    document.body.append(link);
+    link.click();
+    started=true;
+  }catch{
+    throw Error('Download could not start.');
+  }finally{
+    if(link)link.remove();
+    if(url){
+      if(started)setTimeout(()=>URL.revokeObjectURL(url),1000);
+      else URL.revokeObjectURL(url);
+    }
+  }
+}
+$('export').addEventListener('click',()=>{
+  if(!latest)return;
+  clearDownloadError();
+  try{download(exportSafeCSV(latest),'text/csv;charset=utf-8','cash-flow-scenario.csv');say('Scenario CSV download started. Confirm the browser saved it.');}
+  catch{reportDownloadError();}
+});
+$('export-json').addEventListener('click',()=>{
+  if(!latest)return;
+  clearDownloadError();
+  try{download(exportJSON(latest),'application/json;charset=utf-8','cash-flow-scenario.json');say('Scenario JSON download started. Confirm the browser saved it.');}
+  catch{reportDownloadError();}
+});
 eventList();
 
 // Save only editable inputs, not calculated daily balances. A plan is private
@@ -79,9 +115,14 @@ $('save-plan').addEventListener('click',()=>{
     const plan={schema:'cash-flow-plan/v1',start:$('start').value,end:$('end').value,
       openingCents:parseCents($('opening').value),events:events.map(e=>({...e})),
       shiftId:$('shift-id').value||null,shiftDays:Number($('shift-days').value)};
-    download(exportPlan(plan),'application/json;charset=utf-8','cash-flow-plan.json');
-    say('Editable plan saved locally. Keep the file private.');
-  }catch(error){say(error.message,true)}
+    const contents=exportPlan(plan);
+    clearDownloadError();
+    download(contents,'application/json;charset=utf-8','cash-flow-plan.json');
+    say('Editable plan download started. Confirm it was saved and keep the file private.');
+  }catch(error){
+    if(error.message==='Download could not start.')reportDownloadError();
+    else say(error.message,true);
+  }
 });
 function clearPlanError(){ $('plan-error').textContent=''; $('load-plan').removeAttribute('aria-invalid'); }
 function reportPlanError(message){
