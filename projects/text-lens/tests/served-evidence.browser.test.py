@@ -348,6 +348,34 @@ def main():
             assert page.evaluate("document.activeElement.id") == "status"
             checks += 1
 
+            # Untrusted cross-tool events must not spoof UTF-8 size or display a
+            # misleading filename. Rejections retain the last valid source.
+            for bad_name, bad_size, reason in [
+                ("reverse\\u202Etxt.md", len(imported_a.encode("utf-8")), "Source name"),
+                ("line\\nname.md", len(imported_a.encode("utf-8")), "Source name"),
+                ("0001-東京.md", 1, "byte size does not match"),
+            ]:
+                bad_name = bad_name.replace("\\\\u202E", chr(0x202E)).replace("\\\\n", "\\n")
+                dispatch_import("a", bad_name, imported_a, size=bad_size)
+                expect(page.locator("#status")).to_contain_text(reason)
+                checks += 1
+                assert page.locator("#a").input_value() == imported_a
+                checks += 1
+                assert page.locator("#fileMetaA").inner_text().endswith("0001-東京.md · local text")
+                checks += 1
+                assert page.evaluate("document.activeElement.id") == "status"
+                checks += 1
+
+            recovered_text = "Café 東京 😀 and the museum guides were wonderful."
+            dispatch_import("a", "0007-Café-東京.md", recovered_text)
+            expect(page.locator("#a")).to_have_value(recovered_text)
+            checks += 1
+            expect(page.locator("#fileMetaA")).to_contain_text("0007-Café-東京.md")
+            checks += 1
+            recovered_json = json.loads(download_bytes(page, "#download").decode("utf-8"))
+            assert recovered_json["source_files"]["text_a"] == ["0007-Café-東京.md"]
+            checks += 1
+
             assert not errors, errors
             checks += 1
             assert requests and all(url.startswith(origin + "/") for url in requests), requests
