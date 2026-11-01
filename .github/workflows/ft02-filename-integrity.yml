@@ -20,7 +20,8 @@ jobs:
       - name: Verify strict local byte and filename validation
         run: node projects/data-rescue-studio/tests/file-reader.test.js
   chromium-upload-recovery:
-    runs-on: ubuntu-latest
+    # Playwright 1.55.1 does not support ubuntu26.04 dependency installation.
+    runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v5
