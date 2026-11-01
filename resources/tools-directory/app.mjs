@@ -8,7 +8,12 @@ for(const name of [...new Set(TOOLS.map(t=>t.category))].sort()){
  const opt=document.createElement('option');opt.value=name;opt.textContent=name;category.append(opt);
 }
 function element(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+let composing=false;
 function render(){
+ // IME composition can temporarily contain incomplete Unicode. Wait for the
+ // committed value before filtering or announcing an error.
+ // W3C Input Events Level 2: https://www.w3.org/TR/input-events-2/
+ if(composing)return;
  // Never silently truncate or index an overlong query. Keep the exact input
  // available for correction, announce the error, and skip catalog work.
  const issue=queryIssue(query.value);
@@ -52,8 +57,11 @@ function render(){
  count.textContent=visible.length+' of '+TOOLS.length+' resources shown';
  if(!visible.length)cards.append(element('p','ft15-empty','No resources match these filters. Try a different search or clear the filters.'));
 }
-for(const input of [query,category,status])input.addEventListener(input===query?'input':'change',render);
-root.querySelector('#tool-clear').addEventListener('click',()=>{query.value='';category.value='all';status.value='all';render();query.focus()});
+query.addEventListener('compositionstart',()=>{composing=true;});
+query.addEventListener('compositionend',()=>{composing=false;render();});
+query.addEventListener('input',event=>{if(!event.isComposing)render();});
+for(const input of [category,status])input.addEventListener('change',render);
+root.querySelector('#tool-clear').addEventListener('click',()=>{composing=false;query.value='';category.value='all';status.value='all';render();query.focus()});
 render();
 // Enable controls only after the local catalog and event handlers are ready.
 // Without scripting, the visible noscript explanation accompanies disabled controls.
