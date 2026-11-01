@@ -19,6 +19,10 @@ export function validateCatalog(rows=TOOLS){
   ids.add(t.id);
   for(const key of ['title','category','description']){
    if(typeof t[key]!=='string'||!t[key].trim())throw Error('Missing '+key);
+   // Reject malformed UTF-16 metadata before indexing or rendering: browsers can
+   // replace lone surrogates with U+FFFD and obscure the original public label.
+   // WHATWG Infra strings: https://infra.spec.whatwg.org/#strings
+   if(!t[key].isWellFormed())throw Error('Malformed Unicode in '+key);
    // Catalog labels are controlled metadata, not arbitrary document text: prevent invisible
    // direction controls from visually reordering resource names or availability context.
    // Legitimate RTL/CJK letters and combining marks remain valid.
