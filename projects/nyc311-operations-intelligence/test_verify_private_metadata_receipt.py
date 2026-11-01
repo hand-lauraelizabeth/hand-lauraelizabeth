@@ -134,6 +134,42 @@ class ReceiptVerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(VerificationError, 'PRIVATE_FILE_INSIDE_GIT_CHECKOUT'):
             verify_pair(self.raw, self.receipt)
 
+    def test_duplicate_receipt_key_rejected(self):
+        original = self.receipt.read_text(encoding='utf-8')
+        duplicate = original.replace(
+            '"http_status": 200',
+            '"http_status": 200, "http_status": 200', 1)
+        self.assertNotEqual(original, duplicate)
+        self.receipt.write_text(duplicate, encoding='utf-8')
+        with self.assertRaisesRegex(VerificationError, 'DUPLICATE_JSON_KEY'):
+            verify_pair(self.raw, self.receipt)
+
+    def test_duplicate_raw_top_level_key_even_with_matching_digest_rejected(self):
+        original = self.raw.read_text(encoding='utf-8')
+        duplicate = original.replace(
+            '"id": "erm2-nwe9"',
+            '"id": "erm2-nwe9", "id": "erm2-nwe9"', 1)
+        self.assertNotEqual(original, duplicate)
+        data = duplicate.encode('utf-8')
+        self.raw.write_bytes(data)
+        self.edit_receipt(raw_body_bytes=len(data),
+                          raw_body_sha256=hashlib.sha256(data).hexdigest())
+        with self.assertRaisesRegex(VerificationError, 'DUPLICATE_JSON_KEY'):
+            verify_pair(self.raw, self.receipt)
+
+    def test_duplicate_nested_metadata_key_even_with_matching_digest_rejected(self):
+        original = self.raw.read_text(encoding='utf-8')
+        duplicate = original.replace(
+            '"dataTypeName": "text"',
+            '"dataTypeName": "text", "dataTypeName": "text"', 1)
+        self.assertNotEqual(original, duplicate)
+        data = duplicate.encode('utf-8')
+        self.raw.write_bytes(data)
+        self.edit_receipt(raw_body_bytes=len(data),
+                          raw_body_sha256=hashlib.sha256(data).hexdigest())
+        with self.assertRaisesRegex(VerificationError, 'DUPLICATE_JSON_KEY'):
+            verify_pair(self.raw, self.receipt)
+
     def test_extra_unrelated_metadata_field_accepted(self):
         self.payload['columns'].append({'fieldName':'new_public_column','dataTypeName':'text'})
         self.make_pair()
