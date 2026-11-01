@@ -8,6 +8,7 @@ import argparse
 from datetime import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import stat
@@ -31,6 +32,19 @@ def _reject_duplicate_json_keys(pairs):
             raise VerificationError('DUPLICATE_JSON_KEY')
         result[key] = value
     return result
+
+
+def _reject_nonfinite_json_constant(value):
+    """Python's JSON decoder otherwise accepts NaN and Infinity extensions."""
+    raise VerificationError('NONFINITE_JSON_NUMBER')
+
+
+def _parse_finite_json_float(value):
+    """Reject overflow exponents that Python silently converts to infinity."""
+    number = float(value)
+    if not math.isfinite(number):
+        raise VerificationError('NONFINITE_JSON_NUMBER')
+    return number
 
 
 def _read_private(path, max_bytes):
@@ -66,9 +80,13 @@ def verify_pair(raw_path, receipt_path):
     receipt_bytes = _read_private(receipt_path, MAX_RECEIPT_BYTES)
     try:
         receipt = json.loads(receipt_bytes.decode('utf-8'),
-                             object_pairs_hook=_reject_duplicate_json_keys)
+                             object_pairs_hook=_reject_duplicate_json_keys,
+                             parse_constant=_reject_nonfinite_json_constant,
+                             parse_float=_parse_finite_json_float)
         metadata = json.loads(raw.decode('utf-8'),
-                              object_pairs_hook=_reject_duplicate_json_keys)
+                              object_pairs_hook=_reject_duplicate_json_keys,
+                             parse_constant=_reject_nonfinite_json_constant,
+                             parse_float=_parse_finite_json_float)
     except VerificationError:
         raise  # Preserve precise fail-closed duplicate-key diagnostics.
     except (ValueError, UnicodeError) as exc:
