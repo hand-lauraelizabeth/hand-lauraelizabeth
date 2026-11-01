@@ -15,12 +15,13 @@ globalThis.document={
   getElementById(id){return {addEventListener(type,fn){assert.equal(type,'click');handlers[id]=fn;}};},
   createElement(tag){
     assert.equal(tag,'a');
+    if(mode==='element')throw new Error('PRIVATE synthetic DOM creation failure');
     const link={attached:false,removed:false,href:'',download:'',
       click(){if(mode==='click')throw new Error('PRIVATE simulated browser exception');},
       remove(){this.removed=true;this.attached=false;}};
     links.push(link);return link;
   },
-  body:{append(link){link.attached=true;}}
+  body:{append(link){if(mode==='append')throw new Error('PRIVATE synthetic DOM append failure');link.attached=true;}}
 };
 URL.createObjectURL=blob=>{
   if(mode==='create')throw new Error('PRIVATE simulated URL exception');
@@ -41,6 +42,21 @@ try{
     assert.equal(created.length,0);assert.equal(links.length,0);
     assert.equal(state.requests[0].description,'Synthetic evidence 漢字');
   });
+  await test('JSON DOM creation failure revokes URL without creating a link',()=>{
+    reset();mode='element';
+    const result=click('save-json');
+    assert.match(result,/JSON download could not start/);
+    assert.doesNotMatch(result,/PRIVATE/);
+    assert.equal(created.length,1);assert.equal(links.length,0);
+    assert.deepEqual(revoked,['blob:synthetic-1']);
+  });
+  await test('CSV DOM append failure revokes URL and removes unattached link',()=>{
+    reset();mode='append';
+    assert.match(click('save-csv'),/CSV download could not start/);
+    assert.equal(created.length,1);assert.equal(links.length,1);
+    assert.equal(links[0].removed,true);
+    assert.deepEqual(revoked,['blob:synthetic-1']);
+  });
   await test('JSON click failure cleans the anchor and revokes the object URL',()=>{
     reset();mode='click';
     const result=click('save-json');
@@ -51,7 +67,8 @@ try{
   });
   await test('successful retry exports exact JSON and warns about unsaved corrections',async()=>{
     reset();pending=2;
-    assert.match(click('save-json'),/2 unsaved corrections were excluded/);
+    assert.match(click('save-json'),/JSON download started; confirm the file was saved by your browser/);
+    assert.match(messages.at(-1),/2 unsaved corrections were excluded/);
     assert.equal(links[0].removed,true);assert.equal(revoked.length,1);
     assert.deepEqual(JSON.parse(await created[0].text()),state);
   });
@@ -67,13 +84,14 @@ try{
     state={...state,requests:[{...state.requests[0],description:'=1+1'}]};
     assert.match(click('save-csv'),/CSV unavailable:/);
     assert.equal(created.length,0);
-    assert.match(click('save-json'),/JSON downloaded/);
+    assert.match(click('save-json'),/JSON download started/);
     assert.equal(JSON.parse(await created[0].text()).requests[0].description,'=1+1');
     state=previous;
   });
   await test('valid CSV download retains saved identifiers and synthetic content',async()=>{
     reset();pending=1;
-    assert.match(click('save-csv'),/1 unsaved correction was excluded/);
+    assert.match(click('save-csv'),/CSV download started/);
+    assert.match(messages.at(-1),/1 unsaved correction was excluded/);
     const csv=await created[0].text();
     assert.match(csv,/"REQ-0001"/);
     assert.match(csv,/"Synthetic evidence 漢字"/);
