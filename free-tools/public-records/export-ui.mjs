@@ -2,13 +2,17 @@ import {exportCSV,exportJSON} from './core.mjs';
 export function bindExports(getState,say,countPendingCorrections=()=>0){
   const save=(name,type,content)=>{
     const url=URL.createObjectURL(new Blob([content],{type}));
-    const link=document.createElement('a');
+    let link, started=false;
     try{
+      // DOM creation/attachment may also fail after the object URL exists.
+      link=document.createElement('a');
       link.href=url;link.download=name;document.body.append(link);link.click();
+      started=true;
     }finally{
-      // A blocked click must not leave a detached download link or live object URL.
-      link.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      link?.remove();
+      // Revoke immediately when activation fails, including before a link exists.
+      if(started) setTimeout(()=>URL.revokeObjectURL(url),1000);
+      else URL.revokeObjectURL(url);
     }
   };
   const excludedWarning=()=>{
@@ -20,7 +24,7 @@ export function bindExports(getState,say,countPendingCorrections=()=>0){
   document.getElementById('save-json').addEventListener('click',()=>{
     try{
       save('public-records-workspace.json','application/json',exportJSON(getState()));
-      say('JSON downloaded.'+excludedWarning());
+      say('JSON download started; confirm the file was saved by your browser.'+excludedWarning());
     }catch{
       // Do not echo browser exception details or private record values.
       say('JSON download could not start. Your saved records are unchanged. Try again or use another browser.');
@@ -35,7 +39,7 @@ export function bindExports(getState,say,countPendingCorrections=()=>0){
     }
     try{
       save('public-records-workspace.csv','text/csv;charset=utf-8',csv);
-      say('CSV downloaded.'+excludedWarning());
+      say('CSV download started; confirm the file was saved by your browser.'+excludedWarning());
     }catch{
       say('CSV download could not start. Your saved records are unchanged. Try JSON or another browser.');
     }
