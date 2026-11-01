@@ -1,19 +1,33 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {pathToFileURL}=require('node:url'),{chromium}=require('playwright');
+const {createServer}=require('node:http'),{chromium}=require('playwright');
 (async()=>{
  const browser=await chromium.launch();
  let n=0;
  const ok=(v,label)=>{assert.ok(v,label);n++;};
  const upload=async(page,id,name,data)=>page.locator(id).setInputFiles({name,mimeType:'text/csv',buffer:Buffer.isBuffer(data)?data:Buffer.from(data)});
  const oversized=Buffer.alloc(5000001,0x20);
+ // Serve the real interfaces from an isolated origin under a restrictive CSP.
+ const assets=new Set(['index.html','history-preview.html','rescue-core.js','file-reader.js','reconcile-core.js','comparison-issue-index.js','provenance-core.js','reconcile-ui.js','history-core.js','history-ui.js']);
+ const server=createServer((req,res)=>{
+  const asset=new URL(req.url,'http://localhost').pathname.slice(1);
+  if(!assets.has(asset)){res.writeHead(404).end('Not found');return;}
+  try{
+   res.writeHead(200,{'Content-Type':asset.endsWith('.html')?'text/html; charset=utf-8':'text/javascript; charset=utf-8',
+    'Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'",
+    'Cache-Control':'no-store'});
+   res.end(fs.readFileSync(path.resolve(__dirname,'..',asset)));
+  }catch{res.writeHead(500).end('Asset unavailable');}
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const origin='http://127.0.0.1:'+server.address().port;
  try{
   for(const [html,selector] of [['index.html','#status'],['history-preview.html','#loadStatus']]){
    const page=await browser.newPage({acceptDownloads:true,viewport:{width:320,height:820}});
    const errors=[],requests=[];
    page.on('pageerror',err=>errors.push(err.message));
-   page.on('request',r=>{if(/^https?:/.test(r.url()))requests.push(r.url());});
-   await page.goto(pathToFileURL(path.resolve(__dirname,'..',html)).href);
+   page.on('request',r=>{if(/^https?:/.test(r.url())&&!r.url().startsWith(origin+'/'))requests.push(r.url());});
+   await page.goto(origin+'/'+html,{waitUntil:'networkidle'});
    const status=async part=>page.waitForFunction(([id,value])=>document.querySelector(id)?.textContent.includes(value),[selector,part]);
    await upload(page,'#file','corrupt.csv',Buffer.from([0x49,0x44,0x0a,0xc3,0x28]));
    await status('Invalid UTF-8');
@@ -75,5 +89,5 @@ const {pathToFileURL}=require('node:url'),{chromium}=require('playwright');
    await page.close();
   }
   console.log('PASS: '+n+' Chromium byte-boundary, error-state and export assertions across two review interfaces.');
- }finally{await browser.close();}
+ }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(err=>{console.error(err);process.exitCode=1;});
