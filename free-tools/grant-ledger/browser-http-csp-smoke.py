@@ -116,7 +116,7 @@ def verify(browser_type, url, width):
     assert current_state["expenses"][0]["totalCents"] == 800
     assert current_state["expenses"][0]["note"] == "Corrección – 日本語"
     assert current_state["lines"][1]["label"] == "=2+2", "current data preserved exactly"
-    assert "grant-current-state.json downloaded" in page.locator("#status").inner_text()
+    assert "grant-current-state.json download started" in page.locator("#status").inner_text()
     assert page.locator("#error").is_hidden(), "current-state JSON clears stale CSV error"
     with page.expect_download() as info:
         page.locator("#downloadJSON").click()
@@ -137,10 +137,59 @@ def verify(browser_type, url, width):
     assert "Award and budget-category edits are not recorded." in evidence["correctionHistory"]["scope"]
     assert evidence["expenses"][1]["sourceId"] == unsafe_source, "JSON preserves untrusted source ID exactly"
     assert page.locator("#error").is_hidden(), "successful Evidence JSON must clear stale CSV error"
-    assert "grant-evidence.json downloaded" in page.locator("#status").inner_text(), "JSON success announced"
+    assert "grant-evidence.json download started" in page.locator("#status").inner_text(), "JSON success announced"
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "viewport reflow"
     assert not errors, errors
     assert all(req.startswith(url.rsplit("/", 1)[0] + "/") for req in requests), requests
+    # Fault-inject blocked Blob URL creation and anchor activation for all available export formats.
+    # Only synthetic evidence is used; browser downloads do not prove a file was saved.
+    for selector in ("#downloadTransactions", "#downloadCurrentJSON", "#downloadJSON"):
+        for fault in ("url", "click"):
+            before = page.locator("#expenseRows").inner_text()
+            prior_history = page.locator("#correctionSummary").inner_text()
+            page.evaluate("""(fault) => {
+                window.__downloadProbe = {fault, created: [], revoked: []};
+                window.__origCreate = URL.createObjectURL;
+                window.__origRevoke = URL.revokeObjectURL;
+                window.__origAnchorClick = HTMLAnchorElement.prototype.click;
+                URL.createObjectURL = function(blob) {
+                    if(fault === 'url') throw Error('FT06_INTERNAL_SENTINEL');
+                    const value = window.__origCreate.call(URL,blob);
+                    window.__downloadProbe.created.push(value);
+                    return value;
+                };
+                URL.revokeObjectURL = function(value) {
+                    window.__downloadProbe.revoked.push(value);
+                    return window.__origRevoke.call(URL,value);
+                };
+                HTMLAnchorElement.prototype.click = function() {
+                    if(fault === 'click') throw Error('FT06_INTERNAL_SENTINEL');
+                    return window.__origAnchorClick.call(this);
+                };
+            }""", fault)
+            page.locator(selector).click()
+            assert page.locator("#error").is_visible(), (selector, fault)
+            assert page.evaluate("document.activeElement.id") == "error", (selector, fault)
+            assert "Download could not start" in page.locator("#error").inner_text(), (selector, fault)
+            assert "FT06_INTERNAL_SENTINEL" not in page.locator("#error").inner_text()
+            assert page.evaluate("document.querySelectorAll('a[download]').length") == 0
+            probe = page.evaluate("window.__downloadProbe")
+            assert len(probe["created"]) == (0 if fault == "url" else 1), probe
+            assert probe["created"] == probe["revoked"], probe
+            assert page.locator("#expenseRows").inner_text() == before
+            assert page.locator("#correctionSummary").inner_text() == prior_history
+            page.evaluate("""() => {
+                URL.createObjectURL = window.__origCreate;
+                URL.revokeObjectURL = window.__origRevoke;
+                HTMLAnchorElement.prototype.click = window.__origAnchorClick;
+            }""")
+            with page.expect_download() as recovered:
+                page.locator(selector).click()
+            assert recovered.value.suggested_filename in (
+                "grant-transactions.csv", "grant-current-state.json", "grant-evidence.json")
+            assert "download started" in page.locator("#status").inner_text()
+            assert page.locator("#error").is_hidden()
+    assert not errors, errors
     page.close()
     browser.close()
     print(f"PASS: {browser_type.name} {width}px HTTP/CSP/CSV/JSON/focus/reflow/local-only")

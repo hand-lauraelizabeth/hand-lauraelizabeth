@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - review/ft06-http-csp-three-engine-20261024-1225
+      - 'review/ft06-guarded-export-recovery-*'
     paths:
       - 'free-tools/grant-ledger/**'
       - '.github/workflows/ft06-browser-http-csp.yml'

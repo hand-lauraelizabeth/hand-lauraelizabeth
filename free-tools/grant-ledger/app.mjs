@@ -1,6 +1,7 @@
 import {calculateLedger,exportTransactionsCSV,exportBudgetCSV,exportReviewCSV,exportJSON} from './core.mjs';
 import {appendExpenseCorrection,exportEvidenceWithCorrections} from './correction-history.mjs';
 import {assertSafeLedgerCSV} from './csv-preflight.mjs';
+import {startLocalDownload} from './download-guard.mjs';
 import {buildInterface} from './view.mjs';
 import {renderLedger} from './render.mjs';
 buildInterface();
@@ -72,9 +73,13 @@ $('expenseForm').addEventListener('submit',ev=>{
  }catch(e){error(e.message);}
 });
 function download(filename,mime,text){
- const url=URL.createObjectURL(new Blob([text],{type:mime}));
- const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1000);$('status').textContent=filename+' downloaded.';
+ try{
+  startLocalDownload({filename,content:text,type:mime});
+ }catch{
+  // Browser exception details may contain user data or implementation internals.
+  throw new Error('Download could not start. Your saved entries are unchanged; retry or choose another export.');
+ }
+ $('status').textContent=filename+' download started. Check your browser downloads; saving is not confirmed.';
 }
 const current=()=>calculateLedger(award,categories,expenses);
 function safeCSV(kind, filename, exporter) {
