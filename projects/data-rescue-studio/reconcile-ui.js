@@ -314,7 +314,7 @@
       ...comparison
     };
     try {
-      if (!download(JSON.stringify(audit), 'data-rescue-comparison-audit.json', 'application/json;charset=utf-8', 'Comparison audit JSON')) return;
+      if (!download(lib.requireJsonBudget(JSON.stringify(audit), 'Comparison audit'), 'data-rescue-comparison-audit.json', 'application/json;charset=utf-8', 'Comparison audit JSON')) return;
       message('Exact comparison audit JSON download started. Includes all findings and exact identifier keys, not complete input records. Check your browser downloads and keep it private if identifiers are sensitive.');
     } catch (error) {
       message('Unable to export comparison audit JSON: ' + error.message, true);
