@@ -170,6 +170,38 @@ class ReceiptVerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(VerificationError, 'DUPLICATE_JSON_KEY'):
             verify_pair(self.raw, self.receipt)
 
+    def test_nonfinite_receipt_constant_rejected(self):
+        original = self.receipt.read_text(encoding='utf-8')
+        self.receipt.write_text(original[:-1] + ', "unused_probe": NaN}',
+                                encoding='utf-8')
+        with self.assertRaisesRegex(VerificationError, 'NONFINITE_JSON_NUMBER'):
+            verify_pair(self.raw, self.receipt)
+
+    def test_negative_infinity_receipt_constant_rejected(self):
+        original = self.receipt.read_text(encoding='utf-8')
+        self.receipt.write_text(original[:-1] + ', "unused_probe": -Infinity}',
+                                encoding='utf-8')
+        with self.assertRaisesRegex(VerificationError, 'NONFINITE_JSON_NUMBER'):
+            verify_pair(self.raw, self.receipt)
+
+    def test_nonfinite_raw_constant_with_matching_digest_rejected(self):
+        original = self.raw.read_text(encoding='utf-8')
+        data = (original[:-1] + ', "unused_probe": Infinity}').encode('utf-8')
+        self.raw.write_bytes(data)
+        self.edit_receipt(raw_body_bytes=len(data),
+                          raw_body_sha256=hashlib.sha256(data).hexdigest())
+        with self.assertRaisesRegex(VerificationError, 'NONFINITE_JSON_NUMBER'):
+            verify_pair(self.raw, self.receipt)
+
+    def test_numeric_exponent_overflow_with_matching_digest_rejected(self):
+        original = self.raw.read_text(encoding='utf-8')
+        data = (original[:-1] + ', "unused_probe": 1e999}').encode('utf-8')
+        self.raw.write_bytes(data)
+        self.edit_receipt(raw_body_bytes=len(data),
+                          raw_body_sha256=hashlib.sha256(data).hexdigest())
+        with self.assertRaisesRegex(VerificationError, 'NONFINITE_JSON_NUMBER'):
+            verify_pair(self.raw, self.receipt)
+
     def test_extra_unrelated_metadata_field_accepted(self):
         self.payload['columns'].append({'fieldName':'new_public_column','dataTypeName':'text'})
         self.make_pair()
