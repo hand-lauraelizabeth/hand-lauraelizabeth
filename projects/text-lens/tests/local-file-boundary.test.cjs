@@ -189,10 +189,15 @@ test('external import rejects malformed or oversized event data without altering
  }
 });
 test('local file source labels reject directional controls without replacing evidence',async()=>{
- for(const name of ['reversal\\u202Etxt.md','newline\\nname.md','isolate\\u2066.txt','bad\\uD800.md']){
-  const actual=name.replace(/\\\\u202E/g,'\\u202E').replace(/\\\\n/g,'\\n').replace(/\\\\u2066/g,'\\u2066').replace(/\\\\uD800/g,'\\uD800');
+ const names=[
+  'reversal'+String.fromCharCode(0x202E)+'txt.md',
+  'newline'+String.fromCharCode(10)+'name.md',
+  'isolate'+String.fromCharCode(0x2066)+'.txt',
+  'bad'+String.fromCharCode(0xD800)+'.md'
+ ];
+ for(const name of names){
   const h=harness();h.els.a.value='keep';
-  const input={files:[file(actual,'safe')],value:'chosen'};
+  const input={files:[file(name,'safe')],value:'chosen'};
   await h.api.loadFiles(input,'a','fileMetaA','a');
   assert.equal(h.els.a.value,'keep');
   assert.equal(h.api.getDocSeq(),0);
@@ -212,7 +217,8 @@ test('cross-component imports require truthful UTF-8 bytes and preserve exact Un
  assert.equal(h.api.getDocSeq(),0);
  assert.equal(h.runs,0);
  assert.match(h.els.status.textContent,/byte size does not match/);
- dispatch('bad\\uD800',Buffer.byteLength('bad\\uD800','utf8'));
+ const malformed='bad'+String.fromCharCode(0xD800);
+ dispatch(malformed,Buffer.byteLength(malformed,'utf8'));
  assert.equal(h.api.getDocSeq(),0);
  assert.match(h.els.status.textContent,/invalid Unicode surrogate/);
  dispatch(text,Buffer.byteLength(text,'utf8'));
