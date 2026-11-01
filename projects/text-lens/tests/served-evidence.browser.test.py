@@ -340,16 +340,35 @@ def main():
                     analysis_b["document_profiles"]["text_b"][0]["analysis"]["counts"]["words"])
             checks += 1
 
-            # Earlier textarea fill schedules a 220ms analysis debounce. Allow
-            # that pre-existing work to finish before asserting import errors;
-            # otherwise it can overwrite #status independently of this import.
-            page.wait_for_timeout(350)
+            # A pending 220ms textarea analysis must not overwrite a focused
+            # cross-component import error after the event handler returns.
+            # This is a regression for a previously observed status race.
+            pending_manual = "Pending manual edit must remain after a rejected import."
+            page.locator("#a").fill(pending_manual)
             dispatch_import("a", "invalid.txt", "rejected", size=-1)
             expect(page.locator("#status")).to_contain_text("Import rejected")
             checks += 1
-            assert page.locator("#a").input_value() == imported_a
+            page.wait_for_timeout(350)
+            expect(page.locator("#status")).to_contain_text("Import rejected")
+            checks += 1
+            assert page.locator("#a").input_value() == pending_manual
             checks += 1
             assert page.evaluate("document.activeElement.id") == "status"
+            checks += 1
+
+            # A valid immediate import supersedes a pending manual edit;
+            # no older timer may subsequently replace its analysis/status.
+            page.locator("#a").fill("Another superseded manual edit.")
+            dispatch_import("a", "0001-東京.md", imported_a)
+            page.wait_for_timeout(350)
+            expect(page.locator("#status")).to_contain_text("Analyzed")
+            checks += 1
+            assert page.locator("#a").input_value() == imported_a
+            checks += 1
+            assert page.locator("#fileMetaA").inner_text().endswith("0001-東京.md · local text")
+            checks += 1
+            analysis_after_race = json.loads(download_bytes(page, "#download").decode("utf-8"))
+            assert analysis_after_race["source_files"]["text_a"] == ["0001-東京.md"]
             checks += 1
 
             # Untrusted cross-tool events must not spoof UTF-8 size or display a
