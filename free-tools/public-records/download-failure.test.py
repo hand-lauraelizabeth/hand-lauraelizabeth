@@ -72,12 +72,35 @@ class DownloadFailureRecovery(unittest.TestCase):
                             URL.revokeObjectURL = window.__ft09Revoke;
                         }""")
 
+                        # DOM creation can fail after a Blob URL exists; revoke immediately.
+                        page.evaluate("""() => {
+                            window.__ft09CreateElement = document.createElement.bind(document);
+                            window.__ft09Revoked = [];
+                            window.__ft09Revoke = URL.revokeObjectURL;
+                            document.createElement = function(tag, ...args) {
+                                if (tag === 'a') throw Error('PRIVATE synthetic DOM failure');
+                                return window.__ft09CreateElement(tag, ...args);
+                            };
+                            URL.revokeObjectURL = url => {
+                                window.__ft09Revoked.push(url);
+                                return window.__ft09Revoke.call(URL, url);
+                            };
+                        }""")
+                        page.locator("#save-json").click()
+                        self.assertIn("JSON download could not start", page.locator("#status").inner_text())
+                        self.assertEqual(page.locator("a[download]").count(), 0)
+                        self.assertEqual(page.evaluate("() => window.__ft09Revoked.length"), 1)
+                        page.evaluate("""() => {
+                            document.createElement = window.__ft09CreateElement;
+                            URL.revokeObjectURL = window.__ft09Revoke;
+                        }""")
+
                         # A later successful download must contain exact saved evidence.
                         with page.expect_download() as download:
                             page.locator("#save-json").click()
                         recovered = json.loads(download.value.path().read_text(encoding="utf-8"))
                         self.assertEqual(recovered, synthetic)
-                        self.assertIn("JSON downloaded", page.locator("#status").inner_text())
+                        self.assertIn("JSON download started; confirm the file was saved", page.locator("#status").inner_text())
                         self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"),
                                              page.evaluate("innerWidth"))
                         self.assertTrue(all(u.startswith(url.rsplit("/", 1)[0]) for u in outbound))
