@@ -28,7 +28,20 @@ const {createServer}=require('node:http'),{chromium}=require('playwright');
    page.on('pageerror',err=>errors.push(err.message));
    page.on('request',r=>{if(/^https?:/.test(r.url())&&!r.url().startsWith(origin+'/'))requests.push(r.url());});
    await page.goto(origin+'/'+html,{waitUntil:'networkidle'});
-   const status=async part=>page.waitForFunction(([id,value])=>document.querySelector(id)?.textContent.includes(value),[selector,part]);
+   const status=async part=>{
+    try {await page.waitForFunction(([id,value])=>document.querySelector(id)?.textContent.includes(value),[selector,part],{timeout:10000});}
+    catch(error){
+     const observed=await page.locator(selector).textContent().catch(()=>'<missing status>');
+     throw Error(html+': expected status '+JSON.stringify(part)+'; observed '+JSON.stringify(observed)+'; page errors '+JSON.stringify(errors)+'; '+error.message);
+    }
+   };
+   const boot=await page.evaluate(()=>({
+    reader:typeof window.DataRescueFileReader?.read,
+    compare:typeof window.DataRescueCompareUI?.setPrimary,
+    missing:['compareIdentifier','compareIdentifierFind','compareIdentifierClear','compareFindingFilter','comparePrev','compareNext','comparePageStatus','compareJson','compareIndex'].filter(id=>!document.getElementById(id))
+   }));
+   ok(boot.reader==='function'&&boot.compare==='function'&&boot.missing.length===0,html+': complete reconciliation UI boots without missing controls');
+   ok(errors.length===0,html+': no initial script errors');
    await upload(page,'#file','corrupt.csv',Buffer.from([0x49,0x44,0x0a,0xc3,0x28]));
    await status('Invalid UTF-8');
    ok(await page.locator('#save').isDisabled(),html+': invalid UTF-8 fails closed');
@@ -80,6 +93,13 @@ const {createServer}=require('node:http'),{chromium}=require('playwright');
    await upload(page,'#compareFile','valid.tsv','Code\tValue\n1\tok');
    await page.waitForFunction(()=>document.querySelector('#compareStatus').textContent.includes('Loaded second file'));
    ok(await page.locator('#rightKey').isEnabled(),html+': valid TSV second file accepted');
+   await page.locator('#leftKey').selectOption({index:1});
+   await page.locator('#rightKey').selectOption({index:1});
+   ok(await page.locator('#compareRun').isEnabled(),html+': comparison becomes available with both keys');
+   await page.locator('#compareRun').click();
+   await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent.includes('Comparison complete'));
+   ok(await page.locator('#compareJson').isEnabled()&&await page.locator('#compareIndex').isEnabled(),html+': exact and privacy-minimized comparison exports enabled');
+   ok(await page.locator('#compareFindingFilter').isEnabled(),html+': findings filters enabled after comparison');
    await page.locator('#reset').click();
    ok(await page.locator('#compareRun').isDisabled(),html+': first-file reset disables comparison');
    ok((await page.locator('#compareFile').inputValue())==='',html+': reset clears sensitive second-file reference');
