@@ -55,6 +55,10 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None,
         destination.exists() and source.samefile(destination)
     ):
         raise ValueError("Input CSV and output JSON must refer to distinct files")
+    # API callers must not disable suppression with zero, negative, or noninteger thresholds.
+    # This validates the argument only; it does not certify cross-table privacy.
+    if type(min_cell) is not int or min_cell < 1:
+        raise ValueError("min_cell must be a positive integer")
     as_of_day = dt.date.fromisoformat(as_of)
     if reporting_month is not None:
         # An explicit full-month source cohort must be complete by calendar
