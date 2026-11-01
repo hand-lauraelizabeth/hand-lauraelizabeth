@@ -388,8 +388,8 @@ async function run(label,browserType,url){
   eq(audit.source.firstKey,'ID',label+' selected source key recorded');
   eq(audit.matches,[{key:'safe\n=1+1',leftRow:2,rightRow:2}],label+' exact multiline key and logical positions');
   ok(!JSON.stringify(audit).includes('not-exported'),label+' audit omits non-key source cells');
-  ok((await page.locator('#compareStatus').innerText()).includes('Exported exact comparison audit JSON'),
-    label+' JSON recovery is confirmed');
+  ok((await page.locator('#compareStatus').innerText()).includes('Exact comparison audit JSON download started'),
+    label+' JSON download initiation is confirmed, not browser save completion');
   eq(await page.locator('#compareStatus').getAttribute('role'),'status',label+' success restores status role');
   eq(errors,[],label+' no page errors after audit recovery');
   eq(external,[],label+' no external requests after audit recovery');

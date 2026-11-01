@@ -77,6 +77,60 @@ async function run(name,engine,url){
   ok(csvContent.startsWith('\\uFEFF'.replace('\\uFEFF','\uFEFF')),name+' CSV BOM retained');
   ok(csvContent.includes('"\\t=2+2"'.replace('\\t','\t')),name+' formula precaution retained');
   ok((await page.locator('#status').innerText()).includes('CSV download started'),name+' CSV initiation message');
+  // The comparison controller previously had an unguarded Blob URL/click
+  // path for all three formats. Exercise failures and successful retries.
+  await page.locator('#compareFile').setInputFiles({name:'synthetic-second.csv',mimeType:'text/csv',buffer:input});
+  await page.waitForFunction(()=>[...document.querySelector('#rightKey').options].some(o=>o.value==='ID'));
+  await page.locator('#leftKey').selectOption('ID');
+  await page.locator('#rightKey').selectOption('ID');
+  await page.locator('#compareRun').click();
+  await page.waitForFunction(()=>document.querySelector('#compareIndex')?.disabled===false);
+  await page.evaluate(()=>{
+   window.__compareURL=URL.createObjectURL;
+   URL.createObjectURL=()=>{throw Error('SECRET_COMPARISON_URL');};
+  });
+  for(const [selector,label] of [
+   ['#compareExport','Comparison CSV'],['#compareJson','Comparison audit JSON'],
+   ['#compareIndex','Reconciliation issue index']]){
+   const prior=downloads;
+   await page.locator(selector).click();
+   const error=await page.locator('#compareStatus').innerText();
+   ok(error.includes(label+' download could not be started'),name+' '+label+' URL failure');
+   ok(!error.includes('SECRET_COMPARISON_URL'),name+' '+label+' no internal error disclosure');
+   eq(await page.locator('#compareStatus').getAttribute('role'),'alert',name+' '+label+' alert');
+   ok(await page.locator('#compareStatus').evaluate(el=>el===document.activeElement),name+' '+label+' error focus');
+   eq(await page.locator('#compareFile').getAttribute('aria-invalid'),null,name+' '+label+' source remains valid');
+   ok(await page.locator(selector).isEnabled(),name+' '+label+' retry available');
+   eq(downloads,prior,name+' '+label+' no failed download');
+  }
+  await page.evaluate(()=>{
+   URL.createObjectURL=window.__compareURL;
+   window.__compareClick=HTMLAnchorElement.prototype.click;
+   window.__compareRevoke=URL.revokeObjectURL;
+   window.__compareRevoked=0;
+   URL.revokeObjectURL=function(url){window.__compareRevoked++;return window.__compareRevoke.call(URL,url);};
+   HTMLAnchorElement.prototype.click=function(){throw Error('SECRET_COMPARISON_CLICK');};
+  });
+  await page.locator('#compareJson').click();
+  ok((await page.locator('#compareStatus').innerText()).includes('Comparison audit JSON download could not be started'),name+' comparison click failure');
+  ok(await page.evaluate(()=>window.__compareRevoked>=1),name+' comparison failed URL revoked');
+  eq(await page.evaluate(()=>document.querySelectorAll('a[download]').length),0,name+' comparison anchor removed');
+  await page.evaluate(()=>{
+   HTMLAnchorElement.prototype.click=window.__compareClick;
+   URL.revokeObjectURL=window.__compareRevoke;
+  });
+  const [compareCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#compareExport').click()]);
+  ok(readFileSync(await compareCsv.path(),'utf8').startsWith('\uFEFF'),name+' comparison CSV retry BOM');
+  ok((await page.locator('#compareStatus').innerText()).includes('download started'),name+' comparison CSV truthful status');
+  const [compareJson]=await Promise.all([page.waitForEvent('download'),page.locator('#compareJson').click()]);
+  const comparisonAudit=JSON.parse(readFileSync(await compareJson.path(),'utf8'));
+  eq(comparisonAudit.source.firstKey,'ID',name+' comparison JSON exact first key');
+  eq(comparisonAudit.source.secondKey,'ID',name+' comparison JSON exact second key');
+  const [compareIndex]=await Promise.all([page.waitForEvent('download'),page.locator('#compareIndex').click()]);
+  const comparisonIndex=readFileSync(await compareIndex.path(),'utf8');
+  ok(!comparisonIndex.includes('0007'),name+' comparison issue index excludes identifiers');
+  ok((await page.locator('#compareStatus').innerText()).includes('download started'),name+' comparison index truthful status');
+
 
   await page.evaluate(()=>{
    window.__evidenceExport=window.DataRescue.exportEvidenceJson;
