@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "projects/data-rescue-studio/file-reader.js"
+      - "projects/data-rescue-studio/history-preview.html"
       - "projects/data-rescue-studio/tests/file-reader.test.js"
       - "projects/data-rescue-studio/tests/file-boundary-browser.cjs"
       - ".github/workflows/ft02-filename-integrity.yml"
