@@ -122,12 +122,20 @@ def verify_pair(raw_path, receipt_path):
     ):
         if receipt.get(key) != expected:
             raise VerificationError('SCHEMA_RECEIPT_MISMATCH:' + key)
+    # Older private receipts omit this optional field. Never interpret omission
+    # as verified; if asserted, require an exact boolean match to raw metadata.
+    if 'row_identifier_unique_key_verified' in receipt:
+        claimed = receipt['row_identifier_unique_key_verified']
+        if (type(claimed) is not bool
+                or claimed is not schema['row_identifier_unique_key_verified']):
+            raise VerificationError('ROW_IDENTIFIER_RECEIPT_MISMATCH')
     return {
         'offline_pair_integrity_verified': True,
         'raw_body_bytes': len(raw),
         'raw_body_sha256': hashlib.sha256(raw).hexdigest(),
         'required_field_count': schema['required_field_count'],
         'observed_metadata_columns': schema['publisher_column_count'],
+        'row_identifier_unique_key_verified': schema['row_identifier_unique_key_verified'],
         'publisher_origin_authenticated': False,
         'september_csv_reconciled': False,
         'disclosure_approved': False,

@@ -208,5 +208,46 @@ class ReceiptVerificationTests(unittest.TestCase):
         self.assertEqual(verify_pair(self.raw, self.receipt)['observed_metadata_columns'], 8)
 
 
+    def test_undeclared_row_identifier_is_explicitly_unverified(self):
+        result = verify_pair(self.raw, self.receipt)
+        self.assertFalse(result['row_identifier_unique_key_verified'])
+
+    def test_declared_row_identifier_propagates_from_raw_metadata(self):
+        for index, col in enumerate(self.payload['columns']):
+            col['id'] = 100 + index
+        self.payload['rowIdentifierColumnId'] = 100
+        self.make_pair()
+        result = verify_pair(self.raw, self.receipt)
+        self.assertTrue(result['row_identifier_unique_key_verified'])
+        self.assertFalse(result['publisher_origin_authenticated'])
+
+    def test_matching_explicit_row_identifier_claim_accepted(self):
+        for index, col in enumerate(self.payload['columns']):
+            col['id'] = 100 + index
+        self.payload['rowIdentifierColumnId'] = 100
+        self.make_pair()
+        self.edit_receipt(row_identifier_unique_key_verified=True)
+        self.assertTrue(verify_pair(self.raw, self.receipt)['row_identifier_unique_key_verified'])
+
+    def test_false_positive_row_identifier_receipt_rejected(self):
+        self.edit_receipt(row_identifier_unique_key_verified=True)
+        with self.assertRaisesRegex(VerificationError, 'ROW_IDENTIFIER_RECEIPT_MISMATCH'):
+            verify_pair(self.raw, self.receipt)
+
+    def test_false_negative_row_identifier_receipt_rejected(self):
+        for index, col in enumerate(self.payload['columns']):
+            col['id'] = 100 + index
+        self.payload['rowIdentifierColumnId'] = 100
+        self.make_pair()
+        self.edit_receipt(row_identifier_unique_key_verified=False)
+        with self.assertRaisesRegex(VerificationError, 'ROW_IDENTIFIER_RECEIPT_MISMATCH'):
+            verify_pair(self.raw, self.receipt)
+
+    def test_nonboolean_row_identifier_claim_rejected(self):
+        self.edit_receipt(row_identifier_unique_key_verified='false')
+        with self.assertRaisesRegex(VerificationError, 'ROW_IDENTIFIER_RECEIPT_MISMATCH'):
+            verify_pair(self.raw, self.receipt)
+
+
 if __name__ == '__main__':
     unittest.main()
