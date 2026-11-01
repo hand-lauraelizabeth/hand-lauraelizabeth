@@ -116,7 +116,7 @@ const {createServer}=require('node:http'),{chromium}=require('playwright');
      HTMLAnchorElement.prototype.click=originals.click;
     });
     const [retriedCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#save').click()]);
-    ok(fs.readFileSync(await retriedCsv.path(),'utf8').includes('"\\t=1+2"'),html+': working-copy CSV retry preserves spreadsheet precaution');
+    ok(fs.readFileSync(await retriedCsv.path(),'utf8')===csv,html+': working-copy CSV retry preserves the exact previously tested export');
     ok((await page.locator('#loadStatus').textContent()).includes('download started'),html+': successful CSV retry does not claim saved');
     const [manifestDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#historyExport').click()]);
     const manifestText=fs.readFileSync(await manifestDownload.path(),'utf8');
