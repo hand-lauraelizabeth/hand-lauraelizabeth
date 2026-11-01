@@ -53,6 +53,21 @@ def validate_metadata(metadata):
             raise MetadataContractError("REQUIRED_FIELD_MISSING")
         if fields[field] != expected:
             raise MetadataContractError("REQUIRED_FIELD_TYPE_CHANGED")
+    # Socrata identifies its row key by a numeric column ID, not by a
+    # human-readable display label. Check it when the publisher supplies it;
+    # an absent declaration is explicitly NOT verified.
+    row_identifier_verified = False
+    if "rowIdentifierColumnId" in metadata:
+        row_id = metadata["rowIdentifierColumnId"]
+        key_column = next(col for col in columns if col["fieldName"] == "unique_key")
+        key_id = key_column.get("id")
+        if (type(row_id) is not int or type(key_id) is not int
+                or row_id != key_id
+                or sum(type(col.get("id")) is int and col.get("id") == row_id
+                       for col in columns) != 1):
+            raise MetadataContractError("ROW_IDENTIFIER_NOT_UNIQUE_KEY")
+        row_identifier_verified = True
+
     selected = [[name, fields[name]] for name in sorted(REQUIRED_TYPES)]
     digest = hashlib.sha256(json.dumps(selected, separators=(",", ":")).encode()).hexdigest()
     return {
@@ -60,6 +75,7 @@ def validate_metadata(metadata):
         "required_field_count": len(REQUIRED_TYPES),
         "publisher_column_count": len(fields),
         "required_schema_sha256": digest,
+        "row_identifier_unique_key_verified": row_identifier_verified,
         "verified_offline_only": True,
         "publisher_origin_authenticated": False,
         "publication_authorized": False,
