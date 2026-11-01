@@ -112,6 +112,11 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None,
                 key = normalize(row["unique_key"])
                 created = dateparse(row["created_date"])
                 finished = dateparse(row["closed_date"])
+                # In strict full-month mode, a nonempty malformed closure
+                # timestamp is a source-contract failure, never an open case.
+                if (reporting_month is not None and
+                        normalize(row["closed_date"]) and finished is None):
+                    raise ValueError("Invalid closed_date in required month cohort")
                 if reporting_month is not None:
                     # Compare New York calendar dates, not UTC date strings.
                     # Never silently skip invalid, out-of-cohort or future rows.
