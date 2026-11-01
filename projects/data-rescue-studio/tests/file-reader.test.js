@@ -62,5 +62,27 @@ const file=(name,bytes,reportedSize)=>({
   await rejects(()=>reader.read({name:label+'.csv',size:4,arrayBuffer:async()=>returned},core.parseDelimited),/Unable to read file bytes/);
  }
  eq((await reader.read(file('exact-bytes.csv',Buffer.from('ID\n1')),core.parseDelimited)).rows[0][0],'1','matching actual bytes still accepted');
+ // Filename metadata is untrusted even though file bytes stay browser-local.
+ // Controls and bidi formatting could disguise filenames in status and evidence.
+ for(const [label,name] of [
+  ['line feed','report\\nsecret.csv'],
+  ['carriage return','report\\rsecret.csv'],
+  ['line separator','report\\u2028secret.csv'],
+  ['paragraph separator','report\\u2029secret.csv'],
+  ['bidi override','report\\u202Etxt.csv'],
+  ['bidi isolate','report\\u2066secret.csv'],
+  ['direction mark','report\\u200Esecret.tsv'],
+  ['arabic letter mark','report\\u061Csecret.csv'],
+  ['NUL','report\\u0000secret.csv'],
+  ['C1 control','report\\u009Fsecret.csv']
+ ]){
+  let reads=0;
+  const input={name,size:4,arrayBuffer:async()=>{reads++;return Buffer.from('ID\\n1').buffer;}};
+  await rejects(()=>reader.read(input,core.parseDelimited),/unsupported control or direction/);
+  eq(reads,0,label+' rejected before reading any bytes');
+ }
+ for(const name of ['café.CSV','資料.tsv','emoji😀.csv','family\\u200Dname.csv']){
+  eq(reader.extension(name),name.toLowerCase().endsWith('.tsv')?'tsv':'csv','valid Unicode filename accepted');
+ }
  console.log('PASS: '+checks+' strict local UTF-8 and byte-size assertions.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
