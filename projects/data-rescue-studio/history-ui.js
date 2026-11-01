@@ -59,14 +59,24 @@
   }catch(error){$('historyStatus').textContent=error.message;}
  }
  function recordExport(details){if(session){session.recordExport(details);refresh();}}
+ function exportMessage(text,error=false){
+  const status=$('historyStatus');
+  status.textContent=text;
+  status.setAttribute('role',error?'alert':'status');
+  status.setAttribute('aria-live',error?'assertive':'polite');
+  if(error)status.focus();
+ }
  function download(){
   if(!session)return;
-  const json=JSON.stringify(session.manifest(),null,2);
-  const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'}));
-  const link=el('a');link.href=url;link.download='data-rescue-operations.json';
-  document.body.append(link);link.click();link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-  $('historyStatus').textContent='Operations manifest downloaded. It includes no original row values.';
+  let json;
+  try{json=JSON.stringify(session.manifest(),null,2);}
+  catch{exportMessage('Unable to prepare the operations manifest. The transformation history remains available; retry.',true);return;}
+  if(typeof root.DataRescueHistoryDownload!=='function'||
+     !root.DataRescueHistoryDownload(json,'data-rescue-operations.json','application/json;charset=utf-8')){
+   exportMessage('Operations manifest download could not be started. The transformation history remains available; retry.',true);
+   return;
+  }
+  exportMessage('Operations manifest JSON download started. Check your browser downloads; it contains no original row values.');
  }
  $('trimColumn').addEventListener('change',refresh);
  $('trimApply').addEventListener('click',()=>{if($('trimColumn').value!=='')apply({type:'trimWhitespace',columnIndex:Number($('trimColumn').value)});});

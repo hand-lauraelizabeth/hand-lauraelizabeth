@@ -79,6 +79,53 @@ const {createServer}=require('node:http'),{chromium}=require('playwright');
    const csv=fs.readFileSync(await download.path(),'utf8');
    ok(csv.includes('"\t=1+2"')&&csv.includes('"\t+2"')&&csv.includes('"\t@SUM(A1)"')&&csv.includes('"\t -4"'),html+': local CSV spreadsheet precaution prefixes formula-like rows');
    ok(csv.includes('\u00e9'),html+': Unicode characters preserved on export');
+
+   if(html==='history-preview.html'){
+    // Fault injection: browser download APIs can fail even after valid local parsing.
+    // The source, manifest, and retry controls must survive both failure modes.
+    await page.evaluate(()=>{
+     window.__ft02DownloadOriginals={create:URL.createObjectURL,revoke:URL.revokeObjectURL,click:HTMLAnchorElement.prototype.click};
+     URL.createObjectURL=()=>{throw Error('synthetic private URL failure');};
+    });
+    await page.locator('#save').click();
+    ok((await page.locator('#loadStatus').textContent()).includes('download could not be started'),html+': blocked CSV URL reports a text error');
+    ok(await page.locator('#loadStatus').evaluate(node=>document.activeElement===node),html+': CSV export error receives focus');
+    ok(await page.locator('#file').getAttribute('aria-invalid')===null,html+': valid upload not mislabeled invalid after CSV export failure');
+    ok(await page.locator('#save').isEnabled(),html+': CSV export remains retryable');
+    await page.locator('#historyExport').click();
+    ok((await page.locator('#historyStatus').textContent()).includes('download could not be started'),html+': blocked manifest URL reports a text error');
+    ok(await page.locator('#historyStatus').evaluate(node=>document.activeElement===node),html+': manifest export error receives focus');
+    ok(await page.locator('#historyExport').isEnabled(),html+': manifest export remains retryable');
+    await page.evaluate(()=>{
+     const originals=window.__ft02DownloadOriginals;
+     URL.createObjectURL=originals.create;
+     window.__ft02Revoked=0;
+     URL.revokeObjectURL=function(...args){window.__ft02Revoked++;return originals.revoke.apply(URL,args);};
+     HTMLAnchorElement.prototype.click=function(){throw Error('synthetic private click failure');};
+    });
+    await page.locator('#save').click();
+    ok((await page.locator('#loadStatus').textContent()).includes('download could not be started'),html+': blocked CSV click reports a text error');
+    await page.locator('#historyExport').click();
+    ok((await page.locator('#historyStatus').textContent()).includes('download could not be started'),html+': blocked manifest click reports a text error');
+    const cleanup=await page.evaluate(()=>({revoked:window.__ft02Revoked,anchors:document.querySelectorAll('a[download]').length}));
+    ok(cleanup.revoked===2&&cleanup.anchors===0,html+': failed CSV and manifest clicks revoke both URLs and remove both anchors');
+    await page.evaluate(()=>{
+     const originals=window.__ft02DownloadOriginals;
+     URL.createObjectURL=originals.create;
+     URL.revokeObjectURL=originals.revoke;
+     HTMLAnchorElement.prototype.click=originals.click;
+    });
+    const [retriedCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#save').click()]);
+    ok(fs.readFileSync(await retriedCsv.path(),'utf8')===csv,html+': working-copy CSV retry preserves the exact previously tested export');
+    ok((await page.locator('#loadStatus').textContent()).includes('download started'),html+': successful CSV retry does not claim saved');
+    const [manifestDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#historyExport').click()]);
+    const manifestText=fs.readFileSync(await manifestDownload.path(),'utf8');
+    const manifest=JSON.parse(manifestText);
+    ok(typeof manifest==='object'&&!manifestText.includes('=1+2')&&!manifestText.includes('é'),html+': manifest retry is valid JSON without original cell values');
+    ok((await page.locator('#historyStatus').textContent()).includes('download started'),html+': successful manifest retry does not claim saved');
+    ok((await page.locator('#historyStatus').getAttribute('role'))==='status',html+': manifest success clears prior alert role');
+   }
+
    await upload(page,'#compareFile','misleading\u202Etxt.csv','Code,Value\n1,ok');
    await page.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent.includes('unsupported control or direction'));
    ok(await page.locator('#compareRun').isDisabled(),html+': second-file bidi metadata rejected');
