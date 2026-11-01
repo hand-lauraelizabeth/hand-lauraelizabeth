@@ -20,8 +20,10 @@ function harness(withExternalImport=false){
   els[id]={value:'',textContent:'',focused:false,focus(){this.focused=true}};
  }
  let runs=0;
- const handlers={};
+ const handlers={},canceledTimers=[];
  const env={
+  // The isolated import-event harness must model the page's pending debounce.
+  tm:17,clearTimeout(id){canceledTimers.push(id)},
   root:{addEventListener(type,handler){handlers[type]=handler}},
   MAX_CHARS:400000,sourceDocs:{a:[],b:[]},sourceFiles:{a:[],b:[]},
   docSeq:0,pendingCorpusConfig:null,run(){runs++},applyCorpusSetup(){runs++},
@@ -32,8 +34,19 @@ function harness(withExternalImport=false){
  assert.ok(eventStart>0&&eventEnd>eventStart,'External import event handler must exist');
  const eventHandler=html.slice(eventStart,eventEnd+2);
  const api=vm.runInNewContext(source+(withExternalImport?'\n'+eventHandler:'')+';({loadFiles,fileLoadRevision,getDocSeq:()=>docSeq})',env);
- return {api,env,els,handlers,get runs(){return runs}};
+ return {api,env,els,handlers,canceledTimers,get runs(){return runs}};
 }
+test('rejected external import cancels pending analysis without changing source evidence',()=>{
+ const h=harness(true);
+ h.els.a.value='Previously accepted source';
+ h.env.sourceDocs.a=[{id:'a-7',name:'original.txt',text:'Previously accepted source'}];
+ h.handlers['text-lens:import']({detail:{key:'a',name:'bad.txt',size:-1,text:'invalid'}});
+ assert.deepEqual(h.canceledTimers,[17]);
+ assert.match(h.els.status.textContent,/Import rejected/);
+ assert.equal(h.els.status.focused,true);
+ assert.equal(h.els.a.value,'Previously accepted source');
+ assert.equal(h.env.sourceDocs.a[0].id,'a-7');
+});
 test('strict UTF-8 import preserves Unicode, exact source names and stable IDs',async()=>{
  const h=harness();
  await h.api.loadFiles({files:[file('0001.md','Café 😀'),file('日本語.csv','001,東京')],value:'chosen'},'a','fileMetaA','a');
