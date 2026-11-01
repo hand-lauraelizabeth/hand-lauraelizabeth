@@ -8,6 +8,10 @@
  const maxBytes=5000000;
  function extension(name){
   if(typeof name!=='string')throw Error('Choose a .csv or .tsv file.');
+  // Filenames appear in status messages and evidence metadata. Do not let
+  // embedded line breaks or bidi formatting controls disguise their meaning.
+  if (/[\u0000-\u001F\u007F-\u009F\u200E\u200F\u2028-\u202E\u2066-\u2069\u061C]/u.test(name))
+   throw Error('File name contains unsupported control or direction characters. Rename it before importing.');
   const match=/\.(csv|tsv)$/i.exec(name);
   if(!match)throw Error('Choose a .csv or .tsv file.');
   return match[1].toLowerCase();
