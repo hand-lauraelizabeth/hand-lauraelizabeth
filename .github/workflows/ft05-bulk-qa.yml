@@ -63,6 +63,11 @@ jobs:
           node --check free-tools/evidence-timeline/group-summary.mjs
           node --check free-tools/evidence-timeline/group-summary.test.mjs
           node free-tools/evidence-timeline/group-summary.test.mjs
+      - name: Verify guarded local CSV and JSON download lifecycle
+        run: |
+          node --check free-tools/evidence-timeline/download-guard.mjs
+          node --check free-tools/evidence-timeline/download-guard.test.mjs
+          node free-tools/evidence-timeline/download-guard.test.mjs
       - name: Verify user-assigned group editing and immutable source evidence
         run: |
           node --check free-tools/evidence-timeline/edit-group.mjs
