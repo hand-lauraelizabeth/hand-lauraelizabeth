@@ -258,15 +258,26 @@
       message('Unable to compare: ' + error.message, true);
     }
   }
-  function download(contents, filename, type) {
-    const url = URL.createObjectURL(new Blob([contents], {type}));
-    const link = el('a');
-    link.href = url;
-    link.download = filename;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // Download initiation is not proof the browser saved a file.
+  // Guard each comparison format and release temporary URLs on activation failure.
+  function download(contents, filename, type, kind) {
+    let url = null, link = null;
+    try {
+      url = URL.createObjectURL(new Blob([contents], {type}));
+      link = el('a');
+      link.href = url;
+      link.download = filename;
+      document.body.append(link);
+      link.click();
+    } catch {
+      if (url) { try { URL.revokeObjectURL(url); } catch {} }
+      message(kind + ' download could not be started. Both source files and the comparison remain loaded; retry or choose another format.', true);
+      return false;
+    } finally {
+      if (link) link.remove();
+    }
+    try { setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 1000); } catch {}
+    return true;
   }
   function exportAudit() {
     if (!comparison) return;
@@ -285,8 +296,8 @@
       return;
     }
     try {
-      download(lib.exportCsvDownload(parsed, true), 'data-rescue-comparison-audit.csv', 'text/csv;charset=utf-8');
-      message('Exported ' + rows.length + ' findings. Contains identifier keys and source record positions, not full input records. Keep it private if identifiers are sensitive.');
+      if (!download(lib.exportCsvDownload(parsed, true), 'data-rescue-comparison-audit.csv', 'text/csv;charset=utf-8', 'Comparison CSV')) return;
+      message('Comparison CSV download started for ' + rows.length + ' findings. Contains identifier keys and source record positions, not full input records. Check your browser downloads and keep it private if identifiers are sensitive.');
     } catch (error) {
       message('Unable to export comparison CSV: ' + error.message + ' Use exact comparison audit JSON instead.', true);
     }
@@ -303,8 +314,8 @@
       ...comparison
     };
     try {
-      download(JSON.stringify(audit), 'data-rescue-comparison-audit.json', 'application/json;charset=utf-8');
-      message('Exported exact comparison audit JSON. Includes all findings and exact identifier keys, not complete input records. Keep it private if identifiers are sensitive.');
+      if (!download(JSON.stringify(audit), 'data-rescue-comparison-audit.json', 'application/json;charset=utf-8', 'Comparison audit JSON')) return;
+      message('Exact comparison audit JSON download started. Includes all findings and exact identifier keys, not complete input records. Check your browser downloads and keep it private if identifiers are sensitive.');
     } catch (error) {
       message('Unable to export comparison audit JSON: ' + error.message, true);
     }
@@ -315,8 +326,8 @@
       if (!root.DataRescueComparisonIndex || typeof root.DataRescueComparisonIndex.create !== 'function')
         throw Error('The local reconciliation index builder is unavailable. Reload this page.');
       const contents = root.DataRescueComparisonIndex.create(comparison, positions(first), positions(second));
-      download(contents, 'data-rescue-reconciliation-issue-index.json', 'application/json;charset=utf-8');
-      message('Exported reconciliation issue index with source positions and categories only. No identifier keys, filenames or cell values. Linkage patterns may still be sensitive; keep it private.');
+      if (!download(contents, 'data-rescue-reconciliation-issue-index.json', 'application/json;charset=utf-8', 'Reconciliation issue index')) return;
+      message('Reconciliation issue index download started with source positions and categories only. No identifier keys, filenames or cell values. Check your browser downloads; linkage patterns may still be sensitive.');
     } catch (error) {
       message('Unable to export reconciliation issue index: ' + error.message, true);
     }
