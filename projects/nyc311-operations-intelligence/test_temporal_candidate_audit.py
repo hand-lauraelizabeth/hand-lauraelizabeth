@@ -155,6 +155,70 @@ class TestTemporalCandidateAudit(unittest.TestCase):
         self.assertNotIn("small_visible_open_complement_delta",
                          codes(assess_pair(self.old, self.new)))
 
+    def _add_second_visible_cell(self):
+        for item in (self.old, self.new):
+            second = copy.deepcopy(item["aggregates"][0])
+            second["problem"] = "Synthetic second category"
+            item["aggregates"].append(second)
+
+    def test_small_common_cell_request_marginal_detected(self):
+        self._add_second_visible_cell()
+        self.old["aggregates"][0]["requests"] = 100
+        self.old["aggregates"][1]["requests"] = 100
+        self.new["aggregates"][0]["requests"] = 120
+        self.new["aggregates"][1]["requests"] = 81
+        result = assess_pair(self.old, self.new)
+        found = codes(result)
+        self.assertIn("small_visible_common_cell_request_marginal_delta", found)
+        self.assertNotIn("small_visible_request_delta", found)
+        self.assertNotIn("Synthetic second category", str(result))
+        self.assertNotIn("81", str(result))
+        self.assertFalse(result["publication_cleared"])
+
+    def test_small_common_cell_closure_marginal_detected(self):
+        self._add_second_visible_cell()
+        for item in (self.old, self.new):
+            for row in item["aggregates"]:
+                row["requests"] = 100
+        self.old["aggregates"][0]["closed_with_valid_interval"] = 30
+        self.old["aggregates"][1]["closed_with_valid_interval"] = 40
+        self.new["aggregates"][0]["closed_with_valid_interval"] = 50
+        self.new["aggregates"][1]["closed_with_valid_interval"] = 21
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_common_cell_closure_marginal_delta", found)
+        self.assertNotIn("small_visible_closure_delta", found)
+
+    def test_small_common_cell_open_marginal_detected(self):
+        self._add_second_visible_cell()
+        self.old["aggregates"][0].update(requests=100, closed_with_valid_interval=30)
+        self.old["aggregates"][1].update(requests=100, closed_with_valid_interval=60)
+        self.new["aggregates"][0].update(requests=130, closed_with_valid_interval=40)
+        self.new["aggregates"][1].update(requests=130, closed_with_valid_interval=109)
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_common_cell_open_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_request_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_closure_marginal_delta", found)
+        self.assertNotIn("small_visible_open_complement_delta", found)
+
+    def test_common_cell_marginal_negative_control(self):
+        self._add_second_visible_cell()
+        for row in self.old["aggregates"]:
+            row["requests"] = 100
+        for row in self.new["aggregates"]:
+            row["requests"] = 120
+        found = codes(assess_pair(self.old, self.new))
+        self.assertFalse(any("common_cell" in code for code in found))
+
+    def test_suppressed_closure_blocks_closure_marginal_inference(self):
+        self._add_second_visible_cell()
+        for item in (self.old, self.new):
+            item["aggregates"][1]["closed_with_valid_interval"] = None
+        self.old["aggregates"][0].update(requests=100, closed_with_valid_interval=30)
+        self.new["aggregates"][0].update(requests=120, closed_with_valid_interval=50)
+        found = codes(assess_pair(self.old, self.new))
+        self.assertNotIn("small_visible_common_cell_closure_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_open_marginal_delta", found)
+
     def test_inputs_not_modified(self):
         old, new = copy.deepcopy(self.old), copy.deepcopy(self.new)
         assess_pair(self.old, self.new)
