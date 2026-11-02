@@ -485,7 +485,7 @@ function documentImportHarness(){
    })}}
   }
  };
- const loads=[],queuedLoads=[];let failLocal=false,overridePdf=null,overrideLoadingTask=null,deferLocal=false,loadingTaskStarted=0;
+ const loads=[],queuedLoads=[],removedScripts=[],pendingTimers=new Map();let timerId=0;let failLocal=false,overridePdf=null,overrideLoadingTask=null,deferLocal=false,loadingTaskStarted=0;
  const completeLocalLoad=script=>{
    if(failLocal){script.onerror();return}
    if(script.src.endsWith('/mammoth.browser.min.js'))window.mammoth={async extractRawText(){return {value:'DOCX extracted evidence'}}};
@@ -500,7 +500,7 @@ function documentImportHarness(){
  };
  const document={location:{protocol:'https:',origin:'https://example.test',href:'https://example.test/projects/text-lens/text-lens.html'},
   getElementById(){return root},
-  createElement(type){assert.equal(type,'script');return {src:'',onload:null,onerror:null}},
+  createElement(type){assert.equal(type,'script');return {src:'',onload:null,onerror:null,remove(){removedScripts.push(this.src)}}},
   head:{appendChild(script){
    loads.push(script.src);
    if(deferLocal)queuedLoads.push(script);
@@ -508,13 +508,14 @@ function documentImportHarness(){
   }}
  };
  const context={document,window,URL,TextEncoder,Uint8Array,ArrayBuffer,Number,
+   setTimeout(fn){const id=++timerId;pendingTimers.set(id,fn);return id},clearTimeout(id){pendingTimers.delete(id)},
   CustomEvent:class{constructor(type,{detail}){this.type=type;this.detail=detail}},
   Event:class{constructor(type){this.type=type}}
  };
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
  const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
- return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
+ return {events,handlers,input,side,status,window,file,bytes,loads,document,removedScripts,getPendingTimers(){return pendingTimers.size},flushTimers(){const tasks=[...pendingTimers.values()];pendingTimers.clear();tasks.forEach(fn=>fn())},setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
  const h=documentImportHarness();
@@ -807,6 +808,54 @@ test('evidence CSV, exact evidence JSON and source-free analysis JSON recover fr
    assert.equal(source.source,'0007-Café-東京.md');
   }
  }
+});
+
+
+test('document bridge times out stalled same-origin parser and retries without replacing accepted evidence',async()=>{
+ const h=documentImportHarness();h.setLocalDelay(true);
+ h.input.files=[h.file('stalled.docx','PK\x03\x04stalled')];
+ const pending=h.handlers.change.call(h.input);
+ for(let i=0;i<10&&!h.getPendingTimers();i++)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(h.getPendingTimers(),1,'stalled loader must have one bounded timeout');
+ h.flushTimers();await pending;
+ assert.match(h.status.textContent,/timed out after 15 seconds/);
+ assert.equal(h.events.length,0);
+ assert.equal(h.status.focused,true);
+ assert.equal(h.removedScripts.length,1);
+ h.setLocalDelay(false);
+ h.input.files=[h.file('retry.docx','PK\x03\x04retry')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'retry.docx');
+ assert.equal(h.getPendingTimers(),0,'successful load clears timer');
+ assert.equal(h.removedScripts.length,2,'both loader elements are removed');
+});
+test('document bridge recovers from blocked parser insertion and retry remains local',async()=>{
+ const h=documentImportHarness();
+ const original=h.document.head.appendChild;
+ h.document.head.appendChild=()=>{throw Error('synthetic DOM insertion blocked')};
+ h.input.files=[h.file('blocked.pdf','%PDF-blocked')];
+ await h.handlers.change.call(h.input);
+ assert.match(h.status.textContent,/could not be loaded/);
+ assert.equal(h.events.length,0);
+ assert.equal(h.removedScripts.length,1);
+ assert.equal(h.getPendingTimers(),0);
+ h.document.head.appendChild=original;
+ h.input.files=[h.file('recovered.pdf','%PDF-recovered')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'recovered.pdf');
+ assert.equal(h.removedScripts.length,2);
+});
+test('document bridge catches parser global initialization errors instead of leaving import pending',async()=>{
+ const h=documentImportHarness();let current=h.window.mammoth,reads=0;
+ Object.defineProperty(h.window,'mammoth',{configurable:true,get(){reads++;if(reads>1)throw Error('synthetic getter failure');return current},set(v){current=v}});
+ h.input.files=[h.file('bad.docx','PK\x03\x04bad')];
+ await h.handlers.change.call(h.input);
+ assert.match(h.status.textContent,/could not initialize/);
+ assert.equal(h.events.length,0);
+ assert.equal(h.getPendingTimers(),0);
+ assert.equal(h.removedScripts.length,1);
 });
 
 test('unsafe evidence CSV is blocked while exact JSON preserves synthetic formula-like source values',()=>{
