@@ -17,6 +17,7 @@ on:
       - '.github/workflows/college-matcher-validation.yml'
   pull_request:
     paths:
+      - 'projects/college-career-matching/tests/test_ny20_live_projection.py'
       - 'projects/college-career-matching/ui/**'
       - 'projects/college-career-matching/ny_pilot_*.py'
       - 'projects/college-career-matching/ny-pilot-*.json'
@@ -60,7 +61,7 @@ jobs:
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny_pilot_*.py' -v
       - name: Run national Scorecard source integrity tests
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_national_snapshot.py' -v
-      - name: Run NY20 descriptive projection regression tests
+      - name: Enforce NY20 removed-evidence containment (retired projection tests skipped)
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny20_live_projection.py' -v
       - name: Validate institution-widget JavaScript syntax
         run: node --check projects/college-career-matching/ny20-widget.js
