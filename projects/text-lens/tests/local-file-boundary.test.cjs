@@ -1061,10 +1061,12 @@ test('DOCX Deflate integrity fails closed when native raw decompression is unava
 });
 
 test('superseded asynchronous Deflate verification cannot overwrite newer accepted evidence',async()=>{
- const h=documentImportHarness();let release;
+ const h=documentImportHarness();let release,pausedOnce=false;
  class PausedBlob extends Blob{
   constructor(parts){super(parts);this.compressed=Uint8Array.from(parts[0]);}
   stream(){
+   if(pausedOnce)return super.stream();
+   pausedOnce=true;
    const compressed=this.compressed;
    return new ReadableStream({start(controller){
     release=()=>{controller.enqueue(compressed);controller.close()};
