@@ -73,6 +73,12 @@ def main():
             assert page.locator('#group-edit-error').is_visible()
             assert page.evaluate('document.activeElement.id')=='group-edit-error'
             assert exported(page)==saved,(engine,'invalid group changed saved records')
+            field.fill('corrected draft')
+            assert not page.locator('#group-edit-error').is_visible(),(engine,'stale group error after editing')
+            assert field.get_attribute('aria-invalid') is None,(engine,'stale aria-invalid after editing')
+            assert field.get_attribute('aria-describedby')=='group-edit-help',(engine,'group help lost after correction')
+            assert page.evaluate('document.activeElement.id')=='group-edit-value',(engine,'focus lost while correcting')
+            assert exported(page)==saved,(engine,'corrected unsaved draft changed evidence')
             field.fill('=SUM(A1)')
             page.get_by_role('button',name='Save group').click()
             assert page.locator('#csv').is_disabled(),(engine,'formula-like group should block CSV')
