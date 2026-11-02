@@ -63,6 +63,9 @@ function harness(rows){
   document:{body:{appendChild(){}},createElement(){return{href:'',download:'',click(){},remove(){}}}},
   setTimeout(){},Date,JSON
  };
+ // Match the real page's shared guarded download helper in this isolated VM harness.
+ const downloadSource=between('function startTableDownload(','function downloadTables(){');
+ vm.runInNewContext(downloadSource,env);
  const exportSource=between('function exportEvidence(){','function evidenceJsonPayload(');
  const jsonSource=between('function evidenceJsonPayload(','let evidenceRows=[],evidencePage=0;');
  vm.runInNewContext(exportSource+';this.exportEvidence=exportEvidence',env);
@@ -90,7 +93,7 @@ test('valid CSV export still works after unsafe record is removed',()=>{
  assert.equal(downloads.length,1);
  assert.match(downloads[0].parts[1],/source_file/);
  assert.match(downloads[0].parts[1],/"ruin"/);
- assert.match(status.textContent,/Downloaded 1 evidence rows/);
+ assert.match(status.textContent,/Started local download of 1 evidence CSV rows/);
 });
 test('JSON fallback preserves exact risky source fields and original positions',()=>{
  const records=[row('＝1+1','\u200barchive.csv'),row('"quoted",line','second.txt')];
