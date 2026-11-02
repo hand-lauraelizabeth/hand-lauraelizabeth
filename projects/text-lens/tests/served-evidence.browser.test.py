@@ -75,6 +75,38 @@ def no_download(page, selector):
     raise AssertionError("Unsafe evidence unexpectedly exported as CSV")
 
 
+
+def synthetic_deflate_docx_pair():
+    """Create a real raw-DEFLATE ZIP and a matching-header CRC forgery, without user data."""
+    import zipfile
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+        archive.writestr("[Content_Types].xml", "<Types/>")
+        archive.writestr("_rels/.rels", "<Relationships/>")
+        archive.writestr("word/document.xml", "<w:document>Synthetic only</w:document>")
+    valid = out.getvalue()
+    with zipfile.ZipFile(io.BytesIO(valid)) as archive:
+        assert archive.read("word/document.xml") == b"<w:document>Synthetic only</w:document>"
+    central = valid.rfind(bytes([0x50, 0x4b, 0x01, 0x02]))
+    assert central >= 0
+    name_len = int.from_bytes(valid[central + 28:central + 30], "little")
+    assert valid[central + 46:central + 46 + name_len] == b"word/document.xml"
+    local = int.from_bytes(valid[central + 42:central + 46], "little")
+    assert valid[local:local + 4] == bytes([0x50, 0x4b, 0x03, 0x04])
+    forged = bytearray(valid)
+    wrong_crc = int.from_bytes(valid[central + 16:central + 20], "little") ^ 1
+    forged[central + 16:central + 20] = wrong_crc.to_bytes(4, "little")
+    forged[local + 14:local + 18] = wrong_crc.to_bytes(4, "little")
+    try:
+        with zipfile.ZipFile(io.BytesIO(forged)) as archive:
+            archive.read("word/document.xml")
+    except zipfile.BadZipFile:
+        pass
+    else:
+        raise AssertionError("Synthetic negative control must fail independent ZIP CRC verification")
+    return valid, bytes(forged)
+
+
 def main():
     engine = os.environ.get("FT11_BROWSER", "chromium")
     checks = 0
@@ -397,6 +429,62 @@ def main():
             recovered_json = json.loads(download_bytes(page, "#download").decode("utf-8"))
             assert recovered_json["source_files"]["text_a"] == ["0007-Café-東京.md"]
             checks += 1
+
+
+            # Exercise the actual browser's raw-DEFLATE implementation under the
+            # served CSP. The same-origin Mammoth endpoint is a synthetic mock:
+            # this verifies ZIP preflight and import UI, NOT real DOCX extraction.
+            valid_docx, forged_docx = synthetic_deflate_docx_pair()
+            page.route("**/vendor/mammoth.browser.min.js", lambda route: route.fulfill(
+                status=200, content_type="application/javascript",
+                body="window.__ft11MockLoads=(window.__ft11MockLoads||0)+1;"
+                     "window.mammoth={extractRawText:async()=>({value:'Synthetic browser DOCX evidence.'})};"
+            ))
+            supports_raw = page.evaluate("""() => {
+                try { return typeof DecompressionStream === 'function' &&
+                    !!new DecompressionStream('deflate-raw'); }
+                catch (_) { return false; }
+            }""")
+            prior_text = page.locator("#a").input_value()
+            page.locator("#tl-import-file").set_input_files({
+                "name": "synthetic-valid.docx",
+                "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "buffer": valid_docx,
+            })
+            if supports_raw:
+                expect(page.locator("#tl-import-status")).to_contain_text(
+                    "Imported extracted text from synthetic-valid.docx", timeout=10000)
+                checks += 1
+                expect(page.locator("#a")).to_have_value("Synthetic browser DOCX evidence.")
+                checks += 1
+                assert page.evaluate("window.__ft11MockLoads") == 1
+                checks += 1
+            else:
+                expect(page.locator("#tl-import-status")).to_contain_text(
+                    "Invalid or unsupported DOCX ZIP package", timeout=10000)
+                checks += 1
+                assert page.locator("#a").input_value() == prior_text
+                checks += 1
+                assert page.evaluate("window.__ft11MockLoads||0") == 0
+                checks += 1
+            accepted_text = page.locator("#a").input_value()
+            loads_before = page.evaluate("window.__ft11MockLoads||0")
+            page.locator("#tl-import-file").set_input_files({
+                "name": "synthetic-forged-crc.docx",
+                "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "buffer": forged_docx,
+            })
+            expect(page.locator("#tl-import-status")).to_contain_text(
+                "Invalid or unsupported DOCX ZIP package", timeout=10000)
+            checks += 1
+            assert page.evaluate("document.activeElement.id") == "tl-import-status"
+            checks += 1
+            assert page.locator("#a").input_value() == accepted_text
+            checks += 1
+            assert page.evaluate("window.__ft11MockLoads||0") == loads_before
+            checks += 1
+            print(f"FT-11 {engine} raw-DEFLATE supported={supports_raw}; "
+                  "synthetic ZIP CRC forgery rejected; accepted source retained")
 
             assert not errors, errors
             checks += 1
