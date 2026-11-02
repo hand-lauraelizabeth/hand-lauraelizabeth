@@ -55,7 +55,7 @@ for (const code of whiteSpaceCodes) {
 }
 // Ordinary spaces remain readable, while visually similar NBSP is disclosed.
 equal(preview('A B'), 'A B', 'ordinary ASCII space remains');
-equal(preview('A\\u00a0B'), 'A\\u{00A0}B', 'nonbreaking space is explicit');
+equal(preview('A\u00a0B'), 'A\\u{00A0}B', 'nonbreaking space is explicit');
 const long = '😀'.repeat(1_200_000) + 'END';
 const result = preview(long);
 assert.ok(result.length < 300, 'long preview is bounded'); checks++;
