@@ -36,7 +36,7 @@ function validateDocxPackage(buffer){
   const packed=view.getUint32(pos+20,true),unpacked=view.getUint32(pos+24,true);
   const nameLength=view.getUint16(pos+28,true),extraLength=view.getUint16(pos+30,true),commentLength=view.getUint16(pos+32,true);
   const localOffset=view.getUint32(pos+42,true),next=pos+46+nameLength+extraLength+commentLength;
-  if(next>end||!nameLength||(flags&0x41)||!(method===0||method===8)||
+  if(next>end||!nameLength||(flags&0x49)||view.getUint16(pos+34,true)!==0||!(method===0||method===8)||
      packed===0&&unpacked>0||method===0&&packed!==unpacked||
      packed===0xffffffff||unpacked===0xffffffff||localOffset===0xffffffff)fail();
   const name=new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(pos+46,pos+46+nameLength));
@@ -48,7 +48,9 @@ function validateDocxPackage(buffer){
   const localNameLength=view.getUint16(localOffset+26,true),localExtraLength=view.getUint16(localOffset+28,true);
   const dataStart=localOffset+30+localNameLength+localExtraLength;
   if(dataStart+packed>directoryOffset||localNameLength!==nameLength||view.getUint16(localOffset+8,true)!==method||
-     view.getUint16(localOffset+6,true)!==flags)fail();
+     view.getUint16(localOffset+6,true)!==flags||
+     view.getUint32(localOffset+14,true)!==view.getUint32(pos+16,true)||
+     view.getUint32(localOffset+18,true)!==packed||view.getUint32(localOffset+22,true)!==unpacked)fail();
   for(let j=0;j<nameLength;j++)if(bytes[localOffset+30+j]!==bytes[pos+46+j])fail();
   pos=next;
  }

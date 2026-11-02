@@ -918,3 +918,22 @@ test('DOCX preflight rejects non-Word ZIP packages before loading parser',async(
  assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
  assert.equal(h.events.length,0);assert.equal(h.loads.length,0);
 });
+
+for(const [caseName,mutate] of [
+ ['conflicting local CRC',raw=>raw.writeUInt32LE(0x12345678,14)],
+ ['conflicting local compressed size',raw=>raw.writeUInt32LE(0,18)],
+ ['unverified data-descriptor flag',(raw,central)=>{raw.writeUInt16LE(8,6);raw.writeUInt16LE(8,central+8)}],
+ ['central entry assigned to another disk',(raw,central)=>raw.writeUInt16LE(1,central+34)]
+]){
+ test('DOCX preflight rejects '+caseName+' before loading a parser',async()=>{
+  const h=documentImportHarness(),raw=syntheticDocxFixture('safe');
+  const central=raw.indexOf(Buffer.from([0x50,0x4b,0x01,0x02]));
+  assert.ok(central>0);
+  mutate(raw,central);
+  h.input.files=[h.file('tampered.docx',raw)];
+  await h.handlers.change.call(h.input);
+  assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+  assert.equal(h.events.length,0);
+  assert.equal(h.loads.length,0);
+ });
+}
