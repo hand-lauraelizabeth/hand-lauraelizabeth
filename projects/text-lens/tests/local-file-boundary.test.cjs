@@ -596,7 +596,7 @@ test('superseded PDF loading task is released without replacing the newer docume
  for(let attempt=0;attempt<10&&!h.getLoadingTaskStarts();attempt++)
   await new Promise(resolve=>setImmediate(resolve));
  assert.equal(h.getLoadingTaskStarts(),1,'stale PDF loading task must exist before replacement');
- h.input.files=[h.file('current.docx','PK\\x03\\x04current')];h.input.value='selected';
+ h.input.files=[h.file('current.docx','PK\x03\x04current')];h.input.value='selected';
  await h.handlers.change.call(h.input);
  assert.equal(h.events.length,1);
  assert.equal(h.events[0].name,'current.docx');
