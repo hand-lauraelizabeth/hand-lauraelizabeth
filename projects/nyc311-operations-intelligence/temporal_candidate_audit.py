@@ -8,6 +8,7 @@ are emitted in findings.
 import argparse
 import datetime as dt
 import json
+from itertools import combinations
 import re
 from pathlib import Path
 
@@ -121,23 +122,24 @@ def assess_pair(earlier, later, *, delta_floor=10):
             new_open_total = new_requests - new_closed_total
             if 0 < abs(new_open_total - old_open_total) < effective_delta_floor:
                 codes.add("small_visible_common_cell_open_marginal_delta")
-    # Each visible dimension also permits a public subtotal. A small change
-    # can hide within a borough, month, agency, or problem even when the
-    # all-common-keys marginal is large. This is bounded O(len(GRAIN) * cells),
-    # not an exhaustive search of arbitrary subsets or external marginals.
-    for axis in range(len(GRAIN)):
+    # Single-axis and joint two-axis subtotals are publicly derivable from
+    # visible cells. A small change can be masked by unrelated categories.
+    # This bounded O((4+6) * cells) pass is not an exhaustive subset audit.
+    for axes in (*combinations(range(len(GRAIN)), 1),
+                 *combinations(range(len(GRAIN)), 2)):
+        kind = "dimension" if len(axes) == 1 else "joint_dimension"
         groups = {}
         for key in common_keys:
-            groups.setdefault(key[axis], []).append(key)
+            groups.setdefault(tuple(key[axis] for axis in axes), []).append(key)
         for group_keys in groups.values():
             if len(group_keys) < 2:
                 continue
             old_total = sum(cells_a[key][0] for key in group_keys)
             new_total = sum(cells_b[key][0] for key in group_keys)
             if 0 < abs(new_total - old_total) < effective_delta_floor:
-                codes.add("small_visible_dimension_request_marginal_delta")
-            # A subtotal of just the publicly visible closure rows is also
-            # derivable even when other rows in the group suppress closures.
+                codes.add(f"small_visible_{kind}_request_marginal_delta")
+            # Only publicly visible closure rows contribute to closure/open
+            # subtotals; suppressed closure values must not be inferred.
             closure_keys = [
                 key for key in group_keys
                 if cells_a[key][1] is not None and cells_b[key][1] is not None
@@ -147,11 +149,11 @@ def assess_pair(earlier, later, *, delta_floor=10):
             old_closed = sum(cells_a[key][1] for key in closure_keys)
             new_closed = sum(cells_b[key][1] for key in closure_keys)
             if 0 < abs(new_closed - old_closed) < effective_delta_floor:
-                codes.add("small_visible_dimension_closure_marginal_delta")
+                codes.add(f"small_visible_{kind}_closure_marginal_delta")
             old_open = sum(cells_a[key][0] - cells_a[key][1] for key in closure_keys)
             new_open = sum(cells_b[key][0] - cells_b[key][1] for key in closure_keys)
             if 0 < abs(new_open - old_open) < effective_delta_floor:
-                codes.add("small_visible_dimension_open_marginal_delta")
+                codes.add(f"small_visible_{kind}_open_marginal_delta")
     # Even zero observed deltas cannot certify safety against external data,
     # reclassification, prior public exports, or source snapshot drift.
     codes.add("external_marginal_and_provenance_review_pending")
