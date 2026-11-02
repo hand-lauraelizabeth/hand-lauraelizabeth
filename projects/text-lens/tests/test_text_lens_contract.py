@@ -43,8 +43,14 @@ class TextLensContractTests(unittest.TestCase):
  def test_exports_do_not_include_source_text(self):
   self.assertIn("Source text itself is not included in the file.",HTML)
   self.assertIn("text-lens-tables.csv",HTML)
-  m=re.search(r"function docDescriptor\(doc,source,order\)\{return\{([^}]*)\}\}",HTML)
-  self.assertIsNotNone(m);self.assertNotIn("text",m.group(1).lower());self.assertIn("name:doc.name",m.group(1));self.assertIn("size:Number(doc.size||0)",m.group(1))
+  m=re.search(r"function docDescriptor\(doc,source,order\)\{(.*?)\}function descriptorForId\(",HTML,re.S)
+  self.assertIsNotNone(m)
+  descriptor=m.group(1)
+  self.assertNotRegex(descriptor,r"\btext\s*:")
+  self.assertNotIn("doc.text",descriptor)
+  self.assertIn("name:doc.name",descriptor)
+  self.assertIn("size:Number(doc.size||0)",descriptor)
+  self.assertIn("original_file_bytes:doc.originalFileBytes",descriptor)
   self.assertIn("contains_source_text:false",HTML);self.assertIn("Corpus setup must not contain source text or content fields",HTML)
  def test_browser_global_names_are_not_shadowed(self):
   self.assertNotIn("function top(",HTML);self.assertIn("function topEntries(",HTML)

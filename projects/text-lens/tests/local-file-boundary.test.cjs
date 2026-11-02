@@ -426,3 +426,36 @@ test('table CSV and JSON download failures preserve evidence, clean up resources
   }
  }
 });
+
+test('extracted document keeps derived UTF-8 bytes distinct from original binary bytes',()=>{
+ const h=harness(true),text='Café 😀 from PDF';
+ const detail={key:'a',name:'sample.pdf',size:encoder.encode(text).byteLength,originalFileBytes:2048,sourceKind:'extracted-text',lastModified:42,text};
+ h.handlers['text-lens:import']({detail});
+ assert.equal(detail.accepted,true);
+ assert.equal(h.els.a.value,text);
+ assert.equal(h.env.sourceDocs.a[0].size,encoder.encode(text).byteLength);
+ assert.equal(h.env.sourceDocs.a[0].originalFileBytes,2048);
+ assert.equal(h.env.sourceDocs.a[0].sourceKind,'extracted-text');
+ assert.ok(h.els.fileMetaA.textContent.includes('Extracted text from sample.pdf'));
+ assert.equal(h.runs,1);
+ const invalid={key:'a',name:'sample.pdf',size:encoder.encode('new').byteLength,originalFileBytes:15000001,sourceKind:'extracted-text',text:'new',accepted:true};
+ h.handlers['text-lens:import']({detail:invalid});
+ assert.equal(invalid.accepted,false);
+ assert.match(h.els.status.textContent,/Import rejected/);
+ assert.equal(h.els.status.focused,true);
+ assert.equal(h.els.a.value,text);
+ assert.equal(h.env.sourceDocs.a[0].originalFileBytes,2048);
+ assert.equal(h.runs,1);
+});
+test('document extraction bridge only changes evidence after validated acceptance',()=>{
+ const begin=html.indexOf("q('tl-import-file').addEventListener('change',async function()");
+ const end=html.indexOf('</script>',begin);
+ assert.ok(begin>0&&end>begin);
+ const bridge=html.slice(begin,end);
+ assert.ok(bridge.includes("size:new TextEncoder().encode(text).byteLength"));
+ assert.ok(bridge.includes('originalFileBytes:file.size'));
+ assert.ok(bridge.includes('if(!detail.accepted)return'));
+ assert.ok(!bridge.includes('target.value=text'));
+ assert.ok(!bridge.includes("target.dispatchEvent(new Event('input'"));
+ assert.ok(bridge.includes('bytes.byteLength!==file.size'));
+});
