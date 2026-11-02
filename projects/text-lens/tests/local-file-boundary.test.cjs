@@ -603,3 +603,84 @@ test('document import contains no third-party CDN execution path',()=>{
  assert.ok(!bridge.includes('https://')&&!bridge.includes('http://'));
  assert.ok(!['cdn.','jsdelivr','cdnjs','unpkg'].some(host=>bridge.includes(host)));
 });
+
+
+test('evidence CSV, exact evidence JSON and source-free analysis JSON recover from blocked downloads',()=>{
+ const slice=(a,b)=>{const start=html.indexOf(a),end=html.indexOf(b,start);assert.ok(start>=0&&end>start);return html.slice(start,end)};
+ const script=slice('function startTableDownload(','function downloadTables(){')+'\n'+
+  slice('function cueCsvCell(','let evidenceRows=')+'\n'+
+  slice('function downloadAnalysis(){','async function copySummary()');
+ const source={side:'a',source:'0007-Café-東京.md',term:'signal',polarity:'thematic',
+  categories:['theme'],adjustments:[],sentence:1,line:1,char:1,word:1,percent:12.5,
+  passage:'Synthetic source passage',voice:'prose',speaker:'',speakerMention:'',
+  speakerStatus:'unresolved',actorRule:'none',aspect:'',aspectRule:''};
+ for(const mode of ['CSV','Evidence JSON','Analysis JSON']){
+  for(const failure of ['url','append','click','success']){
+   const links=[],revoked=[],blobs=[],status={textContent:'',tabIndex:0,focused:false,focus(){this.focused=true}};
+   class TestBlob{constructor(parts,options){this.parts=parts;this.options=options;blobs.push(this)}}
+   const ctx={
+    Blob:TestBlob,Date,JSON,Number,Error,Set,setTimeout(fn){fn()},
+    URL:{createObjectURL(){if(failure==='url')throw Error('blocked URL');return 'blob:synthetic'},
+     revokeObjectURL(url){revoked.push(url)}},
+    document:{createElement(){return {href:'',download:'',click(){if(failure==='click')throw Error('blocked click')},
+     remove(){const index=links.indexOf(this);if(index>=0)links.splice(index,1)}}},
+     body:{appendChild(link){if(failure==='append')throw Error('blocked append');links.push(link)}}},
+    $(id){return id==='status'?status:{value:'',checked:false}},
+    evidenceFiltered:()=>[source],cueCsvRisk:()=>false,
+    sourceDocs:{a:[{id:'a-0007',name:source.source,text:'Original local source not for export'}],b:[]},
+    sourceFiles:{a:[source.source],b:[]},lastA:{W:2},lastB:null,lastCompare:false,
+    customRefIds:new Set(),buildCorpusSetup:()=>({}),publicResult:()=>({words:2}),
+    publicCorpusComparison:()=>({}),comparisonExport:()=>({}),analyze:()=>({W:2})
+   };
+   const api=vm.runInNewContext(script+';({exportEvidence,downloadEvidenceJson,downloadAnalysis})',ctx);
+   assert.doesNotThrow(()=>mode==='CSV'?api.exportEvidence():mode==='Evidence JSON'?api.downloadEvidenceJson():api.downloadAnalysis());
+   assert.equal(links.length,0,mode+' '+failure+' must not retain an anchor');
+   assert.equal(revoked.length,failure==='url'?0:1,mode+' '+failure+' must release any URL');
+   assert.equal(blobs.length,1);
+   if(failure==='success'){
+    assert.match(status.textContent,/Started local/);
+    assert.equal(status.focused,false);
+    if(mode==='CSV'){
+     assert.equal(blobs[0].parts[0],'\ufeff');
+     assert.ok(blobs[0].parts[1].includes(source.source));
+    }else{
+     const payload=JSON.parse(blobs[0].parts.join(''));
+     if(mode==='Evidence JSON'){
+      assert.equal(payload.rows[0].source,source.source);
+      assert.equal(payload.rows[0].passage,source.passage);
+     }else{
+      assert.equal(payload.source_files.text_a[0],source.source);
+      assert.ok(!JSON.stringify(payload).includes('Original local source not for export'));
+     }
+    }
+   }else{
+    assert.match(status.textContent,new RegExp(mode+' download could not be started'));
+    assert.equal(status.tabIndex,-1);
+    assert.equal(status.focused,true);
+    assert.doesNotMatch(status.textContent,/Café|東京|Synthetic source passage/);
+   }
+   assert.equal(source.source,'0007-Café-東京.md');
+  }
+ }
+});
+
+test('unsafe evidence CSV is blocked while exact JSON preserves synthetic formula-like source values',()=>{
+ const slice=(a,b)=>{const i=html.indexOf(a),j=html.indexOf(b,i);assert.ok(i>=0&&j>i);return html.slice(i,j)};
+ const script=slice('function startTableDownload(','function downloadTables(){')+'\n'+slice('function cueCsvCell(','let evidenceRows=');
+ const status={textContent:'',focused:false,focus(){this.focused=true}};
+ const row={side:'a',source:'=HYPERLINK("https://invalid.example")',term:'safe',polarity:'thematic',
+  categories:[],adjustments:[],sentence:1,line:1,char:1,word:1,percent:1,
+  passage:'synthetic',voice:'prose',speaker:'',speakerMention:'',speakerStatus:'',
+  actorRule:'',aspect:'',aspectRule:''};
+ const downloads=[];
+ const ctx={Date,JSON,Number,Error,Blob:class{constructor(parts){this.parts=parts;downloads.push(this)}},
+  URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}},
+  document:{createElement(){return {click(){},remove(){}}},body:{appendChild(){}}},
+  setTimeout(fn){fn()},$(id){return status},evidenceFiltered:()=>[row],
+  cueCsvRisk:value=>String(value).startsWith('=')};
+ const api=vm.runInNewContext(script+';({exportEvidence,downloadEvidenceJson})',ctx);
+ api.exportEvidence();assert.match(status.textContent,/CSV export blocked/);assert.equal(status.focused,true);
+ assert.equal(downloads.length,0);
+ api.downloadEvidenceJson();assert.equal(downloads.length,1);
+ assert.equal(JSON.parse(downloads[0].parts.join('')).rows[0].source,row.source);
+});
