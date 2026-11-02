@@ -71,14 +71,17 @@ def _validate(candidate):
 
 def assess_pair(earlier, later, *, delta_floor=10):
     """Return structural risk codes only; never output counts or cell keys."""
-    if type(delta_floor) is not int or delta_floor < 1:
-        raise ValueError("Invalid delta review floor")
+    if type(delta_floor) is not int or delta_floor < 10:
+        raise ValueError("Delta review floor must be at least 10")
     day_a, min_a, cells_a = _validate(earlier)
     day_b, min_b, cells_b = _validate(later)
     if day_a >= day_b:
         raise ValueError("Snapshots must be strictly chronologically ordered")
     if min_a != min_b:
         raise ValueError("Threshold changes require a separate disclosure audit")
+    # A caller must not weaken the delta gate below the source suppression floor.
+    # The stronger of the two floors applies to request and closure deltas.
+    effective_delta_floor = max(delta_floor, min_a)
     codes = set()
     if cells_a.keys() != cells_b.keys():
         # Missing is not zero: it could be a suppressed or reclassified cell.
@@ -86,12 +89,12 @@ def assess_pair(earlier, later, *, delta_floor=10):
     for key in cells_a.keys() & cells_b.keys():
         old_n, old_closed = cells_a[key]
         new_n, new_closed = cells_b[key]
-        if 0 < abs(new_n - old_n) < delta_floor:
+        if 0 < abs(new_n - old_n) < effective_delta_floor:
             codes.add("small_visible_request_delta")
         if (old_closed is None) != (new_closed is None):
             codes.add("closure_suppression_state_changed")
         elif old_closed is not None and new_closed is not None:
-            if 0 < abs(new_closed - old_closed) < delta_floor:
+            if 0 < abs(new_closed - old_closed) < effective_delta_floor:
                 codes.add("small_visible_closure_delta")
     # Even zero observed deltas cannot certify safety against external data,
     # reclassification, prior public exports, or source snapshot drift.
