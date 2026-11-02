@@ -461,13 +461,21 @@ test('document extraction bridge only changes evidence after validated acceptanc
 });
 
 
+function syntheticCrc32(bytes){
+ let crc=0xffffffff;
+ for(const byte of bytes){
+  crc^=byte;
+  for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);
+ }
+ return (crc^0xffffffff)>>>0;
+}
 function syntheticDocxFixture(marker){
  const entries=[['[Content_Types].xml','<Types/>'],['_rels/.rels','<Relationships/>'],['word/document.xml','<w:document>'+marker+'</w:document>']];
  const parts=[],directory=[];let offset=0;
  for(const [name,body] of entries){
-  const n=Buffer.from(name),data=Buffer.from(body),local=Buffer.alloc(30),central=Buffer.alloc(46);
-  local.writeUInt32LE(0x04034b50,0);local.writeUInt32LE(data.length,18);local.writeUInt32LE(data.length,22);local.writeUInt16LE(n.length,26);
-  central.writeUInt32LE(0x02014b50,0);central.writeUInt32LE(data.length,20);central.writeUInt32LE(data.length,24);central.writeUInt16LE(n.length,28);central.writeUInt32LE(offset,42);
+  const n=Buffer.from(name),data=Buffer.from(body),local=Buffer.alloc(30),central=Buffer.alloc(46),checksum=syntheticCrc32(data);
+  local.writeUInt32LE(0x04034b50,0);local.writeUInt32LE(checksum,14);local.writeUInt32LE(data.length,18);local.writeUInt32LE(data.length,22);local.writeUInt16LE(n.length,26);
+  central.writeUInt32LE(0x02014b50,0);central.writeUInt32LE(checksum,16);central.writeUInt32LE(data.length,20);central.writeUInt32LE(data.length,24);central.writeUInt16LE(n.length,28);central.writeUInt32LE(offset,42);
   parts.push(local,n,data);directory.push(central,n);offset+=local.length+n.length+data.length;
  }
  const centralBytes=Buffer.concat(directory),end=Buffer.alloc(22);
@@ -937,3 +945,29 @@ for(const [caseName,mutate] of [
   assert.equal(h.loads.length,0);
  });
 }
+
+for(const [label,mutate] of [
+ ['stored entry payload tampering',raw=>{
+  const index=raw.indexOf(Buffer.from('<Types/>'));assert.ok(index>0);raw[index]^=1;
+ }],
+ ['forged matching stored CRC declarations',raw=>{
+  const central=raw.indexOf(Buffer.from([0x50,0x4b,0x01,0x02]));assert.ok(central>0);
+  raw.writeUInt32LE(0xdeadbeef,14);raw.writeUInt32LE(0xdeadbeef,central+16);
+ }]
+]){
+ test('DOCX preflight rejects '+label+' before loading parser',async()=>{
+  const h=documentImportHarness(),raw=syntheticDocxFixture('safe');
+  mutate(raw);h.input.files=[h.file('tampered.docx',raw)];
+  await h.handlers.change.call(h.input);
+  assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+  assert.equal(h.events.length,0);assert.equal(h.loads.length,0);
+ });
+}
+test('DOCX stored-member CRC permits a valid synthetic Unicode document',async()=>{
+ const h=documentImportHarness(),raw=syntheticDocxFixture('Café 東京');
+ h.input.files=[h.file('unicode.docx',raw)];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'unicode.docx');
+ assert.match(h.status.textContent,/Imported extracted text/);
+});

@@ -18,6 +18,14 @@
  if(/\.docx$/i.test(name))return bytes.length>=4&&bytes[0]===80&&bytes[1]===75&&bytes[2]===3&&bytes[3]===4;
  return false;
 }
+function crc32Bytes(bytes){
+ let crc=0xffffffff;
+ for(const byte of bytes){
+  crc^=byte;
+  for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);
+ }
+ return (crc^0xffffffff)>>>0;
+}
 function validateDocxPackage(buffer){
  const bytes=new Uint8Array(buffer),view=new DataView(buffer);
  const fail=()=>{throw Error('Invalid or unsupported DOCX ZIP package. Use an unencrypted, conventional .docx file.');};
@@ -52,6 +60,8 @@ function validateDocxPackage(buffer){
      view.getUint32(localOffset+14,true)!==view.getUint32(pos+16,true)||
      view.getUint32(localOffset+18,true)!==packed||view.getUint32(localOffset+22,true)!==unpacked)fail();
   for(let j=0;j<nameLength;j++)if(bytes[localOffset+30+j]!==bytes[pos+46+j])fail();
+  // Stored ZIP members are uncompressed: verify their actual bytes, not just declared metadata.
+  if(method===0&&crc32Bytes(bytes.subarray(dataStart,dataStart+packed))!==view.getUint32(pos+16,true))fail();
   pos=next;
  }
  if(pos!==end||!names.has('[Content_Types].xml')||!names.has('word/document.xml')||!names.has('_rels/.rels'))fail();
