@@ -37,7 +37,7 @@ function validateDocxPackage(buffer){
  if(end<0||view.getUint16(end+4,true)||view.getUint16(end+6,true))fail();
  const count=view.getUint16(end+10,true),directorySize=view.getUint32(end+12,true),directoryOffset=view.getUint32(end+16,true);
  if(count<1||count>1000||count!==view.getUint16(end+8,true)||directoryOffset+directorySize!==end)fail();
- let pos=directoryOffset,total=0;const names=new Set();
+ let pos=directoryOffset,total=0;const names=new Set(),members=[],storedChecks=[];
  for(let i=0;i<count;i++){
   if(pos+46>end||view.getUint32(pos,true)!==0x02014b50)fail();
   const flags=view.getUint16(pos+8,true),method=view.getUint16(pos+10,true);
@@ -60,11 +60,15 @@ function validateDocxPackage(buffer){
      view.getUint32(localOffset+14,true)!==view.getUint32(pos+16,true)||
      view.getUint32(localOffset+18,true)!==packed||view.getUint32(localOffset+22,true)!==unpacked)fail();
   for(let j=0;j<nameLength;j++)if(bytes[localOffset+30+j]!==bytes[pos+46+j])fail();
-  // Stored ZIP members are uncompressed: verify their actual bytes, not just declared metadata.
-  if(method===0&&crc32Bytes(bytes.subarray(dataStart,dataStart+packed))!==view.getUint32(pos+16,true))fail();
+  // Record all local spans before hashing: overlapping aliases must not amplify CRC work.
+  members.push({start:localOffset,end:dataStart+packed});
+  if(method===0)storedChecks.push({start:dataStart,end:dataStart+packed,crc:view.getUint32(pos+16,true)});
   pos=next;
  }
  if(pos!==end||!names.has('[Content_Types].xml')||!names.has('word/document.xml')||!names.has('_rels/.rels'))fail();
+ members.sort((a,b)=>a.start-b.start);
+ for(let i=1;i<members.length;i++)if(members[i].start<members[i-1].end)fail();
+ for(const check of storedChecks)if(crc32Bytes(bytes.subarray(check.start,check.end))!==check.crc)fail();
  return true;
 }
 let importRevision=0;
