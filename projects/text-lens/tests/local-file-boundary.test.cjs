@@ -563,7 +563,7 @@ function documentImportHarness(){
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
  const file=(name,raw,read)=>{const value=/\.docx$/i.test(name)&&typeof raw==='string'&&raw.startsWith('PK\x03\x04')?syntheticDocxFixture(raw):Buffer.from(raw);const data=value.buffer.slice(value.byteOffset,value.byteOffset+value.byteLength);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
- return {events,handlers,input,side,status,window,file,bytes,loads,document,removedScripts,getPendingTimers(){return pendingTimers.size},flushTimers(){const tasks=[...pendingTimers.values()];pendingTimers.clear();tasks.forEach(fn=>fn())},setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setDecompressionAvailable(value){context.DecompressionStream=value?DecompressionStream:undefined},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
+ return {events,handlers,input,side,status,window,file,bytes,loads,document,removedScripts,getPendingTimers(){return pendingTimers.size},flushTimers(){const tasks=[...pendingTimers.values()];pendingTimers.clear();tasks.forEach(fn=>fn())},setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setDecompressionAvailable(value){context.DecompressionStream=value===false?undefined:typeof value==='function'?value:DecompressionStream},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
  const h=documentImportHarness();
@@ -1058,4 +1058,30 @@ test('DOCX Deflate integrity fails closed when native raw decompression is unava
  assert.equal(h.events.length,0);
  assert.equal(h.loads.length,0);
  assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+});
+
+test('superseded asynchronous Deflate verification cannot overwrite newer accepted evidence',async()=>{
+ const h=documentImportHarness();let release;
+ class PausedRawDecompression extends TransformStream{
+  constructor(){
+   super({transform(chunk,controller){
+    return new Promise(resolve=>{
+     release=()=>{controller.enqueue(zlib.inflateRawSync(Buffer.from(chunk)));resolve()};
+    });
+   }});
+  }
+ }
+ h.setDecompressionAvailable(PausedRawDecompression);
+ h.input.files=[h.file('old.docx',syntheticDeflateDocxFixture('old'))];
+ const pending=h.handlers.change.call(h.input);
+ for(let i=0;i<20&&!release;i++)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(typeof release,'function','compressed preflight should be pending');
+ h.input.files=[h.file('new.docx',syntheticDocxFixture('new'))];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'new.docx');
+ release();await pending;
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'new.docx');
+ assert.match(h.status.textContent,/Imported extracted text from new.docx/);
 });
