@@ -1,20 +1,30 @@
 """Tests for evidence-limited institution projection integrated into the existing matcher page."""
 from pathlib import Path
-import json, unittest
+import json, tempfile, unittest
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'data'/'ny20-institution-evidence.v1.json'
 
 
 
+def require_unapproved_ny20_absent(path):
+    if path.exists():
+        raise AssertionError(
+            "Unapproved NY20 institution evidence has reappeared. Block release; "
+            "require independent provenance review and explicit authorization."
+        )
+
+
 class NY20UnapprovedEvidenceContainment(unittest.TestCase):
     def test_removed_evidence_is_not_reintroduced(self):
-        # Explicitly removed by 240ce259 (2026-10-09): restoring it merely to
-        # make CI green would undo a deliberate publication-containment decision.
-        self.assertFalse(
-            DATA.exists(),
-            "Unapproved NY20 institution evidence has reappeared. Block release; "
-            "require independent provenance review and explicit authorization.",
-        )
+        # Explicitly removed by 240ce259 (2026-10-09): do not restore for CI.
+        require_unapproved_ny20_absent(DATA)
+
+    def test_synthetic_reappearance_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            synthetic = Path(tmp) / "ny20-institution-evidence.v1.json"
+            synthetic.write_text('{"synthetic":true}', encoding="utf-8")
+            with self.assertRaisesRegex(AssertionError, "Unapproved NY20"):
+                require_unapproved_ny20_absent(synthetic)
 
 
 @unittest.skip(
