@@ -156,7 +156,9 @@
       if (char === '\n') return '\\n';
       if (char === '\r') return '\\r';
       if (char === '\t') return '\\t';
-      if (code < 32 || (code >= 127 && code <= 159) || /\p{Default_Ignorable_Code_Point}/u.test(char))
+      if (code < 32 || (code >= 127 && code <= 159) ||
+          (code !== 32 && /\p{White_Space}/u.test(char)) ||
+          /\p{Default_Ignorable_Code_Point}/u.test(char))
         return '\\u{' + code.toString(16).toUpperCase().padStart(4, '0') + '}';
       return char;
     });
