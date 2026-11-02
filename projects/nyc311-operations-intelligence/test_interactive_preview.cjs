@@ -17,7 +17,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#requests').innerText(),'400');
   assert.equal(await page.locator('#closed').innerText(),'300');
   assert.equal(await page.locator('#rows tr').count(),2);
-  await page.getByLabel('Borough').selectOption('Queens');
+  await page.getByLabel('Borough',{exact:true}).selectOption('Queens');
   assert.equal(await page.locator('#requests').innerText(),'200');
   await page.getByLabel('Problem',{exact:true}).selectOption('Noise');
   assert.equal(await page.locator('#requests').innerText(),'100');
