@@ -48,7 +48,7 @@ const assert = require('node:assert/strict');
   await page.getByRole('button',{name:'Load ZIP comparison'}).click();
   assert.equal(await page.locator('#geo-table tr').count(),2);
   assert.match(await page.locator('#geo-message').innerText(),/past 30 days/);
-  const dates=[...lastZipWindow.matchAll(/\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}/g)].map(x=>new Date(x[0]+'Z'));
+  const dates=[...lastZipWindow.matchAll(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/g)].map(x=>new Date(x[0]+'Z'));
   assert.equal(dates.length,2);assert.ok(Math.abs((dates[1]-dates[0])/86400000-30)<0.01,'ZIP query must span 30 days');
   zipMode='error';
   await page.getByRole('button',{name:'Load ZIP comparison'}).click();
