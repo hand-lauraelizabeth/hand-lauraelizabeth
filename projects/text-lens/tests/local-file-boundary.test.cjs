@@ -590,7 +590,7 @@ test('non-HTTP document contexts fail before loading any script',async()=>{
  await h.handlers.change.call(h.input);
  assert.equal(h.events.length,0);
  assert.equal(h.loads.length,0);
- assert.match(h.status.textContent,/requires an HTTP\\(S\\) page/);
+ assert.ok(h.status.textContent.includes('requires an HTTP(S) page'));
  assert.equal(h.status.focused,true);
 });
 test('document import contains no third-party CDN execution path',()=>{
@@ -600,6 +600,6 @@ test('document import contains no third-party CDN execution path',()=>{
  assert.ok(bridge.includes("loadLocal('pdf.min.js'"));
  assert.ok(bridge.includes("loadLocal('mammoth.browser.min.js'"));
  assert.ok(bridge.includes("localAsset('pdf.worker.min.js')"));
- assert.doesNotMatch(bridge,/https?:\\/\\//);
- assert.doesNotMatch(bridge,/cdn\\.|jsdelivr|cdnjs|unpkg/);
+ assert.ok(!bridge.includes('https://')&&!bridge.includes('http://'));
+ assert.ok(!['cdn.','jsdelivr','cdnjs','unpkg'].some(host=>bridge.includes(host)));
 });
