@@ -281,25 +281,35 @@
   }
   function exportAudit() {
     if (!comparison) return;
-    // Source positions are numeric in the reconciliation model; CSV cells are text.
-    // Convert only verified integer positions, preserving identifier strings exactly.
-    const rows = auditRows(comparison).map(record => record.map(value =>
-      Number.isSafeInteger(value) ? String(value) : value));
-    const headers = ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'];
-    const parsed = {headers, normalizedHeaders: headers, rows, warnings: [], delimiter: ','};
-    // Identifier keys are untrusted. Do not download a CSV when spreadsheet
-    // import could reinterpret them; retain exact findings in the JSON option.
-    const risk = lib.spreadsheetExportRisk(parsed);
-    if (risk) {
-      message('Comparison CSV blocked at audit record ' + risk.sourceRecord +
-        ', column ' + risk.column + '. No CSV was downloaded. Use Export exact comparison audit JSON instead.', true);
-      return;
-    }
     try {
-      if (!download(lib.exportCsvDownload(parsed, true), 'data-rescue-comparison-audit.csv', 'text/csv;charset=utf-8', 'Comparison CSV')) return;
-      message('Comparison CSV download started for ' + rows.length + ' findings. Contains identifier keys and source record positions, not full input records. Check your browser downloads and keep it private if identifiers are sensitive.');
-    } catch (error) {
-      message('Unable to export comparison CSV: ' + error.message + ' Use exact comparison audit JSON instead.', true);
+      // A reconciliation may have up to 100,000 unmatched findings from two
+      // valid 50,000-row inputs. The shared CSV writer permits only 50,000
+      // data rows; do not mistake this output limit for a corrupt source.
+      const rows = auditRows(comparison).map(record => record.map(value =>
+        Number.isSafeInteger(value) ? String(value) : value));
+      if (rows.length > lib.MAX_ROWS) {
+        message('Comparison CSV supports at most ' + lib.MAX_ROWS.toLocaleString('en-US') +
+          ' findings; this comparison has ' + rows.length.toLocaleString('en-US') +
+          '. No CSV was downloaded. Use exact comparison audit JSON or the value-free issue index.', true);
+        return;
+      }
+      const headers = ['Classification', 'Identifier', 'First-file row(s)', 'Second-file row(s)'];
+      const parsed = {headers, normalizedHeaders: headers, rows, warnings: [], delimiter: ','};
+      // A validator failure must not bypass the spreadsheet formula check.
+      // Keep the already loaded sources and both JSON alternatives available.
+      const risk = lib.spreadsheetExportRisk(parsed);
+      if (risk) {
+        message('Comparison CSV blocked at audit record ' + risk.sourceRecord +
+          ', column ' + risk.column + '. No CSV was downloaded. Use Export exact comparison audit JSON instead.', true);
+        return;
+      }
+      if (!download(lib.exportCsvDownload(parsed, true), 'data-rescue-comparison-audit.csv',
+        'text/csv;charset=utf-8', 'Comparison CSV')) return;
+      message('Comparison CSV download started for ' + rows.length +
+        ' findings. Contains identifier keys and source record positions, not full input records. Check your browser downloads and keep it private if identifiers are sensitive.');
+    } catch {
+      // Do not expose arbitrary parser/validator exception text or identifiers.
+      message('Comparison CSV could not be prepared. No CSV was downloaded. Both source files remain loaded. Use exact comparison audit JSON or the value-free issue index.', true);
     }
   }
   function exportAuditJson() {
