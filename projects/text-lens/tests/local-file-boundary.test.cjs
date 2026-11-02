@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
+const zlib=require('node:zlib');
 const html=fs.readFileSync(path.join(__dirname,'..','text-lens.html'),'utf8');
 const start=html.indexOf('const MAX_LOCAL_FILES=20,MAX_LOCAL_BYTES=5000000;');
 const end=html.indexOf('function publicResult(r){',start);
@@ -483,6 +484,31 @@ function syntheticDocxFixture(marker){
  end.writeUInt32LE(centralBytes.length,12);end.writeUInt32LE(offset,16);
  return Buffer.concat([...parts,centralBytes,end]);
 }
+function syntheticDeflateDocxFixture(marker,variant='valid'){
+ const entries=[['[Content_Types].xml','<Types/>'],['_rels/.rels','<Relationships/>'],['word/document.xml','<w:document>'+marker+'</w:document>']];
+ const parts=[],directory=[];let offset=0;
+ for(const [name,body] of entries){
+  const n=Buffer.from(name),plain=Buffer.from(body);
+  let packed=zlib.deflateRawSync(plain),crc=syntheticCrc32(plain),size=plain.length;
+  if(name==='word/document.xml'){
+   if(variant==='crc')crc=(crc^1)>>>0;
+   if(variant==='size')size--;
+   if(variant==='truncated')packed=packed.subarray(0,packed.length-2);
+   if(variant==='expanded')size=1;
+  }
+  const local=Buffer.alloc(30),central=Buffer.alloc(46);
+  local.writeUInt32LE(0x04034b50,0);local.writeUInt16LE(8,8);local.writeUInt32LE(crc,14);
+  local.writeUInt32LE(packed.length,18);local.writeUInt32LE(size,22);local.writeUInt16LE(n.length,26);
+  central.writeUInt32LE(0x02014b50,0);central.writeUInt16LE(8,10);central.writeUInt32LE(crc,16);
+  central.writeUInt32LE(packed.length,20);central.writeUInt32LE(size,24);
+  central.writeUInt16LE(n.length,28);central.writeUInt32LE(offset,42);
+  parts.push(local,n,packed);directory.push(central,n);offset+=local.length+n.length+packed.length;
+ }
+ const centralBytes=Buffer.concat(directory),end=Buffer.alloc(22);
+ end.writeUInt32LE(0x06054b50,0);end.writeUInt16LE(entries.length,8);end.writeUInt16LE(entries.length,10);
+ end.writeUInt32LE(centralBytes.length,12);end.writeUInt32LE(offset,16);
+ return Buffer.concat([...parts,centralBytes,end]);
+}
 function documentImportHarness(){
  const begin=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');if(!r||!['tl-import-file'");
  const end=html.indexOf('</script>',begin);
@@ -529,7 +555,7 @@ function documentImportHarness(){
    else completeLocalLoad(script);
   }}
  };
- const context={document,window,URL,TextEncoder,TextDecoder,DataView,Uint8Array,ArrayBuffer,Number,
+ const context={document,window,URL,TextEncoder,TextDecoder,DataView,Uint8Array,ArrayBuffer,Number,Blob,DecompressionStream,
    setTimeout(fn){const id=++timerId;pendingTimers.set(id,fn);return id},clearTimeout(id){pendingTimers.delete(id)},
   CustomEvent:class{constructor(type,{detail}){this.type=type;this.detail=detail}},
   Event:class{constructor(type){this.type=type}}
@@ -537,7 +563,7 @@ function documentImportHarness(){
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
  const file=(name,raw,read)=>{const value=/\.docx$/i.test(name)&&typeof raw==='string'&&raw.startsWith('PK\x03\x04')?syntheticDocxFixture(raw):Buffer.from(raw);const data=value.buffer.slice(value.byteOffset,value.byteOffset+value.byteLength);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
- return {events,handlers,input,side,status,window,file,bytes,loads,document,removedScripts,getPendingTimers(){return pendingTimers.size},flushTimers(){const tasks=[...pendingTimers.values()];pendingTimers.clear();tasks.forEach(fn=>fn())},setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
+ return {events,handlers,input,side,status,window,file,bytes,loads,document,removedScripts,getPendingTimers(){return pendingTimers.size},flushTimers(){const tasks=[...pendingTimers.values()];pendingTimers.clear();tasks.forEach(fn=>fn())},setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setDecompressionAvailable(value){context.DecompressionStream=value===false?undefined:typeof value==='function'?value:DecompressionStream},setBlobClass(value){context.Blob=value},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
  const h=documentImportHarness();
@@ -999,3 +1025,65 @@ for(const [label,method] of [['stored',0],['declared Deflate',8]]){
   assert.equal(h.loads.length,loads,'rejected member must not execute another parser');
  });
 }
+
+for(const variant of ['crc','size','truncated','expanded']){
+ test('DOCX Deflate integrity rejects '+variant+' before parser and preserves accepted evidence',async()=>{
+  const h=documentImportHarness();
+  h.input.files=[h.file('accepted.docx',syntheticDocxFixture('first'))];
+  await h.handlers.change.call(h.input);
+  assert.equal(h.events.length,1);
+  const previous=h.events[0],loads=h.loads.length;
+  h.input.files=[h.file('forged.docx',syntheticDeflateDocxFixture('safe',variant))];
+  await h.handlers.change.call(h.input);
+  assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+  assert.equal(h.status.focused,true);
+  assert.equal(h.events.length,1);
+  assert.equal(h.events[0],previous);
+  assert.equal(h.loads.length,loads);
+ });
+}
+test('DOCX Deflate integrity accepts actual compressed synthetic Word parts',async()=>{
+ const h=documentImportHarness();
+ h.input.files=[h.file('deflated.docx',syntheticDeflateDocxFixture('Café 東京'))];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'deflated.docx');
+ assert.match(h.status.textContent,/Imported extracted text/);
+});
+test('DOCX Deflate integrity fails closed when native raw decompression is unavailable',async()=>{
+ const h=documentImportHarness();
+ h.setDecompressionAvailable(false);
+ h.input.files=[h.file('unsupported.docx',syntheticDeflateDocxFixture('safe'))];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,0);
+ assert.equal(h.loads.length,0);
+ assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+});
+
+test('superseded asynchronous Deflate verification cannot overwrite newer accepted evidence',async()=>{
+ const h=documentImportHarness();let release,pausedOnce=false;
+ class PausedBlob extends Blob{
+  constructor(parts){super(parts);this.compressed=Uint8Array.from(parts[0]);}
+  stream(){
+   if(pausedOnce)return super.stream();
+   pausedOnce=true;
+   const compressed=this.compressed;
+   return new ReadableStream({start(controller){
+    release=()=>{controller.enqueue(compressed);controller.close()};
+   }});
+  }
+ }
+ h.setBlobClass(PausedBlob);
+ h.input.files=[h.file('old.docx',syntheticDeflateDocxFixture('old'))];
+ const pending=h.handlers.change.call(h.input);
+ for(let i=0;i<20&&!release;i++)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(typeof release,'function','compressed preflight should be pending');
+ h.input.files=[h.file('new.docx',syntheticDocxFixture('new'))];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'new.docx');
+ release();await pending;
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'new.docx');
+ assert.match(h.status.textContent,/Imported extracted text from new.docx/);
+});
