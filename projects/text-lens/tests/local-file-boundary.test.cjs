@@ -485,12 +485,8 @@ function documentImportHarness(){
    })}}
   }
  };
- const loads=[];let failLocal=false,overridePdf=null;
- const document={location:{protocol:'https:',origin:'https://example.test',href:'https://example.test/projects/text-lens/text-lens.html'},
-  getElementById(){return root},
-  createElement(type){assert.equal(type,'script');return {src:'',onload:null,onerror:null}},
-  head:{appendChild(script){
-   loads.push(script.src);
+ const loads=[],queuedLoads=[];let failLocal=false,overridePdf=null,deferLocal=false;
+ const completeLocalLoad=script=>{
    if(failLocal){script.onerror();return}
    if(script.src.endsWith('/mammoth.browser.min.js'))window.mammoth={async extractRawText(){return {value:'DOCX extracted evidence'}}};
    else if(script.src.endsWith('/pdf.min.js'))window.pdfjsLib={
@@ -501,6 +497,14 @@ function documentImportHarness(){
    };
    else throw Error('Unexpected local asset: '+script.src);
    script.onload();
+ };
+ const document={location:{protocol:'https:',origin:'https://example.test',href:'https://example.test/projects/text-lens/text-lens.html'},
+  getElementById(){return root},
+  createElement(type){assert.equal(type,'script');return {src:'',onload:null,onerror:null}},
+  head:{appendChild(script){
+   loads.push(script.src);
+   if(deferLocal)queuedLoads.push(script);
+   else completeLocalLoad(script);
   }}
  };
  const context={document,window,URL,TextEncoder,Uint8Array,ArrayBuffer,Number,
@@ -510,7 +514,7 @@ function documentImportHarness(){
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
  const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
- return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value}};
+ return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
  const h=documentImportHarness();
@@ -615,6 +619,60 @@ test('document extraction loads only same-origin scripts and a same-origin PDF w
   'https://example.test/projects/text-lens/vendor/pdf.worker.min.js');
  assert.ok(h.loads.every(src=>new URL(src).origin==='https://example.test'));
 });
+test('repeated PDF and DOCX imports reuse only successfully loaded same-origin parser scripts',async()=>{
+ const h=documentImportHarness();
+ for(const [name,raw] of [
+  ['first.pdf','%PDF-A'],['second.pdf','%PDF-B'],
+  ['first.docx','PK\x03\x04one'],['second.docx','PK\x03\x04two']
+ ]){
+  h.input.files=[h.file(name,raw)];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+ }
+ assert.equal(h.events.length,4,'all four synthetic documents import');
+ assert.deepEqual(h.events.map(e=>e.name),['first.pdf','second.pdf','first.docx','second.docx']);
+ assert.deepEqual(h.loads,[
+  'https://example.test/projects/text-lens/vendor/pdf.min.js',
+  'https://example.test/projects/text-lens/vendor/mammoth.browser.min.js'
+ ],'each reviewed same-origin parser executes only once');
+ assert.equal(h.window.pdfjsLib.GlobalWorkerOptions.workerSrc,
+  'https://example.test/projects/text-lens/vendor/pdf.worker.min.js');
+});
+test('overlapping document selections share one pending same-origin parser load',async()=>{
+ const h=documentImportHarness();h.setLocalDelay(true);
+ h.input.files=[h.file('stale.docx','PK\x03\x04stale')];h.input.value='selected';
+ const stale=h.handlers.change.call(h.input);
+ await new Promise(resolve=>setImmediate(resolve));
+ h.input.files=[h.file('current.docx','PK\x03\x04current')];h.input.value='selected';
+ const current=h.handlers.change.call(h.input);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.deepEqual(h.loads,['https://example.test/projects/text-lens/vendor/mammoth.browser.min.js'],
+  'two overlapping selections must not execute the parser script twice');
+ h.flushLocalLoads();
+ await Promise.all([stale,current]);
+ assert.equal(h.events.length,1,'obsolete import must not overwrite the latest selection');
+ assert.equal(h.events[0].name,'current.docx');
+ assert.match(h.status.textContent,/Imported extracted text/);
+});
+test('failed local parser load is not cached and can be retried without trusting preloaded globals',async()=>{
+ const h=documentImportHarness();h.setLocalFailure(true);
+ h.window.mammoth={async extractRawText(){throw Error('unverified global must never execute')}};
+ h.input.files=[h.file('first.docx','PK\x03\x04first')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,0);
+ assert.match(h.status.textContent,/Reviewed local extraction library is not installed/);
+ assert.equal(h.status.focused,true);
+ h.setLocalFailure(false);h.status.focused=false;
+ h.input.files=[h.file('retry.docx','PK\x03\x04retry')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'retry.docx');
+ assert.match(h.status.textContent,/Imported extracted text/);
+ assert.deepEqual(h.loads,[
+  'https://example.test/projects/text-lens/vendor/mammoth.browser.min.js',
+  'https://example.test/projects/text-lens/vendor/mammoth.browser.min.js'
+ ],'a failed load is retried from the same origin');
+});
+
 test('missing local extraction libraries fail closed even with a preloaded global',async()=>{
  const h=documentImportHarness();h.setLocalFailure(true);
  h.window.mammoth={async extractRawText(){throw Error('Must not use preloaded global')}};
