@@ -459,3 +459,83 @@ test('document extraction bridge only changes evidence after validated acceptanc
  assert.ok(!bridge.includes("target.dispatchEvent(new Event('input'"));
  assert.ok(bridge.includes('bytes.byteLength!==file.size'));
 });
+
+
+function documentImportHarness(){
+ const begin=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');");
+ const end=html.indexOf('</script>',begin);
+ assert.ok(begin>0&&end>begin,'Document import bridge exists');
+ const script=html.slice(begin+8,end);
+ const events=[],handlers={};
+ const status={textContent:'',focused:false,focus(){this.focused=true}};
+ const input={files:[],value:'selected',addEventListener(type,handler){handlers[type]=handler}};
+ const side={value:'a'};
+ const cmp={checked:false,dispatchEvent(){}};
+ const root={
+  querySelector(selector){return ({'tl-import-file':input,'tl-import-side':side,'tl-import-status':status,cmp})[selector.slice(1)]||null},
+  dispatchEvent(event){events.push(event.detail);event.detail.accepted=true}
+ };
+ const window={
+  mammoth:{async extractRawText(){return {value:'DOCX extracted evidence'}}},
+  pdfjsLib:{
+   GlobalWorkerOptions:{},
+   getDocument({data}){return {promise:Promise.resolve({
+    numPages:1,
+    async getPage(){return {async getTextContent(){return {items:[{str:'PDF evidence '+String.fromCharCode(data[5])}]}}}}
+   })}}
+  }
+ };
+ const context={document:{getElementById(){return root}},window,TextEncoder,Uint8Array,ArrayBuffer,Number,
+  CustomEvent:class{constructor(type,{detail}){this.type=type;this.detail=detail}},
+  Event:class{constructor(type){this.type=type}}
+ };
+ vm.runInNewContext(script,context);
+ const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
+ const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||async()=>data}};
+ return {events,handlers,input,side,status,window,file,bytes};
+}
+test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
+ const h=documentImportHarness();
+ let calls=0;
+ h.window.pdfjsLib.getDocument=()=>{calls++;throw Error('unexpected PDF parse')};
+ h.window.mammoth.extractRawText=async()=>{calls++;throw Error('unexpected DOCX parse')};
+ for(const [name,raw] of [['mismatch.pdf','PK\x03\x04fake'],['mismatch.docx','%PDF-fake'],['empty.pdf','abcd']]){
+  h.input.files=[h.file(name,raw)];h.input.value='selected';h.status.focused=false;
+  await h.handlers.change.call(h.input);
+  assert.match(h.status.textContent,/signature does not match/);
+  assert.equal(h.status.focused,true);
+  assert.equal(h.input.value,'');
+ }
+ assert.equal(calls,0);
+ assert.equal(h.events.length,0);
+});
+test('document bridge accepts matching PDF and DOCX headers and retains original byte provenance',async()=>{
+ const h=documentImportHarness();
+ for(const [name,raw,expected] of [['good.pdf','%PDF-A','PDF evidence A'],['good.docx','PK\x03\x04sample','DOCX extracted evidence']]){
+  h.input.files=[h.file(name,raw)];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+  const d=h.events.at(-1);
+  assert.equal(d.name,name);assert.equal(d.text,expected);
+  assert.equal(d.originalFileBytes,Buffer.byteLength(raw));
+  assert.equal(d.size,new TextEncoder().encode(expected).byteLength);
+  assert.match(h.status.textContent,/Imported extracted text/);
+ }
+ assert.equal(h.events.length,2);
+});
+test('stale document extraction cannot overwrite a newer accepted document or its status',async()=>{
+ const h=documentImportHarness();
+ let resolveOld;
+ const old=h.file('old.pdf','%PDF-A',()=>new Promise(resolve=>{resolveOld=resolve}));
+ h.input.files=[old];h.input.value='selected';h.side.value='a';
+ const first=h.handlers.change.call(h.input);
+ assert.equal(h.input.value,'','same file can be reselected while pending');
+ h.input.files=[h.file('new.pdf','%PDF-B')];h.input.value='selected';h.side.value='b';
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'new.pdf');
+ assert.equal(h.events[0].key,'b');
+ const latest=h.status.textContent;
+ resolveOld(h.bytes('%PDF-A'));await first;
+ assert.equal(h.events.length,1);
+ assert.equal(h.status.textContent,latest);
+});
