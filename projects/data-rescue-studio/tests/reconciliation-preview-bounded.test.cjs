@@ -18,6 +18,7 @@ function reference(value) {
   const shown = omitted ? [...points.slice(0, 96), ...points.slice(-20)] : points;
   const visible = shown.map(char => {
     const code = char.codePointAt(0);
+    if (char === '\\') return '\\\\';
     if (char === '\n') return '\\n';
     if (char === '\r') return '\\r';
     if (char === '\t') return '\\t';
@@ -32,7 +33,7 @@ function reference(value) {
 }
 let checks = 0;
 function equal(actual, expected, label) { assert.equal(actual, expected, label); checks++; }
-const chars = ['A','é','😀','\n','\r','\t','\u0000','\u007f','\u200d','\u202e','\u2066','\u0301','𝄞','Z','\u00a0','\u2028','\u2029','\u2007','\u3000'];
+const chars = ['\\','A','é','😀','\n','\r','\t','\u0000','\u007f','\u200d','\u202e','\u2066','\u0301','𝄞','Z','\u00a0','\u2028','\u2029','\u2007','\u3000'];
 for (const length of [0,1,20,95,96,97,115,116,117,118,136,300]) {
   const value = Array.from({length}, (_, i) => chars[i % chars.length]).join('');
   equal(preview(value), reference(value), 'code-point boundary '+length);
@@ -56,6 +57,16 @@ for (const code of whiteSpaceCodes) {
 // Ordinary spaces remain readable, while visually similar NBSP is disclosed.
 equal(preview('A B'), 'A B', 'ordinary ASCII space remains');
 equal(preview('A\u00a0B'), 'A\\u{00A0}B', 'nonbreaking space is explicit');
+// A literal escape sequence must not look identical to a control or invisible code point.
+equal(preview('A\\nB'), 'A\\\\nB', 'literal backslash-n is visibly doubled');
+equal(preview('A\nB'), 'A\\nB', 'actual line break is escaped');
+assert.notEqual(preview('A\\nB'), preview('A\nB'), 'literal and actual newline distinct'); checks++;
+equal(preview('A\\tB'), 'A\\\\tB', 'literal backslash-t is visibly doubled');
+equal(preview('A\tB'), 'A\\tB', 'actual tab is escaped');
+assert.notEqual(preview('A\\tB'), preview('A\tB'), 'literal and actual tab distinct'); checks++;
+equal(preview('A\\u{00A0}B'), 'A\\\\u{00A0}B', 'literal Unicode notation visibly doubled');
+equal(preview('A\u00a0B'), 'A\\u{00A0}B', 'actual NBSP visibly escaped');
+assert.notEqual(preview('A\\u{00A0}B'), preview('A\u00a0B'), 'literal notation and actual NBSP distinct'); checks++;
 const long = '😀'.repeat(1_200_000) + 'END';
 const result = preview(long);
 assert.ok(result.length < 300, 'long preview is bounded'); checks++;
