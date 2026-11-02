@@ -461,6 +461,20 @@ test('document extraction bridge only changes evidence after validated acceptanc
 });
 
 
+function syntheticDocxFixture(marker){
+ const entries=[['[Content_Types].xml','<Types/>'],['_rels/.rels','<Relationships/>'],['word/document.xml','<w:document>'+marker+'</w:document>']];
+ const parts=[],directory=[];let offset=0;
+ for(const [name,body] of entries){
+  const n=Buffer.from(name),data=Buffer.from(body),local=Buffer.alloc(30),central=Buffer.alloc(46);
+  local.writeUInt32LE(0x04034b50,0);local.writeUInt32LE(data.length,18);local.writeUInt32LE(data.length,22);local.writeUInt16LE(n.length,26);
+  central.writeUInt32LE(0x02014b50,0);central.writeUInt32LE(data.length,20);central.writeUInt32LE(data.length,24);central.writeUInt16LE(n.length,28);central.writeUInt32LE(offset,42);
+  parts.push(local,n,data);directory.push(central,n);offset+=local.length+n.length+data.length;
+ }
+ const centralBytes=Buffer.concat(directory),end=Buffer.alloc(22);
+ end.writeUInt32LE(0x06054b50,0);end.writeUInt16LE(entries.length,8);end.writeUInt16LE(entries.length,10);
+ end.writeUInt32LE(centralBytes.length,12);end.writeUInt32LE(offset,16);
+ return Buffer.concat([...parts,centralBytes,end]);
+}
 function documentImportHarness(){
  const begin=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');if(!r||!['tl-import-file'");
  const end=html.indexOf('</script>',begin);
@@ -507,14 +521,14 @@ function documentImportHarness(){
    else completeLocalLoad(script);
   }}
  };
- const context={document,window,URL,TextEncoder,Uint8Array,ArrayBuffer,Number,
+ const context={document,window,URL,TextEncoder,TextDecoder,DataView,Uint8Array,ArrayBuffer,Number,
    setTimeout(fn){const id=++timerId;pendingTimers.set(id,fn);return id},clearTimeout(id){pendingTimers.delete(id)},
   CustomEvent:class{constructor(type,{detail}){this.type=type;this.detail=detail}},
   Event:class{constructor(type){this.type=type}}
  };
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
- const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
+ const file=(name,raw,read)=>{const value=/\.docx$/i.test(name)&&typeof raw==='string'&&raw.startsWith('PK\\x03\\x04')?syntheticDocxFixture(raw):Buffer.from(raw);const data=value.buffer.slice(value.byteOffset,value.byteOffset+value.byteLength);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
  return {events,handlers,input,side,status,window,file,bytes,loads,document,removedScripts,getPendingTimers(){return pendingTimers.size},flushTimers(){const tasks=[...pendingTimers.values()];pendingTimers.clear();tasks.forEach(fn=>fn())},setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
@@ -539,7 +553,7 @@ test('document bridge accepts matching PDF and DOCX headers and retains original
   await h.handlers.change.call(h.input);
   const d=h.events.at(-1);
   assert.equal(d.name,name);assert.equal(d.text,expected);
-  assert.equal(d.originalFileBytes,Buffer.byteLength(raw));
+  assert.equal(d.originalFileBytes,h.file(name,raw).size);
   assert.equal(d.size,new TextEncoder().encode(expected).byteLength);
   assert.match(h.status.textContent,/Imported extracted text/);
  }
@@ -877,4 +891,30 @@ test('unsafe evidence CSV is blocked while exact JSON preserves synthetic formul
  assert.equal(downloads.length,0);
  api.downloadEvidenceJson();assert.equal(downloads.length,1);
  assert.equal(JSON.parse(downloads[0].parts.join('')).rows[0].source,row.source);
+});
+
+test('DOCX preflight rejects forged ZIP headers before loading extraction code',async()=>{
+ const h=documentImportHarness(),bad=Buffer.from('PK\\x03\\x04not-an-archive','binary');
+ h.input.files=[{name:'forged.docx',size:bad.length,lastModified:42,async arrayBuffer(){return bad.buffer.slice(bad.byteOffset,bad.byteOffset+bad.length)}}];
+ await h.handlers.change.call(h.input);
+ assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+ assert.equal(h.events.length,0);assert.equal(h.loads.length,0);
+});
+test('DOCX preflight rejects declared decompression bombs before loading parser',async()=>{
+ const h=documentImportHarness(),raw=syntheticDocxFixture('safe');
+ const central=raw.indexOf(Buffer.from([0x50,0x4b,0x01,0x02]));
+ assert.ok(central>0);raw.writeUInt32LE(40000000,central+24);
+ h.input.files=[{name:'bomb.docx',size:raw.length,lastModified:42,async arrayBuffer(){return raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.length)}}];
+ await h.handlers.change.call(h.input);
+ assert.match(h.status.textContent,/expanded contents exceed/);
+ assert.equal(h.events.length,0);assert.equal(h.loads.length,0);
+});
+test('DOCX preflight rejects non-Word ZIP packages before loading parser',async()=>{
+ const h=documentImportHarness(),raw=syntheticDocxFixture('safe');
+ const target=Buffer.from('word/document.xml'),idx=raw.indexOf(target);
+ assert.ok(idx>0);raw.write('word/document.zzz',idx,'utf8');
+ h.input.files=[{name:'renamed.zip.docx',size:raw.length,lastModified:42,async arrayBuffer(){return raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.length)}}];
+ await h.handlers.change.call(h.input);
+ assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+ assert.equal(h.events.length,0);assert.equal(h.loads.length,0);
 });
