@@ -136,9 +136,21 @@
   // Bound DOM previews of untrusted identifiers without altering any audit export.
   // Escape invisible formatting and line breaks so readers can see what matched.
   function auditPreview(value) {
-    const points = Array.from(String(value));
-    const omitted = Math.max(0, points.length - 116);
-    const shown = omitted ? [...points.slice(0, 96), ...points.slice(-20)] : points;
+    // Preserve exact Unicode code-point preview semantics without allocating
+    // an array for every code point of an untrusted multi-megabyte identifier.
+    // This is code-point truncation, not grapheme-cluster segmentation.
+    const first = [], last = [];
+    let count = 0;
+    for (const char of String(value)) {
+      if (count < 96) first.push(char);
+      else {
+        if (last.length === 20) last.shift();
+        last.push(char);
+      }
+      count++;
+    }
+    const omitted = Math.max(0, count - 116);
+    const shown = first.concat(last);
     const visible = shown.map(char => {
       const code = char.codePointAt(0);
       if (char === '\n') return '\\n';
