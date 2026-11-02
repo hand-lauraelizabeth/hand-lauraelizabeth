@@ -641,10 +641,10 @@ test('overlapping document selections share one pending same-origin parser load'
  const h=documentImportHarness();h.setLocalDelay(true);
  h.input.files=[h.file('stale.docx','PK\x03\x04stale')];h.input.value='selected';
  const stale=h.handlers.change.call(h.input);
- await Promise.resolve();
+ await new Promise(resolve=>setImmediate(resolve));
  h.input.files=[h.file('current.docx','PK\x03\x04current')];h.input.value='selected';
  const current=h.handlers.change.call(h.input);
- await Promise.resolve();await Promise.resolve();
+ await new Promise(resolve=>setImmediate(resolve));
  assert.deepEqual(h.loads,['https://example.test/projects/text-lens/vendor/mammoth.browser.min.js'],
   'two overlapping selections must not execute the parser script twice');
  h.flushLocalLoads();
