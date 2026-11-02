@@ -903,7 +903,7 @@ test('DOCX preflight rejects forged ZIP headers before loading extraction code',
 test('DOCX preflight rejects declared decompression bombs before loading parser',async()=>{
  const h=documentImportHarness(),raw=syntheticDocxFixture('safe');
  const central=raw.indexOf(Buffer.from([0x50,0x4b,0x01,0x02]));
- assert.ok(central>0);raw.writeUInt32LE(40000000,central+24);
+ assert.ok(central>0);raw.writeUInt32LE(40000000,central+20);raw.writeUInt32LE(40000000,central+24);
  h.input.files=[{name:'bomb.docx',size:raw.length,lastModified:42,async arrayBuffer(){return raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.length)}}];
  await h.handlers.change.call(h.input);
  assert.match(h.status.textContent,/expanded contents exceed/);
