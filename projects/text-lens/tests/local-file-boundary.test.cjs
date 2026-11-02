@@ -560,7 +560,7 @@ test('stale document extraction cannot overwrite a newer accepted document or it
 
 test('document extraction loads only same-origin scripts and a same-origin PDF worker',async()=>{
  const h=documentImportHarness();
- for(const [name,raw] of [['same.pdf','%PDF-A'],['same.docx','PK\\x03\\x04sample']]){
+ for(const [name,raw] of [['same.pdf','%PDF-A'],['same.docx','PK\x03\x04sample']]){
   h.input.files=[h.file(name,raw)];h.input.value='selected';
   await h.handlers.change.call(h.input);
  }
@@ -576,7 +576,7 @@ test('document extraction loads only same-origin scripts and a same-origin PDF w
 test('missing local extraction libraries fail closed even with a preloaded global',async()=>{
  const h=documentImportHarness();h.setLocalFailure(true);
  h.window.mammoth={async extractRawText(){throw Error('Must not use preloaded global')}};
- h.input.files=[h.file('missing.docx','PK\\x03\\x04sample')];h.input.value='selected';
+ h.input.files=[h.file('missing.docx','PK\x03\x04sample')];h.input.value='selected';
  await h.handlers.change.call(h.input);
  assert.equal(h.events.length,0);
  assert.match(h.status.textContent,/Reviewed local extraction library is not installed/);
