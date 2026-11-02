@@ -4,6 +4,23 @@ import json, unittest
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'data'/'ny20-institution-evidence.v1.json'
 
+
+
+class NY20UnapprovedEvidenceContainment(unittest.TestCase):
+    def test_removed_evidence_is_not_reintroduced(self):
+        # Explicitly removed by 240ce259 (2026-10-09): restoring it merely to
+        # make CI green would undo a deliberate publication-containment decision.
+        self.assertFalse(
+            DATA.exists(),
+            "Unapproved NY20 institution evidence has reappeared. Block release; "
+            "require independent provenance review and explicit authorization.",
+        )
+
+
+@unittest.skip(
+    "Retired NY20 projection contract: its unapproved source fixture was removed "
+    "by commit 240ce259. Re-enable only after a separately reviewed evidence release."
+)
 class LiveInstitutionReferenceContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
