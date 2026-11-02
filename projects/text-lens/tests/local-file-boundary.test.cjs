@@ -509,6 +509,12 @@ function syntheticDeflateDocxFixture(marker,variant='valid'){
  end.writeUInt32LE(centralBytes.length,12);end.writeUInt32LE(offset,16);
  return Buffer.concat([...parts,centralBytes,end]);
 }
+test('document import bridge initializes after its file controls exist in HTML',()=>{
+ const section=html.indexOf('<section class="tool-card" id="tl-doc-import"');
+ const end=html.indexOf('</section>',section)+10;
+ const bridge=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');if(!r||!['tl-import-file'");
+ assert.ok(section>=0&&end>section&&bridge===end,'Document bridge must follow import section for parser-time listener binding');
+});
 function documentImportHarness(){
  const begin=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');if(!r||!['tl-import-file'");
  const end=html.indexOf('</script>',begin);
