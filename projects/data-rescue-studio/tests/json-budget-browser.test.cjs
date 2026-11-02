@@ -85,6 +85,21 @@ async function run(name,engine,url){
   await page.locator('#rightKey').selectOption('ID');
   await page.locator('#compareRun').click();
   await page.waitForFunction(()=>document.querySelector('#compareIndex')?.disabled===false);
+  // FT-03: a multi-megabyte untrusted identifier must not materialize an
+  // array of every Unicode code point merely to render a bounded preview.
+  // Exercise the exact browser controller in all three engines with Array.from
+  // disabled; exports are separately tested for exact identifier retention.
+  const bounded=await page.evaluate(()=>{
+    const old=Array.from;
+    try{
+      Array.from=()=>{throw Error('unbounded Unicode preview allocation');};
+      return window.DataRescueCompareUI.previewText('😀'.repeat(1_200_000)+'END');
+    }finally{Array.from=old;}
+  });
+  ok(bounded.length<300,name+' long identifier preview bounded');
+  ok(bounded.startsWith('😀'.repeat(96)),name+' long identifier prefix retained');
+  ok(bounded.endsWith('😀'.repeat(17)+'END'),name+' long identifier suffix retained');
+  ok(bounded.includes('[1199887 code points omitted]'),name+' exact Unicode omission count');
   await page.evaluate(()=>{
    window.__compareURL=URL.createObjectURL;
    URL.createObjectURL=()=>{throw Error('SECRET_COMPARISON_URL');};
