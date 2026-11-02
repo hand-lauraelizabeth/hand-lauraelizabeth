@@ -24,7 +24,7 @@ const fixtures=[
   assert.equal(await page.locator('#closed').innerText(),'320');
   assert.equal(await page.locator('#rows tr').count(),3);
   assert.equal(await page.locator('#borough-bars .barrow').count(),5);
-  await page.getByLabel('Borough').selectOption('Queens');
+  await page.locator('#borough').selectOption('Queens');
   assert.equal(await page.locator('#requests').innerText(),'110');
   await page.getByLabel('Problem',{exact:true}).selectOption('Noise - Residential');
   assert.equal(await page.locator('#rows tr').count(),1);
