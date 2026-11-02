@@ -5,6 +5,8 @@ on:
       - 'projects/nyc311-operations-intelligence/interactive-preview.html'
       - 'projects/nyc311-operations-intelligence/test_interactive_preview.cjs'
       - 'projects/nyc311-operations-intelligence/test_nyc311_live.cjs'
+      - 'projects/nyc311-operations-intelligence/neighborhood-tradeoff-preview.html'
+      - 'projects/nyc311-operations-intelligence/test_neighborhood_tradeoff.cjs'
       - '.github/workflows/nyc311-interactive-preview.yml'
   workflow_dispatch:
 jobs:
@@ -23,3 +25,5 @@ jobs:
         run: node projects/nyc311-operations-intelligence/test_interactive_preview.cjs
       - name: Verify public live NYC 311 dashboard loads actual API aggregates
         run: node projects/nyc311-operations-intelligence/test_nyc311_live.cjs
+      - name: Exercise neighborhood weighted rankings and Pareto shortlist
+        run: node projects/nyc311-operations-intelligence/test_neighborhood_tradeoff.cjs
