@@ -971,3 +971,31 @@ test('DOCX stored-member CRC permits a valid synthetic Unicode document',async()
  assert.equal(h.events[0].name,'unicode.docx');
  assert.match(h.status.textContent,/Imported extracted text/);
 });
+
+function overlappingDocxMemberFixture(method){
+ const raw=syntheticDocxFixture('safe'),central=raw.indexOf(Buffer.from([0x50,0x4b,0x01,0x02]));
+ assert.ok(central>0);
+ const dataStart=30+raw.readUInt16LE(26)+raw.readUInt16LE(28);
+ const size=raw.readUInt32LE(18)+4; // Intrudes four bytes into the next local ZIP header.
+ const crc=syntheticCrc32(raw.subarray(dataStart,dataStart+size));
+ for(const pos of [14,central+16])raw.writeUInt32LE(crc,pos);
+ for(const pos of [18,22,central+20,central+24])raw.writeUInt32LE(size,pos);
+ raw.writeUInt16LE(method,8);raw.writeUInt16LE(method,central+10);
+ return raw;
+}
+for(const [label,method] of [['stored',0],['declared Deflate',8]]){
+ test('DOCX preflight rejects overlapping '+label+' member before parser loading',async()=>{
+  const h=documentImportHarness();
+  h.input.files=[h.file('accepted.docx',syntheticDocxFixture('first'))];
+  await h.handlers.change.call(h.input);
+  assert.equal(h.events.length,1,'valid evidence accepted before rejection');
+  const previous=h.events[0],loads=h.loads.length;
+  h.input.files=[h.file('overlap.docx',overlappingDocxMemberFixture(method))];
+  await h.handlers.change.call(h.input);
+  assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
+  assert.equal(h.status.focused,true);
+  assert.equal(h.events.length,1,'rejected overlapping member must not replace accepted evidence');
+  assert.equal(h.events[0],previous);
+  assert.equal(h.loads.length,loads,'rejected member must not execute another parser');
+ });
+}
