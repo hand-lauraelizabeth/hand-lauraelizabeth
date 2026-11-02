@@ -96,6 +96,12 @@ def assess_pair(earlier, later, *, delta_floor=10):
         elif old_closed is not None and new_closed is not None:
             if 0 < abs(new_closed - old_closed) < effective_delta_floor:
                 codes.add("small_visible_closure_delta")
+            # Both published values expose the complementary open count (n - closed).
+            # A small open-count delta can be reconstructed even when the two
+            # individually tested request/closure deltas are each large.
+            old_open, new_open = old_n - old_closed, new_n - new_closed
+            if 0 < abs(new_open - old_open) < effective_delta_floor:
+                codes.add("small_visible_open_complement_delta")
     # Even zero observed deltas cannot certify safety against external data,
     # reclassification, prior public exports, or source snapshot drift.
     codes.add("external_marginal_and_provenance_review_pending")
