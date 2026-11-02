@@ -491,7 +491,7 @@ function documentImportHarness(){
  };
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
- const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||async()=>data}};
+ const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
  return {events,handlers,input,side,status,window,file,bytes};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
