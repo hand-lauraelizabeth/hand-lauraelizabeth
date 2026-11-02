@@ -37,3 +37,9 @@ Local file names and cross-tool source labels may contain ordinary Unicode, incl
 A local `text-lens:import` integration must supply a nonempty UTF-8 text string, its **actual UTF-8 byte count** as `size`, and a display-safe `name`. UTF-16 character counts are not UTF-8 byte counts. A mismatched byte count, malformed Unicode, or deceptive label produces a text error without replacing the previously analyzed source. This consistency check does not prove that the supplied text came from a particular external file; verify file identity separately when it matters.
 
 A rejected cross-tool import leaves your current text and local evidence unchanged and keeps its error visible, even if an earlier text edit was waiting to be analyzed. A subsequent valid import replaces that pending edit and analyzes the accepted text.
+
+## Word and PDF extraction safeguards
+
+For `.pdf` and `.docx` imports, Text Lens checks the file's initial bytes against the selected extension before invoking an extraction library. This is an early mismatch check, **not** proof that a document is safe, authentic, or free of malicious content. Rejected imports leave the previously analyzed text and source evidence intact and present a focused text error. If you select another document before the previous extraction finishes, only the latest selection may replace your analysis; the destination is captured when the file is selected. Original document bytes and extracted UTF-8 text bytes are tracked separately.
+
+**Sensitive-document limitation:** PDF and DOCX extraction currently loads third-party JavaScript from external CDNs. Do not use this document-import feature with confidential, personal, medical, or otherwise sensitive files until those dependencies have been reviewed and replaced with vetted local assets. The local plain-text import does not require these extraction libraries. A filename/signature match does not remove this dependency risk.
