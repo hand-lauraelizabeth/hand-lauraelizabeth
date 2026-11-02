@@ -43,14 +43,28 @@ q('tl-import-file').addEventListener('change',async function(){
    if(!stillCurrent())return;
    pdfjs.GlobalWorkerOptions.workerSrc=localAsset('pdf.worker.min.js');
    const pdf=await pdfjs.getDocument({data:new Uint8Array(bytes)}).promise;
-   if(!stillCurrent())return;
-   const pages=[];
-   for(let i=1;i<=pdf.numPages;i++){
-    const p=await pdf.getPage(i);if(!stillCurrent())return;
-    const t=await p.getTextContent();if(!stillCurrent())return;
-    pages.push(t.items.map(x=>x.str||'').join(' '));
+   try{
+    if(!Number.isSafeInteger(pdf.numPages)||pdf.numPages<1||pdf.numPages>500)
+     throw Error('PDF page count must be between 1 and 500; split larger documents before importing.');
+    const pages=[];let extractedChars=0;
+    for(let i=1;i<=pdf.numPages;i++){
+     if(!stillCurrent())return;
+     const p=await pdf.getPage(i);if(!stillCurrent())return;
+     const t=await p.getTextContent();if(!stillCurrent())return;
+     const parts=[];
+     for(const item of t.items){
+      const part=typeof item.str==='string'?item.str:'';
+      extractedChars+=part.length+(parts.length?1:0);
+      if(extractedChars+2*(i-1)>400000)
+       throw Error('Extracted text exceeds the 400,000-character field limit; please split the document.');
+      parts.push(part);
+     }
+     pages.push(parts.join(' '));
+    }
+    text=pages.join('\n\n');
+   }finally{
+    if(typeof pdf.destroy==='function')await pdf.destroy();
    }
-   text=pages.join('\n\n');
   }else throw Error('Select a .docx or .pdf file.');
   if(!text.trim())throw Error('No selectable text extracted. Scanned PDFs need OCR.');
   if(text.length>400000)throw Error('Extracted text exceeds the 400,000-character field limit; please split the document.');
