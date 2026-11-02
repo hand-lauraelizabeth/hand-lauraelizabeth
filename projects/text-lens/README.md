@@ -54,3 +54,6 @@ DOCX header-consistency gate (review branch): Text Lens rejects conflicting cent
 
 
 DOCX stored-member integrity check (review branch): for uncompressed ZIP members (method 0), the preflight now calculates CRC-32 from the actual local payload bytes and rejects mismatches before invoking the parser, even when local and central headers agree with each other. Compressed Deflate members (method 8) are **not** decompressed or CRC-verified by this preflight. CRC-32 detects accidental corruption but is not cryptographic authentication or malware protection. PDF/DOCX extraction remains disabled until reviewed same-origin dependencies and real synthetic-file integration tests are completed.
+
+
+DOCX local-span isolation (review branch): the preflight now rejects ZIP entries whose local header or compressed/stored byte ranges overlap another entry. It checks all member ranges before CRC-scanning stored payloads, preventing overlapping aliases from multiplying that work. This also rejects declared Deflate entries with overlapping ranges, but **does not** inflate or verify Deflate CRCs or actual expanded sizes. This conservative check is not a malware scan or complete archive validation; sensitive-document extraction remains withheld pending reviewed local dependencies and real synthetic-file integration tests.
