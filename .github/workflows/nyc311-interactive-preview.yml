@@ -4,6 +4,7 @@ on:
     paths:
       - 'projects/nyc311-operations-intelligence/interactive-preview.html'
       - 'projects/nyc311-operations-intelligence/test_interactive_preview.cjs'
+      - 'projects/nyc311-operations-intelligence/test_nyc311_live.cjs'
       - '.github/workflows/nyc311-interactive-preview.yml'
   workflow_dispatch:
 jobs:
@@ -20,3 +21,5 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Exercise filters, reset, accessible table, and synthetic disclosure
         run: node projects/nyc311-operations-intelligence/test_interactive_preview.cjs
+      - name: Verify public live NYC 311 dashboard loads actual API aggregates
+        run: node projects/nyc311-operations-intelligence/test_nyc311_live.cjs
