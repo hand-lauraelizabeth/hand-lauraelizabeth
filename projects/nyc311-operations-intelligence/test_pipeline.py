@@ -352,10 +352,6 @@ class TestProgrammaticPrivacyThreshold(unittest.TestCase):
                                      min_cell=1)
             self.assertEqual(private_fixture["aggregates"][0]["requests"], 1)
 
-
-if __name__ == "__main__": unittest.main()
-
-
 class TestAsOfCalendarDateContract(unittest.TestCase):
     """Synthetic tests: reject valid-but-noncanonical ISO date spellings."""
 
@@ -396,3 +392,5 @@ class TestAsOfCalendarDateContract(unittest.TestCase):
             self.assertEqual(result["quality"]["unique_keys_verified"], 1)
             self.assertEqual(json.loads(output.read_text(encoding="utf-8")),
                              result)
+
+if __name__ == "__main__": unittest.main()
