@@ -128,6 +128,17 @@ async function run(name,engine,url){
   eq(markPreviews[2],'A\\u{20DD}',name+' enclosing mark visibly escaped');
   eq(markPreviews[3],'क\\u{093E}',name+' spacing mark visibly escaped');
   eq(markPreviews[4],'Cafe\\\\u{0301}',name+' literal mark notation distinct');
+  // Unicode U+2800 renders as a blank glyph but is not whitespace.
+  const blankPreviews=await page.evaluate(()=>[
+    window.DataRescueCompareUI.previewText('A\u2800B'),
+    window.DataRescueCompareUI.previewText('A B'),
+    window.DataRescueCompareUI.previewText('A\\u{2800}B')
+  ]);
+  eq(blankPreviews[0],'A\\u{2800}B',name+' Braille blank displayed explicitly');
+  eq(blankPreviews[1],'A B',name+' ordinary space remains readable');
+  eq(blankPreviews[2],'A\\\\u{2800}B',name+' literal Braille escape remains distinguishable');
+  ok(blankPreviews[0]!==blankPreviews[1]&&blankPreviews[0]!==blankPreviews[2],
+    name+' exact blank symbol does not resemble space or literal escape');
   await page.evaluate(()=>{
    window.__compareURL=URL.createObjectURL;
    URL.createObjectURL=()=>{throw Error('SECRET_COMPARISON_URL');};

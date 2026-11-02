@@ -160,6 +160,7 @@
       if (char === '\t') return '\\t';
       if (code < 32 || (code >= 127 && code <= 159) ||
           (code !== 32 && /\p{White_Space}/u.test(char)) ||
+          code === 0x2800 || // Braille Pattern Blank renders empty but is not White_Space.
           /\p{Default_Ignorable_Code_Point}/u.test(char) ||
           /\p{Mark}/u.test(char))
         return '\\u{' + code.toString(16).toUpperCase().padStart(4, '0') + '}';

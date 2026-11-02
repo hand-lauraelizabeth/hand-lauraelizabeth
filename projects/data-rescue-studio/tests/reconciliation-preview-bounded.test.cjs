@@ -24,6 +24,7 @@ function reference(value) {
     if (char === '\t') return '\\t';
     if (code < 32 || (code >= 127 && code <= 159) ||
           (code !== 32 && /\p{White_Space}/u.test(char)) ||
+          code === 0x2800 ||
           /\p{Default_Ignorable_Code_Point}/u.test(char) ||
           /\p{Mark}/u.test(char))
       return '\\u{' + code.toString(16).toUpperCase().padStart(4, '0') + '}';
@@ -58,6 +59,12 @@ for (const code of whiteSpaceCodes) {
 // Ordinary spaces remain readable, while visually similar NBSP is disclosed.
 equal(preview('A B'), 'A B', 'ordinary ASCII space remains');
 equal(preview('A\u00a0B'), 'A\\u{00A0}B', 'nonbreaking space is explicit');
+// Unicode names list: U+2800 is a visually blank Braille symbol, not White_Space.
+equal(preview('A\u2800B'), 'A\\u{2800}B', 'Braille Pattern Blank disclosed');
+equal(preview('A B'), 'A B', 'ordinary space not escaped');
+equal(preview('A\\u{2800}B'), 'A\\\\u{2800}B', 'literal U+2800 notation disambiguated');
+assert.notEqual(preview('A\u2800B'), preview('A B'), 'blank Braille symbol distinct from space'); checks++;
+assert.notEqual(preview('A\u2800B'), preview('A\\u{2800}B'), 'actual symbol distinct from literal notation'); checks++;
 // A literal escape sequence must not look identical to a control or invisible code point.
 equal(preview('A\\nB'), 'A\\\\nB', 'literal backslash-n is visibly doubled');
 equal(preview('A\nB'), 'A\\nB', 'actual line break is escaped');
