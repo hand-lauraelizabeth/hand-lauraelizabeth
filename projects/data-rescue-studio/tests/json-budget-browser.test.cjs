@@ -105,6 +105,16 @@ async function run(name,engine,url){
   const whitespacePreview=await page.evaluate(()=>window.DataRescueCompareUI.previewText('A\u00a0B\u2028C\u2029D\u3000E'));
   eq(whitespacePreview,'A\\u{00A0}B\\u{2028}C\\u{2029}D\\u{3000}E',name+' invisible Unicode whitespace visibly escaped');
   eq(await page.evaluate(()=>window.DataRescueCompareUI.previewText('A B')),'A B',name+' ASCII space unchanged');
+  // The preview must distinguish literal escape notation from real control characters.
+  const escapePairs=await page.evaluate(()=>[
+    [window.DataRescueCompareUI.previewText('A\\nB'),window.DataRescueCompareUI.previewText('A\nB')],
+    [window.DataRescueCompareUI.previewText('A\\tB'),window.DataRescueCompareUI.previewText('A\tB')],
+    [window.DataRescueCompareUI.previewText('A\\u{00A0}B'),window.DataRescueCompareUI.previewText('A\u00a0B')]
+  ]);
+  for (const [literal,actual] of escapePairs) {
+    ok(literal!==actual,name+' literal escape differs from actual control');
+    ok(literal.includes('\\\\'),name+' literal backslash doubled in preview');
+  }
   await page.evaluate(()=>{
    window.__compareURL=URL.createObjectURL;
    URL.createObjectURL=()=>{throw Error('SECRET_COMPARISON_URL');};

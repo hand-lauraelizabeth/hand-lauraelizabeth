@@ -134,7 +134,8 @@
     return records;
   }
   // Bound DOM previews of untrusted identifiers without altering any audit export.
-  // Escape invisible formatting and line breaks so readers can see what matched.
+  // Escape invisible formatting, line breaks and literal backslashes so distinct
+  // identifiers do not render as identical escape notation. Exports stay exact.
   function auditPreview(value) {
     // Preserve exact Unicode code-point preview semantics without allocating
     // an array for every code point of an untrusted multi-megabyte identifier.
@@ -153,6 +154,7 @@
     const shown = first.concat(last);
     const visible = shown.map(char => {
       const code = char.codePointAt(0);
+      if (char === '\\') return '\\\\';
       if (char === '\n') return '\\n';
       if (char === '\r') return '\\r';
       if (char === '\t') return '\\t';
