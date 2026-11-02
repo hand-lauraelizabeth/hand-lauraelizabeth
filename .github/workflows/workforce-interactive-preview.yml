@@ -25,3 +25,12 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test filters, CSV import, missing data and accessibility
         run: node projects/workforce-opportunity-explorer/test_interactive_preview.cjs
+      - name: Verify externally hosted review preview interactions
+        run: node projects/workforce-opportunity-explorer/test_hosted_preview.cjs
+      - name: Preserve hosted preview screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workforce-hosted-preview-screenshot
+          path: projects/workforce-opportunity-explorer/hosted-preview-smoke.png
+          if-no-files-found: ignore
