@@ -121,6 +121,37 @@ def assess_pair(earlier, later, *, delta_floor=10):
             new_open_total = new_requests - new_closed_total
             if 0 < abs(new_open_total - old_open_total) < effective_delta_floor:
                 codes.add("small_visible_common_cell_open_marginal_delta")
+    # Each visible dimension also permits a public subtotal. A small change
+    # can hide within a borough, month, agency, or problem even when the
+    # all-common-keys marginal is large. This is bounded O(len(GRAIN) * cells),
+    # not an exhaustive search of arbitrary subsets or external marginals.
+    for axis in range(len(GRAIN)):
+        groups = {}
+        for key in common_keys:
+            groups.setdefault(key[axis], []).append(key)
+        for group_keys in groups.values():
+            if len(group_keys) < 2:
+                continue
+            old_total = sum(cells_a[key][0] for key in group_keys)
+            new_total = sum(cells_b[key][0] for key in group_keys)
+            if 0 < abs(new_total - old_total) < effective_delta_floor:
+                codes.add("small_visible_dimension_request_marginal_delta")
+            # A subtotal of just the publicly visible closure rows is also
+            # derivable even when other rows in the group suppress closures.
+            closure_keys = [
+                key for key in group_keys
+                if cells_a[key][1] is not None and cells_b[key][1] is not None
+            ]
+            if len(closure_keys) < 2:
+                continue
+            old_closed = sum(cells_a[key][1] for key in closure_keys)
+            new_closed = sum(cells_b[key][1] for key in closure_keys)
+            if 0 < abs(new_closed - old_closed) < effective_delta_floor:
+                codes.add("small_visible_dimension_closure_marginal_delta")
+            old_open = sum(cells_a[key][0] - cells_a[key][1] for key in closure_keys)
+            new_open = sum(cells_b[key][0] - cells_b[key][1] for key in closure_keys)
+            if 0 < abs(new_open - old_open) < effective_delta_floor:
+                codes.add("small_visible_dimension_open_marginal_delta")
     # Even zero observed deltas cannot certify safety against external data,
     # reclassification, prior public exports, or source snapshot drift.
     codes.add("external_marginal_and_provenance_review_pending")
