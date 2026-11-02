@@ -43,10 +43,10 @@ class TextLensContractTests(unittest.TestCase):
  def test_exports_do_not_include_source_text(self):
   self.assertIn("Source text itself is not included in the file.",HTML)
   self.assertIn("text-lens-tables.csv",HTML)
-  m=re.search(r"function docDescriptor\\(doc,source,order\\)\\{(.*?)\\}function descriptorForId\\(",HTML,re.S)
+  m=re.search(r"function docDescriptor\(doc,source,order\)\{(.*?)\}function descriptorForId\(",HTML,re.S)
   self.assertIsNotNone(m)
   descriptor=m.group(1)
-  self.assertNotRegex(descriptor,r"\\btext\\s*:")
+  self.assertNotRegex(descriptor,r"\btext\s*:")
   self.assertNotIn("doc.text",descriptor)
   self.assertIn("name:doc.name",descriptor)
   self.assertIn("size:Number(doc.size||0)",descriptor)
