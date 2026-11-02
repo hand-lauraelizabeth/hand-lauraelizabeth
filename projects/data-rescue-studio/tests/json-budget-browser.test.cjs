@@ -100,6 +100,11 @@ async function run(name,engine,url){
   ok(bounded.startsWith('😀'.repeat(96)),name+' long identifier prefix retained');
   ok(bounded.endsWith('😀'.repeat(17)+'END'),name+' long identifier suffix retained');
   ok(bounded.includes('[1199887 code points omitted]'),name+' exact Unicode omission count');
+  // Unicode whitespace in exact identifiers must be visibly distinguishable
+  // in the preview, without changing comparison keys or exported values.
+  const whitespacePreview=await page.evaluate(()=>window.DataRescueCompareUI.previewText('A\\u00a0B\\u2028C\\u2029D\\u3000E'));
+  eq(whitespacePreview,'A\\u{00A0}B\\u{2028}C\\u{2029}D\\u{3000}E',name+' invisible Unicode whitespace visibly escaped');
+  eq(await page.evaluate(()=>window.DataRescueCompareUI.previewText('A B')),'A B',name+' ASCII space unchanged');
   await page.evaluate(()=>{
    window.__compareURL=URL.createObjectURL;
    URL.createObjectURL=()=>{throw Error('SECRET_COMPARISON_URL');};
