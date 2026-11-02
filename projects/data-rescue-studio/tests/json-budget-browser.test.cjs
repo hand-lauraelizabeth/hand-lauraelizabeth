@@ -122,6 +122,25 @@ async function run(name,engine,url){
   const [compareCsv]=await Promise.all([page.waitForEvent('download'),page.locator('#compareExport').click()]);
   ok(readFileSync(await compareCsv.path(),'utf8').startsWith('\uFEFF'),name+' comparison CSV retry BOM');
   ok((await page.locator('#compareStatus').innerText()).includes('download started'),name+' comparison CSV truthful status');
+  // FT-03: a safety-validator exception must not become an uncaught page
+  // error or disclose internal text. This also guards against regressions
+  // from earlier review PR #365 when integration branches diverge.
+  await page.evaluate(()=>{
+    window.__compareRisk=window.DataRescue.spreadsheetExportRisk;
+    window.DataRescue.spreadsheetExportRisk=()=>{throw Error('SECRET_INTERNAL_CSV_VALIDATOR');};
+  });
+  const riskBefore=downloads;
+  await page.locator('#compareExport').click();
+  const riskMessage=await page.locator('#compareStatus').innerText();
+  ok(riskMessage.includes('Comparison CSV could not be prepared'),name+' CSV validator failure has actionable text');
+  ok(!riskMessage.includes('SECRET_INTERNAL_CSV_VALIDATOR'),name+' CSV validator exception is not disclosed');
+  eq(await page.locator('#compareStatus').getAttribute('role'),'alert',name+' CSV validator failure announced');
+  ok(await page.locator('#compareStatus').evaluate(el=>el===document.activeElement),name+' CSV validator failure focused');
+  eq(await page.locator('#compareFile').getAttribute('aria-invalid'),null,name+' valid second source remains valid');
+  ok(await page.locator('#compareJson').isEnabled(),name+' exact JSON remains available after CSV validator failure');
+  ok(await page.locator('#compareIndex').isEnabled(),name+' value-free index remains available after CSV validator failure');
+  eq(downloads,riskBefore,name+' failed CSV safety check starts no download');
+  await page.evaluate(()=>{window.DataRescue.spreadsheetExportRisk=window.__compareRisk;});
   // FT-03 exact comparison JSON must honor the shared 32 MB UTF-8 cap.
   // A synthetic fault checks that an over-budget export cannot start a download
   // or invalidate either uploaded source; the value-free index remains usable.
@@ -230,6 +249,58 @@ async function run(name,engine,url){
   ok(await page.locator('#compareFile').evaluate(el=>el.files?.length===1),name+' second picker remains usable at 320px');
   eq(errors,[],name+' no uncaught errors');
   eq(outside,[],name+' no off-origin requests');
+  // Two individually valid 25,001-row inputs can produce 50,002 distinct
+  // unmatched findings. The CSV writer caps output at 50,000 rows, but JSON
+  // exports must remain available with exact source record positions.
+  const largePage=await browser.newPage({acceptDownloads:true,viewport:{width:1280,height:800}});
+  const largeErrors=[],largeExternal=[];let largeDownloads=0;
+  largePage.on('pageerror',error=>largeErrors.push(error.message));
+  largePage.on('download',()=>largeDownloads++);
+  largePage.on('request',request=>{
+    if(!request.url().startsWith(url)&&!request.url().startsWith('blob:'+url))
+      largeExternal.push(request.url());
+  });
+  eq((await largePage.goto(url,{waitUntil:'networkidle'})).status(),200,name+' large comparison served');
+  const makeLarge=(prefix)=>Buffer.from('ID,Note\\n'+Array.from({length:25001},(_,i)=>
+    prefix+String(i+1).padStart(5,'0')+',synthetic').join('\\n')+'\\n','utf8');
+  const leftLarge=Buffer.from(makeLarge('L').toString('utf8').replaceAll('\\n','\n'),'utf8');
+  const rightLarge=Buffer.from(makeLarge('R').toString('utf8').replaceAll('\\n','\n'),'utf8');
+  await largePage.locator('#file').setInputFiles({name:'synthetic-left-large.csv',mimeType:'text/csv',buffer:leftLarge});
+  await largePage.waitForFunction(()=>document.querySelector('#saveJson')?.disabled===false);
+  await largePage.locator('#compareFile').setInputFiles({name:'synthetic-right-large.csv',mimeType:'text/csv',buffer:rightLarge});
+  await largePage.waitForFunction(()=>[...document.querySelector('#rightKey').options].some(o=>o.value==='ID'));
+  await largePage.locator('#leftKey').selectOption('ID');
+  await largePage.locator('#rightKey').selectOption('ID');
+  await largePage.locator('#compareRun').click();
+  await largePage.waitForFunction(()=>document.querySelector('#compareStatus')?.textContent?.includes('Comparison complete'));
+  eq(await largePage.locator('#compareExport').isEnabled(),true,name+' large comparison export control available');
+  const beforeLargeCsv=largeDownloads;
+  await largePage.locator('#compareExport').click();
+  const largeCsvError=await largePage.locator('#compareStatus').innerText();
+  ok(largeCsvError.includes('50,000 findings')&&largeCsvError.includes('50,002'),
+    name+' over-limit audit CSV reports actual finding count and limit');
+  eq(await largePage.locator('#compareStatus').getAttribute('role'),'alert',
+    name+' large CSV limit is announced as an error');
+  ok(await largePage.locator('#compareStatus').evaluate(el=>el===document.activeElement),
+    name+' large CSV limit is keyboard-focusable');
+  eq(await largePage.locator('#compareFile').getAttribute('aria-invalid'),null,
+    name+' large but valid second file not marked invalid');
+  eq(largeDownloads,beforeLargeCsv,name+' oversized audit CSV does not download');
+  const [largeJson]=await Promise.all([largePage.waitForEvent('download'),largePage.locator('#compareJson').click()]);
+  const largeAudit=JSON.parse(readFileSync(await largeJson.path(),'utf8'));
+  eq(largeAudit.leftOnly.length,25001,name+' JSON retains every first-file-only finding');
+  eq(largeAudit.rightOnly.length,25001,name+' JSON retains every second-file-only finding');
+  eq(largeAudit.leftOnly[0].row,2,name+' JSON retains original first source record');
+  eq(largeAudit.rightOnly.at(-1).row,25002,name+' JSON retains original last second source record');
+  const [largeIndexDownload]=await Promise.all([largePage.waitForEvent('download'),largePage.locator('#compareIndex').click()]);
+  const largeIndex=JSON.parse(readFileSync(await largeIndexDownload.path(),'utf8'));
+  eq(largeIndex.counts.firstOnly,25001,name+' value-free index retains first-file coverage');
+  eq(largeIndex.counts.secondOnly,25001,name+' value-free index retains second-file coverage');
+  ok(!JSON.stringify(largeIndex).includes('L00001')&&!JSON.stringify(largeIndex).includes('R00001'),
+    name+' large issue index omits identifiers');
+  eq(largeErrors,[],name+' no uncaught large-comparison browser errors');
+  eq(largeExternal,[],name+' large comparison sends no external requests');
+  await largePage.close();
   await page.close();
   console.log(name+': JSON boundary, privacy, focus, URL cleanup and retry PASS');
  }finally{await browser.close();}
