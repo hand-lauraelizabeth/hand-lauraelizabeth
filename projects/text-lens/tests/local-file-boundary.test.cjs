@@ -485,13 +485,13 @@ function documentImportHarness(){
    })}}
   }
  };
- const loads=[],queuedLoads=[];let failLocal=false,overridePdf=null,deferLocal=false;
+ const loads=[],queuedLoads=[];let failLocal=false,overridePdf=null,overrideLoadingTask=null,deferLocal=false,loadingTaskStarted=0;
  const completeLocalLoad=script=>{
    if(failLocal){script.onerror();return}
    if(script.src.endsWith('/mammoth.browser.min.js'))window.mammoth={async extractRawText(){return {value:'DOCX extracted evidence'}}};
    else if(script.src.endsWith('/pdf.min.js'))window.pdfjsLib={
     GlobalWorkerOptions:{},
-    getDocument({data}){return {promise:Promise.resolve(overridePdf||{numPages:1,
+    getDocument({data}){loadingTaskStarted++;return overrideLoadingTask||{promise:Promise.resolve(overridePdf||{numPages:1,
      async getPage(){return {async getTextContent(){return {items:[{str:'PDF evidence '+String.fromCharCode(data[5])}]}}}}
     })}}
    };
@@ -514,7 +514,7 @@ function documentImportHarness(){
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
  const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
- return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
+ return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
  const h=documentImportHarness();
@@ -562,6 +562,51 @@ test('stale document extraction cannot overwrite a newer accepted document or it
  assert.equal(h.status.textContent,latest);
 });
 
+test('PDF.js loading task is destroyed when parsing rejects before a document proxy exists',async()=>{
+ const h=documentImportHarness();let taskDestroyed=0;
+ h.setPdfLoadingTask({
+  promise:new Promise((_,reject)=>setImmediate(()=>reject(Error('synthetic corrupt PDF')))),
+  async destroy(){taskDestroyed++}
+ });
+ h.input.files=[h.file('corrupt.pdf','%PDF-A')];h.input.value='selected';
+ await h.handlers.change.call(h.input);
+ assert.equal(taskDestroyed,1,'rejected parser must release its loading task and worker');
+ assert.equal(h.events.length,0,'rejected document must not replace accepted evidence');
+ assert.match(h.status.textContent,/synthetic corrupt PDF/);
+ assert.equal(h.status.focused,true);
+});
+test('successful PDF.js loading task uses one task-level cleanup, not double proxy destruction',async()=>{
+ const h=documentImportHarness();let taskDestroyed=0,proxyDestroyed=0;
+ const pdf={numPages:1,async getPage(){return {async getTextContent(){return {items:[{str:'synthetic page'}]}}}},
+  async destroy(){proxyDestroyed++}};
+ h.setPdfLoadingTask({promise:Promise.resolve(pdf),async destroy(){taskDestroyed++}});
+ h.input.files=[h.file('valid.pdf','%PDF-A')];h.input.value='selected';
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].text,'synthetic page');
+ assert.equal(taskDestroyed,1);
+ assert.equal(proxyDestroyed,0,'loading task owns worker and document teardown');
+});
+test('superseded PDF loading task is released without replacing the newer document',async()=>{
+ const h=documentImportHarness();let resolveOld,taskDestroyed=0;
+ h.setPdfLoadingTask({promise:new Promise(resolve=>{resolveOld=resolve}),
+  async destroy(){taskDestroyed++}});
+ h.input.files=[h.file('stale.pdf','%PDF-A')];h.input.value='selected';
+ const stale=h.handlers.change.call(h.input);
+ for(let attempt=0;attempt<10&&!h.getLoadingTaskStarts();attempt++)
+  await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(h.getLoadingTaskStarts(),1,'stale PDF loading task must exist before replacement');
+ h.input.files=[h.file('current.docx','PK\x03\x04current')];h.input.value='selected';
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'current.docx');
+ const status=h.status.textContent;
+ resolveOld({numPages:1,async getPage(){throw Error('obsolete document traversed')}});
+ await stale;
+ assert.equal(taskDestroyed,1);
+ assert.equal(h.events.length,1);
+ assert.equal(h.status.textContent,status);
+});
 test('PDF import rejects invalid page counts before traversal and destroys the document',async()=>{
  for(const count of [0,501,NaN]){
   const h=documentImportHarness();let reads=0,destroyed=0;

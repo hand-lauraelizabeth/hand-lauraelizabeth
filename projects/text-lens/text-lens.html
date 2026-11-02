@@ -42,8 +42,11 @@ q('tl-import-file').addEventListener('change',async function(){
    const pdfjs=await loadLocal('pdf.min.js',()=>window.pdfjsLib);
    if(!stillCurrent())return;
    pdfjs.GlobalWorkerOptions.workerSrc=localAsset('pdf.worker.min.js');
-   const pdf=await pdfjs.getDocument({data:new Uint8Array(bytes)}).promise;
+   const loadingTask=pdfjs.getDocument({data:new Uint8Array(bytes)});
+   let pdf;
    try{
+    pdf=await loadingTask.promise;
+    if(!stillCurrent())return;
     if(!Number.isSafeInteger(pdf.numPages)||pdf.numPages<1||pdf.numPages>500)
      throw Error('PDF page count must be between 1 and 500; split larger documents before importing.');
     const pages=[];let extractedChars=0;
@@ -63,7 +66,10 @@ q('tl-import-file').addEventListener('change',async function(){
     }
     text=pages.join('\n\n');
    }finally{
-    if(typeof pdf.destroy==='function')await pdf.destroy();
+    // PDF.js loading tasks own their workers even if document parsing rejects.
+    // Use the task lifecycle when available; retain proxy cleanup for older adapters.
+    if(loadingTask&&typeof loadingTask.destroy==='function')await loadingTask.destroy();
+    else if(pdf&&typeof pdf.destroy==='function')await pdf.destroy();
    }
   }else throw Error('Select a .docx or .pdf file.');
   if(!text.trim())throw Error('No selectable text extracted. Scanned PDFs need OCR.');
