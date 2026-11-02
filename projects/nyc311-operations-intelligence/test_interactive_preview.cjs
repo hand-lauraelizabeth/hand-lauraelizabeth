@@ -46,6 +46,7 @@ const assert = require('node:assert/strict');
   await page.locator('#geo-window').selectOption('30');
   assert.equal(await page.locator('#geo-table tr').count(),0,'window change must clear stale ZIP totals');
   await page.getByRole('button',{name:'Load ZIP comparison'}).click();
+  await page.waitForFunction(()=>document.querySelector('#geo-message').textContent.includes('past 30 days'));
   assert.equal(await page.locator('#geo-table tr').count(),2);
   assert.match(await page.locator('#geo-message').innerText(),/past 30 days/);
   const dates=[...lastZipWindow.matchAll(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/g)].map(x=>new Date(x[0]+'Z'));
