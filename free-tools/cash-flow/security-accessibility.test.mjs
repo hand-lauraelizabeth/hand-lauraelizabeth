@@ -34,7 +34,7 @@ check('main landmark and data table headers are present',()=>{
 });
 check('calculations and errors are announced',()=>{
   assert.match(html,/<p id="status" role="status" aria-live="polite">/);
-  assert.match(html,/<p id="error" role="alert"><\/p>/);
+  assert.match(html,/<p id="error" role="alert" tabindex="-1"><\/p>/);
   assert.match(html,/<ul id="events" aria-live="polite">/);
 });
 check('visible keyboard focus and small-screen layout rules',()=>{
