@@ -485,14 +485,32 @@ function documentImportHarness(){
    })}}
   }
  };
- const context={document:{getElementById(){return root}},window,TextEncoder,Uint8Array,ArrayBuffer,Number,
+ const loads=[];let failLocal=false;
+ const document={location:{protocol:'https:',origin:'https://example.test',href:'https://example.test/projects/text-lens/text-lens.html'},
+  getElementById(){return root},
+  createElement(type){assert.equal(type,'script');return {src:'',onload:null,onerror:null}},
+  head:{appendChild(script){
+   loads.push(script.src);
+   if(failLocal){script.onerror();return}
+   if(script.src.endsWith('/mammoth.browser.min.js'))window.mammoth={async extractRawText(){return {value:'DOCX extracted evidence'}}};
+   else if(script.src.endsWith('/pdf.min.js'))window.pdfjsLib={
+    GlobalWorkerOptions:{},
+    getDocument({data}){return {promise:Promise.resolve({numPages:1,
+     async getPage(){return {async getTextContent(){return {items:[{str:'PDF evidence '+String.fromCharCode(data[5])}]}}}}
+    })}}
+   };
+   else throw Error('Unexpected local asset: '+script.src);
+   script.onload();
+  }}
+ };
+ const context={document,window,URL,TextEncoder,Uint8Array,ArrayBuffer,Number,
   CustomEvent:class{constructor(type,{detail}){this.type=type;this.detail=detail}},
   Event:class{constructor(type){this.type=type}}
  };
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
  const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
- return {events,handlers,input,side,status,window,file,bytes};
+ return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
  const h=documentImportHarness();
@@ -538,4 +556,50 @@ test('stale document extraction cannot overwrite a newer accepted document or it
  resolveOld(h.bytes('%PDF-A'));await first;
  assert.equal(h.events.length,1);
  assert.equal(h.status.textContent,latest);
+});
+
+test('document extraction loads only same-origin scripts and a same-origin PDF worker',async()=>{
+ const h=documentImportHarness();
+ for(const [name,raw] of [['same.pdf','%PDF-A'],['same.docx','PK\\x03\\x04sample']]){
+  h.input.files=[h.file(name,raw)];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+ }
+ assert.equal(h.events.length,2);
+ assert.deepEqual(h.loads,[
+  'https://example.test/projects/text-lens/vendor/pdf.min.js',
+  'https://example.test/projects/text-lens/vendor/mammoth.browser.min.js'
+ ]);
+ assert.equal(h.window.pdfjsLib.GlobalWorkerOptions.workerSrc,
+  'https://example.test/projects/text-lens/vendor/pdf.worker.min.js');
+ assert.ok(h.loads.every(src=>new URL(src).origin==='https://example.test'));
+});
+test('missing local extraction libraries fail closed even with a preloaded global',async()=>{
+ const h=documentImportHarness();h.setLocalFailure(true);
+ h.window.mammoth={async extractRawText(){throw Error('Must not use preloaded global')}};
+ h.input.files=[h.file('missing.docx','PK\\x03\\x04sample')];h.input.value='selected';
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,0);
+ assert.match(h.status.textContent,/Reviewed local extraction library is not installed/);
+ assert.equal(h.status.focused,true);
+ assert.deepEqual(h.loads,['https://example.test/projects/text-lens/vendor/mammoth.browser.min.js']);
+});
+test('non-HTTP document contexts fail before loading any script',async()=>{
+ const h=documentImportHarness();
+ h.document.location={protocol:'file:',origin:'null',href:'file:///tmp/text-lens.html'};
+ h.input.files=[h.file('local.pdf','%PDF-A')];h.input.value='selected';
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,0);
+ assert.equal(h.loads.length,0);
+ assert.match(h.status.textContent,/requires an HTTP\\(S\\) page/);
+ assert.equal(h.status.focused,true);
+});
+test('document import contains no third-party CDN execution path',()=>{
+ const start=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');if(!r||!['tl-import-file'");
+ const end=html.indexOf('</script>',start);
+ const bridge=html.slice(start,end);
+ assert.ok(bridge.includes("loadLocal('pdf.min.js'"));
+ assert.ok(bridge.includes("loadLocal('mammoth.browser.min.js'"));
+ assert.ok(bridge.includes("localAsset('pdf.worker.min.js')"));
+ assert.doesNotMatch(bridge,/https?:\\/\\//);
+ assert.doesNotMatch(bridge,/cdn\\.|jsdelivr|cdnjs|unpkg/);
 });
