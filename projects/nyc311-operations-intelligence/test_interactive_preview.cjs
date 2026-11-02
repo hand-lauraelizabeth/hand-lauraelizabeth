@@ -17,6 +17,16 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#requests').innerText(),'400');
   assert.equal(await page.locator('#closed').innerText(),'300');
   assert.equal(await page.locator('#rows tr').count(),2);
+  const callsBeforeSynthetic=calls;
+  await page.getByRole('button',{name:'Try fictional example (offline)'}).click();
+  assert.equal(await page.locator('#requests').innerText(),'160');
+  assert.match(await page.locator('#status').innerText(),/FICTIONAL EXAMPLE/);
+  assert.match(await page.locator('#source').innerText(),/NOT NYC Open Data/);
+  assert.equal(calls,callsBeforeSynthetic,'offline example must not fetch network data');
+  await page.getByRole('button',{name:'Refresh live data'}).click();
+  await page.waitForFunction(()=>document.querySelector('#requests').textContent==='400');
+  assert.doesNotMatch(await page.locator('#source').innerText(),/FICTIONAL EXAMPLE/);
+
   await page.getByLabel('Borough',{exact:true}).selectOption('Queens');
   assert.equal(await page.locator('#requests').innerText(),'200');
   await page.getByLabel('Problem',{exact:true}).selectOption('Noise');
