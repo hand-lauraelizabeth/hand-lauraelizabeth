@@ -102,6 +102,25 @@ def assess_pair(earlier, later, *, delta_floor=10):
             old_open, new_open = old_n - old_closed, new_n - new_closed
             if 0 < abs(new_open - old_open) < effective_delta_floor:
                 codes.add("small_visible_open_complement_delta")
+    # Visible cells also expose marginals across their common keys. Opposing
+    # large cell changes can leave a small publicly derivable net change.
+    # This checks one reproducible marginal, not all possible subsets or joins.
+    common_keys = cells_a.keys() & cells_b.keys()
+    if len(common_keys) > 1:
+        old_requests = sum(cells_a[key][0] for key in common_keys)
+        new_requests = sum(cells_b[key][0] for key in common_keys)
+        if 0 < abs(new_requests - old_requests) < effective_delta_floor:
+            codes.add("small_visible_common_cell_request_marginal_delta")
+        if all(cells_a[key][1] is not None and cells_b[key][1] is not None
+               for key in common_keys):
+            old_closed_total = sum(cells_a[key][1] for key in common_keys)
+            new_closed_total = sum(cells_b[key][1] for key in common_keys)
+            if 0 < abs(new_closed_total - old_closed_total) < effective_delta_floor:
+                codes.add("small_visible_common_cell_closure_marginal_delta")
+            old_open_total = old_requests - old_closed_total
+            new_open_total = new_requests - new_closed_total
+            if 0 < abs(new_open_total - old_open_total) < effective_delta_floor:
+                codes.add("small_visible_common_cell_open_marginal_delta")
     # Even zero observed deltas cannot certify safety against external data,
     # reclassification, prior public exports, or source snapshot drift.
     codes.add("external_marginal_and_provenance_review_pending")
