@@ -28,7 +28,7 @@ The standalone file is `text-lens.html`.
 
 Analysis-table CSV and JSON downloads explicitly label non-finite calculated values as `not available (non-finite metric)` rather than showing `NaN`/`Infinity` in CSV or silently converting them to `null` in JSON. Finite numeric scores, including negative values and zero, remain numeric; original source names and identifiers remain unchanged. A missing score is not zero. Table CSV refuses formula-like or control-character text; use the exact table JSON for such source values. These local exports may contain sensitive passages.
 
-Table CSV/JSON downloads report when a browser download was **started**, not when the file was saved. If a download is blocked, Text Lens reports a recoverable error, retains local analysis and exact source identifiers, and cleans up temporary browser resources. Check the browser downloads list to confirm completion.
+Table, filtered-evidence CSV/JSON, and analysis JSON downloads report when a browser download was **started**, not when the file was saved. If a download is blocked, Text Lens reports a recoverable error, retains local analysis and exact source identifiers, and cleans up temporary browser resources. Filtered-evidence and analysis exports use the same recoverable download handling; blocked Blob URLs or link activation leave local analysis and exact source identity unchanged, show a focused text error, and permit retry. Spreadsheet-unsafe evidence CSV remains blocked; exact JSON retains the original characters. Check the browser downloads list to confirm completion.
 
 ## Local source identity
 
