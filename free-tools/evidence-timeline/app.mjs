@@ -107,6 +107,14 @@ function clearGroupFilter(){
   $('group-find').value='';$('group-find').disabled=false;$('ungrouped-only').checked=false;
 }
 $('clear-group-find').addEventListener('click',()=>{clearGroupFilter();render();$('group-find').focus();});
+$('group-edit-value').addEventListener('input',()=>{
+  // The previous rejection describes the old value, not the edited draft.
+  if($('group-edit-error').hidden)return;
+  $('group-edit-error').hidden=true;
+  $('group-edit-error').textContent='';
+  $('group-edit-value').removeAttribute('aria-invalid');
+  $('group-edit-value').setAttribute('aria-describedby','group-edit-help');
+});
 $('group-edit-form').addEventListener('submit',event=>{
   event.preventDefault();
   if(editingGroupId===null)return;
