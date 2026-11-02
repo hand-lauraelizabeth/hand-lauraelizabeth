@@ -485,7 +485,7 @@ function documentImportHarness(){
    })}}
   }
  };
- const loads=[];let failLocal=false;
+ const loads=[];let failLocal=false,overridePdf=null;
  const document={location:{protocol:'https:',origin:'https://example.test',href:'https://example.test/projects/text-lens/text-lens.html'},
   getElementById(){return root},
   createElement(type){assert.equal(type,'script');return {src:'',onload:null,onerror:null}},
@@ -495,7 +495,7 @@ function documentImportHarness(){
    if(script.src.endsWith('/mammoth.browser.min.js'))window.mammoth={async extractRawText(){return {value:'DOCX extracted evidence'}}};
    else if(script.src.endsWith('/pdf.min.js'))window.pdfjsLib={
     GlobalWorkerOptions:{},
-    getDocument({data}){return {promise:Promise.resolve({numPages:1,
+    getDocument({data}){return {promise:Promise.resolve(overridePdf||{numPages:1,
      async getPage(){return {async getTextContent(){return {items:[{str:'PDF evidence '+String.fromCharCode(data[5])}]}}}}
     })}}
    };
@@ -510,7 +510,7 @@ function documentImportHarness(){
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
  const file=(name,raw,read)=>{const data=bytes(raw);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
- return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value}};
+ return {events,handlers,input,side,status,window,file,bytes,loads,document,setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
  const h=documentImportHarness();
@@ -556,6 +556,48 @@ test('stale document extraction cannot overwrite a newer accepted document or it
  resolveOld(h.bytes('%PDF-A'));await first;
  assert.equal(h.events.length,1);
  assert.equal(h.status.textContent,latest);
+});
+
+test('PDF import rejects invalid page counts before traversal and destroys the document',async()=>{
+ for(const count of [0,501,NaN]){
+  const h=documentImportHarness();let reads=0,destroyed=0;
+  h.setPdfDocument({numPages:count,async getPage(){reads++;throw Error('should not traverse')},
+   async destroy(){destroyed++}});
+  h.input.files=[h.file('oversized.pdf','%PDF-A')];
+  await h.handlers.change.call(h.input);
+  assert.equal(reads,0);
+  assert.equal(destroyed,1);
+  assert.equal(h.events.length,0);
+  assert.match(h.status.textContent,/PDF page count must be between 1 and 500/);
+  assert.equal(h.status.focused,true);
+ }
+});
+test('PDF import bounds extracted text during traversal, preserving evidence on rejection',async()=>{
+ const h=documentImportHarness();let pagesRead=0,destroyed=0;
+ h.setPdfDocument({numPages:3,async getPage(i){
+  pagesRead++;return {async getTextContent(){return {items:[{str:i===1?'a'.repeat(399999):'b'}]}}}
+ },async destroy(){destroyed++}});
+ h.input.files=[h.file('too-long.pdf','%PDF-A')];
+ await h.handlers.change.call(h.input);
+ assert.equal(pagesRead,2,'stop before processing the third page');
+ assert.equal(destroyed,1);
+ assert.equal(h.events.length,0);
+ assert.match(h.status.textContent,/400,000-character field limit/);
+ assert.equal(h.status.focused,true);
+ assert.doesNotMatch(h.status.textContent,/a{20}/,'no extracted content in error');
+});
+test('PDF import retains exact Unicode page text and releases the parsed document',async()=>{
+ const h=documentImportHarness();let destroyed=0;
+ h.setPdfDocument({numPages:2,async getPage(i){
+  return {async getTextContent(){return {items:[{str:i===1?'東京':'Café'},{str:'source'}]}}}
+ },async destroy(){destroyed++}});
+ h.input.files=[h.file('unicode.pdf','%PDF-A')];
+ await h.handlers.change.call(h.input);
+ assert.equal(destroyed,1);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].text,'東京 source\\n\\nCafé source'.replace(/\\n/g,'\n'));
+ assert.equal(h.events[0].size,new TextEncoder().encode(h.events[0].text).byteLength);
+ assert.match(h.status.textContent,/Imported extracted text/);
 });
 
 test('document extraction loads only same-origin scripts and a same-origin PDF worker',async()=>{
