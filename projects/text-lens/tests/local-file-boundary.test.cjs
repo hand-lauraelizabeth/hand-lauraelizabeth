@@ -528,7 +528,7 @@ function documentImportHarness(){
  };
  vm.runInNewContext(script,context);
  const bytes=raw=>{const b=Buffer.from(raw);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};
- const file=(name,raw,read)=>{const value=/\.docx$/i.test(name)&&typeof raw==='string'&&raw.startsWith('PK\\x03\\x04')?syntheticDocxFixture(raw):Buffer.from(raw);const data=value.buffer.slice(value.byteOffset,value.byteOffset+value.byteLength);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
+ const file=(name,raw,read)=>{const value=/\.docx$/i.test(name)&&typeof raw==='string'&&raw.startsWith('PK\x03\x04')?syntheticDocxFixture(raw):Buffer.from(raw);const data=value.buffer.slice(value.byteOffset,value.byteOffset+value.byteLength);return {name,size:data.byteLength,lastModified:42,arrayBuffer:read||(async()=>data)}};
  return {events,handlers,input,side,status,window,file,bytes,loads,document,removedScripts,getPendingTimers(){return pendingTimers.size},flushTimers(){const tasks=[...pendingTimers.values()];pendingTimers.clear();tasks.forEach(fn=>fn())},setLocalFailure(value){failLocal=value},setPdfDocument(value){overridePdf=value},setPdfLoadingTask(value){overrideLoadingTask=value},getLoadingTaskStarts(){return loadingTaskStarted},setLocalDelay(value){deferLocal=value},flushLocalLoads(){queuedLoads.splice(0).forEach(completeLocalLoad)}};
 }
 test('document bridge rejects extension/signature mismatches before invoking extraction libraries',async()=>{
@@ -894,7 +894,7 @@ test('unsafe evidence CSV is blocked while exact JSON preserves synthetic formul
 });
 
 test('DOCX preflight rejects forged ZIP headers before loading extraction code',async()=>{
- const h=documentImportHarness(),bad=Buffer.from('PK\\x03\\x04not-an-archive','binary');
+ const h=documentImportHarness(),bad=Buffer.from('PK\x03\x04not-an-archive','binary');
  h.input.files=[{name:'forged.docx',size:bad.length,lastModified:42,async arrayBuffer(){return bad.buffer.slice(bad.byteOffset,bad.byteOffset+bad.length)}}];
  await h.handlers.change.call(h.input);
  assert.match(h.status.textContent,/Invalid or unsupported DOCX ZIP package/);
