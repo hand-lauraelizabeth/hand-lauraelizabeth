@@ -106,6 +106,25 @@ class TestTemporalCandidateAudit(unittest.TestCase):
                 later = candidate("2026-10-26", requests=n, closed=c)
                 assess_pair(self.old, later)
 
+    def test_source_suppression_floor_controls_temporal_delta(self):
+        # Both candidate snapshots use a stronger publication floor of 20.
+        for item in (self.old, self.new):
+            item["rules"]["display_minimum_cell_count"] = 20
+            item["aggregates"][0]["requests"] = 50
+            item["aggregates"][0]["closed_with_valid_interval"] = 20
+        self.new["aggregates"][0]["requests"] = 61
+        self.new["aggregates"][0]["closed_with_valid_interval"] = 31
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_request_delta", found)
+        self.assertIn("small_visible_closure_delta", found)
+        self.assertFalse(assess_pair(self.old, self.new)["publication_cleared"])
+
+    def test_stronger_explicit_delta_floor_is_respected(self):
+        self.new["aggregates"][0]["requests"] = 35
+        self.assertNotIn("small_visible_request_delta", codes(assess_pair(self.old, self.new)))
+        self.assertIn("small_visible_request_delta",
+                      codes(assess_pair(self.old, self.new, delta_floor=20)))
+
     def test_inputs_not_modified(self):
         old, new = copy.deepcopy(self.old), copy.deepcopy(self.new)
         assess_pair(self.old, self.new)
@@ -113,7 +132,7 @@ class TestTemporalCandidateAudit(unittest.TestCase):
         self.assertEqual(self.new, new)
 
     def test_invalid_floor_rejected(self):
-        for value in (0, True, 1.5, None):
+        for value in (0, 1, 9, True, 1.5, None):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 assess_pair(self.old, self.new, delta_floor=value)
 
