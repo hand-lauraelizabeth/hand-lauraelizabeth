@@ -118,23 +118,39 @@ function graphemes(value){
 }
 // Match at complete extended-grapheme boundaries, not inside a decomposed
 // vowel/voicing cluster (e.g. か must not match が; α must not match ά).
-function includesGraphemes(index,term){
+// Precompute a failure table once per search term. This bounds near-match
+// scans to linear work without matching inside Unicode grapheme clusters.
+// Unicode UAX #29 (2026-09-01): https://www.unicode.org/reports/tr29/
+function graphemePrefix(term){
+ const prefix=new Array(term.length).fill(0);
+ for(let i=1,j=0;i<term.length;i++){
+  while(j>0&&term[i]!==term[j])j=prefix[j-1];
+  if(term[i]===term[j])j++;
+  prefix[i]=j;
+ }
+ return prefix;
+}
+function includesGraphemes(index,term,prefix){
  if(!term.length)return true;
- for(let i=0;i<=index.length-term.length;i++){
-  let matches=true;
-  for(let j=0;j<term.length;j++)if(index[i+j]!==term[j]){matches=false;break;}
-  if(matches)return true;
+ let matched=0;
+ for(const cluster of index){
+  while(matched>0&&cluster!==term[matched])matched=prefix[matched-1];
+  if(cluster===term[matched])matched++;
+  if(matched===term.length)return true;
  }
  return false;
 }
 export function filterTools(rows=TOOLS,{query='',category='all',status='all'}={}){
  if(queryIssue(query))return [];
- const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean).map(graphemes);
+ const terms=searchKey(query).trim().split(/\s+/u).filter(Boolean).map(value=>{
+  const clusters=graphemes(value);
+  return {clusters,prefix:graphemePrefix(clusters)};
+ });
  return rows.filter(t=>{
   if(category!=='all'&&t.category!==category)return false;
   if(status!=='all'&&t.status!==status)return false;
   const index=graphemes(searchKey([t.title,t.category,t.description].join(' ')));
-  return terms.every(term=>includesGraphemes(index,term));
+  return terms.every(({clusters,prefix})=>includesGraphemes(index,clusters,prefix));
  });
 }
 validateCatalog();

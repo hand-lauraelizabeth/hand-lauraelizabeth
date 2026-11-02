@@ -246,3 +246,43 @@ assert.throws(()=>validateCatalog([{...catalogFixture,status:'live',url:overURL}
  error=>error.message==='Unapproved tool URL','2049-character URL rejected');checks++;
 same(validateCatalog(TOOLS),true,'existing public directory remains valid after structural limits');
 console.log('FT-16 catalog structural budgets: '+checks+'/'+checks+' cumulative PASS');
+
+
+// FT-15: adversarial near-matches must remain responsive without changing
+// complete-grapheme search semantics. No wall-clock assertion: CI hardware varies.
+// Unicode UAX #29 (2026-09-01): https://www.unicode.org/reports/tr29/
+const nearMatchRows=Array.from({length:200},(_,i)=>({
+ id:'stress-'+i,title:'a'.repeat(120),category:'a'.repeat(80),
+ description:'a'.repeat(600),status:'development'
+}));
+same(filterTools(nearMatchRows,{query:'a'.repeat(255)+'b'}),[],
+ '200 maximum-length synthetic entries reject a 256-grapheme near-match');
+same(filterTools(nearMatchRows,{query:'a'.repeat(256)}).length,200,
+ 'maximum-length repeated-grapheme match remains accepted');
+const fallbackRows=[{id:'fallback',title:'ababababac',category:'',description:'',status:'development'}];
+same(filterTools(fallbackRows,{query:'ababac'}).length,1,
+ 'repeated-prefix fallback finds the later complete match');
+same(filterTools(fallbackRows,{query:'ababad'}).length,0,
+ 'repeated-prefix fallback does not create a false match');
+
+const boundarySegmenter=new Intl.Segmenter('und',{granularity:'grapheme'});
+const boundaryTokens=['a','b','か','が','क','कि','👩‍💻','🧪','α','ά'];
+let boundarySeed=0x15f16;
+function boundaryPick(max){
+ boundarySeed=(Math.imul(boundarySeed,1664525)+1013904223)>>>0;
+ return Math.floor(boundarySeed/4294967296*max);
+}
+function referenceGraphemeMatch(haystack,needle){
+ const clusters=value=>Array.from(boundarySegmenter.segment(value.normalize('NFC')),part=>part.segment);
+ const h=clusters(haystack),n=clusters(needle);
+ return h.some((_,start)=>start+n.length<=h.length&&n.every((g,offset)=>h[start+offset]===g));
+}
+for(let i=0;i<512;i++){
+ const title=Array.from({length:1+boundaryPick(35)},()=>boundaryTokens[boundaryPick(boundaryTokens.length)]).join('');
+ const term=Array.from({length:1+boundaryPick(12)},()=>boundaryTokens[boundaryPick(boundaryTokens.length)]).join('');
+ const expected=referenceGraphemeMatch(title,term);
+ const actual=filterTools([{id:'synthetic',title,category:'',description:'',status:'development'}],
+  {query:term}).length===1;
+ same(actual,expected,'synthetic Unicode grapheme differential case '+i);
+}
+console.log('FT-15 linear grapheme search: '+checks+'/'+checks+' cumulative PASS');
