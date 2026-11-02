@@ -289,6 +289,69 @@ class TestTemporalCandidateAudit(unittest.TestCase):
         found = codes(assess_pair(self.old, self.new))
         self.assertFalse(any("dimension" in code for code in found))
 
+    def _four_joint_cells(self):
+        for item in (self.old, self.new):
+            first = item["aggregates"][0]
+            first["problem"] = "Synthetic A"
+            second = copy.deepcopy(first)
+            second["problem"] = "Synthetic B"
+            third = copy.deepcopy(first)
+            third["agency"] = "NYPD"
+            third["problem"] = "Synthetic C"
+            fourth = copy.deepcopy(first)
+            fourth["borough"] = "BRONX"
+            fourth["problem"] = "Synthetic D"
+            item["aggregates"] = [first, second, third, fourth]
+
+    def test_joint_borough_agency_request_marginal_masked_by_single_axes(self):
+        self._four_joint_cells()
+        for row in self.old["aggregates"]:
+            row["requests"] = 100
+        for row, count in zip(self.new["aggregates"], (120, 81, 120, 120)):
+            row["requests"] = count
+        outcome = assess_pair(self.old, self.new)
+        found = codes(outcome)
+        self.assertIn("small_visible_joint_dimension_request_marginal_delta", found)
+        self.assertNotIn("small_visible_dimension_request_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_request_marginal_delta", found)
+        self.assertNotIn("Synthetic A", str(outcome))
+        self.assertNotIn("QUEENS", str(outcome))
+        self.assertFalse(outcome["publication_cleared"])
+
+    def test_joint_borough_agency_closure_marginal_masked_by_single_axes(self):
+        self._four_joint_cells()
+        for item in (self.old, self.new):
+            for row in item["aggregates"]:
+                row["requests"] = 100
+        for row in self.old["aggregates"]:
+            row["closed_with_valid_interval"] = 30
+        for row, count in zip(self.new["aggregates"], (50, 11, 50, 50)):
+            row["closed_with_valid_interval"] = count
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_joint_dimension_closure_marginal_delta", found)
+        self.assertNotIn("small_visible_dimension_closure_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_closure_marginal_delta", found)
+
+    def test_joint_borough_agency_open_marginal_masked_by_single_axes(self):
+        self._four_joint_cells()
+        for row, closed in zip(self.old["aggregates"], (30, 60, 40, 50)):
+            row.update(requests=100, closed_with_valid_interval=closed)
+        for row, closed in zip(self.new["aggregates"], (40, 109, 50, 60)):
+            row.update(requests=130, closed_with_valid_interval=closed)
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_joint_dimension_open_marginal_delta", found)
+        self.assertNotIn("small_visible_dimension_open_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_open_marginal_delta", found)
+
+    def test_large_joint_deltas_are_not_misclassified(self):
+        self._four_joint_cells()
+        for row in self.old["aggregates"]:
+            row["requests"] = 100
+        for row in self.new["aggregates"]:
+            row["requests"] = 120
+        found = codes(assess_pair(self.old, self.new))
+        self.assertFalse(any("joint_dimension" in code for code in found))
+
     def test_inputs_not_modified(self):
         old, new = copy.deepcopy(self.old), copy.deepcopy(self.new)
         assess_pair(self.old, self.new)
