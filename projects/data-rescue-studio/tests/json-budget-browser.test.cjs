@@ -115,6 +115,19 @@ async function run(name,engine,url){
     ok(literal!==actual,name+' literal escape differs from actual control');
     ok(literal.includes('\\\\'),name+' literal backslash doubled in preview');
   }
+  // NFC/NFD and Unicode combining marks remain distinguishable as text.
+  const markPreviews=await page.evaluate(()=>[
+    window.DataRescueCompareUI.previewText('Café'),
+    window.DataRescueCompareUI.previewText('Cafe\u0301'),
+    window.DataRescueCompareUI.previewText('A\u20DD'),
+    window.DataRescueCompareUI.previewText('क\u093E'),
+    window.DataRescueCompareUI.previewText('Cafe\\u{0301}')
+  ]);
+  eq(markPreviews[0],'Café',name+' precomposed identifier unchanged');
+  eq(markPreviews[1],'Cafe\\u{0301}',name+' decomposed accent visibly escaped');
+  eq(markPreviews[2],'A\\u{20DD}',name+' enclosing mark visibly escaped');
+  eq(markPreviews[3],'क\\u{093E}',name+' spacing mark visibly escaped');
+  eq(markPreviews[4],'Cafe\\\\u{0301}',name+' literal mark notation distinct');
   await page.evaluate(()=>{
    window.__compareURL=URL.createObjectURL;
    URL.createObjectURL=()=>{throw Error('SECRET_COMPARISON_URL');};

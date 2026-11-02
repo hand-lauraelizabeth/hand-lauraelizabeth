@@ -24,7 +24,8 @@ function reference(value) {
     if (char === '\t') return '\\t';
     if (code < 32 || (code >= 127 && code <= 159) ||
           (code !== 32 && /\p{White_Space}/u.test(char)) ||
-          /\p{Default_Ignorable_Code_Point}/u.test(char))
+          /\p{Default_Ignorable_Code_Point}/u.test(char) ||
+          /\p{Mark}/u.test(char))
       return '\\u{' + code.toString(16).toUpperCase().padStart(4, '0') + '}';
     return char;
   });
@@ -67,6 +68,13 @@ assert.notEqual(preview('A\\tB'), preview('A\tB'), 'literal and actual tab disti
 equal(preview('A\\u{00A0}B'), 'A\\\\u{00A0}B', 'literal Unicode notation visibly doubled');
 equal(preview('A\u00a0B'), 'A\\u{00A0}B', 'actual NBSP visibly escaped');
 assert.notEqual(preview('A\\u{00A0}B'), preview('A\u00a0B'), 'literal notation and actual NBSP distinct'); checks++;
+// Show Unicode combining marks without modifying exact identifiers.
+equal(preview('Café'), 'Café', 'precomposed NFC identifier remains literal');
+equal(preview('Cafe\u0301'), 'Cafe\\u{0301}', 'decomposed accent made visible');
+equal(preview('A\u20dd'), 'A\\u{20DD}', 'enclosing mark made visible');
+equal(preview('क\u093e'), 'क\\u{093E}', 'spacing combining mark made visible');
+equal(preview('Cafe\\u{0301}'), 'Cafe\\\\u{0301}', 'literal mark notation disambiguated');
+assert.notEqual(preview('Café'), preview('Cafe\u0301'), 'NFC and NFD identifiers distinct'); checks++;
 const long = '😀'.repeat(1_200_000) + 'END';
 const result = preview(long);
 assert.ok(result.length < 300, 'long preview is bounded'); checks++;
