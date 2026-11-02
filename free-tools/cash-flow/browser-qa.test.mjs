@@ -79,6 +79,27 @@ async function testBrowser(name,type){
     check(await page.locator('#shift-id').getAttribute('aria-invalid')===null,name+': correction clears invalid field state');
     await page.locator('#calculate').click();
     check(await page.locator('#export-json').isEnabled(),name+': zero-shift baseline is valid');
+    // Regression: each invalid projection input is identified in text, linked
+    // to the offending control, and receives keyboard focus. Correction clears it.
+    for(const scenario of [
+      {id:'opening',bad:'not money',good:'100.00',message:'decimal amount'},
+      {id:'end',bad:'2026-10-01',good:'2026-11-14',message:'Choose 1–366 days'},
+      {id:'shift-days',bad:'61',good:'0',message:'between -60 and 60'},
+      {id:'start',bad:'',good:'2026-10-14',message:'YYYY-MM-DD'}
+    ]){
+      await fill(page,scenario.id,scenario.bad);
+      await page.locator('#calculate').click();
+      check((await page.locator('#error').textContent()).includes(scenario.message),name+': text error for '+scenario.id);
+      check(await page.locator('#'+scenario.id).getAttribute('aria-invalid')==='true',name+': aria-invalid for '+scenario.id);
+      check(await page.locator('#'+scenario.id).getAttribute('aria-describedby')==='error',name+': error association for '+scenario.id);
+      check(await page.evaluate(()=>document.activeElement.id)===scenario.id,name+': focus for '+scenario.id);
+      check(await page.locator('#export-json').isDisabled(),name+': invalid '+scenario.id+' cannot export');
+      await fill(page,scenario.id,scenario.good);
+      check(await page.locator('#'+scenario.id).getAttribute('aria-invalid')===null,name+': corrected '+scenario.id+' clears invalid state');
+      check((await page.locator('#error').textContent())==='',name+': corrected '+scenario.id+' clears stale text error');
+    }
+    await page.locator('#calculate').click();
+    check(await page.locator('#export-json').isEnabled(),name+': corrected inputs recalculate');
     await fill(page,'start','2024-02-01');
     await fill(page,'end','2024-05-10');
     await fill(page,'opening','100.00');
