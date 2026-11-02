@@ -125,6 +125,36 @@ class TestTemporalCandidateAudit(unittest.TestCase):
         self.assertIn("small_visible_request_delta",
                       codes(assess_pair(self.old, self.new, delta_floor=20)))
 
+    def test_small_open_complement_delta_detected_when_other_deltas_are_large(self):
+        # Publicly visible open = requests - closed, so this 9-count change
+        # is reconstructible even though requests and closed each change >=10.
+        self.old["aggregates"][0].update(requests=100, closed_with_valid_interval=50)
+        self.new["aggregates"][0].update(requests=120, closed_with_valid_interval=61)
+        result = assess_pair(self.old, self.new)
+        found = codes(result)
+        self.assertIn("small_visible_open_complement_delta", found)
+        self.assertNotIn("small_visible_request_delta", found)
+        self.assertNotIn("small_visible_closure_delta", found)
+        self.assertNotIn("QUEENS", str(result))
+        self.assertNotIn("61", str(result))
+        self.assertFalse(result["publication_cleared"])
+
+    def test_source_floor_applies_to_open_complement_delta(self):
+        for item in (self.old, self.new):
+            item["rules"]["display_minimum_cell_count"] = 20
+        self.old["aggregates"][0].update(requests=100, closed_with_valid_interval=40)
+        self.new["aggregates"][0].update(requests=140, closed_with_valid_interval=61)
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_open_complement_delta", found)
+        self.assertNotIn("small_visible_request_delta", found)
+        self.assertNotIn("small_visible_closure_delta", found)
+
+    def test_unchanged_open_complement_is_not_misclassified(self):
+        self.old["aggregates"][0].update(requests=100, closed_with_valid_interval=50)
+        self.new["aggregates"][0].update(requests=120, closed_with_valid_interval=70)
+        self.assertNotIn("small_visible_open_complement_delta",
+                         codes(assess_pair(self.old, self.new)))
+
     def test_inputs_not_modified(self):
         old, new = copy.deepcopy(self.old), copy.deepcopy(self.new)
         assess_pair(self.old, self.new)
