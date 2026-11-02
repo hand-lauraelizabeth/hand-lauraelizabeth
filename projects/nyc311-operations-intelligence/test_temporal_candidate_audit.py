@@ -219,6 +219,76 @@ class TestTemporalCandidateAudit(unittest.TestCase):
         self.assertNotIn("small_visible_common_cell_closure_marginal_delta", found)
         self.assertNotIn("small_visible_common_cell_open_marginal_delta", found)
 
+    def _three_visible_cells(self):
+        for item in (self.old, self.new):
+            first = item["aggregates"][0]
+            first["problem"] = "Synthetic A"
+            second = copy.deepcopy(first)
+            second["problem"] = "Synthetic B"
+            third = copy.deepcopy(first)
+            third["borough"] = "BRONX"
+            third["problem"] = "Synthetic C"
+            item["aggregates"] = [first, second, third]
+
+    def test_borough_request_marginal_hidden_by_third_category(self):
+        self._three_visible_cells()
+        for row in self.old["aggregates"]:
+            row["requests"] = 100
+        for row, n in zip(self.new["aggregates"], (120, 81, 130)):
+            row["requests"] = n
+        result = assess_pair(self.old, self.new)
+        found = codes(result)
+        self.assertIn("small_visible_dimension_request_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_request_marginal_delta", found)
+        self.assertNotIn("Synthetic A", str(result))
+        self.assertNotIn("BRONX", str(result))
+        self.assertFalse(result["publication_cleared"])
+
+    def test_borough_closure_marginal_hidden_by_third_category(self):
+        self._three_visible_cells()
+        for row, n in zip(self.old["aggregates"], (30, 40, 50)):
+            row.update(requests=100, closed_with_valid_interval=n)
+        for row, n in zip(self.new["aggregates"], (50, 21, 70)):
+            row.update(requests=100, closed_with_valid_interval=n)
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_dimension_closure_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_closure_marginal_delta", found)
+
+    def test_borough_open_marginal_hidden_by_third_category(self):
+        self._three_visible_cells()
+        for row, n in zip(self.old["aggregates"], (30, 60, 40)):
+            row.update(requests=100, closed_with_valid_interval=n)
+        for row, n in zip(self.new["aggregates"], (40, 109, 50)):
+            row.update(requests=130, closed_with_valid_interval=n)
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_dimension_open_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_open_marginal_delta", found)
+        self.assertNotIn("small_visible_open_complement_delta", found)
+
+    def test_visible_closure_subset_with_other_suppressed_row(self):
+        self._three_visible_cells()
+        for item in (self.old, self.new):
+            item["aggregates"][2]["borough"] = "QUEENS"
+            item["aggregates"][2]["closed_with_valid_interval"] = None
+            for row in item["aggregates"]:
+                row["requests"] = 100
+        for row, n in zip(self.old["aggregates"][:2], (30, 40)):
+            row["closed_with_valid_interval"] = n
+        for row, n in zip(self.new["aggregates"][:2], (50, 21)):
+            row["closed_with_valid_interval"] = n
+        found = codes(assess_pair(self.old, self.new))
+        self.assertIn("small_visible_dimension_closure_marginal_delta", found)
+        self.assertNotIn("small_visible_common_cell_closure_marginal_delta", found)
+
+    def test_large_dimension_deltas_are_not_misclassified(self):
+        self._three_visible_cells()
+        for row in self.old["aggregates"]:
+            row["requests"] = 100
+        for row in self.new["aggregates"]:
+            row["requests"] = 120
+        found = codes(assess_pair(self.old, self.new))
+        self.assertFalse(any("dimension" in code for code in found))
+
     def test_inputs_not_modified(self):
         old, new = copy.deepcopy(self.old), copy.deepcopy(self.new)
         assess_pair(self.old, self.new)
