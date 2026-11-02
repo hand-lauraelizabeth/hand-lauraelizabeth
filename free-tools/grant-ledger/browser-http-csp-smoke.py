@@ -19,10 +19,31 @@ def verify(browser_type, url, width):
     page.goto(url, wait_until="networkidle")
     assert page.get_by_role("heading", name="Grant Budget and Evidence Ledger").count() == 1
     assert page.locator("#privacyNotice").is_visible()
+    # An invalid award period identifies its input and clears the stale alert on correction.
+    award_form = page.locator("#awardForm")
+    award_start = award_form.locator('[name="start"]')
+    award_start.fill("2027-01-01")
+    award_form.locator('button[type="submit"]').click()
+    assert "Award start is after end" in page.locator("#error").inner_text()
+    assert award_start.get_attribute("aria-invalid") == "true"
+    assert "error" in award_start.get_attribute("aria-describedby").split()
+    assert page.evaluate("document.activeElement.id") == "error"
+    award_start.fill("2026-01-01")
+    assert award_start.get_attribute("aria-invalid") is None
+    assert award_start.get_attribute("aria-describedby") is None
+    assert page.locator("#error").is_hidden()
     category = page.locator("#categoryForm")
     category.locator('[name="categoryId"]').fill("001")
     category.locator('[name="label"]').fill("Program delivery")
-    category.locator('[name="budget"]').fill("10.00")
+    budget_field = category.locator('[name="budget"]')
+    budget_field.fill("invalid")
+    category.locator('button[type="submit"]').click()
+    assert budget_field.get_attribute("aria-invalid") == "true"
+    assert "error" in budget_field.get_attribute("aria-describedby").split()
+    assert page.locator("#budgetRows tr").count() == 0
+    budget_field.fill("10.00")
+    assert budget_field.get_attribute("aria-invalid") is None
+    assert page.locator("#error").is_hidden()
     category.locator('button[type="submit"]').click()
     assert page.locator("#budgetRows tr").count() == 1
     expense = page.locator("#expenseForm")
@@ -32,6 +53,15 @@ def verify(browser_type, url, width):
     expense.locator('[name="categoryId"]').select_option("001")
     expense.locator('[name="amount"]').fill("5.00")
     expense.locator('[name="evidenceRef"]').fill("receipt-01")
+    percent_field = expense.locator('[name="percent"]')
+    percent_field.fill("101")
+    expense.locator('button[type="submit"]').click()
+    assert percent_field.get_attribute("aria-invalid") == "true"
+    assert "error" in percent_field.get_attribute("aria-describedby").split()
+    assert page.locator("#expenseRows tr").count() == 0
+    percent_field.fill("100")
+    assert percent_field.get_attribute("aria-invalid") is None
+    assert page.locator("#error").is_hidden()
     expense.locator('button[type="submit"]').click()
     assert page.locator("#expenseRows tr").count() == 1
     with page.expect_download() as info:
@@ -63,7 +93,14 @@ def verify(browser_type, url, width):
     expense.locator('button[type="submit"]').click()
     assert page.locator("#error").is_visible(), "invalid correction reported"
     assert page.evaluate("document.activeElement.id") == "error"
+    amount_field = expense.locator('[name="amount"]')
+    assert amount_field.get_attribute("aria-invalid") == "true"
+    assert "error" in amount_field.get_attribute("aria-describedby").split()
     assert "$8.00" in page.locator("#expenseRows").inner_text(), "invalid correction must not change saved amount"
+    amount_field.fill("8.00")
+    assert amount_field.get_attribute("aria-invalid") is None
+    assert amount_field.get_attribute("aria-describedby") is None
+    assert page.locator("#error").is_hidden()
     page.locator("#cancelExpenseEdit").click()
     assert page.locator("#error").is_hidden()
     assert page.evaluate("document.activeElement.dataset.editIndex") == "0", "cancel restores edit focus"
