@@ -352,5 +352,45 @@ class TestProgrammaticPrivacyThreshold(unittest.TestCase):
                                      min_cell=1)
             self.assertEqual(private_fixture["aggregates"][0]["requests"], 1)
 
+class TestAsOfCalendarDateContract(unittest.TestCase):
+    """Synthetic tests: reject valid-but-noncanonical ISO date spellings."""
+
+    def test_invalid_or_noncanonical_asof_preserves_existing_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "fixture.csv", Path(tmp) / "result.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10T09:00:00.000", "",
+                                 "DOT", "Synthetic", "Queens", "Open"])
+            original = "existing output must remain untouched"
+            for as_of in ("20261025", "2026-W43-7", "2026-02-30",
+                          "2026-10-25T00:00:00", "2026-10-25 ",
+                          "2026-10-5", None):
+                with self.subTest(as_of=as_of):
+                    output.write_text(original, encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "as_of"):
+                        ingest(source, output, as_of=as_of, min_cell=1)
+                    self.assertEqual(output.read_text(encoding="utf-8"),
+                                     original)
+
+    def test_canonical_asof_retained_in_strict_month_metadata(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            source, output = Path(tmp) / "fixture.csv", Path(tmp) / "result.json"
+            with source.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(FIELDS)
+                writer.writerow(["fixture-1", "2026-09-10T09:00:00.000", "",
+                                 "DOT", "Synthetic", "Queens", "Open"])
+            sha = hashlib.sha256(source.read_bytes()).hexdigest()
+            result = ingest(source, output, as_of="2026-10-25",
+                            reporting_month="2026-09", expected_sha256=sha,
+                            expected_rows=1, min_cell=1)
+            self.assertEqual(result["snapshot_as_of"], "2026-10-25")
+            self.assertEqual(result["rules"]["strict_reporting_month"], "2026-09")
+            self.assertEqual(result["quality"]["unique_keys_verified"], 1)
+            self.assertEqual(json.loads(output.read_text(encoding="utf-8")),
+                             result)
 
 if __name__ == "__main__": unittest.main()

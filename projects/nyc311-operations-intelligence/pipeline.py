@@ -59,7 +59,15 @@ def ingest(source, output, *, as_of, min_cell=10, expected_sha256=None,
     # This validates the argument only; it does not certify cross-table privacy.
     if type(min_cell) is not int or min_cell < 1:
         raise ValueError("min_cell must be a positive integer")
-    as_of_day = dt.date.fromisoformat(as_of)
+    # The public snapshot label and month gate require canonical calendar dates.
+    # date.fromisoformat also accepts compact and ISO-week dates, which would
+    # otherwise produce misleading, noncanonical snapshot_as_of metadata.
+    if not isinstance(as_of, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", as_of):
+        raise ValueError("as_of must be a YYYY-MM-DD calendar date")
+    try:
+        as_of_day = dt.date.fromisoformat(as_of)
+    except ValueError:
+        raise ValueError("as_of must be a valid YYYY-MM-DD calendar date") from None
     if reporting_month is not None:
         # An explicit full-month source cohort must be complete by calendar
         # boundary and checked against an independently retained receipt.
