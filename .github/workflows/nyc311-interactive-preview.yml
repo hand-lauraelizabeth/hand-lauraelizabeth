@@ -1,0 +1,22 @@
+name: NYC 311 interactive preview browser smoke
+on:
+  pull_request:
+    paths:
+      - 'projects/nyc311-operations-intelligence/interactive-preview.html'
+      - 'projects/nyc311-operations-intelligence/test_interactive_preview.cjs'
+      - '.github/workflows/nyc311-interactive-preview.yml'
+  workflow_dispatch:
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Exercise filters, reset, accessible table, and synthetic disclosure
+        run: node projects/nyc311-operations-intelligence/test_interactive_preview.cjs
