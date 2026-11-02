@@ -134,7 +134,7 @@
     return records;
   }
   // Bound DOM previews of untrusted identifiers without altering any audit export.
-  // Escape invisible formatting, line breaks and literal backslashes so distinct
+  // Escape combining marks, invisible formatting, line breaks and literal backslashes so distinct
   // identifiers do not render as identical escape notation. Exports stay exact.
   function auditPreview(value) {
     // Preserve exact Unicode code-point preview semantics without allocating
@@ -160,7 +160,8 @@
       if (char === '\t') return '\\t';
       if (code < 32 || (code >= 127 && code <= 159) ||
           (code !== 32 && /\p{White_Space}/u.test(char)) ||
-          /\p{Default_Ignorable_Code_Point}/u.test(char))
+          /\p{Default_Ignorable_Code_Point}/u.test(char) ||
+          /\p{Mark}/u.test(char))
         return '\\u{' + code.toString(16).toUpperCase().padStart(4, '0') + '}';
       return char;
     });
