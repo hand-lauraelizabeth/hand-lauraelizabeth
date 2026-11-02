@@ -615,6 +615,44 @@ test('document extraction loads only same-origin scripts and a same-origin PDF w
   'https://example.test/projects/text-lens/vendor/pdf.worker.min.js');
  assert.ok(h.loads.every(src=>new URL(src).origin==='https://example.test'));
 });
+test('repeated PDF and DOCX imports reuse only successfully loaded same-origin parser scripts',async()=>{
+ const h=documentImportHarness();
+ for(const [name,raw] of [
+  ['first.pdf','%PDF-A'],['second.pdf','%PDF-B'],
+  ['first.docx','PK\\x03\\x04one'],['second.docx','PK\\x03\\x04two']
+ ]){
+  h.input.files=[h.file(name,raw)];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+ }
+ assert.equal(h.events.length,4,'all four synthetic documents import');
+ assert.deepEqual(h.events.map(e=>e.name),['first.pdf','second.pdf','first.docx','second.docx']);
+ assert.deepEqual(h.loads,[
+  'https://example.test/projects/text-lens/vendor/pdf.min.js',
+  'https://example.test/projects/text-lens/vendor/mammoth.browser.min.js'
+ ],'each reviewed same-origin parser executes only once');
+ assert.equal(h.window.pdfjsLib.GlobalWorkerOptions.workerSrc,
+  'https://example.test/projects/text-lens/vendor/pdf.worker.min.js');
+});
+test('failed local parser load is not cached and can be retried without trusting preloaded globals',async()=>{
+ const h=documentImportHarness();h.setLocalFailure(true);
+ h.window.mammoth={async extractRawText(){throw Error('unverified global must never execute')}};
+ h.input.files=[h.file('first.docx','PK\\x03\\x04first')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,0);
+ assert.match(h.status.textContent,/Reviewed local extraction library is not installed/);
+ assert.equal(h.status.focused,true);
+ h.setLocalFailure(false);h.status.focused=false;
+ h.input.files=[h.file('retry.docx','PK\\x03\\x04retry')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0].name,'retry.docx');
+ assert.match(h.status.textContent,/Imported extracted text/);
+ assert.deepEqual(h.loads,[
+  'https://example.test/projects/text-lens/vendor/mammoth.browser.min.js',
+  'https://example.test/projects/text-lens/vendor/mammoth.browser.min.js'
+ ],'a failed load is retried from the same origin');
+});
+
 test('missing local extraction libraries fail closed even with a preloaded global',async()=>{
  const h=documentImportHarness();h.setLocalFailure(true);
  h.window.mammoth={async extractRawText(){throw Error('Must not use preloaded global')}};
