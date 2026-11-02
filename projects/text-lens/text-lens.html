@@ -18,6 +18,43 @@
  if(/\.docx$/i.test(name))return bytes.length>=4&&bytes[0]===80&&bytes[1]===75&&bytes[2]===3&&bytes[3]===4;
  return false;
 }
+function validateDocxPackage(buffer){
+ const bytes=new Uint8Array(buffer),view=new DataView(buffer);
+ const fail=()=>{throw Error('Invalid or unsupported DOCX ZIP package. Use an unencrypted, conventional .docx file.');};
+ if(bytes.length<22||bytes.length>15000000)fail();
+ let end=-1;
+ for(let p=bytes.length-22;p>=Math.max(0,bytes.length-65557);p--){
+  if(view.getUint32(p,true)===0x06054b50&&p+22+view.getUint16(p+20,true)===bytes.length){end=p;break;}
+ }
+ if(end<0||view.getUint16(end+4,true)||view.getUint16(end+6,true))fail();
+ const count=view.getUint16(end+10,true),directorySize=view.getUint32(end+12,true),directoryOffset=view.getUint32(end+16,true);
+ if(count<1||count>1000||count!==view.getUint16(end+8,true)||directoryOffset+directorySize!==end)fail();
+ let pos=directoryOffset,total=0;const names=new Set();
+ for(let i=0;i<count;i++){
+  if(pos+46>end||view.getUint32(pos,true)!==0x02014b50)fail();
+  const flags=view.getUint16(pos+8,true),method=view.getUint16(pos+10,true);
+  const packed=view.getUint32(pos+20,true),unpacked=view.getUint32(pos+24,true);
+  const nameLength=view.getUint16(pos+28,true),extraLength=view.getUint16(pos+30,true),commentLength=view.getUint16(pos+32,true);
+  const localOffset=view.getUint32(pos+42,true),next=pos+46+nameLength+extraLength+commentLength;
+  if(next>end||!nameLength||(flags&0x41)||!(method===0||method===8)||
+     packed===0&&unpacked>0||method===0&&packed!==unpacked||
+     packed===0xffffffff||unpacked===0xffffffff||localOffset===0xffffffff)fail();
+  const name=new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(pos+46,pos+46+nameLength));
+  if(!name||names.has(name)||name.startsWith('/')||name.includes('\\')||name.split('/').includes('..')||name.includes('\u0000'))fail();
+  names.add(name);total+=unpacked;
+  if(unpacked>20000000||total>50000000||unpacked>1000000&&unpacked>packed*200)
+   throw Error('DOCX expanded contents exceed the local safety limits (20 MB per part, 50 MB total, or 200:1 compression).');
+  if(localOffset+30>directoryOffset||view.getUint32(localOffset,true)!==0x04034b50)fail();
+  const localNameLength=view.getUint16(localOffset+26,true),localExtraLength=view.getUint16(localOffset+28,true);
+  const dataStart=localOffset+30+localNameLength+localExtraLength;
+  if(dataStart+packed>directoryOffset||localNameLength!==nameLength||view.getUint16(localOffset+8,true)!==method||
+     view.getUint16(localOffset+6,true)!==flags)fail();
+  for(let j=0;j<nameLength;j++)if(bytes[localOffset+30+j]!==bytes[pos+46+j])fail();
+  pos=next;
+ }
+ if(pos!==end||!names.has('[Content_Types].xml')||!names.has('word/document.xml')||!names.has('_rels/.rels'))fail();
+ return true;
+}
 let importRevision=0;
 q('tl-import-file').addEventListener('change',async function(){
  const file=this.files[0];if(!file)return;
@@ -33,7 +70,8 @@ q('tl-import-file').addEventListener('change',async function(){
   if(!matchesDocumentSignature(file.name,bytes))throw Error('Document signature does not match its .pdf or .docx extension. Choose an authentic document.');
   let text='';
   if(/\.docx$/i.test(file.name)){
-   const mammoth=await loadLocal('mammoth.browser.min.js',()=>window.mammoth);
+   validateDocxPackage(bytes);
+    const mammoth=await loadLocal('mammoth.browser.min.js',()=>window.mammoth);
    if(!stillCurrent())return;
    const result=await mammoth.extractRawText({arrayBuffer:bytes});
    if(!stillCurrent())return;
