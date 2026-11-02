@@ -10,16 +10,60 @@ let categories=[],expenses=[],corrections=[];
 let editingId=null;
 const $=id=>document.getElementById(id);
 const values=form=>Object.fromEntries(new FormData(form).entries());
-const error=text=>{const e=$('error');e.textContent=text;e.hidden=!text;if(text)e.focus();};
+// Associate detected input errors with their fields; preserve exact user-entered values.
+let invalidControl=null, priorDescription=null;
+function clearFieldError(){
+ if(!invalidControl)return;
+ invalidControl.removeAttribute('aria-invalid');
+ if(priorDescription===null)invalidControl.removeAttribute('aria-describedby');
+ else invalidControl.setAttribute('aria-describedby',priorDescription);
+ invalidControl=null;priorDescription=null;
+}
+function errorField(form,message){
+ if(!form)return null;
+ const prefix=message.split(':',1)[0];
+ const common={'Award ID':'awardId','Award name':'awardName','Award start':'start','Award end':'end',
+  'Category ID':'categoryId','Category label':'label','Restriction note':'restrictionNote',
+  'Transaction ID':'transactionId','Source ID':'sourceId','Allocation':'percent',
+  'Allocation basis':'allocationBasis','Evidence reference':'evidenceRef','Note':'note'};
+ let name=common[prefix];
+ if(prefix==='Amount'||prefix==='Amount exceeds limit')name=form.id==='categoryForm'?'budget':'amount';
+ if(prefix.startsWith('Expense ')&&prefix.endsWith(' date'))name='date';
+ if(message==='Award start is after end')name='start';
+ if(message.startsWith('Duplicate category ID:')||message.startsWith('Unknown category ID:'))name='categoryId';
+ if(message.startsWith('Duplicate transaction ID:')||message.startsWith('Correction cannot change the transaction ID'))name='transactionId';
+ if(!name)return null;
+ const control=form.elements.namedItem(name);
+ return control&&typeof control.setAttribute==='function'?control:null;
+}
+const error=(text,form=null)=>{
+ clearFieldError();
+ const e=$('error');e.textContent=text;e.hidden=!text;
+ if(text){
+  const control=errorField(form,text);
+  if(control){
+   invalidControl=control;priorDescription=control.getAttribute('aria-describedby');
+   control.setAttribute('aria-invalid','true');
+   const ids=new Set((priorDescription||'').split(/\s+/).filter(Boolean));
+   ids.add('error');control.setAttribute('aria-describedby',[...ids].join(' '));
+  }
+  e.focus();
+ }
+};
+for(const id of ['awardForm','categoryForm','expenseForm']){
+ for(const type of ['input','change'])$(id).addEventListener(type,ev=>{
+  if(ev.target===invalidControl)error('');
+ });
+}
 function update(a,c,e,message){
  const result=calculateLedger(a,c,e);
  award=a;categories=c;expenses=e;error('');renderLedger(result);$('status').textContent=message;
 }
 $('awardForm').addEventListener('submit',ev=>{
- ev.preventDefault();try{update(values(ev.currentTarget),categories,expenses,'Award updated.');}catch(e){error(e.message);}
+ ev.preventDefault();try{update(values(ev.currentTarget),categories,expenses,'Award updated.');}catch(e){error(e.message,ev.currentTarget);}
 });
 $('categoryForm').addEventListener('submit',ev=>{
- ev.preventDefault();try{const f=ev.currentTarget;update(award,[...categories,values(f)],expenses,'Category added.');f.reset();}catch(e){error(e.message);}
+ ev.preventDefault();try{const f=ev.currentTarget;update(award,[...categories,values(f)],expenses,'Category added.');f.reset();}catch(e){error(e.message,ev.currentTarget);}
 });
 function endExpenseEdit(form){
  editingId=null;form.elements.transactionId.readOnly=false;
@@ -70,7 +114,7 @@ $('expenseForm').addEventListener('submit',ev=>{
    $('correctionSummary').textContent=corrections.length+' expenditure correction'+(corrections.length===1?'':'s')+' recorded in this tab. Evidence JSON includes original and replacement values; award and category edits are not logged.';
    endExpenseEdit(form);focusExpenseEdit(id);
   }
- }catch(e){error(e.message);}
+ }catch(e){error(e.message,ev.currentTarget);}
 });
 function download(filename,mime,text){
  try{
