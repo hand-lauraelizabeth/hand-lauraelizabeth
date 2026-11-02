@@ -51,3 +51,6 @@ DOCX package preflight (review branch): before loading a parser, Text Lens check
 
 
 DOCX header-consistency gate (review branch): Text Lens rejects conflicting central-directory versus local-header CRC and size declarations, entries assigned to another ZIP disk, and streaming data-descriptor entries that this conservative preflight does not independently parse. This deliberately excludes some otherwise valid ZIP variants rather than trusting unchecked metadata. It does **not** calculate decompressed CRCs, inspect actual inflated content, provide malware detection, or establish complete DOCX validation. Sensitive-document extraction remains disabled until pinned same-origin libraries and real synthetic-file tests pass.
+
+
+DOCX stored-member integrity check (review branch): for uncompressed ZIP members (method 0), the preflight now calculates CRC-32 from the actual local payload bytes and rejects mismatches before invoking the parser, even when local and central headers agree with each other. Compressed Deflate members (method 8) are **not** decompressed or CRC-verified by this preflight. CRC-32 detects accidental corruption but is not cryptographic authentication or malware protection. PDF/DOCX extraction remains disabled until reviewed same-origin dependencies and real synthetic-file integration tests are completed.
