@@ -111,5 +111,50 @@ class TestCandidate(unittest.TestCase):
         self.assertIsNone(prepare(source)["aggregates"][0]["closed_with_valid_interval"])
 
 
+
+    def test_rejects_noncanonical_snapshot_dates(self):
+        for value in ("20261025", "2026-W43-7", "2026-10-25T00:00:00",
+                      "2026-02-30", "2026-10-5"):
+            with self.subTest(snapshot=value):
+                source = fixture()
+                source["snapshot_as_of"] = value
+                with self.assertRaises(ValueError):
+                    prepare(source)
+
+    def test_rejects_invalid_or_future_aggregate_months(self):
+        for value in ("202609", "2026-13", "2026-00", "2026-W40",
+                      "2026-11", "2026-9"):
+            with self.subTest(month=value):
+                source = fixture()
+                source["aggregates"][0]["month"] = value
+                with self.assertRaises(ValueError):
+                    prepare(source)
+
+    def test_rejects_unreconciled_private_totals(self):
+        # One hidden group with threshold 10 must contain 1..9 records.
+        for value in (None, True, -1, 11, 12, 22):
+            with self.subTest(valid_records=value):
+                source = fixture()
+                source["quality"]["valid_records"] = value
+                with self.assertRaises(ValueError):
+                    prepare(source)
+        for suppressed in (0, 4):
+            with self.subTest(suppressed=suppressed):
+                source = fixture()
+                source["quality"]["small_cells_suppressed"] = suppressed
+                with self.assertRaises(ValueError):
+                    prepare(source)
+
+    def test_consistent_multiple_suppressed_groups_remain_review_only(self):
+        source = fixture()
+        source["quality"]["small_cells_suppressed"] = 2
+        source["quality"]["valid_records"] = 15
+        candidate = prepare(source)
+        self.assertEqual(candidate["schema_version"], "nyc311-review-candidate-v1")
+        self.assertNotIn("quality", candidate)
+        self.assertNotIn("source_sha256", candidate)
+        self.assertEqual(candidate["aggregates"][0]["requests"], 12)
+
+
 if __name__ == "__main__":
     unittest.main()
