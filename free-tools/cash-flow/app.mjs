@@ -50,9 +50,75 @@ $('event-form').addEventListener('submit',ev=>{
     $('event-form').reset();
   }catch(error){reportEventError(error.message,fieldId)}
 });
-function clearShiftError(){for(const id of ['shift-id','shift-days']){$(id).removeAttribute('aria-invalid');$(id).removeAttribute('aria-describedby');}}
-for(const id of ['start','end','opening','shift-id','shift-days'])$(id).addEventListener('input',()=>{if(id==='shift-id'||id==='shift-days')clearShiftError();markEdited();invalidate();say('Inputs changed. Recalculate to update results.')});
-$('calculate').addEventListener('click',()=>{invalidate();try{const config={start:$('start').value,end:$('end').value,openingCents:parseCents($('opening').value),events};const base=project(config),shiftId=$('shift-id').value||null,shiftDays=Number($('shift-days').value);if(!Number.isInteger(shiftDays))throw Error('Enter a whole number of days.');const scenario=project({...config,shiftId,shiftDays});const frag=document.createDocumentFragment();for(let i=0;i<base.days.length;i++){const tr=document.createElement('tr');for(const text of [base.days[i].date,formatCents(scenario.days[i].changeCents),formatCents(base.days[i].balanceCents),formatCents(scenario.days[i].balanceCents)]){const td=document.createElement('td');td.textContent=text;tr.append(td)}frag.append(tr)}$('results').append(frag);$('summary').textContent=`Baseline minimum end-of-day ${formatCents(base.minimumCents)} USD on ${base.minimumDate}; scenario minimum end-of-day ${formatCents(scenario.minimumCents)} USD on ${scenario.minimumDate}. Scenario end ${formatCents(scenario.endingCents)} USD.`;$('shortfall-summary').textContent=shortfallText('Baseline',base)+' '+shortfallText('Scenario',scenario)+' '+shortfallComparisonText(base,scenario)+' These estimates do not model intraday funds or overdraft rules.';$('coverage-summary').textContent=coverageText(events,base,scenario);latest={...scenario,sourceEventCoverage:coverageEvidence(events,base,scenario)};const risk=csvExportRisk(scenario);$('export').disabled=Boolean(risk);$('export-json').disabled=false;$('csv-warning').textContent=risk?`CSV export unavailable: ${risk.field} contains formula-like text, invisible direction controls, or unsupported control characters. Use lossless JSON instead.`:'';say(`Calculated ${base.days.length} days. Results are estimates.`)}catch(error){if(error.message==='Choose an event to shift, or set shift days to 0.'){const field=$('shift-id');field.setAttribute('aria-invalid','true');field.setAttribute('aria-describedby','error');field.focus();}say(error.message,true)}});
+const projectionFields=['start','end','opening','shift-id','shift-days'];
+function clearProjectionError(){
+  for(const id of projectionFields){
+    const field=$(id);
+    if(field.getAttribute('aria-describedby')==='error'){
+      field.removeAttribute('aria-invalid');
+      field.removeAttribute('aria-describedby');
+    }
+  }
+}
+function reportProjectionError(message,fieldId){
+  say(message,true);
+  if(fieldId){
+    const field=$(fieldId);
+    field.setAttribute('aria-invalid','true');
+    field.setAttribute('aria-describedby','error');
+    field.focus();
+  }else $('error').focus();
+}
+for(const id of projectionFields)$(id).addEventListener('input',()=>{
+  clearProjectionError();markEdited();invalidate();
+  say('Inputs changed. Recalculate to update results.');
+});
+$('calculate').addEventListener('click',()=>{
+  invalidate();
+  clearProjectionError();
+  let fieldId=null;
+  try{
+    fieldId='start';
+    const start=$('start').value,from=dateUTC(start);
+    fieldId='end';
+    const end=$('end').value,to=dateUTC(end);
+    const span=(to-from)/86400000+1;
+    if(span<1||span>366)throw Error('Choose 1–366 days; check the From and Through dates.');
+    fieldId='opening';
+    const openingCents=parseCents($('opening').value);
+    fieldId='shift-days';
+    const rawShift=$('shift-days').value;
+    if(!/^[+-]?\\d+$/.test(rawShift))throw Error('Shift days must be a whole number between -60 and 60.');
+    const shiftDays=Number(rawShift);
+    if(!Number.isSafeInteger(shiftDays)||Math.abs(shiftDays)>60)throw Error('Shift days must be a whole number between -60 and 60.');
+    const shiftId=$('shift-id').value||null;
+    if(shiftId===null&&shiftDays!==0){
+      fieldId='shift-id';
+      throw Error('Choose an event to shift, or set shift days to 0.');
+    }
+    fieldId=null; // Model errors (e.g. aggregate overflow) are not attributable to one input.
+    const config={start,end,openingCents,events};
+    const base=project(config),scenario=project({...config,shiftId,shiftDays});
+    const frag=document.createDocumentFragment();
+    for(let i=0;i<base.days.length;i++){
+      const tr=document.createElement('tr');
+      for(const text of [base.days[i].date,formatCents(scenario.days[i].changeCents),formatCents(base.days[i].balanceCents),formatCents(scenario.days[i].balanceCents)]){
+        const td=document.createElement('td');td.textContent=text;tr.append(td);
+      }
+      frag.append(tr);
+    }
+    $('results').append(frag);
+    $('summary').textContent=`Baseline minimum end-of-day ${formatCents(base.minimumCents)} USD on ${base.minimumDate}; scenario minimum end-of-day ${formatCents(scenario.minimumCents)} USD on ${scenario.minimumDate}. Scenario end ${formatCents(scenario.endingCents)} USD.`;
+    $('shortfall-summary').textContent=shortfallText('Baseline',base)+' '+shortfallText('Scenario',scenario)+' '+shortfallComparisonText(base,scenario)+' These estimates do not model intraday funds or overdraft rules.';
+    $('coverage-summary').textContent=coverageText(events,base,scenario);
+    latest={...scenario,sourceEventCoverage:coverageEvidence(events,base,scenario)};
+    const risk=csvExportRisk(scenario);
+    $('export').disabled=Boolean(risk);
+    $('export-json').disabled=false;
+    $('csv-warning').textContent=risk?`CSV export unavailable: ${risk.field} contains formula-like text, invisible direction controls, or unsupported control characters. Use lossless JSON instead.`:'';
+    say(`Calculated ${base.days.length} days. Results are estimates.`);
+  }catch(error){reportProjectionError(error.message,fieldId);}
+});
 function shortfallText(label,projection){
   const s=summarizeShortfalls(projection);
   if(s.daysBelowZero===0)return label+': no projected below-zero end-of-day dates.';
