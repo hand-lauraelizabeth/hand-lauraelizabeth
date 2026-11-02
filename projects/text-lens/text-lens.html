@@ -18,15 +18,34 @@
  if(/\.docx$/i.test(name))return bytes.length>=4&&bytes[0]===80&&bytes[1]===75&&bytes[2]===3&&bytes[3]===4;
  return false;
 }
-function crc32Bytes(bytes){
- let crc=0xffffffff;
+function crc32Update(crc,bytes){
  for(const byte of bytes){
   crc^=byte;
   for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);
  }
- return (crc^0xffffffff)>>>0;
+ return crc>>>0;
 }
-function validateDocxPackage(buffer){
+function crc32Bytes(bytes){return (crc32Update(0xffffffff,bytes)^0xffffffff)>>>0;}
+async function verifyDocxDeflate(bytes,check,fail){
+ // ZIP method 8 is raw DEFLATE, not zlib-wrapped "deflate".
+ if(typeof DecompressionStream!=='function'||typeof Blob!=='function')fail();
+ let reader;
+ try{
+  reader=new Blob([bytes.subarray(check.start,check.end)]).stream()
+   .pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  let expanded=0,crc=0xffffffff;
+  for(;;){
+   const part=await reader.read();
+   if(part.done)break;
+   expanded+=part.value.byteLength;
+   if(expanded>check.size||expanded>20000000)fail();
+   crc=crc32Update(crc,part.value);
+  }
+  if(expanded!==check.size||((crc^0xffffffff)>>>0)!==check.crc)fail();
+ }catch(_error){fail();}
+ finally{if(reader)reader.cancel().catch(()=>{});}
+}
+async function validateDocxPackage(buffer){
  const bytes=new Uint8Array(buffer),view=new DataView(buffer);
  const fail=()=>{throw Error('Invalid or unsupported DOCX ZIP package. Use an unencrypted, conventional .docx file.');};
  if(bytes.length<22||bytes.length>15000000)fail();
@@ -37,7 +56,7 @@ function validateDocxPackage(buffer){
  if(end<0||view.getUint16(end+4,true)||view.getUint16(end+6,true))fail();
  const count=view.getUint16(end+10,true),directorySize=view.getUint32(end+12,true),directoryOffset=view.getUint32(end+16,true);
  if(count<1||count>1000||count!==view.getUint16(end+8,true)||directoryOffset+directorySize!==end)fail();
- let pos=directoryOffset,total=0;const names=new Set(),members=[],storedChecks=[];
+ let pos=directoryOffset,total=0;const names=new Set(),members=[],storedChecks=[],deflateChecks=[];
  for(let i=0;i<count;i++){
   if(pos+46>end||view.getUint32(pos,true)!==0x02014b50)fail();
   const flags=view.getUint16(pos+8,true),method=view.getUint16(pos+10,true);
@@ -63,12 +82,16 @@ function validateDocxPackage(buffer){
   // Record all local spans before hashing: overlapping aliases must not amplify CRC work.
   members.push({start:localOffset,end:dataStart+packed});
   if(method===0)storedChecks.push({start:dataStart,end:dataStart+packed,crc:view.getUint32(pos+16,true)});
+  if(method===8)deflateChecks.push({start:dataStart,end:dataStart+packed,size:unpacked,crc:view.getUint32(pos+16,true)});
   pos=next;
  }
  if(pos!==end||!names.has('[Content_Types].xml')||!names.has('word/document.xml')||!names.has('_rels/.rels'))fail();
  members.sort((a,b)=>a.start-b.start);
  for(let i=1;i<members.length;i++)if(members[i].start<members[i-1].end)fail();
  for(const check of storedChecks)if(crc32Bytes(bytes.subarray(check.start,check.end))!==check.crc)fail();
+ // Verify actual expanded sizes and CRCs, not just attacker-controlled ZIP declarations.
+ // Read incrementally and reject at the declared bound; never buffer the full expansion.
+ for(const check of deflateChecks)await verifyDocxDeflate(bytes,check,fail);
  return true;
 }
 let importRevision=0;
@@ -86,7 +109,8 @@ q('tl-import-file').addEventListener('change',async function(){
   if(!matchesDocumentSignature(file.name,bytes))throw Error('Document signature does not match its .pdf or .docx extension. Choose an authentic document.');
   let text='';
   if(/\.docx$/i.test(file.name)){
-   validateDocxPackage(bytes);
+   await validateDocxPackage(bytes);
+   if(!stillCurrent())return;
     const mammoth=await loadLocal('mammoth.browser.min.js',()=>window.mammoth);
    if(!stillCurrent())return;
    const result=await mammoth.extractRawText({arrayBuffer:bytes});
