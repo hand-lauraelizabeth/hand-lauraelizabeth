@@ -462,7 +462,7 @@ test('document extraction bridge only changes evidence after validated acceptanc
 
 
 function documentImportHarness(){
- const begin=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');");
+ const begin=html.indexOf("<script>(function(){const r=document.getElementById('leh-text-lens-app');if(!r||!['tl-import-file'");
  const end=html.indexOf('</script>',begin);
  assert.ok(begin>0&&end>begin,'Document import bridge exists');
  const script=html.slice(begin+8,end);
