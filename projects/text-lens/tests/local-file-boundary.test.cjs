@@ -1200,3 +1200,25 @@ test('PDF extraction rejects over-limit extracted text atomically',async()=>{
  assert.match(h.status.textContent,/400,000-character field limit/);
  assert.equal(h.input.value,'');
 });
+
+test('DOCX parser malformed results fail closed and permit retry without replacing accepted evidence',async()=>{
+ const h=documentImportHarness();
+ h.input.files=[h.file('valid.docx','PK\\x03\\x04synthetic')];
+ await h.handlers.change.call(h.input);
+ const prior=h.events.length;
+ assert.equal(prior,1);
+ for(const result of [null,{}, {value:null}, {value:42}, {value:{text:'unexpected'}}]){
+  h.window.mammoth.extractRawText=async()=>result;
+  h.input.files=[h.file('bad.docx','PK\\x03\\x04synthetic')];
+  h.input.value='selected';h.status.focused=false;
+  await h.handlers.change.call(h.input);
+  assert.equal(h.events.length,prior,'no partial import event');
+  assert.match(h.status.textContent,/invalid text/i);
+  assert.equal(h.status.focused,true);
+  assert.equal(h.input.value,'');
+ }
+ h.window.mammoth.extractRawText=async()=>({value:'Recovered evidence'});
+ h.input.files=[h.file('retry.docx','PK\\x03\\x04synthetic')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,prior+1,'retry succeeds');
+});
