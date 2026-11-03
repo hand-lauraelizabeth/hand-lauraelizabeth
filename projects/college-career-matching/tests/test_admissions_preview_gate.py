@@ -20,7 +20,7 @@ def main():
             assert expected in page.locator("#status").inner_text()
             assert expected == page.locator("#name").inner_text()
             assert page.locator("#source").get_attribute("href").startswith("https://www.hunter.cuny.edu/")
-        assert "not independently established" in page.locator("#requirement").inner_text()
+        # RN-to-BS must explicitly distinguish unverified NEX evidence from other routes.\n        select.select_option("rn")\n        assert "not been independently established" in page.locator("#requirement").inner_text().lower()
         assert page.get_by_role("table", name="Hunter nursing pathway distinctions").is_visible()
         assert page.locator("table tbody tr").count() == 3
         select.focus()
