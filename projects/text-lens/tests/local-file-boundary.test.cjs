@@ -1111,3 +1111,28 @@ test('PDF page-count metadata rejects non-integer and non-numeric values before 
   assert.equal(h.input.value,'','invalid selection can be retried');
  }
 });
+
+test('PDF extraction rejects malformed page content without replacing accepted evidence',async()=>{
+ const cases=[
+  {label:'missing items',content:{}},
+  {label:'null items',content:{items:null}},
+  {label:'noniterable items',content:{items:{length:1}}}
+ ];
+ for(const scenario of cases){
+  const h=documentImportHarness();let destroyed=0;
+  h.input.files=[h.file('accepted.pdf','%PDF-A')];
+  await h.handlers.change.call(h.input);
+  assert.equal(h.events.length,1);
+  const accepted=h.events[0];
+  h.setPdfLoadingTask({promise:Promise.resolve({
+   numPages:1,async getPage(){return {async getTextContent(){return scenario.content}}}
+  }),async destroy(){destroyed++}});
+  h.input.files=[h.file('malformed.pdf','%PDF-B')];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+  assert.equal(destroyed,1,scenario.label+' must release PDF task');
+  assert.equal(h.events.length,1,scenario.label+' must not dispatch partial evidence');
+  assert.equal(h.events[0],accepted,scenario.label+' must retain accepted evidence');
+  assert.equal(h.status.focused,true,scenario.label+' must focus visible error');
+  assert.equal(h.input.value,'',scenario.label+' must permit retry');
+ }
+});
