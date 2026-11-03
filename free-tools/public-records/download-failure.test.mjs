@@ -17,8 +17,8 @@ globalThis.document={
     assert.equal(tag,'a');
     if(mode==='element')throw new Error('PRIVATE synthetic DOM creation failure');
     const link={attached:false,removed:false,href:'',download:'',
-      click(){if(mode==='click')throw new Error('PRIVATE simulated browser exception');},
-      remove(){this.removed=true;this.attached=false;}};
+      click(){if(mode==='click'||mode==='click-remove')throw new Error('PRIVATE simulated browser exception');},
+      remove(){if(mode==='remove'||mode==='click-remove')throw new Error('PRIVATE synthetic removal failure');this.removed=true;this.attached=false;}};
     links.push(link);return link;
   },
   body:{append(link){if(mode==='append')throw new Error('PRIVATE synthetic DOM append failure');link.attached=true;}}
@@ -64,6 +64,20 @@ try{
     assert.equal(created.length,1);assert.equal(links.length,1);
     assert.equal(links[0].removed,true);assert.equal(links[0].attached,false);
     assert.deepEqual(revoked,['blob:synthetic-1']);
+  });
+  await test('failed link removal still revokes URL after a successful activation',()=>{
+    reset();mode='remove';
+    assert.match(click('save-json'),/JSON download could not start/);
+    assert.equal(created.length,1);
+    assert.deepEqual(revoked,['blob:synthetic-1']);
+    assert.doesNotMatch(messages.at(-1),/PRIVATE|Synthetic evidence/);
+  });
+  await test('failed click plus failed link removal still revokes URL',()=>{
+    reset();mode='click-remove';
+    assert.match(click('save-csv'),/CSV download could not start/);
+    assert.equal(created.length,1);
+    assert.deepEqual(revoked,['blob:synthetic-1']);
+    assert.doesNotMatch(messages.at(-1),/PRIVATE|Synthetic evidence/);
   });
   await test('successful retry exports exact JSON and warns about unsaved corrections',async()=>{
     reset();pending=2;
