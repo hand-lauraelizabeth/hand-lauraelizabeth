@@ -25,6 +25,23 @@ def main():
         assert page.locator("table tbody tr").count() == 3
         select.focus()
         assert select.evaluate("(el) => document.activeElement === el")
+        # Exercise clipboard-denied behavior, not merely the fallback's markup.
+        page.evaluate("""() => {
+          Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: {writeText: async () => {throw new DOMException('Denied', 'NotAllowedError')}}
+          });
+        }""")
+        page.get_by_role("button", name="Copy this pathway checklist").click()
+        fallback = page.locator("#manual-copy")
+        assert fallback.is_visible(), "Clipboard denial must reveal a manual copy path"
+        manual = page.locator("#checklist-text")
+        assert manual.get_attribute("readonly") is not None
+        assert "RN-to-BS" in manual.input_value()
+        assert "hunter.cuny.edu" in manual.input_value()
+        assert manual.evaluate("(el) => document.activeElement === el")
+        assert manual.evaluate("(el) => el.selectionEnd > el.selectionStart")
+        assert page.locator("#copy-status").inner_text().strip()
         # axe-core is installed through the npm package in the dedicated workflow step.
         axe = Path("/tmp/matcher-axe/node_modules/axe-core/axe.min.js")
         assert axe.is_file(), "axe-core must be installed; never silently skip accessibility checks"
