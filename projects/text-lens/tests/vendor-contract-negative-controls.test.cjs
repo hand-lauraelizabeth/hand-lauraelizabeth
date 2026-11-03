@@ -31,7 +31,7 @@ function exercise(change) {
     const manifest = { schemaVersion: 1, assets };
     change(dir, manifest);
     fs.writeFileSync(path.join(dir, 'vendor', 'dependency-integrity.json'), JSON.stringify(manifest));
-    const result = spawnSync(process.execPath, ['--test', path.join(dir, 'tests', 'vendor-contract.test.cjs')], {
+    const result = spawnSync(process.execPath, [path.join(dir, 'tests', 'vendor-contract.test.cjs')], {
       encoding: 'utf8', timeout: 15000
     });
     assert.equal(result.error, undefined, String(result.error));
