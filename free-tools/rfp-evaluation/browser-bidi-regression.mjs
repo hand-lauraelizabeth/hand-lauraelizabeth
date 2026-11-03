@@ -142,6 +142,9 @@ try{
       check(await page.locator('#gap-body th[scope=row]').first().innerText()==='V-0007',name+' gap vendor semantic row header');
       check((await page.locator('#gap-body').innerText()).includes('Reviewer identifier missing'),name+' reviewer gap explained');
       check((await page.locator('#gap-body').innerText()).includes('C-0001'),name+' exact criterion source ID');
+      check((await page.locator('#gap-body').innerText()).includes('REQ-0001'),name+' exact criterion source reference visible');
+      check((await page.locator('#gap-body').innerText()).includes('EV-0001'),name+' exact evidence reference visible');
+      check((await page.locator('#gap-body').innerText()).includes('Not supplied'),name+' absent reviewer explicit');
       await page.locator('#rating-1-reviewer').fill('QA');
       check(await page.locator('#gap-details').isHidden(),name+' edit invalidates stale gap details');
       check(await page.locator('#toggle-gaps').getAttribute('aria-expanded')==='false',name+' edit resets expanded state');
