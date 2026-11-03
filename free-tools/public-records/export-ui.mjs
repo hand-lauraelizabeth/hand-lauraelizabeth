@@ -9,10 +9,12 @@ export function bindExports(getState,say,countPendingCorrections=()=>0){
       link.href=url;link.download=name;document.body.append(link);link.click();
       started=true;
     }finally{
-      link?.remove();
-      // Revoke immediately when activation fails, including before a link exists.
-      if(started) setTimeout(()=>URL.revokeObjectURL(url),1000);
-      else URL.revokeObjectURL(url);
+      // A browser/DOM shim may throw during link removal. URL cleanup must
+      // still run, and cleanup failures must not disclose record contents.
+      try{link?.remove();}finally{
+        if(started) setTimeout(()=>URL.revokeObjectURL(url),1000);
+        else URL.revokeObjectURL(url);
+      }
     }
   };
   const excludedWarning=()=>{
