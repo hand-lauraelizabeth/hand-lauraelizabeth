@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'review/ft07-guarded-downloads-*'
+      - 'review/ft07-evidence-gap-drilldown-*'
     paths:
       - 'free-tools/rfp-evaluation/**'
       - '.github/workflows/ft07-guarded-downloads.yml'
@@ -20,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test free-tools/rfp-evaluation/download-guard.test.mjs
+      - run: node --test free-tools/rfp-evaluation/download-guard.test.mjs free-tools/rfp-evaluation/gap-detail.test.mjs
   served-browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 25

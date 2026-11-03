@@ -135,8 +135,25 @@ try{
       check((await page.locator('#result-body').innerText()).includes('80.0%'),name+' reviewer omission does not invent or withhold numeric score');
       const unattributed=await textDownload(page,'#download-coverage');
       check(unattributed.text.includes('Reviewer identifier missing'),name+' reviewer omission appears in audit CSV');
+      await page.locator('#toggle-gaps').click();
+      check(await page.locator('#gap-details').isVisible(),name+' evidence gaps expanded');
+      check(await page.locator('#toggle-gaps').getAttribute('aria-expanded')==='true',name+' evidence gap disclosure state');
+      check(await page.locator('#gap-body tr').count()===1,name+' one unresolved reviewer pair');
+      check(await page.locator('#gap-body th[scope=row]').first().innerText()==='V-0007',name+' gap vendor semantic row header');
+      check((await page.locator('#gap-body').innerText()).includes('Reviewer identifier missing'),name+' reviewer gap explained');
+      check((await page.locator('#gap-body').innerText()).includes('C-0001'),name+' exact criterion source ID');
+      check((await page.locator('#gap-body').innerText()).includes('REQ-0001'),name+' exact criterion source reference visible');
+      check((await page.locator('#gap-body').innerText()).includes('EV-0001'),name+' exact evidence reference visible');
+      check((await page.locator('#gap-body').innerText()).includes('Not supplied'),name+' absent reviewer explicit');
       await page.locator('#rating-1-reviewer').fill('QA');
+      check(await page.locator('#gap-details').isHidden(),name+' edit invalidates stale gap details');
+      check(await page.locator('#toggle-gaps').getAttribute('aria-expanded')==='false',name+' edit resets expanded state');
       await page.locator('button[type=submit]').click();
+      await page.locator('#toggle-gaps').click();
+      check((await page.locator('#gap-summary').innerText()).includes('No score or reference gaps detected'),name+' resolved evidence state');
+      check(await page.locator('#gap-table-wrap').isHidden(),name+' empty gap table hidden');
+      await page.locator('#toggle-gaps').click();
+      check(await page.locator('#gap-details').isHidden(),name+' disclosure closes by keyboard-operable button');
       check(!(await page.locator('#result-summary').innerText()).includes('1 scored pairs missing a visible reviewer identifier'),name+' reviewer recovery updates counts');
       check((await page.locator('#result-summary').innerText()).includes('1 scored pairs have visible criterion source, evidence and reviewer identifiers'),name+' combined reference coverage recovers');
       // Coverage must never treat missing source/evidence as documented or missing score as zero.

@@ -1,12 +1,14 @@
 import {exportMatrixJSON,exportMatrixCSV,exportEvidenceCSV} from './core.mjs';
-import {evaluateWithProvenance,exportEvidenceCoverageCSV} from './evidence-coverage.mjs';
+import {evaluateWithProvenance,exportEvidenceCoverageCSV,hasVisibleReference} from './evidence-coverage.mjs';
 import {readWorkspaceFile} from './reopen.mjs';
 import {describeCoverage,summarizeCriterionCoverage,summarizeVendorCoverage} from './coverage-summary.mjs';
 import {createReplacementGate} from './replacement-gate.mjs';
 import {createResetGate} from './reset-gate.mjs';
 import {startLocalDownload} from './download-guard.mjs';
+import {listEvidenceGaps} from './gap-detail.mjs';
 const $=id=>document.getElementById(id);
 let current=null;
+let gapRows=[];
 let importSequence=0;
 const replacementGate=createReplacementGate();
 const resetGate=createResetGate();
@@ -45,7 +47,7 @@ function addRow(kind){
  });
  $(containers[kind]).append(item);invalidate();return item;
 }
-function invalidate(){current=null;$('results-section').hidden=true;$('status').textContent='';$('error').hidden=true;}
+function invalidate(){current=null;gapRows=[];$('results-section').hidden=true;$('gap-details').hidden=true;$('toggle-gaps').setAttribute('aria-expanded','false');$('toggle-gaps').textContent='Show unresolved evidence pairs';$('status').textContent='';$('error').hidden=true;}
 function rows(kind){return [...$(containers[kind]).querySelectorAll('.entry')].map(entry=>{
  const out={};for(const input of entry.querySelectorAll('[data-field]'))out[input.dataset.field]=input.type==='checkbox'?input.checked:input.value;
  return out;
@@ -55,7 +57,7 @@ function clearImportError(){const input=$('reopen-json');input.removeAttribute('
 function showImportError(error){showError(error);const input=$('reopen-json');input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby','reopen-help error');$('status').textContent='Import failed. Existing entries were preserved.';}
 function evaluate(event){event.preventDefault();cancelPendingImport();invalidate();try{
  const data={criteria:rows('criterion'),vendors:rows('vendor'),ratings:rows('rating')};
- current=evaluateWithProvenance(data);const body=$('result-body');body.replaceChildren();
+ current=evaluateWithProvenance(data);gapRows=listEvidenceGaps(current);const body=$('result-body');body.replaceChildren();
  for(const item of current.comparisons){const tr=document.createElement('tr');const values=[item.vendorId,item.name,item.scorePercent===null?'Incomplete':item.scorePercent.toFixed(1)+'%',item.priceCents===null?'Not supplied':'$'+(item.priceCents/100).toFixed(2),item.reviewFlags.length?item.reviewFlags.join('; '):'No flags'];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}body.append(tr);}
  const criterionBody=$('criterion-coverage-body');criterionBody.replaceChildren();
  for(const item of summarizeCriterionCoverage(current)){
@@ -106,6 +108,33 @@ $('confirm-reset').addEventListener('click',()=>{
  for(const id of Object.values(containers))$(id).replaceChildren();
  for(const kind of Object.keys(containers))addRow(kind);
  invalidate();$('status').textContent='All entries cleared.';$('add-criterion').focus();
+});
+function showGapDetails(){
+ const body=$('gap-body');body.replaceChildren();
+ const visible=value=>!value?'Not supplied':hasVisibleReference(value)?value:'Not visibly identifiable — inspect exact JSON';
+ for(const gap of gapRows){
+  const tr=document.createElement('tr');
+  const values=[gap.vendorId,gap.criterionId,gap.score===null?'Missing':String(gap.score),
+   visible(gap.criterionSourceRef),visible(gap.evidenceRef),visible(gap.reviewer),gap.issues.join('; ')];
+  for(const [index,value] of values.entries()){
+   const cell=document.createElement(index===0?'th':'td');
+   if(index===0)cell.scope='row';
+   cell.textContent=value;tr.append(cell);
+  }
+  body.append(tr);
+ }
+ $('gap-summary').textContent=gapRows.length
+  ?gapRows.length+' vendor–criterion pair(s) need score or reference review. User-entered references have not been verified.'
+  :'No score or reference gaps detected. Human verification is still required.';
+ $('gap-table-wrap').hidden=gapRows.length===0;
+}
+$('toggle-gaps').addEventListener('click',()=>{
+ if(!current)return;
+ const opening=$('gap-details').hidden;
+ if(opening)showGapDetails();
+ $('gap-details').hidden=!opening;
+ $('toggle-gaps').setAttribute('aria-expanded',String(opening));
+ $('toggle-gaps').textContent=opening?'Hide unresolved evidence pairs':'Show unresolved evidence pairs';
 });
 $('download-json').addEventListener('click',()=>download('json'));
 $('download-matrix').addEventListener('click',()=>download('matrix'));
