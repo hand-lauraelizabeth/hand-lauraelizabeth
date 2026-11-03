@@ -1,0 +1,22 @@
+name: FT-11 vendor contract negative controls
+on:
+  pull_request:
+    paths:
+      - 'projects/text-lens/tests/vendor-contract*.test.cjs'
+      - '.github/workflows/ft11-vendor-negative-controls.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  vendor-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify synthetic dependency integrity controls
+        run: node --test projects/text-lens/tests/vendor-contract-negative-controls.test.cjs
