@@ -1222,3 +1222,27 @@ test('DOCX parser malformed results fail closed and permit retry without replaci
  await h.handlers.change.call(h.input);
  assert.equal(h.events.length,prior+1,'retry succeeds');
 });
+
+test('missing same-origin parser fails visibly, preserves evidence and allows a clean retry',async()=>{
+ const h=documentImportHarness();
+ h.input.files=[h.file('accepted.pdf','%PDF-A')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ const accepted=h.events[0];
+ h.setLocalFailure(true);
+ h.input.files=[h.file('unavailable.docx','PK\x03\x04synthetic')];
+ h.input.value='selected';h.status.focused=false;
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1,'failed dependency cannot replace accepted evidence');
+ assert.equal(h.events[0],accepted);
+ assert.equal(h.status.focused,true,'failure must receive keyboard focus');
+ assert.match(h.status.textContent,/library|plain-text/i);
+ assert.equal(h.input.value,'');
+ h.setLocalFailure(false);
+ h.input.files=[h.file('recovered.docx','PK\x03\x04synthetic')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,2,'dependency failure must not poison retry cache');
+ assert.equal(h.events[1].name,'recovered.docx');
+ assert.equal(h.events[1].text,'DOCX extracted evidence');
+ assert.ok(h.loads.every(url=>url.startsWith('https://example.test/projects/text-lens/vendor/')));
+});
