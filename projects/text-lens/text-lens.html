@@ -115,7 +115,8 @@ q('tl-import-file').addEventListener('change',async function(){
    if(!stillCurrent())return;
    const result=await mammoth.extractRawText({arrayBuffer:bytes});
    if(!stillCurrent())return;
-   text=result.value||'';
+   if(!result||typeof result.value!=='string')throw Error('DOCX extraction returned invalid text; no partial evidence was imported.');
+   text=result.value;
   }else if(/\.pdf$/i.test(file.name)){
    const pdfjs=await loadLocal('pdf.min.js',()=>window.pdfjsLib);
    if(!stillCurrent())return;
