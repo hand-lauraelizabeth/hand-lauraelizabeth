@@ -62,6 +62,6 @@ async function loadZipComparison(){
  }catch(e){if(requestVersion!==geoRequestVersion)return;message.textContent="ZIP comparison unavailable: "+e.message+"; no substitute data shown.";}finally{if(requestVersion===geoRequestVersion)$("geo-fetch").disabled=false;}
 }
 $("geo-fetch").addEventListener("click",loadZipComparison);
-for(const id of ["geo-type","geo-window"])$(id).addEventListener("change",()=>{clearZipComparison();$("geo-fetch").disabled=false;});
+for(const id of ["geo-type","geo-window"])$(id).addEventListener("change",()=>{clearZipComparison();$("geo-fetch").disabled=syntheticMode;if(syntheticMode)$("geo-message").textContent="ZIP comparison unavailable in fictional example mode. Refresh live data to use official ZIP aggregates.";});
 })();
 </script></div></body></html>
