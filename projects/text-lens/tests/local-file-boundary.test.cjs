@@ -1087,3 +1087,21 @@ test('superseded asynchronous Deflate verification cannot overwrite newer accept
  assert.equal(h.events[0].name,'new.docx');
  assert.match(h.status.textContent,/Imported extracted text from new.docx/);
 });
+
+
+test('PDF page-count metadata rejects non-integer and non-numeric values before page access',async()=>{
+ for(const count of [-1,1.5,Infinity,-Infinity,'2',null,{},Number.MAX_SAFE_INTEGER+1]){
+  const h=documentImportHarness();let pageReads=0,taskDestroyed=0;
+  h.setPdfLoadingTask({promise:Promise.resolve({
+   numPages:count,async getPage(){pageReads++;throw Error('unsafe traversal')}
+  }),async destroy(){taskDestroyed++}});
+  h.input.files=[h.file('untrusted.pdf','%PDF-A')];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+  assert.equal(pageReads,0,'invalid page metadata must not reach page traversal');
+  assert.equal(taskDestroyed,1,'loading task must be released');
+  assert.equal(h.events.length,0,'no evidence accepted');
+  assert.equal(h.status.focused,true,'visible error receives focus');
+  assert.match(h.status.textContent,/PDF page count must be between 1 and 500/);
+  assert.equal(h.input.value,'','invalid selection can be retried');
+ }
+});
