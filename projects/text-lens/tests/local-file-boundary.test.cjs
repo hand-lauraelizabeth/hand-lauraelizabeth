@@ -1136,3 +1136,46 @@ test('PDF extraction rejects malformed page content without replacing accepted e
   assert.equal(h.input.value,'',scenario.label+' must permit retry');
  }
 });
+
+test('PDF extraction enforces declared page-count boundaries without partial evidence',async()=>{
+ for(const count of [0,501]){
+  const h=documentImportHarness();let pageReads=0,destroyed=0;
+  h.input.files=[h.file('accepted.pdf','%PDF-A')];
+  await h.handlers.change.call(h.input);
+  assert.equal(h.events.length,1);
+  const accepted=h.events[0];
+  h.setPdfLoadingTask({promise:Promise.resolve({
+   numPages:count,async getPage(){pageReads++;throw Error('must not traverse')}
+  }),async destroy(){destroyed++}});
+  h.input.files=[h.file('out-of-range.pdf','%PDF-B')];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+  assert.equal(pageReads,0);
+  assert.equal(destroyed,1);
+  assert.equal(h.events.length,1);
+  assert.equal(h.events[0],accepted);
+  assert.equal(h.status.focused,true);
+  assert.match(h.status.textContent,/PDF page count must be between 1 and 500/);
+  assert.equal(h.input.value,'');
+ }
+});
+
+test('PDF extraction rejects over-limit extracted text atomically',async()=>{
+ const h=documentImportHarness();let destroyed=0;
+ h.input.files=[h.file('accepted.pdf','%PDF-A')];
+ await h.handlers.change.call(h.input);
+ assert.equal(h.events.length,1);
+ const accepted=h.events[0];
+ h.setPdfLoadingTask({promise:Promise.resolve({
+  numPages:1,async getPage(){return {async getTextContent(){
+   return {items:[{str:'a'.repeat(400001)}]};
+  }}}
+ }),async destroy(){destroyed++}});
+ h.input.files=[h.file('oversized.pdf','%PDF-B')];h.input.value='selected';
+ await h.handlers.change.call(h.input);
+ assert.equal(destroyed,1);
+ assert.equal(h.events.length,1);
+ assert.equal(h.events[0],accepted);
+ assert.equal(h.status.focused,true);
+ assert.match(h.status.textContent,/400,000-character field limit/);
+ assert.equal(h.input.value,'');
+});
