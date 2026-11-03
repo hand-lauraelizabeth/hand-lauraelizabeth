@@ -1,5 +1,5 @@
 import {exportMatrixJSON,exportMatrixCSV,exportEvidenceCSV} from './core.mjs';
-import {evaluateWithProvenance,exportEvidenceCoverageCSV} from './evidence-coverage.mjs';
+import {evaluateWithProvenance,exportEvidenceCoverageCSV,hasVisibleReference} from './evidence-coverage.mjs';
 import {readWorkspaceFile} from './reopen.mjs';
 import {describeCoverage,summarizeCriterionCoverage,summarizeVendorCoverage} from './coverage-summary.mjs';
 import {createReplacementGate} from './replacement-gate.mjs';
@@ -111,7 +111,7 @@ $('confirm-reset').addEventListener('click',()=>{
 });
 function showGapDetails(){
  const body=$('gap-body');body.replaceChildren();
- const visible=value=>!value?'Not supplied':/[\\p{L}\\p{N}\\p{P}\\p{S}]/u.test(value)?value:'Not visibly identifiable — inspect exact JSON';
+ const visible=value=>!value?'Not supplied':hasVisibleReference(value)?value:'Not visibly identifiable — inspect exact JSON';
  for(const gap of gapRows){
   const tr=document.createElement('tr');
   const values=[gap.vendorId,gap.criterionId,gap.score===null?'Missing':String(gap.score),
