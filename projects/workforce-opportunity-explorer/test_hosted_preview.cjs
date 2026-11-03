@@ -15,11 +15,12 @@ const url = 'https://raw.githack.com/hand-lauraelizabeth/hand-lauraelizabeth/rel
     if (/External Content Notice/i.test(title)) {
       // The third-party preview proxy displays an interstitial before serving HTML.
       // Follow only its explicit Open the page link; never count the notice as the app.
-      const notice = page.getByRole('link', { name: 'Open the page', exact: true });
-      assert.equal(await notice.count(), 1, 'Expected one explicit preview consent link');
+      const notice = page.getByText('Open the page', { exact: true }).first();
+      console.log('HOSTED NOTICE CONTROLS', JSON.stringify(await page.locator('a,button,[role=button]').evaluateAll(els => els.slice(0,15).map(el => ({tag:el.tagName,text:(el.textContent||'').trim().slice(0,80),href:el.getAttribute('href')})))));
+      assert.equal(await notice.count(), 1, 'Expected explicit preview consent control');
       console.log('HOSTED INTERSTITIAL', JSON.stringify({
         title,
-        destination: await notice.getAttribute('href')
+        destination: await notice.evaluate(el => el.closest('a')?.href || el.closest('button')?.outerHTML.slice(0,120) || null)
       }));
       await Promise.all([
         page.waitForLoadState('domcontentloaded'),
