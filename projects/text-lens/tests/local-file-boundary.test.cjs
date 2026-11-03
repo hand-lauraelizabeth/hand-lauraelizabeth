@@ -1137,6 +1137,27 @@ test('PDF extraction rejects malformed page content without replacing accepted e
  }
 });
 
+test('PDF extraction rejects non-text and null page items rather than silently omitting evidence',async()=>{
+ for(const item of [null,{}, {str:null}, {str:42}, {str:{value:'hidden'}}]){
+  const h=documentImportHarness();let destroyed=0;
+  h.input.files=[h.file('accepted.pdf','%PDF-A')];
+  await h.handlers.change.call(h.input);
+  assert.equal(h.events.length,1);
+  const accepted=h.events[0];
+  h.setPdfLoadingTask({promise:Promise.resolve({
+   numPages:1,async getPage(){return {async getTextContent(){return {items:[{str:'valid'},item]}}}}
+  }),async destroy(){destroyed++}});
+  h.input.files=[h.file('invalid-item.pdf','%PDF-B')];h.input.value='selected';
+  await h.handlers.change.call(h.input);
+  assert.equal(destroyed,1);
+  assert.equal(h.events.length,1,'no partial evidence should be dispatched');
+  assert.equal(h.events[0],accepted);
+  assert.equal(h.status.focused,true);
+  assert.match(h.status.textContent,/invalid text item/);
+  assert.equal(h.input.value,'','same file can be retried');
+ }
+});
+
 test('PDF extraction enforces declared page-count boundaries without partial evidence',async()=>{
  for(const count of [0,501]){
   const h=documentImportHarness();let pageReads=0,destroyed=0;
