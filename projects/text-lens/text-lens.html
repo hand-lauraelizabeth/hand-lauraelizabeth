@@ -134,7 +134,8 @@ q('tl-import-file').addEventListener('change',async function(){
      const t=await p.getTextContent();if(!stillCurrent())return;
      const parts=[];
      for(const item of t.items){
-      const part=typeof item.str==='string'?item.str:'';
+      if(!item||typeof item.str!=='string')throw Error('PDF text content contains an invalid text item; no partial evidence was imported.');
+      const part=item.str;
       extractedChars+=part.length+(parts.length?1:0);
       if(extractedChars+2*(i-1)>400000)
        throw Error('Extracted text exceeds the 400,000-character field limit; please split the document.');
