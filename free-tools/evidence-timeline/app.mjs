@@ -215,4 +215,33 @@ input.addEventListener('change',async()=>{
  finally{input.value='';input.disabled=false;}
 });
 
+/* Fictional, explicitly unverified evidence for learning the complete workflow. */
+const exampleRecords = [
+  {sourceId:'EXAMPLE-MINUTES-001',date:'2026-01-12',claim:'Fictional committee minutes record a proposed opening date of March 1.',status:'reported',kind:'source',group:'opening-date'},
+  {sourceId:'EXAMPLE-EMAIL-002',date:'2026-01-19',claim:'A fictional email proposes moving the opening date to March 15. This does not establish the actual date.',status:'unresolved',kind:'source',group:'opening-date'},
+  {sourceId:'EXAMPLE-NOTE-003',date:'2026-01-20',claim:'An imaginary reviewer notes that the two proposed dates need verification against a final decision.',status:'unresolved',kind:'observation',group:'opening-date'}
+];
+const exampleButton=text('button','Try fictional example');
+exampleButton.type='button';
+exampleButton.id='load-example';
+exampleButton.setAttribute('aria-describedby','example-help');
+const exampleHelp=text('p','Loads three fictional records with exact source IDs and a shared review group. This replaces your current records only after confirmation. Export your work first.');
+exampleHelp.id='example-help';
+form.after(exampleButton,exampleHelp);
+exampleButton.addEventListener('click',()=>{
+  if(records.length && !window.confirm('Replace all current records with three fictional examples? Export your work first if you need it.')) {
+    $('change-status-message').textContent='Example cancelled. Your records are unchanged.';
+    return;
+  }
+  records=normalizeEvidence(exampleRecords);
+  stopGroupEdit();
+  clearStatusUndo();
+  $('review-filter').value='all';
+  $('source-find').value='';
+  clearGroupFilter();
+  render();
+  $('count').focus();
+  $('change-status-message').textContent='Three fictional records loaded locally. Compare the related opening-date records, change their review status, then export your work.';
+});
+
 render();
