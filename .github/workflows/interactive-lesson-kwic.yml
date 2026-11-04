@@ -1,0 +1,35 @@
+name: Interactive lesson KWIC release acceptance
+on:
+  pull_request:
+    paths:
+      - 'projects/interactive-lesson/**'
+      - '.github/workflows/interactive-lesson-kwic.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'projects/interactive-lesson/**'
+      - '.github/workflows/interactive-lesson-kwic.yml'
+permissions:
+  contents: read
+jobs:
+  browser-acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser test runner
+        run: npm install --no-save --package-lock=false playwright@1.62.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Exercise browser lesson and reflection workflow
+        run: node projects/interactive-lesson/kwic-browser.test.cjs
+      - name: Preserve mobile render
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kwic-mobile-render
+          path: ${{ runner.temp }}/kwic-mobile.png
+          if-no-files-found: ignore
