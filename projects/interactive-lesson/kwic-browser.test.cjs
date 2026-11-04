@@ -5,7 +5,8 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {chromium}=require('playwright');
 const source=fs.readFileSync(path.join(__dirname,'kwic-context-exercise.html'),'utf8');
-const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'"});res.end(source);});
+const host=fs.readFileSync(path.join(__dirname,'teaching-nlp-with-python.html'),'utf8');
+const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'"});res.end(req.url==='/integrated'?host:source);});
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
@@ -59,6 +60,22 @@ const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'te
   check(await root.locator('.kwic-rubric article').count(),4);
   check(external,[]);check(errors,[]);
   await page.screenshot({path:path.join(process.env.RUNNER_TEMP||__dirname,'kwic-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1280,height:900});
+  await page.goto('http://127.0.0.1:'+server.address().port+'/integrated',{waitUntil:'load'});
+  check(await page.locator('#leh-python-nlp').getAttribute('data-ready'),'1');
+  check(await root.getAttribute('data-ready'),'1');
+  for(const name of ['Preprocessing','Search with TF-IDF','Sentiment classifier','Check understanding','Overview']){
+   await page.getByRole('tab',{name,exact:true}).click();
+   check(await root.isVisible(),true);
+   check(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
+  }
+  await page.getByLabel('Search term',{exact:true}).selectOption('work');
+  check(await root.locator('mark').count(),1);
+  await root.locator('input[value="b"]').check();
+  await page.getByRole('button',{name:'Check interpretation',exact:true}).click();
+  check((await page.locator('#leh-kwic-feedback').innerText()).includes('Only SYN-03'),true);
+  check(errors,[]);
+  await root.screenshot({path:path.join(process.env.RUNNER_TEMP||__dirname,'kwic-integrated.png')});
   console.log('PASS: '+checks+' browser assertions; both terms, all answer paths, keyboard, reflection download, reset, 320px reflow, no external requests or page errors.');
  } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
