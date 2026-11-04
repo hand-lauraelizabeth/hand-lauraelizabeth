@@ -84,7 +84,7 @@ $('calculate').addEventListener('click',()=>{
     const frag=document.createDocumentFragment();
     for(let i=0;i<base.days.length;i++){
       const tr=document.createElement('tr');
-      for(const text of [base.days[i].date,formatCents(scenario.days[i].changeCents),formatCents(base.days[i].balanceCents),formatCents(scenario.days[i].balanceCents)]){
+      for(const text of [base.days[i].date,formatCents(scenario.days[i].changeCents),formatCents(base.days[i].balanceCents),formatCents(scenario.days[i].balanceCents),formatCents(scenario.days[i].balanceCents-base.days[i].balanceCents)]){
         const td=document.createElement('td');td.textContent=text;tr.append(td);
       }
       frag.append(tr);
