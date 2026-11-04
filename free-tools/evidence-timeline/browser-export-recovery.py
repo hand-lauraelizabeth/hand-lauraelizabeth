@@ -70,6 +70,34 @@ def main():
             assert json_download.value.suggested_filename.endswith('.json')
             json_text=Path(json_download.value.path()).read_text(encoding='utf-8')
             assert '"sourceId": "0001"' in json_text,(engine,'exact source ID')
+            # Actual browser download bytes: partial subset, quoted filters, LF-only chronology.
+            page.locator('#sourceId').fill('0002')
+            page.locator('#date').fill('2026-10-26')
+            page.locator('#claim').fill('Second synthetic record')
+            page.get_by_role('button',name='Add record').click()
+            page.locator('#source-find').fill('0001')
+            assert 'Showing 1 of 2 records' in page.locator('#count').inner_text()
+            with page.expect_download() as filtered_download:
+                page.locator('#download-filtered').click()
+            assert filtered_download.value.suggested_filename=='evidence-timeline-filtered-view.txt'
+            filtered_bytes=Path(filtered_download.value.path()).read_bytes()
+            assert b'PARTIAL FILTERED VIEW \\xe2\\x80\\x94 1 of 2 records.' in filtered_bytes,(engine,'partial coverage')
+            assert b'Source ID search (literal): "0001"' in filtered_bytes,(engine,'filter provenance')
+            assert b'Source ID: "0001"' in filtered_bytes and b'Synthetic example' in filtered_bytes,(engine,'matching evidence')
+            assert b'0002' not in filtered_bytes and b'Second synthetic record' not in filtered_bytes,(engine,'hidden evidence excluded')
+            assert b'\\r' not in filtered_bytes and filtered_bytes.endswith(b'\\n'),(engine,'LF-only bytes')
+            page.locator('#reset-all-filters').focus()
+            page.keyboard.press('Enter')
+            assert '2 records' in page.locator('#count').inner_text()
+            assert page.locator('#count').evaluate('(el)=>document.activeElement===el'),(engine,'reset focus')
+            assert page.locator('#source-find').input_value()==''
+            with page.expect_download() as complete_download:
+                page.locator('#download-readable').click()
+            complete_bytes=Path(complete_download.value.path()).read_bytes()
+            assert b'Source ID: "0001"' in complete_bytes and b'Source ID: "0002"' in complete_bytes,(engine,'complete export')
+            assert b'PARTIAL FILTERED VIEW' not in complete_bytes
+            assert b'\\r' not in complete_bytes and complete_bytes.endswith(b'\\n')
+            assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'),(engine,'320px reflow')
             assert not errors,(engine,errors)
             assert not external,(engine,external)
             browser.close()
