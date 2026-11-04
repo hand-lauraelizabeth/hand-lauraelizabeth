@@ -180,7 +180,7 @@ form.addEventListener('submit',event=>{
   for(const [id,label] of [['sourceId','Source ID'],['date','Record date'],['claim','Record description']]){
     if(!String(data[id]??'').trim()){showError(label+' is required.',id);return;}
   }
-  try{records=normalizeEvidence([...records,data]);clearStatusUndo();form.reset();$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();}
+  try{records=normalizeEvidence([...records,data]);clearStatusUndo();form.reset();$('review-filter').value='all';$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();$('change-status-message').textContent='Record added. All review statuses are now shown so the new record remains visible.';}
   catch(e){const message=String(e.message||e);const field=/source ID/i.test(message)?'sourceId':/date/i.test(message)?'date':/claim/i.test(message)?'claim':null;showError(message,field);}
 });
 function exportRecords(kind) {
