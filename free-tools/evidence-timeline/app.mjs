@@ -198,7 +198,7 @@ function readableTimeline(rows){
     lines.push('   Description: '+JSON.stringify(r.claim),'');
   }
   lines.push('Review classifications and group labels are user-assigned; this document makes no legal, medical, or financial determination.');
-  return lines.join('\\n')+'\\n';
+  return lines.join('\n')+'\n';
 }
 readableButton.addEventListener('click',()=>{
   $('export-error').hidden=true;$('export-error').textContent='';$('export-status').textContent='';
