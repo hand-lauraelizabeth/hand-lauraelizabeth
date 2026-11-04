@@ -23,6 +23,19 @@ $('clear-events').addEventListener('click',()=>{
   say('All events cleared. Projection settings are unchanged. Recalculate to update results.');
   $('event-id').focus();
 });
+// A synthetic starting point; never imports or transmits a visitor's financial data.
+$('example-plan').addEventListener('click',()=>{
+  if(events.length&&!window.confirm('Replace current events with two fictional examples? Download your editable plan first if you want to keep it.'))return;
+  const start=$('start').value;
+  try{dateUTC(start);}catch{reportProjectionError('Choose a valid From date before loading the example.','start');return;}
+  loadTicket++; // prevent an older asynchronous import from replacing the example
+  events.splice(0,events.length,
+    {id:'example-income',label:'Example weekly income (fictional)',cents:60000,date:start,repeat:'weekly'},
+    {id:'example-bill',label:'Example monthly bill (fictional)',cents:-40000,date:start,repeat:'monthly'});
+  $('shift-days').value='0';markEdited();eventList();invalidate();clearEventError();clearProjectionError();
+  say('Two fictional events loaded. Select an event to shift, then calculate. Replace these examples with your own information when ready.');
+  $('calculate').focus();
+});
 const eventFields=['event-id','event-label','event-amount','event-date','event-repeat'];
 function clearEventError(){
   $('event-error').textContent='';
