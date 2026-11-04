@@ -2,10 +2,10 @@ import {parseCents,formatCents,dateUTC,project,exportSafeCSV,exportJSON,csvExpor
 import {exportPlan,readPlanFile} from './plan.mjs';
 import {summarizeShortfalls,compareBelowZeroDates} from './shortfalls.mjs';
 import {coverageText,coverageEvidence,displaySafeText} from './coverage.mjs';
-const $=id=>document.getElementById(id),events=[];let latest=null,revision=0,loadTicket=0;
+const $=id=>document.getElementById(id),events=[];let latest=null,latestSummary='',revision=0,loadTicket=0;
 function markEdited(){revision++;}
 function say(message,error=false){$('error').textContent=error?message:'';$('status').textContent=error?'Projection unavailable.':message}
-function invalidate(){latest=null;$('export').disabled=true;$('export-json').disabled=true;$('csv-warning').textContent='';$('results').replaceChildren();$('summary').textContent='';$('shortfall-summary').textContent='';$('coverage-summary').textContent='';}
+function invalidate(){latest=null;latestSummary='';$('export-summary').disabled=true;$('export').disabled=true;$('export-json').disabled=true;$('csv-warning').textContent='';$('results').replaceChildren();$('summary').textContent='';$('shortfall-summary').textContent='';$('coverage-summary').textContent='';}
 function eventList(){const ul=$('events');ul.replaceChildren();const select=$('shift-id');const previousShift=select.value;select.replaceChildren();const blank=document.createElement('option');blank.value='';blank.textContent='No shift';select.append(blank);
   if(!events.length){const li=document.createElement('li');li.textContent='No events added.';ul.append(li)}
   for(const e of events){const li=document.createElement('li');li.append(document.createTextNode(`${displaySafeText(e.id)} — ${displaySafeText(e.label,'description')} (${formatCents(e.cents)} USD; ${e.date}; ${e.repeat}) `));const button=document.createElement('button');button.type='button';button.textContent=`Remove ${displaySafeText(e.id)}`;button.addEventListener('click',()=>{if(!window.confirm('Remove this event from this tab? Re-enter it if needed; exported files are not changed.'))return;events.splice(events.indexOf(e),1);markEdited();const shiftCleared=eventList();invalidate();say(shiftCleared?'Event removed. Its timing shift was cleared. Recalculate to update results.':'Event removed. Recalculate to update results.');$('event-id').focus()});li.append(button);ul.append(li);const option=document.createElement('option');option.value=e.id;option.textContent=`${displaySafeText(e.id)}: ${displaySafeText(e.label,'description')}`;select.append(option)}
@@ -117,6 +117,8 @@ $('calculate').addEventListener('click',()=>{
     $('shortfall-summary').textContent=shortfallText('Baseline',base)+' '+shortfallText('Scenario',scenario)+' '+shortfallComparisonText(base,scenario)+' These estimates do not model intraday funds or overdraft rules.';
     $('coverage-summary').textContent=coverageText(events,base,scenario);
     latest={...scenario,sourceEventCoverage:coverageEvidence(events,base,scenario)};
+    latestSummary=['Cash Flow & Bill Timing Simulator — planning summary',`Projection: ${config.start} through ${config.end}`,`Opening balance: ${formatCents(config.openingCents)} USD`,`Timing shift: ${shiftId?displaySafeText(shiftId)+' by '+shiftDays+' day(s)':'none'}`,$('summary').textContent,$('shortfall-summary').textContent,$('coverage-summary').textContent,'Source event IDs: '+(events.length?events.map(e=>displaySafeText(e.id)).join('; '):'(none)'),'Limitations: projected end-of-day amounts only; excludes posting order, holds, fees and bank rules. Not financial advice.','Generated locally; this text contains plan details. Keep it private.'].join('\n\n');
+    $('export-summary').disabled=false;
     const risk=csvExportRisk(scenario);
     $('export').disabled=Boolean(risk);$('export-json').disabled=false;
     $('csv-warning').textContent=risk?`CSV export unavailable: ${risk.field} contains formula-like text, invisible direction controls, or unsupported control characters. Use lossless JSON instead.`:'';
@@ -173,6 +175,12 @@ $('export').addEventListener('click',()=>{
   if(!latest)return;
   clearDownloadError();
   try{download(exportSafeCSV(latest),'text/csv;charset=utf-8','cash-flow-scenario.csv');say('Scenario CSV download started. Confirm the browser saved it.');}
+  catch{reportDownloadError();}
+});
+$('export-summary').addEventListener('click',()=>{
+  if(!latest||!latestSummary)return;
+  clearDownloadError();
+  try{download(latestSummary,'text/plain;charset=utf-8','cash-flow-summary.txt');say('Readable summary download started. Confirm the browser saved it and keep it private.');}
   catch{reportDownloadError();}
 });
 $('export-json').addEventListener('click',()=>{
