@@ -1,24 +1,105 @@
 <!doctype html>
-<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Context Before Count — KWIC Exercise</title>
-<style>body{font:1.1rem/1.55 system-ui,sans-serif;max-width:48rem;margin:auto;padding:1.25rem;color:#17251e;background:#fafcf9}button,select{font:inherit;padding:.55rem;max-width:100%}button:focus-visible,select:focus-visible{outline:3px solid #174d37;outline-offset:3px}fieldset{border:2px solid #557462;padding:1rem}label{display:block;margin:.7rem 0}.hit{background:#f4e6a6;color:#171717}pre{white-space:pre-wrap;overflow-wrap:anywhere}#feedback{border-left:4px solid #174d37;padding:1rem;margin-top:1rem}@media(max-width:420px){body{padding:.65rem}}</style>
-<main><h1>Context Before Count</h1><p><strong>Objective:</strong> Interpret keyword-in-context (KWIC) evidence before making a claim about a corpus. This browser-local exercise adapts the KWIC step of the Python Corpus Explorer teaching artifact. It does not run spaCy, TF-IDF, or named-entity recognition.</p>
-<p>All three passages below are invented for instruction. Select a term and examine each occurrence with surrounding context.</p>
-<label for="term">Search term</label><select id="term"><option value="freedom">freedom</option><option value="work">work</option></select>
-<button type="button" id="show">Show context</button><div id="matches" aria-live="polite"></div>
-<form id="quiz"><fieldset><legend>Which conclusion is best supported by the displayed evidence?</legend>
-<label><input type="radio" name="answer" value="a"> Every occurrence expresses the same attitude.</label>
-<label><input type="radio" name="answer" value="b"> A keyword count alone cannot establish a shared attitude; context and negation matter.</label>
-<label><input type="radio" name="answer" value="c"> The term proves that all three speakers agree.</label></fieldset><button type="submit">Check answer</button></form><div id="feedback" role="status" aria-live="polite"></div>
-<h2>Applied capstone connection</h2><p>Bring three short, rights-cleared passages to a corpus analysis. Record each source ID, the search term, its immediate context, and at least one competing interpretation. Compare your interpretation with a simple count; explain what the count cannot establish. Do not submit personal or confidential documents.</p>
-<h2>Assessment criteria</h2><p>Successful work identifies at least two distinct uses of the term, quotes the relevant surrounding words, preserves source IDs, and qualifies claims that the corpus cannot support. The multiple-choice check assesses only the initial interpretation; the capstone requires written evidence.</p>
-<p><small>Source adaptation: Laura Elizabeth Hand, <em>1_corpus_explorer.py</em>, KWIC routine. This is a new instructional exercise, not a reproduction of its mock output.</small></p></main>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Context Before Count — KWIC Exercise</title></head>
+<body>
+<!-- KWIC MODULE START -->
+<section id="leh-kwic-lesson" aria-labelledby="leh-kwic-title" style="max-width:960px;margin:28px auto;padding:20px;border:1px solid #b8cbbf;border-radius:12px;background:#f7faf7;color:#172d23;font:1rem/1.6 system-ui,sans-serif;overflow-wrap:anywhere;box-sizing:border-box;">
+<style>
+#leh-kwic-lesson *{box-sizing:border-box}
+#leh-kwic-lesson h2,#leh-kwic-lesson h3{color:#17352d;line-height:1.2}
+#leh-kwic-lesson button,#leh-kwic-lesson select,#leh-kwic-lesson textarea{font:inherit;color:#172d23;background:#fff;border:1px solid #557462;border-radius:6px;padding:10px;max-width:100%}
+#leh-kwic-lesson button{cursor:pointer;min-height:44px;margin:8px 6px 8px 0}
+#leh-kwic-lesson label{display:block;margin:10px 0}
+#leh-kwic-lesson input{margin-right:8px;accent-color:#174d37}
+#leh-kwic-lesson fieldset{min-width:0;border:1px solid #557462;padding:14px;margin:18px 0}
+#leh-kwic-lesson :focus-visible{outline:3px solid #174d37;outline-offset:3px}
+#leh-kwic-lesson .kwic-passage{padding:12px;background:#fff;border:1px solid #b8cbbf;border-radius:6px}
+#leh-kwic-lesson mark{background:#f4e6a6;color:#171717}
+#leh-kwic-lesson textarea{width:100%;min-height:140px}
+#leh-kwic-lesson .kwic-status{border-left:4px solid #174d37;padding:10px;margin:12px 0}
+#leh-kwic-lesson .kwic-rubric{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+#leh-kwic-lesson .kwic-rubric article{background:#fff;border:1px solid #b8cbbf;border-radius:6px;padding:12px}
+@media(max-width:420px){#leh-kwic-lesson{padding:12px!important}}
+</style>
+<p style="font-size:.85em;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Interactive lesson + applied capstone · 5–10 minutes</p>
+<h2 id="leh-kwic-title">Context Before Count</h2>
+<p><strong>Learning objective:</strong> Use keyword-in-context (KWIC) evidence to explain why a word count alone cannot establish a speaker’s attitude.</p>
+<p>Choose a term, inspect the highlighted words, and compare the surrounding language. These three passages are invented for instruction. The exercise uses JavaScript to demonstrate the KWIC step of my Python Corpus Explorer; it does not execute Python, spaCy, TF-IDF, or sentiment analysis.</p>
+<label for="leh-kwic-term">Search term</label>
+<select id="leh-kwic-term"><option value="freedom">freedom</option><option value="work">work</option></select>
+<button type="button" id="leh-kwic-show">Show context</button>
+<div id="leh-kwic-matches" aria-live="polite" aria-atomic="true"></div>
+<form id="leh-kwic-quiz" novalidate>
+<fieldset><legend>Which conclusion does this evidence support?</legend>
+<label><input type="radio" name="leh-kwic-answer" value="a">Every occurrence expresses the same attitude.</label>
+<label><input type="radio" name="leh-kwic-answer" value="b">The count describes occurrences; surrounding language is needed to interpret attitude.</label>
+<label><input type="radio" name="leh-kwic-answer" value="c">The term proves that all three speakers agree.</label>
+</fieldset>
+<button type="submit">Check interpretation</button>
+</form>
+<div id="leh-kwic-feedback" class="kwic-status" role="status" aria-live="polite" tabindex="-1">Choose an answer, then check your interpretation.</div>
+<h3>Apply it: write an evidence-based interpretation</h3>
+<p>Using the examples above, identify the source IDs, quote the words that shape your interpretation, and state one limit of the count. For the full capstone, repeat this process with three short, rights-cleared passages: preserve source IDs, record each occurrence and its context, consider a competing interpretation, and explain what additional evidence your claim would need.</p>
+<label for="leh-kwic-reflection">Your interpretation (up to 4,000 characters)</label>
+<textarea id="leh-kwic-reflection" maxlength="4000" aria-describedby="leh-kwic-privacy" placeholder="SYN-01 suggests … because … . In SYN-02 … . The count cannot establish … ."></textarea>
+<p id="leh-kwic-privacy">Your response stays in this page’s memory until you leave or reload. This exercise does not transmit or save it. Download a copy to keep it. Use the synthetic passages here; do not enter personal or confidential information.</p>
+<button type="button" id="leh-kwic-download">Download reflection (.txt)</button>
+<button type="button" id="leh-kwic-reset">Reset exercise</button>
+<div id="leh-kwic-download-status" role="status" aria-live="polite"></div>
+<h3>Capstone assessment rubric</h3>
+<p>Score each criterion from 0 to 2 (8 points total). Use the descriptors to revise; the page does not automatically grade written work.</p>
+<div class="kwic-rubric">
+<article><h4>Traceable evidence</h4><p><strong>2:</strong> Each quoted context has a matching source ID. <strong>1:</strong> Some IDs or quotations are incomplete. <strong>0:</strong> Evidence cannot be traced.</p></article>
+<article><h4>Contextual interpretation</h4><p><strong>2:</strong> Explains how contrasting language or negation affects meaning. <strong>1:</strong> Notices a difference without explaining it. <strong>0:</strong> Treats occurrences as equivalent.</p></article>
+<article><h4>Competing explanation</h4><p><strong>2:</strong> Tests a plausible alternative against the passages. <strong>1:</strong> Names an alternative without testing it. <strong>0:</strong> Gives no alternative.</p></article>
+<article><h4>Limits of the claim</h4><p><strong>2:</strong> Distinguishes count from interpretation and identifies needed evidence. <strong>1:</strong> Gives a general caution. <strong>0:</strong> Claims more than the passages support.</p></article>
+</div>
+<p><small>Designed by Laura Elizabeth Hand. Adapted from the KWIC routine in <em>1_corpus_explorer.py</em> (Python Corpus Explorer teaching artifact). Synthetic examples and this assessment are new instructional materials.</small></p>
+<noscript><p>This exercise needs JavaScript for highlighting, feedback, and downloads. Read the three synthetic passages: SYN-01 — “The committee promised freedom to choose the schedule.” SYN-02 — “The notice said freedom was not guaranteed during the trial.” SYN-03 — “They called the work freedom, although others described it as an obligation.” Compare the contexts using the rubric above.</p></noscript>
+</section>
 <script>
+(() => {
 'use strict';
+const root=document.getElementById('leh-kwic-lesson');
+if(!root || root.dataset.ready==='1')return;
+const find=id=>root.querySelector('#leh-kwic-'+id);
+const term=find('term'),matches=find('matches'),feedback=find('feedback'),reflection=find('reflection'),downloadStatus=find('download-status');
 const passages=[['SYN-01','The committee promised freedom to choose the schedule.'],['SYN-02','The notice said freedom was not guaranteed during the trial.'],['SYN-03','They called the work freedom, although others described it as an obligation.']];
-const term=document.getElementById('term'),matches=document.getElementById('matches'),feedback=document.getElementById('feedback');
-function show(){matches.replaceChildren();let count=0;for(const [id,passage] of passages){const word=term.value;const at=passage.toLowerCase().indexOf(word);if(at<0)continue;count++;const p=document.createElement('p');p.append(document.createTextNode(id+': '+passage.slice(0,at)));const mark=document.createElement('mark');mark.className='hit';mark.textContent=passage.slice(at,at+word.length);p.append(mark,document.createTextNode(passage.slice(at+word.length)));matches.append(p)}const summary=document.createElement('p');summary.textContent=count+' of '+passages.length+' synthetic passages contain “'+term.value+'”.';matches.prepend(summary)}
-document.getElementById('show').addEventListener('click',show);
-document.getElementById('quiz').addEventListener('submit',event=>{event.preventDefault();const chosen=document.querySelector('input[name="answer"]:checked');feedback.textContent=!chosen?'Choose one answer before checking.':chosen.value==='b'?'Correct. SYN-02 explicitly negates a guarantee; SYN-03 contrasts competing descriptions. Counts alone do not establish attitude.':'Not yet. Compare “not guaranteed” in SYN-02 and “although” in SYN-03. Reconsider what a count can prove.'});
-show();
-</script></html>
+function show(){
+ matches.replaceChildren();let occurrences=0,documents=0;
+ for(const [id,text] of passages){
+  const hits=[...text.matchAll(new RegExp('\\b'+term.value+'\\b','gi'))];if(!hits.length)continue;
+  documents++;occurrences+=hits.length;
+  const p=document.createElement('p');p.className='kwic-passage';
+  const source=document.createElement('strong');source.textContent=id+': ';p.append(source);
+  let last=0;for(const hit of hits){p.append(document.createTextNode(text.slice(last,hit.index)));const mark=document.createElement('mark');mark.textContent=hit[0];p.append(mark);last=hit.index+hit[0].length;}
+  p.append(document.createTextNode(text.slice(last)));matches.append(p);
+ }
+ const summary=document.createElement('p');summary.textContent=occurrences+' occurrence'+(occurrences===1?'':'s')+' in '+documents+' of '+passages.length+' synthetic passages for “'+term.value+'”.';matches.prepend(summary);
+ feedback.textContent='Review the displayed contexts, then check your interpretation.';
+ root.querySelectorAll('input[name="leh-kwic-answer"]').forEach(input=>{input.checked=false;input.removeAttribute('aria-invalid');});
+}
+find('show').addEventListener('click',show);
+term.addEventListener('change',show);
+find('quiz').addEventListener('submit',event=>{
+ event.preventDefault();const chosen=root.querySelector('input[name="leh-kwic-answer"]:checked');
+ if(!chosen){feedback.textContent='Choose one answer before checking.';feedback.focus();return;}
+ const evidence=term.value==='freedom'?'SYN-02 says “not guaranteed”; SYN-03 contrasts “freedom” with “obligation”.':'Only SYN-03 contains “work”. Its contrasting descriptions do not establish agreement among all three speakers.';
+ feedback.textContent=(chosen.value==='b'?'Correct. ':'Not yet. ')+evidence+' A count alone cannot establish attitude.';
+});
+find('download').addEventListener('click',()=>{
+ if(!reflection.value.trim()){downloadStatus.textContent='Write a reflection before downloading.';reflection.focus();return;}
+ let url,link;
+ try{
+  const text='Context Before Count — reflection\nLaura Elizabeth Hand — interactive lesson\nSearch term at download: '+term.value+'\n\n'+reflection.value+'\n\nSynthetic passage reference\n'+passages.map(p=>p.join(': ')).join('\n')+'\n\nSelf-assessment: traceable evidence /2; contextual interpretation /2; competing explanation /2; limits of the claim /2.\n';
+  url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));link=document.createElement('a');link.href=url;link.download='context-before-count-reflection.txt';root.append(link);link.click();
+  downloadStatus.textContent='Reflection download started. Check your browser’s downloads to confirm it saved.';
+ }catch(error){downloadStatus.textContent='The download could not start. Your response is still here; copy it or try again.';}
+ finally{if(link)link.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),1000);}
+});
+find('reset').addEventListener('click',()=>{term.value='freedom';reflection.value='';downloadStatus.textContent='';show();term.focus();});
+show();root.dataset.ready='1';
+})();
+</script>
+<!-- KWIC MODULE END -->
+</body></html>
