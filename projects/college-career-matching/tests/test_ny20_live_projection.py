@@ -4,6 +4,12 @@ import json, unittest
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'data'/'ny20-institution-evidence.v1.json'
 
+class RemovedNY20EvidenceContainment(unittest.TestCase):
+    """Enforce the prior decision not to publish unapproved institution records."""
+    def test_unapproved_ny20_fixture_remains_absent(self):
+        self.assertFalse(DATA.exists(), "Unapproved NY20 institution evidence must not be restored to green CI")
+
+@unittest.skipUnless(DATA.exists(), "Retired NY20 projection checks: evidence intentionally withheld pending authorization")
 class LiveInstitutionReferenceContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
