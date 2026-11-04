@@ -26,14 +26,15 @@ const url='https://raw.githack.com/hand-lauraelizabeth/hand-lauraelizabeth/relea
   assert.match(await page.locator('#source').innerText(),/LIVE NYC Open Data/);
   await page.getByLabel('Borough',{exact:true}).selectOption('Queens');
   assert.equal(await page.locator('#requests').innerText(),'100');
-  await page.getByRole('button',{name:'Try fictional example (offline)'}).click();
-  assert.equal(await page.locator('#requests').innerText(),'160');
-  assert.match(await page.locator('#source').innerText(),/FICTIONAL EXAMPLE/);
   await page.getByRole('button',{name:'Load ZIP comparison'}).click();
   await page.waitForFunction(()=>document.querySelector('#geo-message').textContent.includes('Top 1 ZIP'));
   assert.equal(await page.locator('#geo-table tr').count(),1,'Suppress ZIP counts under 20');
   await page.locator('#geo-type').selectOption('housing');
   assert.equal(await page.locator('#geo-table tr').count(),0,'Changing category clears stale ZIP results');
+  await page.getByRole('button',{name:'Try fictional example (offline)'}).click();
+  assert.equal(await page.locator('#requests').innerText(),'160');
+  assert.match(await page.locator('#source').innerText(),/FICTIONAL EXAMPLE/);
+  assert.equal(await page.getByRole('button',{name:'Load ZIP comparison'}).isDisabled(),true,'ZIP live source must be disabled in fictional mode');
   await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
   const axe=await page.evaluate(async()=>await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}));
   const serious=axe.violations.filter(v=>['critical','serious'].includes(v.impact));
