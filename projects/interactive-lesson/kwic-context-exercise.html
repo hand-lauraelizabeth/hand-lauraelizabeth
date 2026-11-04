@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context Before Count — KWIC Exercise</title>
+<style>body{font:1.1rem/1.55 system-ui,sans-serif;max-width:48rem;margin:auto;padding:1.25rem;color:#17251e;background:#fafcf9}button,select{font:inherit;padding:.55rem;max-width:100%}button:focus-visible,select:focus-visible{outline:3px solid #174d37;outline-offset:3px}fieldset{border:2px solid #557462;padding:1rem}label{display:block;margin:.7rem 0}.hit{background:#f4e6a6;color:#171717}pre{white-space:pre-wrap;overflow-wrap:anywhere}#feedback{border-left:4px solid #174d37;padding:1rem;margin-top:1rem}@media(max-width:420px){body{padding:.65rem}}</style>
+<main><h1>Context Before Count</h1><p><strong>Objective:</strong> Interpret keyword-in-context (KWIC) evidence before making a claim about a corpus. This browser-local exercise adapts the KWIC step of the Python Corpus Explorer teaching artifact. It does not run spaCy, TF-IDF, or named-entity recognition.</p>
+<p>All three passages below are invented for instruction. Select a term and examine each occurrence with surrounding context.</p>
+<label for="term">Search term</label><select id="term"><option value="freedom">freedom</option><option value="work">work</option></select>
+<button type="button" id="show">Show context</button><div id="matches" aria-live="polite"></div>
+<form id="quiz"><fieldset><legend>Which conclusion is best supported by the displayed evidence?</legend>
+<label><input type="radio" name="answer" value="a"> Every occurrence expresses the same attitude.</label>
+<label><input type="radio" name="answer" value="b"> A keyword count alone cannot establish a shared attitude; context and negation matter.</label>
+<label><input type="radio" name="answer" value="c"> The term proves that all three speakers agree.</label></fieldset><button type="submit">Check answer</button></form><div id="feedback" role="status" aria-live="polite"></div>
+<h2>Applied capstone connection</h2><p>Bring three short, rights-cleared passages to a corpus analysis. Record each source ID, the search term, its immediate context, and at least one competing interpretation. Compare your interpretation with a simple count; explain what the count cannot establish. Do not submit personal or confidential documents.</p>
+<h2>Assessment criteria</h2><p>Successful work identifies at least two distinct uses of the term, quotes the relevant surrounding words, preserves source IDs, and qualifies claims that the corpus cannot support. The multiple-choice check assesses only the initial interpretation; the capstone requires written evidence.</p>
+<p><small>Source adaptation: Laura Elizabeth Hand, <em>1_corpus_explorer.py</em>, KWIC routine. This is a new instructional exercise, not a reproduction of its mock output.</small></p></main>
+<script>
+'use strict';
+const passages=[['SYN-01','The committee promised freedom to choose the schedule.'],['SYN-02','The notice said freedom was not guaranteed during the trial.'],['SYN-03','They called the work freedom, although others described it as an obligation.']];
+const term=document.getElementById('term'),matches=document.getElementById('matches'),feedback=document.getElementById('feedback');
+function show(){matches.replaceChildren();let count=0;for(const [id,passage] of passages){const word=term.value;const at=passage.toLowerCase().indexOf(word);if(at<0)continue;count++;const p=document.createElement('p');p.append(document.createTextNode(id+': '+passage.slice(0,at)));const mark=document.createElement('mark');mark.className='hit';mark.textContent=passage.slice(at,at+word.length);p.append(mark,document.createTextNode(passage.slice(at+word.length)));matches.append(p)}const summary=document.createElement('p');summary.textContent=count+' of '+passages.length+' synthetic passages contain “'+term.value+'”.';matches.prepend(summary)}
+document.getElementById('show').addEventListener('click',show);
+document.getElementById('quiz').addEventListener('submit',event=>{event.preventDefault();const chosen=document.querySelector('input[name="answer"]:checked');feedback.textContent=!chosen?'Choose one answer before checking.':chosen.value==='b'?'Correct. SYN-02 explicitly negates a guarantee; SYN-03 contrasts competing descriptions. Counts alone do not establish attitude.':'Not yet. Compare “not guaranteed” in SYN-02 and “although” in SYN-03. Reconsider what a count can prove.'});
+show();
+</script></html>
