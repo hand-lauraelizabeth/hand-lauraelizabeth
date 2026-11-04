@@ -91,6 +91,7 @@ function render(){
   $('csv').disabled=records.length===0||Boolean(risk);
   $('json').disabled=records.length===0;
   $('download-readable').disabled=records.length===0;
+  if($('download-filtered'))$('download-filtered').disabled=visible.length===0;
   $('clear').disabled=records.length===0;
   $('csv-warning').textContent=risk?'CSV unavailable: '+risk.field+' contains '+risk.reason+'. Download exact JSON instead.':'';
 }
@@ -200,6 +201,26 @@ function readableTimeline(rows){
   lines.push('Review classifications and group labels are user-assigned; this document makes no legal, medical, or financial determination.');
   return lines.join('\n')+'\n';
 }
+// A partial extract is distinct from the complete evidence archive.
+const viewButton=text('button','Download filtered view');
+viewButton.type='button';viewButton.id='download-filtered';viewButton.disabled=true;
+viewButton.setAttribute('aria-describedby','filtered-download-help');
+const viewHelp=text('p','Downloads only records currently matching the source ID, group and review-status filters. This partial extract excludes hidden records; use Download readable timeline for a complete chronology.');
+viewHelp.id='filtered-download-help';
+readableButton.after(viewButton,viewHelp);
+viewButton.addEventListener('click',()=>{
+  $('export-error').hidden=true;$('export-error').textContent='';$('export-status').textContent='';
+  try{
+    const visible=filterByGroupLabel(findSourceIds(records,$('review-filter').value,$('source-find').value),$('group-find').value,$('ungrouped-only').checked);
+    if(!visible.length)throw Error('No visible records');
+    const preface='PARTIAL FILTERED VIEW — '+visible.length+' of '+records.length+' records. Hidden records are NOT included.\n';
+    startLocalDownload({filename:'evidence-timeline-filtered-view.txt',content:preface+readableTimeline(visible),type:'text/plain;charset=utf-8'});
+    $('export-status').textContent='Partial filtered-view download started. Check browser downloads; saving is not guaranteed.';
+  }catch{
+    $('export-error').textContent='Filtered-view download could not be started. Your records are unchanged. Use the complete readable timeline or exact JSON instead.';
+    $('export-error').hidden=false;$('export-error').focus();
+  }
+});
 readableButton.addEventListener('click',()=>{
   $('export-error').hidden=true;$('export-error').textContent='';$('export-status').textContent='';
   try{
