@@ -81,11 +81,11 @@ def main():
                 page.locator('#download-filtered').click()
             assert filtered_download.value.suggested_filename=='evidence-timeline-filtered-view.txt'
             filtered_bytes=Path(filtered_download.value.path()).read_bytes()
-            assert b'PARTIAL FILTERED VIEW \\xe2\\x80\\x94 1 of 2 records.' in filtered_bytes,(engine,'partial coverage')
+            assert b'PARTIAL FILTERED VIEW \xe2\x80\x94 1 of 2 records.' in filtered_bytes,(engine,'partial coverage')
             assert b'Source ID search (literal): "0001"' in filtered_bytes,(engine,'filter provenance')
             assert b'Source ID: "0001"' in filtered_bytes and b'Synthetic example' in filtered_bytes,(engine,'matching evidence')
             assert b'0002' not in filtered_bytes and b'Second synthetic record' not in filtered_bytes,(engine,'hidden evidence excluded')
-            assert b'\\r' not in filtered_bytes and filtered_bytes.endswith(b'\\n'),(engine,'LF-only bytes')
+            assert b'\r' not in filtered_bytes and filtered_bytes.endswith(b'\n'),(engine,'LF-only bytes')
             page.locator('#reset-all-filters').focus()
             page.keyboard.press('Enter')
             assert '2 records' in page.locator('#count').inner_text()
@@ -96,7 +96,7 @@ def main():
             complete_bytes=Path(complete_download.value.path()).read_bytes()
             assert b'Source ID: "0001"' in complete_bytes and b'Source ID: "0002"' in complete_bytes,(engine,'complete export')
             assert b'PARTIAL FILTERED VIEW' not in complete_bytes
-            assert b'\\r' not in complete_bytes and complete_bytes.endswith(b'\\n')
+            assert b'\r' not in complete_bytes and complete_bytes.endswith(b'\n')
             assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'),(engine,'320px reflow')
             assert not errors,(engine,errors)
             assert not external,(engine,external)
