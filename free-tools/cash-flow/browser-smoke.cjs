@@ -97,6 +97,15 @@ const {chromium}=require('playwright');
    check(await page.locator('#start').inputValue()===originalStart,'clear all retains projection settings');
    check(await page.locator('#export-json').isDisabled(),'clear all invalidates old scenario exports');
    check((await page.locator('#status').innerText()).includes('All events cleared.'),'clear all gives readable confirmation');
+   // The fictional starter is a usable first-run path, not a saved or transmitted user plan.
+   await page.locator('#example-plan').click();
+   check((await page.locator('#events button').count())===2,'fictional starter adds two editable events');
+   await page.locator('#calculate').click();
+   check(await page.locator('#export-json').isEnabled(),'fictional starter calculates a downloadable scenario');
+   check((await page.locator('#events').innerText()).includes('fictional'),'starter clearly identifies synthetic values');
+   page.once('dialog',dialog=>dialog.dismiss());
+   await page.locator('#example-plan').click();
+   check((await page.locator('#events button').count())===2,'cancelled starter replacement preserves existing plan');
    await page.evaluate(()=>{document.documentElement.style.zoom='2'});
    check((await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth))<=1,'320px layout at 200% CSS zoom');
    check(errors.length===0,'no uncaught browser errors');check(requests.length===0,'no remote requests');
