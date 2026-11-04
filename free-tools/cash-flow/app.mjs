@@ -13,6 +13,16 @@ function eventList(){const ul=$('events');ul.replaceChildren();const select=$('s
   if(previousShift){$('shift-days').value='0';return true;}
   return false;
 }
+$('clear-events').addEventListener('click',()=>{
+  if(!events.length){say('No events to clear.');return;}
+  if(!window.confirm('Clear all events from this tab? Download an editable plan first if you want to keep them.'))return;
+  loadTicket++; // an in-flight plan import cannot restore events after clearing
+  events.splice(0,events.length);
+  $('shift-days').value='0';
+  markEdited();eventList();invalidate();clearEventError();clearProjectionError();
+  say('All events cleared. Projection settings are unchanged. Recalculate to update results.');
+  $('event-id').focus();
+});
 const eventFields=['event-id','event-label','event-amount','event-date','event-repeat'];
 function clearEventError(){
   $('event-error').textContent='';
