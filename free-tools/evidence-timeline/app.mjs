@@ -189,9 +189,9 @@ const readableHelp=text('p','Downloads a local plain-text chronology with exact 
 readableHelp.id='readable-help';
 $('json').after(readableButton);
 $('csv-warning').before(readableHelp);
-function readableTimeline(rows){
+function readableTimeline(rows,partial=false){
   const ordered=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||a.sourceId.localeCompare(b.sourceId));
-  const lines=['Evidence & Timeline Builder — readable chronology','Local review only; no facts or relationships independently verified.','All records included regardless of visible filters. Dates are calendar dates without times or time zones.','Source values are JSON-quoted to preserve punctuation, whitespace, and control-character distinctions.','Records: '+ordered.length,''];
+  const lines=['Evidence & Timeline Builder — readable chronology','Local review only; no facts or relationships independently verified.',partial?'PARTIAL VIEW: only records matching current filters are included. Dates are calendar dates without times or time zones.':'All records included regardless of visible filters. Dates are calendar dates without times or time zones.','Source values are JSON-quoted to preserve punctuation, whitespace, and control-character distinctions.','Records: '+ordered.length,''];
   for(const [index,r] of ordered.entries()){
     lines.push((index+1)+'. '+r.date+' | Source ID: '+JSON.stringify(r.sourceId));
     lines.push('   Type: '+r.kind+' | User-assigned status: '+r.status);
@@ -214,7 +214,7 @@ viewButton.addEventListener('click',()=>{
     const visible=filterByGroupLabel(findSourceIds(records,$('review-filter').value,$('source-find').value),$('group-find').value,$('ungrouped-only').checked);
     if(!visible.length)throw Error('No visible records');
     const preface='PARTIAL FILTERED VIEW — '+visible.length+' of '+records.length+' records. Hidden records are NOT included.\n';
-    startLocalDownload({filename:'evidence-timeline-filtered-view.txt',content:preface+readableTimeline(visible),type:'text/plain;charset=utf-8'});
+    startLocalDownload({filename:'evidence-timeline-filtered-view.txt',content:preface+readableTimeline(visible,true),type:'text/plain;charset=utf-8'});
     $('export-status').textContent='Partial filtered-view download started. Check browser downloads; saving is not guaranteed.';
   }catch{
     $('export-error').textContent='Filtered-view download could not be started. Your records are unchanged. Use the complete readable timeline or exact JSON instead.';
