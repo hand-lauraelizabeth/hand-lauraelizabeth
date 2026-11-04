@@ -95,6 +95,24 @@ function render(){
   $('clear').disabled=records.length===0;
   $('csv-warning').textContent=risk?'CSV unavailable: '+risk.field+' contains '+risk.reason+'. Download exact JSON instead.':'';
 }
+// Restore the full chronology in one action without changing any evidence.
+const resetFiltersButton=text('button','Show all records (clear filters)');
+resetFiltersButton.type='button';
+resetFiltersButton.id='reset-all-filters';
+const resetFiltersHelp=text('p','Clears source ID, group, ungrouped-only, and review-status filters without editing records.');
+resetFiltersHelp.id='reset-filters-help';
+resetFiltersButton.setAttribute('aria-describedby','reset-filters-help');
+$('review-filter').after(resetFiltersButton,resetFiltersHelp);
+resetFiltersButton.addEventListener('click',()=>{
+  $('review-filter').value='all';
+  $('source-find').value='';
+  $('group-find').value='';
+  $('group-find').disabled=false;
+  $('ungrouped-only').checked=false;
+  render();
+  $('count').focus();
+  $('change-status-message').textContent='All chronology filters cleared. Evidence records are unchanged.';
+});
 $('count').tabIndex=-1;
 $('review-filter').addEventListener('change',render);
 $('source-find').addEventListener('input',render);
