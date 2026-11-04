@@ -90,6 +90,7 @@ function render(){
   const risk=csvExportRisk(records);
   $('csv').disabled=records.length===0||Boolean(risk);
   $('json').disabled=records.length===0;
+  $('download-readable').disabled=records.length===0;
   $('clear').disabled=records.length===0;
   $('csv-warning').textContent=risk?'CSV unavailable: '+risk.field+' contains '+risk.reason+'. Download exact JSON instead.':'';
 }
@@ -107,6 +108,14 @@ function clearGroupFilter(){
   $('group-find').value='';$('group-find').disabled=false;$('ungrouped-only').checked=false;
 }
 $('clear-group-find').addEventListener('click',()=>{clearGroupFilter();render();$('group-find').focus();});
+$('group-edit-value').addEventListener('input',()=>{
+  // The previous rejection describes the old value, not the edited draft.
+  if($('group-edit-error').hidden)return;
+  $('group-edit-error').hidden=true;
+  $('group-edit-error').textContent='';
+  $('group-edit-value').removeAttribute('aria-invalid');
+  $('group-edit-value').setAttribute('aria-describedby','group-edit-help');
+});
 $('group-edit-form').addEventListener('submit',event=>{
   event.preventDefault();
   if(editingGroupId===null)return;
@@ -169,6 +178,39 @@ function exportRecords(kind) {
     failure.hidden=false;failure.focus();
   }
 }
+// Human-readable, exact-value timeline for reviewing evidence without a spreadsheet.
+const readableButton=text('button','Download readable timeline');
+readableButton.type='button';
+readableButton.id='download-readable';
+readableButton.disabled=true;
+readableButton.setAttribute('aria-describedby','readable-help');
+const readableHelp=text('p','Downloads a local plain-text chronology with exact JSON-quoted source IDs and descriptions. All records are included, regardless of filters. This is a review aid, not a finding.');
+readableHelp.id='readable-help';
+$('json').after(readableButton);
+$('csv-warning').before(readableHelp);
+function readableTimeline(rows){
+  const ordered=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||a.sourceId.localeCompare(b.sourceId));
+  const lines=['Evidence & Timeline Builder — readable chronology','Local review only; no facts or relationships independently verified.','All records included regardless of visible filters. Dates are calendar dates without times or time zones.','Source values are JSON-quoted to preserve punctuation, whitespace, and control-character distinctions.','Records: '+ordered.length,''];
+  for(const [index,r] of ordered.entries()){
+    lines.push((index+1)+'. '+r.date+' | Source ID: '+JSON.stringify(r.sourceId));
+    lines.push('   Type: '+r.kind+' | User-assigned status: '+r.status);
+    lines.push('   Related-record group: '+JSON.stringify(r.group||''));
+    lines.push('   Description: '+JSON.stringify(r.claim),'');
+  }
+  lines.push('Review classifications and group labels are user-assigned; this document makes no legal, medical, or financial determination.');
+  return lines.join('\n')+'\n';
+}
+readableButton.addEventListener('click',()=>{
+  $('export-error').hidden=true;$('export-error').textContent='';$('export-status').textContent='';
+  try{
+    if(!records.length)throw Error('No records to export');
+    startLocalDownload({filename:'evidence-timeline-readable.txt',content:readableTimeline(records),type:'text/plain;charset=utf-8'});
+    $('export-status').textContent='Readable timeline download started. Check your browser downloads; saving is not guaranteed.';
+  }catch{
+    $('export-error').textContent='Readable timeline download could not be started. Your records are unchanged. Try again or use exact JSON.';
+    $('export-error').hidden=false;$('export-error').focus();
+  }
+});
 $('csv').addEventListener('click',()=>exportRecords('csv'));
 $('json').addEventListener('click',()=>exportRecords('json'));
 $('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];stopGroupEdit();clearStatusUndo();$('review-filter').value='all';$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();}});
@@ -205,6 +247,35 @@ input.addEventListener('change',async()=>{
    }else importFeedback.announce('Import cancelled; existing records retained.');
  }catch(e){importFeedback.fail(String(e.message||e));}
  finally{input.value='';input.disabled=false;}
+});
+
+/* Fictional, explicitly unverified evidence for learning the complete workflow. */
+const exampleRecords = [
+  {sourceId:'EXAMPLE-MINUTES-001',date:'2026-01-12',claim:'Fictional committee minutes record a proposed opening date of March 1.',status:'reported',kind:'source',group:'opening-date'},
+  {sourceId:'EXAMPLE-EMAIL-002',date:'2026-01-19',claim:'A fictional email proposes moving the opening date to March 15. This does not establish the actual date.',status:'unresolved',kind:'source',group:'opening-date'},
+  {sourceId:'EXAMPLE-NOTE-003',date:'2026-01-20',claim:'An imaginary reviewer notes that the two proposed dates need verification against a final decision.',status:'unresolved',kind:'observation',group:'opening-date'}
+];
+const exampleButton=text('button','Try fictional example');
+exampleButton.type='button';
+exampleButton.id='load-example';
+exampleButton.setAttribute('aria-describedby','example-help');
+const exampleHelp=text('p','Loads three fictional records with exact source IDs and a shared review group. This replaces your current records only after confirmation. Export your work first.');
+exampleHelp.id='example-help';
+form.after(exampleButton,exampleHelp);
+exampleButton.addEventListener('click',()=>{
+  if(records.length && !window.confirm('Replace all current records with three fictional examples? Export your work first if you need it.')) {
+    $('change-status-message').textContent='Example cancelled. Your records are unchanged.';
+    return;
+  }
+  records=normalizeEvidence(exampleRecords);
+  stopGroupEdit();
+  clearStatusUndo();
+  $('review-filter').value='all';
+  $('source-find').value='';
+  clearGroupFilter();
+  render();
+  $('count').focus();
+  $('change-status-message').textContent='Three fictional records loaded locally. Compare the related opening-date records, change their review status, then export your work.';
 });
 
 render();
