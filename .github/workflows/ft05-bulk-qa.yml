@@ -1,0 +1,122 @@
+name: FT-05 bulk evidence QA
+on:
+  push:
+    branches:
+      - 'review/ft05-bulk-ci-*'
+      - 'review/ft05-http-csp-ci-*'
+      - 'review/ft05-http-csp-hardening-*'
+      - 'review/ft05-isolated-ci-*'
+      - 'review/ft05-failclosed-csv-*'
+      - 'review/ft05-inline-status-reclassification-*'
+      - 'review/ft05-undo-status-*'
+      - 'review/ft05-source-id-find-*'
+      - 'review/ft05-edit-related-groups-*'
+      - 'review/ft05-group-filter-*'
+      - 'review/ft05-bounded-group-summary-*'
+      - 'review/ft05-guarded-exports-*'
+  pull_request:
+    paths:
+      - 'free-tools/evidence-timeline/**'
+      - '.github/workflows/ft05-bulk-qa.yml'
+permissions:
+  contents: read
+jobs:
+  bulk-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check bulk test syntax
+        run: node --check free-tools/evidence-timeline/bulk-boundary.test.mjs
+      - name: Run 10k-record boundary and integrity checks
+        run: node free-tools/evidence-timeline/bulk-boundary.test.mjs
+      - name: Check conservative CSV gate syntax
+        run: |
+          node --check free-tools/evidence-timeline/safe-export.mjs
+          node --check free-tools/evidence-timeline/safe-export.test.mjs
+      - name: Run independent CSV injection and provenance regression
+        run: node free-tools/evidence-timeline/safe-export.test.mjs
+      - name: Verify immutable exact-ID review reclassification
+        run: |
+          node --check free-tools/evidence-timeline/reclassify.mjs
+          node --check free-tools/evidence-timeline/reclassify.test.mjs
+          node free-tools/evidence-timeline/reclassify.test.mjs
+      - name: Verify reversible status changes and exact evidence
+        run: |
+          node --check free-tools/evidence-timeline/undo-status.mjs
+          node --check free-tools/evidence-timeline/undo-status.test.mjs
+          node free-tools/evidence-timeline/undo-status.test.mjs
+      - name: Verify exact literal source-ID search and 10k boundary
+        run: |
+          node --check free-tools/evidence-timeline/source-id-find.mjs
+          node --check free-tools/evidence-timeline/source-id-find.test.mjs
+          node free-tools/evidence-timeline/source-id-find.test.mjs
+      - name: Verify literal group search, ungrouped review and exact evidence
+        run: |
+          node --check free-tools/evidence-timeline/group-find.mjs
+          node --check free-tools/evidence-timeline/group-find.test.mjs
+          node free-tools/evidence-timeline/group-find.test.mjs
+      - name: Verify bounded group preview, hidden counts and literal identifiers
+        run: |
+          node --check free-tools/evidence-timeline/group-summary.mjs
+          node --check free-tools/evidence-timeline/group-summary.test.mjs
+          node free-tools/evidence-timeline/group-summary.test.mjs
+      - name: Verify guarded local CSV and JSON download lifecycle
+        run: |
+          node --check free-tools/evidence-timeline/download-guard.mjs
+          node --check free-tools/evidence-timeline/download-guard.test.mjs
+          node free-tools/evidence-timeline/download-guard.test.mjs
+      - name: Verify user-assigned group editing and immutable source evidence
+        run: |
+          node --check free-tools/evidence-timeline/edit-group.mjs
+          node --check free-tools/evidence-timeline/edit-group.test.mjs
+          node free-tools/evidence-timeline/edit-group.test.mjs
+      - name: Verify JSON import declared and actual byte counts
+        run: |
+          node --check free-tools/evidence-timeline/json-import.mjs
+          node --check free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
+          node free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
+  bulk-chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    # Official version-matched Python image contains browser binaries and OS
+    # dependencies; avoid repeated downloads on short-lived runners.
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.57.0-noble
+    # GitHub overrides HOME to /github/home, which Firefox rejects when root.
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install version-matched Python Playwright package
+        run: python -m pip install playwright==1.57.0
+      - name: Check browser test syntax
+        run: python -m py_compile free-tools/evidence-timeline/browser-10k-basic.py
+      - name: Run HTTP module and CSP regression
+        run: python free-tools/evidence-timeline/browser-http-csp-smoke.py
+      - name: Run cross-browser HTTP/CSP and browser zoom checks
+        run: python free-tools/evidence-timeline/browser-cross-engine.py
+      - name: Run cross-browser import cancellation, recovery and replacement
+        run: python free-tools/evidence-timeline/browser-import-replacement.py
+      - name: Verify keyboard-safe record deletion in Chromium, Firefox and WebKit
+        run: python free-tools/evidence-timeline/browser-confirm-removal.py
+      - name: Verify status reclassification and exact export in three engines
+        run: python free-tools/evidence-timeline/browser-reclassify.py
+      - name: Verify status undo, focus and invalidation in three engines
+        run: python free-tools/evidence-timeline/browser-undo-status.py
+      - name: Verify source-ID lookup, exact exports and keyboard clear in three engines
+        run: python free-tools/evidence-timeline/browser-source-id-find.py
+      - name: Verify group editor, invalid input, keyboard focus and exact exports in three engines
+        run: python free-tools/evidence-timeline/browser-edit-group.py
+      - name: Verify group filter, Unicode, exports, keyboard focus and 320px in three engines
+        run: python free-tools/evidence-timeline/browser-group-find.py
+      - name: Verify bounded summary, hidden-group search and exact exports in three engines
+        run: python free-tools/evidence-timeline/browser-group-summary.py
+      - name: Verify failed local downloads and retries in three engines
+        run: python free-tools/evidence-timeline/browser-export-recovery.py
+      - name: Run synthetic 10k-record Chromium regression
+        run: |
+          CHROMIUM_BIN="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" python free-tools/evidence-timeline/browser-10k-basic.py
