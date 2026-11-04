@@ -231,7 +231,13 @@ viewButton.addEventListener('click',()=>{
   try{
     const visible=filterByGroupLabel(findSourceIds(records,$('review-filter').value,$('source-find').value),$('group-find').value,$('ungrouped-only').checked);
     if(!visible.length)throw Error('No visible records');
-    const preface='PARTIAL FILTERED VIEW — '+visible.length+' of '+records.length+' records. Hidden records are NOT included.\n';
+    const filterDetails=[
+      'Review status: '+JSON.stringify($('review-filter').value),
+      'Source ID search (literal): '+JSON.stringify($('source-find').value),
+      'Related-group search (literal): '+JSON.stringify($('group-find').value),
+      'Ungrouped records only: '+($('ungrouped-only').checked?'yes':'no')
+    ];
+    const preface='PARTIAL FILTERED VIEW — '+visible.length+' of '+records.length+' records. Hidden records are NOT included.\nFilters at export time:\n'+filterDetails.join('\n')+'\n\n';
     startLocalDownload({filename:'evidence-timeline-filtered-view.txt',content:preface+readableTimeline(visible,true),type:'text/plain;charset=utf-8'});
     $('export-status').textContent='Partial filtered-view download started. Check browser downloads; saving is not guaranteed.';
   }catch{
