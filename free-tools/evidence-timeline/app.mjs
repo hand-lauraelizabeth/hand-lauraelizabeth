@@ -90,6 +90,7 @@ function render(){
   const risk=csvExportRisk(records);
   $('csv').disabled=records.length===0||Boolean(risk);
   $('json').disabled=records.length===0;
+  $('download-readable').disabled=records.length===0;
   $('clear').disabled=records.length===0;
   $('csv-warning').textContent=risk?'CSV unavailable: '+risk.field+' contains '+risk.reason+'. Download exact JSON instead.':'';
 }
@@ -177,6 +178,39 @@ function exportRecords(kind) {
     failure.hidden=false;failure.focus();
   }
 }
+// Human-readable, exact-value timeline for reviewing evidence without a spreadsheet.
+const readableButton=text('button','Download readable timeline');
+readableButton.type='button';
+readableButton.id='download-readable';
+readableButton.disabled=true;
+readableButton.setAttribute('aria-describedby','readable-help');
+const readableHelp=text('p','Downloads a local plain-text chronology with exact JSON-quoted source IDs and descriptions. All records are included, regardless of filters. This is a review aid, not a finding.');
+readableHelp.id='readable-help';
+$('json').after(readableButton);
+$('csv-warning').before(readableHelp);
+function readableTimeline(rows){
+  const ordered=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||a.sourceId.localeCompare(b.sourceId));
+  const lines=['Evidence & Timeline Builder — readable chronology','Local review only; no facts or relationships independently verified.','All records included regardless of visible filters. Dates are calendar dates without times or time zones.','Source values are JSON-quoted to preserve punctuation, whitespace, and control-character distinctions.','Records: '+ordered.length,''];
+  for(const [index,r] of ordered.entries()){
+    lines.push((index+1)+'. '+r.date+' | Source ID: '+JSON.stringify(r.sourceId));
+    lines.push('   Type: '+r.kind+' | User-assigned status: '+r.status);
+    lines.push('   Related-record group: '+JSON.stringify(r.group||''));
+    lines.push('   Description: '+JSON.stringify(r.claim),'');
+  }
+  lines.push('Review classifications and group labels are user-assigned; this document makes no legal, medical, or financial determination.');
+  return lines.join('\\n')+'\\n';
+}
+readableButton.addEventListener('click',()=>{
+  $('export-error').hidden=true;$('export-error').textContent='';$('export-status').textContent='';
+  try{
+    if(!records.length)throw Error('No records to export');
+    startLocalDownload({filename:'evidence-timeline-readable.txt',content:readableTimeline(records),type:'text/plain;charset=utf-8'});
+    $('export-status').textContent='Readable timeline download started. Check your browser downloads; saving is not guaranteed.';
+  }catch{
+    $('export-error').textContent='Readable timeline download could not be started. Your records are unchanged. Try again or use exact JSON.';
+    $('export-error').hidden=false;$('export-error').focus();
+  }
+});
 $('csv').addEventListener('click',()=>exportRecords('csv'));
 $('json').addEventListener('click',()=>exportRecords('json'));
 $('clear').addEventListener('click',()=>{if(window.confirm('Clear all records from this tab? Export first if you need them.')){records=[];stopGroupEdit();clearStatusUndo();$('review-filter').value='all';$('source-find').value='';clearGroupFilter();render();$('sourceId').focus();}});
