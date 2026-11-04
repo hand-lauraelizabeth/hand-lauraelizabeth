@@ -1,0 +1,22 @@
+name: Matcher admissions preview browser and accessibility
+on:
+  push:
+    branches:
+      - review/matcher-ny20-contained-fixture-ci-20261102-11et
+    paths:
+      - 'projects/college-career-matching/admissions-evidence-review.html'
+      - 'projects/college-career-matching/tests/admissions-preview.spec.cjs'
+      - '.github/workflows/matcher-admissions-preview.yml'
+  workflow_dispatch:
+jobs:
+  smoke-accessibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock playwright @axe-core/playwright
+      - run: npx playwright install --with-deps chromium
+      - run: node projects/college-career-matching/tests/admissions-preview.spec.cjs

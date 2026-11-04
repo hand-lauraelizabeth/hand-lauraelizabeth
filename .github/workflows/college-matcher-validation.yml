@@ -3,6 +3,8 @@ name: College matcher validation
 on:
   push:
     paths:
+      - 'projects/college-career-matching/admissions-evidence-review.html'
+      - 'projects/college-career-matching/tests/test_admissions_preview_gate.py'
       - 'projects/college-career-matching/ui/**'
       - 'projects/college-career-matching/ny_pilot_*.py'
       - 'projects/college-career-matching/ny-pilot-*.json'
@@ -11,12 +13,15 @@ on:
       - 'projects/college-career-matching/tests/test_national_snapshot.py'
       - 'projects/college-career-matching/ny20-widget.*'
       - 'projects/college-career-matching/public-explorer.html'
+      - 'projects/college-career-matching/admissions-evidence-review.html'
+      - 'projects/college-career-matching/tests/test_admissions_preview_gate.py'
       - 'projects/college-career-matching/tests/test_ny20_live_projection.py'
       - 'projects/college-career-matching/ny-pilot-*.html'
       - 'projects/college-career-matching/tests/test_ny_pilot_*.py'
       - '.github/workflows/college-matcher-validation.yml'
   pull_request:
     paths:
+      - 'projects/college-career-matching/tests/test_ny20_live_projection.py'
       - 'projects/college-career-matching/ui/**'
       - 'projects/college-career-matching/ny_pilot_*.py'
       - 'projects/college-career-matching/ny-pilot-*.json'
@@ -60,9 +65,14 @@ jobs:
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny_pilot_*.py' -v
       - name: Run national Scorecard source integrity tests
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_national_snapshot.py' -v
-      - name: Run NY20 descriptive projection regression tests
+      - name: Enforce NY20 removed-evidence containment (retired projection tests skipped)
         run: python -m unittest discover -s projects/college-career-matching/tests -p 'test_ny20_live_projection.py' -v
       - name: Validate institution-widget JavaScript syntax
         run: node --check projects/college-career-matching/ny20-widget.js
       - name: Run matcher browser smoke tests
         run: python projects/college-career-matching/ui/test_browser.py
+      - name: Run dedicated admissions preview Chromium and axe accessibility gate
+        run: |
+          mkdir -p /tmp/matcher-axe
+          npm install --prefix /tmp/matcher-axe --no-audit --no-fund axe-core@4.10.3
+          python projects/college-career-matching/tests/test_admissions_preview_gate.py
