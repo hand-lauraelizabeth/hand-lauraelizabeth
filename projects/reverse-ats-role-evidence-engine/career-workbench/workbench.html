@@ -1,0 +1,29 @@
+<section class="panel career-panel" id="career-workbench" aria-labelledby="career-heading">
+  <p class="career-kicker">Explore with your résumé</p>
+  <h2 id="career-heading">Find roles and regional pay</h2>
+  <p>You can start with a résumé alone. Add a target role to focus the search or a U.S. ZIP code to see typical wages where you want to work.</p>
+  <div class="career-fields">
+    <div><label for="career-focus">Target role <span class="muted">(optional)</span></label><input id="career-focus" type="text" maxlength="140" placeholder="e.g., Training and Development Specialist"></div>
+    <div><label for="career-zip">Work-location ZIP <span class="muted">(optional)</span></label><input id="career-zip" type="text" maxlength="10" inputmode="numeric" placeholder="e.g., 11432" autocomplete="off"></div>
+  </div>
+  <div class="row"><button class="btn" id="career-run" type="button">Find matching occupations</button><button class="btn ghost" id="career-read-zip" type="button">Use ZIP from résumé</button></div>
+  <p id="career-status" role="status" aria-live="polite">Paste your résumé above or try the fictional example.</p>
+  <label class="career-area-label" for="career-area">Labor-market area <span class="muted">(when a ZIP overlaps more than one)</span></label>
+  <select id="career-area" disabled><option value="">Choose a labor market</option></select>
+  <div id="career-results" class="career-results"></div>
+  <details><summary>How matching and regional wages work</summary>
+    <p>Occupation leads are ranked using résumé terms that overlap with O*NET occupation titles, alternate titles, descriptions, and core tasks. A target role can refine the ranking. Matches are leads to investigate and do not establish eligibility, fit for a specific opening, or employer interest.</p>
+    <p>Pay is the middle half of published annual wages (25th to 75th percentile) and the median for a matching BLS occupation in the selected metro or nonmetro area. It describes an occupation across employers at the time of the survey. No offer, current vacancy, or personalized salary prediction is implied. Some combinations lack numeric annual percentiles. A ZIP is matched to its 2020 Census ZIP Code Tabulation Area and then to counties and BLS labor markets. PO boxes, newly assigned ZIPs, or some areas where boundaries changed may be unavailable.</p>
+    <p>The résumé, posting, and ZIP are processed in this tab. This feature fetches public files. A wage-file request identifies a group of labor-market areas to the file host.</p>
+    <p>Adapted from the <a href="https://www.onetcenter.org/database.html" target="_blank" rel="noopener noreferrer">O*NET 31.0 Database</a> by the U.S. Department of Labor, Employment and Training Administration, under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Titles and tasks were selected and transformed into a word index. <a href="https://www.bls.gov/oes/tables.htm" target="_blank" rel="noopener noreferrer">BLS May 2025 OEWS tables</a> · <a href="https://www.bls.gov/oes/current/oessrcma.htm" target="_blank" rel="noopener noreferrer">Area wage estimates</a> · <a href="https://www.census.gov/geographies/reference-files/time-series/geo/relationship-files.2020.html" target="_blank" rel="noopener noreferrer">Census geography</a>.</p>
+  </details>
+</section>
+<section class="panel career-panel" id="resume-workbench" aria-labelledby="resume-heading">
+  <p class="career-kicker">Make your evidence easier to find</p>
+  <h2 id="resume-heading">Draft a targeted résumé</h2>
+  <p>Build an editable, plain-text draft using the résumé you supplied. It standardizes common headings and moves relevant bullets up within each role. Employers, dates, metrics and claims come from your text. Review the result before using it.</p>
+  <label for="resume-target">Focus the draft on</label><select id="resume-target"><option value="">Use posting or my target role, if supplied</option></select>
+  <div class="row"><button class="btn" id="resume-build" type="button">Build résumé draft</button><button class="btn ghost" id="resume-copy" type="button" disabled>Copy draft</button><button class="btn ghost" id="resume-download" type="button" disabled>Download text</button></div>
+  <p id="resume-status" role="status" aria-live="polite"></p>
+  <textarea id="resume-output" aria-label="Editable résumé draft" hidden></textarea>
+</section>
