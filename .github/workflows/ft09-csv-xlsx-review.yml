@@ -1,8 +1,9 @@
 name: FT-09 CSV interoperability review
 on:
-  push:
-    branches:
-      - 'review/ft09-csv-xlsx-ci-*'
+  pull_request:
+    paths:
+      - 'free-tools/public-records/**'
+      - '.github/workflows/ft09-*.yml'
   workflow_dispatch:
 permissions:
   contents: read
