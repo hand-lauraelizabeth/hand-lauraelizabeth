@@ -24,15 +24,17 @@ a{color:#12513e;font-weight:650}small{display:block;color:#345649}
 </main><script>
 "use strict";
 const entries=[["Research","Evidence & Timeline Builder","Organize sources, dated evidence and export timelines","https://www.lauraelizabethhand.com/resources/research-writing-tools/evidence-timeline-builder/"],["Research","Text Lens","Explore text patterns and contextual evidence","https://www.lauraelizabethhand.com/resources/research-writing-tools/text-lens/"],["Teaching","Context Before Count","Interpret keywords in context","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/"],["Teaching","Curriculum Planning Canvas","Plan objectives and learning activities","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/"],["Teaching","Standards Check","Explore fictional assessment results","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/"],["Career","College Search","Explore institutions and decision evidence","https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/"],["Career","Reverse ATS","Review résumé and role evidence","https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/"],["AI","Prompt Literacy Debugger","Diagnose prompt weaknesses","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-literacy-debugger/"],["AI","Evidence-Safe Prompt Lab","Build evidence-conscious prompts","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/evidence-safe-prompt-lab/"],["AI","Ethical AI Scenario Auditor","Examine risk and oversight","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ethical-ai-scenario-auditor/"],["Operations","Audience Lifecycle & CRM Migration Planner","Map audience workflows and migration","https://www.lauraelizabethhand.com/resources/project-operations-tools/audience-lifecycle-crm-migration-planner/"]];
+const aliases={"Context Before Count":"kwic nlp corpus concordance","Reverse ATS":"resume cv curriculum vitae job application","Evidence & Timeline Builder":"chronology gantt spreadsheet xlsx","College Search":"university admissions","Text Lens":"text analysis keywords","Curriculum Planning Canvas":"lesson plan syllabus objectives"};
+const normalize=value=>value.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase();
 const search=document.getElementById("search"),category=document.getElementById("category"),results=document.getElementById("results"),count=document.getElementById("count"),empty=document.getElementById("empty");
 function render(){
- const term=search.value.trim().toLocaleLowerCase(),area=category.value;
- const matches=entries.filter(([group,name,description])=>(!area||group===area)&&(!term||[group,name,description].some(s=>s.toLocaleLowerCase().includes(term))));
+ const term=normalize(search.value.trim()),area=category.value;
+ const matches=entries.filter(([group,name,description])=>(!area||group===area)&&(!term||[group,name,description,aliases[name]||""].some(s=>normalize(s).includes(term))));
  const fragment=document.createDocumentFragment();
  for(const [group,name,description,url] of matches){
   const item=document.createElement("li"),heading=document.createElement("h2"),desc=document.createElement("p"),link=document.createElement("a"),tag=document.createElement("small");
   heading.textContent=name;desc.textContent=description;tag.textContent=group;
-  link.textContent="Open published tool";link.href=url;link.rel="noopener noreferrer";
+  link.textContent="Open "+name;link.href=url;link.rel="noopener noreferrer";
   item.append(tag,heading,desc,link);fragment.append(item);
  }
  results.replaceChildren(fragment);count.textContent=matches.length+" of "+entries.length+" tools shown";empty.hidden=matches.length!==0;
