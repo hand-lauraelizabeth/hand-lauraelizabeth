@@ -49,9 +49,9 @@ def main():
         assert "rn-nursing-pathway" in download.value.suggested_filename
         assert not errors,errors
         # Storage-disabled behavior: both sessionStorage methods throw.
-        page.add_init_script("""() => {
+        page.add_init_script("""(() => {
           Object.defineProperty(window,'sessionStorage',{get(){throw Error('disabled')}});
-        }""")
+        })();""")
         page.reload()
         page.locator("#check-cycle").check()
         assert "1 of 3" in page.locator("#check-status").inner_text()
