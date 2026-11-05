@@ -139,6 +139,8 @@ def run():
    assert set(self_prefs)=={"career_analysis","career_creativity"}
    assert self_prefs["career_analysis"]["attribute_id"]=="onet31:work_activity:4.A.2.a.4:IM" and self_prefs["career_analysis"]["scale_min"]==1 and self_prefs["career_analysis"]["scale_max"]==5
    assert self_prefs["career_creativity"]["attribute_id"]=="onet31:work_activity:4.A.2.b.2:IM"
+   # The API can report ready before React-free DOM cards finish updating; await the rendered evidence.
+   wait.until(lambda d:any("North Harbor College" in c.text and "Work-characteristic alignment" in c.text and "Median pathway alignment index: 69/100" in c.text for c in d.find_elements(By.CSS_SELECTOR,".ccx-card")))
    north=next(c for c in driver.find_elements(By.CSS_SELECTOR,".ccx-card") if "North Harbor College" in c.text)
    assert "Work-characteristic alignment" in north.text and "Median pathway alignment index: 69/100" in north.text
    response=driver.execute_script("return document.getElementById('leh-ccx').getLastServiceResponse();")
