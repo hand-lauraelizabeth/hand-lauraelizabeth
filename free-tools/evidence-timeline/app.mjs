@@ -214,6 +214,8 @@ function renderRecord(record) {
 }
 function render() {
   visualOffset=0;
+  $('visual-error').hidden=true;
+  $('visual-status').textContent='';
   const report = summary(records);
   const visible = visibleRecords();
   const filtered = visible.length !== records.length || $('review-filter').value !== 'all' ||
@@ -403,10 +405,8 @@ function renderVisual() {
   $('visual-prev').disabled=visualOffset===0;
   $('visual-next').disabled=visualOffset+20>=rows.length;
   $('visual-prev').hidden=$('visual-next').hidden=rows.length<=20;
-  $('visual-error').hidden=true;
-  $('visual-status').textContent='';
 }
-$('visual-scope').addEventListener('change',()=>{visualOffset=0;renderVisual();});
+$('visual-scope').addEventListener('change',()=>{visualOffset=0;$('visual-error').hidden=true;$('visual-status').textContent='';renderVisual();});
 $('chart-preview').addEventListener('toggle',renderVisual);
 $('visual-prev').addEventListener('click',()=>{visualOffset=Math.max(0,visualOffset-20);renderVisual();});
 $('visual-next').addEventListener('click',()=>{visualOffset+=20;renderVisual();});
@@ -418,7 +418,7 @@ function downloadVisual(kind) {
     const content=kind==='xlsx'?exportGantt(rows,options):timelineSVG(rows,options);
     startLocalDownload({filename:'evidence-timeline-'+(options.scope==='All entries'?'all':'filtered')+'.'+kind,
       content,type:kind==='xlsx'?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'image/svg+xml;charset=utf-8'});
-    $('visual-status').textContent=(kind==='xlsx'?'Excel Gantt':'Timeline visual')+' download started · '+rows.length+' entries. Check your browser’s downloads.';
+    $('visual-status').textContent=(kind==='xlsx'?'Excel Gantt':'Timeline visual')+' download started · '+rows.length+(rows.length===1?' entry.':' entries.')+' Check your browser’s downloads.';
   } catch(exception) {
     $('visual-error').textContent=String(exception.message||exception);
     $('visual-error').hidden=false;

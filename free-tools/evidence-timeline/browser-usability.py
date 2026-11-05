@@ -94,6 +94,7 @@ def main():
                     page.locator('#download-visual').click()
                 visual = Path(folder) / f'{engine}-visual.svg'
                 event.value.save_as(visual)
+                assert 'Timeline visual download started · 4 entries.' in page.locator('#visual-status').inner_text()
                 image = ET.fromstring(visual.read_text())
                 assert 'SYNTHETIC-004' in ''.join(image.itertext())
                 assert len(image.findall('.//{http://www.w3.org/2000/svg}path')) == 3
@@ -117,6 +118,7 @@ def main():
                     page.locator('#download-gantt').click()
                 filtered_gantt = Path(folder) / f'{engine}-filtered.xlsx'
                 event.value.save_as(filtered_gantt)
+                assert 'Excel Gantt download started · 1 entry.' in page.locator('#visual-status').inner_text()
                 with ZipFile(filtered_gantt) as archive:
                     assert 'EXAMPLE-EMAIL-002' in archive.read('xl/worksheets/sheet2.xml').decode()
                     assert 'EXAMPLE-MINUTES-001' not in archive.read('xl/worksheets/sheet2.xml').decode()
