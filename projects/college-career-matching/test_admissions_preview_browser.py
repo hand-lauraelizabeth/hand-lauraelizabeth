@@ -23,8 +23,15 @@ def main():
         page=browser.new_page(viewport={"width":390,"height":844})
         errors=[]
         page.on("pageerror",lambda e: errors.append(str(e)))
-        page.goto(url)
-        page.locator("#check-cycle").wait_for(state="attached", timeout=5000)
+        response = page.goto(url)
+        page.wait_for_load_state("load")
+        # Fail with actionable HTTP and JavaScript diagnostics rather than an opaque selector timeout.
+        if not response or response.status != 200:
+            raise AssertionError(f"Preview HTTP status: {response.status if response else 'no response'} at {url}")
+        try:
+            page.locator("#check-cycle").wait_for(state="attached", timeout=5000)
+        except Exception as exc:
+            raise AssertionError(f"Admissions checklist did not initialize; JS errors={errors}; document title={page.title()!r}; script count={page.locator('script').count()}; checks markup={page.locator('#checks').inner_html()!r}") from exc
         assert page.get_by_role("heading",name="College + Career Matcher: admissions evidence").is_visible()
         page.locator("#check-cycle").check()
         assert "1 of 3" in page.locator("#check-status").inner_text()
