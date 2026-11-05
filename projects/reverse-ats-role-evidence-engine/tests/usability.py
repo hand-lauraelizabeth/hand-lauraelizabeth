@@ -64,6 +64,7 @@ def main():
           expect(page.locator('#studio-plan')).to_be_visible()
           assert page.locator('#studio-actions > li').count()>=1
           assert page.locator('#studio-criteria article').count()>=1
+          assert int(page.locator('#studio-counts .plan-count').nth(1).locator('strong').inner_text())>0
           page.screenshot(path=str(ROOT/f'usability-{engine}-review.png'),full_page=True)
           page.locator('#studio-criteria-filter').select_option('preferred')
           assert 'master' in page.locator('#studio-criteria').inner_text().lower()

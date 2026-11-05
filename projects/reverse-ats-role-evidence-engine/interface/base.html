@@ -612,7 +612,7 @@ $('#ats-export').addEventListener('click',()=>{
 /* Send only content height to the embedding portfolio page, never candidate text. */
 function atsReportHeight(){
  if(window.parent===window)return;
- try{window.parent.postMessage({type:'leh-reverse-ats-height',height:Math.ceil(document.documentElement.scrollHeight)+24},'*')}catch(_e){}
+ try{window.parent.postMessage({type:'leh-reverse-ats-height',height:Math.ceil(document.body.getBoundingClientRect().height)+24},'*')}catch(_e){}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',atsReportHeight,{once:true});
 else atsReportHeight();
