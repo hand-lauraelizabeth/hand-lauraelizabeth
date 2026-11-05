@@ -23,3 +23,7 @@ For federal requests, consult [FOIA.gov](https://www.foia.gov/how-to.html), the 
 ## Accessibility and testing limits
 
 Inputs have visible labels and status updates use a live region. Synthetic Chromium tests exercise import, export, mobile width, enlarged text, and safe display of HTML-like strings. Those checks do **not** establish WCAG conformance. Browser-served CSP, native zoom, screen readers, Firefox, and WebKit still require independent review.
+
+## Print a saved summary
+
+Choose **Print saved summary** to open your browser's print dialog for the saved request list, chronology, and missing-documentation prompts. The print view also includes saved submission dates and agency tracking IDs. Open correction editors and unsaved form values are excluded. Printing or saving to PDF can create a sensitive copy outside this browser tab; verify the destination and secure or delete copies appropriately. Printing does not replace the exact-string JSON backup.
