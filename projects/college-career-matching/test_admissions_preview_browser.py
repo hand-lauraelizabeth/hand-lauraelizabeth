@@ -1,16 +1,30 @@
 """Hosted-preview-equivalent Chromium interaction and accessibility smoke tests."""
 import pathlib
+import functools
+import http.server
+import threading
 from playwright.sync_api import sync_playwright
 
-URL = pathlib.Path(__file__).with_name("admissions-evidence-review-preview.html").resolve().as_uri()
+DIRECTORY = pathlib.Path(__file__).resolve().parent
+
+class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
 
 def main():
-    with sync_playwright() as p:
+    handler = functools.partial(QuietHandler, directory=str(DIRECTORY))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = f"http://127.0.0.1:{server.server_port}/admissions-evidence-review-preview.html"
+    try:
+      with sync_playwright() as p:
         browser=p.chromium.launch()
         page=browser.new_page(viewport={"width":390,"height":844})
         errors=[]
         page.on("pageerror",lambda e: errors.append(str(e)))
-        page.goto(URL)
+        page.goto(url)
+        page.locator("#check-cycle").wait_for(state="attached", timeout=5000)
         assert page.get_by_role("heading",name="College + Career Matcher: admissions evidence").is_visible()
         page.locator("#check-cycle").check()
         assert "1 of 3" in page.locator("#check-status").inner_text()
@@ -39,6 +53,9 @@ def main():
         assert "0 of 3" in page.locator("#check-status").inner_text()
         assert not errors,errors
         browser.close()
+    finally:
+      server.shutdown()
+      server.server_close()
     print("PASS: pathway state, privacy clear, download, storage-disabled fallback, mobile Chromium")
 
 if __name__=="__main__":main()
