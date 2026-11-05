@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Evidence &amp; Timeline Builder</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to workspace</a>
+<header class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="brand-mark" aria-hidden="true">E</span> Evidence &amp; Timeline Builder</p>
+    <h1>See what happened.<br>Keep the source.</h1>
+    <p class="lead">Turn emails, notes, and documents into a timeline you can review and share. See what changed, keep the sources, and take away an Excel Gantt or a timeline visual.</p>
+    <div class="hero-actions"><button id="load-example" class="primary" type="button">Try the 3-entry example <span aria-hidden="true">→</span></button><button id="start-own" class="secondary" type="button">Start my timeline</button></div>
+    <p class="trust">Free to use <span aria-hidden="true">·</span> No account <span aria-hidden="true">·</span> Entries stay in this tab</p>
+    <button id="open-saved" class="text-button" type="button">Already started? Open a saved timeline</button>
+  </div>
+  <aside class="hero-preview" aria-label="An example of what you can build">
+    <div class="preview-top"><span class="preview-dot" aria-hidden="true"></span> Project opening date <span class="preview-badge">Example</span></div>
+    <ol class="preview-events">
+      <li><span class="preview-date">JAN 12</span><strong>March 1 proposed</strong><span>Committee meeting notes</span></li>
+      <li><span class="preview-date">JAN 19</span><strong>March 15 suggested</strong><span>Follow-up email</span></li>
+      <li><span class="preview-date">JAN 20</span><strong>Final date still needs checking</strong><span>Reviewer's note</span></li>
+    </ol>
+    <p class="preview-caption">One sequence. Every entry traceable to its source.</p>
+  </aside>
+</header>
+<nav class="steps" aria-label="How to use this tool">
+  <div><span>1</span><p><strong>Add an entry</strong>Give it a date, source, and description.</p></div>
+  <div><span>2</span><p><strong>Review the timeline</strong>Search, group, and check what changed.</p></div>
+  <div><span>3</span><p><strong>Take it with you</strong>Download an Excel Gantt, visual, or saved copy.</p></div>
+</nav>
+<main id="main" tabindex="-1">
+  <div class="workspace-heading"><div><p class="eyebrow">Your workspace</p><h2>A clearer view of your records</h2></div><div class="save-block"><button id="save-work" class="secondary" type="button" disabled>Save to reopen <span aria-hidden="true">↓</span></button><span>Download a JSON copy before leaving.</span></div></div>
+  <div id="demo-guide" class="demo-guide" hidden><div><strong>You're exploring a fictional example.</strong><p>When did the proposed opening date change? Search “March”, compare the sources, or try editing an entry.</p></div><button id="start-fresh" class="secondary" type="button">Start a blank timeline</button></div>
+  <div class="workspace-grid">
+    <section class="editor panel" aria-labelledby="entry-heading">
+      <p class="step-label">01 / Add</p><h2 id="entry-heading">Add your first entry</h2><p class="section-intro">Start with one email, note, or document. Add more whenever you need.</p>
+      <p id="editing-note" class="editing-note" hidden>Editing an existing entry. Save your changes or cancel below.</p>
+      <form id="entry-form" novalidate>
+        <label for="date">When did it happen? <span class="required">Required</span></label><input id="date" name="date" type="date" required>
+        <details id="date-range-options" class="date-range-options"><summary>Does this entry span several days?</summary><label for="endDate">End date <span class="required">Optional</span></label><input id="endDate" name="endDate" type="date" aria-describedby="end-date-help"><p id="end-date-help" class="hint">Add an end date for a Gantt bar. Leave it blank for a single-day milestone.</p></details>
+        <label for="sourceId">Source reference <span class="required">Required</span></label><input id="sourceId" name="sourceId" maxlength="120" required autocomplete="off" placeholder="e.g. Email-Jan-19" aria-describedby="source-help"><p id="source-help" class="hint">A short, unique name so you can find the original again.</p>
+        <label for="claim">What does the record say? <span class="required">Required</span></label><textarea id="claim" name="claim" maxlength="20000" rows="4" required placeholder="e.g. The email proposes moving the opening date to March 15."></textarea>
+        <details class="entry-options"><summary>Add a group or review label <span>Optional</span></summary>
+          <label for="group">Related topic or group</label><input id="group" name="group" maxlength="120" autocomplete="off" placeholder="e.g. opening-date"><p class="hint">Use the same label to connect entries about one topic.</p>
+          <label for="kind">What kind of entry is this?</label><select id="kind" name="kind"><option value="source">Source record</option><option value="observation">My observation</option><option value="inference">My interpretation</option></select><p class="hint">Keep what a source says distinct from your own reading of it.</p>
+          <label for="status">Review status</label><select id="status" name="status"><option value="reported">Recorded</option><option value="corroborated">Cross-checked</option><option value="disputed">Disputed</option><option value="unresolved">Needs review</option></select><p class="hint">These are labels you assign. The tool does not verify a source.</p>
+        </details>
+        <p id="error" class="error" role="alert" tabindex="-1" hidden></p>
+        <div class="form-actions"><button id="save-entry" class="primary" type="submit">Add to timeline <span aria-hidden="true">+</span></button><button id="cancel-entry-edit" class="text-button" type="button" hidden>Cancel editing</button></div>
+        <p id="entry-message" class="success-message" role="status" aria-live="polite"></p>
+      </form>
+      <details id="resume-panel" class="support-details"><summary>Open a saved timeline</summary><p id="resume-json-help" class="hint">Choose a JSON copy downloaded from this tool. You'll review any replacement before it happens.</p><label for="resume-json" class="file-label">Saved timeline (.json)</label><input type="file" id="resume-json" accept=".json,application/json"></details>
+    </section>
+    <section class="timeline panel" aria-labelledby="timeline-heading">
+      <div class="timeline-top"><div><p class="step-label">02 / Review</p><h2 id="timeline-heading">Your timeline</h2></div><span id="record-badge" class="count-badge">0 entries</span></div>
+      <div class="timeline-search"><label for="text-search">Search your timeline</label><input id="text-search" type="search" autocomplete="off" placeholder="Search descriptions, sources, or groups…"><p id="count" class="result-count" role="status" aria-live="polite" tabindex="-1">Your entries will appear here in date order.</p></div>
+      <details id="filter-panel" class="filter-panel"><summary>Filter by status, source, or group</summary><div class="filter-grid">
+        <div><label for="review-filter">Review status</label><select id="review-filter"><option value="all">All statuses</option><option value="reported">Recorded</option><option value="corroborated">Cross-checked</option><option value="disputed">Disputed</option><option value="unresolved">Needs review</option></select></div>
+        <div><label for="source-find">Exact source reference</label><input id="source-find" type="search" maxlength="120" autocomplete="off" placeholder="e.g. Email-Jan-19"><button id="clear-source-find" class="text-button small" type="button" disabled>Clear source filter</button></div>
+        <div><label for="group-find">Related topic or group</label><input id="group-find" type="search" maxlength="120" autocomplete="off" placeholder="e.g. opening-date"><label class="checkbox-label" for="ungrouped-only"><input id="ungrouped-only" type="checkbox"> Only entries without a group</label><button id="clear-group-find" class="text-button small" type="button" disabled>Clear group filter</button></div>
+      </div><p class="hint">Source and group filters match the spelling and capitalization you entered.</p></details>
+      <button id="reset-all-filters" class="text-button small" type="button" hidden>Clear all filters</button>
+      <div id="insights" class="insights" hidden><div><strong id="date-span">—</strong><span>Period covered</span></div><div><strong id="needs-review">0</strong><span>Need review or are disputed</span></div><div><strong id="linked-groups">0</strong><span>Groups with related entries</span></div></div>
+      <p id="change-status-message" class="success-message" role="status" aria-live="polite"></p><button id="undo-status" class="text-button small" type="button" hidden disabled>Undo last status change</button>
+      <section id="group-edit-panel" class="group-editor" aria-labelledby="group-edit-heading" hidden><h3 id="group-edit-heading">Edit related group</h3><p id="group-edit-source"></p><p id="group-edit-help" class="hint">Use the same label on entries you want to compare.</p><form id="group-edit-form" novalidate><label for="group-edit-value">Group label (leave blank to remove)</label><input id="group-edit-value" name="group" maxlength="120" autocomplete="off" aria-describedby="group-edit-help"><p id="group-edit-error" class="error" role="alert" tabindex="-1" hidden></p><div class="inline-actions"><button class="primary" type="submit">Save group</button><button id="cancel-group-edit" class="secondary" type="button">Cancel</button></div></form></section>
+      <section id="visual-panel" class="visual-panel" aria-labelledby="visual-heading" hidden>
+        <div class="visual-heading"><div><p class="step-label">See the sequence</p><h3 id="visual-heading">Your visual timeline</h3></div><span class="visual-tag">Excel + SVG</span></div>
+        <p class="hint">Diamonds show single-day entries. Bars show date ranges you supplied.</p>
+        <label for="visual-scope">Include in the visual and Gantt download</label><select id="visual-scope"><option value="all">All entries</option><option value="visible">Only visible entries (current search and filters)</option></select>
+        <p id="visual-summary" class="result-count" role="status" aria-live="polite"></p>
+        <details id="chart-preview"><summary>Preview the timeline visual</summary><p id="visual-page-note" class="hint"></p><p class="hint">Scroll sideways to see the full chart. Full descriptions are in the entries below.</p><div id="visual-chart" class="visual-chart" tabindex="0" role="region" aria-label="Visual timeline. Scroll horizontally to explore; full descriptions are in the entries below."></div><div class="visual-pagination"><button id="visual-prev" class="secondary small" type="button">Previous 20</button><button id="visual-next" class="secondary small" type="button">Next 20</button></div></details>
+        <div class="visual-downloads"><button id="download-gantt" class="primary" type="button">Download Excel Gantt (.xlsx) ↓</button><button id="download-visual" class="secondary" type="button">Download timeline visual (.svg) ↓</button></div>
+        <p class="hint">Excel includes an editable Gantt and complete source entries. SVG is a scalable image for documents or presentations. Both downloads include every entry in your chosen view; long visual labels are shortened.</p>
+        <p id="visual-error" class="error" role="alert" tabindex="-1" hidden></p><p id="visual-status" class="success-message" role="status" aria-live="polite"></p>
+      </section>
+      <ol id="records" aria-label="Timeline entries in date order"></ol>
+      <div id="empty" class="empty-state"><div class="empty-icon" aria-hidden="true"><span></span><span></span><span></span></div><h3>Your story starts with one record.</h3><p>Add your first entry, or explore the example to see how a timeline comes together.</p><button id="empty-example" class="secondary" type="button">Show me an example</button></div>
+      <div id="no-results" class="empty-state" hidden><h3>No matching entries.</h3><p>Try another word or clear your filters to see the complete timeline.</p><button id="clear-no-results" class="secondary" type="button">Show all entries</button></div>
+      <div class="download-panel"><div><p class="step-label">03 / Keep</p><h3>Make your timeline useful outside this tab.</h3><p>Download a readable text copy for review, or save your entries to reopen later.</p></div>
+        <div class="download-primary"><button id="download-readable" class="primary" type="button" disabled>Download timeline (.txt) <span aria-hidden="true">↓</span></button><button id="json" class="secondary" type="button" disabled>Save to reopen (.json)</button></div>
+        <details class="more-exports"><summary>More download options</summary><button id="download-filtered" class="secondary" type="button" disabled>Download visible entries (.txt)</button><p class="hint">Only entries matching your current search and filters. The file states which filters were applied.</p><button id="csv" class="secondary" type="button" disabled>Download spreadsheet (.csv)</button><p class="hint">CSV contains every entry. Some text can be interpreted as a formula by spreadsheet software. If CSV is unavailable, save JSON to keep the original text.</p></details>
+        <p id="csv-warning" class="hint" role="status" aria-live="polite"></p><p id="export-error" class="error" role="alert" tabindex="-1" hidden></p><p id="export-status" class="success-message" role="status" aria-live="polite"></p>
+      </div>
+      <details class="review-details"><summary>Related entries and review summary</summary><p id="review-summary"></p><p id="groups"></p><p class="hint">Groups connect entries for your review. A shared group does not establish that sources agree. Long group previews are shortened on screen; JSON keeps the complete text.</p></details>
+      <details class="privacy-details"><summary>Privacy, saving, and limits</summary><p>Your entries stay in this browser tab. Download a JSON copy before closing or reloading. You can reopen it with “Open a saved timeline”.</p><p>Dates use calendar days. The tool preserves your source references, descriptions, and labels. It organizes what you enter; verification and interpretation remain yours.</p></details>
+      <button id="clear" class="danger-button" type="button" disabled>Clear this timeline</button>
+    </section>
+  </div>
+</main>
+<footer><p>Built for research, project handovers, and records review.</p><p>Keep the sequence. Keep the source. Decide what still needs checking.</p></footer>
+</body>
+</html>
