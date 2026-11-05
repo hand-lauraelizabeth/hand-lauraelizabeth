@@ -56,6 +56,7 @@ def main():
           expect(page.locator('#studio-inputs')).to_be_visible()
           assert page.locator('#leh-import-file').count()==1
           assert page.locator('#studio-revision-build').count()==1
+          page.screenshot(path=str(ROOT/f'usability-{engine}-start.png'),full_page=True)
           page.locator('#studio-review').click()
           assert 'at least 80 characters' in page.locator('#studio-review-message').inner_text()
           assert page.locator('#candidate').evaluate('(e)=>e===document.activeElement')
@@ -63,6 +64,7 @@ def main():
           expect(page.locator('#studio-plan')).to_be_visible()
           assert page.locator('#studio-actions > li').count()>=1
           assert page.locator('#studio-criteria article').count()>=1
+          page.screenshot(path=str(ROOT/f'usability-{engine}-review.png'),full_page=True)
           page.locator('#studio-criteria-filter').select_option('preferred')
           assert 'master' in page.locator('#studio-criteria').inner_text().lower()
           assert 'Required' not in page.locator('#studio-criteria').inner_text()
@@ -128,7 +130,6 @@ def main():
           assert page.locator('#tab-resume').get_attribute('aria-selected')=='true'
           page.locator('#leh-edits .leh-row details summary').first.click()
           assert 'pasted' in page.locator('#leh-edits').inner_text().lower()
-          line=page.locator('#leh-edits textarea').filter(has_text='')
           quantity=page.locator('#leh-edits textarea').all()
           quantity=next(e for e in quantity if '120 employees' in e.input_value())
           quantity.fill(quantity.input_value().replace('120','999'))

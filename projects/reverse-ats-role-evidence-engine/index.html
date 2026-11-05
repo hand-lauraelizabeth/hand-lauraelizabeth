@@ -204,7 +204,7 @@ const TYPE_RULES=[
  ['tool',/(salesforce|hubspot|workday|tableau|power bi|sql|python|\br\b|excel|adobe|asana|jira|cms|crm|google analytics)/i],
  ['responsibility',/(responsible for|you will|lead |manage |develop |build |create |oversee |coordinate |design |analyze |deliver |drive |partner with|implement|own )/i]
 ];
-function clean(s){return s.replace(/^[-•*\d.)\s]+/,'').replace(/\s+/g,' ').trim()}
+function clean(s){return s.replace(/^\s*(?:[-•*]\s*|\(?\d+[.)]\s+)/,'').replace(/\s+/g,' ').trim()}
 function lines(text){return text.split(/\n+/).flatMap(x=>x.split(/(?<=[.;!?])\s+/)).map(clean).filter(x=>x.length>18)}
 function jobClauses(text){
  const rows=[];let context='';

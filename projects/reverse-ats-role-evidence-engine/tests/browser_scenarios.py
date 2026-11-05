@@ -16,6 +16,11 @@ class Quiet(SimpleHTTPRequestHandler):
 def free_port():
  with socket.socket() as s:s.bind(("127.0.0.1",0));return s.getsockname()[1]
 def click(driver,wait,id_):
+ if id_ in ("profileSave","profileLoad") and driver.find_elements(By.ID,"tab-evidence"):
+  driver.find_element(By.ID,"tab-evidence").click()
+ if id_=="ats-run" and driver.find_elements(By.ID,"tab-review"):
+  driver.find_element(By.ID,"tab-review").click()
+  driver.execute_script("document.getElementById(\'studio-detailed-audit\').open=true")
  el=wait.until(lambda d:d.find_element(By.ID,id_));driver.execute_script("arguments[0].scrollIntoView({block:'center'});",el);driver.execute_script("arguments[0].click();",el);return el
 
 def run():
@@ -24,7 +29,7 @@ def run():
  try:
   o=Options();o.add_argument("--headless=new");o.add_argument("--no-sandbox");o.add_argument("--disable-dev-shm-usage");o.add_argument("--window-size=1440,1600")
   driver=webdriver.Chrome(options=o);driver.get(f"http://127.0.0.1:{port}/index.html");wait=WebDriverWait(driver,10)
-  assert "does not emulate a proprietary ATS" in driver.find_element(By.TAG_NAME,"body").text
+  assert "do not predict an employer" in driver.find_element(By.TAG_NAME,"body").text
   click(driver,wait,"sampleJob");click(driver,wait,"sampleCandidate");click(driver,wait,"analyze")
   # Reverse ATS audit uses the existing job and source-aware evidence inputs.
   click(driver,wait,"ats-run")
@@ -42,6 +47,7 @@ def run():
   Select(driver.find_element(By.ID,"ats-workflow")).select_by_value("greenhouse")
   click(driver,wait,"ats-run")
   assert "Greenhouse documentation" in driver.find_element(By.ID,"ats-results").text
+  click(driver,wait,"tab-evidence")
   wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#evidenceRows tr"))>=3)
   wait.until(lambda d:len(d.find_elements(By.CSS_SELECTOR,"#rows tr"))>=3)
   matrix=driver.find_element(By.ID,"rows").text
@@ -122,3 +128,4 @@ const f=document.createElement('iframe');f.id='ats-embedded-smoke';f.src='/index
   srv.shutdown();srv.server_close()
 
 if __name__=="__main__":run()
+
