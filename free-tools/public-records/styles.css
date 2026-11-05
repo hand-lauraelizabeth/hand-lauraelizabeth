@@ -71,3 +71,8 @@ form > .form-error:focus{outline:3px solid #a36d19;outline-offset:3px}
 }
 button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 input[type="date"], input[type="file"] { overflow: hidden; }
+
+/* Search changes screen view only; printing includes every saved request. */
+#request-filter{display:block;width:min(100%,36rem);margin-top:.3rem}
+#requests .card[hidden]{display:none}
+@media print{section[aria-labelledby="request-heading"] > label,#request-filter-count{display:none!important}#requests .card[hidden]{display:block!important}}
