@@ -1,8 +1,9 @@
 name: FT-09 browser layout and keyboard review
 on:
-  push:
-    branches:
-      - 'review/ft09-browser-ci-*'
+  pull_request:
+    paths:
+      - 'free-tools/public-records/**'
+      - '.github/workflows/ft09-*.yml'
   workflow_dispatch:
 permissions:
   contents: read
