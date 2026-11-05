@@ -33,6 +33,10 @@ export function ganttParts(input,{scope='All entries',total=input.length,filters
   const {rows,first,last,step,buckets}=scale;
   if(rows.some(row=>row.date<'1900-01-01'))throw Error('Excel Gantt dates must be on or after Jan 1, 1900. Use the visual timeline or JSON for earlier records.');
   const parts={...GANTT_TEMPLATE};
+  // Include both fill colors for solid differential fills across spreadsheet viewers.
+  // OOXML primer: https://download.microsoft.com/download/e/1/4/e14fb96f-83b8-4a2a-84db-7fa8acbe061a/Office%20Open%20XML%20Part%203%20-%20Primer.pdf
+  parts['xl/styles.xml']=parts['xl/styles.xml'].replace(/<x:patternFill patternType="solid"><x:bgColor([^>]*)\/><\/x:patternFill>/g,
+    '<x:patternFill patternType="solid"><x:fgColor$1/><x:bgColor$1/></x:patternFill>');
   const lastCol=columnName(3+buckets),lastRow=rows.length+8;
   for(const [path,isGantt] of [['xl/worksheets/sheet1.xml',true],['xl/worksheets/sheet2.xml',false]]) {
     const titleStyle=styleOf(path,'A2'),noteStyle=styleOf(path,'A3'),headStyle=styleOf(path,'A8');

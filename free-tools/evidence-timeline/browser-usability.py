@@ -150,7 +150,7 @@ def main():
                 page.locator('#open-saved').click()
                 page.once('dialog', lambda dialog: dialog.accept())
                 page.locator('#resume-json').set_input_files(saved)
-                page.wait_for_function("document.querySelectorAll('#records > li').length === 4")
+                page.locator('#records > li').nth(3).wait_for(state='visible')
                 assert 'signed decision' in page.locator('#records').inner_text()
                 assert 'Jan 26, 2026' in page.locator('#visual-summary').inner_text()
 
