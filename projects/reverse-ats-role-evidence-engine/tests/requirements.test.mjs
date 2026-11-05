@@ -34,4 +34,11 @@ const ev={status:'not visible',confidentiality:'public',verification_status:'unr
 assert.equal(ctx.gap('preferred',ev,'Master’s preferred or equivalent experience.',[]),'Evidence visibility or context gap');count++;
 assert.equal(ctx.hardConditionStatus('Bachelor’s degree required.',[],ev),'degree evidence not visible');count++;
 assert.match(ctx.gap('hard',ev,'8 years of experience required.',[]),/Hard-condition verification gap/);count++;
+const numeric=check('Required Qualifications:\n5+ years of experience in training\n2021–2026 dates documented',['hard','hard']);
+assert.match(numeric[0].text,/^5\+ years/);count++;
+assert.match(ctx.hardConditionStatus(numeric[0].text,[],ev),/duration unresolved/i);count++;
+assert.match(numeric[1].text,/^2021–2026/);count++;
+const numbered=check('1. Bachelor degree required\n2) Excel experience preferred',['hard','preferred']);
+assert.match(numbered[0].text,/^Bachelor/);count++;
 console.log('Role Evidence requirement context: '+count+' checks PASS');
+

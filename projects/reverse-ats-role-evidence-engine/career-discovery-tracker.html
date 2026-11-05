@@ -72,7 +72,7 @@ textarea{width:100%;min-height:76px;margin-top:8px;background:var(--bg);border:1
 <header>
   <div>
     <h1>Reverse Tracker</h1>
-    <p>Feed it who you are. It works out which roles fit you, what they pay where, and keeps your pipeline. Everything runs in this file, in your browser.</p>
+    <p>Explore role families from your evidence and keep application statuses and notes. This tracker uses a built-in role model and illustrative pay estimates. Use Find roles &amp; pay above for published occupation and regional wage data.</p>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button class="btn ghost" id="theme">Toggle theme</button>
@@ -324,5 +324,5 @@ $('#profileImport').addEventListener('change',async e=>{
 });
 
 </script>
-</body>
+<script>if(window.parent!==window){new ResizeObserver(()=>window.parent.postMessage({type:"leh-reverse-ats-height",height:Math.ceil(document.body.getBoundingClientRect().height)+24},"*")).observe(document.body);}</script></body>
 </html>

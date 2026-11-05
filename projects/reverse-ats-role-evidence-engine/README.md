@@ -1,5 +1,15 @@
 # Reverse ATS · Role Evidence Studio
 
+Start with a résumé, then choose **Review a job**, **Find roles & pay**, **Improve résumé**, or **Evidence & profile**. Shared inputs stay available across tasks. Try the fictional example for an immediate populated review.
+
+The guided interface adds one-click review, prioritized next steps, searchable requirement cards with actual source statements, and a complete copy/TXT plan. Required and preferred criteria stay distinct. Input or reviewed-metadata changes mark a prior plan stale and disable export until refreshed. Restricted source excerpts are omitted from the plan.
+
+Preserved features include PDF/DOCX/TXT import, O*NET links, ZIP-to-labor-market BLS wages, editable evidence-linked DOCX/PDF revisions, quick text drafts, readiness checks, complete audit/CSV, graph/claim review, shared profile JSON/local save and the application tracker. Loading a profile preserves tracker statuses and notes.
+
+Build: `python interface/build.py` then `python package-wordpress.py` (Python lxml required). Outputs: self-contained index.html, Divi wordpress.html and matching integrated preview.html. Browser document libraries and public occupation/wage assets load when needed. Tests retain existing model/Selenium regressions and add real document/import/export journeys in tests/usability.py.
+
+
+
 An interactive, evidence-centered career decision workspace. It helps people explore plausible role families, interpret job requirements, distinguish experience from what an application currently makes visible, and decide what to document, verify, or develop next.
 
 **[Use the interactive website tool](https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/)**
@@ -67,3 +77,4 @@ These checks cover the standalone application and its local embedding contract. 
 
 
 **WordPress deployment note (October 30, 2026):** The embedded website page uses an older analysis build with a targeted duration-safeguard patch. Its exact parity with this v2.6 source, and live-page browser/assistive-technology acceptance, remain unverified. Track [site parity and QA](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/issues/342) before describing the website embed as a fully validated v2.6 release.
+
