@@ -1,0 +1,21 @@
+{
+  "schema": "rfp-evaluation-v1",
+  "criteria": [
+    {"id":"SYN-C-01","label":"Implementation plan","weight":50,"mandatory":true,"sourceRef":"SYNTH-RFP-§1"},
+    {"id":"SYN-C-02","label":"Support and accessibility","weight":30,"mandatory":false,"sourceRef":"SYNTH-RFP-§2"},
+    {"id":"SYN-C-03","label":"Data portability","weight":20,"mandatory":false,"sourceRef":"SYNTH-RFP-§3"}
+  ],
+  "vendors": [
+    {"id":"SYN-V-A","name":"Sample Supplier A","conflict":"none","priceCents":125000},
+    {"id":"SYN-V-B","name":"Sample Supplier B","conflict":"declared","priceCents":null}
+  ],
+  "ratings": [
+    {"vendorId":"SYN-V-A","criterionId":"SYN-C-01","score":4,"evidenceRef":"SYNTH-EV-A-01","note":"Illustrative score, not a recommendation","reviewer":"Sample reviewer"},
+    {"vendorId":"SYN-V-A","criterionId":"SYN-C-02","score":5,"evidenceRef":"SYNTH-EV-A-02","note":"Illustrative evidence reference","reviewer":"Sample reviewer"},
+    {"vendorId":"SYN-V-A","criterionId":"SYN-C-03","score":3,"evidenceRef":"SYNTH-EV-A-03","note":"Illustrative evidence reference","reviewer":"Sample reviewer"},
+    {"vendorId":"SYN-V-B","criterionId":"SYN-C-01","score":2,"evidenceRef":"SYNTH-EV-B-01","note":"Mandatory criterion requires human review","reviewer":"Sample reviewer"},
+    {"vendorId":"SYN-V-B","criterionId":"SYN-C-02","score":null,"evidenceRef":"","note":"Not yet evaluated","reviewer":""},
+    {"vendorId":"SYN-V-B","criterionId":"SYN-C-03","score":4,"evidenceRef":"","note":"Missing supporting evidence","reviewer":"Sample reviewer"}
+  ],
+  "comparisons": [{"vendorId":"SYN-V-B","scorePercent":100,"reviewFlags":[]}]
+}
