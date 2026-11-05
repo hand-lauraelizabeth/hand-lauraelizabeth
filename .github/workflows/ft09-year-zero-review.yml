@@ -1,0 +1,18 @@
+name: FT-09 Public Records review
+on:
+  push:
+    branches:
+      - 'review/ft09-year-zero-fix-*'
+  workflow_dispatch:
+jobs:
+  node-regression:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Public records regression tests
+        run: node --test free-tools/public-records/*.test.mjs

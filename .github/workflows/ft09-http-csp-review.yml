@@ -1,0 +1,29 @@
+name: FT-09 HTTP CSP browser review
+on:
+  push:
+    branches:
+      - 'review/ft09-http-csp-ci-*'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  csp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install browser dependencies
+        run: |
+          python -m pip install 'playwright==1.56.0'
+          python -m playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify HTTP-served local workspace and CSP
+        env:
+          FT09_BROWSER: ${{ matrix.browser }}
+        run: python free-tools/public-records/http-csp-review.test.py
