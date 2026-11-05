@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reverse ATS / Role Evidence Studio — v2.6</title>
+<title>Reverse ATS · Role Evidence Studio</title>
 <style>
 :root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -17,28 +17,44 @@ table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}th,td{p
 details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:auto;max-height:650px;border:1px solid var(--line);border-radius:10px}
 @media(max-width:800px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}header,main{padding:16px}textarea{min-height:190px}}
 </style>
+<style>
+.career-kicker {color: #245846; font-size: .78rem; letter-spacing: .09em; font-weight: 800; text-transform: uppercase}
+.career-start {display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-block: 1rem .5rem}
+.career-start a {color: #174637; background: #fff; border: 1px solid #90ab9e; border-radius: 9px; padding: .6rem .85rem; text-decoration: none; font-weight: 700}
+.career-start a:hover {text-decoration: underline}
+.career-panel {margin-top: 16px; min-width: 0}
+.career-panel label, .career-file-label {font-weight: 700; display: block; margin-block: .55rem .2rem}
+.career-panel input, .career-panel select {font: inherit; width: 100%; min-height: 44px; border: 1px solid #78998a; border-radius: 8px; padding: .55rem .7rem; background: white; color: #17261f}
+.career-fields,.career-results {display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: .8rem}
+.career-results {margin-top: 1rem}
+.career-card {padding: .9rem; border: 1px solid #c8dad0; border-radius: 10px; background: #f7faf8; overflow-wrap: anywhere}
+.career-card h3 {font-size: 1.05rem; margin-top: 0}
+.career-card a {color: #184f3d; text-underline-offset: 3px}
+.career-card p {margin-block: .4rem}
+.career-pay {font-weight: 800; color: #173b30}
+.career-panel :is(a, button, input, textarea, select, summary):focus-visible,.career-start :is(a,button):focus-visible {outline: 3px solid #174637; outline-offset: 3px}
+.career-panel button,.career-start button {min-height: 44px}
+.career-panel button:disabled {opacity: .55; cursor: default}
+.career-panel textarea {min-height: 340px}
+.career-panel select:disabled {background: #eff4f0; color: #52635a}
+.career-advanced {margin-top: 1rem}
+.career-advanced > summary {padding: .45rem 0; font-size: 1.05rem}
+.career-step-label {margin-bottom: 4px}
+#career-input-status,#career-status,#resume-status {min-height: 1.25em}
+</style>
 </head>
 <body>
-<header>
-  <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
-  <h1>Reverse ATS · Role Evidence Studio <span style="font-size:.42em;font-weight:600">v2.6</span></h1>
-  <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
-</header>
-<main>
-<div class="grid">
-<section class="panel">
-<h2>Target job</h2>
-<textarea id="job" placeholder="Paste the full job description. Include qualifications, responsibilities, preferred requirements, and salary if available."></textarea>
-<div class="row"><button class="btn" id="analyze">Analyze posting</button><button class="btn ghost" id="sampleJob">Load sample</button></div>
+<a class="studio-skip" href="#career-inputs">Skip to workspace</a><header class="studio-hero"><div class="hero-copy"><p class="studio-eyebrow"><span class="studio-mark" aria-hidden="true">R</span> Reverse ATS · Role Evidence Studio</p><h1>Find the evidence.<br>Make your next move.</h1><p class="hero-lead">See how your résumé supports a job posting, explore roles and local pay, and build a clearer résumé you can edit and download.</p><div class="hero-actions" id="hero-actions"><button class="btn" id="career-example" type="button">Try the example</button>
+  <button type="button" id="studio-start" class="btn ghost">Use my résumé <span aria-hidden="true">→</span></button></div><p class="hero-trust">Free to use · No account · Your documents are processed in your browser</p><p class="hero-note">A practical evidence review. Results reflect the text you supply; they do not predict an employer’s ATS score.</p></div><aside class="hero-sample" aria-label="Fictional example of a job review"><div class="sample-header"><span>YOUR APPLICATION, AT A GLANCE</span><span class="sample-badge">Example</span></div><h2>Learning programs manager</h2><div class="sample-match"><span class="sample-symbol">✓</span><div><strong>Training delivery</strong><span>Visible in the résumé</span></div></div><div class="sample-match"><span class="sample-symbol amber">?</span><div><strong>Budget ownership</strong><span>Clarify your actual authority</span></div></div><div class="sample-next"><strong>A useful next step</strong><p>Find a specific, supportable example before strengthening the claim.</p></div><p>Requirements → evidence → next action</p></aside></header><nav class="studio-steps" aria-label="How it works"><div><span>1</span><p><strong>Add your résumé</strong>Import PDF/DOCX or paste text.</p></div><div><span>2</span><p><strong>Choose your task</strong>Review a job, explore roles, or revise.</p></div><div><span>3</span><p><strong>Leave with something useful</strong>A clear plan, role leads, or an editable résumé.</p></div></nav><main id="career-inputs" class="studio-main" tabindex="-1">
+<div class="studio-workspace"><aside id="studio-inputs" class="studio-inputs" aria-labelledby="studio-input-heading" tabindex="-1"><div class="input-heading"><p class="studio-eyebrow">YOUR STARTING POINT</p><h2 id="studio-input-heading">Your résumé &amp; target</h2><p>Add your résumé once. Every task uses the same text.</p></div><div id="studio-source-mount"><section class="studio-source">
+<h2 id="candidate-input-heading">Résumé text</h2>
+<textarea id="candidate" aria-labelledby="candidate-input-heading" placeholder="Paste your résumé here, or import a PDF/DOCX above. Add a job posting below when you want an application review."></textarea>
+<details class="studio-secondary"><summary>Plain-text import and sample evidence</summary><label for="career-file" class="career-file-label">Open a plain-text résumé (.txt)</label><input id="career-file" type="file" accept=".txt,text/plain"><p id="career-input-status" class="muted" role="status"></p>
+<button class="btn ghost" id="sampleCandidate">Load sample evidence</button></details></section>
+</div><div id="studio-job-mount"><section class="studio-job">
+<h2 id="job-input-heading">Job posting</h2><p class="studio-muted">Required for a job review; optional for the other tasks.</p><textarea id="job" aria-labelledby="job-input-heading" placeholder="Paste the full job description. Include qualifications, responsibilities, preferred requirements, and salary if available."></textarea>
 </section>
-<section class="panel">
-<h2>Candidate evidence</h2>
-<textarea id="candidate" placeholder="Paste evidence. Optional section labels: [resume], [portfolio], [document], [public], [user]. The tool keeps source provenance visible instead of treating every mention as equally strong."></textarea>
-<div class="row"><button class="btn ghost" id="sampleCandidate">Load sample evidence</button><button class="btn ghost" id="exportEvidence">Export evidence JSON</button><button class="btn ghost" id="export">Export matrix CSV</button></div>
-</section>
-</div>
-
-<section class="panel ats-review" id="reverse-ats-audit" style="margin-top:18px" aria-labelledby="ats-heading">
+</div><p id="studio-input-status" class="studio-muted" role="status" aria-live="polite">Ready when you are.</p></aside><section class="studio-work" aria-labelledby="studio-task-heading"><div class="work-heading"><div><p class="studio-eyebrow">YOUR WORKSPACE</p><h2 id="studio-task-heading">What would you like to do?</h2></div><span class="workspace-tag">Private workspace</span></div><div class="studio-tabs" role="tablist" aria-label="Choose a task"><button id="tab-review" type="button" role="tab" aria-selected="true" aria-controls="pane-review" tabindex="0">Review a job</button><button id="tab-roles" type="button" role="tab" aria-selected="false" aria-controls="pane-roles" tabindex="-1">Find roles &amp; pay</button><button id="tab-resume" type="button" role="tab" aria-selected="false" aria-controls="pane-resume" tabindex="-1">Improve résumé</button><button id="tab-evidence" type="button" role="tab" aria-selected="false" aria-controls="pane-evidence" tabindex="-1">Evidence &amp; profile</button></div><p id="studio-demo-note" class="studio-demo" hidden>Fictional example loaded. Explore the review, edit the inputs, or try another task.</p><div id="pane-review" class="studio-pane" role="tabpanel" aria-labelledby="tab-review"><div class="task-intro"><h3>Turn the posting into a practical review.</h3><p>See the stated requirements, what your résumé makes visible, and what to clarify before you apply.</p><button id="studio-review" class="btn" type="button">Review my application <span aria-hidden="true">→</span></button><p id="studio-review-message" class="studio-muted" role="status" aria-live="polite">Add your résumé and a job posting to get started.</p></div><div id="studio-plan" hidden><div class="plan-heading"><div><p class="studio-eyebrow">YOUR NEXT STEPS</p><h3 id="studio-plan-title" tabindex="-1">A clearer plan for this application</h3></div><span class="sample-badge">Text review</span></div><p id="studio-stale" class="studio-warning" role="status" hidden>Your inputs changed. Run the review again to update this plan.</p><div id="studio-counts" class="studio-counts"></div><p class="studio-muted">“Visible” means the text suggests a connection. It does not establish that a requirement is met.</p><ol id="studio-actions" class="studio-actions"></ol><div class="row"><button id="studio-plan-copy" class="btn ghost" type="button">Copy next-step plan</button><button id="studio-plan-download" class="btn ghost" type="button">Download plan (.txt)</button><button id="studio-open-editor" class="btn" type="button">Build my résumé revision →</button></div><p id="studio-plan-message" class="studio-muted" role="status" aria-live="polite"></p><div class="criteria-heading"><h3>Follow each requirement to its evidence.</h3><p>Use these cards to review the connection and keep claims within the support you have.</p></div><div class="criteria-controls"><label>Search requirements or evidence<input id="studio-criteria-search" type="search" placeholder="e.g. leadership, Excel, degree"></label><label>Show<select id="studio-criteria-filter"><option value="all">All criteria</option><option value="attention">Needs attention</option><option value="hard">Required</option><option value="preferred">Preferred</option></select></label></div><p id="studio-criteria-count" class="studio-muted" role="status" aria-live="polite"></p><div id="studio-criteria"></div><button id="studio-criteria-more" class="btn ghost" type="button" hidden>Show 8 more criteria</button></div><details id="studio-detailed-audit" class="studio-secondary"><summary>Detailed audit, screening questions, and CSV export</summary><section class="panel ats-review" id="reverse-ats-audit" style="margin-top:18px" aria-labelledby="ats-heading">
   <p class="muted" style="text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:800">Reverse ATS / Applicant-view audit</p>
   <h2 id="ats-heading">What would a reviewer be able to see?</h2>
   <p>Compare the full posting with the evidence you supplied above. Distinguish required qualifications, visible skills, missing or ambiguous proof, and application questions that must be answered on the employer's actual form.</p>
@@ -85,9 +101,41 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
     <p class="muted">This is a locally executed evidence-visibility and application-review aid—not a proprietary ATS score, an eligibility assessment, or a prediction of interviews.</p>
   </details>
 </section>
+</details></div><div id="pane-roles" class="studio-pane" role="tabpanel" aria-labelledby="tab-roles" hidden><section class="panel career-panel" id="career-workbench" aria-labelledby="career-heading">
+  <p class="career-kicker">Explore with your résumé</p>
+  <h2 id="career-heading">Find roles and regional pay</h2>
+  <p>You can start with a résumé alone. Add a target role to focus the search or a U.S. ZIP code to see typical wages where you want to work.</p>
+  <div class="career-fields">
+    <div><label for="career-focus">Target role <span class="muted">(optional)</span></label><input id="career-focus" type="text" maxlength="140" placeholder="e.g., Training and Development Specialist"></div>
+    <div><label for="career-zip">Work-location ZIP <span class="muted">(optional)</span></label><input id="career-zip" type="text" maxlength="10" inputmode="numeric" placeholder="e.g., 11432" autocomplete="off"></div>
+  </div>
+  <div class="row"><button class="btn" id="career-run" type="button">Find matching occupations</button><button class="btn ghost" id="career-read-zip" type="button">Use ZIP from résumé</button></div>
+  <p id="career-status" role="status" aria-live="polite">Paste your résumé above or try the fictional example.</p>
+  <label class="career-area-label" for="career-area">Labor-market area <span class="muted">(when a ZIP overlaps more than one)</span></label>
+  <select id="career-area" disabled><option value="">Choose a labor market</option></select>
+  <div id="career-results" class="career-results"></div>
+  <details><summary>How matching and regional wages work</summary>
+    <p>Occupation leads are ranked using résumé terms that overlap with O*NET occupation titles, alternate titles, descriptions, and core tasks. A target role can refine the ranking. Matches are leads to investigate and do not establish eligibility, fit for a specific opening, or employer interest.</p>
+    <p>Pay is the middle half of published annual wages (25th to 75th percentile) and the median for a matching BLS occupation in the selected metro or nonmetro area. It describes an occupation across employers at the time of the survey. No offer, current vacancy, or personalized salary prediction is implied. Some combinations lack numeric annual percentiles. A ZIP is matched to its 2020 Census ZIP Code Tabulation Area and then to counties and BLS labor markets. PO boxes, newly assigned ZIPs, or some areas where boundaries changed may be unavailable.</p>
+    <p>The résumé, posting, and ZIP are processed in this tab. This feature fetches public files. A wage-file request identifies a group of labor-market areas to the file host.</p>
+    <p>Adapted from the <a href="https://www.onetcenter.org/database.html" target="_blank" rel="noopener noreferrer">O*NET 31.0 Database</a> by the U.S. Department of Labor, Employment and Training Administration, under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Titles and tasks were selected and transformed into a word index. <a href="https://www.bls.gov/oes/tables.htm" target="_blank" rel="noopener noreferrer">BLS May 2025 OEWS tables</a> · <a href="https://www.bls.gov/oes/current/oessrcma.htm" target="_blank" rel="noopener noreferrer">Area wage estimates</a> · <a href="https://www.census.gov/geographies/reference-files/time-series/geo/relationship-files.2020.html" target="_blank" rel="noopener noreferrer">Census geography</a>.</p>
+  </details>
+</section>
+</div><div id="pane-resume" class="studio-pane" role="tabpanel" aria-labelledby="tab-resume" hidden><details id="studio-quick-draft" class="studio-secondary"><summary>Quick plain-text draft and text download</summary><section class="panel career-panel" id="resume-workbench" aria-labelledby="resume-heading">
+  <p class="career-kicker">Make your evidence easier to find</p>
+  <h2 id="resume-heading">Draft a targeted résumé</h2>
+  <p>Build an editable, plain-text draft using the résumé you supplied. It standardizes common headings and moves relevant bullets up within each role. Employers, dates, metrics and claims come from your text. Review the result before using it.</p>
+  <label for="resume-target">Focus the draft on</label><select id="resume-target"><option value="">Use posting or my target role, if supplied</option></select>
+  <div class="row"><button class="btn" id="resume-build" type="button">Build résumé draft</button><button class="btn ghost" id="resume-copy" type="button" disabled>Copy draft</button><button class="btn ghost" id="resume-download" type="button" disabled>Download text</button></div>
+  <p id="resume-status" role="status" aria-live="polite"></p>
+  <textarea id="resume-output" aria-label="Editable résumé draft" hidden></textarea>
+</section>
+
+</details></div><div id="pane-evidence" class="studio-pane" role="tabpanel" aria-labelledby="tab-evidence" hidden><div class="row"><button class="btn" id="analyze">Analyze posting structure</button><button class="btn ghost" id="sampleJob">Load sample posting</button><button class="btn ghost" id="exportEvidence">Export evidence JSON</button><button class="btn ghost" id="export">Export matrix CSV</button></div>
+<details class="panel career-advanced" id="career-evidence-tools" open=""><summary>Evidence tools · profile, requirements, and claim review</summary>
 <div class="panel" style="margin-top:12px">
 <h3>Shared candidate profile</h3>
-<p class="muted">Transfer reviewed evidence to Career Discovery & Tracking without copying work. Private, anonymize-only, and do-not-use nodes are excluded from transfers. An exported JSON file may still contain personal information; keep it private.</p>
+<p class="muted">Transfer reviewed evidence to Career Discovery &amp; Tracking without copying work. Private, anonymize-only, and do-not-use nodes are excluded from transfers. An exported JSON file may still contain personal information; keep it private.</p>
 <div class="row"><button class="btn ghost" type="button" id="profileSave">Save profile locally</button><button class="btn ghost" type="button" id="profileLoad">Load saved profile</button><button class="btn ghost" type="button" id="profileDownload">Download profile JSON</button></div>
 <label for="profileImport"><b>Import profile JSON</b></label> <input id="profileImport" type="file" accept=".json,application/json" style="max-width:100%">
 <p class="muted" id="profileMsg" role="status" aria-live="polite">Saved profiles are browser-local. Use the JSON file to transfer between browsers or isolated website embeds.</p>
@@ -144,7 +192,8 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 <details class="panel"><summary>How this workspace classifies text and evidence</summary>
 <p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. Human-reviewed metadata and claim-strength guardrails remain separate from automatic detection. Calendar-year coverage is not elapsed experience; duration requirements remain unresolved until exact relevant dates and overlapping roles have been reviewed. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency; stronger wording should depend on reviewed evidence, not keyword presence.</p>
 </details>
-</main>
+</details>
+</div></section></div></main>
 <script>
 const $=s=>document.querySelector(s);
 const STOP=new Set(('the a an and or to of in on for with from by as at is are be will this that you your our we they their role position candidate candidates including include such ability required preferred plus minimum must should strong demonstrated experience years year work working skills skill responsible responsibilities qualifications qualification').split(' '));
@@ -554,4 +603,824 @@ else atsReportHeight();
 if(typeof ResizeObserver!=='undefined')new ResizeObserver(atsReportHeight).observe(document.body);
 
 </script>
-</body></html>
+<script>
+window.roleEvidenceData = {"geography": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/geography.b64", "occupations": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/occupations.b64", "wages-00": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-00.b64", "wages-01": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-01.b64", "wages-02": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-02.b64", "wages-03": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-03.b64", "wages-04": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-04.b64", "wages-05": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-05.b64", "wages-06": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-06.b64", "wages-07": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-07.b64", "wages-08": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-08.b64", "wages-09": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-09.b64", "wages-10": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-10.b64", "wages-11": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-11.b64", "wages-12": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-12.b64", "wages-13": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-13.b64", "wages-14": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-14.b64", "wages-15": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-15.b64", "wages-16": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-16.b64", "wages-17": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-17.b64", "wages-18": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-18.b64", "wages-19": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-19.b64", "wages-20": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-20.b64", "wages-21": "https://raw.githubusercontent.com/hand-lauraelizabeth/hand-lauraelizabeth/65e60415c194ed0339de12330ae5b1f6512c5513/projects/reverse-ats-role-evidence-engine/career-workbench/data/wages-21.b64"};
+(() => {
+  'use strict';
+
+  const byId = id => document.getElementById(id);
+  const candidate = byId('candidate');
+  const job = byId('job');
+  const zipInput = byId('career-zip');
+  const areaSelect = byId('career-area');
+  const results = byId('career-results');
+  const status = byId('career-status');
+  const output = byId('resume-output');
+  const resumeStatus = byId('resume-status');
+  const assets = window.roleEvidenceData;
+  const cache = new Map();
+  let matches = [];
+  let serial = 0;
+  let knownCandidate = candidate.value;
+
+  const common = new Set(('about across additional analysis based business candidate company data demonstrated duties education employment excellent experience first good help high including internal job knowledge leadership manage management manager multiple organization people performance professional program project provide related report required requirements responsibility review role school services skills strong support system team tools use using work working years').split(' '));
+  const tokenize = text => [...new Set((text.toLowerCase().match(/[a-z][a-z0-9+#.]{1,}/g) || [])
+    .map(word => word.replace(/\.$/, ''))
+    .filter(word => !common.has(word) && (word.length >= 3 || ['ai', 'hr', 'ux', 'it'].includes(word))))];
+  const dollars = new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+
+  function load(name) {
+    if (!cache.has(name)) {
+      const request = fetch(assets[name], {credentials: 'omit', referrerPolicy: 'no-referrer'})
+        .then(async response => {
+          if (!response.ok) throw Error('Data source is unavailable.');
+          const compressed = Uint8Array.from(atob((await response.text()).trim()), character => character.charCodeAt(0));
+          const bytes = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+          return new Response(bytes).json();
+        }).catch(error => {
+          cache.delete(name);
+          throw error;
+        });
+      cache.set(name, request);
+    }
+    return cache.get(name);
+  }
+
+  function resumeLines(text) {
+    const lines = text.split(/\r?\n/);
+    const tagged = lines.some(line => /^\s*\[(resume|portfolio|public|document|user)\]\s*$/i.test(line));
+    let include = !tagged;
+    const selected = [];
+    for (const line of lines) {
+      const marker = line.trim().match(/^\[(resume|portfolio|public|document|user)\]$/i);
+      if (marker) {
+        include = marker[1].toLowerCase() === 'resume';
+        if (include && selected.length) selected.push('');
+      } else if (include) {
+        selected.push(line);
+      }
+    }
+    const normalized = value => value.toLowerCase().replace(/\s+/g, ' ').trim();
+    const restricted = typeof GRAPH === 'undefined' ? [] : GRAPH
+      .filter(node => ['private', 'anonymize', 'do-not-use'].includes(node.reviewed?.confidentiality))
+      .map(node => normalized(node.statement)).filter(Boolean);
+    return selected.filter(line => !restricted.some(statement => normalized(line).includes(statement)));
+  }
+
+  function rank(text, hint, catalog) {
+    const tokens = new Set(tokenize(text));
+    const focus = new Set(tokenize(hint));
+    const normalized = ` ${hint.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+    return catalog.roles.map(role => {
+      const [code, title, aliases, terms] = role;
+      const matched = terms.filter(term => tokens.has(term));
+      const inTitle = [...new Set(tokenize([title, ...aliases].join(' ')))].filter(term => tokens.has(term));
+      if (new Set([...matched, ...inTitle]).size < 2) return null;
+      const target = terms.filter(term => focus.has(term));
+      const exact = hint && [title, ...aliases].some(label => {
+        const phrase = label.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        return phrase.length >= 5 && normalized.includes(` ${phrase} `);
+      });
+      const importance = term => catalog.weights[term] || 1;
+      const score = matched.reduce((sum, term) => sum + importance(term), 0)
+        + inTitle.reduce((sum, term) => sum + 1.25 * importance(term), 0)
+        + 0.5 * target.length + (exact ? 15 : 0);
+      return {code, title, score, evidence: [...new Set([...inTitle, ...matched])].slice(0, 8)};
+    }).filter(Boolean).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title)).slice(0, 8);
+  }
+
+  function element(tag, text, parent) {
+    const node = document.createElement(tag);
+    if (text) node.textContent = text;
+    parent.append(node);
+    return node;
+  }
+
+  function render(wages, region, reason) {
+    results.replaceChildren();
+    const occupation = byId('resume-target');
+    const previous = occupation.value;
+    occupation.replaceChildren(new Option('Use posting or my target role, if supplied', ''));
+    for (const match of matches) {
+      occupation.add(new Option(match.title, match.title));
+      const item = element('article', '', results);
+      item.className = 'career-card';
+      const title = element('h3', '', item);
+      const link = element('a', match.title, title);
+      link.href = `https://www.onetonline.org/link/summary/${match.code}`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      element('p', `Résumé signals: ${match.evidence.join(', ')}.`, item);
+      if (region) {
+        const values = wages?.[match.code.slice(0, 7)];
+        if (values?.every(Number.isFinite)) {
+          const [low, median, high] = values;
+          element('p', `${dollars.format(low)}–${dollars.format(high)} per year · median ${dollars.format(median)}`, item).className = 'career-pay';
+          element('p', `${region} · BLS OEWS, May 2025 · 25th–75th percentile`, item).className = 'muted';
+        } else {
+          element('p', `${region} · annual percentiles unavailable for this occupation.`, item).className = 'muted';
+        }
+      } else if (reason) {
+        element('p', reason, item).className = 'muted';
+      }
+    }
+    if ([...occupation.options].some(option => option.value === previous)) occupation.value = previous;
+  }
+
+  async function addPay(run) {
+    const zip = zipInput.value.trim();
+    const selected = areaSelect.value;
+    areaSelect.replaceChildren(new Option('Choose a labor market', ''));
+    areaSelect.disabled = true;
+    if (!zip) {
+      render();
+      status.textContent = 'Add a U.S. ZIP code to look up regional pay.';
+      return;
+    }
+    if (!/^\d{5}(?:-\d{4})?$/.test(zip)) {
+      render();
+      status.textContent = 'Enter a five-digit ZIP code, such as 11432.';
+      return;
+    }
+    status.textContent = 'Looking up the ZIP’s labor-market area…';
+    const geography = await load('geography');
+    if (run !== serial) return;
+    const areas = geography.zips[zip.slice(0, 5)] || [];
+    if (!areas.length) {
+      render();
+      status.textContent = 'No mapped labor-market area for this ZIP. Try a nearby work-location ZIP.';
+      return;
+    }
+    for (const code of areas) areaSelect.add(new Option(geography.areas[code][0], code));
+    const code = areas.length === 1 ? areas[0] : areas.includes(selected) ? selected : '';
+    areaSelect.disabled = areas.length === 1;
+    if (!code) {
+      render();
+      status.textContent = 'This ZIP overlaps multiple labor markets. Choose the work-location area below.';
+      return;
+    }
+    areaSelect.value = code;
+    const [name, asset] = geography.areas[code];
+    status.textContent = `Loading May 2025 wages for ${name}…`;
+    const wageData = await load(asset);
+    if (run !== serial) return;
+    render(wageData[code], name);
+    status.textContent = `${matches.length} occupation leads · ${name}`;
+  }
+
+  async function findRoles() {
+    const run = ++serial;
+    const text = resumeLines(candidate.value).join('\n').trim();
+    const hint = byId('career-focus').value.trim();
+    matches = [];
+    render();
+    areaSelect.replaceChildren(new Option('Choose a labor market', ''));
+    areaSelect.disabled = true;
+    if (text.length < 30) {
+      status.textContent = 'Paste a résumé or several lines of work and skills above first.';
+      return;
+    }
+    const detected = readZipCodes(text);
+    if (!zipInput.value.trim() && detected.size === 1) zipInput.value = [...detected][0];
+    status.textContent = 'Finding occupations supported by your résumé…';
+    try {
+      const catalog = await load('occupations');
+      if (run !== serial) return;
+      matches = rank(text, hint, catalog);
+      render();
+      if (!matches.length) {
+        status.textContent = 'No reliable leads from this text. Add specific duties, skills, or tools.';
+        return;
+      }
+      await addPay(run);
+    } catch (error) {
+      if (run !== serial) return;
+      status.textContent = matches.length ? 'Occupation matches are available. Pay data could not load; try again.' : 'The occupation catalog could not load. Try again.';
+    }
+  }
+
+  const headings = /^(professional summary|summary|profile|experience|professional experience|work experience|employment history|education|skills|technical skills|core skills|certifications|licenses|projects|publications|awards|volunteer experience|leadership)\s*:?$/i;
+  const bullet = /^\s*(?:[-–—*•▪]\s+|\d{1,2}[.)]\s+)/u;
+
+  function createDraft(lines, target) {
+    const keywords = new Set(tokenize(target));
+    const score = line => tokenize(line).reduce((sum, word) => sum + Number(keywords.has(word)), 0);
+    const normalized = lines.map(line => line.trim());
+    const draft = [];
+    let group = [];
+    let experience = false;
+    const flush = () => {
+      group.sort((a, b) => score(b) - score(a));
+      draft.push(...group);
+      group = [];
+    };
+    for (const [index, line] of normalized.entries()) {
+      const heading = line.match(headings);
+      if (heading) {
+        flush();
+        experience = /experience|employment history/i.test(heading[1]);
+        draft.push(heading[1].toUpperCase());
+      } else if (experience && bullet.test(line)) {
+        group.push(line.replace(bullet, '- '));
+      } else if (experience && /^\s{2,}\S/.test(lines[index]) && group.length) {
+        group[group.length - 1] += ' ' + line;
+      } else {
+        flush();
+        draft.push(line);
+      }
+    }
+    flush();
+    return draft.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function readZipCodes(text) {
+    const codes = [...text.matchAll(/\bZIP(?:\s+code)?\s*[:=]?\s*(\d{5})(?:-\d{4})?\b/gi)];
+    const addresses = [...text.matchAll(/\b(?:AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|PR)\s+(\d{5})(?:-\d{4})?\b/g)];
+    return new Set([...codes, ...addresses].map(match => match[1]));
+  }
+
+  byId('career-run').addEventListener('click', findRoles);
+  byId('analyze').addEventListener('click', () => { byId('career-evidence-tools').open = true; });
+  byId('career-read-zip').addEventListener('click', () => {
+    const found = readZipCodes(resumeLines(candidate.value).join('\n'));
+    if (found.size !== 1) {
+      status.textContent = found.size ? 'Multiple ZIP codes found. Enter the ZIP where you want to work.' : 'No unambiguous ZIP found. Enter a five-digit work-location ZIP if desired.';
+      return;
+    }
+    zipInput.value = [...found][0];
+    zipInput.dispatchEvent(new Event('input'));
+    status.textContent = 'ZIP copied from the résumé. Confirm it is the location where you want to work.';
+    zipInput.focus();
+  });
+  byId('career-file').addEventListener('change', async event => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!/\.txt$/i.test(file.name) || file.size > 512000) {
+      byId('career-input-status').textContent = 'Choose a .txt file smaller than 512 KB.';
+      return;
+    }
+    const before = candidate.value;
+    try {
+      const text = await file.text();
+      if (candidate.value !== before) throw Error('Résumé text changed while the file was opening. Try again.');
+      if (!text.trim() || text.includes('\u0000')) throw Error('This file does not contain readable plain text.');
+      if (before.trim() && !confirm('Replace the existing evidence with this résumé file?')) return;
+      candidate.value = text;
+      candidate.dispatchEvent(new Event('input'));
+      byId('career-input-status').textContent = 'Résumé loaded in this browser tab.';
+      candidate.focus();
+    } catch (error) { byId('career-input-status').textContent = error.message; }
+  });
+  areaSelect.addEventListener('change', async () => {
+    const run = ++serial;
+    try { await addPay(run); }
+    catch (error) { if (run === serial) status.textContent = 'Regional wage data could not load. Try again.'; }
+  });
+  [candidate, zipInput, byId('career-focus')].forEach(input => input.addEventListener('input', () => {
+    knownCandidate = candidate.value;
+    ++serial;
+    matches = [];
+    areaSelect.replaceChildren(new Option('Choose a labor market', ''));
+    areaSelect.disabled = true;
+    render();
+    status.textContent = 'Inputs changed. Run the occupation search to refresh results.';
+    if (input === candidate && output.value) {
+      byId('resume-copy').disabled = byId('resume-download').disabled = true;
+      resumeStatus.textContent = 'Source text changed. Rebuild the draft to use its copy and download controls.';
+    }
+  }));
+  const checkCandidateChange = () => {
+    if (candidate.value !== knownCandidate) candidate.dispatchEvent(new Event('input'));
+  };
+  byId('sampleCandidate').addEventListener('click', checkCandidateChange);
+  new MutationObserver(checkCandidateChange).observe(byId('profileMsg'), {childList: true, subtree: true});
+  byId('saveNode').addEventListener('click', () => {
+    candidate.dispatchEvent(new Event('input'));
+    if (output.value) resumeStatus.textContent = 'Evidence review changed. Rebuild to apply the latest disclosure choices.';
+  });
+  byId('resume-build').addEventListener('click', () => {
+    const lines = resumeLines(candidate.value);
+    if (lines.join('').trim().length < 30) {
+      resumeStatus.textContent = 'Paste résumé text above first. For tagged evidence, include a [resume] section.';
+      return;
+    }
+    if (output.value && !confirm('Replace the editable draft with a new version?')) return;
+    const target = byId('resume-target').value || byId('career-focus').value || job.value;
+    output.value = createDraft(lines, target);
+    output.hidden = false;
+    byId('resume-copy').disabled = byId('resume-download').disabled = false;
+    resumeStatus.textContent = 'Draft ready. Review every line before submitting.';
+    output.focus();
+  });
+  byId('resume-copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(output.value);
+      resumeStatus.textContent = 'Draft copied.';
+    } catch (error) {
+      output.focus();
+      output.select();
+      resumeStatus.textContent = 'Draft selected. Use your device’s Copy command.';
+    }
+  });
+  byId('resume-download').addEventListener('click', () => {
+    const href = URL.createObjectURL(new Blob([output.value], {type: 'text/plain;charset=utf-8'}));
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = 'resume-draft.txt';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(href), 1000);
+    resumeStatus.textContent = 'Download requested. Check your browser’s downloads.';
+  });
+  byId('career-example').addEventListener('click', () => {
+    if ((candidate.value.trim() || job.value.trim()) && !confirm('Replace the current inputs with fictional examples?')) return;
+    byId('sampleJob').click();
+    candidate.value = 'Jordan Example\n\nEXPERIENCE\nLearning and Development Specialist | Example Organization | 2021–present\n- Facilitated onboarding workshops for new employees.\n- Designed training materials and learning objectives for instructor-led courses.\n- Analyzed survey feedback and evaluated training effectiveness.\n\nSKILLS\nInstructional design, training needs assessment, facilitation, evaluation, Excel.';
+    candidate.dispatchEvent(new Event('input'));
+    zipInput.value = '11432';
+    byId('career-focus').value = 'Training and development specialist';
+    status.textContent = 'Fictional résumé, job posting, and ZIP loaded.';
+    document.dispatchEvent(new CustomEvent('studio-example-loaded'));
+  });
+})();
+
+</script>
+<script>(function(){
+"use strict";
+
+function make(d,tag,cls,text){var x=d.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;}
+function install(){
+ try{
+ var d=document;
+ if(!d||!d.getElementById("candidate")||!d.getElementById("career-workbench")||d.getElementById("leh-readiness"))return;
+ var css=d.createElement("style");css.textContent="#leh-readiness{margin:18px 0;background:#fff;border:2px solid #bfd3c7;border-radius:15px;padding:20px}#leh-readiness h2{margin:0 0 6px;color:#17382e}#leh-readiness .leh-sub{color:#4d6056;font-size:14px}#leh-readiness .leh-actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}#leh-readiness button{border:1px solid #255d49;background:#255d49;color:#fff;border-radius:9px;padding:10px 14px;font-size:14px;font-weight:700;min-height:44px;cursor:pointer}#leh-readiness button.leh-secondary{background:#fff;color:#255d49}#leh-readiness button:focus-visible{outline:3px solid #99bca7;outline-offset:3px}#leh-readiness .leh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px}#leh-readiness .leh-check{background:#f5f8f5;border:1px solid #d4dfd6;border-radius:10px;padding:12px}#leh-readiness .leh-check strong{display:block;margin-bottom:4px}#leh-readiness .leh-check span{font-size:13px;color:#465a50}#leh-readiness .leh-plan{background:#eef4ef;border-left:4px solid #35644d;border-radius:6px;padding:12px 14px;margin-top:14px}#leh-readiness .leh-plan ol{margin:8px 0 0;padding-left:22px}#leh-readiness a{color:#1c5440;text-decoration:underline}#leh-readiness .leh-status{font-size:13px;color:#4b5d52;min-height:20px}";
+ d.head.appendChild(css);
+ var sec=make(d,"section","panel");sec.id="leh-readiness";sec.setAttribute("aria-labelledby","leh-readiness-title");
+ var h=make(d,"h2","","Quick résumé readiness review");h.id="leh-readiness-title";sec.appendChild(h);
+ sec.appendChild(make(d,"p","leh-sub","Uses your résumé and optional posting to flag visible evidence and practical revisions. No employer ATS score, eligibility decision, or invented experience."));
+ var actionsBar=make(d,"div","leh-actions");
+ var run=make(d,"button","","Check résumé readiness");run.type="button";actionsBar.appendChild(run);
+ var draft=make(d,"button","leh-secondary","Build targeted résumé draft");draft.type="button";actionsBar.appendChild(draft);
+ var copy=make(d,"button","leh-secondary","Copy revision plan");copy.type="button";copy.disabled=true;actionsBar.appendChild(copy);sec.appendChild(actionsBar);
+ var status=make(d,"p","leh-status","Paste your résumé in the first panel above, then run this review.");status.setAttribute("role","status");status.setAttribute("aria-live","polite");sec.appendChild(status);
+ var out=make(d,"div","");sec.appendChild(out);
+ var sources=make(d,"p","leh-sub","Reference: ");var onet=make(d,"a","","O*NET occupations");onet.href="https://www.onetonline.org/";onet.target="_blank";onet.rel="noopener noreferrer";sources.appendChild(onet);sources.appendChild(d.createTextNode(" · "));var bls=make(d,"a","","BLS regional wages");bls.href="https://www.bls.gov/oes/current/oessrcma.htm";bls.target="_blank";bls.rel="noopener noreferrer";sources.appendChild(bls);sec.appendChild(sources);
+ var work=d.getElementById("career-workbench");work.parentNode.insertBefore(sec,work);
+ var lastPlan="";
+ function check(g,name,result,note){var c=make(d,"div","leh-check");c.appendChild(make(d,"strong","",name+": "+result));c.appendChild(make(d,"span","",note));g.appendChild(c);}
+ function review(){
+  var text=d.getElementById("candidate").value.trim();var job=(d.getElementById("job")||{}).value||"";var zip=(d.getElementById("career-zip")||{}).value||"";
+  out.replaceChildren();copy.disabled=true;lastPlan="";
+  if(text.length<80){status.textContent="Add a résumé or evidence summary of at least 80 characters first.";return;}
+  var headings=/(^|\n)\s*(professional\s+)?(experience|employment|education|skills|projects|certifications|awards|summary|profile)\s*:?(\n|$)/im.test(text);
+  var years=/\b(?:19|20)\d{2}\b/.test(text);
+  var metrics=/(?:\d+(?:\.\d+)?\s?%|\$\s?\d[\d,]*(?:\.\d+)?|\b\d[\d,]*\s?(?:students|learners|employees|projects|workshops|participants|clients|reports|records|courses)\b)/i.test(text);
+  var bullets=/(^|\n)\s*(?:[-•*]|\d+\.)\s+\S/m.test(text);
+  var vague=/\b(responsible for|helped with|various tasks|worked on|involved in)\b/i.test(text);
+  var g=make(d,"div","leh-grid");out.appendChild(g);
+  check(g,"Sections",headings?"Visible":"Review","Use accurate, clearly labeled Experience, Education, and Skills sections.");
+  check(g,"Dates",years?"Year detected":"Review","Check each employer, role, and date; a detected year does not establish accuracy.");
+  check(g,"Outcomes",metrics?"Quantities visible":"Review","Where evidence supports them, describe scale and results without inventing numbers.");
+  check(g,"Bullets",bullets?"Detected":"Review","Use clear, specific bullets for contributions under each role.");
+  check(g,"Clarity",vague?"Vague phrasing detected":"No common flags","Replace generic wording with verifiable actions and scope.");
+  var plan=[];
+  if(!headings)plan.push("Add conventional, descriptive section headings.");
+  if(!years)plan.push("Confirm the dates for each role, project, and degree.");
+  if(!bullets)plan.push("Turn role descriptions into concise evidence-based bullets.");
+  if(!metrics)plan.push("Add documented numbers, scale, or results where you have them.");
+  if(vague)plan.push("Replace vague phrases with concrete contributions.");
+  if(job.trim()){
+   var stop=new Set("this that with from these those their there your which about using experience years skills ability must should required preferred qualification responsibilities position candidates work team role strong excellent ability related including across within management development support".split(" "));
+   var counts=new Map();(job.toLowerCase().match(/[a-z][a-z-]{3,}/g)||[]).forEach(function(w){if(!stop.has(w))counts.set(w,(counts.get(w)||0)+1);});
+   var absent=[...counts.entries()].sort(function(a,b){return b[1]-a[1];}).map(function(x){return x[0];}).filter(function(w){return text.toLowerCase().indexOf(w)===-1;}).slice(0,6);
+   if(absent.length)plan.push("Review these recurring posting words against your actual experience (do not force unsupported terms): "+absent.join(", ")+".");
+   plan.push("Run the Reverse ATS audit below to inspect required versus preferred criteria and unresolved evidence.");
+  }else{plan.push("Paste a complete job posting when you need a targeted gap review.");}
+  if(zip&&!/^\d{5}$/.test(zip))plan.push("Use a valid five-digit U.S. ZIP for wage lookup.");
+  if(/^\d{5}$/.test(zip))plan.push("Compare regional BLS wage percentiles for O*NET-matched occupations; a ZIP maps to a broader labor market.");
+  plan.push("Generate a targeted résumé draft and confirm all dates, employers, claims, and metrics before sharing.");
+  var block=make(d,"div","leh-plan");block.appendChild(make(d,"strong","","Next edits (not an ATS score)"));var list=make(d,"ol");plan.forEach(function(item){list.appendChild(make(d,"li","",item));});block.appendChild(list);out.appendChild(block);
+  lastPlan="RÉSUMÉ READINESS — REVISION PLAN\n\n"+plan.map(function(x,i){return (i+1)+". "+x;}).join("\n")+"\n\nBased only on supplied text. This is not an employer score or salary offer.";
+  copy.disabled=false;status.textContent="Review complete: "+plan.length+" concrete edits suggested. This review did not upload your résumé.";
+ }
+ run.addEventListener("click",review);
+ draft.addEventListener("click",function(){if(d.getElementById("candidate").value.trim().length<80){status.textContent="Paste your résumé above before building a draft.";return;}var b=d.getElementById("resume-build");if(b){b.click();d.getElementById("resume-workbench").scrollIntoView({behavior:"smooth",block:"start"});}});
+ copy.addEventListener("click",async function(){if(!lastPlan)return;try{await navigator.clipboard.writeText(lastPlan);status.textContent="Revision plan copied.";}catch(e){status.textContent="Copy unavailable in this browser; select the on-screen list to copy it manually.";}});
+ function augmentOnet(){
+  var result=d.getElementById("career-results");if(!result)return;
+  result.querySelectorAll(".career-card").forEach(function(c){if(c.querySelector('a[href*="onetonline.org/link/"]')||c.querySelector(".leh-onet-direct"))return;var match=(c.textContent||"").match(/\b\d{2}-\d{4}\.\d{2}\b/);if(!match)return;var a=make(d,"a","leh-onet-direct","Open matching O*NET occupation");a.href="https://www.onetonline.org/link/summary/"+match[0];a.target="_blank";a.rel="noopener noreferrer";a.style.display="inline-block";a.style.marginTop="8px";c.appendChild(a);});
+ }
+ var result=d.getElementById("career-results");if(result){new MutationObserver(augmentOnet).observe(result,{childList:true});augmentOnet();}
+ }catch(err){/* Preserve the original tools if the optional enhancement cannot mount. */}
+}
+install();
+})();</script><script>(function(){
+"use strict";
+
+var URLS={
+ pdf:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+ pdfWorker:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
+ docxRead:"https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.13.0/mammoth.browser.min.js",
+ docxWrite:"https://unpkg.com/docx@9.14.0/dist/index.iife.js",
+ pdfWrite:"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"
+};
+var libraries={};
+function make(d,tag,cls,text){var e=d.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+function label(d,txt,forId){var e=make(d,"label","",txt);if(forId)e.htmlFor=forId;return e;}
+function install(){
+ try{
+  var d=document,w=window;
+  if(!d||!w||!d.getElementById("candidate")||!d.getElementById("resume-workbench")||d.getElementById("leh-doc-editor"))return;
+  var source=null,rows=[],originalImportedText="",baseName="resume-revision";
+  var css=make(d,"style");css.textContent=".leh-upload{border:2px dashed #a6c4b3;border-radius:12px;background:#f3f8f4;padding:13px;margin:12px 0}.leh-upload.is-over{background:#e2f1e8;border-color:#245b45}.leh-upload label{font-size:14px;font-weight:750;display:block;margin-bottom:5px}.leh-upload input{max-width:100%;font-size:14px}.leh-upload .leh-small,.leh-revision .leh-small{font-size:13px;color:#52665a;margin:5px 0}.leh-revision{padding:20px!important;border:2px solid #c0d5c7!important}.leh-revision h2{font-size:clamp(23px,3vw,29px)!important;margin-bottom:7px!important}.leh-revision .leh-flex{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}.leh-revision button{border:1px solid #245c49;border-radius:8px;background:#245c49;color:white;padding:10px 13px;min-height:44px;font-weight:700;font-size:14px;cursor:pointer}.leh-revision button.alt{background:#fff;color:#245c49}.leh-revision button:disabled{opacity:.5;cursor:default}.leh-revision button:focus-visible,.leh-upload input:focus-visible{outline:3px solid #8bad9d;outline-offset:2px}.leh-row{border:1px solid #d4dfd7;border-radius:10px;background:#fcfefd;margin:11px 0;padding:12px}.leh-row .leh-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:7px}.leh-row .leh-id{font-size:12px;font-weight:800;color:#1d5741;background:#e5f0e7;border-radius:999px;padding:3px 9px}.leh-row textarea{width:100%;min-height:62px;line-height:1.45;padding:9px;border-radius:7px;border:1px solid #879c90;font-family:inherit;font-size:14px;resize:vertical;color:#1a3226;background:white}.leh-row select{min-height:37px;max-width:160px;background:white;color:#1a3226;border:1px solid #aebeb4;border-radius:6px;padding:5px}.leh-row details{padding:7px 9px;margin:8px 0 0;border:1px solid #d9e4dc;border-radius:7px;background:#f5f8f5}.leh-row details summary{font-size:13px!important;padding:0!important;color:#244b39!important;font-weight:700!important;cursor:pointer}.leh-row .leh-quote{font-size:13px;color:#345141;white-space:pre-wrap;overflow-wrap:anywhere}.leh-revision .leh-alert{background:#fff7ec;border-left:4px solid #9d6d23;padding:10px 12px;margin:10px 0;font-size:13px}.leh-revision .leh-ok{background:#ebf4ec;border-left:4px solid #356a4e;padding:10px 12px;margin:10px 0;font-size:13px}.leh-revision .leh-scroll{max-height:700px;overflow-y:auto;padding-right:5px}.leh-revision .leh-preview{white-space:pre-wrap;border:1px solid #d2ddd3;padding:12px;border-radius:8px;max-height:290px;overflow:auto;background:#fff;font-size:13px}.leh-revision .leh-verify{font-size:12px;color:#9b5a18;font-weight:650}.leh-revision input[type=checkbox]{accent-color:#225f48;min-height:18px;min-width:18px}@media(max-width:600px){.leh-revision{padding:12px!important}.leh-revision .leh-flex button{width:100%}}";d.head.appendChild(css);
+  function announce(s){notice.textContent=s;}
+  function appendParagraph(parent,txt,cls){var p=make(d,"p",cls||"",txt);parent.appendChild(p);return p;}
+  function library(key,predicate){
+   if(predicate())return Promise.resolve();
+   if(libraries[key])return libraries[key];
+   libraries[key]=new Promise(function(resolve,reject){
+    var tag=make(d,"script");tag.src=URLS[key];tag.async=true;
+    var timer=setTimeout(function(){tag.remove();reject(new Error("Document library timed out. Check browser security settings or try again."));},20000);
+    tag.onload=function(){clearTimeout(timer);if(predicate())resolve();else reject(new Error("Document library did not initialize."));};
+    tag.onerror=function(){clearTimeout(timer);reject(new Error("Could not load the document library. Check content blockers or network access."));};
+    d.head.appendChild(tag);
+   }).catch(function(e){delete libraries[key];throw e;});
+   return libraries[key];
+  }
+  function sectionsFromText(text,kind,page){
+   var lines=String(text||"").replace(/\r/g,"\n").split(/\n+/).map(function(x){return x.replace(/[\u00a0\t ]+/g," ").trim();}).filter(function(x){return x.length>1;});
+   return lines.map(function(x,i){return {text:x,location:kind+(page?" — page "+page:" — paragraph "+(i+1))};});
+  }
+  async function pdfExtract(buffer){
+   await library("pdf",function(){return !!w.pdfjsLib;});
+   w.pdfjsLib.GlobalWorkerOptions.workerSrc=URLS.pdfWorker;
+   var task=w.pdfjsLib.getDocument({data:new Uint8Array(buffer)});
+   var pdf=await task.promise,units=[],texts=[],limit=Math.min(pdf.numPages,40);
+   for(var i=1;i<=limit;i++){
+    var p=await pdf.getPage(i),content=await p.getTextContent(),lines=[],current="",lastY=null;
+    content.items.forEach(function(it){
+      var v=String(it.str||"").trim();if(!v)return;
+      var y=it.transform&&it.transform.length>5?Number(it.transform[5]):null;
+      if(current&&lastY!==null&&y!==null&&Math.abs(y-lastY)>3){lines.push(current.trim());current="";}
+      current+=(current&&!/\s$/.test(current)?" ":"")+v;
+      if(it.hasEOL){lines.push(current.trim());current="";}lastY=y;
+    });
+    if(current.trim())lines.push(current.trim());
+    var pageText=lines.join("\n");if(pageText)texts.push(pageText);
+    units.push.apply(units,sectionsFromText(pageText,"PDF",i));
+   }
+   if(!units.length)throw Error("This PDF has no selectable text. Scanned/image-only PDFs need OCR before importing.");
+   return {text:texts.join("\n"),units:units,note:pdf.numPages>limit?"Only the first "+limit+" pages were imported.":""};
+  }
+  async function docxExtract(buffer){
+   await library("docxRead",function(){return !!w.mammoth;});
+   var result=await w.mammoth.extractRawText({arrayBuffer:buffer});
+   var text=String(result.value||"").trim();
+   if(!text)throw Error("No readable text found in the DOCX. Content inside images or drawing objects may need manual extraction.");
+   var notes=(result.messages||[]).filter(function(m){return m.type==="warning";}).slice(0,2).map(function(m){return m.message;}).join(" ");
+   return {text:text,units:sectionsFromText(text,"DOCX"),note:notes};
+  }
+  function normNum(x){return (String(x).match(/\b\d[\d,.]*%?\b/g)||[]).join("|");}
+  function safeRevision(s){
+   return String(s||"").replace(/^\s*[-•*]\s*/,"").replace(/^\s*I (managed|led|coordinated|developed|created|designed|implemented|analyzed|supervised|directed|built|trained|supported)\b/i,function(_,verb){return verb[0].toUpperCase()+verb.slice(1);}).replace(/^\s*(?:was )?responsible for (managing|leading|coordinating|developing|creating|designing|implementing|analyzing|supervising)\b/i,function(_,verb){return verb.replace(/ing$/,"ed").replace(/^lead?ed$/,"Led").replace(/^./,function(x){return x.toUpperCase();});}).replace(/^\s*Successfully\s+/i,"").trim();
+  }
+  function sourceLineUnits(){var t=d.getElementById("candidate").value.trim();return {text:t,units:sectionsFromText(t,"Entered résumé"),note:""};}
+  function sourceForCurrent(){
+   var current=d.getElementById("candidate").value.trim();
+   if(source&&current===originalImportedText)return source;
+   return sourceLineUnits();
+  }
+  var inputBox=make(d,"div","leh-upload");inputBox.id="leh-upload";
+  inputBox.appendChild(label(d,"Import a résumé (.pdf or .docx)","leh-import-file"));
+  var inp=make(d,"input");inp.id="leh-import-file";inp.type="file";inp.accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";inputBox.appendChild(inp);
+  appendParagraph(inputBox,"Or drag a PDF or DOCX onto this area. Text is extracted in your browser, then added to the résumé field. 10 MB limit. No document is uploaded by this importer.","leh-small");
+  var importStatus=appendParagraph(inputBox,"","leh-small");importStatus.setAttribute("role","status");importStatus.setAttribute("aria-live","polite");
+  var candidate=d.getElementById("candidate");candidate.insertAdjacentElement("afterend",inputBox);
+  async function importFile(f){
+   if(!f)return;
+   if(!/\.(pdf|docx)$/i.test(f.name)){importStatus.textContent="Choose a .pdf or .docx file.";return;}
+   if(f.size>10*1024*1024){importStatus.textContent="The maximum file size is 10 MB.";return;}
+   if(candidate.value.trim()&&!w.confirm("Replace the text currently in the résumé input with the imported document?"))return;
+   importStatus.textContent="Reading "+f.name+" locally…";
+   try{
+    var buffer=await f.arrayBuffer(),data=/\.pdf$/i.test(f.name)?await pdfExtract(buffer):await docxExtract(buffer);
+    if(data.text.trim().length<40)throw Error("Too little selectable text was extracted to build a reliable revision.");
+    if(data.text.length>120000)throw Error("This file exceeds the 120,000-character text limit. Use a shorter résumé.");
+    source=data;originalImportedText=data.text.trim();baseName=f.name.replace(/\.(docx|pdf)$/i,"").replace(/[^a-z0-9-_]+/gi,"-").slice(0,60)||"resume";
+    candidate.value=data.text;candidate.dispatchEvent(new Event("input",{bubbles:true}));
+    importStatus.textContent="Imported "+f.name+": "+data.units.length+" evidence excerpts. "+(data.note||"Review headings and reading order, particularly for multicolumn layouts.");
+    announce("Résumé imported. Choose Build evidence-linked revision below; the existing occupation and ATS tools can also use the extracted text.");
+    var parent=d.getElementById("candidate");parent.focus();
+   }catch(e){importStatus.textContent="Import failed: "+(e.message||String(e));announce("The document could not be imported. You can paste plain text instead.");}
+  }
+  inp.addEventListener("change",function(){importFile(inp.files&&inp.files[0]);});
+  inputBox.addEventListener("dragover",function(e){e.preventDefault();inputBox.classList.add("is-over");});
+  inputBox.addEventListener("dragleave",function(){inputBox.classList.remove("is-over");});
+  inputBox.addEventListener("drop",function(e){e.preventDefault();inputBox.classList.remove("is-over");importFile(e.dataTransfer.files[0]);});
+  var sec=make(d,"section","panel leh-revision");sec.id="leh-doc-editor";sec.setAttribute("aria-labelledby","leh-doc-editor-title");
+  var head=make(d,"h2","","Evidence-linked résumé editor");head.id="leh-doc-editor-title";sec.appendChild(head);
+  appendParagraph(sec,"Turn your source résumé into an editable, clearly structured draft. Each proposed line points to its original PDF page, DOCX paragraph, or pasted résumé line. Reordering follows the posting only within contiguous bullet groups; employers and dates remain in their original order.","leh-small");
+  var ctl=make(d,"div","leh-flex");
+  var build=make(d,"button","","Build evidence-linked revision");build.type="button";ctl.appendChild(build);
+  var downDoc=make(d,"button","alt","Download DOCX");downDoc.type="button";downDoc.disabled=true;ctl.appendChild(downDoc);
+  var downPdf=make(d,"button","alt","Download PDF");downPdf.type="button";downPdf.disabled=true;ctl.appendChild(downPdf);
+  sec.appendChild(ctl);
+  var chkWrap=label(d,"","");chkWrap.style.display="inline-flex";chkWrap.style.alignItems="center";chkWrap.style.gap="8px";
+  var appendix=make(d,"input");appendix.type="checkbox";appendix.checked=true;chkWrap.appendChild(appendix);chkWrap.appendChild(d.createTextNode("Include evidence appendix in downloads (uncheck for employer-facing résumé)"));sec.appendChild(chkWrap);
+  var notice=appendParagraph(sec,"Import a PDF/DOCX above, or paste your résumé, then build a revision.","leh-small");notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");
+  var edits=make(d,"div","leh-scroll");edits.id="leh-edits";sec.appendChild(edits);
+  var previewWrap=make(d,"details");var summary=make(d,"summary","","Preview complete revised résumé text");previewWrap.appendChild(summary);
+  var preview=make(d,"pre","leh-preview","");previewWrap.appendChild(preview);sec.appendChild(previewWrap);
+  var existing=d.getElementById("resume-workbench");existing.parentNode.insertBefore(sec,existing.nextSibling);
+  var headers=/^(professional\s+summary|summary|profile|objective|work\s+experience|professional\s+experience|relevant\s+experience|employment|education|skills|technical\s+skills|selected\s+projects|projects|certifications|certificates|awards|publications|volunteer\s+experience|leadership|research|languages)\s*:?$/i;
+  var roleWords=/\b(?:manager|director|coordinator|specialist|analyst|associate|assistant|consultant|instructor|professor|university|college|school|corporation|organization|company)\b/i;
+  function classify(u,i,hasHeaders){
+   var t=u.text.trim();
+   if(headers.test(t))return "heading";
+   if(i===0)return "contact";
+   if(!hasHeaders&&i<3&&(/@|https?:|linkedin|phone|\b\d{3}[-. )]/i.test(t)))return "contact";
+   if(/^[•*-]\s+/.test(t))return "bullet";
+   if(/^\d{1,2}\/(?:19|20)\d{2}/.test(t)||/\b(?:19|20)\d{2}\s*[-–—]\s*(?:present|(?:19|20)\d{2})/i.test(t))return "text";
+   if(roleWords.test(t)&&t.length<95&&t.split(/\s+/).length<12)return "text";
+   if(hasHeaders&&t.length>60&&/^\w/.test(t))return "bullet";
+   return "text";
+  }
+  function keywords(posting){
+   var ignore=new Set("about above across after also and because been before between both candidate candidates company could degree description demonstrated develop development education employer experience from have including into leadership management other over position preferred required responsibilities role skills strong successful support teams than that their them there these they this those through using what when where which will with work working would your years".split(" "));
+   var f=new Map();(posting.toLowerCase().match(/[a-z][a-z-]{3,}/g)||[]).forEach(function(x){if(!ignore.has(x))f.set(x,(f.get(x)||0)+1);});
+   return [...f].sort(function(a,b){return b[1]-a[1];}).slice(0,30).map(function(x){return x[0];});
+  }
+  function relevance(line,terms){var a=line.toLowerCase();return terms.reduce(function(v,t){return v+(a.indexOf(t)>=0?1:0);},0);}
+  function sortedBullets(entries){
+   for(var i=0;i<entries.length;){
+    if(entries[i].kind!=="bullet"){i++;continue;}
+    var end=i+1;while(end<entries.length&&entries[end].kind==="bullet")end++;
+    var replacement=entries.slice(i,end).sort(function(a,b){return b.related-a.related||a.order-b.order;});entries.splice.apply(entries,[i,end-i].concat(replacement));i=end;
+   }
+   return entries;
+  }
+  function checkEvidence(row){
+   var now=row.input.value.trim(),old=row.original;
+   var a=normNum(old),b=normNum(now),differentNumbers=a!==b;
+   var changed=now!==row.proposal;
+   row.warning.textContent=differentNumbers?"Numbers changed from the source — verify before export.":changed?"Edited from the proposed wording — check against the source.":"Source excerpt retained; verify accuracy and context.";
+   return {changed:changed,numberChanged:differentNumbers};
+  }
+  function selectedRows(){return rows.filter(function(r){return r.keep.checked&&r.input.value.trim();});}
+  function compose(){
+   var arr=selectedRows(),lines=[];
+   arr.forEach(function(r){var v=r.input.value.trim();if(r.type.value==="heading")v=v.replace(/:$/,"").toUpperCase();else if(r.type.value==="bullet")v="• "+v.replace(/^\s*[•*-]\s*/,"");lines.push(v);});
+   preview.textContent=lines.join("\n");
+   return arr;
+  }
+  function lineEditor(entry,index){
+   var card=make(d,"div","leh-row"),top=make(d,"div","leh-top"),id=String(entry.id);
+   top.appendChild(make(d,"span","leh-id",id));
+   var keepLabel=label(d,"","");var keep=make(d,"input");keep.type="checkbox";keep.checked=true;keepLabel.appendChild(keep);keepLabel.appendChild(d.createTextNode(" Include"));top.appendChild(keepLabel);
+   var typ=make(d,"select");["contact","heading","text","bullet"].forEach(function(t){var o=make(d,"option","",t==="text"?"Role / text":t[0].toUpperCase()+t.slice(1));o.value=t;typ.appendChild(o);});typ.value=entry.kind;typ.setAttribute("aria-label","Line type for "+id);top.appendChild(typ);
+   if(entry.related>0)top.appendChild(make(d,"span","leh-id","Posting relevance: "+entry.related+" term"+(entry.related!==1?"s":"")));
+   card.appendChild(top);
+   var field=make(d,"textarea");field.value=entry.proposal;field.setAttribute("aria-label","Editable résumé line from "+id);card.appendChild(field);
+   var warning=appendParagraph(card,"Source excerpt retained; verify accuracy and context.","leh-verify");
+   var details=make(d,"details");details.appendChild(make(d,"summary","","Read original evidence "+id+" · "+entry.location));
+   details.appendChild(make(d,"p","leh-quote",entry.original));card.appendChild(details);edits.appendChild(card);
+   var row={id:id,original:entry.original,location:entry.location,proposal:entry.proposal,input:field,type:typ,keep:keep,warning:warning};
+   [field,typ,keep].forEach(function(el){el.addEventListener("input",function(){checkEvidence(row);compose();});el.addEventListener("change",function(){checkEvidence(row);compose();});});
+   return row;
+  }
+  build.addEventListener("click",function(){
+   var data=sourceForCurrent();
+   if(!data.text||data.text.length<60){announce("Paste or import your résumé first (at least 60 characters).");return;}
+   if(data.units.length>500){announce("This résumé contains more than 500 text lines. Please use a shorter version so no content is silently omitted.");return;}
+   var terms=keywords((d.getElementById("job")||{}).value||"");
+   var hasHeaders=data.units.some(function(x){return headers.test(x.text);});
+   var entries=data.units.map(function(u,i){var kind=classify(u,i,hasHeaders),raw=u.text,clean=kind==="heading"?raw.replace(/:$/,"").toUpperCase():safeRevision(raw);return {id:"E"+String(i+1).padStart(3,"0"),order:i,kind:kind,original:raw,proposal:clean,location:u.location,related:relevance(raw,terms)};});
+   sortedBullets(entries);edits.replaceChildren();rows=entries.map(lineEditor);compose();downDoc.disabled=false;downPdf.disabled=false;
+   announce("Draft created from "+rows.length+" traceable source excerpts. Edit each line, change its type, or exclude it. Export with or without the evidence appendix.");
+   sec.scrollIntoView({block:"start",behavior:"smooth"});
+  });
+  function download(blob,name){
+   var u=w.URL.createObjectURL(blob),a=make(d,"a");a.href=u;a.download=name;d.body.appendChild(a);a.click();a.remove();setTimeout(function(){w.URL.revokeObjectURL(u);},30000);
+  }
+  function evidenceStatus(r){var x=checkEvidence(r);return x.numberChanged?"Numbers modified — manually verify":x.changed?"Wording edited — manually verify":"Original source available — check context";}
+  async function exportDocx(){
+   var arr=compose();if(!arr.length)throw Error("Add at least one included résumé line.");
+   await library("docxWrite",function(){return !!(w.docx&&w.docx.Packer&&w.docx.Document);});
+   var D=w.docx,p=[];
+   function para(text,kind){
+    var options={text:text,spacing:{after:kind==="heading"?130:75},keepWithNext:kind==="heading"};
+    if(kind==="heading")options.heading=D.HeadingLevel.HEADING_1;
+    if(kind==="bullet")options.bullet={level:0};
+    return new D.Paragraph(options);
+   }
+   arr.forEach(function(r){p.push(para(r.input.value.trim().replace(/^\s*[•*-]\s*/,""),r.type.value));});
+   if(appendix.checked){
+    p.push(new D.Paragraph({text:"SOURCE-TO-REVISION EVIDENCE REGISTER",pageBreakBefore:true,heading:D.HeadingLevel.HEADING_1}));
+    p.push(para("Review copy only. The source excerpts below document what was extracted or entered; edits and employment claims still require human verification.","text"));
+    arr.forEach(function(r){p.push(new D.Paragraph({children:[new D.TextRun({text:r.id+" · "+r.location,bold:true})],spacing:{before:170,after:65}}));p.push(para("Original: "+r.original,"text"));p.push(para("Revision: "+r.input.value.trim(),"text"));p.push(para("Review status: "+evidenceStatus(r),"text"));});
+   }
+   var document=new D.Document({creator:"Role Evidence Studio",title:"Evidence-linked résumé revision",description:"Applicant-edited résumé with optional original-excerpt evidence register",sections:[{properties:{},children:p}]});
+   var blob=await D.Packer.toBlob(document);download(blob,baseName+"-revised"+(appendix.checked?"-evidence":"")+".docx");
+  }
+  async function exportPdf(){
+   var arr=compose();if(!arr.length)throw Error("Add at least one included résumé line.");
+   await library("pdfWrite",function(){return !!(w.jspdf&&w.jspdf.jsPDF);});
+   var pdf=new w.jspdf.jsPDF({orientation:"portrait",unit:"pt",format:"letter"}),top=57,bottom=748,x=56,width=500,y=top;
+   function safe(v){return String(v||"").replace(/[•]/g,"-").replace(/[–—]/g,"-").replace(/[“”]/g,'"').replace(/[‘’]/g,"'");}
+   function write(text,kind){
+    var font=kind==="heading"?"bold":"normal",size=kind==="heading"?12:10.5,line=kind==="heading"?16:14;
+    pdf.setFont("helvetica",font);pdf.setFontSize(size);pdf.setTextColor(30,46,37);
+    var prefix=kind==="bullet"?"   - ":"",lines=pdf.splitTextToSize(prefix+safe(text),width);
+    if(y+lines.length*line+8>bottom){pdf.addPage();y=top;}
+    pdf.text(lines,x,y);y+=line*lines.length+(kind==="heading"?10:6);
+   }
+   arr.forEach(function(r){write(r.input.value.trim().replace(/^\s*[•*-]\s*/,""),r.type.value);});
+   if(appendix.checked){
+    pdf.addPage();y=top;write("SOURCE-TO-REVISION EVIDENCE REGISTER","heading");
+    write("Review copy: source excerpts and all revisions require human verification.","text");
+    arr.forEach(function(r){write(r.id+" | "+r.location,"heading");write("Original: "+r.original,"text");write("Revision: "+r.input.value.trim(),"text");write("Review status: "+evidenceStatus(r),"text");});
+   }
+   var pages=pdf.getNumberOfPages();for(var i=1;i<=pages;i++){pdf.setPage(i);pdf.setFontSize(8);pdf.setTextColor(100,110,104);pdf.text("Role Evidence Studio | Page "+i+" of "+pages,56,773);}
+   pdf.save(baseName+"-revised"+(appendix.checked?"-evidence":"")+".pdf");
+  }
+  async function perform(fn){downDoc.disabled=true;downPdf.disabled=true;announce("Preparing your download…");try{await fn();announce("Download generated locally from the currently selected, editable résumé lines.");}catch(e){announce("Export failed: "+(e.message||String(e))+". Try the other format or check browser content blockers.");}finally{downDoc.disabled=false;downPdf.disabled=false;}}
+  downDoc.addEventListener("click",function(){perform(exportDocx);});
+  downPdf.addEventListener("click",function(){perform(exportPdf);});
+  }catch(err){/* The original matching, audit, and résumé builder remain operational. */}
+}
+install();
+})();</script><script>(() => {
+  'use strict';
+  const byId=id=>document.getElementById(id);
+  const candidate=byId('candidate'),job=byId('job');
+  const tabs=['review','roles','resume','evidence'];
+  const displayType={hard:'Required',preferred:'Preferred',scope:'Scope / authority',tool:'Tool or method',responsibility:'Responsibility',context:'Context'};
+  const statusName={strong:'Textual evidence visible',visible:'Textual evidence visible',partial:'Partial textual evidence','not visible':'Evidence not surfaced'};
+  let active='review',reviewRows=[],reviewKey='',shown=8,planText='';
+  const key=()=>JSON.stringify([candidate.value,job.value,GRAPH.map(node=>[node.evidence_id,node.verification_status,node.reviewed])]);
+  const make=(tag,value,className)=>{const e=document.createElement(tag);if(value!==undefined)e.textContent=value;if(className)e.className=className;return e;};
+  function choose(name,focus=false){
+    active=name;
+    tabs.forEach(id=>{
+      const selected=id===name,tab=byId('tab-'+id);
+      tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;
+      byId('pane-'+id).hidden=!selected;
+    });
+    if(focus)byId('tab-'+name).focus();
+    if(typeof atsReportHeight==='function')atsReportHeight();
+  }
+  tabs.forEach((name,index)=>{
+    const tab=byId('tab-'+name);
+    tab.addEventListener('click',()=>choose(name));
+    tab.addEventListener('keydown',event=>{
+      const next=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;
+      if(next!==null){event.preventDefault();choose(tabs[next],true);}
+    });
+  });
+  byId('studio-start').addEventListener('click',()=>{candidate.focus();candidate.scrollIntoView({block:'center',behavior:'smooth'});});
+  const upload=byId('leh-upload');
+  if(!upload||!byId('leh-doc-editor')||!byId('leh-readiness'))throw Error('A required document or readiness feature did not initialize.');
+  candidate.parentNode.insertBefore(upload,byId('candidate-input-heading'));
+  const readiness=byId('leh-readiness');
+  const documentEditor=byId('leh-doc-editor');
+  byId('pane-resume').insertBefore(documentEditor,byId('studio-quick-draft'));
+  byId('pane-resume').append(readiness);
+  const buildRevision=documentEditor.querySelector('button');buildRevision.id='studio-revision-build';
+  buildRevision.textContent='Build and edit my résumé';
+  documentEditor.querySelector('h2').textContent='Build a résumé you can trace to its source.';
+  readiness.querySelector('h2').textContent='Check your résumé’s structure and clarity';
+  const readinessButtons=readiness.querySelectorAll('button');
+  readinessButtons[0].id='studio-readiness-run';readinessButtons[1].textContent='Build quick text draft';
+  byId('resume-heading').textContent='Quick text draft';
+  const moreTools=byId('career-evidence-tools');moreTools.querySelector('summary').textContent='Source evidence, saved profiles, and claim review';
+  byId('analyze').addEventListener('click',()=>choose('evidence'));
+  byId('resume-build').addEventListener('click',()=>{choose('resume');byId('studio-quick-draft').open=true;});
+  byId('studio-open-editor').addEventListener('click',()=>{
+    choose('resume');buildRevision.click();documentEditor.scrollIntoView({block:'start',behavior:'smooth'});buildRevision.focus();
+  });
+  // Show area selection only after a ZIP resolves to more than one labor market.
+  const area=byId('career-area'),areaLabel=document.querySelector('label[for="career-area"]');
+  const updateArea=()=>{const show=!area.disabled&&area.options.length>2;area.hidden=!show;areaLabel.hidden=!show;};
+  new MutationObserver(updateArea).observe(area,{childList:true,attributes:true,attributeFilter:['disabled']});updateArea();
+  function inputState(){
+    const words=candidate.value.trim().split(/\s+/).filter(Boolean).length;
+    byId('studio-input-status').textContent=words?words.toLocaleString()+' résumé words · '+(job.value.trim()?'Posting added':'Add a posting for an application review'):'Import a résumé or paste your text to begin.';
+    const stale=Boolean(reviewKey)&&reviewKey!==key();
+    byId('studio-stale').hidden=!stale;
+    byId('studio-plan-download').disabled=byId('studio-plan-copy').disabled=stale||!planText;
+    if(stale)byId('studio-review-message').textContent='Your inputs changed. Review again to refresh the results.';
+  }
+  [candidate,job].forEach(input=>input.addEventListener('input',inputState));
+  for(const id of ['sampleCandidate','sampleJob','profileLoad'])byId(id).addEventListener('click',inputState);
+  for(const id of ['saveNode','clearNodeReview'])byId(id).addEventListener('click',inputState);
+  new MutationObserver(inputState).observe(byId('profileMsg'),{childList:true});
+  // Profile imports and document imports also update the shared text asynchronously.
+  byId('profileImport').addEventListener('change',()=>setTimeout(inputState,0));
+  function needsAttention(row){return !['strong','visible'].includes(row.ev.status)||Boolean(row.hard_check&&/unresolved|not visible|does not yet support|not clearly supported/i.test(row.hard_check))||/not usable externally|blocked/i.test(row.g);}
+  function prioritized(rows){
+    return [...rows].sort((a,b)=>(a.type==='hard'&&needsAttention(a)?0:needsAttention(a)?1:a.type==='preferred'?3:2)-(b.type==='hard'&&needsAttention(b)?0:needsAttention(b)?1:b.type==='preferred'?3:2)||a.id-b.id);
+  }
+  function sourceExcerpt(row){return row.ev.found||'No source excerpt surfaced in the supplied material.';}
+  function renderCriteria(){
+    const query=byId('studio-criteria-search').value.toLocaleLowerCase(),filter=byId('studio-criteria-filter').value;
+    const selected=prioritized(reviewRows).filter(row=>(filter==='all'||filter==='attention'&&needsAttention(row)||row.type===filter)&&
+      [row.text,row.ev.found,row.ev.source,atsAction(row)].join(' ').toLocaleLowerCase().includes(query));
+    const host=byId('studio-criteria');host.replaceChildren();
+    for(const row of selected.slice(0,shown)){
+      const card=make('article',undefined,'criterion-card');
+      const labels=make('div',undefined,'criterion-labels');
+      labels.append(make('span',displayType[row.type]||row.type,'criterion-type'),make('span',statusName[row.ev.status]||row.ev.status,'criterion-status '+(needsAttention(row)?'attention':'visible')));
+      card.append(labels,make('h4',row.text));
+      if(row.hard_check)card.append(make('p',row.hard_check,'criterion-condition'));
+      card.append(make('p','Source connection','criterion-caption'),make('p',sourceExcerpt(row),'criterion-excerpt'),make('p',atsAction(row),'criterion-action'));
+      if(row.ev.source)card.append(make('p','Source: '+row.ev.source+' · Review: '+reviewedSupport(row.ev),'studio-muted'));
+      host.append(card);
+    }
+    if(!selected.length)host.append(make('p','No criteria match this view. Try another search or choose All criteria.','studio-empty'));
+    byId('studio-criteria-count').textContent='Showing '+Math.min(shown,selected.length)+' of '+selected.length+' matching criteria · '+reviewRows.length+' total';
+    byId('studio-criteria-more').hidden=shown>=selected.length;
+  }
+  byId('studio-criteria-search').addEventListener('input',()=>{shown=8;renderCriteria();});
+  byId('studio-criteria-filter').addEventListener('change',()=>{shown=8;renderCriteria();});
+  byId('studio-criteria-more').addEventListener('click',()=>{shown+=8;renderCriteria();});
+  function buildPlan(){
+    reviewRows=DATA.filter(row=>row.type!=='context');reviewKey=key();shown=8;
+    byId('studio-plan').hidden=false;byId('studio-stale').hidden=true;
+    const required=reviewRows.filter(row=>row.type==='hard');
+    const visible=reviewRows.filter(row=>['strong','visible'].includes(row.ev.status));
+    const attention=reviewRows.filter(needsAttention);
+    const counts=byId('studio-counts');counts.replaceChildren();
+    for(const [count,label] of [[required.length,'Stated required criteria'],[visible.length,'Text connections surfaced'],[attention.length,'Criteria needing attention']]){
+      const card=make('div',undefined,'plan-count');card.append(make('strong',count),make('span',label));counts.append(card);
+    }
+    const actions=byId('studio-actions');actions.replaceChildren();
+    const top=prioritized(attention.length?attention:reviewRows).slice(0,3);
+    if(!top.length)actions.append(make('li','No reviewable criteria were identified. Add the full qualifications and responsibilities, then run the review again.'));
+    top.forEach(row=>{
+      const item=make('li');item.append(make('strong',row.type==='hard'?'Clarify a required criterion':needsAttention(row)?'Strengthen the evidence connection':'Verify the visible connection'),make('p',row.text),make('p',atsAction(row),'studio-muted'));actions.append(item);
+    });
+    const heading=job.value.trim().split(/\n/).find(Boolean)||'Application review';
+    planText=['REVERSE ATS · APPLICATION NEXT-STEP PLAN',heading,'',reviewRows.length+' criteria reviewed; '+required.length+' stated required; '+visible.length+' textual connections; '+attention.length+' need attention.',
+      'Textual visibility is not proof that a requirement is met. This is a review aid, not an employer ATS score.','',
+      'PRIORITY ACTIONS',...top.flatMap((row,i)=>[(i+1)+'. '+row.text,atsAction(row),'']),
+      'COMPLETE CRITERIA REVIEW',...prioritized(reviewRows).flatMap(row=>[displayType[row.type]+': '+row.text,'Visibility: '+row.ev.status,'Evidence: '+sourceExcerpt(row),row.hard_check?'Condition: '+row.hard_check:'','Next action: '+atsAction(row),'']),
+      'Prepared from the résumé and posting supplied in this browser. Keep source details private. Review exact dates, authority, credentials and employer application questions before sharing claims.'].join('\n');
+    byId('studio-plan-copy').disabled=byId('studio-plan-download').disabled=false;
+    byId('studio-plan-message').textContent='';
+    byId('studio-review-message').textContent='Review ready. Start with the next steps, then check the source connection for each criterion.';
+    renderCriteria();
+  }
+  byId('ats-run').addEventListener('click',()=>{if(job.value.trim()&&jobClauses(job.value).length){buildPlan();inputState();}});
+  function review(){
+    choose('review');
+    if(candidate.value.trim().length<80){byId('studio-review-message').textContent='Add a résumé or evidence summary of at least 80 characters first.';candidate.focus();return;}
+    if(!job.value.trim()||!jobClauses(job.value).length){byId('studio-review-message').textContent='Add the job posting, including qualifications and responsibilities, then review your application.';job.focus();return;}
+    byId('ats-run').click();
+    byId('studio-readiness-run').click();
+    byId('studio-plan-title').focus();
+  }
+  byId('studio-review').addEventListener('click',review);
+  document.addEventListener('studio-example-loaded',()=>{byId('studio-demo-note').hidden=false;inputState();review();});
+  function currentPlan(){
+    if(reviewKey!==key()){inputState();byId('studio-plan-message').textContent='Run the review again before exporting a plan for changed inputs.';return null;}
+    return planText||null;
+  }
+  byId('studio-plan-download').addEventListener('click',()=>{
+    const content=currentPlan();if(!content)return;
+    let href,link;
+    try{
+      href=URL.createObjectURL(new Blob([content+'\n'],{type:'text/plain;charset=utf-8'}));link=make('a');link.href=href;link.download='application-next-step-plan.txt';document.body.append(link);link.click();
+      byId('studio-plan-message').textContent='Plan download started. Check your browser’s downloads.';
+    }catch{byId('studio-plan-message').textContent='The download could not start. Copy the plan or try again.';}
+    finally{link?.remove();if(href)setTimeout(()=>URL.revokeObjectURL(href),1500);}
+  });
+  byId('studio-plan-copy').addEventListener('click',async()=>{
+    const content=currentPlan();if(!content)return;
+    try{await navigator.clipboard.writeText(content);byId('studio-plan-message').textContent='Next-step plan copied.';}
+    catch{byId('studio-plan-message').textContent='Clipboard access is unavailable. Use Download plan instead.';}
+  });
+  // Retain existing in-page links while revealing the task that contains the target.
+  document.addEventListener('click',event=>{
+    const link=event.target.closest('a[href^="#"]');if(!link)return;
+    const target=byId(link.getAttribute('href').slice(1));if(!target)return;
+    event.preventDefault();
+    const pane=target.closest('.studio-pane');if(pane)choose(pane.id.slice(5));
+    for(let ancestor=target.parentElement;ancestor;ancestor=ancestor.parentElement)if(ancestor.tagName==='DETAILS')ancestor.open=true;
+    target.scrollIntoView({block:'start',behavior:'smooth'});target.setAttribute('tabindex','-1');target.focus();
+  });
+  inputState();choose(active);
+})();
+</script><style>:root{--bg:#faf9f4;--panel:#fff;--ink:#193b35;--muted:#526b62;--line:#dce4dc;--green:#245c49;--soft:#f0f4ed;--warn:#8a5a24;--bad:#8b3f35;--r:16px;font-size:16px;color-scheme:light}
+*{box-sizing:border-box}body{background:var(--bg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;min-width:0}button,input,select,textarea{font:inherit}button{cursor:pointer;min-height:44px}button:disabled{cursor:not-allowed;opacity:.5}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px solid #b9542f;outline-offset:3px}[hidden]{display:none!important}h1,h2,h3,h4{color:var(--ink)}p{overflow-wrap:anywhere}input,select,textarea{max-width:100%;min-width:0}textarea{resize:vertical;font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fbfcf9;border:1px solid #b8cbbd;border-radius:10px}label{font-size:.84rem;font-weight:650}select,input:not([type=checkbox]){min-height:44px;padding:.6rem .7rem;border:1px solid #b8cbbd;border-radius:9px;background:white;color:var(--ink)}input[type=file]{width:100%;min-width:0;font-size:.8rem;padding:.5rem!important}input[type=file]::file-selector-button{border:0;background:var(--green);border-radius:6px;color:white;font:inherit;padding:.45rem .6rem;margin-right:.6rem;cursor:pointer}input[type=checkbox]{min-width:18px;min-height:18px;accent-color:var(--green)}
+.btn{border-radius:10px;padding:.75rem 1rem;line-height:1.3;background:var(--green);font-size:.86rem;font-weight:650;min-height:44px;border:1px solid var(--green)}.btn:hover:not(:disabled){background:#163f32}.btn.ghost{background:white;border-color:#b8cbbd;color:var(--green)}.btn.ghost:hover:not(:disabled){background:var(--soft)}.row{gap:8px}.studio-eyebrow{color:var(--green);font-size:.7rem;letter-spacing:.1em;font-weight:750;margin:0 0 .7rem;display:flex;align-items:center;gap:.6rem}.studio-mark{display:inline-grid;place-items:center;width:30px;height:30px;background:var(--green);color:white;border-radius:8px;font-size:1rem;letter-spacing:0}.studio-muted,.muted{color:var(--muted)}.studio-muted{font-size:.8rem;margin:.5rem 0 .9rem}.studio-skip{position:absolute;left:20px;top:-100px;background:var(--green);color:white;z-index:20;padding:10px}.studio-skip:focus{top:8px}
+.studio-hero,.studio-steps,.studio-main{max-width:1260px;margin-inline:auto;padding-inline:clamp(16px,4vw,48px);min-width:0}.studio-hero{padding-top:40px;padding-bottom:32px;display:grid;grid-template-columns:1.25fr 1fr;gap:46px;align-items:center}.studio-hero h1{font:400 clamp(2.2rem,4.3vw,3.7rem)/1.07 Georgia,"Times New Roman",serif;letter-spacing:-.04em;margin:.7rem 0 1.1rem}.hero-lead{font-size:1.03rem;color:var(--muted);max-width:560px;margin-bottom:1.3rem}.hero-actions{display:flex;flex-wrap:wrap;gap:10px}.hero-trust{font-size:.75rem;color:var(--muted);margin:.9rem 0 .4rem}.hero-note{font-size:.73rem;max-width:540px;color:var(--muted);margin:0}.hero-sample{background:white;border:1px solid var(--line);border-radius:20px;padding:25px;box-shadow:0 16px 36px -25px #1b453959;transform:rotate(1deg);min-width:0}.sample-header{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.04em}.sample-badge{background:var(--soft);padding:.25rem .5rem;border-radius:6px;font-size:.65rem;white-space:nowrap;color:var(--green);font-weight:650}.hero-sample h2{font-size:1.16rem;font-weight:650;margin:1.2rem 0 1rem}.sample-match{display:flex;gap:13px;padding:.8rem 0;border-top:1px solid var(--line)}.sample-symbol{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#e6f1e8;color:var(--green);font-weight:700;flex-shrink:0}.sample-symbol.amber{background:#fff1d8;color:var(--warn)}.sample-match strong,.sample-match div>span{display:block}.sample-match strong{font-size:.86rem}.sample-match div>span{font-size:.75rem;color:var(--muted)}.sample-next{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px}.sample-next strong{font-size:.74rem}.sample-next p{font-size:.8rem;margin:.2rem 0 0}.hero-sample>p{font-size:.67rem;color:var(--muted);margin:.9rem 0 0}
+.studio-steps{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.studio-steps>div{display:flex;align-items:flex-start;gap:12px}.studio-steps>div>span{display:grid;place-items:center;background:#e7eee5;border-radius:50%;width:28px;height:28px;flex-shrink:0;font-size:.8rem;font-weight:700}.studio-steps p{font-size:.72rem;color:var(--muted);margin:0}.studio-steps strong{display:block;color:var(--ink);font-size:.78rem;margin-bottom:.2rem}
+.studio-main{padding-top:28px;padding-bottom:36px}.studio-workspace{display:grid;grid-template-columns:minmax(280px,.85fr) minmax(0,1.7fr);gap:22px;align-items:start}.studio-inputs,.studio-work{min-width:0;background:white;border:1px solid var(--line);border-radius:18px;padding:22px}.input-heading{padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid var(--line)}.input-heading h2{font-size:1.25rem;line-height:1.25;margin:0 0 .5rem}.input-heading>p:last-child{font-size:.8rem;color:var(--muted);margin:0 0 .4rem}.studio-source h2,.studio-job h2{font-size:.88rem;margin:.75rem 0 .5rem;font-weight:700}.studio-source{min-width:0}.studio-source>textarea{min-height:225px}.studio-job{border-top:1px solid var(--line);margin-top:1.1rem;padding-top:.6rem}.studio-job>textarea{min-height:170px}.studio-job>.studio-muted{font-size:.75rem}.studio-source label{display:block;margin:.65rem 0 .4rem}.studio-secondary{border:1px solid var(--line);border-radius:10px;margin:1rem 0;padding:.8rem;background:#fbfcf9}.studio-secondary>summary{font-size:.81rem;color:var(--green);font-weight:650;cursor:pointer}.studio-secondary[open]>summary{margin-bottom:1rem}.studio-source .studio-secondary{margin-top:.7rem}.studio-source .studio-secondary button{margin-top:.7rem}.studio-source .leh-upload{margin:0 0 .8rem;border-color:#a6c4b3;background:#f3f7f1;padding:11px}.studio-source .leh-upload label{margin:0 0 .4rem;font-size:.79rem}.studio-source .leh-upload input{background:white}.studio-source .leh-upload .leh-small{font-size:.72rem}.studio-inputs>p:last-child{margin-bottom:0;min-height:1.2em}
+.work-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.work-heading h2{font-size:1.25rem;margin:0}.work-heading .studio-eyebrow{margin-bottom:.4rem}.workspace-tag{font-size:.65rem;border:1px solid var(--line);background:var(--soft);padding:.25rem .5rem;border-radius:6px;white-space:nowrap}.studio-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:1.25rem 0;background:#f0f3ed;padding:5px;border-radius:12px}.studio-tabs button{border:0;background:transparent;border-radius:8px;color:var(--muted);padding:.6rem .35rem;font-size:.76rem;font-weight:650;line-height:1.3;min-width:0}.studio-tabs button[aria-selected=true]{background:white;color:var(--green);box-shadow:0 2px 5px #163f3217}.studio-tabs button:hover{color:var(--green)}.studio-pane{min-width:0}.task-intro h3{font-size:1.22rem;margin:.4rem 0 .5rem;line-height:1.3}.task-intro>p{font-size:.88rem;color:var(--muted)}.task-intro>.btn{margin:.3rem 0 .5rem}.task-intro{padding-bottom:.4rem}.studio-demo{padding:10px 12px;background:#eef3e6;border:1px solid #cad9bd;font-size:.78rem;border-radius:9px;color:#355536}.studio-pane>.panel{border:0;padding:0;margin-top:0!important;background:transparent}.studio-pane .career-kicker{font-size:.69rem;letter-spacing:.08em}.studio-pane .career-panel h2,.studio-pane .ats-review h2{font-size:1.25rem}.studio-pane .career-panel>p,.studio-pane .ats-review>p{font-size:.85rem;color:var(--muted)}.studio-pane .career-panel label{font-size:.82rem}.studio-pane .career-panel input,.studio-pane .career-panel select{font-size:.85rem}.studio-pane .career-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.studio-pane .career-results{grid-template-columns:1fr}.studio-pane .career-card{padding:15px;border-radius:12px;background:#f7faf5}.studio-pane .career-card p{font-size:.83rem}.studio-pane .career-card h3{font-size:1.04rem}.studio-pane .career-panel>details{font-size:.8rem;border-top:1px solid var(--line);padding-top:12px}.studio-pane .career-panel>details summary{font-size:.82rem}.career-panel textarea{font-family:system-ui,sans-serif}
+#studio-plan{border-top:1px solid var(--line);margin-top:1rem;padding-top:1.2rem}.plan-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}.plan-heading h3{font-size:1.15rem;line-height:1.3;margin:0}.plan-heading .studio-eyebrow{margin-bottom:.4rem}.studio-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:1rem 0 .7rem}.plan-count{background:var(--soft);border:1px solid var(--line);padding:12px;border-radius:10px;min-width:0}.plan-count strong{font-size:1.4rem;display:block;line-height:1.2}.plan-count span{font-size:.69rem;line-height:1.35;color:var(--muted);display:block;margin-top:.4rem}.studio-actions{list-style:none;counter-reset:action;margin:1rem 0;padding:0;display:grid;gap:9px}.studio-actions>li{counter-increment:action;background:#fafbf8;border:1px solid var(--line);border-radius:11px;padding:13px 13px 13px 46px;position:relative}.studio-actions>li:before{content:counter(action);position:absolute;left:12px;top:13px;font-weight:700;font-size:.76rem;background:#e6eee3;border-radius:50%;width:24px;height:24px;display:grid;place-items:center}.studio-actions strong{font-size:.83rem}.studio-actions p{font-size:.83rem;line-height:1.5;margin:.3rem 0}.studio-actions p.studio-muted{font-size:.77rem}.criteria-heading{border-top:1px solid var(--line);margin-top:1.5rem;padding-top:1.2rem}.criteria-heading h3{font-size:1.05rem}.criteria-heading p{font-size:.82rem;color:var(--muted)}.criteria-controls{display:grid;grid-template-columns:1.5fr 1fr;gap:10px;margin:.8rem 0}.criteria-controls label{font-size:.76rem}.criteria-controls input,.criteria-controls select{display:block;width:100%;font-size:.8rem;margin-top:.4rem}.criterion-card{border:1px solid var(--line);border-radius:12px;padding:15px;margin:.8rem 0;min-width:0;overflow-wrap:anywhere}.criterion-labels{display:flex;flex-wrap:wrap;gap:6px}.criterion-type,.criterion-status{font-size:.65rem;font-weight:700;background:#edf1ea;color:var(--green);border-radius:6px;padding:3px 7px}.criterion-status.attention{background:#fff2df;color:#80521d}.criterion-status.visible{background:#e7f1e7}.criterion-card h4{font-size:.9rem;margin:.7rem 0 .5rem;line-height:1.5;font-weight:650}.criterion-condition{border-left:3px solid #af803d;background:#fff7ea;padding:8px 10px;font-size:.76rem;color:#785422}.criterion-caption{text-transform:uppercase;letter-spacing:.06em;font-size:.62rem;font-weight:750;color:var(--muted);margin:.8rem 0 .4rem}.criterion-excerpt{font-size:.78rem;background:var(--soft);border-radius:8px;padding:10px;white-space:pre-wrap;margin:0 0 .6rem;overflow-wrap:anywhere}.criterion-action{font-size:.8rem;color:var(--ink);margin:.6rem 0}.criterion-card .studio-muted{font-size:.69rem;margin-bottom:0}.studio-warning{border-left:4px solid #a37332;background:#fff3df;padding:10px;font-size:.8rem;margin:.8rem 0}.studio-empty{background:var(--soft);padding:18px;border-radius:10px;font-size:.83rem}
+#leh-doc-editor{border:0!important;padding:0!important;margin:0!important;background:transparent}#leh-doc-editor h2{font-size:1.25rem!important;line-height:1.3}#leh-doc-editor>p.leh-small{font-size:.83rem;line-height:1.6}#leh-doc-editor>label{font-size:.75rem;flex-wrap:wrap;line-height:1.5}#leh-doc-editor>.leh-flex{gap:7px}#leh-doc-editor>.leh-flex button{font-size:.79rem;flex:1 1 120px;border-radius:9px}#leh-doc-editor .leh-row{padding:12px}#leh-doc-editor .leh-row textarea{font-size:.85rem;min-height:75px}#leh-doc-editor .leh-row .leh-id{font-size:.66rem}#leh-doc-editor .leh-row select{max-width:100%;font-size:.75rem}#leh-doc-editor .leh-row .leh-top{font-size:.74rem;gap:7px}#leh-doc-editor .leh-row details{padding:8px}#leh-doc-editor .leh-row details summary{font-size:.75rem!important}#leh-doc-editor .leh-row .leh-verify{font-size:.72rem}#leh-doc-editor .leh-scroll{max-height:730px}#leh-readiness{margin-top:1.5rem!important;border:1px solid var(--line)!important;background:#fbfcf8!important;padding:16px!important;border-radius:12px!important}#leh-readiness h2{font-size:1.05rem}#leh-readiness .leh-sub{font-size:.8rem}#leh-readiness .leh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#leh-readiness .leh-check strong{font-size:.77rem}#leh-readiness .leh-check span{font-size:.73rem}#leh-readiness .leh-plan{font-size:.79rem}#leh-readiness .leh-actions button{font-size:.76rem}#leh-readiness .leh-actions{gap:7px}.studio-secondary .panel{border:0;background:transparent;padding:0}.studio-secondary .ats-review>p{font-size:.8rem}.studio-secondary .ats-review .grid{grid-template-columns:1fr}.studio-secondary .ats-review .stats{grid-template-columns:repeat(2,minmax(0,1fr))}.studio-secondary .ats-review table{min-width:700px}#career-evidence-tools{border:0;background:transparent;padding:0;margin-top:1rem}#career-evidence-tools>summary{font-size:1rem}#career-evidence-tools .panel{padding:14px;border-radius:12px;min-width:0}#career-evidence-tools .grid{grid-template-columns:1fr}#career-evidence-tools h2{font-size:1.03rem}#career-evidence-tools h3{font-size:.95rem}#career-evidence-tools p,#career-evidence-tools .signal{font-size:.8rem}#career-evidence-tools input,#career-evidence-tools textarea,#career-evidence-tools select{font-size:.8rem}#career-evidence-tools .stats{grid-template-columns:repeat(2,minmax(0,1fr))}#career-evidence-tools .stat b{font-size:1.3rem}.matrix{max-width:100%;overflow:auto}.matrix table{min-width:900px}.studio-pane>div.row:first-child{margin-top:0;padding-bottom:.7rem}.studio-pane>div.row:first-child button{font-size:.74rem}
+@media(max-width:1000px){.studio-hero{gap:25px}.hero-sample{padding:20px}.studio-workspace{grid-template-columns:minmax(260px,.9fr) minmax(0,1.4fr);gap:15px}.studio-work,.studio-inputs{padding:17px}.workspace-tag{display:none}.studio-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.studio-tabs button{padding:.65rem}.criteria-controls{grid-template-columns:1fr}.studio-counts{gap:6px}.plan-count{padding:10px}}
+@media(max-width:740px){.studio-hero{grid-template-columns:1fr;padding-top:25px;padding-bottom:24px;gap:0}.hero-sample{display:none}.studio-hero h1{font-size:2.65rem}.hero-lead{font-size:.95rem}.studio-steps{gap:12px;padding-block:14px}.studio-steps>div{display:block}.studio-steps>div>span{margin-bottom:7px}.studio-steps p{font-size:.65rem}.studio-steps strong{font-size:.7rem}.studio-workspace{grid-template-columns:minmax(0,1fr)}.studio-main{padding-top:20px}.studio-inputs{padding:20px}.studio-source>textarea{min-height:180px}.studio-job>textarea{min-height:140px}.studio-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.work-heading h2{font-size:1.2rem}.studio-tabs button{font-size:.8rem}.studio-work{padding:20px}.studio-pane .career-fields{grid-template-columns:minmax(0,1fr)}.studio-counts{grid-template-columns:repeat(3,minmax(0,1fr))}.plan-count span{font-size:.65rem}}
+@media(max-width:380px){.studio-hero,.studio-steps,.studio-main{padding-inline:13px}.studio-hero h1{font-size:2.3rem}.hero-actions{display:grid;grid-template-columns:minmax(0,1fr)}.studio-inputs,.studio-work{padding:15px}.studio-counts{grid-template-columns:minmax(0,1fr)}.plan-count{display:flex;align-items:center;gap:10px}.plan-count strong{font-size:1.3rem;min-width:32px}.plan-count span{margin-top:0}.plan-heading{align-items:flex-start}.plan-heading .sample-badge{display:none}#leh-readiness .leh-grid{grid-template-columns:minmax(0,1fr)}.studio-actions>li{padding-left:40px}.studio-actions>li:before{left:9px}.studio-pane .row>.btn{flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style></body></html>
