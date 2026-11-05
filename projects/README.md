@@ -2,6 +2,18 @@
 
 These projects combine working browser tools, inspectable source code, and research or analytical work samples. **Choose “Open interactive tool” to use a demonstration without downloading code.** Open the corresponding repository or source folder if you want to examine its implementation.
 
+## Find a tool by what you need to do
+
+Choose a task to open the **published browser tool**, not its source code. These links are usable without installing this repository.
+
+- **Organize research evidence:** [Build a source-linked timeline or Excel Gantt](https://www.lauraelizabethhand.com/resources/research-writing-tools/evidence-timeline-builder/) or [analyze text in Text Lens](https://www.lauraelizabethhand.com/resources/research-writing-tools/text-lens/).
+- **Practice interpretation and teaching:** [Compare keywords in context](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/), [plan a lesson](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/), or [review fictional assessment results](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/).
+- **Make career or education decisions:** [Explore colleges](https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/) or [analyze résumé-to-role evidence](https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/).
+- **Design and review AI workflows:** [Debug a prompt](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-literacy-debugger/), [build an evidence-conscious prompt](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/evidence-safe-prompt-lab/), or [audit an AI scenario](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ethical-ai-scenario-auditor/).
+- **Plan an operational workflow:** [Map an audience lifecycle and CRM migration](https://www.lauraelizabethhand.com/resources/project-operations-tools/audience-lifecycle-crm-migration-planner/).
+
+**Privacy:** Use fictional examples when possible. Check each tool's data-handling notes before entering personal, institutional, or client information. A link to a published page does not certify every browser or assistive-technology configuration.
+
 ## Interactive browser tools
 
 | Tool | Open interactive tool | Source and method |
