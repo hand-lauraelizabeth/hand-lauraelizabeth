@@ -160,6 +160,8 @@ function render({discardEventDraftId=null,discardRequestDraftId=null}={}){
     const card=document.createElement('div');
     card.className='card';card.dataset.requestId=r.id;
     card.append(node('p',`${r.id} — ${r.agency} (${r.jurisdiction}; ${r.stage}) — ${r.description}`));
+    const printMetadata=node('p',`Saved submission date: ${r.submittedOn || 'unknown'}; agency tracking ID: ${r.agencyTrackingId || 'not recorded'}.`);
+    printMetadata.className='print-only';card.append(printMetadata);
     const statusLabel=node('label',`Tracking status for request ${r.id}`);
     const statusSelect=document.createElement('select');
     statusSelect.className='request-stage';
@@ -254,4 +256,9 @@ function add(formId,kind){
 add('request-form','request');add('event-form','event');
 bindExports(()=>state,say,pendingCorrectionCount);
 bindReopen(()=>state, next=>{state=next;render();},say);
+byId('print-summary').addEventListener('click',()=>{
+  if(!state.requests.length){say('Add a request before printing a saved summary.');return;}
+  say('Print dialog opening. Confirm the destination; the summary includes saved records only.');
+  window.print();
+});
 render();
