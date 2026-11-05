@@ -148,6 +148,15 @@ function pendingCorrectionCount(){
   }
   return count;
 }
+function filterRequests(){
+ const query=byId('request-filter').value.trim().toLocaleLowerCase();let visible=0;
+ for(const card of byId('requests').querySelectorAll('.card[data-request-id]')){
+  const r=state.requests.find(item=>item.id===card.dataset.requestId);
+  const matches=!query||[r.id,r.agency,r.description,r.agencyTrackingId].join(' ').toLocaleLowerCase().includes(query);
+  card.hidden=!matches;if(matches)visible++;
+ }
+ byId('request-filter-count').textContent=state.requests.length?`Showing ${visible} of ${state.requests.length} saved requests. Search changes only this view; exports and print include all saved records.`:'No requests yet.';
+}
 function render({discardEventDraftId=null,discardRequestDraftId=null}={}){
   const requestDrafts=captureRequestDrafts();
   if(discardRequestDraftId!==null)requestDrafts.delete(discardRequestDraftId);
@@ -225,6 +234,7 @@ function render({discardEventDraftId=null,discardRequestDraftId=null}={}){
   if(!state.requests.length)requestList.append(node('p','No requests yet.'));
   if(!state.events.length)eventList.append(node('li','No dated events yet.'));
   if(!flagList.children.length)flagList.append(node('li','No missing-documentation flags. This does not establish completeness.'));
+ filterRequests();
 }
 function add(formId,kind){
   const form=byId(formId), errorMessage=byId(kind+'-error');
@@ -254,6 +264,7 @@ function add(formId,kind){
   });
 }
 add('request-form','request');add('event-form','event');
+byId('request-filter').addEventListener('input',filterRequests);
 bindExports(()=>state,say,pendingCorrectionCount);
 bindReopen(()=>state, next=>{state=next;render();},say);
 byId('print-summary').addEventListener('click',()=>{
