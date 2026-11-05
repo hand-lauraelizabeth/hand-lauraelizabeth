@@ -79,44 +79,29 @@ jobs:
           node --check free-tools/evidence-timeline/json-import.mjs
           node --check free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
           node free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
-  bulk-chromium:
+  browser-usability:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    # Official version-matched Python image contains browser binaries and OS
-    # dependencies; avoid repeated downloads on short-lived runners.
+    timeout-minutes: 15
     container:
       image: mcr.microsoft.com/playwright/python:v1.57.0-noble
-    # GitHub overrides HOME to /github/home, which Firefox rejects when root.
     env:
       HOME: /root
     steps:
       - uses: actions/checkout@v4
-      - name: Install version-matched Python Playwright package
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install matching Playwright
         run: python -m pip install playwright==1.57.0
-      - name: Check browser test syntax
-        run: python -m py_compile free-tools/evidence-timeline/browser-10k-basic.py
-      - name: Run HTTP module and CSP regression
-        run: python free-tools/evidence-timeline/browser-http-csp-smoke.py
-      - name: Run cross-browser HTTP/CSP and browser zoom checks
-        run: python free-tools/evidence-timeline/browser-cross-engine.py
-      - name: Run cross-browser import cancellation, recovery and replacement
-        run: python free-tools/evidence-timeline/browser-import-replacement.py
-      - name: Verify keyboard-safe record deletion in Chromium, Firefox and WebKit
-        run: python free-tools/evidence-timeline/browser-confirm-removal.py
-      - name: Verify status reclassification and exact export in three engines
-        run: python free-tools/evidence-timeline/browser-reclassify.py
-      - name: Verify status undo, focus and invalidation in three engines
-        run: python free-tools/evidence-timeline/browser-undo-status.py
-      - name: Verify source-ID lookup, exact exports and keyboard clear in three engines
-        run: python free-tools/evidence-timeline/browser-source-id-find.py
-      - name: Verify group editor, invalid input, keyboard focus and exact exports in three engines
-        run: python free-tools/evidence-timeline/browser-edit-group.py
-      - name: Verify group filter, Unicode, exports, keyboard focus and 320px in three engines
-        run: python free-tools/evidence-timeline/browser-group-find.py
-      - name: Verify bounded summary, hidden-group search and exact exports in three engines
-        run: python free-tools/evidence-timeline/browser-group-summary.py
-      - name: Verify failed local downloads and retries in three engines
-        run: python free-tools/evidence-timeline/browser-export-recovery.py
-      - name: Run synthetic 10k-record Chromium regression
+      - name: Build the WordPress release bundle
         run: |
-          CHROMIUM_BIN="$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" python free-tools/evidence-timeline/browser-10k-basic.py
+          python free-tools/evidence-timeline/package-wordpress.py
+          node --check free-tools/evidence-timeline/bundle.js
+      - name: Verify the current entry, search, edit, save and reopen workflow in three browsers
+        run: python free-tools/evidence-timeline/browser-usability.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidence-timeline-usability
+          path: free-tools/evidence-timeline/usability-*.png
+
