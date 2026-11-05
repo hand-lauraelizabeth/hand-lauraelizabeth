@@ -62,3 +62,12 @@ form > .form-error:focus{outline:3px solid #a36d19;outline-offset:3px}
   .card,#events li{break-inside:avoid}
   a{color:inherit;text-decoration:none}
 }
+
+/* Reflow at 320 CSS pixels and enlarged root text without clipping the page. */
+@media (max-width: 600px) {
+  main, section, form { min-width: 0; width: 100%; }
+  form { grid-template-columns: minmax(0, 1fr); }
+  form > label, form > label > :is(input, select, textarea) { min-width: 0; max-width: 100%; }
+}
+button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+input[type="date"], input[type="file"] { overflow: hidden; }
