@@ -146,8 +146,12 @@ def main():
             assert b'Jordan Example' in xml and b'120 employees' in xml
             assert b'999 employees' not in xml
             ET.fromstring(xml)
-          with page.expect_download(timeout=60000) as event:
-            page.get_by_role('button',name='Download PDF',exact=True).click()
+          try:
+            with page.expect_download(timeout=30000) as event:
+              page.get_by_role('button',name='Download PDF',exact=True).click()
+          except Exception as error:
+            page.screenshot(path=str(ROOT/f'usability-{engine}-pdf-error.png'),full_page=True)
+            raise AssertionError({'PDF export feedback':page.locator('#leh-doc-editor [role=status]').all_text_contents(),'errors':errors}) from error
           pdf=Path(folder)/f'{engine}-resume.pdf';event.value.save_as(pdf)
           text='\n'.join(p.extract_text() for p in PdfReader(pdf).pages)
           assert 'Jordan Example' in text and '120 employees' in text
