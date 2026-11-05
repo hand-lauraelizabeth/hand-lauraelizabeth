@@ -67,6 +67,7 @@ def main():
                 page.locator('#cancel-entry-edit').click()
 
                 page.locator('#chart-preview > summary').click()
+                page.locator('#visual-chart svg').wait_for(state='visible')
                 assert page.locator('#visual-chart svg').count() == 1
                 assert page.locator('#visual-chart svg path').count() == 3
                 assert 'Jan 26, 2026' in page.locator('#visual-summary').inner_text()

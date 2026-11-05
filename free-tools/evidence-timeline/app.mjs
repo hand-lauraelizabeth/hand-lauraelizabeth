@@ -213,6 +213,7 @@ function renderRecord(record) {
   return item;
 }
 function render() {
+  visualOffset=0;
   const report = summary(records);
   const visible = visibleRecords();
   const filtered = visible.length !== records.length || $('review-filter').value !== 'all' ||
@@ -244,7 +245,7 @@ function render() {
   $('csv').disabled = records.length === 0 || Boolean(risk);
   for (const id of ['json', 'save-work', 'download-readable', 'clear']) $(id).disabled = records.length === 0;
   $('download-filtered').disabled = visible.length === 0;
-  $('csv-warning').textContent = risk ? 'Spreadsheet download unavailable because ' + risk.field +
+  $('csv-warning').textContent = risk ? 'CSV download unavailable because ' + risk.field +
     ' contains ' + risk.reason + '. Use Excel Gantt or JSON to keep the original text.' : '';
   renderVisual();
 }
