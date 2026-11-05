@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {calculateLedger, exportTransactionsCSV, exportBudgetCSV, exportJSON} from './core.mjs';
+const award={awardId:' A ',awardName:'Example',start:'2026-01-01',end:'2026-12-31'};
+const categories=[{categoryId:'C',label:'Operations',budget:'100.00'}];
+const expense={transactionId:'T',sourceId:' S ',date:'2026-01-02',categoryId:'C',amount:'1.00',percent:'50',allocationBasis:'Time',evidenceRef:'Doc'};
+const ledger=calculateLedger(award,categories,[expense]);
+assert.equal(ledger.totalAssignedCents,50);
+assert.equal(ledger.totalUnassignedCents,50);
+assert.equal(JSON.parse(exportJSON(ledger)).expenses[0].sourceId,' S ');
+assert.ok(exportTransactionsCSV(ledger).includes('" S "'));
+assert.ok(exportBudgetCSV(ledger).includes('" A "'));
+console.log('5 ledger export invariants PASS');

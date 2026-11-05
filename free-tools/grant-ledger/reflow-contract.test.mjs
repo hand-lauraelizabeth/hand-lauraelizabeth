@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const css=readFileSync(new URL('./styles.css',import.meta.url),'utf8');
+const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const view=readFileSync(new URL('./view.mjs',import.meta.url),'utf8');
+let checks=0;
+const rule=css.match(/h1,h2,h3,button,#reviewList li\s*\{([^}]+)\}/);
+assert.ok(rule,'Reflow rule covers headings, buttons, review entries');checks++;
+assert.match(rule[1],/overflow-wrap\s*:\s*anywhere/);checks++;
+assert.match(css,/\.scroll\s*\{[^}]*overflow-x\s*:\s*auto/);checks++;
+assert.match(css,/\.grid\s*\{[^}]*minmax\(min\(100%,245px\),1fr\)/);checks++;
+assert.match(css,/@media\(max-width:390px\)/);checks++;
+assert.match(html,/name="viewport" content="width=device-width,initial-scale=1"/);checks++;
+assert.match(view,/const table=\(headers,bodyId\)=>/);checks++;
+assert.match(view,/wrap\.className='scroll'/);checks++;
+console.log(checks+' FT-06 reflow contract assertions PASS');
