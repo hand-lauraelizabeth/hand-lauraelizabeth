@@ -28,6 +28,8 @@ jobs:
   browser-journeys:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      HOME: /root
     container:
       image: mcr.microsoft.com/playwright/python:v1.57.0-noble
     steps:
