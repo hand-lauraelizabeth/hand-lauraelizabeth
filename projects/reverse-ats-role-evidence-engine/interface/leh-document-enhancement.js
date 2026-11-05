@@ -2,11 +2,11 @@
 "use strict";
 
 var URLS={
- pdf:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
- pdfWorker:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
- docxRead:"https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.13.0/mammoth.browser.min.js",
+ pdf:"https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js",
+ pdfWorker:"https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js",
+ docxRead:"https://unpkg.com/mammoth@1.13.0/mammoth.browser.min.js",
  docxWrite:"https://unpkg.com/docx@9.14.0/dist/index.iife.js",
- pdfWrite:"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"
+ pdfWrite:"https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"
 };
 var libraries={};
 function make(d,tag,cls,text){var e=d.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
@@ -116,7 +116,7 @@ function install(){
   var previewWrap=make(d,"details");var summary=make(d,"summary","","Preview complete revised résumé text");previewWrap.appendChild(summary);
   var preview=make(d,"pre","leh-preview","");previewWrap.appendChild(preview);sec.appendChild(previewWrap);
   var existing=d.getElementById("resume-workbench");existing.parentNode.insertBefore(sec,existing.nextSibling);
-  var headers=/^(professional\s+summary|summary|profile|objective|work\s+experience|professional\s+experience|relevant\s+experience|employment|education|skills|technical\s+skills|selected\s+projects|projects|certifications|certificates|awards|publications|volunteer\s+experience|leadership|research|languages)\s*:?$/i;
+  var headers=/^(experience|professional\s+summary|summary|profile|objective|work\s+experience|professional\s+experience|relevant\s+experience|employment|education|skills|technical\s+skills|selected\s+projects|projects|certifications|certificates|awards|publications|volunteer\s+experience|leadership|research|languages)\s*:?$/i;
   var roleWords=/\b(?:manager|director|coordinator|specialist|analyst|associate|assistant|consultant|instructor|professor|university|college|school|corporation|organization|company)\b/i;
   function classify(u,i,hasHeaders){
    var t=u.text.trim();
