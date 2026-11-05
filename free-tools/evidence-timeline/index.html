@@ -14,7 +14,7 @@
   <div class="hero-copy">
     <p class="eyebrow"><span class="brand-mark" aria-hidden="true">E</span> Evidence &amp; Timeline Builder</p>
     <h1>See what happened.<br>Keep the source.</h1>
-    <p class="lead">Turn emails, notes, and documents into a timeline you can review and share. See what changed, connect related entries, and spot what still needs checking.</p>
+    <p class="lead">Turn emails, notes, and documents into a timeline you can review and share. See what changed, keep the sources, and take away an Excel Gantt or a timeline visual.</p>
     <div class="hero-actions"><button id="load-example" class="primary" type="button">Try the 3-entry example <span aria-hidden="true">→</span></button><button id="start-own" class="secondary" type="button">Start my timeline</button></div>
     <p class="trust">Free to use <span aria-hidden="true">·</span> No account <span aria-hidden="true">·</span> Entries stay in this tab</p>
     <button id="open-saved" class="text-button" type="button">Already started? Open a saved timeline</button>
@@ -32,7 +32,7 @@
 <nav class="steps" aria-label="How to use this tool">
   <div><span>1</span><p><strong>Add an entry</strong>Give it a date, source, and description.</p></div>
   <div><span>2</span><p><strong>Review the timeline</strong>Search, group, and check what changed.</p></div>
-  <div><span>3</span><p><strong>Take it with you</strong>Download a readable copy or save to reopen.</p></div>
+  <div><span>3</span><p><strong>Take it with you</strong>Download an Excel Gantt, visual, or saved copy.</p></div>
 </nav>
 <main id="main" tabindex="-1">
   <div class="workspace-heading"><div><p class="eyebrow">Your workspace</p><h2>A clearer view of your records</h2></div><div class="save-block"><button id="save-work" class="secondary" type="button" disabled>Save to reopen <span aria-hidden="true">↓</span></button><span>Download a JSON copy before leaving.</span></div></div>
@@ -43,6 +43,7 @@
       <p id="editing-note" class="editing-note" hidden>Editing an existing entry. Save your changes or cancel below.</p>
       <form id="entry-form" novalidate>
         <label for="date">When did it happen? <span class="required">Required</span></label><input id="date" name="date" type="date" required>
+        <details id="date-range-options" class="date-range-options"><summary>Does this entry span several days?</summary><label for="endDate">End date <span class="required">Optional</span></label><input id="endDate" name="endDate" type="date" aria-describedby="end-date-help"><p id="end-date-help" class="hint">Add an end date for a Gantt bar. Leave it blank for a single-day milestone.</p></details>
         <label for="sourceId">Source reference <span class="required">Required</span></label><input id="sourceId" name="sourceId" maxlength="120" required autocomplete="off" placeholder="e.g. Email-Jan-19" aria-describedby="source-help"><p id="source-help" class="hint">A short, unique name so you can find the original again.</p>
         <label for="claim">What does the record say? <span class="required">Required</span></label><textarea id="claim" name="claim" maxlength="20000" rows="4" required placeholder="e.g. The email proposes moving the opening date to March 15."></textarea>
         <details class="entry-options"><summary>Add a group or review label <span>Optional</span></summary>
@@ -68,6 +69,16 @@
       <div id="insights" class="insights" hidden><div><strong id="date-span">—</strong><span>Period covered</span></div><div><strong id="needs-review">0</strong><span>Need review or are disputed</span></div><div><strong id="linked-groups">0</strong><span>Groups with related entries</span></div></div>
       <p id="change-status-message" class="success-message" role="status" aria-live="polite"></p><button id="undo-status" class="text-button small" type="button" hidden disabled>Undo last status change</button>
       <section id="group-edit-panel" class="group-editor" aria-labelledby="group-edit-heading" hidden><h3 id="group-edit-heading">Edit related group</h3><p id="group-edit-source"></p><p id="group-edit-help" class="hint">Use the same label on entries you want to compare.</p><form id="group-edit-form" novalidate><label for="group-edit-value">Group label (leave blank to remove)</label><input id="group-edit-value" name="group" maxlength="120" autocomplete="off" aria-describedby="group-edit-help"><p id="group-edit-error" class="error" role="alert" tabindex="-1" hidden></p><div class="inline-actions"><button class="primary" type="submit">Save group</button><button id="cancel-group-edit" class="secondary" type="button">Cancel</button></div></form></section>
+      <section id="visual-panel" class="visual-panel" aria-labelledby="visual-heading" hidden>
+        <div class="visual-heading"><div><p class="step-label">See the sequence</p><h3 id="visual-heading">Your visual timeline</h3></div><span class="visual-tag">Excel + SVG</span></div>
+        <p class="hint">Diamonds show single-day entries. Bars show date ranges you supplied.</p>
+        <label for="visual-scope">Include in the visual and Gantt download</label><select id="visual-scope"><option value="all">All entries</option><option value="visible">Only visible entries (current search and filters)</option></select>
+        <p id="visual-summary" class="result-count" role="status" aria-live="polite"></p>
+        <details id="chart-preview"><summary>Preview the timeline visual</summary><p id="visual-page-note" class="hint"></p><div id="visual-chart" class="visual-chart" tabindex="0" role="region" aria-label="Visual timeline. Scroll horizontally to explore; full descriptions are in the entries below."></div><div class="visual-pagination"><button id="visual-prev" class="secondary small" type="button">Previous 20</button><button id="visual-next" class="secondary small" type="button">Next 20</button></div></details>
+        <div class="visual-downloads"><button id="download-gantt" class="primary" type="button">Download Excel Gantt (.xlsx) ↓</button><button id="download-visual" class="secondary" type="button">Download timeline visual (.svg) ↓</button></div>
+        <p class="hint">Excel includes an editable Gantt and complete source entries. SVG is a scalable image for documents or presentations. Both downloads include every entry in your chosen view; long visual labels are shortened.</p>
+        <p id="visual-error" class="error" role="alert" tabindex="-1" hidden></p><p id="visual-status" class="success-message" role="status" aria-live="polite"></p>
+      </section>
       <ol id="records" aria-label="Timeline entries in date order"></ol>
       <div id="empty" class="empty-state"><div class="empty-icon" aria-hidden="true"><span></span><span></span><span></span></div><h3>Your story starts with one record.</h3><p>Add your first entry, or explore the example to see how a timeline comes together.</p><button id="empty-example" class="secondary" type="button">Show me an example</button></div>
       <div id="no-results" class="empty-state" hidden><h3>No matching entries.</h3><p>Try another word or clear your filters to see the complete timeline.</p><button id="clear-no-results" class="secondary" type="button">Show all entries</button></div>

@@ -1,5 +1,5 @@
 // Counts-only replacement preview. Never includes claims or source identifiers in dialog text.
-const FIELDS = ['date', 'claim', 'status', 'kind', 'group'];
+const FIELDS = ['date', 'endDate', 'claim', 'status', 'kind', 'group'];
 function assertUniqueSources(rows, label) {
   if (!Array.isArray(rows) || rows.length > 10000) throw Error('Invalid record list');
   const seen = new Set();

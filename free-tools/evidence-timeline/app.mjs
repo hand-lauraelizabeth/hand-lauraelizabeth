@@ -12,6 +12,8 @@ import {formatGroupSummary} from './group-summary.mjs';
 import {setReviewGroup} from './edit-group.mjs';
 import {STATUS_OPTIONS} from './reclassify.mjs';
 import {changeReviewStatus, undoReviewStatus} from './undo-status.mjs';
+import {timelineSVG,timelineScale,isoDay,prettyDay} from './timeline-visual.mjs';
+import {exportGantt} from './gantt-export.mjs';
 
 const $ = id => document.getElementById(id);
 const form = $('entry-form');
@@ -30,6 +32,7 @@ let pendingStatusUndo = null;
 let editingGroupId = null;
 let editingRecordId = null;
 let exampleMode = false;
+let visualOffset = 0;
 
 function text(tag, value, className) {
   const element = document.createElement(tag);
@@ -51,6 +54,7 @@ function clearError() {
   for (const field of form.elements) {
     field.removeAttribute('aria-invalid');
     if (field.id === 'sourceId') field.setAttribute('aria-describedby', 'source-help');
+    else if(field.id==='endDate')field.setAttribute('aria-describedby','end-date-help');
     else field.removeAttribute('aria-describedby');
   }
 }
@@ -60,7 +64,8 @@ function showError(message, field) {
   if (field) {
     const input = $(field);
     input.setAttribute('aria-invalid', 'true');
-    input.setAttribute('aria-describedby', (field === 'sourceId' ? 'source-help ' : '') + 'error');
+    input.setAttribute('aria-describedby', (field === 'sourceId' ? 'source-help ' : field==='endDate'?'end-date-help ':'') + 'error');
+    if(field==='endDate')$('date-range-options').open=true;
   }
   error.focus();
 }
@@ -111,7 +116,8 @@ function beginEntryEdit(record) {
       !window.confirm('Replace the unsaved form with this entry?')) return;
   clearError();
   editingRecordId = record.sourceId;
-  for (const key of ['date', 'sourceId', 'claim', 'group', 'kind', 'status']) $(key).value = record[key];
+  for (const key of ['date', 'endDate', 'sourceId', 'claim', 'group', 'kind', 'status']) $(key).value = record[key] ?? '';
+  $('date-range-options').open = Boolean(record.endDate);
   $('editing-note').hidden = false;
   $('cancel-entry-edit').hidden = false;
   $('save-entry').textContent = 'Save changes';
@@ -135,7 +141,9 @@ function renderRecord(record) {
   const heading = text('div', '', 'record-head');
   const date = text('time', displayDate(record.date));
   date.dateTime = record.date;
-  heading.append(date, text('span', statusNames[record.status], 'status-badge'));
+  heading.append(date);
+  if(record.endDate&&record.endDate!==record.date)heading.append(text('span','– '+displayDate(record.endDate),'range-end'));
+  heading.append(text('span', statusNames[record.status], 'status-badge'));
   item.append(heading, text('h3', record.claim));
   const reference = text('p', '', 'source-reference');
   reference.append(text('strong', record.sourceId), document.createTextNode(' · ' + kindNames[record.kind]));
@@ -223,8 +231,8 @@ function render() {
   $('demo-guide').hidden = !exampleMode;
   $('insights').hidden = records.length === 0;
   if (records.length) {
-    $('date-span').textContent = records[0].date === records.at(-1).date ?
-      displayDate(records[0].date) : displayDate(records[0].date) + ' – ' + displayDate(records.at(-1).date);
+    const scale=timelineScale(records);
+    $('date-span').textContent=prettyDay(isoDay(scale.first))+(scale.first===scale.last?'':' – '+prettyDay(isoDay(scale.last)));
   }
   $('needs-review').textContent = report.counts.unresolved + report.counts.disputed;
   $('linked-groups').textContent = report.reviewGroups.length;
@@ -237,7 +245,8 @@ function render() {
   for (const id of ['json', 'save-work', 'download-readable', 'clear']) $(id).disabled = records.length === 0;
   $('download-filtered').disabled = visible.length === 0;
   $('csv-warning').textContent = risk ? 'Spreadsheet download unavailable because ' + risk.field +
-    ' contains ' + risk.reason + '. Save JSON to keep the original text.' : '';
+    ' contains ' + risk.reason + '. Use Excel Gantt or JSON to keep the original text.' : '';
+  renderVisual();
 }
 function resetAllFilters() {
   clearFilters();
@@ -293,7 +302,7 @@ form.addEventListener('submit', event => {
     $('date').focus();
   } catch (exception) {
     const message = String(exception.message || exception);
-    const field = /source ID/i.test(message) ? 'sourceId' : /date/i.test(message) ? 'date' :
+    const field = /source ID/i.test(message) ? 'sourceId' : /End date/i.test(message) ? 'endDate' : /date/i.test(message) ? 'date' :
       /claim/i.test(message) ? 'claim' : null;
     showError(/source ID/i.test(message) ? 'Each entry needs its own source reference. Use a different reference for this entry.' : message, field);
   }
@@ -363,6 +372,60 @@ function beginDownload(filename, content, type, message) {
     $('export-error').focus();
   }
 }
+function visualSelection() {
+  const partial=$('visual-scope').value==='visible';
+  return {rows:partial?visibleRecords():records,options:{
+    scope:partial?'Filtered entries':'All entries',total:records.length,
+    filters:partial?['Search: '+JSON.stringify($('text-search').value),
+      'Status: '+$('review-filter').value,'Source: '+JSON.stringify($('source-find').value),
+      'Group: '+JSON.stringify($('group-find').value),'Ungrouped only: '+($('ungrouped-only').checked?'yes':'no')].join(' · '):''
+  }};
+}
+function renderVisual() {
+  $('visual-panel').hidden=!records.length;
+  const {rows,options}=visualSelection();
+  const scale=timelineScale(rows);
+  $('download-gantt').disabled=!scale;
+  $('download-visual').disabled=!scale;
+  if(visualOffset>=rows.length)visualOffset=Math.max(0,Math.floor((rows.length-1)/20)*20);
+  $('visual-summary').textContent=scale?options.scope+' · '+rows.length+' of '+records.length+' entries · '+prettyDay(isoDay(scale.first))+' – '+prettyDay(isoDay(scale.last)):
+    'No entries match this view. Clear the filters or choose All entries.';
+  $('visual-chart').replaceChildren();
+  const previewOpen=$('chart-preview').open;
+  if(scale&&previewOpen) {
+    const svg=timelineSVG(rows,{...options,offset:visualOffset,limit:20});
+    const parsed=new DOMParser().parseFromString(svg,'image/svg+xml');
+    if(parsed.querySelector('parsererror'))throw Error('Timeline visual could not be drawn.');
+    $('visual-chart').append(document.importNode(parsed.documentElement,true));
+  }
+  $('visual-page-note').textContent=rows.length?'Showing entries '+(visualOffset+1)+'–'+Math.min(rows.length,visualOffset+20)+' of '+rows.length+'. Downloads include the entire chosen view.':'';
+  $('visual-prev').disabled=visualOffset===0;
+  $('visual-next').disabled=visualOffset+20>=rows.length;
+  $('visual-prev').hidden=$('visual-next').hidden=rows.length<=20;
+  $('visual-error').hidden=true;
+  $('visual-status').textContent='';
+}
+$('visual-scope').addEventListener('change',()=>{visualOffset=0;renderVisual();});
+$('chart-preview').addEventListener('toggle',renderVisual);
+$('visual-prev').addEventListener('click',()=>{visualOffset=Math.max(0,visualOffset-20);renderVisual();});
+$('visual-next').addEventListener('click',()=>{visualOffset+=20;renderVisual();});
+function downloadVisual(kind) {
+  const {rows,options}=visualSelection();
+  $('visual-error').hidden=true;
+  $('visual-status').textContent='';
+  try {
+    const content=kind==='xlsx'?exportGantt(rows,options):timelineSVG(rows,options);
+    startLocalDownload({filename:'evidence-timeline-'+(options.scope==='All entries'?'all':'filtered')+'.'+kind,
+      content,type:kind==='xlsx'?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'image/svg+xml;charset=utf-8'});
+    $('visual-status').textContent=(kind==='xlsx'?'Excel Gantt':'Timeline visual')+' download started · '+rows.length+' entries. Check your browser’s downloads.';
+  } catch(exception) {
+    $('visual-error').textContent=String(exception.message||exception);
+    $('visual-error').hidden=false;
+    $('visual-error').focus();
+  }
+}
+$('download-gantt').addEventListener('click',()=>downloadVisual('xlsx'));
+$('download-visual').addEventListener('click',()=>downloadVisual('svg'));
 function readableTimeline(rows, partial = false) {
   const ordered = [...rows].sort((a,b) => a.date.localeCompare(b.date) || a.sourceId.localeCompare(b.sourceId));
   const lines = [
@@ -373,7 +436,7 @@ function readableTimeline(rows, partial = false) {
     'Entries: ' + ordered.length, ''
   ];
   for (const [index, record] of ordered.entries()) {
-    lines.push((index + 1) + '. ' + record.date + ' | Source reference: ' + JSON.stringify(record.sourceId));
+    lines.push((index + 1) + '. ' + record.date + (record.endDate?' – '+record.endDate:'') + ' | Source reference: ' + JSON.stringify(record.sourceId));
     lines.push('   Type: ' + record.kind + ' | Review status: ' + record.status);
     lines.push('   Related group: ' + JSON.stringify(record.group));
     lines.push('   Description: ' + JSON.stringify(record.claim), '');

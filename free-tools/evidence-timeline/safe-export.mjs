@@ -1,6 +1,6 @@
 /* Conservative, browser-local spreadsheet export gate. Preserve evidence in JSON. */
 import {exportEvidenceCSV} from './core.mjs';
-const columns=['sourceId','date','claim','status','kind','group'];
+const columns=['sourceId','date','claim','status','kind','group','endDate'];
 const hidden=/[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u180e\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff\ufff9-\ufffb]/u;
 const formula=/^[\p{White_Space}\u200b-\u200f\u2060\ufeff]*[=+@\-＝＋＠－]/u;
 const boundary=/(?:[,;])[\p{White_Space}\u200b-\u200f\u2060\ufeff]*[=+@\-＝＋＠－]/u;

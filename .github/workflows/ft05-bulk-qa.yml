@@ -79,6 +79,8 @@ jobs:
           node --check free-tools/evidence-timeline/json-import.mjs
           node --check free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
           node free-tools/evidence-timeline/json-import-byte-integrity.test.mjs
+      - name: Verify date ranges and local Gantt and SVG generation
+        run: node free-tools/evidence-timeline/visual-exports.test.mjs
   browser-usability:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

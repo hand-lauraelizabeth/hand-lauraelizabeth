@@ -14,12 +14,13 @@ export function normalizeExact(rows) {
   };
   return rows.map((r,i)=>{
     if(!r||typeof r!=='object'||Array.isArray(r)) throw Error('Invalid record '+(i+1));
-    const {sourceId,date,claim,status='reported',kind='source',group=''}=r;
+    const {sourceId,date,endDate='',claim,status='reported',kind='source',group=''}=r;
     if(typeof sourceId!=='string'||!sourceId.trim()||sourceId.length>120||ids.has(sourceId)) throw Error('Invalid or duplicate source ID '+(i+1));
     ids.add(sourceId);
     if(!validDate(date)) throw Error('Invalid date for '+sourceId);
+    if(typeof endDate!=='string'||(endDate&&(!validDate(endDate)||endDate<date))) throw Error('End date must be a real date on or after the start date for '+sourceId);
     if(typeof claim!=='string'||!claim.trim()||claim.length>20000) throw Error('Invalid claim for '+sourceId);
     if(!statuses.includes(status)||!kinds.includes(kind)||typeof group!=='string'||group.length>120) throw Error('Invalid classification for '+sourceId);
-    return {sourceId,date,claim,status,kind,group};
+    return {sourceId,date,...(endDate?{endDate}:{}),claim,status,kind,group};
   }).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.sourceId<b.sourceId?-1:a.sourceId>b.sourceId?1:0);
 }

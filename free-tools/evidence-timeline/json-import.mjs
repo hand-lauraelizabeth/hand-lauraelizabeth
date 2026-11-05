@@ -10,8 +10,9 @@ export function parseExactJSON(raw) {
   if(!data||typeof data!=='object'||Array.isArray(data)||data.schema!==SCHEMA||!Array.isArray(data.records)) throw Error('Unexpected evidence JSON schema');
   if(Object.keys(data).some(k=>k!=='schema'&&k!=='records')) throw Error('Unexpected top-level field');
   for(const [i,r] of data.records.entries()){
-    if(!r||typeof r!=='object'||Array.isArray(r)||fields.some(k=>!Object.hasOwn(r,k))||Object.keys(r).some(k=>!fields.includes(k))) throw Error('Invalid fields in record '+(i+1));
+    if(!r||typeof r!=='object'||Array.isArray(r)||fields.some(k=>!Object.hasOwn(r,k))||Object.keys(r).some(k=>!fields.includes(k)&&k!=='endDate')) throw Error('Invalid fields in record '+(i+1));
     if(fields.some(k=>typeof r[k]!=='string')) throw Error('Non-text field in record '+(i+1));
+    if(Object.hasOwn(r,'endDate')&&typeof r.endDate!=='string') throw Error('Non-text end date in record '+(i+1));
   }
   return normalizeExact(data.records);
 }

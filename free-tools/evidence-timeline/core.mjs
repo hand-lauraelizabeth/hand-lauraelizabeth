@@ -10,6 +10,7 @@ export function findReviewGroups(records) {
 }
 export function exportEvidenceCSV(records) {
   const cols=["sourceId","date","claim","status","kind","group"];
+  if(records.some(row=>row.endDate))cols.push('endDate');
   const safe = v => { let s=String(v??""); if (/^[\s\uFEFF]*[=+@\-\t\r＝＋－＠]/u.test(s)) s="'"+s; return '"'+s.replaceAll('"','""')+'"'; };
   return [cols.join(","),...records.map(r=>cols.map(c=>safe(r[c])).join(","))].join("\r\n")+"\r\n";
 }
