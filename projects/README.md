@@ -2,6 +2,8 @@
 
 These projects combine working browser tools, inspectable source code, and research or analytical work samples. **Choose “Open interactive tool” to use a demonstration without downloading code.** Open the corresponding repository or source folder if you want to examine its implementation.
 
+[**Open the searchable, keyboard-friendly tool finder**](tool-finder.html) — a standalone HTML file you can save and open in a browser. Search and category filtering run locally; no account or installation is required. The GitHub file preview shows source, not a running application.
+
 ## Find a tool by what you need to do
 
 Choose a task to open the **published browser tool**, not its source code. These links are usable without installing this repository.
