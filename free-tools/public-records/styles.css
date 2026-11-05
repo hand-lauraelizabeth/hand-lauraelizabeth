@@ -46,3 +46,19 @@ form > .form-error:focus{outline:3px solid #a36d19;outline-offset:3px}
 #events li .event-editor .form-error[hidden]{display:none}
 #events li .event-editor .form-error:focus{outline:3px solid #a36d19;outline-offset:3px}
 #events li .event-editor [aria-invalid=true]{border:3px solid #9b3428}
+
+/* Saved-only print summary; never expose unsaved editor drafts. */
+.print-only{display:none}
+@media print{
+  body{background:#fff;color:#111;font:11pt/1.4 sans-serif}
+  main{max-width:none;margin:0;padding:0}
+  section{border:0;padding:0;margin:0 0 1rem}
+  #new-request,#new-event,#reopen-heading,#exports,#status,
+  section[aria-labelledby="new-request"],section[aria-labelledby="new-event"],
+  section[aria-labelledby="reopen-heading"],section[aria-labelledby="exports"],
+  #requests label,#requests button,#requests .form-error,
+  #events details{display:none!important}
+  .print-only{display:block!important}
+  .card,#events li{break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
