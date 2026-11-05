@@ -129,7 +129,7 @@ def main():
           expect(page.locator('#leh-edits .leh-row').first).to_be_visible()
           assert page.locator('#tab-resume').get_attribute('aria-selected')=='true'
           page.locator('#leh-edits .leh-row details summary').first.click()
-          assert 'pasted' in page.locator('#leh-edits').inner_text().lower()
+          assert 'Entered résumé' in page.locator('#leh-edits').inner_text()
           quantity=page.locator('#leh-edits textarea').all()
           quantity=next(e for e in quantity if '120 employees' in e.input_value())
           quantity.fill(quantity.input_value().replace('120','999'))

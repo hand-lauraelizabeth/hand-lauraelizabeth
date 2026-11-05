@@ -45,7 +45,7 @@ details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:au
 </head>
 <body>
 <a class="studio-skip" href="#career-inputs">Skip to workspace</a><header class="studio-hero"><div class="hero-copy"><p class="studio-eyebrow"><span class="studio-mark" aria-hidden="true">R</span> Reverse ATS · Role Evidence Studio</p><h1>Find the evidence.<br>Make your next move.</h1><p class="hero-lead">See how your résumé supports a job posting, explore roles and local pay, and build a clearer résumé you can edit and download.</p><div class="hero-actions" id="hero-actions"><button class="btn" id="career-example" type="button">Try the example</button>
-  <button type="button" id="studio-start" class="btn ghost">Use my résumé <span aria-hidden="true">→</span></button></div><p class="hero-trust">Free to use · No account · Your documents are processed in your browser</p><p class="hero-note">A practical evidence review. Results reflect the text you supply; they do not predict an employer’s ATS score.</p></div><aside class="hero-sample" aria-label="Fictional example of a job review"><div class="sample-header"><span>YOUR APPLICATION, AT A GLANCE</span><span class="sample-badge">Example</span></div><h2>Learning programs manager</h2><div class="sample-match"><span class="sample-symbol">✓</span><div><strong>Training delivery</strong><span>Visible in the résumé</span></div></div><div class="sample-match"><span class="sample-symbol amber">?</span><div><strong>Budget ownership</strong><span>Clarify your actual authority</span></div></div><div class="sample-next"><strong>A useful next step</strong><p>Find a specific, supportable example before strengthening the claim.</p></div><p>Requirements → evidence → next action</p></aside></header><nav class="studio-steps" aria-label="How it works"><div><span>1</span><p><strong>Add your résumé</strong>Import PDF/DOCX or paste text.</p></div><div><span>2</span><p><strong>Choose your task</strong>Review a job, explore roles, or revise.</p></div><div><span>3</span><p><strong>Leave with something useful</strong>A clear plan, role leads, or an editable résumé.</p></div></nav><main id="career-inputs" class="studio-main" tabindex="-1">
+  <button type="button" id="studio-start" class="btn ghost">Use my résumé <span aria-hidden="true">→</span></button></div><p class="hero-trust">Free to use · No account · Your documents are processed in your browser</p><p class="hero-note">A practical evidence review. Results reflect the text you supply; they do not predict an employer’s ATS score.</p></div><aside class="hero-sample" aria-label="Fictional example of a job review"><div class="sample-header"><span>YOUR APPLICATION, AT A GLANCE</span><span class="sample-badge">Example</span></div><h2>Training and development specialist</h2><div class="sample-match"><span class="sample-symbol">✓</span><div><strong>Training delivery</strong><span>Visible in the résumé</span></div></div><div class="sample-match"><span class="sample-symbol amber">?</span><div><strong>Program coordination</strong><span>Clarify the scope of your contribution</span></div></div><div class="sample-next"><strong>A useful next step</strong><p>Find a specific, supportable example before strengthening the claim.</p></div><p>Requirements → evidence → next action</p></aside></header><nav class="studio-steps" aria-label="How it works"><div><span>1</span><p><strong>Add your résumé</strong>Import PDF/DOCX or paste text.</p></div><div><span>2</span><p><strong>Choose your task</strong>Review a job, explore roles, or revise.</p></div><div><span>3</span><p><strong>Leave with something useful</strong>A clear plan, role leads, or an editable résumé.</p></div></nav><main id="career-inputs" class="studio-main" tabindex="-1">
 <div class="studio-workspace"><aside id="studio-inputs" class="studio-inputs" aria-labelledby="studio-input-heading" tabindex="-1"><div class="input-heading"><p class="studio-eyebrow">YOUR STARTING POINT</p><h2 id="studio-input-heading">Your résumé &amp; target</h2><p>Add your résumé once. Every task uses the same text.</p></div><div id="studio-source-mount"><section class="studio-source">
 <h2 id="candidate-input-heading">Résumé text</h2>
 <textarea id="candidate" aria-labelledby="candidate-input-heading" placeholder="Paste your résumé here, or import a PDF/DOCX above. Add a job posting below when you want an application review."></textarea>
@@ -935,6 +935,7 @@ window.roleEvidenceData = {"geography": "https://raw.githubusercontent.com/hand-
   byId('career-example').addEventListener('click', () => {
     if ((candidate.value.trim() || job.value.trim()) && !confirm('Replace the current inputs with fictional examples?')) return;
     byId('sampleJob').click();
+    job.value = 'Training and Development Specialist\nRequired qualifications:\nExperience designing training materials and learning objectives.\nExperience facilitating onboarding workshops for new employees.\nExperience analyzing survey feedback and evaluating training effectiveness.\nPreferred qualifications:\nA master’s degree preferred.\nExperience using Excel to report results.\nResponsibilities:\nCoordinate learning programs with stakeholders.\nMaintain training schedules and learning records.';
     candidate.value = 'Jordan Example\n\nEXPERIENCE\nLearning and Development Specialist | Example Organization | 2021–present\n- Facilitated onboarding workshops for new employees.\n- Designed training materials and learning objectives for instructor-led courses.\n- Analyzed survey feedback and evaluated training effectiveness.\n\nSKILLS\nInstructional design, training needs assessment, facilitation, evaluation, Excel.';
     candidate.dispatchEvent(new Event('input'));
     zipInput.value = '11432';
@@ -1318,9 +1319,14 @@ install();
   byId('profileImport').addEventListener('change',()=>setTimeout(inputState,0));
   function needsAttention(row){return !['strong','visible'].includes(row.ev.status)||Boolean(row.hard_check&&/unresolved|not visible|does not yet support|not clearly supported/i.test(row.hard_check))||/not usable externally|blocked/i.test(row.g);}
   function prioritized(rows){
-    return [...rows].sort((a,b)=>(a.type==='hard'&&needsAttention(a)?0:needsAttention(a)?1:a.type==='preferred'?3:2)-(b.type==='hard'&&needsAttention(b)?0:needsAttention(b)?1:b.type==='preferred'?3:2)||a.id-b.id);
+    const order=row=>row.type==='preferred'?3:row.type==='hard'&&needsAttention(row)?0:needsAttention(row)?1:2;
+    return [...rows].sort((a,b)=>order(a)-order(b)||a.id-b.id);
   }
-  function sourceExcerpt(row){return row.ev.found||'No source excerpt surfaced in the supplied material.';}
+  function sourceExcerpt(row){
+    if(['private','anonymize','do-not-use'].includes(row.ev.confidentiality))return 'Restricted source excerpt omitted. Review the source privately.';
+    if(row.ev.status==='not visible'||!row.ev.statement)return 'No persuasive source excerpt surfaced in the supplied material.';
+    return row.ev.node_id+' ['+row.ev.source+'] '+row.ev.statement;
+  }
   function renderCriteria(){
     const query=byId('studio-criteria-search').value.toLocaleLowerCase(),filter=byId('studio-criteria-filter').value;
     const selected=prioritized(reviewRows).filter(row=>(filter==='all'||filter==='attention'&&needsAttention(row)||row.type===filter)&&
@@ -1332,7 +1338,9 @@ install();
       labels.append(make('span',displayType[row.type]||row.type,'criterion-type'),make('span',statusName[row.ev.status]||row.ev.status,'criterion-status '+(needsAttention(row)?'attention':'visible')));
       card.append(labels,make('h4',row.text));
       if(row.hard_check)card.append(make('p',row.hard_check,'criterion-condition'));
-      card.append(make('p','Source connection','criterion-caption'),make('p',sourceExcerpt(row),'criterion-excerpt'),make('p',atsAction(row),'criterion-action'));
+      const excerpt=sourceExcerpt(row),letters=Array.from(excerpt);
+      card.append(make('p','Source connection','criterion-caption'),make('p',letters.length>600?letters.slice(0,599).join('')+'…':excerpt,'criterion-excerpt'),make('p',atsAction(row),'criterion-action'));
+      if(letters.length>600){const details=make('details');details.append(make('summary','Read complete source excerpt'),make('p',excerpt,'criterion-excerpt'));card.append(details);}
       if(row.ev.source)card.append(make('p','Source: '+row.ev.source+' · Review: '+reviewedSupport(row.ev),'studio-muted'));
       host.append(card);
     }
@@ -1354,10 +1362,10 @@ install();
       const card=make('div',undefined,'plan-count');card.append(make('strong',count),make('span',label));counts.append(card);
     }
     const actions=byId('studio-actions');actions.replaceChildren();
-    const top=prioritized(attention.length?attention:reviewRows).slice(0,3);
+    const top=prioritized(reviewRows).slice(0,3);
     if(!top.length)actions.append(make('li','No reviewable criteria were identified. Add the full qualifications and responsibilities, then run the review again.'));
     top.forEach(row=>{
-      const item=make('li');item.append(make('strong',row.type==='hard'?'Clarify a required criterion':needsAttention(row)?'Strengthen the evidence connection':'Verify the visible connection'),make('p',row.text),make('p',atsAction(row),'studio-muted'));actions.append(item);
+      const item=make('li');item.append(make('strong',needsAttention(row)?row.type==='hard'?'Clarify a required criterion':'Strengthen the evidence connection':'Verify the visible connection'),make('p',row.text),make('p',atsAction(row),'studio-muted'));actions.append(item);
     });
     const heading=job.value.trim().split(/\n/).find(Boolean)||'Application review';
     planText=['REVERSE ATS · APPLICATION NEXT-STEP PLAN',heading,'',reviewRows.length+' criteria reviewed; '+required.length+' stated required; '+visible.length+' textual connections; '+attention.length+' need attention.',

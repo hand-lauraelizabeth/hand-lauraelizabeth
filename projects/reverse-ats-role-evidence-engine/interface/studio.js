@@ -67,9 +67,14 @@
   byId('profileImport').addEventListener('change',()=>setTimeout(inputState,0));
   function needsAttention(row){return !['strong','visible'].includes(row.ev.status)||Boolean(row.hard_check&&/unresolved|not visible|does not yet support|not clearly supported/i.test(row.hard_check))||/not usable externally|blocked/i.test(row.g);}
   function prioritized(rows){
-    return [...rows].sort((a,b)=>(a.type==='hard'&&needsAttention(a)?0:needsAttention(a)?1:a.type==='preferred'?3:2)-(b.type==='hard'&&needsAttention(b)?0:needsAttention(b)?1:b.type==='preferred'?3:2)||a.id-b.id);
+    const order=row=>row.type==='preferred'?3:row.type==='hard'&&needsAttention(row)?0:needsAttention(row)?1:2;
+    return [...rows].sort((a,b)=>order(a)-order(b)||a.id-b.id);
   }
-  function sourceExcerpt(row){return row.ev.found||'No source excerpt surfaced in the supplied material.';}
+  function sourceExcerpt(row){
+    if(['private','anonymize','do-not-use'].includes(row.ev.confidentiality))return 'Restricted source excerpt omitted. Review the source privately.';
+    if(row.ev.status==='not visible'||!row.ev.statement)return 'No persuasive source excerpt surfaced in the supplied material.';
+    return row.ev.node_id+' ['+row.ev.source+'] '+row.ev.statement;
+  }
   function renderCriteria(){
     const query=byId('studio-criteria-search').value.toLocaleLowerCase(),filter=byId('studio-criteria-filter').value;
     const selected=prioritized(reviewRows).filter(row=>(filter==='all'||filter==='attention'&&needsAttention(row)||row.type===filter)&&
@@ -81,7 +86,9 @@
       labels.append(make('span',displayType[row.type]||row.type,'criterion-type'),make('span',statusName[row.ev.status]||row.ev.status,'criterion-status '+(needsAttention(row)?'attention':'visible')));
       card.append(labels,make('h4',row.text));
       if(row.hard_check)card.append(make('p',row.hard_check,'criterion-condition'));
-      card.append(make('p','Source connection','criterion-caption'),make('p',sourceExcerpt(row),'criterion-excerpt'),make('p',atsAction(row),'criterion-action'));
+      const excerpt=sourceExcerpt(row),letters=Array.from(excerpt);
+      card.append(make('p','Source connection','criterion-caption'),make('p',letters.length>600?letters.slice(0,599).join('')+'…':excerpt,'criterion-excerpt'),make('p',atsAction(row),'criterion-action'));
+      if(letters.length>600){const details=make('details');details.append(make('summary','Read complete source excerpt'),make('p',excerpt,'criterion-excerpt'));card.append(details);}
       if(row.ev.source)card.append(make('p','Source: '+row.ev.source+' · Review: '+reviewedSupport(row.ev),'studio-muted'));
       host.append(card);
     }
@@ -103,10 +110,10 @@
       const card=make('div',undefined,'plan-count');card.append(make('strong',count),make('span',label));counts.append(card);
     }
     const actions=byId('studio-actions');actions.replaceChildren();
-    const top=prioritized(attention.length?attention:reviewRows).slice(0,3);
+    const top=prioritized(reviewRows).slice(0,3);
     if(!top.length)actions.append(make('li','No reviewable criteria were identified. Add the full qualifications and responsibilities, then run the review again.'));
     top.forEach(row=>{
-      const item=make('li');item.append(make('strong',row.type==='hard'?'Clarify a required criterion':needsAttention(row)?'Strengthen the evidence connection':'Verify the visible connection'),make('p',row.text),make('p',atsAction(row),'studio-muted'));actions.append(item);
+      const item=make('li');item.append(make('strong',needsAttention(row)?row.type==='hard'?'Clarify a required criterion':'Strengthen the evidence connection':'Verify the visible connection'),make('p',row.text),make('p',atsAction(row),'studio-muted'));actions.append(item);
     });
     const heading=job.value.trim().split(/\n/).find(Boolean)||'Application review';
     planText=['REVERSE ATS · APPLICATION NEXT-STEP PLAN',heading,'',reviewRows.length+' criteria reviewed; '+required.length+' stated required; '+visible.length+' textual connections; '+attention.length+' need attention.',
