@@ -35,7 +35,7 @@ assert.match(entries,/_x000B_/);
 assert.match(entries,/🧭/);
 assert.ok(!entries.includes('<x:f>'), 'User evidence is always text, never an Excel formula');
 assert.match(entries,/=HYPERLINK/);
-assert.match(parts['xl/styles.xml'],/<x:patternFill patternType="solid"><x:fgColor rgb="FF377B5D"\/><x:bgColor rgb="FF377B5D"\/>/);
+assert.match(parts['xl/styles.xml'],/<x:patternFill patternType="solid"><x:fgColor rgb="FF377B5D"\s*\/><x:bgColor rgb="FF377B5D"\s*\/>/);
 assert.equal(excelDate('1900-01-01'),1);
 assert.equal(excelDate('1900-02-28'),59);
 assert.equal(excelDate('1900-03-01'),61);
