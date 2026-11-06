@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>Find a Portfolio Tool</title>
+<style>
+:root{color-scheme:light;font:100%/1.5 system-ui,sans-serif;color:#19372e;background:#f6f8f5}
+*{box-sizing:border-box}body{margin:0}main{max-width:65rem;margin:auto;padding:clamp(1rem,4vw,3rem)}
+h1{line-height:1.2}p{max-width:70ch}.controls{display:flex;flex-wrap:wrap;gap:.75rem;align-items:end;margin:1.5rem 0}
+label{display:grid;gap:.3rem;font-weight:600;flex:1 1 15rem}
+input,select,button{font:inherit;min-height:2.75rem;padding:.5rem .75rem;border:2px solid #4c6a60;border-radius:.35rem;background:white;color:inherit;max-width:100%;min-width:0}
+button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #b45309;outline-offset:3px}
+ul{padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:1rem}
+li{background:white;border:1px solid #a4b8ae;border-radius:.6rem;padding:1.1rem;overflow-wrap:anywhere}
+li h2{font-size:1.15rem;margin:0 0 .5rem}li p{margin:.3rem 0 1rem}
+a{color:#12513e;font-weight:650}small{display:block;color:#345649}
+#count{font-weight:650}#empty{padding:1rem;background:#fff1d6;border-radius:.4rem}
+</style></head><body><main><h1>Find a portfolio tool</h1>
+<p>Choose a task or search for a tool. Every result opens an existing published browser demonstration; this finder is a standalone, browser-local directory and does not send your search to a server.</p>
+<div class="controls"><label for="search">Search tools and tasks<input id="search" type="search" autocomplete="off" placeholder="e.g., timeline, teaching, prompt"></label>
+<label for="category">Task area<select id="category"><option value="">All task areas</option><option>Research</option><option>Teaching</option><option>Career</option><option>AI</option><option>Operations</option></select></label>
+<button type="button" id="reset">Clear filters</button><button type="button" id="copy">Copy filtered tool links</button></div>
+<p id="count" role="status" aria-live="polite"></p><p id="feedback" role="status" aria-live="polite"></p><p id="empty" hidden>No matching tools. Try a broader term or clear filters.</p>
+<ul id="results"></ul>
+<p><strong>Privacy:</strong> Search terms stay in this page. Linked tools have their own data-handling policies; use fictional inputs where possible. This directory does not verify current accessibility or availability of each destination.</p>
+</main><script>
+"use strict";
+const entries=[["Research","Evidence & Timeline Builder","Organize sources, dated evidence and export timelines","https://www.lauraelizabethhand.com/resources/research-writing-tools/evidence-timeline-builder/"],["Research","Text Lens","Explore text patterns and contextual evidence","https://www.lauraelizabethhand.com/resources/research-writing-tools/text-lens/"],["Teaching","Context Before Count","Interpret keywords in context","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/"],["Teaching","Curriculum Planning Canvas","Plan objectives and learning activities","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/"],["Teaching","Standards Check","Explore fictional assessment results","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/"],["Career","College Search","Explore institutions and decision evidence","https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/"],["Career","Reverse ATS","Review résumé and role evidence","https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/"],["AI","Prompt Literacy Debugger","Diagnose prompt weaknesses","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-literacy-debugger/"],["AI","Evidence-Safe Prompt Lab","Build evidence-conscious prompts","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/evidence-safe-prompt-lab/"],["AI","Ethical AI Scenario Auditor","Examine risk and oversight","https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ethical-ai-scenario-auditor/"],["Operations","Audience Lifecycle & CRM Migration Planner","Map audience workflows and migration","https://www.lauraelizabethhand.com/resources/project-operations-tools/audience-lifecycle-crm-migration-planner/"]];
+const aliases={"Context Before Count":"kwic nlp corpus concordance","Reverse ATS":"resume cv curriculum vitae job application","Evidence & Timeline Builder":"chronology gantt spreadsheet xlsx","College Search":"university admissions","Text Lens":"text analysis keywords","Curriculum Planning Canvas":"lesson plan syllabus objectives"};
+const normalize=value=>value.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase();
+const search=document.getElementById("search"),category=document.getElementById("category"),results=document.getElementById("results"),count=document.getElementById("count"),empty=document.getElementById("empty"),feedback=document.getElementById("feedback");
+let currentMatches=[];
+function render(){
+ const term=normalize(search.value.trim()),area=category.value;
+ const matches=entries.filter(([group,name,description])=>(!area||group===area)&&(!term||[group,name,description,aliases[name]||""].some(s=>normalize(s).includes(term))));
+ currentMatches=matches;feedback.textContent="";document.getElementById("copy").disabled=matches.length===0;
+ const fragment=document.createDocumentFragment();
+ for(const [group,name,description,url] of matches){
+  const item=document.createElement("li"),heading=document.createElement("h2"),desc=document.createElement("p"),link=document.createElement("a"),tag=document.createElement("small");
+  heading.textContent=name;desc.textContent=description;tag.textContent=group;
+  link.textContent="Open "+name;link.href=url;link.rel="noopener noreferrer";
+  item.append(tag,heading,desc,link);fragment.append(item);
+ }
+ results.replaceChildren(fragment);count.textContent=matches.length+" of "+entries.length+" tools shown";empty.hidden=matches.length!==0;
+}
+search.addEventListener("input",render);category.addEventListener("change",render);
+document.getElementById("reset").addEventListener("click",()=>{search.value="";category.value="";render();search.focus()});
+document.getElementById("copy").addEventListener("click",async()=>{
+ const lines=currentMatches.map(([,name,,url])=>name+" — "+url).join("\n");
+ try{if(!navigator.clipboard||!window.isSecureContext)throw new Error("Clipboard unavailable");await navigator.clipboard.writeText(lines);feedback.textContent="Copied "+currentMatches.length+" tool links.";}
+ catch{const blob=new Blob([lines+"\n"],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="portfolio-tool-links.txt";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);feedback.textContent="Clipboard unavailable; prepared a text download of "+currentMatches.length+" links.";}
+});
+render();
+</script></body></html>
