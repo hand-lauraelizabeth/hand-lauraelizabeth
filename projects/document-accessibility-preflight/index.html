@@ -10,14 +10,15 @@
 <script>
 (()=>{'use strict';const $=id=>document.getElementById(id);let report='';
 const name=el=>(el.getAttribute('aria-label')||el.getAttribute('title')||el.textContent||'').trim();
+const labelled=el=>{const refs=(el.getAttribute('aria-labelledby')||'').trim().split(/\s+/).filter(Boolean);return refs.length>0&&refs.every(id=>el.ownerDocument.getElementById(id))&&refs.some(id=>el.ownerDocument.getElementById(id).textContent.trim())};
 const test=html=>{const doc=new DOMParser().parseFromString(html,'text/html');const issues=[];const add=(severity,code,detail)=>issues.push({severity,code,detail});
 if(!doc.documentElement.getAttribute('lang'))add('Review','LANG','Root html element has no language attribute.');
 if(!doc.querySelector('title')?.textContent.trim())add('Review','TITLE','Document title is missing or empty.');
 const heads=[...doc.querySelectorAll('h1,h2,h3,h4,h5,h6')];if(!heads.some(h=>h.tagName==='H1'))add('Review','H1','No top-level heading found.');
 let previous=0;heads.forEach((h,i)=>{const n=Number(h.tagName[1]);if(n>previous+1&&previous)add('Review','HEADING','Heading '+(i+1)+' jumps from level '+previous+' to '+n+'.');if(!h.textContent.trim())add('Review','HEADING_EMPTY','Empty heading at position '+(i+1)+'.');previous=n});
 [...doc.images].forEach((img,i)=>{if(!img.hasAttribute('alt'))add('Review','IMG_ALT','Image '+(i+1)+' lacks alt attribute. Decorative images may use alt="".')});
-[...doc.querySelectorAll('a[href]')].forEach((a,i)=>{if(!name(a)&&!a.querySelector('img[alt]:not([alt=""])'))add('Review','LINK_NAME','Link '+(i+1)+' has no detectable accessible name.')});
-[...doc.querySelectorAll('input:not([type=hidden]),select,textarea')].forEach((el,i)=>{const id=el.id;const labels=el.labels?.length||0;const aria=el.getAttribute('aria-label')||el.getAttribute('aria-labelledby');if(!labels&&!aria&&!el.getAttribute('title'))add('Review','FORM_NAME','Form control '+(i+1)+' has no detectable label.')});
+[...doc.querySelectorAll('a[href]')].forEach((a,i)=>{if(!name(a)&&!labelled(a)&&!a.querySelector('img[alt]:not([alt=""])'))add('Review','LINK_NAME','Link '+(i+1)+' has no detectable accessible name.')});
+[...doc.querySelectorAll('input:not([type=hidden]),select,textarea')].forEach((el,i)=>{const id=el.id;const labels=el.labels?.length||0;const aria=el.getAttribute('aria-label')?.trim()||labelled(el);if(!labels&&!aria&&!el.getAttribute('title'))add('Review','FORM_NAME','Form control '+(i+1)+' has no detectable label.')});
 if(doc.querySelector('html')&&/<!doctype/i.test(html)===false)add('Info','DOCTYPE','HTML doctype not detected.');
 return issues};
 function invalidate(){report='';$('download').disabled=true;$('summary').textContent='Source changed. Review the current HTML to generate a new report.';$('issues').replaceChildren()}
