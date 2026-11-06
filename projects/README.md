@@ -16,6 +16,15 @@ Choose a task to open the **published browser tool**, not its source code. These
 
 **Privacy:** Use fictional examples when possible. Check each tool's data-handling notes before entering personal, institutional, or client information. A link to a published page does not certify every browser or assistive-technology configuration.
 
+## Release status and how to use these links
+
+**Published tools** in the table below open the live website. **Review candidates** are not live website features; GitHub's file viewer displays HTML source rather than running it. To try a standalone HTML candidate, open its file in GitHub, choose **Download raw file**, and open the saved `.html` file in a modern browser. No local server, installation, or account is required for the browser-local candidates listed here. Do not enter confidential information into an unreviewed candidate.
+
+| Review candidate | What can be tried locally | Release state |
+| --- | --- | --- |
+| [FT-15 searchable tool finder](tool-finder.html) ([review PR #482](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/pull/482)) | Search by name or task, filter categories, and copy/download filtered tool links | Review-only; not published on WordPress; interactive acceptance and release approval outstanding |
+| [FT-14 literature evidence matrix](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/pull/483) | Record and revise source-linked claims, filter evidence, and export CSV | Separate review PR; not published; interactive acceptance and approval outstanding |
+
 ## Interactive browser tools
 
 | Tool | Open interactive tool | Source and method |
