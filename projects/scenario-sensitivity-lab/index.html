@@ -23,9 +23,9 @@ let rows=null;
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n);
 function update(){
  const v=inputs.map(x=>Number(x.value));
- const valid=inputs.every((x,i)=>x.value.trim()!==''&&Number.isFinite(v[i])&&v[i]>=0&&v[i]<=Number(x.max)&&(i===0||i===2?Number.isInteger(v[i]):Math.round(v[i]*100)===v[i]*100));
+ const valid=inputs.every((x,i)=>x.value.trim()!==''&&Number.isFinite(v[i])&&v[i]>=0&&v[i]<=Number(x.max)&&(i===0||i===2?Number.isInteger(v[i]):/^\d+(?:\.\d{1,2})?$/.test(x.value.trim())));
  if(!valid){rows=null;tbody.replaceChildren();message.textContent='Enter nonnegative whole-number session counts (up to 100,000) and rates with no more than two decimal places (up to $1,000,000).';document.getElementById('export').disabled=true;return}
- const [bn,br,nn,nr]=v,baseline=bn*br,proposed=nn*nr,volume=(nn-bn)*br,rate=nn*(nr-br),change=proposed-baseline;
+ const [bn,br,nn,nr]=v,brC=Math.round(br*100),nrC=Math.round(nr*100);\n const baseline=bn*brC/100,proposed=nn*nrC/100,volume=(nn-bn)*brC/100,rate=nn*(nrC-brC)/100,change=(nn*nrC-bn*brC)/100;
  rows=[['Baseline expenditure',baseline],['Proposed expenditure',proposed],['Total difference',change],['Volume effect at baseline fee',volume],['Rate effect at proposed volume',rate]];
  tbody.replaceChildren(...rows.map(([label,value])=>{const tr=document.createElement('tr'),th=document.createElement('th'),td=document.createElement('td');th.scope='row';th.textContent=label;td.textContent=money(value);tr.append(th,td);return tr}));
  message.textContent='Comparison calculated from fictional or user-entered assumptions. The two effects sum to the total difference.';document.getElementById('export').disabled=false;
