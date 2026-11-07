@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scenario Sensitivity Lab — fictional workshop budgets</title>
+<style>
+:root{font:16px/1.5 system-ui;color:#17362d;background:#f4f8f5}*{box-sizing:border-box}body{max-width:940px;margin:auto;padding:1rem}h1{line-height:1.2}fieldset,section{border:1px solid #8ca69b;border-radius:12px;background:white;padding:1rem;margin:1rem 0}legend{font-weight:700}label{display:block;margin:.7rem 0}input{display:block;width:100%;max-width:17rem;padding:.5rem;font:inherit}button{font:inherit;padding:.6rem 1rem;border:2px solid #245c4c;background:#245c4c;color:white;border-radius:7px;cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #b35900;outline-offset:3px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #9bada5;padding:.6rem;text-align:right}th:first-child,td:first-child{text-align:left}th{background:#e4eee8}.scroll{overflow-x:auto}.note{background:#e5f0e9;padding:.8rem;border-left:5px solid #245c4c}output{font-weight:700}@media(max-width:420px){body{padding:.6rem}h1{font-size:1.6rem}fieldset,section{padding:.7rem}}
+</style>
+<main><h1>Scenario Sensitivity Lab</h1><p>Explore how a change in workshop volume differs from a change in instructor rate. All initial numbers are <strong>fictional teaching examples</strong>, not actual organizational fees, utilization or forecasts. No data is sent to a server.</p>
+<div class="note">Baseline cost = baseline sessions × baseline rate. Proposed cost = proposed sessions × proposed rate. The difference is decomposed into a volume effect and a rate effect, with the volume change valued at the baseline rate.</div>
+<fieldset><legend>Set two scenarios</legend>
+<label>Baseline sessions <input id="baseN" type="number" min="0" max="100000" step="1" value="20"></label>
+<label>Baseline fee per session ($) <input id="baseR" type="number" min="0" max="1000000" step="0.01" value="500"></label>
+<label>Proposed sessions <input id="newN" type="number" min="0" max="100000" step="1" value="24"></label>
+<label>Proposed fee per session ($) <input id="newR" type="number" min="0" max="1000000" step="0.01" value="550"></label>
+<button id="reset" type="button">Restore fictional example</button> <button id="export" type="button">Download CSV</button>
+</fieldset>
+<section aria-labelledby="resultsTitle"><h2 id="resultsTitle">Scenario comparison</h2><p id="message" role="status" aria-live="polite"></p><div class="scroll"><table><thead><tr><th scope="col">Measure</th><th scope="col">Amount</th></tr></thead><tbody id="results"></tbody></table></div></section>
+<section><h2>How to interpret</h2><p>The <strong>volume effect</strong> is (proposed sessions − baseline sessions) × baseline rate. The <strong>rate effect</strong> is proposed sessions × (proposed rate − baseline rate). These add exactly to the total change. The decomposition depends on the stated order: volume first, rate second. It is not a causal estimate.</p><p>For a real forecast, distinguish historical observations from projections; document session types, time periods, fee rules, seasonality and uncertainty. This one-category exercise does not model cancellations, bursts, or negotiated contracts.</p></section></main>
+<script>
+'use strict';
+const ids=['baseN','baseR','newN','newR'], defaults=[20,500,24,550], inputs=ids.map(id=>document.getElementById(id));
+const message=document.getElementById('message'), tbody=document.getElementById('results');
+let rows=null;
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n);
+function update(){
+ const v=inputs.map(x=>Number(x.value));
+ const valid=inputs.every((x,i)=>x.value.trim()!==''&&Number.isFinite(v[i])&&v[i]>=0&&v[i]<=Number(x.max)&&(i===0||i===2?Number.isInteger(v[i]):Math.round(v[i]*100)===v[i]*100));
+ if(!valid){rows=null;tbody.replaceChildren();message.textContent='Enter nonnegative whole-number session counts (up to 100,000) and rates with no more than two decimal places (up to $1,000,000).';document.getElementById('export').disabled=true;return}
+ const [bn,br,nn,nr]=v,baseline=bn*br,proposed=nn*nr,volume=(nn-bn)*br,rate=nn*(nr-br),change=proposed-baseline;
+ rows=[['Baseline expenditure',baseline],['Proposed expenditure',proposed],['Total difference',change],['Volume effect at baseline fee',volume],['Rate effect at proposed volume',rate]];
+ tbody.replaceChildren(...rows.map(([label,value])=>{const tr=document.createElement('tr'),th=document.createElement('th'),td=document.createElement('td');th.scope='row';th.textContent=label;td.textContent=money(value);tr.append(th,td);return tr}));
+ message.textContent='Comparison calculated from fictional or user-entered assumptions. The two effects sum to the total difference.';document.getElementById('export').disabled=false;
+}
+inputs.forEach(x=>x.addEventListener('input',update));
+document.getElementById('reset').addEventListener('click',()=>{inputs.forEach((x,i)=>x.value=defaults[i]);update();inputs[0].focus()});
+document.getElementById('export').addEventListener('click',()=>{
+ if(!rows)return;
+ const values=[['Scenario Sensitivity Lab — fictional or user-entered assumptions'],['Metric','Value'],...ids.map((id,i)=>[id,inputs[i].value]),...rows.map(([a,b])=>[a,b.toFixed(2)])];
+ const csv=values.map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\r\n')+'\r\n';
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='fictional-scenario-sensitivity.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ message.textContent='CSV download requested. Check your browser downloads.';
+});
+update();
+</script></html>
