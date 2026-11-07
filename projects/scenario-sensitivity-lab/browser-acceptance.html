@@ -3,7 +3,7 @@
 <title>Scenario Sensitivity Lab — browser acceptance fixture</title>
 <style>body{font:16px/1.5 system-ui;max-width:850px;margin:auto;padding:1rem;color:#17362d}iframe{width:100%;height:550px;border:2px solid #456}button{padding:.6rem}pre{white-space:pre-wrap;background:#eef5f0;padding:1rem}button:focus-visible{outline:3px solid #b35900}</style>
 <h1>Scenario Sensitivity Lab — browser acceptance fixture</h1>
-<p>Run from the same directory as <code>index.html</code> over a local HTTP server. The embedded calculator remains local. No test inputs leave the browser. The test checks default arithmetic, cent precision, invalid input and recovery, reset, and CSV export eligibility; it does not claim manual keyboard, screen-reader or mobile-device coverage.</p>
+<p>Run from the same directory as <code>index.html</code> over a local HTTP server. The embedded calculator remains local. No test inputs leave the browser. The test checks default arithmetic, cent precision, invalid input and recovery, reset, and actual CSV Blob contents; it does not claim manual keyboard, screen-reader or mobile-device coverage.</p>
 <button id="run" type="button">Run browser checks</button><pre id="report" role="status" aria-live="polite">Not run.</pre>
 <iframe id="lab" src="./index.html" title="Calculator under test"></iframe>
 <script>
@@ -29,7 +29,17 @@ async function run(){
  get('reset').click();await wait();
  test('Reset restores defaults and focuses baseline count',get('baseN').value==='20'&&get('baseR').value==='500'&&get('newN').value==='24'&&get('newR').value==='550'&&d.activeElement===get('baseN'));
  test('Export enabled after reset',!get('export').disabled);
- report.textContent=check.map(([name,ok])=>(ok?'PASS ':'FAIL ')+name).join('\n')+'\n\n'+check.filter(x=>x[1]).length+'/'+check.length+' checks passed. Manual CSV file contents, keyboard traversal and 320px reflow remain separate.';
+ // Capture the Blob before its object URL is revoked; an enabled button alone does not validate CSV.
+ const view=frame.contentWindow, original=view.URL.createObjectURL;
+ let exported=null;
+ try{
+   view.URL.createObjectURL=function(blob){exported=blob;return original.call(this,blob)};
+   get('export').click();await wait();
+   const csv=exported?await exported.text():'';
+   const lines=csv.split('\r\n').filter(Boolean);
+   test('CSV bytes contain assumptions and calculated totals',lines.length===11&&csv.includes('"baseN","20"')&&csv.includes('"Baseline expenditure","10000.00"')&&csv.includes('"Proposed expenditure","13200.00"')&&csv.includes('"Total difference","3200.00"'));
+ }finally{view.URL.createObjectURL=original}
+ report.textContent=check.map(([name,ok])=>(ok?'PASS ':'FAIL ')+name).join('\n')+'\n\n'+check.filter(x=>x[1]).length+'/'+check.length+' checks passed. Keyboard traversal and 320px reflow remain separate.';
 }
 document.getElementById('run').addEventListener('click',()=>run().catch(e=>report.textContent='ERROR: '+e.message));
 </script></html>
