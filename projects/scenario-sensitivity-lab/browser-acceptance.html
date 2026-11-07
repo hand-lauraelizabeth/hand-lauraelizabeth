@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scenario Sensitivity Lab — browser acceptance fixture</title>
+<style>body{font:16px/1.5 system-ui;max-width:850px;margin:auto;padding:1rem;color:#17362d}iframe{width:100%;height:550px;border:2px solid #456}button{padding:.6rem}pre{white-space:pre-wrap;background:#eef5f0;padding:1rem}button:focus-visible{outline:3px solid #b35900}</style>
+<h1>Scenario Sensitivity Lab — browser acceptance fixture</h1>
+<p>Run from the same directory as <code>index.html</code> over a local HTTP server. The embedded calculator remains local. No test inputs leave the browser. The test checks default arithmetic, cent precision, invalid input and recovery, reset, and CSV export eligibility; it does not claim manual keyboard, screen-reader or mobile-device coverage.</p>
+<button id="run" type="button">Run browser checks</button><pre id="report" role="status" aria-live="polite">Not run.</pre>
+<iframe id="lab" src="./index.html" title="Calculator under test"></iframe>
+<script>
+'use strict';
+const frame=document.getElementById('lab'),report=document.getElementById('report');
+const wait=()=>new Promise(resolve=>setTimeout(resolve,30));
+async function run(){
+ const d=frame.contentDocument;if(!d||!d.getElementById('baseN')){report.textContent='BLOCKED: serve both files from the same local origin.';return}
+ const get=id=>d.getElementById(id),check=[],test=(name,ok)=>check.push([name,Boolean(ok)]);
+ const set=(id,value)=>{const x=get(id);x.value=value;x.dispatchEvent(new Event('input',{bubbles:true}))};
+ const table=()=>[...get('results').querySelectorAll('tr')].map(x=>x.cells[1].textContent);
+ get('reset').click();await wait();
+ test('Default baseline $10,000 and proposed $13,200',table()[0]==='$10,000.00'&&table()[1]==='$13,200.00');
+ test('Default change $3,200 = $2,000 volume + $1,200 rate',table().slice(2).join('|')==='$3,200.00|$2,000.00|$1,200.00');
+ set('baseN','1');set('newN','1');set('baseR','0.29');set('newR','0.57');await wait();
+ test('Cent precision: $0.29 to $0.57 gives $0.28 difference',table()[2]==='$0.28'&&table()[4]==='$0.28');
+ set('baseR','0.291');await wait();
+ test('Invalid third decimal clears output and disables CSV',get('results').children.length===0&&get('export').disabled&&get('baseR').getAttribute('aria-invalid')==='true');
+ set('baseR','0.29');await wait();
+ test('Corrected input recovers and clears invalid state',!get('export').disabled&&get('baseR').getAttribute('aria-invalid')==='false');
+ set('baseN','1.5');await wait();
+ test('Fractional session count rejected',get('export').disabled);
+ get('reset').click();await wait();
+ test('Reset restores defaults and focuses baseline count',get('baseN').value==='20'&&get('baseR').value==='500'&&get('newN').value==='24'&&get('newR').value==='550'&&d.activeElement===get('baseN'));
+ test('Export enabled after reset',!get('export').disabled);
+ report.textContent=check.map(([name,ok])=>(ok?'PASS ':'FAIL ')+name).join('\n')+'\n\n'+check.filter(x=>x[1]).length+'/'+check.length+' checks passed. Manual CSV file contents, keyboard traversal and 320px reflow remain separate.';
+}
+document.getElementById('run').addEventListener('click',()=>run().catch(e=>report.textContent='ERROR: '+e.message));
+</script></html>
