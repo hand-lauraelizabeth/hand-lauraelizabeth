@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NYC 311 — synthetic filtering exercise (review only)</title>
+<style>body{font:1rem/1.5 system-ui,sans-serif;max-width:60rem;margin:auto;padding:1rem;color:#172b28}label{display:block;margin:.8rem 0}select,button{font:inherit;padding:.45rem;max-width:100%}table{width:100%;border-collapse:collapse}th,td{border:1px solid #879994;padding:.55rem;text-align:left}th{background:#e7f1ee}caption{text-align:left;font-weight:bold;margin:.7rem 0}.notice{background:#fff4d6;padding:.8rem;border-left:4px solid #8b6200} :focus-visible{outline:3px solid #174e9e;outline-offset:3px}@media(max-width:420px){table{display:block;overflow-x:auto}body{padding:.7rem}}</style>
+<h1>311 service requests: explore a fictional sample</h1>
+<p class="notice"><strong>Synthetic teaching fixture — not NYC 311 data.</strong> All values are invented to demonstrate filtering and comparisons. No individual requests, official counts, or geographic inferences are shown. This is a review-only prototype, not the held real-data lab.</p>
+<p>Choose a borough and service category. The table and summary update together. Nothing is uploaded or stored.</p>
+<label for="borough">Borough <select id="borough"><option value="">All fictional boroughs</option><option>Bronx</option><option>Brooklyn</option><option>Manhattan</option><option>Queens</option><option>Staten Island</option></select></label>
+<label for="category">Service category <select id="category"><option value="">All categories</option><option>Street maintenance</option><option>Noise</option><option>Sanitation</option></select></label>
+<button id="reset" type="button">Clear filters</button> <button id="export" type="button">Export visible fictional rows (CSV)</button>
+<p id="status" role="status" aria-live="polite"></p>
+<table><caption>Invented request totals by borough and category</caption><thead><tr><th scope="col">Borough</th><th scope="col">Category</th><th scope="col">Fictional requests</th></tr></thead><tbody id="rows"></tbody></table>
+<p><strong>Interpretation:</strong> Counts are deliberately fictional, not estimates. Do not use them to describe service delivery, compare actual neighborhoods, or make policy decisions.</p>
+<script>
+"use strict";
+const data=[["Bronx","Noise",120],["Bronx","Sanitation",90],["Brooklyn","Street maintenance",180],["Brooklyn","Noise",140],["Manhattan","Noise",160],["Manhattan","Sanitation",110],["Queens","Street maintenance",130],["Queens","Sanitation",100],["Staten Island","Street maintenance",70],["Staten Island","Noise",60]];
+const b=document.getElementById("borough"),c=document.getElementById("category"),rows=document.getElementById("rows"),status=document.getElementById("status"),exportButton=document.getElementById("export");
+let visible=[];
+function render(){visible=data.filter(r=>(!b.value||r[0]===b.value)&&(!c.value||r[1]===c.value));rows.replaceChildren();for(const r of visible){const tr=document.createElement("tr");for(const value of r){const td=document.createElement("td");td.textContent=String(value);tr.append(td)}rows.append(tr)}const sum=visible.reduce((n,r)=>n+r[2],0);status.textContent=visible.length+" fictional rows; "+sum.toLocaleString()+" fictional requests.";exportButton.disabled=!visible.length}
+function csvValue(v){return '"'+String(v).replaceAll('"','""')+'"'}
+b.addEventListener("change",render);c.addEventListener("change",render);document.getElementById("reset").addEventListener("click",()=>{b.value="";c.value="";render();b.focus()});
+exportButton.addEventListener("click",()=>{const csv=[["Borough","Category","Fictional requests"],...visible].map(r=>r.map(csvValue).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="synthetic-311-visible-rows.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+render();
+</script></html>
