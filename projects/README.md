@@ -2,6 +2,22 @@
 
 These projects combine working browser tools, inspectable source code, and research or analytical work samples. **Choose “Open interactive tool” to use a demonstration without downloading code.** Open the corresponding repository or source folder if you want to examine its implementation.
 
+## Find a tool by what you need to do
+
+Choose a task below rather than guessing which project name fits. These links open the **published website interface**; the source links in the table below are for inspecting implementation, not running it.
+
+| I need to… | Start here | What to expect |
+| --- | --- | --- |
+| Compare colleges and explore possible programs | [College Search](https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/) | Explore institution-level evidence; verify current program offerings and admissions policies with the institution. |
+| Check how my experience supports a job description | [Reverse ATS / Role Evidence Studio](https://www.lauraelizabethhand.com/resources/career-professional-development-tools/reverse-ats/) | Review evidence and gaps; a generated suggestion is not proof of experience or a hiring prediction. |
+| Examine language in context | [Text Lens](https://www.lauraelizabethhand.com/resources/research-writing-tools/text-lens/) | Inspect text patterns and their surrounding passages before interpreting them. |
+| Plan learning objectives and assessment | [Curriculum Planning Canvas](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/) | Draft a learning sequence and review alignment; instructional judgment stays with the educator. |
+| Group learners using assessment evidence | [Standards Check](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/standards-check/) | Work with fictional results and adjustable mastery assumptions. |
+| Examine a prompt or AI-assisted decision | [Prompt Literacy Debugger](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/prompt-literacy-debugger/) | Identify task, evidence, privacy and verification questions before using AI. |
+| Map audience and CRM transitions | [Audience Lifecycle Planner](https://www.lauraelizabethhand.com/resources/project-operations-tools/audience-lifecycle-crm-migration-planner/) | Plan stages, data fields and migration controls; no live CRM connection. |
+
+**Looking for a prototype?** A review-branch HTML file is not a published tool. Source-only candidates, including Objective–Evidence Mapper, Housing Records Organizer, and Scenario Sensitivity Lab, must pass their own acceptance and approval gates before they appear in the published-tool directory. Do not use a GitHub file viewer as evidence that a prototype has been deployed.
+
 ## Interactive browser tools
 
 | Tool | Open interactive tool | Source and method |
