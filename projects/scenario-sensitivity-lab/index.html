@@ -7,10 +7,10 @@
 <main><h1>Scenario Sensitivity Lab</h1><p>Explore how a change in workshop volume differs from a change in instructor rate. All initial numbers are <strong>fictional teaching examples</strong>, not actual organizational fees, utilization or forecasts. No data is sent to a server.</p>
 <div class="note">Baseline cost = baseline sessions × baseline rate. Proposed cost = proposed sessions × proposed rate. The difference is decomposed into a volume effect and a rate effect, with the volume change valued at the baseline rate.</div>
 <fieldset id="calculator"><legend>Set two scenarios</legend><p id="inputHelp">Enter whole-number session counts and fees in dollars (up to two decimal places). Results update automatically. Invalid inputs clear the results and disable CSV export until corrected.</p>
-<label>Baseline sessions <input id="baseN" type="number" min="0" max="100000" step="1" value="20"></label>
-<label>Baseline fee per session ($) <input id="baseR" type="number" min="0" max="1000000" step="0.01" value="500"></label>
-<label>Proposed sessions <input id="newN" type="number" min="0" max="100000" step="1" value="24"></label>
-<label>Proposed fee per session ($) <input id="newR" type="number" min="0" max="1000000" step="0.01" value="550"></label>
+<label>Baseline sessions <input id="baseN" type="number" aria-describedby="inputHelp message" min="0" max="100000" step="1" inputmode="numeric" value="20"></label>
+<label>Baseline fee per session ($) <input id="baseR" type="number" aria-describedby="inputHelp message" min="0" max="1000000" step="0.01" inputmode="decimal" value="500"></label>
+<label>Proposed sessions <input id="newN" type="number" aria-describedby="inputHelp message" min="0" max="100000" step="1" inputmode="numeric" value="24"></label>
+<label>Proposed fee per session ($) <input id="newR" type="number" aria-describedby="inputHelp message" min="0" max="1000000" step="0.01" inputmode="decimal" value="550"></label>
 <button id="reset" type="button">Restore fictional example</button> <button id="export" type="button">Download CSV</button>
 </fieldset>
 <section aria-labelledby="resultsTitle"><h2 id="resultsTitle">Scenario comparison</h2><p id="message" role="status" aria-live="polite" aria-atomic="true"></p><div class="scroll"><table><thead><tr><th scope="col">Measure</th><th scope="col">Amount</th></tr></thead><tbody id="results"></tbody></table></div></section>
@@ -23,8 +23,8 @@ let rows=null;
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n);
 function update(){
  const v=inputs.map(x=>Number(x.value));
- const valid=inputs.every((x,i)=>x.value.trim()!==''&&Number.isFinite(v[i])&&v[i]>=0&&v[i]<=Number(x.max)&&(i===0||i===2?Number.isInteger(v[i]):/^\d+(?:\.\d{1,2})?$/.test(x.value.trim())));
- if(!valid){rows=null;tbody.replaceChildren();inputs.forEach((x,i)=>x.setAttribute('aria-invalid',String(!(x.value.trim()!==''&&Number.isFinite(v[i])&&v[i]>=0&&v[i]<=Number(x.max)&&(i===0||i===2?Number.isInteger(v[i]):/^\d+(?:\.\d{1,2})?$/.test(x.value.trim()))))));message.textContent='Enter nonnegative whole-number session counts (up to 100,000) and rates with no more than two decimal places (up to $1,000,000).';document.getElementById('export').disabled=true;return}
+ const valid=inputs.every((x,i)=>x.value.trim()!==''&&Number.isFinite(v[i])&&v[i]>=0&&v[i]<=Number(x.max)&&(i===0||i===2?Number.isInteger(v[i])&&/^\d+$/.test(x.value.trim()):/^\d+(?:\.\d{1,2})?$/.test(x.value.trim())));
+ if(!valid){rows=null;tbody.replaceChildren();inputs.forEach((x,i)=>x.setAttribute('aria-invalid',String(!(x.value.trim()!==''&&Number.isFinite(v[i])&&v[i]>=0&&v[i]<=Number(x.max)&&(i===0||i===2?Number.isInteger(v[i])&&/^\d+$/.test(x.value.trim()):/^\d+(?:\.\d{1,2})?$/.test(x.value.trim()))))));message.textContent='Enter nonnegative whole-number session counts (up to 100,000) and rates with no more than two decimal places (up to $1,000,000).';document.getElementById('export').disabled=true;return}
  inputs.forEach(x=>x.setAttribute('aria-invalid','false'));
  const [bn,br,nn,nr]=v,brC=Math.round(br*100),nrC=Math.round(nr*100);
  const baseline=bn*brC/100,proposed=nn*nrC/100,volume=(nn-bn)*brC/100,rate=nn*(nrC-brC)/100,change=(nn*nrC-bn*brC)/100;
