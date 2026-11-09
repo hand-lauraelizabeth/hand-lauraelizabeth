@@ -31,7 +31,7 @@ A digital-humanities demonstration using public-domain Robert Louis Stevenson te
 These published exercises run on the website; GitHub source files are for inspecting implementation, not for playing the games.
 
 - **[Meaning Drift](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/meaning-drift/)** — build chains of related meanings and examine how a word's sense changes across successive links. The published WordNet-based game is the current public edition; experimental curated-link features are not presented as released functionality.
-- **[Teaching NLP with Python](https://www.lauraelizabethhand.com/teaching-nlp-with-python/)** — teaching material including the published *Context Before Count* (KWIC) exercise, which puts concordance context ahead of raw word-frequency counts.
+- **[Teaching NLP with Python](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/)** — teaching material including the published *Context Before Count* (KWIC) exercise, which puts concordance context ahead of raw word-frequency counts.
 
 For other tools, start with the [website's resources directory](https://www.lauraelizabethhand.com/resources/) or the [source project index](projects/). Review branches and prototypes may differ from published tools; their presence in GitHub does not imply a live release.
 
