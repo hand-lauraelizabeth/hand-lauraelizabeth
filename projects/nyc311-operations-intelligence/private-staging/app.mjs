@@ -69,10 +69,8 @@ $('file').addEventListener('change', async event => {
     return;
   }
   try {
-    const candidate = JSON.parse(await file.text());
-    // Validate before changing the active dataset so a bad replacement is recoverable.
-    const checked = validateDataset(candidate);
-    load(checked, 'Local aggregate file');
+    // load validates the candidate before replacing the active dataset.
+    load(JSON.parse(await file.text()), 'Local aggregate file');
   } catch (error) {
     $('file').value = '';
     status(`Rejected: ${error.message}. Previously loaded results remain available.`, true);
