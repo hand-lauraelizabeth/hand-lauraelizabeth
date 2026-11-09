@@ -63,9 +63,20 @@ function load(data, label) {
 }
 $('file').addEventListener('change', async event => {
   const file = event.target.files?.[0]; if (!file) return;
-  if (file.size > 8_000_000) { clearData(); status('Rejected: file exceeds the 8 MB local preview limit.', true); return; }
-  try { load(JSON.parse(await file.text()), 'Local aggregate file'); }
-  catch (error) { clearData(); status(`Rejected: ${error.message}`, true); }
+  if (file.size > 8_000_000) {
+    $('file').value = '';
+    status('Rejected: file exceeds the 8 MB local preview limit. Previously loaded results remain available.', true);
+    return;
+  }
+  try {
+    const candidate = JSON.parse(await file.text());
+    // Validate before changing the active dataset so a bad replacement is recoverable.
+    const checked = validateDataset(candidate);
+    load(checked, 'Local aggregate file');
+  } catch (error) {
+    $('file').value = '';
+    status(`Rejected: ${error.message}. Previously loaded results remain available.`, true);
+  }
 });
 $('demo').addEventListener('click', () => {
   $('file').value = '';
