@@ -35,6 +35,16 @@ These published exercises run on the website; GitHub source files are for inspec
 
 For other tools, start with the [website's resources directory](https://www.lauraelizabethhand.com/resources/) or the [source project index](projects/). Review branches and prototypes may differ from published tools; their presence in GitHub does not imply a live release.
 
+## Find the Right Starting Point
+
+**Learning or teaching?** Start with [Learning & Curriculum Tools](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/) for classroom activities, planning, and assessment. For a short, playable exploration of polysemy, open [Meaning Drift](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/meaning-drift/). For a contextual approach to text analysis, open [Teaching NLP with Python](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/).
+
+**Building a workflow?** Browse [Tools & Templates](https://www.lauraelizabethhand.com/resources/) for research, curriculum, career development, and operations resources. Individual tool pages describe their inputs and outputs; inspect the corresponding repository files when you want to study the implementation.
+
+**Reviewing methods or results?** Begin with [Publications](https://www.lauraelizabethhand.com/publications/) or the [case studies below](#selected-case-studies). Case studies distinguish my decisions and methods from observed outcomes, and synthetic demonstrations are labeled rather than presented as empirical findings.
+
+A source file, prototype, or review branch is not itself a hosted interactive tool. Use the website link for the public experience and the GitHub link for implementation details.
+
 ## Tools & Templates
 
 I also build reusable public tools that apply the same design principles to research, writing, project management, operations, curriculum, and decision support: **minimum input, maximum useful output, clear instructions, labeled edit zones, accessible cues, and transparent automation**.
