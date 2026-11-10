@@ -1,0 +1,35 @@
+name: FT-06 grant ledger cross-language and allocation checks
+on:
+  pull_request:
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-independent-csv.yml'
+  push:
+    branches:
+      - 'review/ft06-review-flags-ci-20261017-1730'
+    paths:
+      - 'free-tools/grant-ledger/**'
+      - '.github/workflows/ft06-independent-csv.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cross-language-and-allocation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify independent CSV and JSON parser
+        run: python3 free-tools/grant-ledger/csv-reader-independent.test.py
+      - name: Verify deterministic BigInt allocation properties
+        run: node free-tools/grant-ledger/allocation-property.test.mjs
+      - name: Verify CSV export structure
+        run: node free-tools/grant-ledger/csv-export-smoke.test.mjs
+      - name: Verify review flags, exact IDs and NUL rejection
+        run: node free-tools/grant-ledger/review-flags.test.mjs

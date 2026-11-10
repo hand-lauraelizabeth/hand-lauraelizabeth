@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {calculateLedger} from './core.mjs';
+const award={awardId:'AW-1',awardName:'Synthetic',start:'2026-01-01',end:'2026-12-31'};
+const category={categoryId:'C-1',label:'Synthetic',budget:'1.00',restrictionNote:''};
+const e={transactionId:'TX-1',sourceId:' SRC-1 ',date:'2027-01-01',categoryId:'C-1',amount:'2.01',percent:'50',allocationBasis:'',evidenceRef:'',note:''};
+const result=calculateLedger(award,[category],[e]);
+assert.equal(result.expenses[0].sourceId,' SRC-1 ');
+assert.equal(result.expenses[0].assignedCents,101);
+assert.equal(result.totalUnassignedCents,100);
+assert.equal(result.lines[0].differenceCents,-1);
+assert.equal(result.review.length,4);
+assert.throws(()=>calculateLedger(award,[category],[{...e,sourceId:'X\u0000Y'}]));
+assert.throws(()=>calculateLedger(award,[category],[e,e]));
+console.log('PASS: 7 synthetic grant ledger review and validation assertions');

@@ -1,0 +1,165 @@
+import {calculateLedger,exportTransactionsCSV,exportBudgetCSV,exportReviewCSV,exportJSON} from './core.mjs';
+import {appendExpenseCorrection,exportEvidenceWithCorrections} from './correction-history.mjs';
+import {assertSafeLedgerCSV} from './csv-preflight.mjs';
+import {startLocalDownload} from './download-guard.mjs';
+import {buildInterface} from './view.mjs';
+import {renderLedger} from './render.mjs';
+buildInterface();
+let award={awardId:'SYNTHETIC-AWARD-01',awardName:'Sample community project',start:'2026-01-01',end:'2026-12-31'};
+let categories=[],expenses=[],corrections=[];
+let editingId=null;
+const $=id=>document.getElementById(id);
+const values=form=>Object.fromEntries(new FormData(form).entries());
+// Associate detected input errors with their fields; preserve exact user-entered values.
+let invalidControl=null, priorDescription=null;
+function clearFieldError(){
+ if(!invalidControl)return;
+ invalidControl.removeAttribute('aria-invalid');
+ if(priorDescription===null)invalidControl.removeAttribute('aria-describedby');
+ else invalidControl.setAttribute('aria-describedby',priorDescription);
+ invalidControl=null;priorDescription=null;
+}
+function errorField(form,message){
+ if(!form)return null;
+ const prefix=message.split(':',1)[0];
+ const common={'Award ID':'awardId','Award name':'awardName','Award start':'start','Award end':'end',
+  'Category ID':'categoryId','Category label':'label','Restriction note':'restrictionNote',
+  'Transaction ID':'transactionId','Source ID':'sourceId','Allocation':'percent',
+  'Allocation basis':'allocationBasis','Evidence reference':'evidenceRef','Note':'note'};
+ let name=common[prefix];
+ if(prefix==='Amount'||prefix==='Amount exceeds limit')name=form.id==='categoryForm'?'budget':'amount';
+ if(prefix.startsWith('Expense ')&&prefix.endsWith(' date'))name='date';
+ if(message==='Award start is after end')name='start';
+ if(message.startsWith('Duplicate category ID:')||message.startsWith('Unknown category ID:'))name='categoryId';
+ if(message.startsWith('Duplicate transaction ID:')||message.startsWith('Correction cannot change the transaction ID'))name='transactionId';
+ if(!name)return null;
+ const control=form.elements.namedItem(name);
+ return control&&typeof control.setAttribute==='function'?control:null;
+}
+const error=(text,form=null)=>{
+ clearFieldError();
+ const e=$('error');e.textContent=text;e.hidden=!text;
+ if(text){
+  const control=errorField(form,text);
+  if(control){
+   invalidControl=control;priorDescription=control.getAttribute('aria-describedby');
+   control.setAttribute('aria-invalid','true');
+   const ids=new Set((priorDescription||'').split(/\s+/).filter(Boolean));
+   ids.add('error');control.setAttribute('aria-describedby',[...ids].join(' '));
+  }
+  e.focus();
+ }
+};
+for(const id of ['awardForm','categoryForm','expenseForm']){
+ for(const type of ['input','change'])$(id).addEventListener(type,ev=>{
+  if(ev.target===invalidControl)error('');
+ });
+}
+function update(a,c,e,message){
+ const result=calculateLedger(a,c,e);
+ award=a;categories=c;expenses=e;error('');renderLedger(result);$('status').textContent=message;
+}
+$('awardForm').addEventListener('submit',ev=>{
+ ev.preventDefault();try{update(values(ev.currentTarget),categories,expenses,'Award updated.');}catch(e){error(e.message,ev.currentTarget);}
+});
+$('categoryForm').addEventListener('submit',ev=>{
+ ev.preventDefault();try{const f=ev.currentTarget;update(award,[...categories,values(f)],expenses,'Category added.');f.reset();}catch(e){error(e.message,ev.currentTarget);}
+});
+function endExpenseEdit(form){
+ editingId=null;form.elements.transactionId.readOnly=false;
+ $('expenseSubmit').textContent='Add expenditure';$('cancelExpenseEdit').hidden=true;
+ form.reset();form.elements.percent.value='100';
+}
+function focusExpenseEdit(id){
+ const index=expenses.findIndex(e=>e.transactionId===id);
+ if(index>=0)$('expenseRows').querySelector('button[data-edit-index="'+index+'"]')?.focus();
+}
+$('expenseRows').addEventListener('click',event=>{
+ const button=event.target.closest('button[data-edit-index]');
+ if(!button||!$('expenseRows').contains(button))return;
+ const index=Number(button.dataset.editIndex);
+ if(!Number.isSafeInteger(index)||index<0||index>=expenses.length)return;
+ const item=expenses[index],form=$('expenseForm');
+ editingId=item.transactionId;
+ for(const [key,value] of Object.entries(item)){
+  const control=form.elements.namedItem(key);if(control)control.value=value;
+ }
+ form.elements.transactionId.readOnly=true;
+ $('expenseSubmit').textContent='Save correction';$('cancelExpenseEdit').hidden=false;
+ error('');$('status').textContent='Editing expenditure '+editingId+'. Transaction ID stays unchanged. Cancel to discard edits.';
+ form.elements.sourceId.focus();
+});
+$('cancelExpenseEdit').addEventListener('click',()=>{
+ const id=editingId;endExpenseEdit($('expenseForm'));error('');
+ $('status').textContent='Correction cancelled; saved evidence unchanged.';
+ if(id!==null)focusExpenseEdit(id);
+});
+$('expenseForm').addEventListener('submit',ev=>{
+ ev.preventDefault();
+ const form=ev.currentTarget;
+ try{
+  const item=values(form);
+  if(editingId===null){
+   update(award,categories,[...expenses,item],'Expenditure recorded.');
+   endExpenseEdit(form);
+  }else{
+   const id=editingId,index=expenses.findIndex(e=>e.transactionId===id);
+   if(index<0||item.transactionId!==id)throw new Error('Correction cannot change the transaction ID. Cancel and start again.');
+   const proposedHistory=appendExpenseCorrection(corrections,expenses[index],item);
+   const corrected=expenses.map((e,i)=>i===index?item:e);
+   const changed=proposedHistory!==corrections;
+   // Commit the history only after the complete corrected ledger validates successfully.
+   update(award,categories,corrected,changed?'Expenditure '+id+' corrected; prior values retained in Evidence JSON.':'No expenditure values changed.');
+   corrections=proposedHistory;
+   $('correctionSummary').textContent=corrections.length+' expenditure correction'+(corrections.length===1?'':'s')+' recorded in this tab. Evidence JSON includes original and replacement values; award and category edits are not logged.';
+   endExpenseEdit(form);focusExpenseEdit(id);
+  }
+ }catch(e){error(e.message,ev.currentTarget);}
+});
+function download(filename,mime,text){
+ try{
+  startLocalDownload({filename,content:text,type:mime});
+ }catch{
+  // Browser exception details may contain user data or implementation internals.
+  throw new Error('Download could not start. Your saved entries are unchanged; retry or choose another export.');
+ }
+ $('status').textContent=filename+' download started. Check your browser downloads; saving is not confirmed.';
+}
+const current=()=>calculateLedger(award,categories,expenses);
+function safeCSV(kind, filename, exporter) {
+ try {
+  const result=current();
+  assertSafeLedgerCSV(result,kind);
+  error('');
+  download(filename,'text/csv;charset=utf-8',exporter(result));
+ } catch(e) {
+  error(e.message);
+  $('status').textContent='CSV unavailable. Evidence JSON retains the original entered values.';
+ }
+}
+$('downloadTransactions').addEventListener('click',()=>safeCSV('transactions','grant-transactions.csv',exportTransactionsCSV));
+$('downloadBudget').addEventListener('click',()=>safeCSV('budget','grant-budget.csv',exportBudgetCSV));
+$('downloadReview').addEventListener('click',()=>safeCSV('review','grant-review-flags.csv',exportReviewCSV));
+$('downloadCurrentJSON').addEventListener('click',()=>{
+ try {
+  // Deliberately omit the in-tab correction history; current records still contain user-entered data.
+  const evidence = exportJSON(current());
+  error('');
+  download('grant-current-state.json','application/json;charset=utf-8',evidence);
+ } catch (e) {
+  error(e.message);
+  $('status').textContent='Current-state JSON unavailable.';
+ }
+});
+$('downloadJSON').addEventListener('click',()=>{
+ try {
+  // Validate and serialize before clearing any earlier CSV-specific error.
+  const evidence = exportEvidenceWithCorrections(current(),corrections);
+  error('');
+  download('grant-evidence.json','application/json;charset=utf-8',evidence);
+ } catch (e) {
+  error(e.message);
+  $('status').textContent='Evidence JSON unavailable.';
+ }
+});
+renderLedger(current());
