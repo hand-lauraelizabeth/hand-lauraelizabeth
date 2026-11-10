@@ -33,6 +33,10 @@ These published exercises run on the website; GitHub source files are for inspec
 - **[Meaning Drift](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/meaning-drift/)** — build chains of related meanings and examine how a word's sense changes across successive links. The published WordNet-based game is the current public edition; experimental curated-link features are not presented as released functionality.
 - **[Teaching NLP with Python](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/)** — teaching material including the published *Context Before Count* (KWIC) exercise, which puts concordance context ahead of raw word-frequency counts.
 
+### Research workflow — live example
+
+**[Evidence & Timeline Builder](https://www.lauraelizabethhand.com/resources/research-writing-tools/evidence-timeline-builder/)** turns dated evidence entries into a searchable timeline and exports an editable Excel Gantt workbook, an SVG timeline, and structured records. Start on the website to use the tool; the repository contains implementation material. Entries are supplied by the visitor, and the tool does not independently verify their claims.
+
 For other tools, start with the [website's resources directory](https://www.lauraelizabethhand.com/resources/) or the [source project index](projects/). Review branches and prototypes may differ from published tools; their presence in GitHub does not imply a live release.
 
 ## Find the Right Starting Point
