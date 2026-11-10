@@ -1,0 +1,23 @@
+.career-kicker {color: #245846; font-size: .78rem; letter-spacing: .09em; font-weight: 800; text-transform: uppercase}
+.career-start {display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-block: 1rem .5rem}
+.career-start a {color: #174637; background: #fff; border: 1px solid #90ab9e; border-radius: 9px; padding: .6rem .85rem; text-decoration: none; font-weight: 700}
+.career-start a:hover {text-decoration: underline}
+.career-panel {margin-top: 16px; min-width: 0}
+.career-panel label, .career-file-label {font-weight: 700; display: block; margin-block: .55rem .2rem}
+.career-panel input, .career-panel select {font: inherit; width: 100%; min-height: 44px; border: 1px solid #78998a; border-radius: 8px; padding: .55rem .7rem; background: white; color: #17261f}
+.career-fields,.career-results {display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: .8rem}
+.career-results {margin-top: 1rem}
+.career-card {padding: .9rem; border: 1px solid #c8dad0; border-radius: 10px; background: #f7faf8; overflow-wrap: anywhere}
+.career-card h3 {font-size: 1.05rem; margin-top: 0}
+.career-card a {color: #184f3d; text-underline-offset: 3px}
+.career-card p {margin-block: .4rem}
+.career-pay {font-weight: 800; color: #173b30}
+.career-panel :is(a, button, input, textarea, select, summary):focus-visible,.career-start :is(a,button):focus-visible {outline: 3px solid #174637; outline-offset: 3px}
+.career-panel button,.career-start button {min-height: 44px}
+.career-panel button:disabled {opacity: .55; cursor: default}
+.career-panel textarea {min-height: 340px}
+.career-panel select:disabled {background: #eff4f0; color: #52635a}
+.career-advanced {margin-top: 1rem}
+.career-advanced > summary {padding: .45rem 0; font-size: 1.05rem}
+.career-step-label {margin-bottom: 4px}
+#career-input-status,#career-status,#resume-status {min-height: 1.25em}

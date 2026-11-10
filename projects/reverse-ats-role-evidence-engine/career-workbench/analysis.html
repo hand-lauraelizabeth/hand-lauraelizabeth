@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reverse ATS / Role Evidence Studio — v2.6</title>
+<style>
+:root{--bg:#eef1ec;--panel:#fff;--ink:#17261f;--muted:#617068;--line:#d5ddd7;--green:#1f5c4a;--soft:#edf5f1;--warn:#8a5a24;--bad:#8b3f35;--r:12px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header,main{max-width:1180px;margin:auto;padding:24px}header{padding-bottom:4px}h1,h2,h3{margin:.1em 0 .45em}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.03em}p{margin:.35em 0 1em}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+textarea{width:100%;min-height:240px;border:1px solid var(--line);border-radius:9px;padding:11px;font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fbfcfa;color:var(--ink)}
+button,select,input{font:inherit}.btn{border:0;border-radius:999px;padding:10px 15px;background:var(--green);color:#fff;font-weight:700;cursor:pointer}.btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{font-size:24px;display:block}.stat span{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}th,td{padding:10px;vertical-align:top;border-bottom:1px solid var(--line);text-align:left}th{position:sticky;top:0;background:#f6f8f6;z-index:1}
+.tag{display:inline-block;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700;background:var(--soft);color:var(--green);margin:1px}.tag.pref{background:#fff6e8;color:var(--warn)}.tag.hard{background:#fbeceb;color:var(--bad)}
+.signal{border-left:4px solid var(--green);background:var(--soft);padding:10px 12px;margin:8px 0}.signal.warn{border-left-color:var(--warn);background:#fff8ef}
+details{margin:14px 0}summary{cursor:pointer;font-weight:700}.matrix{overflow:auto;max-height:650px;border:1px solid var(--line);border-radius:10px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}header,main{padding:16px}textarea{min-height:190px}}
+</style>
+</head>
+<body>
+<header>
+  <p class="muted">Career intelligence · explainable evidence matching · local-first prototype</p>
+  <h1>Reverse ATS · Role Evidence Studio <span style="font-size:.42em;font-weight:600">v2.6</span></h1>
+  <p>Parse a job description into requirements, compare them with candidate evidence, and separate likely capability gaps from evidence-visibility gaps. This does not emulate a proprietary ATS.</p>
+</header>
+<main>
+<div class="grid">
+<section class="panel">
+<h2>Target job</h2>
+<textarea id="job" placeholder="Paste the full job description. Include qualifications, responsibilities, preferred requirements, and salary if available."></textarea>
+<div class="row"><button class="btn" id="analyze">Analyze posting</button><button class="btn ghost" id="sampleJob">Load sample</button></div>
+</section>
+<section class="panel">
+<h2>Candidate evidence</h2>
+<textarea id="candidate" placeholder="Paste evidence. Optional section labels: [resume], [portfolio], [document], [public], [user]. The tool keeps source provenance visible instead of treating every mention as equally strong."></textarea>
+<div class="row"><button class="btn ghost" id="sampleCandidate">Load sample evidence</button><button class="btn ghost" id="exportEvidence">Export evidence JSON</button><button class="btn ghost" id="export">Export matrix CSV</button></div>
+</section>
+</div>
+
+<section class="panel ats-review" id="reverse-ats-audit" style="margin-top:18px" aria-labelledby="ats-heading">
+  <p class="muted" style="text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:800">Reverse ATS / Applicant-view audit</p>
+  <h2 id="ats-heading">What would a reviewer be able to see?</h2>
+  <p>Compare the full posting with the evidence you supplied above. Distinguish required qualifications, visible skills, missing or ambiguous proof, and application questions that must be answered on the employer's actual form.</p>
+  <div class="grid">
+    <div>
+      <label for="ats-workflow"><strong>Review lens</strong></label>
+      <select id="ats-workflow" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px">
+        <option value="general">General applicant screening</option>
+        <option value="workday">Workday: skills visibility and parsing</option>
+        <option value="greenhouse">Greenhouse: structured review</option>
+      </select>
+      <p class="muted" style="font-size:12px">These are documentation-informed lenses, not replicas of employer settings or proprietary scoring algorithms.</p>
+    </div>
+    <div>
+      <label for="ats-record"><strong>Type of candidate material</strong></label>
+      <select id="ats-record" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px">
+        <option value="mixed">Mixed evidence / portfolio</option>
+        <option value="resume">Plain-text résumé extract</option>
+      </select>
+      <p class="muted" style="font-size:12px">Text checks cannot test whether a particular DOCX or PDF file parses correctly in a specific ATS.</p>
+    </div>
+  </div>
+  <details style="margin:14px 0">
+    <summary><strong>Application screening questions — user confirmation only</strong></summary>
+    <p class="muted" style="font-size:13px">Employers may ask eligibility questions beyond the résumé. Choose a status only after checking the actual posting and your circumstances. These selections do not determine eligibility.</p>
+    <div class="grid">
+      <label>Work-authorization question
+        <select id="ats-workauth" style="display:block;width:100%;padding:9px"><option value="unknown">Not reviewed</option><option value="confirmed">I reviewed the exact question and can answer it</option><option value="review">I need to review this question</option></select>
+      </label>
+      <label>Location / work arrangement
+        <select id="ats-location" style="display:block;width:100%;padding:9px"><option value="unknown">Not reviewed</option><option value="confirmed">I reviewed the location requirement</option><option value="review">I need to verify the location requirement</option></select>
+      </label>
+      <label>Required credential or license
+        <select id="ats-credential" style="display:block;width:100%;padding:9px"><option value="unknown">Not reviewed</option><option value="confirmed">I reviewed and can document the stated credential</option><option value="review">I need to verify the credential requirement</option></select>
+      </label>
+    </div>
+  </details>
+  <div class="row"><button class="btn" type="button" id="ats-run">Run reverse ATS audit</button><button class="btn ghost" type="button" id="ats-export" disabled>Export audit CSV</button><span id="ats-message" role="status" aria-live="polite" class="muted"></span></div>
+  <div id="ats-results" aria-live="polite" style="margin-top:16px"><p class="muted">Paste a posting and relevant candidate material above, then run the audit. You can start with the fictional sample job and candidate.</p></div>
+  <details style="margin:14px 0">
+    <summary><strong>How this audit relates to real applicant tracking systems</strong></summary>
+    <p>Workday documents résumé parsing, a configurable Candidate Skills Match feature, and greater weighting for required skills; its documented similarity score does <em>not</em> evaluate total years of experience or skill recency. Greenhouse documents recruiter review, structured interview scorecards, optional AI-powered matching, and employer-controlled criteria. Both systems vary by employer configuration. A candidate cannot infer the employer's actual ranking, filtering, or reasons for a hiring decision from this tool.</p>
+    <p><a href="https://doc.workday.com/admin-guide/en-us/human-capital-management/recruiting/candidates/candidate-skills-match/bmj1604095304483.html" target="_blank" rel="noopener">Workday: Candidate Skills Match</a> · <a href="https://doc.workday.com/admin-guide/en-us/human-capital-management/recruiting/candidates/set-up-prospects-and-candidates/hdc1552497830785.html" target="_blank" rel="noopener">Workday: résumé parsing</a> · <a href="https://support.greenhouse.io/hc/en-us/articles/4414777492891-Scorecard-overview" target="_blank" rel="noopener">Greenhouse: structured scorecards</a> · <a href="https://support.greenhouse.io/hc/en-us/articles/33043749845403-Greenhouse-AI-features" target="_blank" rel="noopener">Greenhouse: AI features</a>.</p>
+    <p class="muted">This is a locally executed evidence-visibility and application-review aid—not a proprietary ATS score, an eligibility assessment, or a prediction of interviews.</p>
+  </details>
+</section>
+<div class="panel" style="margin-top:12px">
+<h3>Shared candidate profile</h3>
+<p class="muted">Transfer reviewed evidence to Career Discovery & Tracking without copying work. Private, anonymize-only, and do-not-use nodes are excluded from transfers. An exported JSON file may still contain personal information; keep it private.</p>
+<div class="row"><button class="btn ghost" type="button" id="profileSave">Save profile locally</button><button class="btn ghost" type="button" id="profileLoad">Load saved profile</button><button class="btn ghost" type="button" id="profileDownload">Download profile JSON</button></div>
+<label for="profileImport"><b>Import profile JSON</b></label> <input id="profileImport" type="file" accept=".json,application/json" style="max-width:100%">
+<p class="muted" id="profileMsg" role="status" aria-live="polite">Saved profiles are browser-local. Use the JSON file to transfer between browsers or isolated website embeds.</p>
+</div>
+
+<div class="stats" id="stats"></div>
+<div class="grid">
+<section class="panel">
+<h2>Posting structure</h2>
+<div id="structure"><p class="muted">Analyze a posting to classify visible hard requirements, preferred signals, responsibilities, seniority/scope, tools, and compensation.</p></div>
+</section>
+<section class="panel">
+<h2>Interpretation</h2>
+<div id="interpret"><div class="signal"><b>Coverage is not truth.</b><br>Text evidence can show visibility, but it cannot prove depth, authority, recency, or performance by itself.</div></div>
+</section>
+</div>
+
+
+<section class="panel" style="margin-top:16px">
+<h2>Candidate evidence graph</h2>
+<p class="muted">Each source block is decomposed into evidence nodes. Detected dates, metrics, scope signals, and depth are shown separately so a requirement match can point back to a specific statement instead of a document-wide keyword hit. Detection is heuristic; verification remains explicit and unresolved by default.</p>
+<div class="matrix"><table><thead><tr><th>Node</th><th>Source</th><th>Statement</th><th>Scope signals</th><th>Depth</th><th>Dates / metrics</th><th>Verification</th></tr></thead><tbody id="evidenceRows"><tr><td colspan="7" class="muted">Paste candidate evidence and analyze a posting to build the evidence graph.</td></tr></tbody></table></div>
+</section>
+
+
+<div class="grid" style="margin-top:16px">
+<section class="panel">
+<h2>Review an evidence node</h2>
+<p class="muted">Automatic detection creates a review queue, not a verified career record. Select a node and add only what you can substantiate.</p>
+<label for="nodeSelect"><b>Evidence node</b></label>
+<select id="nodeSelect" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px"><option value="">Build the graph first</option></select>
+<label for="nodeRole"><b>Role / project / organization</b></label><input id="nodeRole" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px">
+<label for="nodeDates"><b>Reviewed dates</b></label><input id="nodeDates" placeholder="e.g., 2023–2025; concurrent with X" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px">
+<label for="nodeSource"><b>Source reference / link</b></label><input id="nodeSource" placeholder="Document, page, URL, tracker row, etc." style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px">
+<div class="grid">
+<div><label for="nodeVerify"><b>Verification</b></label><select id="nodeVerify" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px"><option value="unreviewed">Unreviewed</option><option value="self-attested">Self-attested</option><option value="source-corroborated">Source-corroborated</option><option value="verified">Verified</option></select></div>
+<div><label for="nodeConf"><b>Disclosure</b></label><select id="nodeConf" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px"><option value="unspecified">Unspecified</option><option value="public">Public/shareable</option><option value="private">Private</option><option value="anonymize">Use only in anonymized form</option><option value="do-not-use">Do not use externally</option></select></div>
+</div>
+<label for="nodeAuthority"><b>Authority / scope note</b></label><textarea id="nodeAuthority" style="min-height:80px" placeholder="Only confirmed scope: people led, budget/resource authority, portfolio ownership, governance/decision rights, etc."></textarea>
+<label for="nodeNote"><b>Reviewer note</b></label><textarea id="nodeNote" style="min-height:80px" placeholder="Causality, denominator, recency, limits, wording guardrail, or unresolved question."></textarea>
+<div class="row"><button class="btn" id="saveNode" type="button">Save reviewed metadata</button><button class="btn ghost" id="clearNodeReview" type="button">Clear review fields</button></div>
+</section>
+<section class="panel">
+<h2>Claim-strength guardrail</h2>
+<div id="guardrail"><div class="signal"><b>No node selected.</b><br>Select an evidence node to see what wording strength is currently supportable.</div></div>
+</section>
+</div>
+
+<section class="panel" style="margin-top:16px">
+<h2>Requirement matrix</h2>
+<div class="matrix"><table><thead><tr><th>Type</th><th>Requirement</th><th>Evidence found</th><th>Visibility</th><th>Reviewed support</th><th>Gap type</th><th>Next action</th></tr></thead><tbody id="rows"><tr><td colspan="7" class="muted">No analysis yet.</td></tr></tbody></table></div>
+</section>
+
+<details class="panel"><summary>How this workspace classifies text and evidence</summary>
+<p>The posting parser and evidence graph are deliberately heuristic and inspectable. Candidate evidence is decomposed into source-specific statement nodes with detected scope, dates, metrics, and depth signals; requirement matches point to those nodes. Human-reviewed metadata and claim-strength guardrails remain separate from automatic detection. Calendar-year coverage is not elapsed experience; duration requirements remain unresolved until exact relevant dates and overlapping roles have been reviewed. Detection does not establish truth, proficiency, direct-report relationships, fiscal authority, causality, or recency; stronger wording should depend on reviewed evidence, not keyword presence.</p>
+</details>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const STOP=new Set(('the a an and or to of in on for with from by as at is are be will this that you your our we they their role position candidate candidates including include such ability required preferred plus minimum must should strong demonstrated experience years year work working skills skill responsible responsibilities qualifications qualification').split(' '));
+const TYPE_RULES=[
+ ['hard',/(required|must have|minimum qualification|minimum of|at least|bachelor|master|degree|years? of experience|certification|license)/i],
+ ['preferred',/(preferred|nice to have|plus\b|ideally|bonus|desired)/i],
+ ['scope',/(lead|manage|supervise|direct reports?|budget|fiscal|portfolio|roadmap|governance|strategy|strategic|executive|enterprise|cross-functional|change management)/i],
+ ['tool',/(salesforce|hubspot|workday|tableau|power bi|sql|python|r\b|excel|adobe|asana|jira|cms|crm|google analytics)/i],
+ ['responsibility',/(responsible for|you will|lead |manage |develop |build |create |oversee |coordinate |design |analyze |deliver |drive |partner with|implement|own )/i]
+];
+function clean(s){return s.replace(/^[-•*\d.)\s]+/,'').replace(/\s+/g,' ').trim()}
+function lines(text){return text.split(/\n+/).flatMap(x=>x.split(/(?<=[.;!?])\s+/)).map(clean).filter(x=>x.length>18)}
+function classify(s){for(const [t,re] of TYPE_RULES)if(re.test(s))return t;return 'context'}
+function terms(s){return [...new Set((s.toLowerCase().match(/[a-z][a-z0-9+#./-]{2,}/g)||[]).map(x=>x.replace(/[.,;:]+$/,'')).filter(x=>!STOP.has(x)&&x.length>3))]}
+function phraseCandidates(s){const out=[]; const patterns=[/\b\d+\+?\s+years?[^,.;]*/ig,/\b(?:bachelor'?s?|master'?s?|phd|doctorate)[^,.;]*/ig,/\b(?:budget|portfolio|roadmap|governance|direct reports?|supervis\w*|manage\w*)[^,.;]*/ig];patterns.forEach(r=>{const m=s.match(r);if(m)out.push(...m)});return out}
+function hardConditions(s){
+ const out=[];
+ const numberWords={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,fifteen:15,twenty:20};
+ const yrs=s.match(/\b(\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty)\s*\+?(?:\s*(?:[–—-]|to)\s*\d+(?:\.\d+)?\s*\+?)?\s+years?\b/i);
+ if(yrs)out.push({kind:'years',value:numberWords[yrs[1].toLowerCase()]||+yrs[1],label:yrs[0]});
+ const deg=s.match(/\b(bachelor'?s?|master'?s?|phd|doctorate)(?:\s+degree)?\b/i);if(deg)out.push({kind:'degree',value:deg[1].toLowerCase(),label:deg[0]});
+ const tools=['salesforce','hubspot','workday','tableau','power bi','sql','python','excel','adobe','asana','jira','google analytics'];
+ tools.forEach(t=>{if(new RegExp('\\b'+t.replace(' ','\\s+')+'\\b','i').test(s)&&/(required|must|minimum|proficien|expert|advanced|experience with)/i.test(s))out.push({kind:'tool',value:t,label:t})});
+ return out
+}
+function yearIntervals(graph){
+ const ints=[];
+ graph.forEach(n=>{
+  const txt=(n.reviewed?.dates||'').trim(); if(!txt)return;
+  const re=/(19|20)\d{2}\s*[–—-]\s*(present|(19|20)\d{2})/ig;let m;
+  while((m=re.exec(txt))){const a=+m[0].slice(0,4),b=/present/i.test(m[0])?new Date().getFullYear():+(m[0].match(/(19|20)\d{2}$/)||[])[0];if(a&&b&&b>=a)ints.push([a,b,n.evidence_id])}
+ });
+ return ints
+}
+function chronologyYears(graph){
+ const ints=yearIntervals(graph);if(!ints.length)return {years:null,intervals:[],concurrent:false};
+ const years=new Set();ints.forEach(([a,b])=>{for(let y=a;y<=b;y++)years.add(y)});
+ let concurrent=false;for(let i=0;i<ints.length;i++)for(let j=i+1;j<ints.length;j++)if(Math.max(ints[i][0],ints[j][0])<=Math.min(ints[i][1],ints[j][1]))concurrent=true;
+ return {years:years.size,intervals:ints,concurrent}
+}
+function hardConditionStatus(req,graph,ev){
+ const cs=hardConditions(req);if(!cs.length)return '';
+ const notes=[];
+ cs.forEach(c=>{
+  if(c.kind==='years')notes.push('Experience duration unresolved for '+c.label+' requirement: calendar-year coverage does not establish elapsed experience. Verify exact relevant dates, gaps, and overlapping roles.');
+  if(c.kind==='degree')notes.push(/degree|b\.a\.|bachelor|m\.a\.|master|phd|doctorate/i.test(graph.map(n=>n.statement).join(' '))?'degree text visible':'degree evidence not visible');
+  if(c.kind==='tool')notes.push(ev.status==='strong'||ev.status==='visible'?c.value+' visible; depth still requires review':c.value+' requirement not clearly supported');
+ });
+ return notes.join('; ')
+}
+const SRCW={resume:1,portfolio:.95,public:.9,document:.85,user:.65,other:.7};
+function evidenceBlocks(text){
+ const blocks=[];let source='resume',buf=[];
+ function push(){const body=buf.join(' ').trim();if(body)blocks.push({source,text:body,weight:SRCW[source]||SRCW.other});buf=[]}
+ text.split(/\n/).forEach(line=>{const m=line.trim().match(/^\[(resume|portfolio|public|document|user)\]$/i);if(m){push();source=m[1].toLowerCase()}else buf.push(line)});push();
+ return blocks.length?blocks:[{source:'resume',text:text,weight:1}]
+}
+const SCOPE_RULES={
+ people:/(manage|supervis|direct reports?|interview|onboard|train|coach|performance management|team|instructors?|advisers?|staff)/i,
+ fiscal:/(budget|fiscal|contract|grant|vendor|resource allocation|procurement|spend|revenue)/i,
+ portfolio:/(portfolio|roadmap|catalog|product line|program suite|practice area)/i,
+ governance:/(govern|decision rights?|approve|approval|quality assurance|\bqa\b|compliance|policy|standards?)/i,
+ change:/(transform|redesign|migration|implementation|adoption|change management|rollout|launch)/i,
+ executive:/(executive|senior leadership|\bsvp\b|\bvp\b|president|dean|cabinet|board)/i,
+ technical:/(analytics|\bsql\b|python|\br\b|power bi|tableau|nlp|crm|cms|hubspot|salesforce|data quality|automation|ai\b)/i
+};
+function detectedDepth(s){
+ if(/\b(own|owned|oversee|oversaw|direct|directed|lead|led|govern|approve|approved)\b/i.test(s))return 'lead / authority signal';
+ if(/\b(manage|managed|supervise|supervised|coach|coached)\b/i.test(s))return 'management signal';
+ if(/\b(build|built|design|designed|develop|developed|implement|implemented|analyze|analyzed)\b/i.test(s))return 'independent execution signal';
+ if(/\b(support|supported|assist|assisted|contribute|contributed)\b/i.test(s))return 'support / contribution signal';
+ return 'depth not explicit';
+}
+function buildGraph(text,prior=[]){
+ const priorMap=new Map((prior||[]).map(n=>[n.source_type+'|'+n.statement,n]));
+ const nodes=[];let n=1;
+ for(const b of evidenceBlocks(text)){
+  for(const statement of lines(b.text)){
+   const scope=Object.entries(SCOPE_RULES).filter(([,re])=>re.test(statement)).map(([k])=>k);
+   const dates=[...new Set(statement.match(/\b(?:19|20)\d{2}(?:\s*[–—-]\s*(?:present|(?:19|20)\d{2}))?\b/gi)||[])];
+   const metrics=[...new Set(statement.match(/(?:\$\s?\d[\d,.]*\s*[KMB]?|\b\d[\d,.]*\+?%|\b\d[\d,.]*\+?\b)/g)||[])].slice(0,8);
+   const prev=priorMap.get(b.source+'|'+statement);
+   nodes.push({
+    evidence_id:'E'+String(n++).padStart(3,'0'),
+    source_type:b.source,
+    source_weight:b.weight,
+    statement,
+    dates,
+    metrics,
+    scope_signals:scope,
+    depth:detectedDepth(statement),
+    competencies:terms(statement).slice(0,18),
+    verification_status:prev?.verification_status||'unreviewed',
+    reviewed:prev?.reviewed||{role_project:'',dates:'',source_reference:'',confidentiality:'unspecified',authority_scope:'',reviewer_note:''}
+   });
+  }
+ }
+ return nodes;
+}
+function renderGraph(nodes){
+ $('#evidenceRows').innerHTML=nodes.length?nodes.map(n=>'<tr><td><b>'+n.evidence_id+'</b></td><td>'+esc(n.source_type)+'</td><td>'+esc(n.statement)+'</td><td>'+(n.scope_signals.length?n.scope_signals.map(x=>'<span class="tag">'+esc(x)+'</span>').join(' '):'<span class="muted">none detected</span>')+'</td><td>'+esc(n.depth)+'</td><td>'+esc([n.dates.join(', '),n.metrics.join(', ')].filter(Boolean).join(' · ')||'—')+'</td><td>'+esc(n.verification_status)+'</td></tr>').join(''):'<tr><td colspan="7" class="muted">No evidence nodes were created.</td></tr>';
+ const sel=$('#nodeSelect'); if(sel){const current=sel.value;sel.innerHTML='<option value="">Select a node</option>'+nodes.map(n=>'<option value="'+n.evidence_id+'">'+n.evidence_id+' · '+esc(n.source_type)+' · '+esc(n.statement.slice(0,70))+'</option>').join('');if(nodes.some(n=>n.evidence_id===current))sel.value=current}
+}
+function evidence(req,graph){
+ const ts=terms(req),phrases=phraseCandidates(req);
+ let best={status:'not visible',found:'',hits:[],ratio:0,source:'',strength:0,node_id:''};
+ for(const n of graph){
+  const c=n.statement.toLowerCase(),exact=phrases.find(p=>c.includes(p.toLowerCase())),hits=ts.filter(t=>c.includes(t)),raw=ts.length?hits.length/ts.length:0,score=(exact?1:raw)*n.source_weight;
+  const status=exact?'strong':raw>=.55?'visible':raw>=.25?'partial':'not visible';
+  if(score>best.strength)best={status,found:exact||hits.slice(0,8).join(', '),hits,ratio:raw,source:n.source_type,strength:score,node_id:n.evidence_id,statement:n.statement,verification_status:n.verification_status||'unreviewed',confidentiality:n.reviewed?.confidentiality||'unspecified',reviewed:n.reviewed||{}};
+ }
+ if(best.found)best.found=best.node_id+' ['+best.source+'] '+best.found;
+ return best;
+}
+function reviewedSupport(ev){
+ if(!['strong','visible','partial'].includes(ev.status))return 'none';
+ if(ev.confidentiality==='do-not-use')return 'blocked for external use';
+ if(ev.verification_status==='verified')return 'verified';
+ if(ev.verification_status==='source-corroborated')return 'source-corroborated';
+ if(ev.verification_status==='self-attested')return 'self-attested';
+ return 'unreviewed';
+}
+function gap(type,ev,req,graph){
+ const rs=reviewedSupport(ev),hc=hardConditionStatus(req,graph,ev);
+ if(/does not yet support|unresolved|not visible|not clearly supported/.test(hc))return 'Hard-condition verification gap';
+ if((ev.status==='strong'||ev.status==='visible')&&['verified','source-corroborated'].includes(rs))return 'No supported gap';
+ if((ev.status==='strong'||ev.status==='visible')&&rs==='blocked for external use')return 'Evidence exists but is not usable externally';
+ if((ev.status==='strong'||ev.status==='visible')&&rs==='self-attested')return 'Evidence visible; source corroboration pending';
+ if(ev.status==='strong'||ev.status==='visible')return 'Evidence visible; verification pending';
+ if(/years?|degree|certif|license/i.test(req)&&ev.status==='not visible')return 'Verification / chronology gap';
+ if(type==='scope'&&ev.status!=='visible')return 'Authority / scope visibility gap';
+ if(type==='tool'&&ev.status==='partial')return 'Depth / recency gap';
+ if(ev.status==='partial')return 'Evidence visibility gap';
+ return type==='hard'?'Potential material capability gap':'Evidence visibility or context gap'
+}
+function action(type,g){
+ if(g==='No supported gap')return 'Keep source-specific evidence and preserve the reviewed wording boundary.';
+ if(/not usable externally/.test(g))return 'Do not use this evidence in external materials; recover a shareable source or alternate proof.';
+ if(/source corroboration pending/.test(g))return 'Attach/review a supporting source before treating this as application-ready evidence.';
+ if(/verification pending/.test(g))return 'Review the evidence node, add a source reference, and confirm scope before strengthening wording.';
+ if(/Hard-condition/.test(g))return 'Resolve the explicit years, degree, or required-tool condition before treating this requirement as satisfied.';
+ if(/Verification|chronology/.test(g))return 'Recover exact dates/credential evidence before strengthening the claim.';
+ if(/Authority|scope/.test(g))return 'Surface people, budget/resource, portfolio, governance, or decision-right evidence explicitly.';
+ if(/Depth|recency/.test(g))return 'Document most recent independent use and depth; refresh or build proof if needed.';
+ if(/material/.test(g))return 'Do not keyword-stuff. Decide whether to build the capability or deprioritize the role.';
+ return 'Add a specific resume bullet, portfolio proof, or interview example if the experience is real.'
+}
+let DATA=[],GRAPH=[];
+function analyze(){
+ const job=$('#job').value.trim(), cand=$('#candidate').value.trim();
+ if(!job){alert('Paste a job description first.');return}
+ GRAPH=buildGraph(cand,GRAPH);renderGraph(GRAPH);
+ const xs=lines(job).map((text,i)=>{const type=classify(text),ev=evidence(text,GRAPH),g=gap(type,ev,text,GRAPH),hard_check=hardConditionStatus(text,GRAPH,ev);return{id:i+1,type,text,ev,g,hard_check,action:action(type,g)}});
+ DATA=xs;
+ const counts={};xs.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
+ const hard=xs.filter(x=>x.type==='hard'), hardVisible=hard.filter(x=>['strong','visible'].includes(x.ev.status)).length;
+ const allVisible=xs.filter(x=>['strong','visible'].includes(x.ev.status)).length;
+ const partial=xs.filter(x=>x.ev.status==='partial').length; const reviewed=xs.filter(x=>['verified','source-corroborated'].includes(reviewedSupport(x.ev))).length; const sources=[...new Set(xs.filter(x=>x.ev.source).map(x=>x.ev.source))];
+ const risk=xs.filter(x=>/material|Verification|Authority|verification pending|corroboration pending|not usable externally/i.test(x.g)).length;
+ $('#stats').innerHTML=[[xs.length,'requirements/signals'],[hard.length?Math.round(hardVisible/hard.length*100)+'%':'–','hard req. visibility'],[Math.round(allVisible/xs.length*100)+'%','overall visibility'],[reviewed,'reviewed-support matches']].map(x=>'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
+ $('#structure').innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<span class="tag '+k+'">'+k+': '+v+'</span>').join(' ')+'<p class="muted" style="margin-top:12px">'+(job.match(/\$\s?\d{2,3}(?:,\d{3})?/g)||[]).slice(0,4).join(' · ')+'</p>';
+ const chrono=chronologyYears(GRAPH);const chronoMsg=chrono.years==null?'No usable reviewed year ranges are available. Experience duration remains unresolved; verify exact relevant start and end dates.':'Reviewed ranges touch '+chrono.years+' distinct calendar '+(chrono.years===1?'year':'years')+'. This is calendar coverage, not elapsed experience. Verify exact relevant dates and gaps before making a duration claim.'+(chrono.concurrent?' Overlapping roles share calendar years; they do not add extra elapsed time.':'');
+ $('#interpret').innerHTML='<div class="signal"><b>Chronology check.</b><br>'+esc(chronoMsg)+'</div>'+(risk?'<div class="signal warn"><b>'+risk+' higher-attention items.</b><br>These include possible hard-requirement, chronology, or authority/scope gaps. Review before rewriting materials.</div>':'<div class="signal"><b>No major heuristic risk flags.</b><br>Still verify depth, recency, authority, and source provenance.</div>')+'<div class="signal"><b>Use the matrix as a diagnostic.</b><br>A visibility gap means “not legible in the supplied evidence,” not automatically “you lack the capability.” Evidence sources contributing to visible matches: '+(sources.join(', ')||'none')+'.</div>';
+ $('#rows').innerHTML=xs.map(x=>'<tr><td><span class="tag '+x.type+'">'+x.type+'</span></td><td>'+esc(x.text)+(x.hard_check?'<div class="muted" style="margin-top:6px"><b>Hard-condition check:</b> '+esc(x.hard_check)+'</div>':'')+'</td><td>'+esc(x.ev.found||'None found')+'</td><td>'+x.ev.status+'</td><td>'+esc(reviewedSupport(x.ev))+'</td><td>'+esc(x.g)+'</td><td>'+esc(x.action)+'</td></tr>').join('');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function currentNode(){return GRAPH.find(n=>n.evidence_id===$('#nodeSelect').value)}
+function loadNodeReview(){
+ const n=currentNode();
+ if(!n){$('#guardrail').innerHTML='<div class="signal"><b>No node selected.</b><br>Select an evidence node to inspect its reviewed evidence state.</div>';return}
+ $('#nodeRole').value=n.reviewed?.role_project||'';
+ $('#nodeDates').value=n.reviewed?.dates||n.dates.join(', ');
+ $('#nodeSource').value=n.reviewed?.source_reference||'';
+ $('#nodeVerify').value=n.verification_status||'unreviewed';
+ $('#nodeConf').value=n.reviewed?.confidentiality||'unspecified';
+ $('#nodeAuthority').value=n.reviewed?.authority_scope||'';
+ $('#nodeNote').value=n.reviewed?.reviewer_note||'';
+ renderGuardrail(n);
+}
+function renderGuardrail(n){
+ const v=n.verification_status||'unreviewed',scope=n.scope_signals||[],depth=n.depth||'depth not explicit',auth=(n.reviewed?.authority_scope||'').trim();
+ let level='Use only as a lead for review',cls='warn',why='The statement has not been human-reviewed.';
+ if(v==='self-attested'){level='Use as self-attested evidence with careful wording';why='The user confirms the claim, but no supporting source is attached.'}
+ if(v==='source-corroborated'){level='Use source-bounded wording';cls='';why='A supporting source has been reviewed; keep the claim within what that source demonstrates.'}
+ if(v==='verified'){level='Eligible for strong, source-specific wording';cls='';why='The evidence is marked verified. Scope, causality, recency, and confidentiality still constrain wording.'}
+ let claim='Do not generate an application claim yet.';
+ if(v==='self-attested')claim='Possible claim: '+n.statement+' [self-attested; corroborate before strengthening]';
+ if(v==='source-corroborated'||v==='verified')claim='Maximum supported claim: '+n.statement;
+ if((n.reviewed?.confidentiality||'unspecified')==='do-not-use')claim='Blocked: this evidence cannot be used externally.';
+ if((n.reviewed?.confidentiality||'unspecified')==='anonymize')claim='Use only an anonymized claim bounded by the reviewed source.';
+ const warnings=[];
+ if(scope.some(x=>['people','fiscal','portfolio','governance','executive'].includes(x))&&!auth)warnings.push('Leadership/authority language is detected, but reviewed authority/scope is blank. Do not upgrade “supported/coordinated” to “owned/managed/approved” without confirming it.');
+ if(!n.reviewed?.source_reference&&['source-corroborated','verified'].includes(v))warnings.push('Verification is marked strong but no source reference is recorded.');
+ if((n.reviewed?.confidentiality||'unspecified')==='do-not-use')warnings.push('This node is marked do not use externally.');
+ if((n.reviewed?.confidentiality||'unspecified')==='anonymize')warnings.push('Use only anonymized wording.');
+ $('#guardrail').innerHTML='<div class="signal '+cls+'"><b>'+esc(level)+'</b><br>'+esc(why)+'</div><div class="signal"><b>Application-facing wording ceiling</b><br>'+esc(claim)+'</div><p><b>Detected depth:</b> '+esc(depth)+'</p><p><b>Detected scope:</b> '+(scope.length?scope.map(x=>'<span class="tag">'+esc(x)+'</span>').join(' '):'none')+'</p>'+(warnings.length?warnings.map(w=>'<div class="signal warn">'+esc(w)+'</div>').join(''):'<div class="signal"><b>No additional guardrail flags from current reviewed fields.</b></div>');
+}
+$('#nodeSelect').addEventListener('change',loadNodeReview);
+$('#saveNode').onclick=()=>{
+ const n=currentNode();if(!n)return;
+ n.verification_status=$('#nodeVerify').value;
+ n.reviewed={role_project:$('#nodeRole').value.trim(),dates:$('#nodeDates').value.trim(),source_reference:$('#nodeSource').value.trim(),confidentiality:$('#nodeConf').value,authority_scope:$('#nodeAuthority').value.trim(),reviewer_note:$('#nodeNote').value.trim()};
+ renderGraph(GRAPH);$('#nodeSelect').value=n.evidence_id;loadNodeReview();if($('#job').value.trim())analyze();
+};
+$('#clearNodeReview').onclick=()=>{const n=currentNode();if(!n)return;n.verification_status='unreviewed';n.reviewed={role_project:'',dates:'',source_reference:'',confidentiality:'unspecified',authority_scope:'',reviewer_note:''};renderGraph(GRAPH);$('#nodeSelect').value=n.evidence_id;loadNodeReview();if($('#job').value.trim())analyze()};
+
+$('#analyze').onclick=analyze;
+$('#sampleJob').onclick=()=>{$('#job').value='Director, Learning Programs\nRequired: 8+ years of experience in learning, curriculum, or program leadership.\nBachelor’s degree required; master’s preferred.\nLead a portfolio of learning programs and own the roadmap.\nManage and develop a team of program managers and facilitators.\nOversee vendor contracts and program budgets.\nPartner with executive stakeholders across product, operations, and marketing.\nExperience with analytics and CRM systems preferred.'};
+$('#sampleCandidate').onclick=()=>{$('#candidate').value="[resume]\nSynthetic example: A learning-program manager with eight years of curriculum design, program operations, evaluation, and stakeholder communication. Coordinated 12 courses and trained 18 facilitators across three program cycles. Built evaluation dashboards and curriculum QA rubrics. Participated in vendor contract reviews; direct-report relationships and budget-approval authority are not established.\n[portfolio]\nPublic demonstration: a fictional learner-engagement dashboard and a curriculum-quality rubric.\n[document]\nContributed to program roadmap planning; final decision rights are not documented."};
+$('#exportEvidence').onclick=()=>{if(!GRAPH.length){GRAPH=buildGraph($('#candidate').value.trim(),GRAPH);renderGraph(GRAPH)}if(!GRAPH.length)return;const safe=GRAPH.filter(n=>(n.reviewed?.confidentiality||'unspecified')!=='do-not-use').map(n=>{const x=JSON.parse(JSON.stringify(n));if(x.reviewed?.confidentiality==='anonymize'){x.statement='[anonymized evidence — source statement omitted]';x.competencies=[];x.metrics=[]}return x});const payload={schema_version:'2.4',generated_at:new Date().toISOString(),export_policy:'do-not-use nodes excluded; anonymize nodes redact statement/competencies/metrics',evidence_nodes:safe};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='candidate-evidence-graph-safe.json';a.click()};
+$('#export').onclick=()=>{if(!DATA.length)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=['Type,Requirement,Evidence,Visibility,Reviewed support,Gap type,Next action'].concat(DATA.map(x=>[x.type,x.text,x.ev.found,x.ev.status,reviewedSupport(x.ev),x.g,x.action].map(q).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='role-evidence-matrix.csv';a.click()};
+
+/* Shared local-first candidate profile. Manual import/load never silently replaces work. */
+const PROFILE_KEY='role-evidence.shared-profile.v1',PROFILE_FORMAT='role-evidence-candidate-profile';
+function checkedProfile(raw){
+  if(!raw||raw.format!==PROFILE_FORMAT||raw.version!==1||!raw.sections||typeof raw.sections!=='object')throw Error('Unsupported profile format or version.');
+  if(JSON.stringify(raw).length>1800000)throw Error('Profile exceeds the 1.8 MB import limit.');
+  const sections={};
+  for(const key of ['resume','footprint','docs','ai']){
+    const v=raw.sections[key]??'';
+    if(typeof v!=='string'||v.length>500000)throw Error('Invalid '+key+' section.');
+    sections[key]=v;
+  }
+  if(raw.evidence_nodes!==undefined&&!Array.isArray(raw.evidence_nodes))throw Error('Invalid evidence list.');
+  if((raw.evidence_nodes||[]).length>2000)throw Error('Too many evidence nodes.');
+  const nodes=(raw.evidence_nodes||[]).filter(n=>n&&typeof n.statement==='string'&&n.statement.length<=10000&&
+    ['resume','portfolio','public','document','user','other'].includes(n.source_type)&&
+    !['private','anonymize','do-not-use'].includes(n.reviewed?.confidentiality))
+    .map(n=>({
+      ...n,
+      verification_status:['unreviewed','self-attested','source-corroborated','verified'].includes(n.verification_status)?n.verification_status:'unreviewed',
+      reviewed:{role_project:String(n.reviewed?.role_project||''),dates:String(n.reviewed?.dates||''),
+        source_reference:String(n.reviewed?.source_reference||''),confidentiality:n.reviewed?.confidentiality==='public'?'public':'unspecified',
+        authority_scope:String(n.reviewed?.authority_scope||''),reviewer_note:String(n.reviewed?.reviewer_note||'')}
+    }));
+  return{format:PROFILE_FORMAT,version:1,created_at:String(raw.created_at||''),sections,evidence_nodes:nodes};
+}
+function makeProfile(sections,nodes=[]){
+  return checkedProfile({format:PROFILE_FORMAT,version:1,created_at:new Date().toISOString(),sections,evidence_nodes:nodes});
+}
+function profileDownload(profile){
+  const url=URL.createObjectURL(new Blob([JSON.stringify(profile,null,2)],{type:'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download='role-evidence-candidate-profile.json';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function profileSaveLocal(profile){
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));return true}catch(e){return false}
+}
+function profileReadLocal(){
+  let data;try{data=localStorage.getItem(PROFILE_KEY)}catch(e){throw Error('Browser storage is not accessible here; use a JSON file.')}
+  if(!data)throw Error('No shared profile is saved in this browser context; import a JSON file instead.');
+  return checkedProfile(JSON.parse(data));
+}
+
+
+function candidateProfile(){
+  const cand=$('#candidate').value.trim();if(!cand)throw Error('Add candidate evidence first.');
+  GRAPH=buildGraph(cand,GRAPH);renderGraph(GRAPH);
+  const sections={resume:'',footprint:'',docs:'',ai:''},safe=[];
+  for(const n of GRAPH){
+    if(['private','anonymize','do-not-use'].includes(n.reviewed?.confidentiality))continue;
+    const k=n.source_type==='resume'?'resume':(n.source_type==='public'||n.source_type==='portfolio')?'footprint':n.source_type==='document'?'docs':'ai';
+    sections[k]+=n.statement+'\n';safe.push(n);
+  }
+  if(!safe.length)throw Error('No transferable evidence statements remain after disclosure exclusions.');
+  return makeProfile(sections,safe);
+}
+function applyCandidateProfile(p){
+  const blocks=[['resume','resume'],['footprint','portfolio'],['docs','document'],['ai','user']]
+    .filter(([k])=>p.sections[k].trim()).map(([k,source])=>'['+source+']\n'+p.sections[k].trim());
+  if(!blocks.length)throw Error('The imported profile has no transferable evidence.');
+  const text=blocks.join('\n');
+  if($('#candidate').value.trim()&&$('#candidate').value.trim()!==text&&!confirm('Replace the current candidate-evidence text with this profile? Unsaved text changes may be lost.'))return false;
+  $('#candidate').value=text;
+  GRAPH=buildGraph(text,p.evidence_nodes);renderGraph(GRAPH);
+  if($('#job').value.trim())analyze();
+  return true;
+}
+function profileMessage(s){$('#profileMsg').textContent=s}
+$('#profileSave').onclick=()=>{
+  try{const p=candidateProfile();profileMessage(profileSaveLocal(p)?'Saved '+p.evidence_nodes.length+' transferable nodes locally.':'Browser storage unavailable; use Download profile JSON.')}catch(e){profileMessage(e.message)}
+};
+$('#profileDownload').onclick=()=>{
+  try{const p=candidateProfile();profileDownload(p);profileMessage('Profile downloaded with '+p.evidence_nodes.length+' transferable nodes; keep the JSON file private.')}catch(e){profileMessage(e.message)}
+};
+$('#profileLoad').onclick=()=>{
+  try{const p=profileReadLocal();if(applyCandidateProfile(p))profileMessage('Loaded '+p.evidence_nodes.length+' evidence nodes. Imported verification labels are user-provided and should be reviewed.')}catch(e){profileMessage(e.message)}
+};
+$('#profileImport').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{if(file.size>1800000)throw Error('File exceeds the 1.8 MB limit.');
+    const p=checkedProfile(JSON.parse(await file.text()));
+    if(applyCandidateProfile(p))profileMessage('Imported candidate profile; other workspace content was not changed.');
+  }catch(err){profileMessage('Import failed: '+err.message)}finally{e.target.value=''}
+});
+
+
+/* Reverse ATS application-facing audit: complements the source-aware evidence graph. */
+let ATS_EXPORT_ROWS=[];
+const atsEsc=s=>esc(String(s==null?'':s));
+function atsReadableCandidate(text){
+ const source=$('#ats-record').value;
+ const resume=source==='resume'?text:(text.match(/\[resume\]([\s\S]*?)(?:\[(?:portfolio|document|public|user)\]|$)/i)||[])[1]||'';
+ if(!resume.trim())return '<p class="muted">Résumé structure not assessed: candidate input is currently mixed evidence. Select “Plain-text résumé extract” or use a [resume] section to assess visible headings and contact cues.</p>';
+ const checks=[
+  ['Recognizable experience section',/\b(?:professional experience|work experience|employment history|experience)\b/i.test(resume)],
+  ['Education / training section',/\b(?:education|academic background|qualifications)\b/i.test(resume)],
+  ['Date cues',/\b(?:19|20)\d{2}\b/.test(resume)],
+  ['Skills or methods section',/\b(?:skills|technical skills|tools|methods|technologies)\b/i.test(resume)],
+  ['Email contact cue',/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(resume)]
+ ];
+ return '<p class="muted">Plain-text structure checks, not a file-parser test:</p><ul>'+checks.map(([t,ok])=>'<li><strong>'+atsEsc(ok?'Visible':'Review')+':</strong> '+atsEsc(t)+'</li>').join('')+'</ul><p class="muted">Check the real upload for logical reading order, legible section headings, selectable text, and accurate parsed fields. Avoid relying on text inside images or complex layout. An absent heading here does not establish ATS failure.</p>';
+}
+function atsWorkflowLens(mode){
+ if(mode==='workday')return 'Workday documentation describes résumé parsing and optional skills similarity based on job-requisition and application skills, with required skills weighted more heavily. Years of experience and recency are not part of its documented Skills Match calculation. Actual employer configuration is unknown.';
+ if(mode==='greenhouse')return 'Greenhouse documentation describes recruiter review, structured scorecards, configurable job criteria, and optional AI-assisted talent matching. A posting alone does not reveal the employer’s scorecard settings or screening rules.';
+ return 'Recruiters and ATS products use varying approaches, including application questions, parsed documents, structured review, and optional matching. No universal ATS score exists.';
+}
+function atsAction(row){
+ const support=reviewedSupport(row.ev);
+ if(row.ev.confidentiality==='do-not-use'||support==='blocked for external use')return 'Do not disclose this evidence. Find an approved, public-safe example.';
+ if(row.hard_check&&/unresolved|not visible|does not yet support|not clearly supported/i.test(row.hard_check))return 'Resolve the explicit requirement using reviewed dates, credential evidence, or documented tool experience.';
+ if(row.ev.status==='strong'||row.ev.status==='visible'){
+  if(support==='verified'||support==='source-corroborated')return 'Make the relevant evidence easy to locate in the application; retain accurate scope and source references.';
+  return 'Visible but not independently verified here: confirm source, chronology, authority, and current proficiency before strengthening a claim.';
+ }
+ if(row.ev.status==='partial')return 'Recover a clearer example with context, actual responsibility, methods, outcome, and defensible dates.';
+ return 'No persuasive evidence surfaced in the supplied material. Check for genuine experience before adding wording; never insert unsupported keywords.';
+}
+function atsQuoteCSV(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
+function atsRender(){
+ const raw=$('#job').value.trim(),cand=$('#candidate').value.trim(),out=$('#ats-results'),status=$('#ats-message');
+ if(!raw||!lines(raw).length){status.textContent='Paste a job description with at least one complete requirement or responsibility before running the audit.';$('#job').focus();return}
+ analyze();
+ const rows=DATA.filter(x=>x.type!=='context');
+ const visible=rows.filter(x=>['strong','visible'].includes(x.ev.status));
+ const corroborated=rows.filter(x=>['verified','source-corroborated'].includes(reviewedSupport(x.ev)));
+ const notVisible=rows.filter(x=>x.ev.status==='not visible');
+ const partial=rows.filter(x=>x.ev.status==='partial');
+ const required=rows.filter(x=>x.type==='hard');
+ const unanswered=['ats-workauth','ats-location','ats-credential'].filter(id=>$('#'+id).value!=='confirmed').length;
+ const mode=$('#ats-workflow').value;
+ const high=rows.filter(x=>x.type==='hard'||x.type==='tool'||x.type==='scope');
+ const prioritized=[...high,...rows.filter(x=>!high.includes(x))].slice(0,24);
+ const head='<div class="stats">'+[
+ [rows.length,'classified requirements and signals'],
+ [required.length,'explicit hard requirements'],
+ [visible.length,'visible in supplied evidence'],
+ [corroborated.length,'source-corroborated or verified matches']
+ ].map(([v,label])=>'<div class="stat"><b>'+v+'</b><span>'+label+'</span></div>').join('')+'</div>';
+ const alert='<div class="signal"><strong>Interpretation:</strong> '+atsEsc(atsWorkflowLens(mode))+'<br><strong>Application questions:</strong> '+atsEsc(unanswered===0?'Three categories reviewed; confirm answers on the real employer application.':unanswered+' categories not confirmed. Review the exact employer application before submitting.')+'</div>';
+ const missing='<p><strong>'+notVisible.length+'</strong> requirements/signals not visible; <strong>'+partial.length+'</strong> have partial textual evidence. This does not establish that the underlying capabilities are absent.</p>';
+ const format='<details style="margin-top:12px"><summary><strong>Résumé readability and parsing readiness</strong></summary>'+atsReadableCandidate(cand)+'</details>';
+ const header='<h3>Requirement-by-requirement visibility and next actions</h3><p class="muted">These rows are heuristic; evidence must be reviewed by a person. Displaying a term does not prove depth, recency, or authority.</p><div style="overflow-x:auto"><table><thead><tr><th scope="col">Requirement</th><th scope="col">Type</th><th scope="col">Visible evidence</th><th scope="col">Recommended next action</th></tr></thead><tbody>';
+ const body=prioritized.map(x=>{
+ const visibility=x.ev.status+(x.ev.source?' · '+x.ev.source:'');
+ const provenance=reviewedSupport(x.ev);
+ const detail=atsAction(x);
+ return '<tr><td style="min-width:190px">'+atsEsc(x.text)+'</td><td>'+atsEsc(x.type)+'</td><td>'+atsEsc(visibility)+'<br><span class="muted">'+atsEsc(provenance)+'</span></td><td style="min-width:220px">'+atsEsc(detail)+'</td></tr>';
+ }).join('');
+ out.innerHTML=head+alert+missing+format+header+body+'</tbody></table></div>'+(rows.length>24?'<p class="muted">Showing the first 24 prioritized rows; export CSV for the complete review.</p>':'');
+ ATS_EXPORT_ROWS=rows.map(x=>({requirement:x.text,type:x.type,visibility:x.ev.status,provenance:reviewedSupport(x.ev),hard_condition:x.hard_check||'',next_action:atsAction(x)}));
+ $('#ats-export').disabled=false;
+ status.textContent='Audit created in this browser. Review the source-aware evidence graph below before revising claims.';
+}
+$('#ats-run').addEventListener('click',atsRender);
+$('#ats-export').addEventListener('click',()=>{
+ if(!ATS_EXPORT_ROWS.length)return;
+ const cols=['requirement','type','visibility','provenance','hard_condition','next_action'];
+ const csv=[cols.join(','),...ATS_EXPORT_ROWS.map(row=>cols.map(k=>atsQuoteCSV(row[k])).join(','))].join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download='reverse-ats-evidence-audit.csv';link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ $('#ats-message').textContent='Audit CSV exported locally; it may contain details from your inputs.';
+});
+
+
+/* Send only content height to the embedding portfolio page, never candidate text. */
+function atsReportHeight(){
+ if(window.parent===window)return;
+ try{window.parent.postMessage({type:'leh-reverse-ats-height',height:Math.ceil(document.documentElement.scrollHeight)+24},'*')}catch(_e){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',atsReportHeight,{once:true});
+else atsReportHeight();
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(atsReportHeight).observe(document.body);
+
+</script>
+</body></html>
