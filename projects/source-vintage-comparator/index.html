@@ -24,7 +24,7 @@
 <label for="bSource">Source and exact identifier</label><input id="bSource" maxlength="300">
 </fieldset></div>
 <label for="question">What comparison or inference are you considering?</label><textarea id="question" maxlength="700" placeholder="State the proposed conclusion, not just the two values."></textarea>
-<button type="button" id="review">Review comparability</button>
+<button type="button" id="review">Review comparability</button><button type="button" id="export" class="secondary" disabled>Download reviewed evidence (TXT)</button>
 <h2>Comparison review</h2><output id="result" role="status" aria-live="polite">Load the fictional example or enter both records, then select Review comparability.</output>
 </main>
 <section><h2>Applied capstone</h2><p>Write a conclusion that preserves the difference between a historical observation and a current claim. Name at least one verification step that could change your conclusion.</p>
@@ -39,7 +39,7 @@
 const ids=['aName','aDate','aType','aPopulation','aSource','bName','bDate','bType','bPopulation','bSource','question','revision','verify'];
 const el=id=>document.getElementById(id), value=id=>el(id).value.trim();
 let reviewed=false;
-function invalidate(){reviewed=false;el('result').textContent='Worksheet changed. Review the current records again before relying on the comparison.';el('reflection').textContent='';}
+function invalidate(){reviewed=false;el('export').disabled=true;el('result').textContent='Worksheet changed. Review the current records again before relying on the comparison.';el('reflection').textContent='';}
 ids.forEach(id=>el(id).addEventListener('input',invalidate));
 el('example').addEventListener('click',()=>{
  const fixture={aName:'Example College — Main Campus / fictional ID 100',aDate:'2022-06-30',aType:'Historical completions',aPopulation:'Bachelor-level awards in a named subject, academic year 2021–22',aSource:'Fictional historical completions table / row A1',bName:'Example College — Main Campus / fictional ID 100',bDate:'2026-09-01',bType:'Current offering',bPopulation:'Bachelor-level program listing; current availability unverified',bSource:'Fictional catalog snapshot / entry B2',question:'Does the historical completion count establish that the same program is currently offered?'};
@@ -49,7 +49,7 @@ el('clear').addEventListener('click',()=>{ids.forEach(id=>el(id).value='');inval
 el('review').addEventListener('click',()=>{
  const required=['aName','aDate','aType','aPopulation','aSource','bName','bDate','bType','bPopulation','bSource','question'];
  const missing=required.filter(id=>!value(id));
- if(missing.length){reviewed=false;el('result').textContent='Complete both records, their source identifiers, and your proposed inference before reviewing. Missing fields: '+missing.length+'.';el(missing[0]).focus();return;}
+ if(missing.length){reviewed=false;el('export').disabled=true;el('result').textContent='Complete both records, their source identifiers, and your proposed inference before reviewing. Missing fields: '+missing.length+'.';el(missing[0]).focus();return;}
  const issues=[];
  if(value('aName')!==value('bName'))issues.push('Subject labels differ. Verify campus and stable identifiers before treating these as the same subject.');
  if(value('aType')!==value('bType'))issues.push('Evidence types differ: '+value('aType')+' versus '+value('bType')+'. One cannot automatically substitute for the other.');
@@ -59,7 +59,14 @@ el('review').addEventListener('click',()=>{
  const today=new Date().toISOString().slice(0,10);
  for(const prefix of ['a','b'])if(value(prefix+'Date')>today)issues.push('Record '+prefix.toUpperCase()+' has a future evidence date ('+value(prefix+'Date')+'). Confirm whether this is a publication date, planned effective date or input error; do not treat future evidence as observed.');
  issues.push('A matching label, type, date or description is not proof of comparability. Independently verify source provenance and the proposed inference.');
- el('result').textContent=(issues.length>1?'Potential comparability boundaries:\n':'Review:\n')+issues.map((x,i)=>(i+1)+'. '+x).join('\n');reviewed=true;
+ el('result').textContent=(issues.length>1?'Potential comparability boundaries:\n':'Review:\n')+issues.map((x,i)=>(i+1)+'. '+x).join('\n');reviewed=true;el('export').disabled=false;
+});
+el('export').addEventListener('click',()=>{
+ if(!reviewed)return;
+ const fields=['aName','aDate','aType','aPopulation','aSource','bName','bDate','bType','bPopulation','bSource','question'];
+ const report='Source Vintage Comparator — educational review\nNot source authentication. Use public or fictional information only.\n\n'+fields.map(id=>id+': '+value(id)).join('\n')+'\n\n'+el('result').textContent;
+ const blob=new Blob([report],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='source-vintage-review.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 el('rubric').addEventListener('click',()=>{
  const a=value('revision'),b=value('verify');
