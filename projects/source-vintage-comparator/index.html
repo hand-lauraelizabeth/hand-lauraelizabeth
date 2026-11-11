@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Source Vintage Comparator — evidence literacy exercise</title>
+<style>
+:root{font:16px/1.5 system-ui,sans-serif;color:#18372f;background:#f4f7f4}body{max-width:920px;margin:auto;padding:1rem}main,section{background:white;border:1px solid #c3d3c9;border-radius:12px;padding:1rem;margin:1rem 0}h1,h2{line-height:1.2}label{display:block;font-weight:650;margin:.75rem 0 .25rem}input,select,textarea,button{font:inherit;box-sizing:border-box;max-width:100%}input,select,textarea{width:100%;padding:.55rem;border:1px solid #536b60;border-radius:5px}textarea{min-height:4rem}button{background:#15513e;color:white;border:0;border-radius:6px;padding:.65rem 1rem;margin:.5rem .4rem .2rem 0;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #b55b13;outline-offset:3px}.secondary{background:#36576d}.note{border-left:4px solid #a45d17;padding:.7rem;background:#fff7e9}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.grid>fieldset{min-width:0;border:1px solid #b7c9be;border-radius:8px}output{display:block;white-space:pre-wrap;background:#eaf2ec;padding:1rem;border-radius:8px}small{display:block} @media(max-width:650px){.grid{grid-template-columns:1fr}body{padding:.5rem}main,section{padding:.7rem}button{width:100%;margin:.3rem 0}}
+</style>
+<main><h1>Source Vintage Comparator</h1>
+<p>Compare two records that appear to describe the same thing. Check whether their populations, definitions, dates and evidence types actually permit a comparison. This is an educational decision aid, not a fact checker.</p>
+<p class="note"><strong>Practice safely:</strong> Use public or fictional information only. Entries remain in this browser tab and are not uploaded. A shared name does not establish that two records refer to the same institution, program or population.</p>
+<button type="button" id="example">Load fictional example</button><button type="button" id="clear" class="secondary">Clear worksheet</button>
+<div class="grid">
+<fieldset><legend><strong>Record A</strong></legend>
+<label for="aName">Subject and identifier</label><input id="aName" maxlength="180" placeholder="e.g., North Campus / ID 100">
+<label for="aDate">Evidence date or vintage</label><input id="aDate" type="date">
+<label for="aType">Evidence type</label><select id="aType"><option value="">Choose</option><option>Current offering</option><option>Historical completions</option><option>Admissions policy</option><option>Score distribution</option><option>Other</option></select>
+<label for="aPopulation">Population, credential and definition</label><textarea id="aPopulation" maxlength="600"></textarea>
+<label for="aSource">Source and exact identifier</label><input id="aSource" maxlength="300">
+</fieldset>
+<fieldset><legend><strong>Record B</strong></legend>
+<label for="bName">Subject and identifier</label><input id="bName" maxlength="180">
+<label for="bDate">Evidence date or vintage</label><input id="bDate" type="date">
+<label for="bType">Evidence type</label><select id="bType"><option value="">Choose</option><option>Current offering</option><option>Historical completions</option><option>Admissions policy</option><option>Score distribution</option><option>Other</option></select>
+<label for="bPopulation">Population, credential and definition</label><textarea id="bPopulation" maxlength="600"></textarea>
+<label for="bSource">Source and exact identifier</label><input id="bSource" maxlength="300">
+</fieldset></div>
+<label for="question">What comparison or inference are you considering?</label><textarea id="question" maxlength="700" placeholder="State the proposed conclusion, not just the two values."></textarea>
+<button type="button" id="review">Review comparability</button><button type="button" id="export" class="secondary" disabled>Download reviewed evidence (TXT)</button>
+<h2>Comparison review</h2><output id="result" role="status" aria-live="polite">Load the fictional example or enter both records, then select Review comparability.</output>
+</main>
+<section><h2>Applied capstone</h2><p>Write a conclusion that preserves the difference between a historical observation and a current claim. Name at least one verification step that could change your conclusion.</p>
+<label for="revision">Your bounded conclusion</label><textarea id="revision" maxlength="800"></textarea>
+<label for="verify">What would you verify next?</label><textarea id="verify" maxlength="800"></textarea>
+<button type="button" id="rubric">Check my reflection</button>
+<output id="reflection" role="status" aria-live="polite">Reflection feedback will appear here.</output>
+<p><small>Self-check criteria: identify the subject; distinguish evidence types; state the vintage; describe missing verification. Automated feedback checks presence, not accuracy.</small></p>
+</section>
+<script>
+'use strict';
+const ids=['aName','aDate','aType','aPopulation','aSource','bName','bDate','bType','bPopulation','bSource','question','revision','verify'];
+const el=id=>document.getElementById(id), value=id=>el(id).value.trim();
+let reviewed=false;
+function invalidate(){reviewed=false;el('export').disabled=true;el('result').textContent='Worksheet changed. Review the current records again before relying on the comparison.';el('reflection').textContent='';}
+ids.forEach(id=>el(id).addEventListener('input',invalidate));
+el('example').addEventListener('click',()=>{
+ const fixture={aName:'Example College — Main Campus / fictional ID 100',aDate:'2022-06-30',aType:'Historical completions',aPopulation:'Bachelor-level awards in a named subject, academic year 2021–22',aSource:'Fictional historical completions table / row A1',bName:'Example College — Main Campus / fictional ID 100',bDate:'2026-09-01',bType:'Current offering',bPopulation:'Bachelor-level program listing; current availability unverified',bSource:'Fictional catalog snapshot / entry B2',question:'Does the historical completion count establish that the same program is currently offered?'};
+ ids.forEach(id=>el(id).value=fixture[id]||'');invalidate();el('result').textContent='Fictional records loaded. Review their comparability.';el('review').focus();
+});
+el('clear').addEventListener('click',()=>{ids.forEach(id=>el(id).value='');invalidate();el('result').textContent='Worksheet cleared.';el('aName').focus();});
+el('review').addEventListener('click',()=>{
+ const required=['aName','aDate','aType','aPopulation','aSource','bName','bDate','bType','bPopulation','bSource','question'];
+ const missing=required.filter(id=>!value(id));
+ if(missing.length){reviewed=false;el('export').disabled=true;el('result').textContent='Complete both records, their source identifiers, and your proposed inference before reviewing. Missing fields: '+missing.length+'.';el(missing[0]).focus();return;}
+ const issues=[];
+ if(value('aName')!==value('bName'))issues.push('Subject labels differ. Verify campus and stable identifiers before treating these as the same subject.');
+ if(value('aType')!==value('bType'))issues.push('Evidence types differ: '+value('aType')+' versus '+value('bType')+'. One cannot automatically substitute for the other.');
+ if(value('aDate')!==value('bDate'))issues.push('Vintages differ: '+value('aDate')+' versus '+value('bDate')+'. Check what changed between snapshots.');
+ if(value('aPopulation')!==value('bPopulation'))issues.push('Population, credential or definition descriptions differ. Check scope before comparing values.');
+ if(value('aSource')!==value('bSource'))issues.push('Source identifiers differ. Check whether the records use compatible definitions, coverage and reporting units; different sources are not inherently inconsistent.');
+ const today=new Date().toISOString().slice(0,10);
+ for(const prefix of ['a','b'])if(value(prefix+'Date')>today)issues.push('Record '+prefix.toUpperCase()+' has a future evidence date ('+value(prefix+'Date')+'). Confirm whether this is a publication date, planned effective date or input error; do not treat future evidence as observed.');
+ issues.push('A matching label, type, date or description is not proof of comparability. Independently verify source provenance and the proposed inference.');
+ el('result').textContent=(issues.length>1?'Potential comparability boundaries:\n':'Review:\n')+issues.map((x,i)=>(i+1)+'. '+x).join('\n');reviewed=true;el('export').disabled=false;
+});
+el('export').addEventListener('click',()=>{
+ if(!reviewed)return;
+ const fields=['aName','aDate','aType','aPopulation','aSource','bName','bDate','bType','bPopulation','bSource','question'];
+ const report='Source Vintage Comparator — educational review\nNot source authentication. Use public or fictional information only.\n\n'+fields.map(id=>id+': '+value(id)).join('\n')+'\n\n'+el('result').textContent;
+ const blob=new Blob([report],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='source-vintage-review.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+el('rubric').addEventListener('click',()=>{
+ const a=value('revision'),b=value('verify');
+ if(!reviewed){el('reflection').textContent='Review the current records first.';el('review').focus();return;}
+ if(!a||!b){el('reflection').textContent='Enter both a bounded conclusion and a next verification step.';el(!a?'revision':'verify').focus();return;}
+ el('reflection').textContent='Reflection recorded locally. Self-check: Does your conclusion identify the subject and evidence type, explicitly limit claims to the relevant vintage, and name a concrete source or identifier to verify next? These criteria require your judgment; no correctness score is assigned.';
+});
+</script></html>
