@@ -61,7 +61,7 @@ My public repositories emphasize reproducible methods, inspectable logic, and pr
 ## Applied Technical Demonstrations
 
 - [Meaning Drift — play the live word-chain game](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/meaning-drift/) — trace changes in meaning through synonym connections, with a dictionary-backed public edition. This is the playable WordPress version, not the earlier curated-link prototype.
-- [Teaching NLP with Python](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/teaching-nlp-with-python/) — browser-based instruction in context-sensitive text analysis; the Context Before Count (KWIC) exercise is part of the published teaching sequence.
+- [Context Before Count (KWIC) — source exercise](projects/interactive-lesson/kwic-context-exercise.html) — browser-based instruction in context-sensitive text analysis; the Context Before Count (KWIC) exercise is part of the published teaching sequence.
 
 - [Curriculum Planning Canvas](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/) — interactive, browser-local workspace for learning objectives, lesson sequencing, assessment alignment, and export.
 
