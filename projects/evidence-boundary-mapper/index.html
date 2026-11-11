@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence Boundary Mapper — interactive practice</title>
+<style>
+:root{font:16px/1.5 system-ui;color:#17362e;background:#f6f8f5}body{max-width:900px;margin:auto;padding:1rem}h1{line-height:1.15}main,section{background:white;border:1px solid #cad8cf;border-radius:12px;padding:1rem;margin:1rem 0}label{display:block;font-weight:650;margin:.75rem 0 .2rem}input,textarea,select,button{font:inherit;max-width:100%;box-sizing:border-box}input,textarea,select{width:100%;padding:.55rem;border:1px solid #536d60;border-radius:5px}textarea{min-height:5rem}button{background:#174d3d;color:white;border:0;border-radius:6px;padding:.65rem 1rem;margin:.7rem .4rem .2rem 0;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #b15b16;outline-offset:3px}.secondary{background:#355c71}.notice{border-left:5px solid #a45b12;padding:.7rem;background:#fff5e8}table{border-collapse:collapse;width:100%}th,td{border:1px solid #b7c9be;padding:.5rem;text-align:left;vertical-align:top}th{background:#e7f0e9}.scroll{overflow-x:auto}output{display:block;white-space:pre-wrap}small{display:block} @media(max-width:500px){body{padding:.5rem}main,section{padding:.7rem}button{width:100%;margin:.3rem 0}}
+</style>
+<main><h1>Evidence Boundary Mapper</h1><p>Practice distinguishing what a source actually establishes from what a claim adds. This is an instructional worksheet, not an automated fact checker. All entries stay in this browser tab; no account or network request is required.</p>
+<p class="notice"><strong>Practice data only.</strong> Do not enter confidential, identifiable, medical, or student records. The sample is fictional. Exported CSV may contain your own text.</p>
+<button id="sample" type="button" class="secondary">Load fictional example</button><button id="clear" type="button" class="secondary">Clear worksheet</button>
+<form id="form">
+<label for="claim">Claim being evaluated</label><textarea id="claim" maxlength="2000" required></textarea>
+<label for="source">What the source actually says or measures</label><textarea id="source" maxlength="3000" required></textarea>
+<label for="kind">Evidence type</label><select id="kind"><option>Direct observation</option><option>Reported testimony</option><option>Statistical association</option><option>Interpretation</option><option>Other / uncertain</option></select>
+<label for="boundary">What remains unknown or unverified?</label><textarea id="boundary" maxlength="2000" required></textarea>
+<label for="revision">A narrower claim supported by the source</label><textarea id="revision" maxlength="2000" required></textarea>
+<button type="submit">Review evidence boundary</button></form>
+<section aria-labelledby="feedbackTitle"><h2 id="feedbackTitle">Review and feedback</h2><output id="feedback" role="status" aria-live="polite">Complete the fields, then review the boundary between source and claim.</output><div class="scroll"><table><caption>Evidence ledger for the current entry</caption><thead><tr><th scope="col">Dimension</th><th scope="col">Your entry</th></tr></thead><tbody id="ledger"><tr><td>Evidence</td><td>No entry yet</td></tr></tbody></table></div><button id="export" type="button" disabled>Export CSV</button></section>
+<h2>Applied capstone</h2><p>Compare two sources that describe the same outcome. Record each source separately, identify disagreements in population, measurement, timing, and causal warrant, then write a revised claim that does not exceed either source. Assess yourself on four criteria: accurate source description, provenance, explicit uncertainty, and evidence-aligned revision (0 = missing, 1 = partial, 2 = clear; 8 points total). This rubric is instructional, not validated.</p><small>Designed as a browser-local, synthetic-data learning exercise. It does not verify citations or decide whether claims are true.</small></main>
+<script>
+'use strict';
+const ids=['claim','source','kind','boundary','revision'];
+const $=id=>document.getElementById(id);
+let current=null;
+function safeCell(v){let s=String(v).replace(/\r?\n/g,' ');return /^[\s]*[=+@-]/.test(s)?"'"+s:s}
+function csvCell(v){return '"'+safeCell(v).replace(/"/g,'""')+'"'}
+$('sample').addEventListener('click',()=>{
+$('claim').value='The workshop caused every participant to improve.';
+$('source').value='In a fictional survey, 18 of 24 respondents reported greater confidence after a workshop. No comparison group was observed.';
+$('kind').value='Reported testimony';
+$('boundary').value='Six attendees did not respond; no baseline or comparison group; self-reported confidence is not demonstrated skill.';
+$('revision').value='In this fictional post-workshop survey, 18 of 24 respondents reported greater confidence.';
+$('feedback').textContent='Fictional example loaded. Select Review evidence boundary to generate your ledger.';
+});
+$('clear').addEventListener('click',()=>{$('form').reset();current=null;$('ledger').replaceChildren();const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=2;td.textContent='No entry yet';tr.append(td);$('ledger').append(tr);$('feedback').textContent='Worksheet cleared.';$('export').disabled=true;});
+$('form').addEventListener('submit',e=>{
+e.preventDefault();
+const data=Object.fromEntries(ids.map(id=>[id,$(id).value.trim()]));
+if(ids.some(id=>!data[id])){$('feedback').textContent='Complete every field before reviewing.';return}
+current=data;
+const rows=[['Claim',data.claim],['Source account',data.source],['Evidence type',data.kind],['Unverified boundary',data.boundary],['Narrower claim',data.revision]];
+$('ledger').replaceChildren();
+for(const [a,b] of rows){const tr=document.createElement('tr');const th=document.createElement('th');th.scope='row';th.textContent=a;const td=document.createElement('td');td.textContent=b;tr.append(th,td);$('ledger').append(tr)}
+$('feedback').textContent='Ledger created. Check: Does the revised claim preserve the source population and time period? Does it avoid turning testimony or association into causation? Is missing evidence named explicitly? This is a self-review prompt, not an automatic correctness judgment.';
+$('export').disabled=false;
+});
+$('export').addEventListener('click',()=>{
+if(!current)return;
+const rows=[ids,ids.map(id=>current[id])];
+const csv='\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n');
+const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+const a=document.createElement('a');a.href=url;a.download='evidence-boundary-ledger.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+</script></html>
