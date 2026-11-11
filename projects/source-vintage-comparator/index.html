@@ -55,6 +55,9 @@ el('review').addEventListener('click',()=>{
  if(value('aType')!==value('bType'))issues.push('Evidence types differ: '+value('aType')+' versus '+value('bType')+'. One cannot automatically substitute for the other.');
  if(value('aDate')!==value('bDate'))issues.push('Vintages differ: '+value('aDate')+' versus '+value('bDate')+'. Check what changed between snapshots.');
  if(value('aPopulation')!==value('bPopulation'))issues.push('Population, credential or definition descriptions differ. Check scope before comparing values.');
+ if(value('aSource')!==value('bSource'))issues.push('Source identifiers differ. Check whether the records use compatible definitions, coverage and reporting units; different sources are not inherently inconsistent.');
+ const today=new Date().toISOString().slice(0,10);
+ for(const prefix of ['a','b'])if(value(prefix+'Date')>today)issues.push('Record '+prefix.toUpperCase()+' has a future evidence date ('+value(prefix+'Date')+'). Confirm whether this is a publication date, planned effective date or input error; do not treat future evidence as observed.');
  issues.push('A matching label, type, date or description is not proof of comparability. Independently verify source provenance and the proposed inference.');
  el('result').textContent=(issues.length>1?'Potential comparability boundaries:\n':'Review:\n')+issues.map((x,i)=>(i+1)+'. '+x).join('\n');reviewed=true;
 });
