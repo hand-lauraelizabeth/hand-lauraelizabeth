@@ -21,14 +21,17 @@
 const ids=['claim','source','kind','boundary','revision'];
 const $=id=>document.getElementById(id);
 let current=null;
+function invalidateReview(){if(current){current=null;$('export').disabled=true;$('feedback').textContent='Worksheet changed. Review the evidence boundary again before exporting the updated entry.';}}
+for(const id of ids){$(id).addEventListener('input',invalidateReview);$(id).addEventListener('change',invalidateReview)}
 function safeCell(v){let s=String(v).replace(/\r?\n/g,' ');return /^[\s]*[=+@-]/.test(s)?"'"+s:s}
 function csvCell(v){return '"'+safeCell(v).replace(/"/g,'""')+'"'}
 $('sample').addEventListener('click',()=>{
+invalidateReview();current=null;$('export').disabled=true;
 $('claim').value='The workshop caused every participant to improve.';
-$('source').value='In a fictional survey, 18 of 24 respondents reported greater confidence after a workshop. No comparison group was observed.';
+$('source').value='In a fictional survey, 18 of 24 attendees responded to a post-workshop survey, and all 18 respondents reported greater confidence. No comparison group was observed.';
 $('kind').value='Reported testimony';
 $('boundary').value='Six attendees did not respond; no baseline or comparison group; self-reported confidence is not demonstrated skill.';
-$('revision').value='In this fictional post-workshop survey, 18 of 24 respondents reported greater confidence.';
+$('revision').value='In this fictional post-workshop survey, 18 of 24 attendees responded; all 18 respondents reported greater confidence.';
 $('feedback').textContent='Fictional example loaded. Select Review evidence boundary to generate your ledger.';
 });
 $('clear').addEventListener('click',()=>{$('form').reset();current=null;$('ledger').replaceChildren();const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=2;td.textContent='No entry yet';tr.append(td);$('ledger').append(tr);$('feedback').textContent='Worksheet cleared.';$('export').disabled=true;});
