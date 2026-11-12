@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unknown Is Not No — Filtering Lab</title>
+<style>
+:root{font:1rem/1.5 system-ui;color-scheme:light}body{max-width:52rem;margin:auto;padding:1rem;background:#f7faf8;color:#17342c}fieldset{min-width:0}select{width:100%;box-sizing:border-box}fieldset,article{border:1px solid #8da99d;border-radius:.6rem;padding:1rem;margin:1rem 0;background:white}label{display:block;margin:.7rem 0}select,button{font:inherit;padding:.5rem;max-width:100%}button{background:#174e40;color:white;border:0;border-radius:.3rem;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #b05d00;outline-offset:3px}.tag{font-weight:700}small{display:block}#results{min-height:5rem}</style>
+<main><h1>Unknown Is Not No</h1><p>Practice filtering fictional college-program records without converting missing evidence into a negative finding. All examples are synthetic, not real institutions or admissions advice.</p>
+<fieldset><legend>Filter the fictional records</legend><label for="mode">Show programs with current offering evidence</label><select id="mode"><option value="all">All evidence states</option><option value="confirmed">Confirmed only</option><option value="possible">Confirmed and unknown (retain uncertainty)</option></select>
+<label for="credential">Credential</label><select id="credential"><option value="all">Any credential</option><option value="certificate">Certificate</option><option value="bachelor">Bachelor's</option></select>
+<button id="reset" type="button">Reset filters</button></fieldset>
+<p id="summary" role="status" aria-live="polite"></p><section id="results" aria-label="Filtered records"></section>
+<h2>Applied capstone</h2><p>Why is an unknown record not proof that a program is unavailable? Describe the additional dated, campus-specific source needed before advising a student.</p>
+<label for="response">Your reasoning (stays in this browser)</label><textarea id="response" rows="4" style="width:100%;max-width:100%;box-sizing:border-box"></textarea>
+<button id="check" type="button">Show self-assessment rubric</button><p id="rubric" hidden>Check your answer for four elements: (1) unknown is not no; (2) historical completions are not current offerings; (3) verify campus, credential and date; (4) state what remains uncertain. One point each. This rubric does not automatically grade your writing.</p>
+<p><small>Fictional teaching fixture. No accounts, network requests, tracking, or server submission. Filtering is performed locally. Refreshing clears your response.</small></p></main>
+<script>
+'use strict';
+const data=[
+{name:'North Harbor College',credential:'certificate',status:'confirmed',note:'Synthetic current catalog record, dated 2026'},
+{name:'Elm City Institute',credential:'bachelor',status:'unknown',note:'Only synthetic historical completions record available'},
+{name:'Pine Valley Campus',credential:'certificate',status:'not-confirmed',note:'Synthetic dated catalog explicitly excludes this credential at this campus'},
+{name:'West River University',credential:'bachelor',status:'confirmed',note:'Synthetic current campus catalog record, dated 2026'},
+{name:'Cedar Technical Center',credential:'certificate',status:'unknown',note:'No dated campus-level source in this fictional fixture'}
+];
+const mode=document.getElementById('mode'),credential=document.getElementById('credential'),results=document.getElementById('results'),summary=document.getElementById('summary');
+function render(){
+const filtered=data.filter(x=>(credential.value==='all'||x.credential===credential.value)&&(mode.value==='all'||(mode.value==='confirmed'?x.status==='confirmed':x.status!=='not-confirmed')));
+results.replaceChildren();
+for(const item of filtered){const card=document.createElement('article');const h=document.createElement('h3');h.textContent=item.name;const p=document.createElement('p');p.textContent=item.credential+' — '+(item.status==='not-confirmed'?'Verified not offered':item.status);const note=document.createElement('small');note.textContent=item.note;card.append(h,p,note);results.append(card)}
+summary.textContent=filtered.length+' of '+data.length+' fictional records shown.';if(!filtered.length){const p=document.createElement('p');p.textContent='No matching records. Try a broader filter; absence from this view does not establish real-world unavailability.';results.append(p)}
+}
+mode.addEventListener('change',render);credential.addEventListener('change',render);
+document.getElementById('reset').addEventListener('click',()=>{mode.value='all';credential.value='all';render();mode.focus()});
+document.getElementById('check').addEventListener('click',()=>{const r=document.getElementById('rubric');r.hidden=false;r.scrollIntoView({block:'nearest'})});render();
+</script></html>
