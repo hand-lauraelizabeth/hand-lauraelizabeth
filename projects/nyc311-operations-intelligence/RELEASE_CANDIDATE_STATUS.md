@@ -26,3 +26,12 @@
 3. Obtain fresh explicit approval before merging or updating WordPress. No unapproved private September request-level data, source CSV, or new WordPress publication.
 
 The separate historical September unique-key CSV reconciliation and privacy-sensitive cross-table audit remain HOLD. The existing live WordPress deployment is not evidence that those research-grade checks are complete.
+
+## Exact current-head review (November 12, 2026)
+
+- Draft PR [#452](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/pull/452) remains **open, unmerged**, with 14 changed files and 71 commits at inspected head `9cec540f57efe89cabaa9317cc69e190b8cb3317`. This is a multi-increment review branch, not a single isolated feature; do not squash or merge without examining all changed files and authorization.
+- Exact-head [interactive preview browser smoke](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/42787396252) and [portfolio resource validation](https://github.com/hand-lauraelizabeth/hand-lauraelizabeth/actions/runs/42787396099) both report **success**. This establishes automated workflow results at the inspected head, not completion of the remaining manual or live-source checks.
+- Existing [live WordPress explorer](https://www.lauraelizabethhand.com/nyc-311-operations-explorer-demo/) remains distinct from the unmerged hosted candidate. Do not use its success as evidence that the candidate's unmocked API has been independently validated.
+- **Minimum review scope:** synthetic/thresholded grouped-data filtering, borough comparison, ZIP-grouped comparison, accessible empty/error states and CSV export. Preserve the real-data research lab's separate publication hold.
+- **Release gate:** verify candidate unmocked API and error recovery, keyboard/mobile/privacy implications of the exact candidate, and item-specific merge/publication approval. Do not interpret thresholded groups as comprehensive totals or infer suppressed cells.
+- **Next action:** one bounded unmocked-API and keyboard acceptance pass against this exact branch, then review all 14 files for a focused authorized integration. No new PR is needed for this feature.
