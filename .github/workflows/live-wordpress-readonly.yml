@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install browser testing library
-        run: python -m pip install --disable-pip-version-check selenium
+        run: python -m pip install --disable-pip-version-check selenium==4.27.1
       - name: Exercise public pages with synthetic inputs
         env:
           LEH_TEST_LIVE_TOOLS: "1"
