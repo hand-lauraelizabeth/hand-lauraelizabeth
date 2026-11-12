@@ -1,107 +1,16 @@
 # Laura Elizabeth Hand
 
-Curriculum development, learning analytics, research, writing, and digital systems.
+I develop research-informed learning systems, accessible tools, and analytical methods across education, curriculum, and digital scholarship.
 
-I work at the intersection of **data, learning, research, and technology**, building tools and systems that make complex information easier to understand and act on.
+[Website](https://www.lauraelizabethhand.com/) · [Scholarship & Inquiry](https://www.lauraelizabethhand.com/research-writing/) · [LinkedIn](https://www.linkedin.com/in/lauraelizabethhand)
 
-[Portfolio](https://www.lauraelizabethhand.com/) · [Tools & Templates](https://www.lauraelizabethhand.com/resources/) · [Publications](https://www.lauraelizabethhand.com/publications/) · [LinkedIn](https://www.linkedin.com/in/lauraelizabethhand)
+## Featured work
 
-**[Browse projects and open the working demonstrations](projects/)** — interactive browser tools with direct links, source code, and reproducible research samples. GitHub's file viewer displays code; use each project's live-tool link to interact with it.
+- **[Portfolio Decision Engine](https://www.lauraelizabethhand.com/project/portfolio-decision-engine/)** — synthetic portfolio prioritization model. Related methods: [Curriculum Portfolio Analytics](https://github.com/hand-lauraelizabeth/curriculum-portfolio-analytics).
+- **[Learning Experiment & Statistical Analysis](https://www.lauraelizabethhand.com/project/learning-experiment-statistical-analysis/)** — experimental analysis and interpretation. Related methods: [Learning Analytics Portfolio](https://github.com/hand-lauraelizabeth/learning-analytics-portfolio).
+- **[Stevenson Text Analysis](https://www.lauraelizabethhand.com/project/stevenson-text-analysis/)** — computational approaches alongside literary close reading. [Research code](https://github.com/hand-lauraelizabeth/stevenson-text-analysis).
+- **[The Making and Knowing Project](https://www.lauraelizabethhand.com/project/the-making-and-knowing-project/)** — interdisciplinary research and historical making practices.
 
-## Featured Repositories
+[Browse interactive demonstrations](projects/) · [Tools & Templates](https://www.lauraelizabethhand.com/resources/)
 
-### [Learning Analytics Portfolio](https://github.com/hand-lauraelizabeth/learning-analytics-portfolio)
-Reproducible learning and engagement analytics using fully synthetic data. Demonstrates KPI design, data validation, conversion analysis, quarterly trends, topic segmentation, delivery-format analysis, and privacy-conscious analytical modeling.
-
-### [Curriculum Portfolio Analytics](https://github.com/hand-lauraelizabeth/curriculum-portfolio-analytics)
-A synthetic curriculum-management model spanning topic, format, delivery mode, lifecycle stage, utilization, completion, satisfaction, and refresh signals. Demonstrates taxonomy design and decision-support analysis for learning portfolios.
-
-### [Stevenson Text Analysis](https://github.com/hand-lauraelizabeth/stevenson-text-analysis)
-A digital-humanities demonstration using public-domain Robert Louis Stevenson texts. Demonstrates corpus provenance, text cleaning, tokenization, lexical comparison, exploratory keyword analysis, and the responsible use of quantitative methods alongside close reading.
-
-## Selected Publications & Creative Work
-
-- [Practical and Case-Based Methods in Teaching and Learning (2022)](https://www.lauraelizabethhand.com/publications/practical-and-case-based-methods-in-teaching-and-learning/) — chapter on multimodality, authenticity, engagement, and practical learning methods including case-based, active, and communicative learning.
-- [AI in Rare Disease Healthcare (2024)](https://www.lauraelizabethhand.com/publications/navigating-challenges-and-opportunities-in-implementing-ai-in-disease-management-ai-and-the-state-of-rare-diseases-in-healthcare/) — Routledge chapter on AI in disease management, clinical research, rare diseases, and orphan-drug development.
-- [Vitreous Humors (2025)](https://www.lauraelizabethhand.com/publications/vitreoushumors/) — poetry published by Dipity Literary Magazine.
-- [Reparation and Resuscitation (2017)](https://www.lauraelizabethhand.com/publications/reparation-and-resuscitation/) — mixed-media work first published in Quarto.
-
-## Tools & Templates
-
-I also build reusable public tools that apply the same design principles to research, writing, project management, operations, curriculum, and decision support: **minimum input, maximum useful output, clear instructions, labeled edit zones, accessible cues, and transparent automation**.
-
-| Area | Examples |
-| --- | --- |
-| [Research & Writing](resources/apa-research-writing/) | APA 7 writing toolkit, research planner, evidence matrix |
-| [Evidence Synthesis](resources/literature-review/) | Literature-review and source-to-claim synthesis system |
-| [Project & Operations](resources/project-management/) | Automated project plan, Gantt, RACI, risk/issue controls |
-| [Learning & Curriculum](resources/curriculum-workshop-qa/) | Workshop outline, objective alignment, assessment and QA |
-| [Data & Decisions](resources/decision-prioritization/) | Weighted prioritization, gates, scenarios, sensitivity |
-| [Survey Research](resources/survey-needs-assessment/) | Instrument QA, response analysis, segmentation, findings |
-| [Research Ethics](resources/research-ethics-irb/) | Ethics, consent, privacy, recruitment, IRB-readiness planning |
-| [Quantitative Analysis](resources/quantitative-analysis/) | SPSS-ready planning, hypotheses, QA, assumptions, reporting |
-| [Responsible AI Teaching](resources/responsible-ai-teaching/) | Prompt literacy, evidence-safe prompting, source-to-claim checks, ethical-AI scenarios, red-teaming, capstone rubric |
-
-[Browse the full public Tools & Templates index](resources/README.md).
-
-## Current Areas of Work
-
-- Learning and utilization analytics
-- Data cleaning, modeling, and reporting
-- Curriculum and learning-product development
-- Research and information synthesis
-- Workflow and process design
-- Digital humanities and textual scholarship
-- Responsible applications of AI in professional and educational contexts
-
-## Portfolio Approach
-
-My public repositories emphasize reproducible methods, inspectable logic, and privacy-conscious examples using synthetic, sample, public-domain, or openly licensed data.
-
-## Applied Technical Demonstrations
-
-- [Curriculum Planning Canvas](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/) — interactive, browser-local workspace for learning objectives, lesson sequencing, assessment alignment, and export.
-
-- [Prompt Literacy Debugger](projects/prompt-literacy-debugger/) — client-side teaching tool for diagnosing task clarity, evidence boundaries, authority limits, verification, privacy, and human responsibility before a prompt is used.
-- [Evidence-Safe Prompt Lab](projects/evidence-safe-prompt-lab/) — client-side prompt builder for source-to-claim support checks, uncertainty labeling, counterevidence, and citation guardrails.
-- [Ethical AI Scenario Auditor](projects/ethical-ai-scenario-auditor/) — browser-based responsible-AI teaching tool for risk discovery, mitigation planning, provenance, oversight, and contestability.
-- [Audience Lifecycle & CRM Migration Planner](projects/audience-lifecycle-crm-migration/) — platform-agnostic lifecycle, data-model, migration-control, workflow, and KPI planning demonstration.
-
-- [Standards Check](projects/standards-check/) — browser-based JavaScript tool that converts standards-level assessment results into targeted reteach groups with adjustable mastery logic.
-- [Tutoring Growth Analysis in R](projects/tutoring-growth-analysis/) — reproducible mixed-effects analysis of pre/post growth with class- and student-level structure, confidence intervals, and explicit interpretation limits.
-
-## Selected Case Studies
-
-- [From a Million Records to an Executive View](https://www.lauraelizabethhand.com/datastories/million-records-executive-operational-analytics/) — methods for turning a multiyear operational dataset into inspectable workbook analysis and leadership-facing Power BI reporting, without publishing confidential source records.
-
-- [Adult ESOL Learning System — Columbia Community Impact](case-studies/community-impact-adult-esol-learning-system/) — 40-lesson Level 6 curriculum architecture, instructor enablement, assessment, handoff, and multi-site adult-learning operations.
-
-- [Parent & Caregiver ELL Curriculum — Project Light + CRD Impact](case-studies/parent-caregiver-ell-curriculum/) — ten-module adult ELL curriculum architecture integrating learner, instructor, administrator, digital-literacy, assessment, and flexible-delivery layers.
-
-## Live Tools & Ongoing Projects
-
-- [National College + Career Explorer](projects/college-career-matching/) — a live, accessible search across 6,243 institutions with cost, location, size, and optional SAT/ACT filters; source dates and uncertainty are stated explicitly.
-
-## Research Notes
-
-- [Salomé in Translation: Textual Authority and Relational Language](https://www.lauraelizabethhand.com/research-writing/salome-translation-textual-authority/) — Wilde's French play, early English translations, pronoun choices, biblical diction, and the authority of editions.
-
-- [What Happens When an Epic Refuses to Name Its Dead?](research-notes/alice-notley-descent-of-alette/) — Alice Notley, naming, punctuation, feminist katabasis, and the bridge from close reading to computational analysis.
-
-## Art & Visual Work
-
-- [Art & Visual Work — Catalog & Provenance](art/) — selected works, process studies, available metadata, and creative recognition.
-
-## Selected Work Beyond GitHub
-
-- [Professional portfolio](https://www.lauraelizabethhand.com/)
-- [Publications](https://www.lauraelizabethhand.com/publications/)
-- [The Making and Knowing Project](https://www.lauraelizabethhand.com/project/the-making-and-knowing-project/)
-- [LinkedIn](https://www.linkedin.com/in/lauraelizabethhand)
-
-## Background
-
-**M.A., English & Comparative Literature — Columbia University**  
-**B.A., Comparative Literature, English & Mathematics — Columbia University**
-
-New York City
+M.A., English & Comparative Literature · B.A., Comparative Literature, English & Mathematics — Columbia University

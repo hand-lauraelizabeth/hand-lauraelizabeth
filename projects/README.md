@@ -2,6 +2,13 @@
 
 These projects combine working browser tools, inspectable source code, and research or analytical work samples. **Choose “Open interactive tool” to use a demonstration without downloading code.** Open the corresponding repository or source folder if you want to examine its implementation.
 
+## Featured website projects
+
+- [Portfolio Decision Engine](https://www.lauraelizabethhand.com/project/portfolio-decision-engine/) — synthetic prioritization workbook; related [curriculum-analytics model](https://github.com/hand-lauraelizabeth/curriculum-portfolio-analytics), not the same workbook.
+- [Learning Experiment & Statistical Analysis](https://www.lauraelizabethhand.com/project/learning-experiment-statistical-analysis/) — applied experimental analysis; related [learning-analytics repository](https://github.com/hand-lauraelizabeth/learning-analytics-portfolio).
+- [Stevenson Text Analysis](https://www.lauraelizabethhand.com/project/stevenson-text-analysis/) — [research repository](https://github.com/hand-lauraelizabeth/stevenson-text-analysis).
+- [The Making and Knowing Project](https://www.lauraelizabethhand.com/project/the-making-and-knowing-project/) — portfolio project record.
+
 ## Interactive browser tools
 
 | Tool | Open interactive tool | Source and method |
