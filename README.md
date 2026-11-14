@@ -11,6 +11,6 @@ I develop research-informed learning systems, accessible tools, and analytical m
 - **[Stevenson Text Analysis](https://www.lauraelizabethhand.com/project/stevenson-text-analysis/)** — computational approaches alongside literary close reading. [Research code](https://github.com/hand-lauraelizabeth/stevenson-text-analysis).
 - **[The Making and Knowing Project](https://www.lauraelizabethhand.com/project/the-making-and-knowing-project/)** — interdisciplinary research and historical making practices.
 
-[Browse interactive demonstrations](projects/) · [Tools & Templates](https://www.lauraelizabethhand.com/resources/)
+[Explore interactive tools and templates](https://www.lauraelizabethhand.com/resources/) · [Browse source projects](projects/)
 
 M.A., English & Comparative Literature · B.A., Comparative Literature, English & Mathematics — Columbia University
