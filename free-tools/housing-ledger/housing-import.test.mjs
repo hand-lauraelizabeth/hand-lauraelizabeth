@@ -59,4 +59,13 @@ for(let seed=0;seed<200;seed++){
   check(()=>assert.equal(roundtrip.events[0].amountCents,seed));
   check(()=>assert.equal(exportHousingJSON(roundtrip),exportHousingJSON(scenario)));
 }
+// Compact valid JSON may fit under 5 MB even when canonical, indented export does not.
+const compactLedger=buildHousingLedger({sources:[],events:Array.from({length:1999},(_,i)=>({
+  eventId:'compact-'+i,date:'2026-10-01',category:'repair',
+  description:'é'.repeat(1150),sourceIds:[],amountCents:null
+}))});
+const compactJSON=JSON.stringify(compactLedger);
+check(()=>assert.ok(Buffer.byteLength(compactJSON,'utf8')<5_000_000));
+check(()=>assert.throws(()=>parseHousingJSON(compactJSON),/5,000,000-byte reopen limit/));
+await reject(()=>readHousingJSONFile(mock(enc.encode(compactJSON))),'compact but unreopenable');
 console.log('PASS: '+count+' FT-12 strict JSON reopen assertions');

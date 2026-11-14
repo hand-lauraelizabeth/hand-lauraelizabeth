@@ -1,6 +1,4 @@
-import {buildHousingLedger} from './housing-core.mjs';
-
-const MAX_BYTES = 5_000_000;
+import {buildHousingLedger, exportHousingJSON, HOUSING_JSON_LIMIT} from './housing-core.mjs';
 const hasFields = (value, fields) => value && typeof value === 'object' && !Array.isArray(value) &&
   Object.keys(value).length === fields.length && fields.every(field => Object.hasOwn(value, field));
 const rootFields = ['schema', 'sources', 'events', 'findings', 'disclaimer'];
@@ -30,6 +28,9 @@ export function parseHousingJSON(text) {
                                           f.kind === ledger.findings[i].kind)) {
     throw Error('Housing evidence JSON review flags or disclaimer do not match the records');
   }
+  // A compact JSON file can fit the input limit while its canonical, indented export does not.
+  // Reject it before replacing the current tab with records that cannot be saved and reopened.
+  exportHousingJSON(ledger);
   return ledger;
 }
 
@@ -38,7 +39,7 @@ export async function readHousingJSONFile(file) {
   if (!file || typeof file.name !== 'string' || !/\.json$/iu.test(file.name)) {
     throw Error('Choose a JSON export (.json)');
   }
-  if (!Number.isSafeInteger(file.size) || file.size < 1 || file.size > MAX_BYTES) {
+  if (!Number.isSafeInteger(file.size) || file.size < 1 || file.size > HOUSING_JSON_LIMIT) {
     throw Error('JSON file must contain 1 to 5,000,000 bytes');
   }
   if (typeof file.arrayBuffer !== 'function') throw Error('Cannot read this file');

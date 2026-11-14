@@ -1,4 +1,6 @@
 /** FT-12: local housing evidence chronology; not a legal or payment determination. */
+// Match the maximum accepted local JSON import size, including UTF-8 multibyte text.
+export const HOUSING_JSON_LIMIT = 5_000_000;
 const id = (v) => {
   if (typeof v !== 'string' || !/^[^\u0000-\u001f\u007f]{1,160}$/u.test(v) || !v.trim()) throw Error('Invalid source or event ID');
   return v;
@@ -60,5 +62,9 @@ export function reviseHousingEvent({sources,events}, eventId, changes) {
 
 export function exportHousingJSON(ledger) {
   if (!ledger || ledger.schema!=='housing-evidence-ledger-v1' || !Array.isArray(ledger.events) || !Array.isArray(ledger.sources)) throw Error('Invalid ledger');
-  return JSON.stringify(ledger,null,2)+'\n';
+  const json = JSON.stringify(ledger,null,2)+'\n';
+  if (new Blob([json]).size > HOUSING_JSON_LIMIT) {
+    throw Error('JSON exceeds the 5,000,000-byte reopen limit');
+  }
+  return json;
 }
