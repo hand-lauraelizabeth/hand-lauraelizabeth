@@ -450,7 +450,7 @@ add("p",{class:"mini"},"Software guidance last reviewed "+referenceReviewed+". T
 async function copy(s){try{await navigator.clipboard.writeText(s);$("status").textContent="Copied.";return}catch(e){}let a=elt("textarea",{style:"position:fixed;left:-9999px"});a.value=s;document.body.appendChild(a);a.select();try{document.execCommand("copy");$("status").textContent="Copied (or select text manually if your browser blocked clipboard access)."}catch(e){$("status").textContent="Copy blocked. Select the text manually."}a.remove()}
 $("next").addEventListener("click",()=>{if(step===6){state={...defaults,apps:[]};step=0;render();return}if(step===0&&!state.goal.trim()){$("error").textContent="Add a short task description or choose an example."; $("goal").focus();return}step++;render();$("pane").scrollIntoView({block:"start",behavior:"auto"})});
 $("back").addEventListener("click",()=>{if(step>0){step--;render();$("pane").scrollIntoView({block:"start",behavior:"auto"})}});
-$("reset").addEventListener("click",()=>{state={...defaults,apps:[]};step=0;render()});
+$("reset").addEventListener("click",()=>{state={...defaults,apps:[]};step=0;render();$("goal")?.focus()});
 render();
 })();
 </script>
