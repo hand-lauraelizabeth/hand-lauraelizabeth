@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROJECTS = ROOT / "projects"
 
 TOOL_URLS = {
+    "ai-workflow-decision-navigator": "https://www.lauraelizabethhand.com/resources/project-operations-tools/ai-workflow-decision-navigator/",
     "audience-lifecycle-crm-migration": "https://www.lauraelizabethhand.com/resources/project-operations-tools/audience-lifecycle-crm-migration-planner/",
     "college-career-matching": "https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/",
     "curriculum-planning-canvas": "https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/",
