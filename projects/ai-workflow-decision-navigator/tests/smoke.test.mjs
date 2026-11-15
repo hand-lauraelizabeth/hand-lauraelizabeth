@@ -25,7 +25,7 @@ class Element {
   addEventListener(type, fn) { (this.events[type] ??= []).push(fn); }
   emit(type) { for (const fn of this.events[type] || []) fn(); }
   click() { this.emit("click"); }
-  focus() {}
+  focus() { this.document.focused = this; }
   scrollIntoView() {}
   remove() {}
   select() {}
@@ -231,4 +231,13 @@ test("unfavorable and invalid time assumptions never display positive recovery",
  assert.match(out.textContent,/not demonstrated/);
  d.ids["est-maint"].value="-1";d.ids["est-maint"].emit("input");
  assert.match(out.textContent,/Use valid numbers/);
+});
+
+
+test("start over clears the task and returns keyboard focus to the first field", () => {
+  const d = chooseExample("Route new requests");
+  d.ids.reset.click();
+  assert.equal(d.ids.count.textContent, "Question 1 of 6");
+  assert.equal(d.ids.goal.value, "");
+  assert.equal(d.focused, d.ids.goal);
 });
