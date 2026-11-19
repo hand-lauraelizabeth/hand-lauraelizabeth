@@ -54,6 +54,7 @@ function ingestTrack(tracks,origin='CSV file (unverified)'){
  setMode('flight');trackSelection();root.dispatchEvent(new CustomEvent('leh-transit-track-loaded',{detail:{points:tracks,origin}}));
 }
 $('tl-csv').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>3e6)throw Error('Maximum CSV size is 3 MB.');ingestTrack(M.parseTrackCsv(await file.text()),'local CSV');}catch(err){output('tl-import-status','Import failed: '+err.message);}});
+root.dataset.dataLabNativeImport='ready';
 root.addEventListener('leh-transit-import',event=>{try{
  const detail=event.detail||{};if(typeof TransitDataAdapters==='undefined')throw Error('Integration adapter unavailable.');
  const points=M.parseTrackCsv(TransitDataAdapters.toFlightCSV(detail.points));
