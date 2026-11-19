@@ -28,7 +28,7 @@ panel.innerHTML=`
 <label for="di-open-file">OpenSky-format JSON<input id="di-open-file" type="file" accept=".json,application/json"></label>
 <label for="di-aircraft-select" id="di-aircraft-wrap" hidden>Aircraft in file<select id="di-aircraft-select"></select></label>
 <div id="di-flight-stats" role="status" class="di-quality">No aircraft data loaded.</div>
-<div class="actions"><button id="di-aircraft-use" type="button" disabled>Inspect in flight track</button></div>
+<div class="actions"><button id="di-aircraft-use" type="button" disabled>Inspect in flight track</button><button id="di-aircraft-export" type="button" class="secondary" disabled>Download normalized CSV</button></div>
 <p class="di-note">Reported ground velocity is <em>not</em> true airspeed. Geometric and barometric altitudes are not interchangeable. File origin and authenticity cannot be verified here. <a href="https://openskynetwork.github.io/opensky-api/rest.html" target="_blank" rel="noopener">OpenSky API field definitions</a>.</p>
 </div>
 <div id="di-rail" class="di-stage" data-di-mode="train" hidden>
@@ -69,14 +69,23 @@ $('di-open-file').addEventListener('change',async e=>{
   flight=A.parseOpenSky(await file.text());
   const select=$('di-aircraft-select');select.replaceChildren();
   for(const a of flight.aircraft.slice(0,100)){const option=document.createElement('option');option.value=a.icao24;option.textContent=a.callsign+' ('+a.icao24+') · '+a.samples+' points';select.append(option);}
-  $('di-aircraft-wrap').hidden=false;$('di-aircraft-use').disabled=false;describeAircraft();
- }catch(error){flight=null;$('di-aircraft-use').disabled=true;$('di-aircraft-wrap').hidden=true;$('di-flight-stats').textContent='Invalid OpenSky-format file: '+error.message;}
+  $('di-aircraft-wrap').hidden=false;$('di-aircraft-use').disabled=false;$('di-aircraft-export').disabled=false;describeAircraft();
+ }catch(error){flight=null;$('di-aircraft-use').disabled=true;$('di-aircraft-export').disabled=true;$('di-aircraft-wrap').hidden=true;$('di-flight-stats').textContent='Invalid OpenSky-format file: '+error.message;}
 });
 $('di-aircraft-select').addEventListener('change',describeAircraft);
+$('di-aircraft-export').addEventListener('click',()=>{const a=selectedAircraft();if(!a)return;const csv=A.toFlightCSV(a.points),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='opensky-normalized-'+a.icao24+'.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$('di-flight-stats').textContent='Downloaded normalized local CSV for '+a.callsign+'. If automatic handoff is unavailable, load it through the existing flight-track CSV input.';});
 $('di-aircraft-use').addEventListener('click',()=>{
  const a=selectedAircraft();if(!a)return;
- root.dispatchEvent(new CustomEvent('leh-transit-import',{detail:{points:a.points,source:'OpenSky-format local file (unverified)'}}));
- $('di-flight-stats').textContent='Loaded '+a.samples+' local point'+(a.samples===1?'':'s')+' into the flight track viewer. '+(a.samples===1?'Take simulation controls from this position to start a hypothetical trajectory.':'Scrub or replay reported timestamps; later simulated motion remains hypothetical.');
+ try{
+ if(root.dataset.dataLabNativeImport==='ready')root.dispatchEvent(new CustomEvent('leh-transit-import',{detail:{points:a.points,source:'OpenSky-format local file (unverified)'}}));
+ else{
+  const input=$('tl-csv');if(!input||typeof DataTransfer==='undefined'||typeof File==='undefined')throw Error('This browser cannot attach a generated file. Use Download normalized CSV and import it in the existing flight-track input.');
+  const normalized=A.toFlightCSV(a.points),file=new File([normalized],'opensky-normalized-local.csv',{type:'text/csv'}),transfer=new DataTransfer();
+  transfer.items.add(file);input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+ }
+ $('di-flight-stats').textContent='Sent '+a.samples+' local point'+(a.samples===1?'':'s')+' to the flight-track viewer. '+(a.samples===1?'A single observed position is not a flight path.':'Use the existing scrub/replay controls for timestamped observations.');
+ }catch(error){$('di-flight-stats').textContent='Could not import directly: '+error.message;}
+
 });
 function renderRoute(){
  const route=routes.find((x,i)=>String(i)===$('di-route-select').value)||routes[0];if(!route)return;
