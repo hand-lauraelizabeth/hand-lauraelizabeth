@@ -39,10 +39,11 @@ for(const id of ['tl-wind','tl-wind-direction'])$(id).addEventListener('input',(
 function stop(message){if(timer!==null){clearInterval(timer);timer=null;}$('tl-replay').textContent='▶ Replay positions';if(message)$('tl-track-replay-status').textContent=message;}
 async function loadTimes(){const f=$('tl-csv').files?.[0];if(!f)throw Error('Choose a recorded CSV.');return M.parseTrackCsv(await f.text()).map(x=>x.t);}
 $('tl-csv').addEventListener('change',()=>{stop('New track selected.');times=[];});
+$('leh-transit').addEventListener('leh-transit-track-loaded',event=>{stop('Imported track loaded for replay.');times=(event.detail?.points||[]).map(p=>p.t);idx=0;});
 $('tl-replay').addEventListener('click',async()=>{
  if(timer!==null){stop('Replay paused.');return;}
  try{
-  if(!times.length)times=await loadTimes();if(times.length<2)throw Error('At least two recorded positions are required.');
+  if(!times.length)times=await loadTimes();if(times.length<2)throw Error('At least two recorded positions are required. One-point imports can still initialize a hypothetical simulation.');
   idx=Number($('tl-scrub').value);if(idx>=times.length-1){idx=0;$('tl-scrub').value='0';$('tl-scrub').dispatchEvent(new Event('input',{bubbles:true}));}
   recordedStart=times[idx];anchor=performance.now();$('tl-replay').textContent='❚❚ Pause replay';
   timer=setInterval(()=>{
