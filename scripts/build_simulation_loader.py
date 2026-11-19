@@ -19,8 +19,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MODULES = {
-    "chess": ("projects/chess-lab/engine.js", "projects/chess-lab/app.js", "projects/chess-lab/coach-enhancements.js"),
-    "transit": ("projects/transit-lab/models.js", "projects/transit-lab/app.js", "projects/transit-lab/accuracy-enhancements.js"),
+    "chess": ("projects/chess-lab/engine.js", "projects/chess-lab/app.js", "projects/chess-lab/coach-enhancements.js", "projects/chess-lab/practice.js"),
+    "transit": ("projects/transit-lab/models.js", "projects/transit-lab/app.js", "projects/transit-lab/accuracy-enhancements.js", "projects/transit-lab/missions.js"),
 }
 
 
