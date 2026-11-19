@@ -21,6 +21,11 @@ css.textContent=`
 #leh-transit .scene.tv-upgraded>:not(.tv-stage){display:none!important}
 #leh-transit .tv-stage{width:100%;height:100%;position:absolute;inset:0;overflow:hidden}
 #leh-transit .tv-stage svg{display:block;width:100%;height:100%;color:#f6fff9}
+#leh-transit .tv-mobile-hud{display:none;background:#071c27;color:#e9fff5;position:absolute;z-index:2;bottom:0;left:0;right:0;gap:.45rem;padding:.68rem;border-top:1px solid #417a84}
+#leh-transit .tv-mobile-hud>div{background:#113640;border:1px solid #315d63;border-radius:8px;min-width:0;padding:.42rem .65rem}
+#leh-transit .tv-mobile-hud span,#leh-transit .tv-mobile-hud strong{display:block}
+#leh-transit .tv-mobile-hud span{font-size:.72rem;color:#b5ddd6;letter-spacing:.035em}
+#leh-transit .tv-mobile-hud strong{font-size:1.11rem;line-height:1.3;font-variant-numeric:tabular-nums}
 #leh-transit .tv-stage svg text{font-family:system-ui,-apple-system,Segoe UI,sans-serif;pointer-events:none}
 #leh-transit .tv-stage .tv-monospace{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.035em}
 #leh-transit .tv-stage .tv-soft{fill:#b6d6d4}
@@ -41,7 +46,8 @@ css.textContent=`
 #leh-transit .control{padding:.18rem 0}
 #leh-transit .scene.tv-upgraded:focus-visible{outline:3px solid #2474b1;outline-offset:3px}
 @media(max-width:750px){#leh-transit .body-grid{grid-template-columns:1fr}#leh-transit .scene.tv-upgraded{aspect-ratio:5 / 3;min-height:235px}#leh-transit .tabs{position:sticky;top:0;z-index:6}#leh-transit .tv-quick button{flex:1 1 auto}}
-@media(max-width:480px){#leh-transit .scene.tv-upgraded{aspect-ratio:4 / 3;min-height:245px}#leh-transit .readouts{grid-template-columns:repeat(2,minmax(0,1fr))}#leh-transit .tv-quick .tv-quick-label{flex:1 1 100%}#leh-transit .tabs button{font-size:.82rem;padding:.58rem .35rem;flex:1 1 29%;min-width:0}}
+@media(max-width:600px){#leh-transit .scene.tv-upgraded{aspect-ratio:auto;height:365px!important;min-height:365px}#leh-transit .tv-stage svg{position:absolute;top:0;left:0;width:100%;height:248px}#leh-transit .tv-mobile-hud{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){#leh-transit .scene.tv-upgraded{aspect-ratio:auto;min-height:365px}#leh-transit .readouts{grid-template-columns:repeat(2,minmax(0,1fr))}#leh-transit .tv-quick .tv-quick-label{flex:1 1 100%}#leh-transit .tabs button{font-size:.82rem;padding:.58rem .35rem;flex:1 1 29%;min-width:0}}
 @media(prefers-reduced-motion:reduce){#leh-transit .tv-stage *,#leh-transit .tv-stage *::before,#leh-transit .tv-stage *::after{animation:none!important;transition:none!important}}
 `;
 document.head.append(css);
@@ -184,14 +190,19 @@ const sub=`
 <text id="tvs-scale" x="702" y="66" class="tv-tiny" fill="#b6e2e0">VIEW 0–200 m</text>
 <text x="480" y="537" text-anchor="middle" font-size="13" fill="#accbd1">NO BATHYMETRY · NO SEAFLOOR COLLISION MODEL · NOT A VESSEL SAFETY GAUGE</text>
 </svg>`;
-function install(id,markup){
+function install(id,markup,labels,prefix){
   const scene=$(id);if(!scene)return;
   const stage=document.createElement("div");stage.className="tv-stage";stage.innerHTML=markup;
-  scene.appendChild(stage);scene.classList.add("tv-upgraded");scene.setAttribute("tabindex","0");
+  const hud=document.createElement("div");hud.className="tv-mobile-hud";hud.setAttribute("aria-label","Readable mobile instrument values");
+  for(let i=0;i<labels.length;i++){
+    const metric=document.createElement("div"),name=document.createElement("span"),value=document.createElement("strong");
+    name.textContent=labels[i];value.id=prefix+i;value.textContent="—";metric.append(name,value);hud.append(metric);
+  }
+  stage.append(hud);scene.appendChild(stage);scene.classList.add("tv-upgraded");scene.setAttribute("tabindex","0");
 }
-install("tl-flight-scene",flight);
-install("tl-train-scene",train);
-install("tl-sub-scene",sub);
+install("tl-flight-scene",flight,["True airspeed","Altitude","Heading","Ground track"],"tvmf-");
+install("tl-train-scene",train,["Speed","Station distance","Grade","Brake command"],"tvmr-");
+install("tl-sub-scene",sub,["Depth","Pressure","Vertical rate","Effective trim"],"tvms-");
 const modelNote=document.createElement("p");modelNote.className="tv-summary";modelNote.id="tv-view-summary";
 modelNote.textContent="Calculated displays are based on a generic model, not real vehicle sensors.";
 const primary=$("tl-flight-scene")?.parentNode;
@@ -232,6 +243,7 @@ function renderFlight(s,observing){
  updateText("tvf-alt",fmt(s.alt*3.28084,0));updateText("tvf-vs",fmt(vs,0)+" fpm");
  updateText("tvf-heading",fmt(hd,0)+"°");updateText("tvf-track",fmt(track,0)+"°");
  updateText("tvf-bank","BANK "+fmt(bank,1)+"°");updateText("tvf-fpa","PATH "+fmt(path,1)+"°");
+ updateText("tvmf-0",fmt(knots,0)+" kn");updateText("tvmf-1",fmt(s.alt*3.28084,0)+" ft");updateText("tvmf-2",fmt(hd,0)+"°");updateText("tvmf-3",fmt(track,0)+"°");
  const state=observing?"CSV SELECTED · VIEW NOT RECORDED":s.stalled?"LIFT WARNING · MODEL LIMIT":"GENERIC · SIMULATED";
  updateText("tvf-state",state);
  $("tl-flight-scene")?.setAttribute("aria-label",`Generic flight model: airspeed ${fmt(knots,0)} knots, altitude ${fmt(s.alt*3.28084,0)} feet, ground track ${fmt(track,0)} degrees, bank ${fmt(bank,1)} degrees. This is not a cockpit camera or measured attitude.`);
@@ -246,6 +258,7 @@ function renderTrain(s){
  updateText("tvr-brake","BRAKE COMMAND "+fmt(s.brake,0)+"%");
  updateText("tvr-stop","IDEAL STOP "+(Number.isFinite(ideal)?fmt(ideal,0):"n/a")+" m");
  updateText("tvr-cue",s.speed<.3?"STOPPED":d<0?"MARKER PASSED":due?"BRAKE CUE":"APPROACH");
+ updateText("tvmr-0",fmt(s.speed*3.6,1)+" km/h");updateText("tvmr-1",fmt(d,0)+" m");updateText("tvmr-2",fmt(s.grade,1)+"%");updateText("tvmr-3",fmt(s.brake,0)+"%");
  $("tvr-cue")?.setAttribute("fill",due&&s.speed>.3?"#f5be77":"#a9f3ce");
  const pct=safe(s.pos/Math.max(1,target)*220,0,220);
  $("tvr-progress")?.setAttribute("width",pct.toFixed(1));
@@ -264,6 +277,7 @@ function renderSub(s){
  updateText("tvs-depth",fmt(depth,1));updateText("tvs-pressure",fmt(s.pressure/1e5,1));
  updateText("tvs-rate","VERTICAL RATE "+fmt(s.verticalSpeed,2)+" m/s");
  updateText("tvs-ballast","TRIM "+fmt(s.actualBallast??s.ballast,1)+"%");
+ updateText("tvms-0",fmt(depth,1)+" m");updateText("tvms-1",fmt(s.pressure/1e5,1)+" bar");updateText("tvms-2",fmt(s.verticalSpeed,2)+" m/s");updateText("tvms-3",fmt(s.actualBallast??s.ballast,1)+"%");
  $("tl-sub-scene")?.setAttribute("aria-label",`Submarine buoyancy schematic: depth ${fmt(depth,1)} meters, pressure ${fmt(s.pressure/1e5,1)} bar absolute, vertical speed ${fmt(s.verticalSpeed,2)} meters per second. No mapped seafloor.`);
 }
 let mode="flight",lastDescription=-1;
