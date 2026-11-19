@@ -15,3 +15,7 @@ WordPress auto-paragraph formatting can silently insert `<p>` tags into raw inli
 ## Guided position practice
 
 Five client-side, deterministic exercises (White and Black checkmates, en passant, castling, a knight fork) load legal positions through the existing FEN interface, provide hints and explanations, and recognize the expected move. They are teaching exercises, not best-move engine analysis; no progress leaves the browser. Run `node projects/chess-lab/practice-tests.js` to validate the curated lines.
+
+## Play as White or Black
+
+In **Play computer** mode, select **Play as: White / Black**. Choosing Black resets to a standard legal start, flips the board to place Black at the bottom, and makes the local computer play White's opening move. Undo removes your last move and any subsequent computer reply while preserving the initial White move. The manual Flip board button remains available. The depth-limited computer is a practice opponent rather than a rated engine. `node projects/chess-lab/color-tests.js` checks that the computer can move as White.

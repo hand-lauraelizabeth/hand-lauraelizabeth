@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),m=require('./experiments.js');
+assert.equal(m.error(10,350),20);
+assert.equal(m.error(350,10),-20);
+assert.equal(m.bank(190,0),-18);
+assert.equal(m.bank(30,0),10.5);
+assert.equal(m.brake(22.2,200,1.25,0).act,false);
+assert.equal(m.brake(22.2,190,1.25,0).act,true);
+assert.equal(m.train({pos:0,speed:0,grade:0},2500,{brake:1.25}).throttle,65);
+assert.equal(m.train({pos:2496,speed:.1,grade:0},2500,{brake:1.25}).brake,100);
+assert.ok(m.ballast(100,50,0)>0);
+assert.ok(m.ballast(100,99,1)<0);
+console.log('Transit experimental controllers passed 10 deterministic checks.');
