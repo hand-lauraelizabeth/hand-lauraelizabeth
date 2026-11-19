@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');const c=require('./engine.js');
+const start=c.fromFen(c.START);const perft=(s,n)=>n===0?1:c.legal(s).reduce((a,m)=>a+perft(c.apply(s,m),n-1),0);
+for(const [n,v] of [[1,20],[2,400],[3,8902]])assert.equal(perft(start,n),v,'perft '+n);
+const play=(list,fen=c.START)=>{let states=[c.fromFen(fen)], moves=[];for(const uci of list){const state=states.at(-1),m=c.makeMove(state,uci);assert.ok(m,`illegal ${uci} from ${c.toFen(state)}`);moves.push(m);states.push(c.apply(state,m));}return {states,moves,here:states.at(-1)};};
+let g=play(['f2f3','e7e5','g2g4','d8h4']);assert.match(c.status(g.states).text,/checkmate/);assert.match(c.pgn(g.states,g.moves),/Qh4#/);
+g=play(['e2e4','e7e5','g1f3','b8c6','f1c4','g8f6','e1g1']);assert.equal(g.here.b[c.index('g1')],'K');assert.equal(g.here.b[c.index('f1')],'R');assert.equal(g.here.c&3,0);
+g=play(['e2e4','a7a6','e4e5','d7d5','e5d6']);assert.equal(g.here.b[c.index('d5')],'.');assert.equal(g.here.b[c.index('d6')],'P');
+g=play(['a7a8n'],'1k6/P7/8/8/8/8/8/7K w - - 0 1');assert.equal(g.here.b[c.index('a8')],'N');
+g=play(['e2e4','e7e5','d1h5','b8c6','f1c4','g8f6','h5f7']);assert.match(c.status(g.states).text,/checkmate/);
+const q=c.fromFen('4k3/8/8/8/8/8/8/3QK3 w - - 0 1');assert.ok(c.makeMove(q,'d1d8'),'queen slides multiple squares');
+const ki=c.fromFen('8/8/8/8/8/8/8/K6k w - - 0 1');assert.match(c.status([ki]).text,/insufficient/);
+const round=c.fromFen(c.toFen(start));assert.equal(c.toFen(round),c.START);
+console.log('Chess engine passed: perft 20/400/8902, mate, SAN, castling, en passant, underpromotion, queen sliding, draw, FEN.');
