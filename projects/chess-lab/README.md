@@ -11,3 +11,7 @@ The position coach derives legal checking moves, legal captures, attacks on the 
 ## WordPress publishing safeguard
 
 WordPress auto-paragraph formatting can silently insert `<p>` tags into raw inline JavaScript and stop initialization. **Do not paste the engine/app/enhancement source into page content.** After updating these source files, run `python scripts/build_simulation_loader.py chess` at the repository root (`SIMULATOR` is `chess` or `transit`) and embed the resulting single-line script after the tool's HTML shell, replacing the previous loader. It decodes the exact UTF-8 source in the browser and does not require an external network service. Never keep a second executable copy of the modules on the WordPress page. Purge the page cache and verify in an actual browser that the chessboard contains 64 squares or that Start advances the transit model. A valid source test alone does not validate WordPress's rendered output.
+
+## Guided position practice
+
+Five client-side, deterministic exercises (White and Black checkmates, en passant, castling, a knight fork) load legal positions through the existing FEN interface, provide hints and explanations, and recognize the expected move. They are teaching exercises, not best-move engine analysis; no progress leaves the browser. Run `node projects/chess-lab/practice-tests.js` to validate the curated lines.
