@@ -4,7 +4,6 @@ const root=document.getElementById("leh-transit");
 if(!root||typeof TransitModels==="undefined"||root.dataset.visualsV2==="ready")return;
 root.dataset.visualsV2="ready";
 const M=TransitModels,$=id=>document.getElementById(id);
-const SVG="http://www.w3.org/2000/svg";
 const safe=(v,a=-1e9,b=1e9)=>Math.max(a,Math.min(b,Number.isFinite(Number(v))?Number(v):0));
 const fmt=(v,d=0)=>safe(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const windKts=()=>safe($("tl-wind")?.value,0,150);
@@ -217,7 +216,7 @@ function quickButtons(kind){
 }
 const modeTitle={flight:"Flight instrument view",train:"Rail cab schematic",sub:"Submarine depth display"};
 const explainer={
-flight:"This resembles the organization of a primary flight display: airspeed, altitude, bank, and heading. The central horizon follows the model’s flight-path angle as a visual proxy; flight-path angle is not body pitch. Grounds­peed includes an optional steady-wind estimate. It is not a camera, terrain view, or approved PFD.",
+flight:"This resembles the organization of a primary flight display: airspeed, altitude, bank, and heading. The central horizon follows the model’s flight-path angle as a visual proxy; flight-path angle is not body pitch. Groundspeed includes an optional steady-wind estimate. It is not a camera, terrain view, or approved PFD.",
 train:"The view represents a hypothetical straight track from a forward cab perspective. The speed, station separation, grade and ideal stopping-distance cue come from the current simplified model. No actual rail alignment, signaling, dispatch rules, adhesion variation or gradient profile is supplied.",
 sub:"This is a conceptual depth cross-section, not a sonar image. Boat position, hydrostatic pressure, ballast trim and vertical motion are computed from a highly simplified buoyancy model. The depth scale rescales for clarity and is labeled; there is no measured bathymetry or safe operating depth."
 };
@@ -226,7 +225,7 @@ const setTransform=(id,t)=>{const e=$(id);if(e)e.setAttribute("transform",t);};
 function renderFlight(s,observing){
  const hd=safe(s.heading,0,360),bank=safe(s.bank,-45,45),path=safe(s.flightPath,-12,12);
  const knots=safe(s.speed,0,360)*1.943844,gs=safe(s.groundSpeed??s.speed,0,500)*1.943844;
- const vs=safe(s.speed,0,500)*Math.sin(path*Math.PI/180)*196.8503937*60;
+ const vs=safe(s.speed,0,500)*Math.sin(path*Math.PI/180)*196.8503937;
  const track=safe(s.trackDeg??s.heading,0,360);
  setTransform("tvf-horizon",`rotate(${-bank.toFixed(2)} 480 259) translate(0 ${Math.round(path*5)})`);
  updateText("tvf-speed",fmt(knots,0));updateText("tvf-gs","GS "+fmt(gs,0)+" kn");
