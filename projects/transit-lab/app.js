@@ -47,7 +47,20 @@ async function openMap(){if(map){map.invalidateSize();map.setView([getMapPoint()
  marker=window.L.circleMarker([p.lat,p.lon],{radius:8,color:'#0a4640',weight:3,fillColor:'#f1ba66',fillOpacity:1}).addTo(map).bindPopup('Model location; not a real vehicle position.');trailLayer=window.L.polyline(path,{color:'#9b5324',weight:3}).addTo(map);btn.textContent='Recenter map';btn.disabled=false;btn.onclick=()=>map.setView([getMapPoint().lat,getMapPoint().lon],11);updateGeo();setTimeout(()=>map.invalidateSize(),100);
  }catch(e){btn.disabled=false;btn.textContent='Retry real map';setStatus('Real map unavailable; schematic remains available. '+e.message);$('tl-geography').hidden=false;$('tl-live-map').hidden=true;}}
 function trackSelection(){if(!imported.length)return;selectedPoint=Number($('tl-scrub').value);observing=true;pause();const p=imported[selectedPoint];output('tl-track-info',`${selectedPoint+1}/${imported.length} · ${p.time_iso} · ${fm(p.lat,5)}°, ${fm(p.lon,5)}° · ${fm(p.alt,0)} m`);setStatus('Viewing an imported position. Source and track authenticity have not been verified.');refresh();}
-$('tl-csv').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>3e6)throw Error('Maximum CSV size is 3 MB.');const tracks=M.parseTrackCsv(await file.text());imported=tracks;$('tl-track-tools').hidden=false;$('tl-scrub').max=String(tracks.length-1);$('tl-scrub').value='0';output('tl-record-count','1 / '+tracks.length);output('tl-import-status',`${tracks.length} positions imported. Data stays in this browser.`);setMode('flight');trackSelection();}catch(err){output('tl-import-status','Import failed: '+err.message);}});
+function ingestTrack(tracks,origin='CSV file (unverified)'){
+ if(!Array.isArray(tracks)||!tracks.length||tracks.length>10000)throw Error('Track needs 1–10,000 valid positions.');
+ imported=tracks;$('tl-track-tools').hidden=false;$('tl-scrub').max=String(tracks.length-1);$('tl-scrub').value='0';
+ output('tl-record-count','1 / '+tracks.length);output('tl-import-status',tracks.length+' imported positions from '+origin+'. Origin and authenticity are unverified. Data stays in this browser.');
+ setMode('flight');trackSelection();root.dispatchEvent(new CustomEvent('leh-transit-track-loaded',{detail:{points:tracks,origin}}));
+}
+$('tl-csv').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>3e6)throw Error('Maximum CSV size is 3 MB.');ingestTrack(M.parseTrackCsv(await file.text()),'local CSV');}catch(err){output('tl-import-status','Import failed: '+err.message);}});
+root.dataset.dataLabNativeImport='ready';
+root.addEventListener('leh-transit-import',event=>{try{
+ const detail=event.detail||{};if(typeof TransitDataAdapters==='undefined')throw Error('Integration adapter unavailable.');
+ const points=M.parseTrackCsv(TransitDataAdapters.toFlightCSV(detail.points));
+ ingestTrack(points,'OpenSky-format JSON (not authenticated)');
+ }catch(err){output('tl-import-status','Integration failed: '+err.message);}
+});
 $('tl-scrub').addEventListener('input',()=>{output('tl-record-count',(Number($('tl-scrub').value)+1)+' / '+imported.length);trackSelection();});
 $('tl-take').addEventListener('click',()=>{if(!imported.length||selectedPoint<0)return;pause();const p=imported[selectedPoint],base=M.flightInit($('tl-plane').value);state={...base,lat:p.lat,lon:p.lon,alt:p.alt,speed:base.speed,heading:p.heading===null?base.heading:p.heading};path=[[state.lat,state.lon]];observing=false;selectedPoint=-1;setStatus('New hypothetical trajectory from an imported point. The generic airspeed is used; imported groundspeed is not assumed to be true airspeed. Subsequent positions are simulated.');refresh();});
 $('tl-clear-track').addEventListener('click',()=>{imported=[];observing=false;selectedPoint=-1;$('tl-track-tools').hidden=true;$('tl-csv').value='';output('tl-import-status','No track imported.');if(importLayer&&map){map.removeLayer(importLayer);importLayer=null;}refresh();});
