@@ -4,6 +4,12 @@ These projects combine working browser tools, inspectable source code, and resea
 
 ## Interactive browser tools
 
+New simulations:
+
+- **[Chess Lab](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/chess-lab/)** — [source, engine and tests](chess-lab/); legal chess, guided opening, game export, and local opponent.
+- **[Transit Simulation Lab](https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/transit-simulation-lab/)** — [source, models and tests](transit-lab/); generic aircraft, train and submarine simulation, measured-versus-modeled labels, optional map and local CSV track review.
+
+
 | Tool | Open interactive tool | Source and method |
 | --- | --- | --- |
 | College Search | [Explore U.S. institutions](https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/) | [National data, provenance and source contracts](college-career-matching/) |
