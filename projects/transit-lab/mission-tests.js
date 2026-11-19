@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),m=require('./missions.js');
+const near=(a,b,tol=.001)=>assert.ok(Math.abs(a-b)<=tol,`${a} is not near ${b}`);
+near(m.distanceBearing(0,0,1,0).distance,111195.08,2);
+near(m.distanceBearing(0,0,1,0).bearing,0);
+near(m.distanceBearing(0,0,0,1).bearing,90);
+near(m.distanceBearing(40.644,-73.782,40.644,-73.782).distance,0);
+const correction=m.windCorrection(0,50,90,10);
+assert.equal(correction.possible,true);
+assert.ok(correction.heading>348&&correction.heading<350);
+near(correction.groundspeed,Math.sqrt(2500-100));
+near(m.windCorrection(0,50,0,10).groundspeed,60);
+assert.equal(m.windCorrection(0,30,90,35).possible,false);
+assert.equal(m.approach(150,20,1.25).brakeNow,true);
+assert.equal(m.depthAssessment(75,.1,75,5).complete,true);
+assert.equal(m.depthAssessment(75,.3,75,5).complete,false);
+assert.throws(()=>m.distanceBearing(91,0,0,0));
+console.log('Mission math passed: bearings, haversine, wind, stop and depth checks.');
