@@ -23,10 +23,10 @@ panel.innerHTML='<div class="top"><div><p class="eyebrow">Geography affects deci
 '<p class="tc-note">Survey real geographic elevation at a simulated location. Assess terrain margins without inventing continuous terrain, actual obstacle clearance, or certified operating limits. Requests transmit only the modeled coordinates to USGS or NOAA, not your location.</p>'+
 '<div id="tc-flight"><button type="button" id="tc-flight-survey">Survey terrain: here, 2 km and 5 km ahead</button><p class="tc-note">USGS 3DEP samples isolated ground points; they do not establish the terrain between them, structures, or the exact vertical datum of the modeled aircraft.</p></div>'+
 '<div id="tc-sub" hidden><button type="button" id="tc-sub-survey">Survey seafloor at current position</button><p class="tc-note">NOAA ETOPO 2022 global relief, 60 arc-second cell (~1–2 km). This is not a nautical depth sounding, sea chart, or hull-clearance measurement.</p></div>'+
-'<p id="tc-results" role="status" class="tc-results">No external elevation queries made.</p><p id="tc-assess" role="status" class="tc-assess">No sampled terrain challenge active.</p>'+
+'<p id="tc-results" role="status" class="tc-results">No external elevation queries made.</p><svg id="tc-profile" viewBox="0 0 480 165" role="img" aria-label="Point-sampled terrain elevation profile and modeled aircraft altitude; unsampled gaps remain unknown" hidden></svg><p id="tc-assess" role="status" class="tc-assess">No sampled terrain challenge active.</p>'+
 '<div class="actions"><button type="button" id="tc-clear" class="secondary">Clear samples</button><a href="https://epqs.nationalmap.gov/v1/docs" target="_blank" rel="noopener">USGS elevation source</a><a href="https://www.ncei.noaa.gov/products/etopo-global-relief-model" target="_blank" rel="noopener">NOAA bathymetry source</a></div>'+
 '<p class="tc-note">Surveys are user-triggered and do not run continuously. Once a vehicle moves more than 1.8 km from every relevant sample, proximity-dependent assessment expires. All unmeasured terrain remains unknown.</p>';
-const css=document.createElement('style');css.textContent='#leh-transit .tc-lab{display:grid;gap:.65rem}#leh-transit .tc-lab .tc-note{font-size:.85rem;line-height:1.5}#leh-transit .tc-lab [hidden]{display:none!important}#leh-transit .tc-lab .tc-results{background:#eef5ef;border:1px solid var(--border);border-radius:8px;padding:.65rem;font-size:.87rem}#leh-transit .tc-lab .tc-assess{border-left:4px solid #80958e;padding:.55rem;font-size:.9rem;font-weight:650}#leh-transit .tc-lab .tc-assess.warn{border-color:#bb7a1a;background:#fff7e6}#leh-transit .tc-lab .tc-assess.danger{border-color:#b44132;background:#fff0ee}#leh-transit .tc-lab .actions a{font-size:.8rem}';
+const css=document.createElement('style');css.textContent='#leh-transit .tc-lab{display:grid;gap:.65rem}#leh-transit .tc-lab .tc-note{font-size:.85rem;line-height:1.5}#leh-transit .tc-lab [hidden]{display:none!important}#leh-transit .tc-lab #tc-profile{width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:8px;background:#f4f7f3}#leh-transit .tc-lab #tc-profile[hidden]{display:none!important}#leh-transit .tc-lab .tc-results{background:#eef5ef;border:1px solid var(--border);border-radius:8px;padding:.65rem;font-size:.87rem}#leh-transit .tc-lab .tc-assess{border-left:4px solid #80958e;padding:.55rem;font-size:.9rem;font-weight:650}#leh-transit .tc-lab .tc-assess.warn{border-color:#bb7a1a;background:#fff7e6}#leh-transit .tc-lab .tc-assess.danger{border-color:#b44132;background:#fff0ee}#leh-transit .tc-lab .actions a{font-size:.8rem}';
 document.head.append(css);root.querySelector('.main-stack')?.append(panel);
 let mode='flight',state=null,flight=[],seabed=null,generation=0,map=null,markers=[];
 const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:1});
@@ -44,9 +44,20 @@ const target=mode==='flight'?300:100;
 if(x.status==='low'){message('MODEL CHALLENGE: '+fmt(x.clearance)+' m nominal margin at the closest sample, below the illustrative '+target+' m exercise goal.','warn');return;}
 message('Nearby sample: nominal margin '+fmt(x.clearance)+' m, above the '+target+' m exercise goal at this point only. Unsampled terrain remains unknown.');
 }
+function drawProfile(){
+const svg=$('tc-profile');svg.hidden=mode!=='flight'||flight.length===0||!state;
+if(svg.hidden)return;
+const data=flight.map(p=>({x:p.km,y:p.meters}));
+const values=[...data.map(x=>x.y),state.alt],min=Math.min(...values)-Math.max(80,(Math.max(...values)-Math.min(...values))*.12),max=Math.max(...values)+Math.max(80,(Math.max(...values)-Math.min(...values))*.12),y=v=>Math.max(15,Math.min(135,137-(v-min)/(max-min)*118)),x=km=>38+km*81;
+const guide='<line x1="30" y1="138" x2="460" y2="138" stroke="#90aca2"/><text x="35" y="156" font-size="11" fill="#456457">'+Math.round(min)+' m</text><text x="462" y="156" text-anchor="end" font-size="11" fill="#456457">'+Math.round(max)+' m sample range</text>';
+const marks=data.map(p=>'<line x1="'+x(p.x)+'" x2="'+x(p.x)+'" y1="138" y2="'+y(p.y)+'" stroke="#6da88a" stroke-width="3"/><circle cx="'+x(p.x)+'" cy="'+y(p.y)+'" r="6" fill="#22684e" stroke="#fff" stroke-width="2"/><text x="'+x(p.x)+'" y="'+Math.max(15,y(p.y)-11)+'" text-anchor="middle" font-size="12" fill="#184d3c">'+Math.round(p.y)+' m</text><text x="'+x(p.x)+'" y="151" text-anchor="middle" font-size="10" fill="#184d3c">'+p.x+' km</text>').join('');
+const flightY=y(state.alt),altitude='<line x1="31" y1="'+flightY+'" x2="459" y2="'+flightY+'" stroke="#335aa4" stroke-dasharray="6 5" stroke-width="2"/><text x="459" y="'+Math.max(12,flightY-7)+'" text-anchor="end" font-size="11" fill="#274784">Modeled aircraft '+Math.round(state.alt)+' m</text>';
+svg.innerHTML=guide+marks+altitude;svg.setAttribute('aria-label','USGS isolated samples '+data.map(p=>p.x+' km '+Math.round(p.y)+' m').join(', ')+'; modeled aircraft altitude '+Math.round(state.alt)+' m. Space between sampled points is unknown, not surveyed.');
+}
 function showSamples(){
 if(mode==='flight')result(flight.length?'USGS 3DEP surveyed points: '+flight.map(p=>p.km+' km: '+fmt(p.meters)+' m'+(p.acquired?' (data acquired '+p.acquired+')':'')).join(' · ')+'. No continuous path coverage.':'No USGS samples loaded.');
 else if(mode==='sub')result(seabed?'NOAA ETOPO elevation '+fmt(seabed.meters)+' m at simulated '+seabed.lat.toFixed(4)+'°, '+seabed.lon.toFixed(4)+'° (coarse numerical relief cell).':'No NOAA samples loaded.');
+drawProfile();
 }
 function redrawMarkers(){
 if(map)for(const marker of markers)map.removeLayer(marker);markers=[];
@@ -62,7 +73,7 @@ try{const response=await fetch(url,{signal:ac.signal,headers:{Accept:'applicatio
 function setMode(next){
 mode=next;$('tc-flight').hidden=mode!=='flight';$('tc-sub').hidden=mode!=='sub';
 if(mode==='train')result('Use the real railway geography importer for routes.');else showSamples();
-redrawMarkers();annotate();
+redrawMarkers();drawProfile();annotate();
 }
 $('tc-flight-survey').addEventListener('click',async()=>{
 if(!state||mode!=='flight')return;const snapshot={...state},id=++generation,button=$('tc-flight-survey');button.disabled=true;const samples=[],failures=[];
@@ -77,7 +88,7 @@ catch(error){failures.push(km+' km: '+error.message);}
 if(id!==generation)return;
 flight=samples;showSamples();
 if(failures.length)result($('tc-results').textContent+' Unavailable: '+failures.join('; ')+'.');
-redrawMarkers();annotate();
+redrawMarkers();drawProfile();annotate();
 }finally{button.disabled=false;}
 });
 $('tc-sub-survey').addEventListener('click',async()=>{
@@ -87,7 +98,7 @@ try{const v=T.etopoParse(await query(T.etopoUrl(snapshot.lat,snapshot.lon)));if(
 catch(error){if(id===generation){seabed=null;result('Seafloor query unavailable: '+error.message);annotate();}}
 finally{button.disabled=false;}
 });
-$('tc-clear').addEventListener('click',()=>{generation++;flight=[];seabed=null;result('Locally held samples cleared.');redrawMarkers();annotate();});
+$('tc-clear').addEventListener('click',()=>{generation++;flight=[];seabed=null;result('Locally held samples cleared.');drawProfile();redrawMarkers();annotate();});
 root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;state=event.detail.state;if(mode!==event.detail.mode)setMode(event.detail.mode);else annotate();});
 root.addEventListener('leh-transit-map-ready',event=>{map=event.detail?.map||null;redrawMarkers();});
 if(root.transitLatest?.state)state=root.transitLatest.state;
