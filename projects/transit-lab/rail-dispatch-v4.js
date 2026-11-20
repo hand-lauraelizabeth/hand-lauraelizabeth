@@ -3,7 +3,7 @@
 const TransitDispatch=(()=>{
 'use strict';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
-const finite=x=>Number.isFinite(Number(x));
+const finite=x=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x));
 function targets(route,length,modelStops){
  const n=Number.isFinite(route?.lengthM)?route.lengthM:length;
  if(!Number.isFinite(n)||n<100)throw Error('Valid route length required.');
