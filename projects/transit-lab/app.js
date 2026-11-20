@@ -10,16 +10,25 @@ let kind='flight',state=M.flightInit(),running=false,clock=null,factIndex=0,map=
 let path=[[state.lat,state.lon]],pendingSeconds=0;
 const fm=(v,d=1)=>Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
 function setStatus(txt){$('tl-status').textContent=txt;}
-function start(){if(running)return;running=true;$('tl-play').textContent='❚❚ Pause';setStatus('Simulating · time and positions are modeled, not observed.');clock=setInterval(()=>advance(.1*Number($('tl-time-scale').value)),100);}
-function pause(){running=false;clearInterval(clock);clock=null;$('tl-play').textContent='▶ Start';}
+let frameLast=0,frameCarry=0;
+function pulse(now){if(!running)return;
+ frameCarry+=Math.max(0,Math.min(.15,(now-frameLast)/1000));frameLast=now;
+ if(frameCarry>=.05){const dt=frameCarry*Number($('tl-time-scale').value);frameCarry=0;advance(dt);}
+ if(running)clock=requestAnimationFrame(pulse);
+}
+function start(){if(running)return;running=true;frameLast=performance.now();frameCarry=0;$('tl-play').textContent='❚❚ Pause';setStatus('Simulating · time and positions are modeled, not observed.');clock=requestAnimationFrame(pulse);}
+function pause(){running=false;if(clock!==null)cancelAnimationFrame(clock);clock=null;$('tl-play').textContent='▶ Start';}
 function reset(){pause();if(kind==='flight'){state=M.flightStep(M.flightInit($('tl-plane').value),0);$('tl-throttle').value=state.throttle;$('tl-bank').value=0;$('tl-path').value=0;}else if(kind==='train'){state=M.trainInit($('tl-train-profile').value);$('tl-traction').value=0;$('tl-brake').value=0;$('tl-grade').value=0;}else{state=M.subInit();$('tl-ballast').value=0;$('tl-sub-speed').value=3;$('tl-sub-heading').value=90;}
  path=(kind==='train'?[]:[[state.lat,state.lon]]);observing=false;selectedPoint=-1;pendingSeconds=0;factIndex=0;setStatus('Model reset. Inputs and measurements are illustrative.');refresh();}
 function setMode(next){if(!['flight','train','sub'].includes(next))return;kind=next;for(const btn of root.querySelectorAll('[data-mode]'))btn.setAttribute('aria-pressed',String(btn.dataset.mode===kind));
  $('tl-flight-controls').hidden=kind!=='flight';$('tl-train-controls').hidden=kind!=='train';$('tl-sub-controls').hidden=kind!=='sub';$('tl-flight-scene').hidden=kind!=='flight';$('tl-train-scene').hidden=kind!=='train';$('tl-sub-scene').hidden=kind!=='sub';$('tl-import-card').hidden=kind!=='flight';$('tl-map-card').hidden=kind==='train';reset();}
 function sampleControls(){if(kind==='flight'){state.throttle=Number($('tl-throttle').value);state.bank=Number($('tl-bank').value);state.flightPath=Number($('tl-path').value);}else if(kind==='train'){state.throttle=Number($('tl-traction').value);state.brake=Number($('tl-brake').value);state.grade=Number($('tl-grade').value);}else{state.ballast=Number($('tl-ballast').value);state.speed=Number($('tl-sub-speed').value);state.heading=Number($('tl-sub-heading').value);}}
 function advance(dt){if(observing){observing=false;selectedPoint=-1;}
- sampleControls();const fn=kind==='flight'?M.flightStep:kind==='train'?M.trainStep:M.subStep;let remaining=Math.min(Math.max(dt,0),15);while(remaining>0){const next=Math.min(.25,remaining);state=fn(state,next);remaining-=next;}
- pendingSeconds+=dt;if(kind!=='train'&&pendingSeconds>=1){path.push([state.lat,state.lon]);if(path.length>2000)path.shift();pendingSeconds=0;}if(kind==='train'&&state.pos>=state.length)pause();refresh();}
+ sampleControls();const fn=kind==='flight'?M.flightStep:kind==='train'?M.trainStep:M.subStep;let remaining=Math.min(Math.max(dt,0),15);
+ while(remaining>1e-8){const next=Math.min(.25,remaining);state=fn(state,next);remaining-=next;
+  if(kind!=='train'){pendingSeconds+=next;if(pendingSeconds>=1){path.push([state.lat,state.lon]);if(path.length>2000)path.shift();pendingSeconds-=1;}}
+ }
+ if(kind==='train'&&state.pos>=state.length)pause();refresh();}
 function output(id,value){$(id).textContent=value;}
 function row(label,value,warning=false){return `<div${warning?' class="warning"':''}><span>${label}</span><b>${value}</b></div>`;}
 function physics(){if(kind==='flight'){const p=M.AIRCRAFT[state.profile],q=.5*state.density*state.speed**2,rot=state.turnRate;
