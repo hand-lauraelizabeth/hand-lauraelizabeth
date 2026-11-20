@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const G=require('./geographic-realism.js'),D=require('./data-adapters.js');
+const r=D.validateRoute('Demo',[{lat:40,lon:-74},{lat:41,lon:-74},{lat:41,lon:-73}]);
+const a=G.routeAtFraction(r,0,D.distance),m=G.routeAtFraction(r,.5,D.distance),b=G.routeAtFraction(r,1,D.distance);
+assert.equal(a.lat,40);assert.equal(a.lon,-74);assert.equal(b.lat,41);assert.equal(b.lon,-73);
+assert.ok(m.lat>40.9&&m.lat<41.1);assert.ok(m.lon<=-73.9);
+const c=G.routeAtFraction(r,-10,D.distance);assert.equal(c.lat,40);
+const d=G.routeAtFraction(r,10,D.distance);assert.equal(d.lon,-73);
+const dateline=D.validateRoute('Dateline',[{lat:0,lon:179.9},{lat:0,lon:-179.9}]);
+const mid=G.routeAtFraction(dateline,.5,D.distance);
+assert.ok(Math.abs(Math.abs(mid.lon)-180)<.001);
+console.log('Geographic-route interpolation tests passed.');
