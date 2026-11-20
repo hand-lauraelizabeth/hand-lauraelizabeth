@@ -41,7 +41,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   canvas.setAttribute('role','img');canvas.setAttribute('aria-label',kind+' procedural external view, not a recording');
   stage.append(canvas);canvases[kind]={stage,canvas,ctx:canvas.getContext('2d')};
  }
- let view='instrument',mode='flight',state=null,route=null,bathymetry=null,terrainSamples=[],observing=false;
+ let view='instrument',mode='flight',state=null,route=null,bathymetry=null,terrainSamples=[],dispatchState=null,observing=false;
  const W=960,H=540,fmt=(n,d=0)=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
  const rect=(ctx,x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x,y,w,h);};
  const segment=(ctx,x,y,ex,ey,col,w=2)=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.stroke();};
@@ -99,6 +99,21 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
    segment(ctx,vanish-d,y,vanish+d,y,'#c1a98a',3+4*(1-t0));
   }
   for(const a of [-1,1]){segment(ctx,vanish+a*5,256,480+a*320,540,'#d8e5dc',12);segment(ctx,vanish+a*5,256,480+a*320,540,'#334950',5);}
+  // A stylized station platform appears near a known GTFS/geometry stop. It is not surveyed station infrastructure.
+  const stop=dispatchState?.station||next,distanceToStop=stop?.distance!==undefined?stop.distance-s.pos:stop?.distanceM!==undefined?stop.distanceM-s.pos:null;
+  if(Number.isFinite(distanceToStop)&&distanceToStop<=450&&distanceToStop>=-20){
+   const proximity=Math.max(0,Math.min(1,1-Math.max(0,distanceToStop)/450));
+   const frontY=310+proximity*145,sideX=600-proximity*56;
+   ctx.beginPath();ctx.moveTo(vanish+34,265);ctx.lineTo(vanish+66,265);ctx.lineTo(960,500);ctx.lineTo(sideX,frontY);ctx.closePath();
+   ctx.fillStyle=underground?'#758d91':'#b6a68f';ctx.fill();
+   segment(ctx,vanish+65,265,960,498,'#f6d47e',5+proximity*3);
+   const signX=660-proximity*58,signY=274+proximity*55;
+   rect(ctx,signX,signY,240,42,'#163b55');
+   rect(ctx,signX,signY,240,4,'#f0cc72');
+   const name=String(stop?.name||'Station').slice(0,29);
+   t(ctx,name,signX+13,signY+28,name.length>22?15:20,'#f4fff9','700');
+   t(ctx,'SCHEMATIC PLATFORM · '+Math.max(0,Math.round(distanceToStop))+' m',signX+6,signY+61,13,'#e5fcf3','700');
+  }
   ctx.beginPath();ctx.moveTo(0,540);ctx.lineTo(0,459);ctx.quadraticCurveTo(480,415,960,459);ctx.lineTo(960,540);ctx.fillStyle='#0b1d2b';ctx.fill();
   readout(ctx,27,'SPEED',fmt(s.speed*3.6,1)+' km/h');
   readout(ctx,253,'MAPPED DISTANCE',fmt(s.pos/1000,2)+' km',230);
@@ -109,7 +124,14 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   panel(ctx,544,391,388,105);t(ctx,'IDEAL BRAKE / ADHESION',560,417,14,'#a7d7c6','800');
   t(ctx,fmt(s.brakingDistance)+' m  ·  '+fmt(s.adhesion??1,2)+'×',560,457,24,'#f7e5bf','700');
   t(ctx,'Published geometry ≠ surveyed track',560,480,14,'#b8d6cf');
-  t(ctx,'PROCEDURAL CAB · STATION NAMES FROM DATA WHEN AVAILABLE',480,522,13,'#c0dbd5','700','center');
+  if(dispatchState?.run){
+   const phase=dispatchState.run.phase;
+   if(phase==='doors-open'||phase==='at-platform'){
+    rect(ctx,567,337,336,37,phase==='doors-open'?'#1d735a':'#815923');
+    t(ctx,phase==='doors-open'?'PASSENGER DOORS OPEN · TRAIN HELD':'STOPPED AT PLATFORM · OPEN DOORS',735,361,14,'#ffffff','800','center');
+   }
+  }
+  t(ctx,'PROCEDURAL CAB · MAPPED STATIONS ARE NOT REAL STATION VIEWS',480,522,13,'#c0dbd5','700','center');
  }
  function sub(ctx,s){
   rect(ctx,0,0,W,H,gradient(ctx,'#225f83','#041323'));
@@ -158,6 +180,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
  root.addEventListener('leh-transit-route-cleared',()=>{route=null;draw();});
  root.addEventListener('leh-transit-seabed-sample',event=>{bathymetry=event.detail?.sample||null;draw();});
  root.addEventListener('leh-transit-flight-terrain-samples',event=>{terrainSamples=event.detail?.samples||[];draw();});
+ root.addEventListener('leh-transit-dispatch-update',event=>{dispatchState=event.detail||null;draw();});
  root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;mode=event.detail.mode;state=event.detail.state;observing=event.detail.observing;draw();});
  if(root.transitLatest){mode=root.transitLatest.mode;state=root.transitLatest.state;}
  choose('instrument');
