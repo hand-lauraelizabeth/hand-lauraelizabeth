@@ -38,7 +38,7 @@ function penalty(run,amount,reason,when){run.score=clamp(run.score-amount,0,100)
 function next(run){return run.targets[run.cursor]||null;}
 function skip(run,s,reason){
  const current=next(run);if(!current)return;
- const when=clock(run,s);run.skipped++;run.results.push({name:current.name,distanceM:current.distance,served:false,clockS:when,reason});penalty(run,22,'Missed '+current.name+' ('+reason+')',when);
+ const when=clock(run,s);run.skipped++;run.results.push({name:current.name,distanceM:current.distance,served:false,clockS:when,reason});run.currentResult=null;run.arrivalTime=null;run.arrivalDelta=null;penalty(run,22,'Missed '+current.name+' ('+reason+')',when);
  run.cursor++;run.phase=run.cursor>=run.targets.length?'finished':'approach';
  if(run.phase==='finished')event(run,'Run ended with missed target(s).',when);
 }
@@ -137,12 +137,13 @@ const root=document.getElementById('leh-transit');if(!root||root.dataset.dispatc
 root.dataset.dispatchV4='ready';
 const $=id=>document.getElementById(id),D=TransitDispatch,M=TransitModels;
 const style=document.createElement('style');
-style.textContent='#leh-transit .rd-panel{display:grid;gap:.65rem}#leh-transit .rd-panel .rd-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}#leh-transit .rd-panel .rd-metric{border:1px solid #b7d8ca;border-radius:9px;padding:.65rem;background:#eaf5ef}#leh-transit .rd-panel .rd-metric span,#leh-transit .rd-panel .rd-metric strong{display:block}#leh-transit .rd-panel .rd-metric span{font-size:.71rem;color:#436c5d}#leh-transit .rd-panel .rd-metric strong{font-size:1.25rem;font-variant-numeric:tabular-nums}#leh-transit .rd-panel .rd-signal{padding:.7rem;background:#173d4a;color:#f3fff7;border-radius:9px;font-size:.92rem;line-height:1.5}#leh-transit .rd-panel .rd-signal.dwell{background:#345c41}#leh-transit .rd-panel .rd-signal.warn{background:#74422c}#leh-transit .rd-panel .rd-meter{width:100%;height:.7rem;accent-color:#327f65}#leh-transit .rd-panel .rd-help{font-size:.83rem;color:var(--muted);line-height:1.5}#leh-transit .rd-panel details summary{cursor:pointer;font-weight:700}#leh-transit .rd-panel ol{max-height:170px;overflow:auto;margin:.55rem 0;padding-left:1.3rem;font-size:.8rem}#leh-transit .rd-panel .rd-buttons{display:flex;gap:.5rem;flex-wrap:wrap}#leh-transit .rd-panel .rd-buttons button{min-width:105px}#leh-transit .rd-cab-overlay{display:none;position:absolute;left:8%;right:8%;bottom:4%;padding:.45rem .6rem;border:1px solid #b0dace8a;border-radius:7px;background:#081c2dea;color:#f9f8e6;font:750 clamp(11px,1.7vw,15px)/1.25 system-ui,sans-serif;text-align:center;z-index:2;pointer-events:none}#leh-transit .tv-stage.cv-active>.rd-cab-overlay{display:block}@media(max-width:550px){#leh-transit .rd-panel .rd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#leh-transit .rd-cab-overlay{bottom:6%;font-size:11px}}';
+style.textContent='#leh-transit .rd-panel{display:grid;gap:.65rem}#leh-transit .rd-panel .rd-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}#leh-transit .rd-panel .rd-metric{border:1px solid #b7d8ca;border-radius:9px;padding:.65rem;background:#eaf5ef}#leh-transit .rd-panel .rd-metric span,#leh-transit .rd-panel .rd-metric strong{display:block}#leh-transit .rd-panel .rd-metric span{font-size:.71rem;color:#436c5d}#leh-transit .rd-panel .rd-metric strong{font-size:1.25rem;font-variant-numeric:tabular-nums}#leh-transit .rd-panel .rd-signal{padding:.7rem;background:#173d4a;color:#f3fff7;border-radius:9px;font-size:.92rem;line-height:1.5}#leh-transit .rd-panel .rd-signal.dwell{background:#345c41}#leh-transit .rd-panel .rd-signal.warn{background:#74422c}#leh-transit .rd-panel .rd-meter{width:100%;height:.7rem;accent-color:#327f65}#leh-transit .rd-panel .rd-help{font-size:.83rem;color:var(--muted);line-height:1.5}#leh-transit .rd-panel details summary{cursor:pointer;font-weight:700}#leh-transit .rd-panel ol{max-height:170px;overflow:auto;margin:.55rem 0;padding-left:1.3rem;font-size:.8rem}#leh-transit .rd-panel .rd-route-strip{display:flex;gap:.48rem;overflow-x:auto;padding:.3rem 0 .65rem;scrollbar-color:#a4c8b7 transparent;scroll-snap-type:x proximity}#leh-transit .rd-panel .rd-route-stop{flex:0 0 128px;border:1px solid #b5d1c2;background:#f4f8f3;border-radius:8px;padding:.45rem;font-size:.73rem;line-height:1.4;scroll-snap-align:start}#leh-transit .rd-panel .rd-route-stop strong{display:block;font-size:.76rem;max-height:2.5rem;overflow:hidden}#leh-transit .rd-panel .rd-route-stop[data-state=next]{border-color:#af792b;background:#fff4d9}#leh-transit .rd-panel .rd-route-stop[data-state=served]{border-color:#40886a;background:#e0f1e8}#leh-transit .rd-panel .rd-route-stop[data-state=missed]{border-color:#ad533e;background:#ffebe7}#leh-transit .rd-panel .rd-buttons{display:flex;gap:.5rem;flex-wrap:wrap}#leh-transit .rd-panel .rd-buttons button{min-width:105px}#leh-transit .rd-cab-overlay{display:none;position:absolute;left:8%;right:8%;bottom:4%;padding:.45rem .6rem;border:1px solid #b0dace8a;border-radius:7px;background:#081c2dea;color:#f9f8e6;font:750 clamp(11px,1.7vw,15px)/1.25 system-ui,sans-serif;text-align:center;z-index:2;pointer-events:none}#leh-transit .tv-stage.cv-active>.rd-cab-overlay{display:block}@media(max-width:550px){#leh-transit .rd-panel .rd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#leh-transit .rd-cab-overlay{bottom:6%;font-size:11px}}';
 document.head.append(style);
 const panel=document.createElement('section');panel.id='rd-panel';panel.className='panel rd-panel';
 panel.innerHTML='<div class="top"><div><p class="eyebrow">Play the line</p><h2>Rail dispatch &amp; passenger-service challenge</h2></div><span class="pill">Simulated score</span></div>'+
 '<p class="rd-help">Drive to each named station or exercise marker, stop within ±15 m at or below 0.5 m/s, open the doors, complete the modeled dwell, then depart. Missing a station reduces your score. When an official GTFS trip is selected, published arrival times and service calls inform the challenge; all scoring thresholds and vehicle controls are classroom assumptions.</p>'+
 '<div class="rd-metrics"><div class="rd-metric"><span>Learning score</span><strong id="rd-score">100 / 100</strong></div><div class="rd-metric"><span>Stops served</span><strong id="rd-stops">0 / 3</strong></div><div class="rd-metric"><span>Distance to target</span><strong id="rd-distance">—</strong></div></div>'+
+'<div class="rd-route-strip" id="rd-route-strip" role="list" aria-label="Station sequence and results"></div>'+ 
 '<p class="rd-signal" id="rd-status" role="status" aria-live="polite">Switch to Railway to begin.</p>'+
 '<progress id="rd-progress" class="rd-meter" max="100" value="0" aria-label="Progress toward the next platform"></progress>'+
 '<p class="rd-help" id="rd-schedule">The generic scenario uses invented station markers; published station times require GTFS import.</p>'+
@@ -152,12 +153,12 @@ panel.innerHTML='<div class="top"><div><p class="eyebrow">Play the line</p><h2>R
 const host=root.querySelector('.main-stack');host?.insertBefore(panel,host.children[1]||null);
 const scene=$('tl-train-scene')?.querySelector('.tv-stage');
 let overlay=null;if(scene){overlay=document.createElement('div');overlay.className='rd-cab-overlay';scene.append(overlay);}
-let route=null,run=null,mode='flight',s=null,previousLogCount=0;
+let route=null,run=null,mode='flight',s=null,previousLogCount=0,previousStripKey='';
 function reset(){
  if(mode!=='train')return;
  const latest=root.transitLatest?.state||M.trainInit($('tl-train-profile')?.value||'metro');
  run=D.create(route,latest.length,latest.stops);
- s=latest;previousLogCount=0;
+ s=latest;previousLogCount=0;previousStripKey='';
  D.advance(run,latest);show();
 }
 function renderLog(){
@@ -168,10 +169,27 @@ function renderLog(){
  }
  $('rd-count').textContent=String(run.logs.length);
 }
+function renderStrip(){
+ if(!run)return;
+ const key=run.targets.length+':'+run.cursor+':'+run.completed+':'+run.skipped+':'+run.phase;
+ if(key===previousStripKey)return;
+ previousStripKey=key;
+ const host=$('rd-route-strip');host.replaceChildren();
+ for(let i=0;i<run.targets.length;i++){
+  const target=run.targets[i],result=run.results.find(r=>Math.abs(r.distanceM-target.distance)<15);
+  const status=result?(result.served?'served':'missed'):i===run.cursor?'next':'pending';
+  const e=document.createElement('div');e.className='rd-route-stop';e.dataset.state=status;e.setAttribute('role','listitem');
+  const mark=document.createElement('span'),name=document.createElement('strong'),distance=document.createElement('span');
+  mark.textContent=status==='served'?'✓ Served':status==='missed'?'× Missed':status==='next'?'◉ Next':'○ Upcoming';
+  name.textContent=target.name;distance.textContent=(target.distance/1000).toFixed(2)+' km';
+  e.append(mark,name,distance);host.append(e);
+ }
+}
 function show(){
  panel.hidden=mode!=='train';
  if(!run||!s||mode!=='train')return;
  const stop=D.next(run),clock=D.clock(run,s),remain=stop?stop.distance-s.pos:0;
+ renderStrip();
  $('rd-score').textContent=run.score+' / 100';$('rd-stops').textContent=run.completed+' / '+run.targets.length;
  $('rd-distance').textContent=stop?Math.max(0,Math.round(remain))+' m':'—';
  const fraction=stop?Math.max(0,Math.min(100,100-Math.max(0,remain)/Math.max(1,stop.distance-(run.targets[run.cursor-1]?.distance||0))*100)):100;
