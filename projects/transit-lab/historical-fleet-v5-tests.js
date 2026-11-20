@@ -50,7 +50,7 @@ assert.equal(F.nextSubSpeed(3,2,0,'holland'),3);
 assert.equal(F.nextSubSpeed(3,10,1,'generic'),10);
 const originalSub=M.subStep(M.subInit(),1);
 assert.ok(originalSub.depth>=0&&Number.isFinite(originalSub.pressure));
-let drawn=0;const fakeCtx={save(){},restore(){},beginPath(){},roundRect(){},fill(){},stroke(){},fillText(){},moveTo(){},quadraticCurveTo(){},bezierCurveTo(){},lineTo(){},fillRect(){},};
+let drawn=0;const fakeCtx={save(){},restore(){},beginPath(){},closePath(){},roundRect(){},fill(){},stroke(){},fillText(){},moveTo(){},quadraticCurveTo(){},bezierCurveTo(){},lineTo(){},fillRect(){},};
 assert.equal(F.drawBadge(fakeCtx,'flight','fordtrimotor'),true);
 assert.equal(F.drawBadge(fakeCtx,'train','mallard'),true);
 assert.equal(F.drawBadge(fakeCtx,'train','unknown'),false);
