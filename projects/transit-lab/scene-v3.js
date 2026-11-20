@@ -166,22 +166,30 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   catch(e){caption.textContent='Illustrated view is unavailable; Instrument view remains available.';console.error('Transit scene:',e);}
   c.canvas.setAttribute('aria-label',mode+' illustrated procedural scene driven by simulation state. This is not real terrain or recorded vehicle video.');
  }
+ let pendingDraw=false;
+ function scheduleDraw(){
+  if(view!=='outside'||pendingDraw)return;
+  pendingDraw=true;
+  const next=()=>{pendingDraw=false;draw();};
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(next);
+  else next();
+ }
  function choose(next){
   view=next;
   $('cv-instruments').setAttribute('aria-pressed',String(view==='instrument'));
   $('cv-outside').setAttribute('aria-pressed',String(view==='outside'));
   for(const value of Object.values(canvases))value.stage.classList.toggle('cv-active',view==='outside');
   caption.textContent=view==='outside'?'Moving scenery is procedural. Published stations or one nearby NOAA grid sample appear only when loaded. Not a camera view or geographic terrain render.':'Instrument readings are simulated and are not operational vehicle sensors.';
-  draw();
+  scheduleDraw();
  }
  $('cv-instruments').addEventListener('click',()=>choose('instrument'));
  $('cv-outside').addEventListener('click',()=>choose('outside'));
- root.addEventListener('leh-transit-route-selected',event=>{route=event.detail?.route||null;draw();});
- root.addEventListener('leh-transit-route-cleared',()=>{route=null;draw();});
- root.addEventListener('leh-transit-seabed-sample',event=>{bathymetry=event.detail?.sample||null;draw();});
- root.addEventListener('leh-transit-flight-terrain-samples',event=>{terrainSamples=event.detail?.samples||[];draw();});
- root.addEventListener('leh-transit-dispatch-update',event=>{dispatchState=event.detail||null;draw();});
- root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;mode=event.detail.mode;state=event.detail.state;observing=event.detail.observing;draw();});
+ root.addEventListener('leh-transit-route-selected',event=>{route=event.detail?.route||null;scheduleDraw();});
+ root.addEventListener('leh-transit-route-cleared',()=>{route=null;scheduleDraw();});
+ root.addEventListener('leh-transit-seabed-sample',event=>{bathymetry=event.detail?.sample||null;scheduleDraw();});
+ root.addEventListener('leh-transit-flight-terrain-samples',event=>{terrainSamples=event.detail?.samples||[];scheduleDraw();});
+ root.addEventListener('leh-transit-dispatch-update',event=>{dispatchState=event.detail||null;scheduleDraw();});
+ root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;mode=event.detail.mode;state=event.detail.state;observing=event.detail.observing;scheduleDraw();});
  if(root.transitLatest){mode=root.transitLatest.mode;state=root.transitLatest.state;}
  choose('instrument');
 })();
