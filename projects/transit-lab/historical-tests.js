@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const H=require('./historical-profiles.js');
+assert.equal(H.dc3.mass,11430);
+assert.ok(Math.abs(H.dc3.wing-91.694)<.1);
+assert.ok(Math.abs(H.dc3.maxSpeed-102.7778)<.01);
+assert.ok(H.gg1.limit>44&&H.gg1.limit<45);
+assert.equal(H.references.gato.facts.length,3);
+const originalNow=Date.now;
+const fakeDate='2026-11-20T12:00:00Z';
+const w=H.observedWind({windSpeed:{value:10},windDirection:{value:270},timestamp:fakeDate});
+assert.ok(Math.abs(w.speedKnots-19.43844)<.001);
+assert.equal(w.towardDeg,90);
+assert.equal(w.fromDeg,270);
+assert.throws(()=>H.observedWind({windSpeed:{value:null},windDirection:{value:90},timestamp:fakeDate}));
+assert.throws(()=>H.observedWind({windSpeed:{value:-1},windDirection:{value:90},timestamp:fakeDate}));
+console.log('Historical profile and wind normalization tests passed.');
