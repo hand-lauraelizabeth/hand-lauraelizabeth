@@ -90,5 +90,6 @@ finally{button.disabled=false;}
 $('tc-clear').addEventListener('click',()=>{generation++;flight=[];seabed=null;result('Locally held samples cleared.');redrawMarkers();annotate();});
 root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;state=event.detail.state;if(mode!==event.detail.mode)setMode(event.detail.mode);else annotate();});
 root.addEventListener('leh-transit-map-ready',event=>{map=event.detail?.map||null;redrawMarkers();});
-setMode(root.querySelector('[data-mode][aria-pressed="true"]')?.dataset.mode||'flight');
+if(root.transitLatest?.state)state=root.transitLatest.state;
+setMode(root.transitLatest?.mode||root.querySelector('[data-mode][aria-pressed="true"]')?.dataset.mode||'flight');
 })();
