@@ -70,4 +70,8 @@ const overrun=D.create({name:'Mapped',lengthM:500,stations:[]},500);
 D.advance(overrun,{...state(500,0,10),length:500,terminalOverrun:true});
 assert.equal(overrun.skipped,1);
 assert.equal(overrun.score,78);
+const late=D.create(route,2300);
+D.advance(late,state(0,0,0));D.advance(late,state(1000,0.1,151));
+assert.equal(late.arrivalDelta,31);
+assert.equal(late.score,98);
 console.log('Dispatch station matching, GTFS dwell, interlock, overrun, and model scoring tests passed.');
