@@ -74,7 +74,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitHistorical;
   for(const fact of ref.facts){const li=document.createElement('li');li.textContent=fact;ul.append(li);}
   const p=document.createElement('p');p.textContent='Simulation boundary: '+ref.assumptions;
   host.append(ul,p,sourceLink(ref));
-  if(ref.additionalSource){const a=document.createElement('a');a.href=ref.additionalSource;a.target='_blank';a.rel='noopener noreferrer';a.textContent=' · Wing-area reference: Museum of Flight';host.append(a);}
+  if(ref.additionalSource){const a=document.createElement('a');a.href=ref.additionalSource;a.target='_blank';a.rel='noopener noreferrer';a.textContent=' · Additional museum or technical reference';host.append(a);}
  }
  function render(){
   details('hr-flight-details',H.references[$('tl-plane').value]||null);
