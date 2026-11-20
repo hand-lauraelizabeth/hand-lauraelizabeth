@@ -30,7 +30,7 @@ function create(route,length,stops){
  const t=targets(route,length,stops);
  return {routeName:route?.name||'Generic railway',source:route?.trip?'Published GTFS trip':route?.stations?.length?'Published service-line station geometry':route?'Mapped line geometry':'Illustrative model markers',
   targets:t,cursor:0,phase:'approach',score:100,completed:0,skipped:0,extraTime:0,doorsSince:null,arrivalTime:null,arrivalDelta:null,
-  logs:[],lastState:null,tractionWeightedM:0,peakAcceleration:0,fastest:0,latestStop:null,guardViolations:0};
+  logs:[],results:[],currentResult:null,lastState:null,tractionWeightedM:0,peakAcceleration:0,fastest:0,latestStop:null,guardViolations:0};
 }
 const clock=(run,s)=>Number(s.time||0)+run.extraTime;
 function event(run,message,when){run.logs.push({time:when,message});if(run.logs.length>100)run.logs.shift();}
@@ -38,7 +38,7 @@ function penalty(run,amount,reason,when){run.score=clamp(run.score-amount,0,100)
 function next(run){return run.targets[run.cursor]||null;}
 function skip(run,s,reason){
  const current=next(run);if(!current)return;
- const when=clock(run,s);run.skipped++;penalty(run,22,'Missed '+current.name+' ('+reason+')',when);
+ const when=clock(run,s);run.skipped++;run.results.push({name:current.name,distanceM:current.distance,served:false,clockS:when,reason});penalty(run,22,'Missed '+current.name+' ('+reason+')',when);
  run.cursor++;run.phase=run.cursor>=run.targets.length?'finished':'approach';
  if(run.phase==='finished')event(run,'Run ended with missed target(s).',when);
 }
@@ -74,7 +74,8 @@ function advance(run,s){
     const timingPenalty=Math.min(12,Math.floor(Math.max(0,Math.abs(run.arrivalDelta)-30)/60)*2);
     if(timingPenalty)penalty(run,timingPenalty,'published arrival offset '+Math.round(run.arrivalDelta)+' s',now);
    }
-   event(run,'Platform stop at '+target.name+'; alignment '+error.toFixed(1)+' m; open passenger doors.',now);
+   run.currentResult={name:target.name,distanceM:target.distance,served:false,clockS:now,scheduledElapsedS:target.scheduled,timetableDeltaS:run.arrivalDelta,alignmentErrorM:Math.round(error*10)/10};
+   event(run,'Platform stop at '+target.name+'; alignment '+error.toFixed(1)+' m'+(run.arrivalDelta===null?'':'; timetable offset '+Math.round(run.arrivalDelta)+' s')+'; open passenger doors.',now);
    break;
   }
   break;
@@ -85,6 +86,7 @@ function openDoors(run,s){
  const station=next(run);
  if(run.phase!=='at-platform'||!station||!s||s.speed>.5||Math.abs(s.pos-station.distance)>15)return false;
  run.phase='doors-open';run.doorsSince=clock(run,s);run.arrivalTime=run.arrivalTime??clock(run,s);
+ if(run.currentResult)run.currentResult.doorsOpenedS=clock(run,s);
  event(run,'Doors opened at '+station.name,clock(run,s));return true;
 }
 function dwellRemaining(run,s){
@@ -102,7 +104,8 @@ function waitDwell(run,s){
 function closeDoors(run,s){
  if(run.phase!=='doors-open'||!s||dwellRemaining(run,s)>.05)return false;
  const station=next(run);event(run,'Doors closed after '+(clock(run,s)-run.doorsSince).toFixed(1)+' s at '+station.name,clock(run,s));
- run.completed++;run.latestStop={...station,actualArrival:run.arrivalTime,timetableDelta:run.arrivalDelta};
+ run.completed++;if(run.currentResult){run.currentResult.served=true;run.currentResult.dwellS=Math.round((clock(run,s)-run.doorsSince)*10)/10;run.currentResult.dwellTargetS=station.dwell;run.results.push(run.currentResult);}run.currentResult=null;
+ run.latestStop={...station,actualArrival:run.arrivalTime,timetableDelta:run.arrivalDelta};
  run.cursor++;run.phase=run.cursor>=run.targets.length?'finished':'approach';run.doorsSince=null;
  run.arrivalTime=null;run.arrivalDelta=null;
  if(run.phase==='finished')event(run,'Run complete: '+run.completed+' platform services, '+run.skipped+' missed, score '+run.score+'/100.',clock(run,s));
@@ -118,11 +121,11 @@ function interlockedStep(step,state,dt,doorsOpen){
 }
 function report(run){
  return {route:run.routeName,source:run.source,score:run.score,stopsServed:run.completed,missed:run.skipped,stopTotal:run.targets.length,
-  phase:run.phase,elapsedS:run.lastState?.time??0,passengerServiceSeconds:run.extraTime,
+  phase:run.phase,elapsedS:run.lastState?.time??0,manuallyAdvancedDwellSeconds:run.extraTime,
   tractionWeightedDistanceM:Math.round(run.tractionWeightedM),maximumModelSpeedKmh:Math.round(run.fastest*36)/10,
   peakModelAccelerationMps2:Math.round(run.peakAcceleration*100)/100,
   targets:run.targets.map(x=>({name:x.name,distanceM:x.distance,scheduledElapsedS:x.scheduled,dwellS:x.dwell,sourceDwell:x.sourceDwell})),
-  events:run.logs,disclaimer:'Classroom scoring and hypothetical vehicle dynamics only; not train dispatch, published operating constraints, real energy usage, or safe-operation assessment.'};
+  stationResults:run.results,events:run.logs,disclaimer:'Classroom scoring and hypothetical vehicle dynamics only; not train dispatch, published operating constraints, real energy usage, or safe-operation assessment.'};
 }
 return {targets,create,advance,next,openDoors,waitDwell,closeDoors,dwellRemaining,clock,interlockedStep,report};
 })();
