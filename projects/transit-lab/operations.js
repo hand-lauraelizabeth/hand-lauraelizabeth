@@ -88,6 +88,7 @@ root.addEventListener('leh-transit-state',e=>{
  const d=e.detail;if(!d?.state||!['flight','train','sub'].includes(d.mode))return;
  if(d.mode!==mode){configure(d.mode);appendEvent('Started '+d.mode+' objective',0);}
  else if(d.state.time+.01<lastTime){configure(d.mode);appendEvent('Model reset',0);}
+ if(d.mode==='train'&&d.state.pos===d.state.length&&!d.state.terminalOverrun&&lastState&&lastState.pos<d.state.length&&lastState.speed>.5)d.state.terminalOverrun=true;
  if(!d.observing&&observing){alertKey='';appendEvent('Returned to simulated motion',d.state.time);}
  observing=Boolean(d.observing);lastState=d.state;render(d.state,observing);
 });
@@ -106,4 +107,5 @@ $('op-export').addEventListener('click',()=>{
  const lines=['TRANSIT SIMULATION LAB · LEARNING DEBRIEF','Browser-local teaching model. Not a real vehicle observation or operational guidance.','Vehicle: '+mode,'Objective: '+$('op-target').selectedOptions[0]?.textContent,'Model elapsed: '+fmt(lastState?.time??0,1)+' seconds','Result: '+(complete?'achieved':'incomplete'),'Teaching alert transitions: '+totalAlerts,'Metrics: '+['one','two','three'].map(k=>$('op-metric-'+k+'-label').textContent+' '+$('op-metric-'+k).textContent).join(' · '),'Generic coefficients; no certified vehicle, signaling, terrain collision, or live telemetry.','','Events',...(events.length?events:['No events'])];
  const url=URL.createObjectURL(new Blob([lines.join('\n')+'\n'],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='transit-'+mode+'-learning-debrief.txt';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
 });
+configure(root.querySelector('[data-mode][aria-pressed="true"]')?.dataset.mode||'flight');
 })();
