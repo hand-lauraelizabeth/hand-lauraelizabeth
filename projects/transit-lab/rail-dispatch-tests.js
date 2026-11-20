@@ -1,0 +1,46 @@
+const assert=require('node:assert/strict'),D=require('./rail-dispatch-v4.js');
+const route={name:'7 public trip',lengthM:2300,trip:{tripId:'7W'},stations:[
+ {id:'701',name:'Origin',distanceM:0,scheduledElapsedSec:0,arrivalSec:82800,departureSec:82800},
+ {id:'702',name:'Second St',distanceM:1000,scheduledElapsedSec:120,arrivalSec:82920,departureSec:82950},
+ {id:'703',name:'Terminus',distanceM:2300,scheduledElapsedSec:360,arrivalSec:83160,departureSec:83160}]};
+let r=D.create(route,2300,[0,2500,5500]);
+assert.equal(r.targets.length,2);
+assert.equal(r.targets[0].dwell,30);
+assert.equal(r.targets[1].dwell,15);
+assert.equal(r.targets[0].sourceDwell,'GTFS stop_times');
+assert.equal(D.next(r).name,'Second St');
+const state=(pos,speed,time)=>({pos,speed,time,kind:'train',profile:'metro',throttle:0,accel:0,length:2300,terminalOverrun:false});
+D.advance(r,state(0,0,0));
+D.advance(r,state(986,0.2,120));
+assert.equal(r.phase,'at-platform');
+assert.equal(r.arrivalDelta,0);
+assert.equal(D.openDoors(r,state(986,0.2,120)),true);
+assert.equal(r.phase,'doors-open');
+assert.equal(D.closeDoors(r,state(986,0.2,121)),false);
+assert.equal(D.waitDwell(r,state(986,0.2,121)),29);
+assert.equal(D.dwellRemaining(r,state(986,0.2,121)),0);
+assert.equal(D.closeDoors(r,state(986,0.2,121)),true);
+assert.equal(r.completed,1);
+assert.equal(D.next(r).name,'Terminus');
+assert.equal(r.extraTime,29);
+D.advance(r,state(2300,0.2,331));
+assert.equal(r.phase,'at-platform');
+assert.ok(r.score<=100);
+assert.equal(D.openDoors(r,state(2300,0.2,331)),true);
+assert.equal(D.waitDwell(r,state(2300,0.2,331)),15);
+assert.equal(D.closeDoors(r,state(2300,0.2,331)),true);
+assert.equal(r.phase,'finished');
+assert.equal(r.completed,2);
+assert.equal(r.skipped,0);
+assert.equal(D.report(r).stopsServed,2);
+let missed=D.create(route,2300);
+D.advance(missed,state(0,0,0));D.advance(missed,state(1300,11,120));
+assert.equal(missed.skipped,1);assert.equal(missed.score,78);assert.equal(D.next(missed).name,'Terminus');
+let generic=D.create(null,10000,[0,2500,5500,10000]);
+assert.equal(generic.targets.length,3);
+assert.equal(generic.targets[0].scheduled,null);
+let geographic=D.create({name:'Line',lengthM:5000,stations:[]},5000);
+assert.equal(geographic.targets.length,1);
+assert.equal(D.openDoors(generic,state(2500,10,20)),false);
+assert.throws(()=>D.create(null,-1));
+console.log('Dispatch station matching, GTFS dwell, interlock, overrun, and model scoring tests passed.');
