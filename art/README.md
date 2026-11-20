@@ -1,12 +1,12 @@
 # Art & Visual Work — Catalog & Provenance
 
-This catalog accompanies Laura Elizabeth Hand's [Art & Visual Work](https://www.lauraelizabethhand.com/art/) gallery. It highlights selected original work and process studies and records available information about title, date, medium, publication, exhibition, and recognition.
+This catalog accompanies my [Art & Visual Work](https://www.lauraelizabethhand.com/art/) gallery. It highlights selected original work and process studies and records available information about title, date, medium, publication, exhibition, and recognition.
 
 ## How the gallery is cataloged
 
 The gallery presents finished original work alongside selected process studies when those studies add useful context. Collaborative or editorial work is identified as such where relevant.
 
-Dates, media, titles, and recognition are listed when documented. When a detail is uncertain, it is left unspecified rather than inferred. Website images are web-ready versions of original masters.
+Dates, media, titles, and recognition are listed when documented. When a detail is uncertain, it is left unspecified rather than inferred. Website images are web-ready versions of original masters or, when indicated, surviving institutional archive copies.
 
 ## Current gallery
 
@@ -23,6 +23,22 @@ Dates, media, titles, and recognition are listed when documented. When a detail 
 | *Spectrum of Innocence* | c. 2015 | Figurative drawing | High-resolution original master |
 | Cathedral study | 2014 | Architectural / figurative drawing | Descriptive title used for the study |
 
+## Recovered Scholastic Art & Writing Awards work
+
+All 22 of my Scholastic Art & Writing Awards submissions from 2012–2015 received awards. The first archival recovery batch, supplied in November 2026, includes five original submissions and replacement certificates issued by the Alliance for Young Artists & Writers. I retain the distinction between the original dated awards and the newly prepared replacement certificates. The archival digital images are reproductions of my work, not new works.
+
+| Work | Award year | Scholastic category | Documented award | Recovered image |
+| --- | --- | --- | --- | --- |
+| *The Fenced in Lake* | 2012 | Drawing | Silver Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-the-fenced-in-lake-scholastic-2012.jpg) |
+| *A Moment to Kneel* | 2014 | Drawing | Gold Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-a-moment-to-kneel-scholastic-2014.jpg) |
+| *Bridging the Gap* | 2014 | Drawing | Gold Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-bridging-the-gap-scholastic-2014.jpg) |
+| *Mother Nature* | 2015 | Drawing and Illustration | Gold Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-mother-nature-scholastic-2015.jpg) |
+| *A Rose by Any Other Name* | 2015 | Digital Art | Silver Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-a-rose-by-any-other-name-scholastic-2015.jpg) |
+
+The five replacement certificates confirm the year, title, category, and award level of the works shown above. Additional original artworks will be incorporated when archival copies become available. The replacement certificates and personal correspondence are not published in this repository; the public record describes the awarded works without redistributing private correspondence.
+
+[View the featured recovered-work gallery](https://www.lauraelizabethhand.com/art/#scholastic-archive).
+
 ## Process studies
 
 | Study | Date | Type |
@@ -32,9 +48,9 @@ Dates, media, titles, and recognition are listed when documented. When a detail 
 
 ## Awards & recognition
 
-Laura Elizabeth Hand's creative work has received 22 Scholastic Art & Writing Awards, two Congressional Art Competition awards, the Heart of Art Award, the Creativity Award, and the CSArts Award.
+I received 22 Scholastic Art & Writing Awards—one for each of my recorded submissions—along with two Congressional Art Competition awards, the Heart of Art Award, the Creativity Award, and the CSArts Award.
 
-Awards are listed separately from the gallery unless a specific work-to-award relationship is documented.
+Awards are cataloged separately from the gallery unless the relationship to a particular work is documented. The five recovered Scholastic submissions now have that work-to-award documentation.
 
 ## Cataloging approach
 
