@@ -42,6 +42,22 @@ function renderTrain(){if(current.mode!=='train')return;const el=$('tl-mission-t
  $('tl-mission-train-progress').value=Math.max(0,Math.min(100,s.pos/target*100));lastTrain=s;}
 function renderSub(){if(current.mode!=='sub')return;const s=current.state,target=Number($('tl-mission-depth').value),a=G.depthAssessment(s.depth,s.verticalSpeed,target,hold),el=$('tl-mission-sub-readout');el.dataset.state=a.complete?'done':a.inside?'normal':Math.abs(a.error)>30?'warning':'normal';el.textContent=`Depth ${fmt(s.depth,1)} m; target ${target} m (${fmt(Math.abs(a.error),1)} m ${a.error>=0?'below':'above'} target); vertical rate ${fmt(s.verticalSpeed,2)} m/s. ${a.complete?'Goal achieved for five simulated seconds.':a.inside?'Within target band: stable for '+fmt(hold,1)+' / 5 s.':'Adjust ballast to approach, then reduce your vertical rate.'}`;}
 function refresh(){renderFlight();renderTrain();renderSub();}
+root.addEventListener('leh-transit-route-selected',event=>{
+ const r=event.detail?.route;if(!r||!Number.isFinite(r.lengthM))return;
+ const select=$('tl-mission-station');select.replaceChildren();
+ const stations=(r.stations||[]).filter(st=>st.distanceM>=100&&st.distanceM<=r.lengthM);
+ const targets=stations.map(st=>[st.distanceM,st.name+' · '+(st.distanceM/1000).toFixed(2)+' km']);
+ targets.push([r.lengthM,'Mapped segment end · '+(r.lengthM/1000).toFixed(2)+' km']);
+ for(const [value,label] of targets){const o=document.createElement('option');o.value=String(Math.round(value*10)/10);o.textContent=label;select.add(o);}
+ const note=$('tl-train-controls').querySelector('.mission > p');if(note)note.textContent='Choose a published station centroid matched to the selected route geometry. Aim to stop within an illustrative ±15 m band below 0.5 m/s. Distance is measured on the published line, not surveyed track chainage.';
+ trainPassed=false;lastTrain=null;renderTrain();
+});
+root.addEventListener('leh-transit-route-cleared',()=>{
+ const select=$('tl-mission-station');select.replaceChildren();
+ for(const [value,label] of [['2500','2.5 km'],['5500','5.5 km'],['10000','10 km terminus']]){const o=document.createElement('option');o.value=value;o.textContent=label;select.add(o);}
+ const note=$('tl-train-controls').querySelector('.mission > p');if(note)note.textContent='Choose a marker on the illustrative straight track, then aim to stop within ±15 m at less than 0.5 m/s. Stops are hypothetical.';
+ trainPassed=false;lastTrain=null;renderTrain();
+});
 root.addEventListener('leh-transit-state',event=>{const d=event.detail;if(!d?.state)return;const next=d.mode;if(next==='sub'){const dt=d.state.time-lastSubTime;if(current.mode!=='sub'||dt<0)hold=0;const within=G.depthAssessment(d.state.depth,d.state.verticalSpeed,Number($('tl-mission-depth').value)).inside;hold=within?hold+Math.max(0,Math.min(1,dt)):0;lastSubTime=d.state.time;}if(next!=='train')lastTrain=null;current={mode:next,state:d.state,observing:d.observing};refresh();});
 $('tl-nav-target').addEventListener('change',()=>{$('tl-nav-custom').hidden=$('tl-nav-target').value!=='custom';renderFlight();});for(const id of ['tl-nav-lat','tl-nav-lon','tl-wind','tl-wind-direction'])$(id)?.addEventListener('input',renderFlight);
 $('tl-mission-station').addEventListener('change',()=>{trainPassed=false;lastTrain=null;renderTrain();});$('tl-mission-depth').addEventListener('change',()=>{hold=0;renderSub();});
