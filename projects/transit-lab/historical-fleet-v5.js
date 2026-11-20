@@ -71,15 +71,25 @@ const TransitFleetV5=(()=>{
   return cap(previous+delta,0,cfg.capKnots);
  }
  function railCeiling(id){return trains[id]?.model.limit??null;}
+ // Existing historical choices also require recognizable visual types.
+ const legacy={
+  flight:{dc3:{id:'dc3',label:'Douglas DC-3 · 1935',shape:'twin'}},
+  train:{gg1:{id:'gg1',label:'PRR GG1 electric · 1934',shape:'electric'},
+   r160:{id:'r160',label:'NYCT R160 · 2011 reference',shape:'stainless'}},
+  sub:{gato:{id:'gato',label:'USS Harder · Gato class (1943)',shape:'wwii'},
+   nautilus:{id:'nautilus',label:'USS Nautilus SSN-571 · 1954',shape:'nuclear'}}
+ };
+ function artwork(kind,id){return entry(kind,id)||legacy[kind]?.[id]||null;}
+
  function silhouette(kind,id){
-  const a=entry(kind,id);if(!a)return '';
+  const a=artwork(kind,id);if(!a)return '';
   let art='';
   if(kind==='flight'){
    const wings='<path d="M80 86 L240 77 L318 77 L540 86 L510 99 L327 100 L276 109 L100 100 Z" fill="#d8e5e6" stroke="#507781" stroke-width="3"/>';
    const body='<path d="M275 39 Q301 17 320 39 L327 122 L310 142 L286 126 Z" fill="#e9f0e9" stroke="#456570" stroke-width="3"/><path d="M260 127 L347 127 L339 143 L265 143Z" fill="#c3d9d7" stroke="#456570" stroke-width="3"/>';
-   if(a.shape==='trimotor'){
+   if(a.shape==='trimotor'||a.shape==='twin'){
     art=wings+body;
-    for(const x of [205,308,414])art+='<circle cx="'+x+'" cy="86" r="19" fill="#657a85" stroke="#deefe6" stroke-width="4"/><path d="M'+x+' 57 L'+x+' 115 M'+(x-28)+' 86 L'+(x+28)+' 86" stroke="#819a9c" stroke-width="3"/>';
+    for(const x of (a.shape==='twin'?[232,400]:[205,308,414]))art+='<circle cx="'+x+'" cy="86" r="19" fill="#657a85" stroke="#deefe6" stroke-width="4"/><path d="M'+x+' 57 L'+x+' 115 M'+(x-28)+' 86 L'+(x+28)+' 86" stroke="#819a9c" stroke-width="3"/>';
     for(let x=128;x<515;x+=21)art+='<path d="M'+x+' 87 l-7 8" stroke="#90aeb1" stroke-width="1"/>';
    }else{
     art=wings.replace('M80 86 L240 77 L318 77 L540 86 L510 99 L327 100 L276 109 L100 100','M95 88 L254 78 L323 78 L525 88 L500 101 L325 101 L287 110 L114 101')+body;
@@ -90,6 +100,9 @@ const TransitFleetV5=(()=>{
     art='<path d="M98 112 L142 81 L330 81 Q375 89 387 120 L387 135 L95 135Z" fill="#25476e" stroke="#abc4d1" stroke-width="5"/><path d="M157 81 Q249 65 335 78" fill="none" stroke="#eef1d3" stroke-width="4"/><path d="M391 115H514V135H391Z" fill="#475f78"/>';
     for(const x of [162,236,310,426,480])art+='<circle cx="'+x+'" cy="142" r="20" fill="#283a4b" stroke="#aac3bd" stroke-width="5"/>';
     art+='<path d="M118 102 Q145 91 174 96" stroke="#cc9a40" stroke-width="5" fill="none"/>';
+   }else if(a.shape==='electric'){
+    art='<path d="M80 81 L137 57 H488 L542 81 V137 H80Z" fill="#39566b" stroke="#e5ecdc" stroke-width="5"/><path d="M188 57 L216 29 L247 57 M362 57 L388 29 L423 57" fill="none" stroke="#cfdfdf" stroke-width="5"/><rect x="107" y="82" width="96" height="33" fill="#102e46"/><rect x="416" y="82" width="96" height="33" fill="#102e46"/>';
+    for(const x of [130,225,325,420,502])art+='<circle cx="'+x+'" cy="142" r="17" fill="#24394d" stroke="#c1d0cf" stroke-width="5"/>';
    }else{
     art='<rect x="74" y="52" width="474" height="82" rx="12" fill="'+(a.shape==='stainless'?'#a9b9c0':'#467a5e')+'" stroke="#e5ecdc" stroke-width="5"/>';
     for(let x=94;x<526;x+=55){art+='<rect x="'+x+'" y="68" width="40" height="35" rx="3" fill="#122f45" stroke="#d3e2da" stroke-width="2"/>';}
@@ -99,39 +112,77 @@ const TransitFleetV5=(()=>{
    }
    art+='<path d="M40 160H582" stroke="#6ea39a" stroke-width="5"/>';
   }else{
-   if(a.shape==='early'){
+   if(a.shape==='early'||a.shape==='wwii'){
     art='<path d="M80 118 Q55 90 85 73 L462 73 Q527 82 531 112 L487 128 L97 128Z" fill="#728486" stroke="#e3e8d8" stroke-width="5"/><rect x="288" y="41" width="54" height="41" rx="8" fill="#9facaa"/><path d="M314 41V20" stroke="#c4d5d1" stroke-width="6"/>';
    }else{
     art='<path d="M48 107 Q90 56 299 71 Q510 73 564 107 Q512 138 297 138 Q95 141 48 107Z" fill="#7f9fa4" stroke="#dcebe4" stroke-width="5"/><path d="M275 78 L290 31 Q313 17 331 37 L345 81Z" fill="#a5bdbc"/>';
+
    }
    art+='<path d="M565 107L594 85M565 107L594 132" stroke="#c3d6d3" stroke-width="4"/>';
   }
   return '<svg viewBox="0 0 620 174" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><rect width="620" height="174" rx="14" fill="#092338"/><circle cx="530" cy="32" r="61" fill="#2e6676" opacity=".3"/><path d="M0 155H620" stroke="#39778a" stroke-width="1"/>'+art+'</svg>';
  }
  function drawBadge(ctx,kind,id,x=690,y=156){
-  const cfg=entry(kind,id);if(!cfg)return false;
+  const cfg=artwork(kind,id);if(!cfg)return false;
   ctx.save();ctx.fillStyle='#0a2334ed';ctx.strokeStyle='#8cb3b8';ctx.lineWidth=2;
   ctx.beginPath();ctx.roundRect(x-16,y-22,270,113,11);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#9fdbd2';ctx.font='700 13px system-ui,sans-serif';ctx.fillText('HISTORICAL VEHICLE STUDY',x,y+1);
-  const label=cfg.label.length>30?cfg.label.slice(0,29)+'…':cfg.label;
-  ctx.fillStyle='#fff7d9';ctx.font='700 17px system-ui,sans-serif';ctx.fillText(label,x,y+31);
-  ctx.fillStyle='#d3e6e2';ctx.font='12px system-ui,sans-serif';ctx.fillText('Illustrated · modeled dynamics, not an exact replica',x,y+56);
+  ctx.fillStyle='#9fdbd2';ctx.font='700 12px system-ui,sans-serif';ctx.fillText('SELECTED HISTORICAL VEHICLE',x,y+1);
+  const label=cfg.label.length>29?cfg.label.slice(0,28)+'…':cfg.label;
+  ctx.fillStyle='#fff7d9';ctx.font='700 15px system-ui,sans-serif';ctx.fillText(label,x,y+28);
+  ctx.fillStyle='#d3e6e2';ctx.font='11px system-ui,sans-serif';ctx.fillText('SCHEMATIC SHAPE · NOT TO SCALE',x,y+47);
+  // Small shape key reflects vehicle type. It is an annotation, not an outside-camera view.
+  ctx.strokeStyle='#f0dba9';ctx.fillStyle='#88b4bf';ctx.lineWidth=3;
+  if(kind==='flight'){
+   ctx.beginPath();ctx.moveTo(x+16,y+71);ctx.lineTo(x+110,y+71);
+   ctx.moveTo(x+63,y+55);ctx.lineTo(x+63,y+84);ctx.moveTo(x+37,y+86);ctx.lineTo(x+86,y+86);ctx.stroke();
+   const count=cfg.shape==='trimotor'?3:cfg.shape==='twin'?2:1;
+   for(let i=0;i<count;i++){const pos=count===3?x+36+i*27:count===2?x+41+i*44:x+63;
+    ctx.beginPath();ctx.arc(pos,y+71,6,0,Math.PI*2);ctx.fill();}
+  }else if(kind==='train'){
+   if(cfg.shape==='streamline'){
+    ctx.beginPath();ctx.moveTo(x+15,y+82);ctx.lineTo(x+35,y+63);ctx.lineTo(x+111,y+62);ctx.lineTo(x+130,y+82);ctx.closePath();ctx.fill();ctx.stroke();
+   }else{
+    ctx.fillRect(x+18,y+63,115,23);
+    if(cfg.shape==='electric'){ctx.beginPath();ctx.moveTo(x+45,y+63);ctx.lineTo(x+64,y+53);ctx.lineTo(x+84,y+63);ctx.stroke();}
+   }
+   for(const off of [39,75,112]){ctx.beginPath();ctx.arc(x+off,y+87,5,0,Math.PI*2);ctx.fill();}
+  }else{
+   ctx.beginPath();ctx.ellipse(x+75,y+74,cfg.shape==='early'?56:67,cfg.shape==='wwii'?9:15,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+   ctx.fillRect(x+70,y+57,cfg.shape==='early'?14:22,13);
+  }
+  ctx.fillStyle='#accfc8';ctx.font='12px system-ui,sans-serif';ctx.fillText('Model-driven view',x+144,y+76);
   ctx.restore();return true;
  }
  function drawHull(ctx,id){
-  if(!subs[id])return false;
-  ctx.fillStyle=id==='holland'?'#90978c':'#a4b6b4';ctx.strokeStyle='#e0e9dc';ctx.lineWidth=4;
-  ctx.beginPath();
-  if(id==='holland'){ctx.moveTo(-134,-17);ctx.quadraticCurveTo(-166,0,-134,17);ctx.lineTo(108,17);ctx.quadraticCurveTo(149,4,108,-17);}
-  else{ctx.moveTo(-183,0);ctx.bezierCurveTo(-145,-39,135,-43,183,0);ctx.bezierCurveTo(132,42,-143,39,-183,0);}
-  ctx.closePath();ctx.fill();ctx.stroke();
-  ctx.fillStyle='#c5d6cd';
+  const cfg=artwork('sub',id);if(!cfg)return false;
+  ctx.fillStyle=id==='holland'?'#90978c':id==='gato'?'#667e81':'#a4b6b4';
+  ctx.strokeStyle='#e0e9dc';ctx.lineWidth=4;ctx.beginPath();
+  if(id==='holland'){
+   ctx.moveTo(-134,-17);ctx.quadraticCurveTo(-166,0,-134,17);
+   ctx.lineTo(108,17);ctx.quadraticCurveTo(149,4,108,-17);
+  }else if(id==='gato'){
+   ctx.moveTo(-172,-3);ctx.quadraticCurveTo(-154,-26,-118,-24);
+   ctx.lineTo(125,-24);ctx.quadraticCurveTo(172,-12,174,3);
+   ctx.quadraticCurveTo(140,29,80,27);ctx.lineTo(-112,26);ctx.quadraticCurveTo(-168,19,-172,-3);
+  }else{
+   ctx.moveTo(-183,0);ctx.bezierCurveTo(-145,-39,135,-43,183,0);
+   ctx.bezierCurveTo(132,42,-143,39,-183,0);
+  }
+  ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#c5d6cd';
   if(id==='holland'){ctx.fillRect(-4,-47,53,33);ctx.fillRect(16,-64,5,17);}
-  else{ctx.beginPath();ctx.moveTo(-14,-26);ctx.lineTo(3,-69);ctx.lineTo(33,-68);ctx.lineTo(50,-26);ctx.closePath();ctx.fill();ctx.fillRect(15,-82,4,16);}
-  ctx.strokeStyle='#dfe7db';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(176,-6);ctx.lineTo(202,-30);ctx.moveTo(176,6);ctx.lineTo(202,30);ctx.stroke();
+  else if(id==='gato'){
+   ctx.fillRect(-22,-47,58,22);ctx.fillRect(-1,-62,11,15);
+   ctx.beginPath();ctx.moveTo(-164,-25);ctx.lineTo(151,-25);ctx.strokeStyle='#c7d1c7';ctx.lineWidth=3;ctx.stroke();
+  }else{
+   ctx.beginPath();ctx.moveTo(-14,-26);ctx.lineTo(3,-69);ctx.lineTo(33,-68);ctx.lineTo(50,-26);ctx.closePath();ctx.fill();
+   ctx.fillRect(15,-82,4,16);
+   if(id==='nautilus'){ctx.beginPath();ctx.moveTo(-157,-9);ctx.lineTo(-184,-21);ctx.moveTo(-157,9);ctx.lineTo(-184,21);ctx.stroke();}
+  }
+  ctx.strokeStyle='#dfe7db';ctx.lineWidth=4;ctx.beginPath();
+  ctx.moveTo(176,-6);ctx.lineTo(202,-30);ctx.moveTo(176,6);ctx.lineTo(202,30);ctx.stroke();
   return true;
  }
- return {flights,trains,subs,fleet,entry,nextSubSpeed,railCeiling,silhouette,drawBadge,drawHull};
+ return {flights,trains,subs,fleet,entry,artwork,nextSubSpeed,railCeiling,silhouette,drawBadge,drawHull};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=TransitFleetV5;
 (function installHistoricalFleetV5(){
@@ -167,15 +218,17 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitFleetV5;
  let routeActive=false;
  function currentId(kind){return kind==='flight'?$('tl-plane')?.value:kind==='train'?$('tl-train-profile')?.value:$('hr-sub-vehicle')?.value;}
  function updateCard(kind){
-  const host=cards[kind],cfg=F.entry(kind,currentId(kind));if(!host)return;
+  const host=cards[kind],id=currentId(kind),cfg=F.artwork(kind,id);if(!host)return;
   if(!cfg){host.hidden=true;return;}host.hidden=false;
-  const facts=cfg.facts.map(x=>'<li>'+x+'</li>').join('');
-  const limit=kind==='train'?'Model ceiling: '+Math.round(cfg.model.limit/.44704)+' mph (illustrative).':
-   kind==='sub'?'Modeled submerged ceiling: '+cfg.capKnots+' kn.':
-   'Mass/wing/drag model is simplified; published reference speed is not a flight envelope.';
-  host.innerHTML=F.silhouette(kind,cfg.id)+'<h4>'+cfg.label+'</h4><ul class="hf-facts">'+facts+'</ul>'+
-    '<p>'+limit+'</p><p><strong>Model boundary:</strong> '+cfg.assumptions+'</p>'+
-    '<p><a href="'+cfg.source+'" target="_blank" rel="noopener noreferrer">View the museum or naval source</a></p>'+
+  const historical=H.references[id]||cfg,facts=(historical.facts||[]).map(x=>'<li>'+x+'</li>').join('');
+  const source=historical.source||cfg.source||'',boundary=historical.assumptions||cfg.assumptions||'Vehicle performance remains an educational model.';
+  const railSpec=M.TRAINS[id],subCap=F.subs[id]?.capKnots??(id==='gato'?8.75:20);
+  const limit=kind==='train'?'Vehicle model ceiling: '+Math.round((railSpec?.limit||0)/.44704)+' mph; not a route speed limit.':
+   kind==='sub'?'Submerged model speed ceiling: '+subCap+' kn; not a depth or safety rating.':
+   'Point-mass aircraft handling uses published references and illustrative parameters.';
+  host.innerHTML=F.silhouette(kind,id)+'<h4>'+cfg.label+'</h4><ul class="hf-facts">'+facts+'</ul>'+
+    '<p>'+limit+'</p><p><strong>Model boundary:</strong> '+boundary+'</p>'+
+    (source?'<p><a href="'+source+'" target="_blank" rel="noopener noreferrer">View the historical source</a></p>':'')+
     (kind==='train'&&routeActive?'<p class="hf-warning">Selected published route data describes a modern service line, not an authenticated historical journey. Vehicle-specific signals and limits are not imported.</p>':'');
  }
  function clampVessel(){
@@ -201,7 +254,14 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitFleetV5;
   return {...next,requestedSpeedKnots:Math.min(cfg.capKnots,Math.max(0,target)),hullSpeedKnots:actual,vesselProfile:id};
  };
  root.addEventListener('leh-transit-state',event=>{
-  if(event.detail?.mode==='sub'&&event.detail?.state?.time===0)clampVessel();
+  const d=event.detail;if(!d?.state)return;
+  if(d.mode==='sub'&&d.state.time===0)clampVessel();
+  const id=d.mode==='sub'?currentId('sub'):d.state.profile;
+  const chosen=F.artwork(d.mode,id),badge=$('tl-mode-label');
+  if(chosen&&badge){
+   const label=chosen.label.split(' · ')[0];
+   badge.textContent=label+' · '+(d.mode==='train'&&d.state.routeName?'mapped-route model':'simulated model');
+  }
  });
  clampVessel();renderAll();
 })();
