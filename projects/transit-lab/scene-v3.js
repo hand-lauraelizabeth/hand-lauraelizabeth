@@ -68,13 +68,15 @@ const TransitSceneMath=(()=>{
   const distance=Math.hypot(north,east);
   return distance<=10000?distance:0;
  }
+ function waterlineY(depth){return 291-Math.max(0,finite(depth))*70/60;}
+ function depthAtY(depth,y){return Math.max(0,finite(depth))+(finite(y)-291)*60/70;}
  function pointSeparation(a,b){
   if(!a||!b||![a.lat,a.lon,b.lat,b.lon].every(Number.isFinite))return Infinity;
   const lat=(a.lat+b.lat)*Math.PI/360,dy=(b.lat-a.lat)*Math.PI/180*6371008.8;
   let dLon=b.lon-a.lon;if(dLon>180)dLon-=360;if(dLon< -180)dLon+=360;
   return Math.hypot(dy,dLon*Math.PI/180*6371008.8*Math.cos(lat));
  }
- return {clamp,curvature,seabed,flightView,railView,subView,traveledMeters,pointSeparation};
+ return {clamp,curvature,seabed,flightView,railView,subView,traveledMeters,pointSeparation,waterlineY,depthAtY};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
 (function installSceneV3(){
@@ -238,7 +240,18 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
    const x=((i*183+visualTravel.sub*(i%3+1)*.045)%990+990)%990,y=((i*79+(s.depth||0)*.35+(s.time||0)*.06*(i%4+1))%560+560)%560;
    ctx.beginPath();ctx.arc(x,y,1+i%3*.45,0,Math.PI*2);ctx.fillStyle=i%4?'#c7f9f24a':'#defcf8b0';ctx.fill();
   }
-  for(let i=0;i<5;i++){const y=132+i*70;segment(ctx,50,y,903,y,'#81c3d133',1);t(ctx,fmt(s.depth-120+i*60)+'m',37,y-6,14,'#b7d6e1');}
+  const surface=C.waterlineY(v.depth);
+  if(surface>0&&surface<H){
+   rect(ctx,0,0,W,surface,'#79b4c3');
+   segment(ctx,0,surface,W,surface,'#c3eee9',4);
+   t(ctx,'SURFACE · 0 m',52,Math.max(23,surface-13),15,'#113f53','800');
+  }
+  for(let i=0;i<5;i++){
+   const y=151+i*70,m=C.depthAtY(v.depth,y);
+   if(m<0||m>1000)continue;
+   segment(ctx,50,y,903,y,'#81c3d155',1);
+   t(ctx,fmt(m)+' m',37,y-6,14,'#b7d6e1');
+  }
   ctx.save();ctx.translate(480,291+C.clamp(v.verticalRate*28,-45,45));
   ctx.fillStyle='#d5cea7';ctx.strokeStyle='#f5ebc1';ctx.lineWidth=4;
   if(!(typeof TransitFleetV5!=='undefined'&&TransitFleetV5.drawHull(ctx,root.dataset.fleetSub||''))){
