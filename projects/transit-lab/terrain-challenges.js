@@ -86,7 +86,7 @@ try{samples.push({...T.usgsParse(await query(T.usgsUrl(p.lat,p.lon))),...p,km});
 catch(error){failures.push(km+' km: '+error.message);}
 }
 if(id!==generation)return;
-flight=samples;showSamples();
+flight=samples;root.dispatchEvent(new CustomEvent('leh-transit-flight-terrain-samples',{detail:{samples:flight}}));showSamples();
 if(failures.length)result($('tc-results').textContent+' Unavailable: '+failures.join('; ')+'.');
 redrawMarkers();drawProfile();annotate();
 }finally{button.disabled=false;}
@@ -98,7 +98,7 @@ try{const v=T.etopoParse(await query(T.etopoUrl(snapshot.lat,snapshot.lon)));if(
 catch(error){if(id===generation){seabed=null;root.dispatchEvent(new CustomEvent('leh-transit-seabed-sample',{detail:{sample:null}}));result('Seafloor query unavailable: '+error.message);annotate();}}
 finally{button.disabled=false;}
 });
-$('tc-clear').addEventListener('click',()=>{generation++;flight=[];seabed=null;root.dispatchEvent(new CustomEvent('leh-transit-seabed-sample',{detail:{sample:null}}));result('Locally held samples cleared.');drawProfile();redrawMarkers();annotate();});
+$('tc-clear').addEventListener('click',()=>{generation++;flight=[];seabed=null;root.dispatchEvent(new CustomEvent('leh-transit-flight-terrain-samples',{detail:{samples:[]}}));root.dispatchEvent(new CustomEvent('leh-transit-seabed-sample',{detail:{sample:null}}));result('Locally held samples cleared.');drawProfile();redrawMarkers();annotate();});
 root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;state=event.detail.state;if(mode!==event.detail.mode)setMode(event.detail.mode);else annotate();});
 root.addEventListener('leh-transit-map-ready',event=>{map=event.detail?.map||null;redrawMarkers();});
 if(root.transitLatest?.state)state=root.transitLatest.state;
