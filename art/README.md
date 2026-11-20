@@ -23,11 +23,11 @@ Dates, media, titles, and recognition are listed when documented. When a detail 
 | *Spectrum of Innocence* | c. 2015 | Figurative drawing | High-resolution original master |
 | Cathedral study | 2014 | Architectural / figurative drawing | Descriptive title used for the study |
 
-## Recovered Scholastic Art & Writing Awards work
+## Scholastic Award-Winning Art
 
-All 22 of my Scholastic Art & Writing Awards submissions from 2012–2015 received awards. The first archival recovery batch, supplied in November 2026, includes five original submissions and replacement certificates issued by the Alliance for Young Artists & Writers. I retain the distinction between the original dated awards and the newly prepared replacement certificates. The archival digital images are reproductions of my work, not new works.
+Between 2012 and 2015, I received awards for all 22 of my Scholastic Art & Writing Awards submissions. The five artworks below received three Gold Keys and two Silver Keys, with their years and categories documented by Scholastic. The images are archival copies of my original works.
 
-| Work | Award year | Scholastic category | Documented award | Recovered image |
+| Work | Award year | Scholastic category | Documented award | Artwork |
 | --- | --- | --- | --- | --- |
 | *The Fenced in Lake* | 2012 | Drawing | Silver Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-the-fenced-in-lake-scholastic-2012.jpg) |
 | *A Moment to Kneel* | 2014 | Drawing | Gold Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-a-moment-to-kneel-scholastic-2014.jpg) |
@@ -35,9 +35,9 @@ All 22 of my Scholastic Art & Writing Awards submissions from 2012–2015 receiv
 | *Mother Nature* | 2015 | Drawing and Illustration | Gold Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-mother-nature-scholastic-2015.jpg) |
 | *A Rose by Any Other Name* | 2015 | Digital Art | Silver Key | [View work](https://www.lauraelizabethhand.com/wp-content/uploads/2026/11/laura-elizabeth-hand-a-rose-by-any-other-name-scholastic-2015.jpg) |
 
-The five replacement certificates confirm the year, title, category, and award level of the works shown above. Additional original artworks will be incorporated when archival copies become available. The replacement certificates and personal correspondence are not published in this repository; the public record describes the awarded works without redistributing private correspondence.
+The Alliance for Young Artists & Writers provided replacement certificates confirming the award details of these five pieces. The images shown are reproductions of the original works.
 
-[View the featured recovered-work gallery](https://www.lauraelizabethhand.com/art/#scholastic-archive).
+[View the Scholastic award-winning art gallery](https://www.lauraelizabethhand.com/art/#scholastic-archive).
 
 ## Process studies
 
@@ -50,7 +50,7 @@ The five replacement certificates confirm the year, title, category, and award l
 
 I received 22 Scholastic Art & Writing Awards—one for each of my recorded submissions—along with two Congressional Art Competition awards, the Heart of Art Award, the Creativity Award, and the CSArts Award.
 
-Awards are cataloged separately from the gallery unless the relationship to a particular work is documented. The five recovered Scholastic submissions now have that work-to-award documentation.
+The five Scholastic pieces linked above have documented Gold Key or Silver Key recognition.
 
 ## Cataloging approach
 
