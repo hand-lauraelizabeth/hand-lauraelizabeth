@@ -10,6 +10,7 @@ assert.equal(a.remaining,100);assert.ok(a.planning>0&&!a.overshot);
 assert.ok(O.railApproach({...t,pos:2516,speed:0},M.TRAINS.metro,2500).overshot);
 assert.ok(O.railApproach({...t,pos:2490,speed:.3},M.TRAINS.metro,2500).platformStop);
 assert.ok(!O.railApproach({...t,pos:2490,speed:3},M.TRAINS.metro,2500).platformStop);
+const forced={...t,pos:10000,speed:0,terminalOverrun:true};assert.ok(O.railApproach(forced,M.TRAINS.metro,10000).overshot);assert.ok(!O.railApproach(forced,M.TRAINS.metro,10000).platformStop);
 const sub=M.subInit();assert.equal(O.subAssessment({...sub,depth:75,verticalSpeed:0},75).stable,true);
 assert.equal(O.subAssessment({...sub,depth:75,verticalSpeed:.3},75).stable,false);
 assert.equal(O.subAssessment({...sub,depth:5,verticalSpeed:-1},75).nearSurface,true);
