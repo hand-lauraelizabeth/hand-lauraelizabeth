@@ -33,7 +33,7 @@ panel.innerHTML=`
 </div>
 <div id="di-rail" class="di-stage" data-di-mode="train" hidden>
 <h3>Railway · GTFS shape geometry</h3>
-<p>Import <code>shapes.txt</code> from a GTFS Schedule feed, or a GeoJSON LineString. Actual geographic geometry is shown as a <strong>reference</strong>; the locomotive still follows the generic 10 km teaching track.</p>
+<p>Import <code>shapes.txt</code> from a GTFS Schedule feed, or a GeoJSON LineString. Actual geographic geometry is a <strong>reference</strong>. On the map, 10 km of simulated progress can be projected proportionally across the route. This is not actual train odometry.</p>
 <label for="di-shapes-file">GTFS shapes.txt or route GeoJSON<input id="di-shapes-file" type="file" accept=".txt,.csv,.geojson,.json,text/plain,application/json"></label>
 <label for="di-route-select" id="di-route-wrap" hidden>Imported route<select id="di-route-select"></select></label>
 <svg id="di-route-map" viewBox="0 0 640 240" role="img" aria-label="Imported geographic route outline, not the simulated train position" class="di-map"><text x="25" y="120" fill="#345c4c" font-size="17">No route geometry imported.</text></svg>
@@ -102,7 +102,8 @@ function renderRoute(){
   el('text',{x:Math.max(12,Math.min(560,p.x+10)),y:Math.max(20,Math.min(225,p.y-10)),fill:'#173e34','font-size':15,'font-weight':700},label);
  }
  svg.setAttribute('aria-label',route.name+' route outline with '+route.count+' points, '+(route.lengthM/1000).toFixed(2)+' km.');
- $('di-route-stats').textContent=route.name+' · '+route.count+' geographic points · approximately '+(route.lengthM/1000).toFixed(2)+' km · start '+route.points[0].lat.toFixed(4)+'°, '+route.points[0].lon.toFixed(4)+'°. The train simulation is still a separate generic 10 km route.';
+ $('di-route-stats').textContent=route.name+' · '+route.count+' geographic points · approximately '+(route.lengthM/1000).toFixed(2)+' km · start '+route.points[0].lat.toFixed(4)+'°, '+route.points[0].lon.toFixed(4)+'°. The 10 km teaching train can be projected proportionally over imported geometry; this is not live train positioning.';
+ root.dispatchEvent(new CustomEvent('leh-transit-route-selected',{detail:{route}}));
 }
 $('di-shapes-file').addEventListener('change',async e=>{
  try{
