@@ -218,15 +218,17 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitFleetV5;
  let routeActive=false;
  function currentId(kind){return kind==='flight'?$('tl-plane')?.value:kind==='train'?$('tl-train-profile')?.value:$('hr-sub-vehicle')?.value;}
  function updateCard(kind){
-  const host=cards[kind],cfg=F.entry(kind,currentId(kind));if(!host)return;
+  const host=cards[kind],id=currentId(kind),cfg=F.artwork(kind,id);if(!host)return;
   if(!cfg){host.hidden=true;return;}host.hidden=false;
-  const facts=cfg.facts.map(x=>'<li>'+x+'</li>').join('');
-  const limit=kind==='train'?'Model ceiling: '+Math.round(cfg.model.limit/.44704)+' mph (illustrative).':
-   kind==='sub'?'Modeled submerged ceiling: '+cfg.capKnots+' kn.':
-   'Mass/wing/drag model is simplified; published reference speed is not a flight envelope.';
-  host.innerHTML=F.silhouette(kind,cfg.id)+'<h4>'+cfg.label+'</h4><ul class="hf-facts">'+facts+'</ul>'+
-    '<p>'+limit+'</p><p><strong>Model boundary:</strong> '+cfg.assumptions+'</p>'+
-    '<p><a href="'+cfg.source+'" target="_blank" rel="noopener noreferrer">View the museum or naval source</a></p>'+
+  const historical=H.references[id]||cfg,facts=(historical.facts||[]).map(x=>'<li>'+x+'</li>').join('');
+  const source=historical.source||cfg.source||'',boundary=historical.assumptions||cfg.assumptions||'Vehicle performance remains an educational model.';
+  const railSpec=M.TRAINS[id],subCap=F.subs[id]?.capKnots??(id==='gato'?8.75:20);
+  const limit=kind==='train'?'Vehicle model ceiling: '+Math.round((railSpec?.limit||0)/.44704)+' mph; not a route speed limit.':
+   kind==='sub'?'Submerged model speed ceiling: '+subCap+' kn; not a depth or safety rating.':
+   'Point-mass aircraft handling uses published references and illustrative parameters.';
+  host.innerHTML=F.silhouette(kind,id)+'<h4>'+cfg.label+'</h4><ul class="hf-facts">'+facts+'</ul>'+
+    '<p>'+limit+'</p><p><strong>Model boundary:</strong> '+boundary+'</p>'+
+    (source?'<p><a href="'+source+'" target="_blank" rel="noopener noreferrer">View the historical source</a></p>':'')+
     (kind==='train'&&routeActive?'<p class="hf-warning">Selected published route data describes a modern service line, not an authenticated historical journey. Vehicle-specific signals and limits are not imported.</p>':'');
  }
  function clampVessel(){
@@ -252,7 +254,14 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitFleetV5;
   return {...next,requestedSpeedKnots:Math.min(cfg.capKnots,Math.max(0,target)),hullSpeedKnots:actual,vesselProfile:id};
  };
  root.addEventListener('leh-transit-state',event=>{
-  if(event.detail?.mode==='sub'&&event.detail?.state?.time===0)clampVessel();
+  const d=event.detail;if(!d?.state)return;
+  if(d.mode==='sub'&&d.state.time===0)clampVessel();
+  const id=d.mode==='sub'?currentId('sub'):d.state.profile;
+  const chosen=F.artwork(d.mode,id),badge=$('tl-mode-label');
+  if(chosen&&badge){
+   const label=chosen.label.split(' · ')[0];
+   badge.textContent=label+' · '+(d.mode==='train'&&d.state.routeName?'mapped-route model':'simulated model');
+  }
  });
  clampVessel();renderAll();
 })();
