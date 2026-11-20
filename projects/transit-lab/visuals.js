@@ -225,7 +225,7 @@ function quickButtons(kind){
   button.addEventListener("click",()=>{const el=$(id);if(!el||el.disabled)return;el.value=String(value);el.dispatchEvent(new Event("input",{bubbles:true}));});quick.append(button);
  }
 }
-const modeTitle={flight:"Flight instrument view",train:"Rail cab schematic",sub:"Submarine depth display"};
+const modeTitle={flight:"Flight instrument view",train:"Rail instrument schematic",sub:"Submarine depth display"};
 const explainer={
 flight:"This resembles the organization of a primary flight display: airspeed, altitude, bank, and heading. The central horizon follows the model’s flight-path angle as a visual proxy; flight-path angle is not body pitch. Groundspeed includes an optional steady-wind estimate. It is not a camera, terrain view, or approved PFD.",
 train:"The instrument schematic follows modeled speed, position, grade, controls and idealized braking. When a published rail route or GTFS trip is selected, the active dispatch stop takes precedence over a hypothetical station marker. Track infrastructure, signals, historic assignments and gradients are not surveyed.",
@@ -304,7 +304,7 @@ let mode="flight",lastDescription=-1,dispatchState=null;
 function update(e){
  const data=e.detail;if(!data?.state)return;
  const next=data.mode;
- if(next!==mode){mode=next;quickButtons(mode);updateText("tv-view-explainer",explainer[mode]);updateText("tl-view-title",modeTitle[mode]);}
+ if(next!==mode){mode=next;lastDescription=-1;quickButtons(mode);updateText("tv-view-explainer",explainer[mode]);updateText("tl-view-title",modeTitle[mode]);}
  if(mode==="flight")renderFlight(data.state,data.observing);
  else if(mode==="train")renderTrain(data.state);
  else renderSub(data.state);
