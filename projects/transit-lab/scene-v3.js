@@ -41,7 +41,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   canvas.setAttribute('role','img');canvas.setAttribute('aria-label',kind+' procedural external view, not a recording');
   stage.append(canvas);canvases[kind]={stage,canvas,ctx:canvas.getContext('2d')};
  }
- let view='instrument',mode='flight',state=null,route=null,bathymetry=null,observing=false;
+ let view='instrument',mode='flight',state=null,route=null,bathymetry=null,terrainSamples=[],observing=false;
  const W=960,H=540,fmt=(n,d=0)=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
  const rect=(ctx,x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x,y,w,h);};
  const segment=(ctx,x,y,ex,ey,col,w=2)=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.stroke();};
@@ -70,6 +70,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   readout(ctx,258,'ALTITUDE (MODEL)',fmt(s.alt*3.28084)+' ft',226);
   readout(ctx,718,'HEADING',fmt(s.heading)+'°',215);
   panel(ctx,29,397,422,96);t(ctx,'AIRCRAFT MODEL',47,423,14,'#abd9d5','800');t(ctx,M.AIRCRAFT[s.profile]?.name||'Flight demonstrator',47,453,19);t(ctx,'BANK '+fmt(s.bank,0)+'°   PATH '+fmt(s.flightPath,1)+'°',47,480,15,'#d2e9da');
+  if(terrainSamples.length){panel(ctx,508,302,422,80);t(ctx,'USGS POINT SAMPLES · NOT A CONTINUOUS TERRAIN MODEL',521,324,12,'#aeddd7','800');t(ctx,terrainSamples.map(x=>x.km+' km: '+fmt(x.meters)+' m').join('  |  '),521,352,16,'#fff1cb','700');}
   panel(ctx,558,397,373,96);t(ctx,'GROUND TRACK / SPEED',574,423,14,'#abd9d5','800');t(ctx,fmt(s.trackDeg??s.heading,0)+'°   '+fmt((s.groundSpeed??s.speed)*1.943844,0)+' kn',574,463,24);
   t(ctx,'PROCEDURAL LANDSCAPE · NOT ACTUAL FLIGHT TERRAIN',480,520,14,'#e1eee6','700','center');
  }
@@ -156,6 +157,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
  root.addEventListener('leh-transit-route-selected',event=>{route=event.detail?.route||null;draw();});
  root.addEventListener('leh-transit-route-cleared',()=>{route=null;draw();});
  root.addEventListener('leh-transit-seabed-sample',event=>{bathymetry=event.detail?.sample||null;draw();});
+ root.addEventListener('leh-transit-flight-terrain-samples',event=>{terrainSamples=event.detail?.samples||[];draw();});
  root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;mode=event.detail.mode;state=event.detail.state;observing=event.detail.observing;draw();});
  if(root.transitLatest){mode=root.transitLatest.mode;state=root.transitLatest.state;}
  choose('instrument');
