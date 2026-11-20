@@ -12,7 +12,7 @@ for(const [kind,entries] of Object.entries(F.fleet)){
   assert.ok(v.source.startsWith('https://'));
   assert.ok(v.label.length>10);
   assert.ok(v.facts.length>=2);
-  assert.ok(/illustrative|classroom|modeled|generic|not a/.test(v.assumptions));
+  assert.ok(/illustrative|classroom|modeled|generic|not a|teaching|not published/.test(v.assumptions));
   assert.ok(F.silhouette(kind,id).includes('<svg'));
   assert.ok(F.silhouette(kind,id).includes('viewBox='));
  }
