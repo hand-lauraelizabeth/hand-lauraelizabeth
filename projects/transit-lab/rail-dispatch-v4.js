@@ -108,6 +108,14 @@ function closeDoors(run,s){
  if(run.phase==='finished')event(run,'Run complete: '+run.completed+' platform services, '+run.skipped+' missed, score '+run.score+'/100.',clock(run,s));
  return true;
 }
+function interlockedStep(step,state,dt,doorsOpen){
+ if(!doorsOpen)return step(state,dt);
+ if(!state||state.kind!=='train')return step(state,dt);
+ // Schoolroom door interlock holds the station position even on a hypothetical downgrade.
+ // It is not a parking-brake or wheel-slide calculation.
+ const modeled=step({...state,speed:0,throttle:0,brake:100},dt);
+ return {...modeled,pos:state.pos,speed:0,accel:0,throttle:0,brake:100,doorInterlock:true,terminalOverrun:state.terminalOverrun};
+}
 function report(run){
  return {route:run.routeName,source:run.source,score:run.score,stopsServed:run.completed,missed:run.skipped,stopTotal:run.targets.length,
   phase:run.phase,elapsedS:run.lastState?.time??0,passengerServiceSeconds:run.extraTime,
@@ -116,7 +124,7 @@ function report(run){
   targets:run.targets.map(x=>({name:x.name,distanceM:x.distance,scheduledElapsedS:x.scheduled,dwellS:x.dwell,sourceDwell:x.sourceDwell})),
   events:run.logs,disclaimer:'Classroom scoring and hypothetical vehicle dynamics only; not train dispatch, published operating constraints, real energy usage, or safe-operation assessment.'};
 }
-return {targets,create,advance,next,openDoors,waitDwell,closeDoors,dwellRemaining,clock,report};
+return {targets,create,advance,next,openDoors,waitDwell,closeDoors,dwellRemaining,clock,interlockedStep,report};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=TransitDispatch;
 (function installDispatch(){
@@ -209,15 +217,7 @@ $('rd-export').addEventListener('click',()=>{
  setTimeout(()=>URL.revokeObjectURL(url),1200);
 });
 const prevTrain=M.trainStep;
-M.trainStep=(state,dt)=>{
- if(mode==='train'&&run?.phase==='doors-open'){
-  // Passenger service is a deliberately enforced game interlock; no actual traction dynamics are claimed in this state.
-  const held={...state,speed:0,throttle:0,brake:100};
-  const modeled=prevTrain(held,dt);
-  return {...modeled,pos:state.pos,speed:0,accel:0,throttle:0,brake:100,doorInterlock:true,terminalOverrun:state.terminalOverrun};
- }
- return prevTrain(state,dt);
-};
+M.trainStep=(state,dt)=>D.interlockedStep(prevTrain,state,dt,mode==='train'&&run?.phase==='doors-open');
 root.addEventListener('leh-transit-route-selected',event=>{if(event.detail?.route)route=event.detail.route;if(mode==='train')reset();});
 root.addEventListener('leh-transit-route-cleared',()=>{route=null;if(mode==='train')reset();});
 root.addEventListener('leh-transit-state',event=>{
