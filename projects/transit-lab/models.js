@@ -16,13 +16,15 @@ function flightStep(s,dt){const p=AIRCRAFT[s.profile];if(!p)throw Error('Unknown
   return {...s,...loc,speed:nextSpeed,alt:Math.max(0,s.alt+.5*(speed+nextSpeed)*Math.sin(gamma)*dt),heading,time:s.time+dt,density:rho,drag,liftCoefficient:cl,stalled:cl>p.clMax,turnRate:turnRate*TO_DEG};
 }
 const TRAINS={metro:{name:'Metro · generic',limit:22.2,traction:1.1,brake:1.25},regional:{name:'Regional rail · generic',limit:44.4,traction:.75,brake:1.05},highspeed:{name:'High-speed rail · generic',limit:83.3,traction:.55,brake:.9}};
-function trainInit(profile='metro'){if(!TRAINS[profile])throw Error('Unknown train profile');return {kind:'train',profile,pos:0,speed:0,throttle:0,brake:0,grade:0,time:0,length:10000,limit:TRAINS[profile].limit,stops:[0,2500,5500,10000],station:'Depart origin'};}
+function trainInit(profile='metro'){if(!TRAINS[profile])throw Error('Unknown train profile');return {kind:'train',profile,pos:0,speed:0,throttle:0,brake:0,grade:0,time:0,length:10000,limit:TRAINS[profile].limit,terminalOverrun:false,stops:[0,2500,5500,10000],station:'Depart origin'};}
 function brakingDistance(speed,decel){return decel>0?speed*speed/(2*decel):Infinity;}
 function trainStep(s,dt){dt=clamp(Number(dt)||0,0,2);const spec=TRAINS[s.profile];const rolling=.03,traction=spec.traction*clamp(s.throttle,0,100)/100,brake=spec.brake*clamp(s.brake,0,100)/100;
   const accel=traction-brake-rolling-G*clamp(s.grade,-4,4)/100;
   let speed=clamp(s.speed+accel*dt,0,s.limit),pos=clamp(s.pos+.5*(s.speed+speed)*dt,0,s.length);
+  // Clipping to the route boundary is not a physical or successful platform stop.
+  const terminalOverrun=Boolean(s.terminalOverrun)||(pos===s.length&&speed>.5);
   if(pos===s.length)speed=0;
-  return {...s,pos,speed,time:s.time+dt,accel,brakingDistance:brakingDistance(speed,spec.brake),nearestStop:s.stops.find(x=>x>pos+.1)??s.length};
+  return {...s,pos,speed,time:s.time+dt,accel,terminalOverrun,brakingDistance:brakingDistance(speed,spec.brake),nearestStop:s.stops.find(x=>x>pos+.1)??s.length};
 }
 function subInit(){return {kind:'sub',lat:36.14,lon:-74.55,depth:50,verticalSpeed:0,ballast:0,speed:3,heading:90,time:0,pressure:oceanPressure(50),accel:0};}
 function oceanPressure(depth,rho=1025){return 101325+rho*G*Math.max(0,depth);} // absolute Pa, surface = standard atmosphere
