@@ -36,7 +36,7 @@ const configs={
  topo:{url:'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}',opt:{maxNativeZoom:16,maxZoom:18,attribution:'USGS The National Map'},note:'USGS US Topo layers: mapped terrain and human features. Terrain is contextual imagery; model does not sample actual elevation.'},
  nasa:{url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/2004-08-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg',opt:{maxNativeZoom:8,maxZoom:18,attribution:'NASA Earth Observatory / NASA GIBS, Blue Marble Next Generation (2004)'},note:'NASA cloud-reduced global Blue Marble mosaic, August 2004. ~500 m imagery, so street-level enlargement will be pixelated.'}
 };
-let map=null,base=null,line=null,vehicle=null,selectedRoute=null,mode='flight',state=null,trackPoint=null,tileErrors=0;
+let map=null,base=null,line=null,vehicle=null,stationLayer=null,selectedRoute=null,mode='flight',state=null,trackPoint=null,tileErrors=0;
 function swap(layerName){
  if(!map||!window.L)return;
  const config=configs[layerName]||configs.street;
@@ -59,11 +59,21 @@ function showRoute(fit){
  if(!map||!window.L)return;
  if(line){map.removeLayer(line);line=null;}
  if(vehicle){map.removeLayer(vehicle);vehicle=null;}
+ if(stationLayer){map.removeLayer(stationLayer);stationLayer=null;}
  if(mode!=='train'||!selectedRoute)return;
  const coords=selectedRoute.points.map(p=>[p.lat,p.lon]);
  line=window.L.polyline(coords,{color:'#e0a03c',weight:4,opacity:.93}).addTo(map);
  const p=pointForRail()||selectedRoute.points[0];
- vehicle=window.L.circleMarker([p.lat,p.lon],{radius:8,color:'#103c34',fillColor:'#f9bf56',fillOpacity:1,weight:3}).addTo(map).bindPopup('Simulated train progress projected onto imported geographic route geometry. Not live vehicle positioning.');
+ vehicle=window.L.circleMarker([p.lat,p.lon],{radius:8,color:'#103c34',fillColor:'#f9bf56',fillOpacity:1,weight:3}).addTo(map).bindPopup('Simulated train distance along published route geometry. Not measured train positioning or speed.');
+ if(selectedRoute.stations?.length){
+  stationLayer=window.L.layerGroup();
+  for(const station of selectedRoute.stations.slice(0,120)){
+   const node=window.L.circleMarker([station.lat,station.lon],{radius:4,color:'#ffffff',weight:1.3,fillColor:'#237b68',fillOpacity:.9});
+   const safe=document.createElement('div');safe.textContent=station.name+' · '+(station.distanceM/1000).toFixed(2)+' km along mapped geometry · offset '+Math.round(station.offsetM)+' m';
+   node.bindPopup(safe);stationLayer.addLayer(node);
+  }
+  stationLayer.addTo(map);
+ }
  if(fit)map.fitBounds(line.getBounds(),{padding:[24,24],maxZoom:13});
 }
 function updateRailPoint(){
@@ -71,7 +81,7 @@ function updateRailPoint(){
  const p=pointForRail()||selectedRoute.points[0];if(!p)return;
  root.dataset.routeLat=String(p.lat);root.dataset.routeLon=String(p.lon);
  $('tl-coords').textContent='Mapped model point: '+p.lat.toFixed(5)+'°, '+p.lon.toFixed(5)+'° · imported route geometry, simulated vehicle position';
- $('tl-geo-note').textContent='Route reference: '+selectedRoute.name+' ('+(selectedRoute.lengthM/1000).toFixed(2)+' km geographic length). A 10 km teaching model is projected proportionally onto the full route; location is NOT recorded train GPS, actual distance, schedule or verified train operation.';
+ $('tl-geo-note').textContent='Route reference: '+selectedRoute.name+' ('+(selectedRoute.lengthM/1000).toFixed(2)+' km geographic length). Simulated distance now follows the mapped polyline length; matched station centroids are approximate. This is NOT recorded train GPS, operational odometry, schedule or validated track geometry.';
  if(vehicle)vehicle.setLatLng([p.lat,p.lon]);
 }
 root.addEventListener('leh-transit-map-ready',event=>{
@@ -86,6 +96,11 @@ root.addEventListener('leh-transit-route-selected',event=>{
  root.dataset.routeLat=String(r.points[0].lat);root.dataset.routeLon=String(r.points[0].lon);
  if(mode==='train')host.hidden=false;
  showRoute(mode==='train');updateRailPoint();
+});
+root.addEventListener('leh-transit-route-cleared',()=>{
+ selectedRoute=null;delete root.dataset.routeLat;delete root.dataset.routeLon;
+ if(map){if(line){map.removeLayer(line);line=null;}if(vehicle){map.removeLayer(vehicle);vehicle=null;}if(stationLayer){map.removeLayer(stationLayer);stationLayer=null;}}
+ if(mode==='train')host.hidden=true;
 });
 root.addEventListener('leh-transit-state',event=>{
  const d=event.detail;if(!d?.state)return;
