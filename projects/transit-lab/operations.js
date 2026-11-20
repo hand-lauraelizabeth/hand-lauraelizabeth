@@ -35,13 +35,13 @@ panel.innerHTML='<div class="top"><div><p class="eyebrow">Practice, assess, impr
 const main=root.querySelector('.main-stack');if(!main)return;main.insertBefore(panel,main.children[1]||null);
 const targets={flight:[['90','East · 090°'],['135','Southeast · 135°'],['180','South · 180°'],['270','West · 270°']],train:[['2500','First station · 2.5 km'],['5500','Second station · 5.5 km'],['10000','Terminus · 10 km']],sub:[['75','Shallow target · 75 m'],['100','Middle target · 100 m'],['150','Deep target · 150 m']]};
 const defaults={flight:135,train:2500,sub:75},fmt=(n,d=1)=>Number.isFinite(n)?Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
-let mode='',target=135,lastTime=0,hold=0,complete=false,alertKey='',events=[],totalAlerts=0,lastState=null,observing=false;
+let mode='',target=135,lastTime=0,hold=0,complete=false,alertKey='',events=[],totalAlerts=0,lastState=null,observing=false,hasMatchedRailStops=false;
 function appendEvent(message,time){events.push('T+'+fmt(time,1)+'s · '+message);if(events.length>80)events.shift();$('op-count').textContent=String(events.length);const list=$('op-log');list.replaceChildren();for(const text of events.slice(-12).reverse()){const li=document.createElement('li');li.textContent=text;list.append(li);}}
 function setAlert(key,level,message,time){if(key===alertKey)return;alertKey=key;$('op-alert').dataset.level=level;$('op-alert').textContent=message;if(level!=='normal'){totalAlerts++;appendEvent('Teaching alert: '+message,time);}}
 function configure(k){
  mode=k;target=defaults[k];lastTime=0;hold=0;complete=false;alertKey='';events=[];totalAlerts=0;lastState=null;observing=false;$('op-log').replaceChildren();$('op-count').textContent='0';
  const select=$('op-target');select.replaceChildren();for(const [value,label] of targets[k]){const o=document.createElement('option');o.value=value;o.textContent=label;select.add(o);}select.value=String(target);
- $('op-target-label').textContent={flight:'Target true heading',train:'Target station · schematic',sub:'Target modeled depth'}[k];
+ $('op-target-label').textContent={flight:'Target true heading',train:hasMatchedRailStops?'Matched station · geometry':'Target station · schematic',sub:'Target modeled depth'}[k];
  for(const [i,label] of ['one','two','three'].entries())$('op-metric-'+label+'-label').textContent=({flight:['Stall-speed margin','Bank load factor','Modeled vertical speed'],train:['Distance to platform','Planning brake distance','Train speed'],sub:['Depth error','Absolute pressure','Vertical speed']}[k])[i];
  $('op-progress').value=0;$('op-progress-label').textContent='Objective ready.';$('op-result').textContent='No objective completed in this session.';$('op-alert').dataset.level='normal';$('op-alert').textContent='Start or advance the model to begin.';
 }
@@ -62,7 +62,7 @@ function render(s,isObservation){
  }else if(mode==='train'){
   const a=O.railApproach(s,M.TRAINS[s.profile],target);
   metrics=[fmt(a.remaining,0)+' m',fmt(a.planning,0)+' m',fmt(s.speed*3.6,1)+' km/h'];
-  progress=complete?100:Math.max(0,Math.min(99,s.pos/target*99));qualified=a.platformStop;goal='Stop within ±15 m of '+fmt(target/1000,1)+' km, at or below 0.5 m/s.';
+  progress=complete?100:Math.max(0,Math.min(99,s.pos/target*99));qualified=a.platformStop;goal='Stop within ±15 m of '+fmt(target/1000,2)+' km ('+(hasMatchedRailStops?'nearest matched MTA station coordinate':'exercise checkpoint')+'), at or below 0.5 m/s. These are classroom thresholds.';
   if(a.overshot){level='critical';key='passed';message='Station overshot or crossed the model terminus without stopping. A forced boundary stop does not count; reset to retry.';}
   else if(a.brakeWindow&&a.remaining>15){level='warn';key='brake';message='Planning brake distance has reached the remaining platform distance; compare brake command and response.';}
   else if(a.remaining<=15&&s.speed>.5){level='warn';key='rolling';message='Inside the platform band but not yet at the stopping criterion.';}
@@ -84,6 +84,21 @@ function render(s,isObservation){
  if(!complete&&!isObservation)$('op-result').textContent=goal;
  setAlert(key,level,message,s.time);lastTime=s.time;
 }
+root.addEventListener('leh-transit-route-selected',e=>{
+ const route=e.detail?.route;
+ if(!route||!Number.isFinite(route.lengthM)||route.lengthM<100)return;
+ const mapped=(route.stations||[]).filter(st=>st.distanceM>=100&&st.distanceM<=route.lengthM);
+ hasMatchedRailStops=mapped.length>0;
+ const options=mapped.map(st=>[String(Math.round(st.distanceM*10)/10),st.name+' · '+fmt(st.distanceM/1000,2)+' km']);
+ options.push([String(Math.round(route.lengthM*10)/10),'Mapped segment end · '+fmt(route.lengthM/1000,2)+' km']);
+ targets.train=options;
+ defaults.train=Number(options[0][0]);
+ if(mode==='train')configure('train');
+});
+root.addEventListener('leh-transit-route-cleared',()=>{
+ hasMatchedRailStops=false;targets.train=[['2500','First station · 2.5 km'],['5500','Second station · 5.5 km'],['10000','Terminus · 10 km']];defaults.train=2500;
+ if(mode==='train')configure('train');
+});
 root.addEventListener('leh-transit-state',e=>{
  const d=e.detail;if(!d?.state||!['flight','train','sub'].includes(d.mode))return;
  if(d.mode!==mode){configure(d.mode);appendEvent('Started '+d.mode+' objective',0);}
