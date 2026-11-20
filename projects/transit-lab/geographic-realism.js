@@ -82,7 +82,10 @@ function updateStationStyles(){
  for(const entry of railMarkers){
   const m=entry.station.distanceM,finished=results.find(r=>Math.abs(r.distanceM-m)<22);
   const isNext=next&&Math.abs(next.distance-m)<22;
-  const fill=finished?finished.served?'#218a70':'#c24f3d':isNext?'#f7bd53':'#347d9e';
+  const status=finished?(finished.served?'served':'missed'):isNext?'next':'other';
+  if(entry.status===status)continue;
+  entry.status=status;
+  const fill=status==='served'?'#218a70':status==='missed'?'#c24f3d':status==='next'?'#f7bd53':'#347d9e';
   entry.node.setStyle({fillColor:fill,color:isNext?'#203d38':'#ffffff',radius:isNext?6:4});
  }
 }
