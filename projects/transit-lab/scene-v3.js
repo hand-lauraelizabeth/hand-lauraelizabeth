@@ -68,7 +68,13 @@ const TransitSceneMath=(()=>{
   const distance=Math.hypot(north,east);
   return distance<=10000?distance:0;
  }
- return {clamp,curvature,seabed,flightView,railView,subView,traveledMeters};
+ function pointSeparation(a,b){
+  if(!a||!b||![a.lat,a.lon,b.lat,b.lon].every(Number.isFinite))return Infinity;
+  const lat=(a.lat+b.lat)*Math.PI/360,dy=(b.lat-a.lat)*Math.PI/180*6371008.8;
+  let dLon=b.lon-a.lon;if(dLon>180)dLon-=360;if(dLon< -180)dLon+=360;
+  return Math.hypot(dy,dLon*Math.PI/180*6371008.8*Math.cos(lat));
+ }
+ return {clamp,curvature,seabed,flightView,railView,subView,traveledMeters,pointSeparation};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
 (function installSceneV3(){
@@ -136,7 +142,12 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   readout(ctx,258,'ALTITUDE (MODEL)',fmt(v.altitudeFeet)+' ft',226);
   readout(ctx,718,'HEADING',fmt(v.heading)+'°',215);
   panel(ctx,29,397,422,96);t(ctx,'AIRCRAFT MODEL',47,423,14,'#abd9d5','800');t(ctx,M.AIRCRAFT[s.profile]?.name||'Flight demonstrator',47,453,19);t(ctx,'BANK '+fmt(v.bank,0)+'°   PATH '+fmt(v.path,1)+'°   VS '+fmt(v.verticalFpm,0)+' ft/min',47,480,14,'#d2e9da');
-  if(terrainSamples.length){panel(ctx,508,302,422,80);t(ctx,'USGS POINT SAMPLES · NOT A CONTINUOUS TERRAIN MODEL',521,324,12,'#aeddd7','800');t(ctx,terrainSamples.map(x=>x.km+' km: '+fmt(x.meters)+' m').join('  |  '),521,352,16,'#fff1cb','700');}
+  if(terrainSamples.length){
+   const nearby=terrainSamples.filter(x=>C.pointSeparation(x,s)<7500);
+   panel(ctx,508,302,422,80);
+   t(ctx,'USGS FIXED GROUND POINTS · NOT VISUAL TERRAIN',521,324,12,'#aeddd7','800');
+   t(ctx,nearby.length?nearby.map(x=>x.km+' km at sampling: '+fmt(x.meters)+' m').join('  |  ').slice(0,60):'Previous samples are outside the current modeled area.',521,351,14,'#fff1cb','700');
+  }
   panel(ctx,558,397,373,96);t(ctx,'GROUND TRACK / SPEED',574,423,14,'#abd9d5','800');t(ctx,fmt(v.groundTrack,0)+'°   '+fmt(v.groundKnots,0)+' kn',574,463,24);
   if(v.invalidLift){rect(ctx,266,109,428,38,'#8d342c');t(ctx,'STALL FLAG · CONTINUED MOTION NOT VALIDATED',480,135,14,'#fff','800','center');}
   t(ctx,'ILLUSTRATED HORIZON · NOT CAMERA, TERRAIN OR BODY PITCH',480,520,14,'#e1eee6','700','center');
