@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const O=require('./operations.js'),M=require('./models.js');
+const s=M.flightInit(),e=O.flightEnvelope(s,M.AIRCRAFT.trainer);
+assert.ok(e.stallSpeed>0&&e.margin>1.2&&e.loadFactor>=1);
+assert.ok(O.flightEnvelope({...s,bank:40},M.AIRCRAFT.trainer).stallSpeed>e.stallSpeed);
+assert.ok(O.flightEnvelope({...s,speed:10},M.AIRCRAFT.trainer).margin<1);
+assert.equal(O.headingError(5,355),10);assert.equal(O.headingError(355,5),-10);
+const t=M.trainInit(),a=O.railApproach({...t,pos:2400,speed:10},M.TRAINS.metro,2500);
+assert.equal(a.remaining,100);assert.ok(a.planning>0&&!a.overshot);
+assert.ok(O.railApproach({...t,pos:2516,speed:0},M.TRAINS.metro,2500).overshot);
+assert.ok(O.railApproach({...t,pos:2490,speed:.3},M.TRAINS.metro,2500).platformStop);
+assert.ok(!O.railApproach({...t,pos:2490,speed:3},M.TRAINS.metro,2500).platformStop);
+const sub=M.subInit();assert.equal(O.subAssessment({...sub,depth:75,verticalSpeed:0},75).stable,true);
+assert.equal(O.subAssessment({...sub,depth:75,verticalSpeed:.3},75).stable,false);
+assert.equal(O.subAssessment({...sub,depth:5,verticalSpeed:-1},75).nearSurface,true);
+console.log('Transit Operations Console tests passed.');
