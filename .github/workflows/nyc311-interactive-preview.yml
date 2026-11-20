@@ -1,0 +1,32 @@
+name: NYC 311 interactive preview browser smoke
+on:
+  pull_request:
+    paths:
+      - 'projects/nyc311-operations-intelligence/interactive-preview.html'
+      - 'projects/nyc311-operations-intelligence/test_interactive_preview.cjs'
+      - 'projects/nyc311-operations-intelligence/test_hosted_preview.cjs'
+      - 'projects/nyc311-operations-intelligence/test_nyc311_live.cjs'
+      - 'projects/nyc311-operations-intelligence/neighborhood-tradeoff-preview.html'
+      - 'projects/nyc311-operations-intelligence/test_neighborhood_tradeoff.cjs'
+      - '.github/workflows/nyc311-interactive-preview.yml'
+  workflow_dispatch:
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright@1.56.1 axe-core@4.10.3
+          npx playwright install --with-deps chromium
+      - name: Exercise filters, reset, accessible table, and synthetic disclosure
+        run: node projects/nyc311-operations-intelligence/test_interactive_preview.cjs
+      - name: Verify hosted review preview interaction and mobile axe accessibility
+        run: node projects/nyc311-operations-intelligence/test_hosted_preview.cjs
+      - name: Verify public live NYC 311 dashboard loads actual API aggregates
+        run: node projects/nyc311-operations-intelligence/test_nyc311_live.cjs
+      - name: Exercise neighborhood weighted rankings and Pareto shortlist
+        run: node projects/nyc311-operations-intelligence/test_neighborhood_tradeoff.cjs
