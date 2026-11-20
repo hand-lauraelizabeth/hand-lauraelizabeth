@@ -151,3 +151,5 @@ The instrument view and illustrated moving view now use the same modeled quantit
 
 **Regression checks:** `node projects/transit-lab/scene-v3-tests.js`, `node projects/transit-lab/historical-fleet-v5-tests.js`, and `node projects/transit-lab/visual-sync-v6-tests.js`. The new integration smoke test exercises canvas text and SVG instrument states for all three modes, plus imported-track boundaries. A successful deterministic test is not a substitute for a full live browser/rendering test on desktop and mobile.
 
+
+The submarine external view also places the **surface at a model-derived depth** where visible, and suppresses negative depth ticks. The sketch does not represent actual sea-surface conditions or local bathymetry.

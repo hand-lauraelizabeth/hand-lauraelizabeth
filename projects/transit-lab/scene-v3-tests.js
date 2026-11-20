@@ -52,4 +52,11 @@ assert.ok(C.pointSeparation({lat:40,lon:-73},{lat:40.01,lon:-73})>1000);
 assert.ok(C.pointSeparation({lat:40,lon:-73},{lat:40.01,lon:-73})<1300);
 assert.equal(C.pointSeparation(null,{lat:40,lon:-73}),Infinity);
 assert.equal(C.railView({pos:995,limit:20},route,{run:{phase:'doors-open'},station:{name:'Documented platform',distance:1000}}).underground,true);
+
+assert.equal(C.waterlineY(0),291);
+assert.ok(C.waterlineY(50)<291);
+assert.equal(C.depthAtY(50,291),50);
+assert.ok(C.depthAtY(50,221)<0);
+assert.ok(C.waterlineY(300)<0);
+assert.equal(C.depthAtY(0,291),0);
 console.log('Scene state and physics alignment tests passed.');
