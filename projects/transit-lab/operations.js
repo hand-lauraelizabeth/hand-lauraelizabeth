@@ -12,7 +12,7 @@ function flightEnvelope(s,p){
 function railApproach(s,p,target){
  const remaining=target-s.pos,decel=p.brake+.03+G*clamp(s.grade,-4,4)/100;
  const idealStop=decel>0?s.speed*s.speed/(2*decel):Infinity,planning=1.15*(idealStop+2*s.speed);
- return {remaining,idealStop,planning,brakeWindow:s.speed>.5&&planning>=remaining,overshot:remaining< -15,platformStop:Math.abs(remaining)<=15&&s.speed<=.5};
+ return {remaining,idealStop,planning,brakeWindow:s.speed>.5&&planning>=remaining,overshot:remaining< -15||(target===s.length&&Boolean(s.terminalOverrun)),platformStop:!s.terminalOverrun&&Math.abs(remaining)<=15&&s.speed<=.5};
 }
 function subAssessment(s,target){
  const error=target-s.depth;
@@ -63,7 +63,7 @@ function render(s,isObservation){
   const a=O.railApproach(s,M.TRAINS[s.profile],target);
   metrics=[fmt(a.remaining,0)+' m',fmt(a.planning,0)+' m',fmt(s.speed*3.6,1)+' km/h'];
   progress=complete?100:Math.max(0,Math.min(99,s.pos/target*99));qualified=a.platformStop;goal='Stop within ±15 m of '+fmt(target/1000,1)+' km, at or below 0.5 m/s.';
-  if(a.overshot){level='critical';key='passed';message='Platform marker overshot by more than 15 m. Reset the model to retry; there is no reversing function.';}
+  if(a.overshot){level='critical';key='passed';message='Station overshot or crossed the model terminus without stopping. A forced boundary stop does not count; reset to retry.';}
   else if(a.brakeWindow&&a.remaining>15){level='warn';key='brake';message='Planning brake distance has reached the remaining platform distance; compare brake command and response.';}
   else if(a.remaining<=15&&s.speed>.5){level='warn';key='rolling';message='Inside the platform band but not yet at the stopping criterion.';}
   else message='Compare station distance with ideal service-braking distance plus illustrative response and margin.';
