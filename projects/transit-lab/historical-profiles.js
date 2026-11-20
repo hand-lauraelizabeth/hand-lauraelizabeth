@@ -55,9 +55,9 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitHistorical;
  document.head.append(style);
  function panel(host,id,title,html){const d=document.createElement('section');d.className='hr-panel';d.id=id;d.innerHTML='<h3>'+title+'</h3>'+html;$(host).append(d);return d;}
  panel('tl-flight-controls','hr-flight','Historical aircraft source',
-  '<div id="hr-flight-details">Select the DC-3 to see documented vehicle specifications and model assumptions.</div>');
+  '<div id="hr-flight-details">Choose a historical aircraft to compare documented reference facts with modeled inputs.</div>');
  panel('tl-train-controls','hr-rail','Historical locomotive source',
-  '<div id="hr-rail-details">Select the GG1 to view documented historical specifications and the modeled values.</div>');
+  '<div id="hr-rail-details">Choose a historical railway vehicle to see its source facts and model assumptions.</div>');
  panel('tl-sub-controls','hr-sub','Submarine reference',
   '<label for="hr-sub-vehicle">Historical vessel<select id="hr-sub-vehicle"><option value="generic">Generic buoyancy demonstration</option><option value="gato">USS Harder · Gato class (1943)</option><option value="nautilus">USS Nautilus SSN-571 (1954)</option></select></label><div id="hr-sub-details"></div>');
  panel('tl-flight-controls','hr-weather','NOAA station-wind challenge',
@@ -77,7 +77,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitHistorical;
   if(ref.additionalSource){const a=document.createElement('a');a.href=ref.additionalSource;a.target='_blank';a.rel='noopener noreferrer';a.textContent=' · Wing-area reference: Museum of Flight';host.append(a);}
  }
  function render(){
-  details('hr-flight-details',$('tl-plane').value==='dc3'?H.references.dc3:null);
+  details('hr-flight-details',H.references[$('tl-plane').value]||null);
   details('hr-rail-details',H.references[$('tl-train-profile').value]||null);
   details('hr-sub-details',H.references[$('hr-sub-vehicle').value]||null);
  }
