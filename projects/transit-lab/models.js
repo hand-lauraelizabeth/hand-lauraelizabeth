@@ -10,7 +10,7 @@ function flightStep(s,dt){const p=AIRCRAFT[s.profile];if(!p)throw Error('Unknown
   const cl=p.mass*G*Math.cos(gamma)/(Math.max(1,q*p.wing)*Math.max(.4,Math.cos(bank)));
   const drag=q*p.wing*(p.cd0+p.k*cl*cl),thrust=p.thrust*clamp(s.throttle,0,100)/100;
   const accel=(thrust-drag-p.mass*G*Math.sin(gamma))/p.mass;
-  const nextSpeed=clamp(speed+accel*dt,5,360);const turnRate=G*Math.tan(bank)/Math.max(5,speed);const heading=((s.heading+turnRate*dt*TO_DEG)%360+360)%360;
+  const nextSpeed=clamp(speed+accel*dt,5,p.maxSpeed??360);const turnRate=G*Math.tan(bank)/Math.max(5,speed);const heading=((s.heading+turnRate*dt*TO_DEG)%360+360)%360;
   const horizontal=.5*(speed+nextSpeed)*Math.cos(gamma)*dt;
   const h=heading*TO_RAD,loc=moveLatLon(s.lat,s.lon,horizontal*Math.cos(h),horizontal*Math.sin(h));
   return {...s,...loc,speed:nextSpeed,alt:Math.max(0,s.alt+.5*(speed+nextSpeed)*Math.sin(gamma)*dt),heading,time:s.time+dt,density:rho,drag,liftCoefficient:cl,stalled:cl>p.clMax,turnRate:turnRate*TO_DEG};
@@ -26,9 +26,9 @@ function trainStep(s,dt){dt=clamp(Number(dt)||0,0,2);const spec=TRAINS[s.profile
   if(pos===s.length)speed=0;
   return {...s,pos,speed,time:s.time+dt,accel,terminalOverrun,brakingDistance:brakingDistance(speed,spec.brake),nearestStop:s.stops.find(x=>x>pos+.1)??s.length};
 }
-function subInit(){return {kind:'sub',lat:36.14,lon:-74.55,depth:50,verticalSpeed:0,ballast:0,speed:3,heading:90,time:0,pressure:oceanPressure(50),accel:0};}
+function subInit(){return {kind:'sub',lat:36.14,lon:-74.55,depth:50,verticalSpeed:0,ballast:0,speed:3,heading:90,time:0,waterDensity:1025,pressure:oceanPressure(50),accel:0};}
 function oceanPressure(depth,rho=1025){return 101325+rho*G*Math.max(0,depth);} // absolute Pa, surface = standard atmosphere
-function subStep(s,dt){dt=clamp(Number(dt)||0,0,2);const rho=1025,neutralMass=1000000,volume=neutralMass/rho;const totalMass=neutralMass+clamp(s.ballast,-100,100)*50; // ±5 t ballast: illustrative control
+function subStep(s,dt){dt=clamp(Number(dt)||0,0,2);const rho=clamp(Number(s.waterDensity)||1025,1000,1030),neutralMass=1000000,volume=neutralMass/1025;const totalMass=neutralMass+clamp(s.ballast,-100,100)*50; // ±5 t ballast: illustrative control
   const buoyancy=rho*volume*G,weight=totalMass*G;
   const accel=(weight-buoyancy)/totalMass-.045*s.verticalSpeed*Math.abs(s.verticalSpeed); // velocity opposite drag
   let verticalSpeed=clamp(s.verticalSpeed+accel*dt,-3,3),depth=clamp(s.depth+(s.verticalSpeed+verticalSpeed)*.5*dt,0,1000);if(depth===0||depth===1000)verticalSpeed=0;
