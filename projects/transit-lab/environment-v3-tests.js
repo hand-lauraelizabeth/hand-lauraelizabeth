@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),E=require('./environment-v3.js');
+const dry=E.brakeEstimate(20,1,1,0),wet=E.brakeEstimate(20,1,.75,0),low=E.brakeEstimate(20,1,.45,0);
+assert.ok(dry.ideal<wet.ideal&&wet.ideal<low.ideal);
+assert.ok(dry.planning>dry.ideal);
+assert.ok(E.brakeEstimate(20,.8,1,-4).ideal>E.brakeEstimate(20,.8,1,4).ideal);
+assert.equal(E.scenarios.low,.45);
+const cross=E.currentVector(3,90,2,0);
+assert.ok(cross.groundKnots>3&&cross.groundKnots<4);
+assert.ok(cross.groundTrack<90&&cross.groundTrack>45);
+const following=E.currentVector(5,90,1,90);assert.ok(Math.abs(following.groundKnots-6)<1e-9);
+assert.throws(()=>E.brakeEstimate(NaN,1,1));
+console.log('Environmental rail-braking and underwater current-vector tests passed.');
