@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),T=require('./terrain-challenges.js');
+assert.ok(T.usgsUrl(39.73928,-104.98484).includes('x=-104.984840'));
+assert.ok(T.usgsUrl(39.73928,-104.98484).includes('units=Meters'));
+assert.throws(()=>T.usgsUrl(101,-80));
+assert.equal(T.usgsParse({value:'1608.120605469'}).meters,1608.120605469);
+assert.equal(T.usgsParse({value:120,attributes:{AcquisitionDate:'2/6/2021'}}).acquired,'2/6/2021');
+assert.throws(()=>T.usgsParse({value:null}));
+assert.throws(()=>T.usgsParse({errorMessage:'error'}));
+assert.ok(T.etopoUrl(36.14,-74.55).includes('285.45000'));
+assert.equal(T.etopoParse({table:{columnNames:['latitude','longitude','z'],rows:[[36,285,-450]]}}).meters,-450);
+assert.throws(()=>T.etopoParse({table:{columnNames:['z'],rows:[[null]]}}));
+assert.throws(()=>T.etopoParse({table:{columnNames:['z'],rows:[[-99999]]}}));
+assert.equal(T.assess('sub',{lat:36,lon:-74,depth:450},{lat:36,lon:-74,meters:-400}).status,'below-seabed');
+assert.equal(T.assess('sub',{lat:36,lon:-74,depth:300},{lat:36,lon:-74,meters:-400}).clearance,100);
+assert.equal(T.assess('flight',{lat:40,lon:-74,alt:450},{lat:40,lon:-74,meters:400}).status,'low');
+assert.equal(T.assess('flight',{lat:40.1,lon:-74,alt:450},{lat:40,lon:-74,meters:400}).status,'stale');
+console.log('USGS/NOAA elevation requests, parsing and clearance tests passed.');
