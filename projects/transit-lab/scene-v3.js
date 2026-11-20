@@ -16,7 +16,58 @@ const TransitSceneMath=(()=>{
   const meters=TransitTerrain.distance(sample,location);
   return meters<=1800?{depth:-sample.meters,separation:meters}:null;
  }
- return {clamp,curvature,seabed};
+ function finite(v,fallback=0){return Number.isFinite(v)?v:fallback;}
+ function degrees(v){return ((finite(v)%360)+360)%360;}
+ // Data for the view must come from the actual model state, never directly from sliders.
+ function flightView(s){
+  const speed=Math.max(0,finite(s?.speed)),bank=clamp(finite(s?.bank),-45,45);
+  const path=clamp(finite(s?.flightPath),-12,12);
+  return {speedKnots:speed*1.943844,groundKnots:Math.max(0,finite(s?.groundSpeed,speed))*1.943844,
+   heading:degrees(s?.heading),groundTrack:degrees(finite(s?.trackDeg,s?.heading)),
+   altitudeFeet:Math.max(0,finite(s?.alt))*3.28084,bank,path,
+   verticalFpm:speed*Math.sin(path*Math.PI/180)*196.850394,
+   invalidLift:Boolean(s?.stalled),profile:String(s?.profile||'trainer')};
+ }
+ function railView(s,route,dispatch){
+  const run=dispatch?.run,phase=run?.phase||'approach';
+  const stop=run?(phase==='finished'?null:dispatch?.station||null):
+   route?.stations?.find(v=>Number.isFinite(v.distanceM)&&v.distanceM>=finite(s?.pos)-15)||null;
+  const at=stop?(Number.isFinite(stop.distance)?stop.distance:stop.distanceM):null;
+  const remaining=Number.isFinite(at)?at-finite(s?.pos):null;
+  const description=String(stop?.structure||route?.structure||'').toLowerCase();
+  const knownStructure=description.includes('underground')||description.includes('subway')||
+   description.includes('elevated')||description.includes('surface')||description.includes('at-grade')||
+   description.includes('open cut');
+  const underground=description.includes('underground')||description.includes('subway');
+  return {stop,remaining,phase,underground,knownStructure,hasRoute:Boolean(route),
+   positionKm:Math.max(0,finite(s?.pos))/1000,travelKmH:Math.max(0,finite(s?.speed))*3.6,
+   ceilingKmH:Math.max(0,finite(s?.limit))*3.6,positionLabel:route?'MAPPED ROUTE POSITION':'MODEL ROUTE POSITION',
+   stopLabel:stop?String(stop.name||'Station'):'Route endpoint'};
+ }
+ function subView(s){
+  const speed=Math.max(0,finite(s?.hullSpeedKnots,finite(s?.speed)));
+  const desired=Math.max(0,finite(s?.requestedSpeedKnots,speed));
+  const rate=finite(s?.verticalSpeed);
+  return {speed,desired,groundSpeed:Math.max(0,finite(s?.groundSpeedKnots,speed)),
+   depth:Math.max(0,finite(s?.depth)),verticalRate:rate,
+   verticalLabel:Math.abs(rate)<.015?'LEVEL':rate>0?'DESCENDING':'ASCENDING',
+   heading:degrees(s?.heading),track:degrees(finite(s?.trackDeg,s?.heading)),
+   pressureBar:Math.max(0,finite(s?.pressure))/100000};
+ }
+ // Use modeled geographic movement rather than assuming speed * elapsed time:
+ // a paused/stationary vehicle must not scroll the world.
+ function traveledMeters(prev,next){
+  if(!prev||!next||!Number.isFinite(prev.time)||!Number.isFinite(next.time)||
+     next.time<=prev.time||next.time-prev.time>15||next.profile!==prev.profile||
+     ![prev.lat,prev.lon,next.lat,next.lon].every(Number.isFinite))return 0;
+  const lat=(prev.lat+next.lat)*Math.PI/360;
+  const north=(next.lat-prev.lat)*Math.PI/180*6371008.8;
+  let dLon=next.lon-prev.lon;if(dLon>180)dLon-=360;if(dLon< -180)dLon+=360;
+  const east=dLon*Math.PI/180*6371008.8*Math.cos(lat);
+  const distance=Math.hypot(north,east);
+  return distance<=10000?distance:0;
+ }
+ return {clamp,curvature,seabed,flightView,railView,subView,traveledMeters};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
 (function installSceneV3(){
@@ -42,6 +93,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   stage.append(canvas);canvases[kind]={stage,canvas,ctx:canvas.getContext('2d')};
  }
  let view='instrument',mode='flight',state=null,route=null,bathymetry=null,terrainSamples=[],dispatchState=null,observing=false;
+ const visualTravel={flight:0,sub:0},previous={flight:null,sub:null};
  const W=960,H=540,fmt=(n,d=0)=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
  const rect=(ctx,x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x,y,w,h);};
  const segment=(ctx,x,y,ex,ey,col,w=2)=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.stroke();};
@@ -50,49 +102,62 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
  function readout(ctx,x,key,value,w=205){panel(ctx,x,21,w,77);t(ctx,key,x+15,46,13,'#9dcad1','800');t(ctx,value,x+15,82,27,'#f5fff9','700');}
  function gradient(ctx,top,bottom){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,top);g.addColorStop(1,bottom);return g;}
  function flight(ctx,s){
+  const v=C.flightView(s);
+  if(observing){
+   rect(ctx,0,0,W,H,gradient(ctx,'#132938','#304354'));
+   for(let x=0;x<=W;x+=48)segment(ctx,x,0,x,H,'#6b9ca42a',1);
+   for(let y=0;y<=H;y+=48)segment(ctx,0,y,W,y,'#6b9ca42a',1);
+   panel(ctx,100,153,760,196);
+   t(ctx,'IMPORTED POSITION · NO EXTERNAL CAMERA RECORDING',480,211,23,'#e8f8f4','800','center');
+   t(ctx,'Recorded points are displayed in the track and map tools.',480,261,20,'#c6e1e1','500','center');
+   t(ctx,'Attitude and landscape are not inferred from an imported position.',480,298,17,'#eac78d','600','center');
+   t(ctx,'SOURCE DATA AND MODELLED SCENERY ARE SEPARATE',480,519,14,'#e5f0eb','700','center');
+   return;
+  }
   rect(ctx,0,0,W,H,gradient(ctx,'#135589','#89bfcc'));
   ctx.save();ctx.translate(480,270);ctx.rotate(-(s.bank||0)*Math.PI/180);ctx.translate(-480,-270+(s.flightPath||0)*7);
   rect(ctx,-240,-600,1500,885,gradient(ctx,'#1c4c86','#98d0d3'));
-  const phase=(s.heading||0)*.01745+(s.time||0)*Math.max(8,s.speed||0)*.00018;
+  const phase=v.heading*.01745+visualTravel.flight*.00018;
   for(let layer=0;layer<4;layer++){
    ctx.beginPath();ctx.moveTo(-210,310+layer*48);
    for(let x=-210;x<1180;x+=18)ctx.lineTo(x,310+layer*47+Math.sin(x*.006+layer+phase)*21+Math.sin(x*.013-layer-phase)*11);
    ctx.lineTo(1180,980);ctx.lineTo(-210,980);ctx.closePath();ctx.fillStyle=['#91aa99','#6c9185','#436b68','#2b505a'][layer];ctx.fill();
   }
   for(let k=0;k<14;k++){
-   const x=((k*211-(s.heading||0)*5-(s.time||0)*(s.groundSpeed??s.speed??0)*.12)%1520+1520)%1520-240,y=120+(k*67)%150;
+   const x=((k*211-v.heading*5-visualTravel.flight*.12)%1520+1520)%1520-240,y=120+(k*67)%150;
    ctx.beginPath();ctx.ellipse(x,y,80+(k%3)*20,8+(k%4)*4,0,0,Math.PI*2);ctx.fillStyle='#e8f8f52b';ctx.fill();
   }
   ctx.restore();
   if(typeof TransitFleetV5!=='undefined')TransitFleetV5.drawBadge(ctx,'flight',s.profile,686,156);
   ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,468);ctx.quadraticCurveTo(480,415,960,468);ctx.lineTo(960,H);ctx.fillStyle='#0a2130';ctx.fill();
   segment(ctx,425,280,465,280,'#f8e0a0',5);segment(ctx,494,280,534,280,'#f8e0a0',5);segment(ctx,480,269,480,293,'#f8e0a0',4);
-  readout(ctx,30,'TRUE AIRSPEED',fmt(s.speed*1.943844)+' kn');
-  readout(ctx,258,'ALTITUDE (MODEL)',fmt(s.alt*3.28084)+' ft',226);
-  readout(ctx,718,'HEADING',fmt(s.heading)+'°',215);
-  panel(ctx,29,397,422,96);t(ctx,'AIRCRAFT MODEL',47,423,14,'#abd9d5','800');t(ctx,M.AIRCRAFT[s.profile]?.name||'Flight demonstrator',47,453,19);t(ctx,'BANK '+fmt(s.bank,0)+'°   PATH '+fmt(s.flightPath,1)+'°',47,480,15,'#d2e9da');
+  readout(ctx,30,'TRUE AIRSPEED',fmt(v.speedKnots)+' kn');
+  readout(ctx,258,'ALTITUDE (MODEL)',fmt(v.altitudeFeet)+' ft',226);
+  readout(ctx,718,'HEADING',fmt(v.heading)+'°',215);
+  panel(ctx,29,397,422,96);t(ctx,'AIRCRAFT MODEL',47,423,14,'#abd9d5','800');t(ctx,M.AIRCRAFT[s.profile]?.name||'Flight demonstrator',47,453,19);t(ctx,'BANK '+fmt(v.bank,0)+'°   PATH '+fmt(v.path,1)+'°   VS '+fmt(v.verticalFpm,0)+' ft/min',47,480,14,'#d2e9da');
   if(terrainSamples.length){panel(ctx,508,302,422,80);t(ctx,'USGS POINT SAMPLES · NOT A CONTINUOUS TERRAIN MODEL',521,324,12,'#aeddd7','800');t(ctx,terrainSamples.map(x=>x.km+' km: '+fmt(x.meters)+' m').join('  |  '),521,352,16,'#fff1cb','700');}
-  panel(ctx,558,397,373,96);t(ctx,'GROUND TRACK / SPEED',574,423,14,'#abd9d5','800');t(ctx,fmt(s.trackDeg??s.heading,0)+'°   '+fmt((s.groundSpeed??s.speed)*1.943844,0)+' kn',574,463,24);
-  t(ctx,'PROCEDURAL LANDSCAPE · NOT ACTUAL FLIGHT TERRAIN',480,520,14,'#e1eee6','700','center');
+  panel(ctx,558,397,373,96);t(ctx,'GROUND TRACK / SPEED',574,423,14,'#abd9d5','800');t(ctx,fmt(v.groundTrack,0)+'°   '+fmt(v.groundKnots,0)+' kn',574,463,24);
+  if(v.invalidLift){rect(ctx,266,109,428,38,'#8d342c');t(ctx,'STALL FLAG · CONTINUED MOTION NOT VALIDATED',480,135,14,'#fff','800','center');}
+  t(ctx,'ILLUSTRATED HORIZON · NOT CAMERA, TERRAIN OR BODY PITCH',480,520,14,'#e1eee6','700','center');
  }
  function train(ctx,s){
   rect(ctx,0,0,W,H,gradient(ctx,'#5495ac','#e3ddc9'));
-  const next=route?.stations?.find(v=>v.distanceM>s.pos+.1),structure=String(next?.structure||'').toLowerCase();
-  const underground=structure.includes('underground')||structure.includes('subway'),vanish=480+C.curvature(route,s.pos);
+  const rv=C.railView(s,route,dispatchState),next=rv.stop,underground=rv.underground,vanish=480+C.curvature(route,s.pos);
   if(underground){
    rect(ctx,0,0,W,H,gradient(ctx,'#132c39','#081c2c'));
    for(let i=0;i<6;i++){const x=i*52;panel(ctx,x,90,960-2*x,438-i*45);}
    for(let i=0;i<8;i++)rect(ctx,i*140+12,118,48,7,'#e3d8b3a0');
-  }else{
+  }else if(!route||rv.knownStructure){
    ctx.beginPath();ctx.moveTo(0,330);
    for(let x=0;x<=960;x+=20)ctx.lineTo(x,323+24*Math.sin(x*.013));
    ctx.lineTo(960,540);ctx.lineTo(0,540);ctx.fillStyle='#5c877f';ctx.fill();
    for(let i=0;i<18;i++){
-    const x=i*65-26,h=40+(i*31)%122;
+    const x=((i*65-26-s.pos*.012)%1010+1010)%1010-30,h=40+(i*31)%122;
     rect(ctx,x,339-h,38+i%4*6,h,'#426c7e');
     for(let j=10;j<h;j+=20)rect(ctx,x+8,339-h+j,7,10,'#d9e9b65c');
    }
   }
+  if(route&&!rv.knownStructure){rect(ctx,0,0,W,H,gradient(ctx,'#314d5c','#243a47'));t(ctx,'TRACK SETTING NOT SPECIFIED BY ROUTE DATA',480,223,16,'#e6eeeb','700','center');}
   ctx.beginPath();ctx.moveTo(vanish-18,257);ctx.lineTo(vanish+18,257);ctx.lineTo(960,540);ctx.lineTo(0,540);ctx.closePath();ctx.fillStyle=underground?'#253941':'#5d6e69';ctx.fill();
   const phase=((s.pos||0)%16)/16;
   for(let i=20;i>=0;i--){
@@ -101,7 +166,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   }
   for(const a of [-1,1]){segment(ctx,vanish+a*5,256,480+a*320,540,'#d8e5dc',12);segment(ctx,vanish+a*5,256,480+a*320,540,'#334950',5);}
   // A stylized station platform appears near a known GTFS/geometry stop. It is not surveyed station infrastructure.
-  const stop=dispatchState?.station||next,distanceToStop=stop?.distance!==undefined?stop.distance-s.pos:stop?.distanceM!==undefined?stop.distanceM-s.pos:null;
+  const stop=rv.stop,distanceToStop=rv.remaining;
   if(Number.isFinite(distanceToStop)&&distanceToStop<=450&&distanceToStop>=-20){
    const proximity=Math.max(0,Math.min(1,1-Math.max(0,distanceToStop)/450));
    const frontY=310+proximity*145,sideX=600-proximity*56;
@@ -113,19 +178,19 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
    rect(ctx,signX,signY,240,4,'#f0cc72');
    const name=String(stop?.name||'Station').slice(0,29);
    t(ctx,name,signX+13,signY+28,name.length>22?15:20,'#f4fff9','700');
-   t(ctx,'SCHEMATIC PLATFORM · '+Math.max(0,Math.round(distanceToStop))+' m',signX+6,signY+61,13,'#e5fcf3','700');
+   t(ctx,'ILLUSTRATED PLATFORM · '+Math.max(0,Math.round(distanceToStop))+' m',signX+6,signY+61,13,'#e5fcf3','700');
   }
   if(typeof TransitFleetV5!=='undefined')TransitFleetV5.drawBadge(ctx,'train',s.profile,686,151);
   ctx.beginPath();ctx.moveTo(0,540);ctx.lineTo(0,459);ctx.quadraticCurveTo(480,415,960,459);ctx.lineTo(960,540);ctx.fillStyle='#0b1d2b';ctx.fill();
   readout(ctx,27,'SPEED',fmt(s.speed*3.6,1)+' km/h');
-  readout(ctx,253,'MAPPED DISTANCE',fmt(s.pos/1000,2)+' km',230);
+  readout(ctx,253,route?'MAPPED POSITION':'ROUTE POSITION',fmt(rv.positionKm,2)+' km',230);
   readout(ctx,721,'GRADE (SET)',fmt(s.grade,1)+'%',210);
   panel(ctx,28,391,483,105);t(ctx,route?'PUBLISHED SERVICE SHAPE':'GENERIC ROUTE',44,415,14,'#a7d7c6','800');
   t(ctx,route?.serviceName||route?.name||'Hypothetical 10 km track',44,447,18);
-  t(ctx,(next?'NEXT '+next.name:'SEGMENT END')+'  '+fmt(Math.max(0,(next?.distanceM??s.length)-s.pos))+' m',44,474,16,'#ffe0ad');
+  t(ctx,(next?'TARGET '+rv.stopLabel:'SEGMENT END')+'  '+fmt(Math.max(0,rv.remaining??(s.length-s.pos)))+' m',44,474,15,'#ffe0ad');
   panel(ctx,544,391,388,105);t(ctx,'IDEAL BRAKE / ADHESION',560,417,14,'#a7d7c6','800');
   t(ctx,fmt(s.brakingDistance)+' m  ·  '+fmt(s.adhesion??1,2)+'×',560,457,24,'#f7e5bf','700');
-  t(ctx,'Published geometry ≠ surveyed track',560,480,14,'#b8d6cf');
+  t(ctx,'MODEL CEILING '+fmt(rv.ceilingKmH,0)+' km/h · NOT A LINE LIMIT',560,480,13,'#b8d6cf');
   if(dispatchState?.run){
    const phase=dispatchState.run.phase;
    if(phase==='doors-open'||phase==='at-platform'){
@@ -133,19 +198,20 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
     t(ctx,phase==='doors-open'?'PASSENGER DOORS OPEN · TRAIN HELD':'STOPPED AT PLATFORM · OPEN DOORS',735,361,14,'#ffffff','800','center');
    }
   }
-  t(ctx,'PROCEDURAL CAB · MAPPED STATIONS ARE NOT REAL STATION VIEWS',480,522,13,'#c0dbd5','700','center');
+  t(ctx,'ILLUSTRATED TRAIN VIEW · TRACK / PLATFORMS NOT SURVEYED',480,522,13,'#c0dbd5','700','center');
  }
  function sub(ctx,s){
+  const v=C.subView(s);
   rect(ctx,0,0,W,H,gradient(ctx,'#225f83','#041323'));
   const alpha=C.clamp(s.depth/700,0,.68);
   rect(ctx,0,0,W,H,'rgba(0,6,21,'+alpha.toFixed(3)+')');
   for(let i=0;i<10;i++){ctx.beginPath();ctx.moveTo(i*115,0);ctx.lineTo(i*115+36,0);ctx.lineTo(i*115+260,540);ctx.lineTo(i*115+140,540);ctx.closePath();ctx.fillStyle='#a8eeef0c';ctx.fill();}
   for(let i=0;i<105;i++){
-   const x=((i*183+(s.time||0)*Math.max(1,s.speed)*(i%3+1))%990+990)%990,y=((i*79+(s.time||0)*(i%4+1))%560+560)%560;
+   const x=((i*183+visualTravel.sub*(i%3+1)*.045)%990+990)%990,y=((i*79+(s.depth||0)*.35+(s.time||0)*.06*(i%4+1))%560+560)%560;
    ctx.beginPath();ctx.arc(x,y,1+i%3*.45,0,Math.PI*2);ctx.fillStyle=i%4?'#c7f9f24a':'#defcf8b0';ctx.fill();
   }
   for(let i=0;i<5;i++){const y=132+i*70;segment(ctx,50,y,903,y,'#81c3d133',1);t(ctx,fmt(s.depth-120+i*60)+'m',37,y-6,14,'#b7d6e1');}
-  ctx.save();ctx.translate(480+Math.sin((s.time||0)/5)*5,291);
+  ctx.save();ctx.translate(480,291+C.clamp(v.verticalRate*28,-45,45));
   ctx.fillStyle='#d5cea7';ctx.strokeStyle='#f5ebc1';ctx.lineWidth=4;
   if(!(typeof TransitFleetV5!=='undefined'&&TransitFleetV5.drawHull(ctx,root.dataset.fleetSub||''))){
    ctx.beginPath();ctx.moveTo(-160,-21);ctx.quadraticCurveTo(-196,0,-160,21);ctx.lineTo(132,21);ctx.quadraticCurveTo(196,0,132,-21);ctx.closePath();ctx.fill();ctx.stroke();
@@ -154,22 +220,25 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   }
   ctx.restore();
   if(typeof TransitFleetV5!=='undefined')TransitFleetV5.drawBadge(ctx,'sub',root.dataset.fleetSub||'',672,156);
-  readout(ctx,25,'DEPTH (MODEL)',fmt(s.depth,1)+' m',222);
-  readout(ctx,271,'PRESSURE',fmt(s.pressure/100000,2)+' bar',215);
-  readout(ctx,720,'GROUND TRACK',fmt(s.trackDeg??s.heading)+'°',210);
+  readout(ctx,25,'DEPTH (MODEL)',fmt(v.depth,1)+' m',222);
+  readout(ctx,271,'PRESSURE',fmt(v.pressureBar,2)+' bar',215);
+  readout(ctx,720,'GROUND TRACK',fmt(v.track)+'°',210);
+  panel(ctx,25,106,335,65);t(ctx,v.verticalLabel+'  '+fmt(Math.abs(v.verticalRate),2)+' m/s',42,143,19,v.verticalRate>.015?'#ffd49e':'#c3fff0','800');
   const sample=C.seabed(bathymetry,s);
   if(sample){panel(ctx,23,412,453,67);t(ctx,'NOAA GRID CELL · '+fmt(sample.depth)+' m',39,441,18);t(ctx,'Single sample only; not continuous seabed',39,463,14,'#b8dadf');}
   panel(ctx,540,397,390,99);t(ctx,'WATER / GROUND SPEED',556,425,14,'#a7d7df','800');
-  t(ctx,fmt(s.speed,2)+' kn / '+fmt(s.groundSpeedKnots??s.speed,2)+' kn',556,459,24);
-  t(ctx,'Current '+fmt(s.currentKnots??0,2)+' kn toward '+fmt(s.currentToward??90)+'°',556,483,14,'#d1e4e7');
-  t(ctx,'PROCEDURAL VESSEL · NOT A CAMERA / SONAR IMAGE',480,522,14,'#d4e8e8','700','center');
+  t(ctx,fmt(v.speed,2)+' kn / '+fmt(v.groundSpeed,2)+' kn',556,459,24);
+  t(ctx,'Command '+fmt(v.desired,2)+' kn · current '+fmt(s.currentKnots??0,2)+' kn toward '+fmt(s.currentToward??90)+'°',556,482,13,'#d1e4e7');
+  t(ctx,'ILLUSTRATED HULL · NOT A CAMERA, SONAR OR PRESSURE-RATING MODEL',480,522,13,'#d4e8e8','700','center');
  }
  function draw(){
   if(view!=='outside'||!state||!canvases[mode]?.ctx)return;
   const c=canvases[mode],ctx=c.ctx;ctx.clearRect(0,0,960,540);
   try{if(mode==='flight')flight(ctx,state);else if(mode==='train')train(ctx,state);else sub(ctx,state);}
   catch(e){caption.textContent='Illustrated view is unavailable; Instrument view remains available.';console.error('Transit scene:',e);}
-  c.canvas.setAttribute('aria-label',mode+' illustrated procedural scene driven by simulation state. This is not real terrain or recorded vehicle video.');
+  const summary=mode==='flight'?C.flightView(state):mode==='train'?C.railView(state,route,dispatchState):C.subView(state);
+  const desc=mode==='flight'?'airspeed '+Math.round(summary.speedKnots)+' knots and heading '+Math.round(summary.heading)+' degrees':mode==='train'?'speed '+summary.travelKmH.toFixed(1)+' km per hour and model position '+summary.positionKm.toFixed(2)+' km':'depth '+summary.depth.toFixed(1)+' meters and modeled speed '+summary.speed.toFixed(1)+' knots';
+  c.canvas.setAttribute('aria-label',mode+' illustrated model scene, '+desc+'. Not a real camera view.');
  }
  let pendingDraw=false;
  function scheduleDraw(){
@@ -197,7 +266,17 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
  root.addEventListener('leh-transit-fleet-change',scheduleDraw);
  $('tl-plane')?.addEventListener('change',scheduleDraw);
  $('tl-train-profile')?.addEventListener('change',scheduleDraw);
- root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;mode=event.detail.mode;state=event.detail.state;observing=event.detail.observing;scheduleDraw();});
+ root.addEventListener('leh-transit-state',event=>{
+  const d=event.detail;if(!d?.state)return;
+  mode=d.mode;state=d.state;observing=Boolean(d.observing);
+  if(mode==='flight'||mode==='sub'){
+   const prev=previous[mode];
+   if(!prev||state.time<prev.time||state.time===0||state.profile!==prev.profile)visualTravel[mode]=0;
+   else if(!observing)visualTravel[mode]+=C.traveledMeters(prev,state);
+   previous[mode]=state;
+  }
+  scheduleDraw();
+ });
  if(root.transitLatest){mode=root.transitLatest.mode;state=root.transitLatest.state;}
  choose('instrument');
 })();
