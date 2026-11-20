@@ -36,7 +36,7 @@ const configs={
  topo:{url:'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}',opt:{maxNativeZoom:16,maxZoom:18,attribution:'USGS The National Map'},note:'USGS US Topo layers: mapped terrain and human features. Terrain is contextual imagery; model does not sample actual elevation.'},
  nasa:{url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/2004-08-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg',opt:{maxNativeZoom:8,maxZoom:18,attribution:'NASA Earth Observatory / NASA GIBS, Blue Marble Next Generation (2004)'},note:'NASA cloud-reduced global Blue Marble mosaic, August 2004. ~500 m imagery, so street-level enlargement will be pixelated.'}
 };
-let map=null,base=null,line=null,vehicle=null,stationLayer=null,selectedRoute=null,mode='flight',state=null,trackPoint=null,tileErrors=0;
+let map=null,base=null,line=null,vehicle=null,stationLayer=null,selectedRoute=null,mode='flight',state=null,trackPoint=null,tileErrors=0,railMarkers=[],dispatchRun=null;
 function swap(layerName){
  if(!map||!window.L)return;
  const config=configs[layerName]||configs.street;
@@ -59,7 +59,7 @@ function showRoute(fit){
  if(!map||!window.L)return;
  if(line){map.removeLayer(line);line=null;}
  if(vehicle){map.removeLayer(vehicle);vehicle=null;}
- if(stationLayer){map.removeLayer(stationLayer);stationLayer=null;}
+ if(stationLayer){map.removeLayer(stationLayer);stationLayer=null;}railMarkers=[];
  if(mode!=='train'||!selectedRoute)return;
  const coords=selectedRoute.points.map(p=>[p.lat,p.lon]);
  line=window.L.polyline(coords,{color:'#e0a03c',weight:4,opacity:.93}).addTo(map);
@@ -70,11 +70,24 @@ function showRoute(fit){
   for(const station of selectedRoute.stations.slice(0,120)){
    const node=window.L.circleMarker([station.lat,station.lon],{radius:4,color:'#ffffff',weight:1.3,fillColor:'#237b68',fillOpacity:.9});
    const safe=document.createElement('div');safe.textContent=station.name+' · '+(station.distanceM/1000).toFixed(2)+' km along mapped geometry · offset '+Math.round(station.offsetM)+' m';
-   node.bindPopup(safe);stationLayer.addLayer(node);
+   node.bindPopup(safe);stationLayer.addLayer(node);railMarkers.push({station,node});
   }
-  stationLayer.addTo(map);
+  stationLayer.addTo(map);updateStationStyles();
  }
  if(fit)map.fitBounds(line.getBounds(),{padding:[24,24],maxZoom:13});
+}
+function updateStationStyles(){
+ if(!map||!railMarkers.length)return;
+ const next=dispatchRun?.targets?.[dispatchRun.cursor],results=dispatchRun?.results||[];
+ for(const entry of railMarkers){
+  const m=entry.station.distanceM,finished=results.find(r=>Math.abs(r.distanceM-m)<22);
+  const isNext=next&&Math.abs(next.distance-m)<22;
+  const status=finished?(finished.served?'served':'missed'):isNext?'next':'other';
+  if(entry.status===status)continue;
+  entry.status=status;
+  const fill=status==='served'?'#218a70':status==='missed'?'#c24f3d':status==='next'?'#f7bd53':'#347d9e';
+  entry.node.setStyle({fillColor:fill,color:isNext?'#203d38':'#ffffff',radius:isNext?6:4});
+ }
 }
 function updateRailPoint(){
  if(mode!=='train'||!selectedRoute)return;
@@ -99,9 +112,10 @@ root.addEventListener('leh-transit-route-selected',event=>{
 });
 root.addEventListener('leh-transit-route-cleared',()=>{
  selectedRoute=null;delete root.dataset.routeLat;delete root.dataset.routeLon;
- if(map){if(line){map.removeLayer(line);line=null;}if(vehicle){map.removeLayer(vehicle);vehicle=null;}if(stationLayer){map.removeLayer(stationLayer);stationLayer=null;}}
+ if(map){if(line){map.removeLayer(line);line=null;}if(vehicle){map.removeLayer(vehicle);vehicle=null;}if(stationLayer){map.removeLayer(stationLayer);stationLayer=null;}railMarkers=[];dispatchRun=null;}
  if(mode==='train')host.hidden=true;
 });
+root.addEventListener('leh-transit-dispatch-update',event=>{dispatchRun=event.detail?.run||null;updateStationStyles();});
 root.addEventListener('leh-transit-state',event=>{
  const d=event.detail;if(!d?.state)return;
  const changed=mode!==d.mode;mode=d.mode;state=d.state;
