@@ -11,8 +11,9 @@ function targets(route,length,modelStops){
  let all=stations.filter(s=>finite(s.distanceM)&&Number(s.distanceM)>=35&&Number(s.distanceM)<=n+3)
   .map(s=>{
    const arrival=finite(s.arrivalSec)?Number(s.arrivalSec):null,departure=finite(s.departureSec)?Number(s.departureSec):null;
-   const dwell=arrival!==null&&departure!==null&&departure-arrival>=5&&departure-arrival<=300?departure-arrival:15;
-   return {id:String(s.id||s.name||'station'),name:String(s.name||'Mapped station').slice(0,90),distance:clamp(Number(s.distanceM),0,n),scheduled:finite(s.scheduledElapsedSec)?Number(s.scheduledElapsedSec):null,dwell,sourceDwell:dwell!==15&&arrival!==null?'GTFS stop_times':'Classroom default'};
+   const publishedDwell=arrival!==null&&departure!==null&&departure-arrival>=5&&departure-arrival<=300;
+   const dwell=publishedDwell?departure-arrival:15;
+   return {id:String(s.id||s.name||'station'),name:String(s.name||'Mapped station').slice(0,90),distance:clamp(Number(s.distanceM),0,n),scheduled:finite(s.scheduledElapsedSec)?Number(s.scheduledElapsedSec):null,dwell,sourceDwell:publishedDwell?'GTFS stop_times':'Classroom default'};
   });
  if(!all.length&&!route){
   all=(modelStops||[2500,5500,10000]).filter(x=>finite(x)&&x>=35&&x<=n+3).map(x=>({id:'model-'+x,name:'Illustrative '+(Number(x)/1000).toFixed(2)+' km station',distance:clamp(Number(x),0,n),scheduled:null,dwell:15,sourceDwell:'Classroom default'}));
