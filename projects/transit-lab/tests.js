@@ -10,4 +10,7 @@ assert.equal(end.pos,end.length);assert.equal(end.speed,0);assert.equal(end.term
 const sub=m.subInit(),sub2=m.subStep({...sub,ballast:100},4);assert.ok(sub2.depth>sub.depth);const sub3=m.subStep({...sub,ballast:-100},4);assert.ok(sub3.depth<sub.depth);
 const pts=m.parseTrackCsv('time_iso,latitude,longitude,altitude_m,groundspeed_mps,heading_deg\n2026-11-19T12:00:00Z,40.5,-73.7,1500,50,90\n2026-11-19T12:01:00Z,40.6,-73.6,1600,52,91');assert.equal(pts.length,2);
 assert.throws(()=>m.parseTrackCsv('time_iso,latitude,longitude,altitude_m\n2026-11-19T12:00:00Z,91,-73.7,1500'));
+const fresh=m.subStep({...m.subInit(),waterDensity:1000},1),salt=m.subStep({...m.subInit(),waterDensity:1030},1);
+assert.ok(fresh.depth>sub.depth&&salt.depth<sub.depth,'less dense fluid reduces buoyancy for fixed displacement');
+assert.ok(fresh.pressure<salt.pressure);
 console.log('Transit model tests passed: SI pressure, braking distance, acceleration, turn kinematics, altitude, buoyancy and track validation.');
