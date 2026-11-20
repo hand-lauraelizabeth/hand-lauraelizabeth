@@ -170,14 +170,14 @@ const sub=`
 <text id="tvs-target" x="634" y="245" text-anchor="middle" font-size="18" fill="#fff0cd">75m TARGET</text>
 </g>
 <g id="tvs-boat" transform="translate(0 0)">
-<path d="M326 257h254a41 34 0 0 1 0 68H326a41 34 0 0 1 0-68z" fill="url(#tvs-hull)" stroke="#f0e4b2" stroke-width="3"/>
-<path d="M417 257v-27h45v27" fill="#cab776" stroke="#e5d699" stroke-width="3"/>
+<path id="tvs-hull-outline" d="M326 257h254a41 34 0 0 1 0 68H326a41 34 0 0 1 0-68z" fill="url(#tvs-hull)" stroke="#f0e4b2" stroke-width="3"/>
+<path id="tvs-superstructure" d="M417 257v-27h45v27" fill="#cab776" stroke="#e5d699" stroke-width="3"/>
 <path d="M377 291h161" stroke="#7b744f" stroke-width="5"/>
 <circle cx="530" cy="289" r="10" fill="#4e7278" stroke="#d4d7a4" stroke-width="3"/>
 <path d="M318 266l-29-19v89l29-19z" fill="#ad9560"/>
 </g>
 <rect x="36" y="28" width="480" height="47" rx="10" fill="#082636" stroke="#458294"/>
-<text x="57" y="58" class="tv-tiny" fill="#d5f5f4">SUBMARINE LAB · SCHEMATIC WATER COLUMN</text>
+<text id="tvs-vessel" x="57" y="58" class="tv-tiny" fill="#d5f5f4">SUBMARINE · SCHEMATIC WATER COLUMN</text>
 <rect x="710" y="96" width="201" height="112" rx="13" fill="#071d2b" stroke="#6eb6bf" stroke-width="2"/>
 <text x="729" y="125" class="tv-tiny tv-soft">DEPTH · m</text>
 <text id="tvs-depth" x="810" y="176" text-anchor="middle" class="tv-digit tv-monospace" fill="#f7fff7">50.0</text>
@@ -228,8 +228,8 @@ function quickButtons(kind){
 const modeTitle={flight:"Flight instrument view",train:"Rail cab schematic",sub:"Submarine depth display"};
 const explainer={
 flight:"This resembles the organization of a primary flight display: airspeed, altitude, bank, and heading. The central horizon follows the model’s flight-path angle as a visual proxy; flight-path angle is not body pitch. Groundspeed includes an optional steady-wind estimate. It is not a camera, terrain view, or approved PFD.",
-train:"The view represents a hypothetical straight track from a forward cab perspective. The speed, station separation, grade and ideal stopping-distance cue come from the current simplified model. No actual rail alignment, signaling, dispatch rules, adhesion variation or gradient profile is supplied.",
-sub:"This is a conceptual depth cross-section, not a sonar image. Boat position, hydrostatic pressure, ballast trim and vertical motion are computed from a highly simplified buoyancy model. The depth scale rescales for clarity and is labeled; there is no measured bathymetry or safe operating depth."
+train:"The instrument schematic follows modeled speed, position, grade, controls and idealized braking. When a published rail route or GTFS trip is selected, the active dispatch stop takes precedence over a hypothetical station marker. Track infrastructure, signals, historic assignments and gradients are not surveyed.",
+sub:"This is a conceptual, rescaled depth cross-section, not sonar. The hull outline changes with the selected submarine study; depth, pressure, trim and vertical rate remain teaching-model calculations. Opt-in seabed samples appear in the separate geographic tool and do not establish a safe operating depth."
 };
 const updateText=(id,txt)=>{const e=$(id);if(e)e.textContent=txt;};
 const setTransform=(id,t)=>{const e=$(id);if(e)e.setAttribute("transform",t);};
@@ -244,13 +244,18 @@ function renderFlight(s,observing){
  updateText("tvf-heading",fmt(hd,0)+"°");updateText("tvf-track",fmt(track,0)+"°");
  updateText("tvf-bank","BANK "+fmt(bank,1)+"°");updateText("tvf-fpa","PATH "+fmt(path,1)+"°");
  updateText("tvmf-0",fmt(knots,0)+" kn");updateText("tvmf-1",fmt(s.alt*3.28084,0)+" ft");updateText("tvmf-2",fmt(hd,0)+"°");updateText("tvmf-3",fmt(track,0)+"°");
- const state=observing?"CSV SELECTED · VIEW NOT RECORDED":s.stalled?"LIFT WARNING · MODEL LIMIT":"GENERIC · SIMULATED";
+ const profile=M.AIRCRAFT[s.profile]?.name||"Generic aircraft";
+ const shortName=profile.split(" · ")[0].slice(0,28);
+ const state=observing?"CSV · MODEL DISPLAY":s.stalled?"STALL FLAG · MOTION NOT VALIDATED":shortName+" · SIMULATED";
  updateText("tvf-state",state);
- $("tl-flight-scene")?.setAttribute("aria-label",`Generic flight model: airspeed ${fmt(knots,0)} knots, altitude ${fmt(s.alt*3.28084,0)} feet, ground track ${fmt(track,0)} degrees, bank ${fmt(bank,1)} degrees. This is not a cockpit camera or measured attitude.`);
+ $("tl-flight-scene")?.setAttribute("aria-label",`${profile} teaching model: airspeed ${fmt(knots,0)} knots, altitude ${fmt(s.alt*3.28084,0)} feet, ground track ${fmt(track,0)} degrees, bank ${fmt(bank,1)} degrees. This is not a cockpit camera or measured attitude.`);
 }
 function renderTrain(s){
- updateText('tvr-title',s.routeName?'RAIL LAB · MAPPED GEOGRAPHY · '+(s.length/1000).toFixed(2)+' km':'RAIL LAB · CAB VIEW · GENERIC 10 km');
- const target=Number($("tl-mission-station")?.value)||s.nearestStop||s.length,d=target-s.pos,profile=M.TRAINS[s.profile],decel=profile.brake*(s.adhesion??1)+.03+9.80665*s.grade/100;
+ const modelName=(M.TRAINS[s.profile]?.name||"Generic railway").split(" · ")[0];
+ updateText('tvr-title','RAIL · '+modelName.slice(0,20).toUpperCase()+(s.routeName?' · MAPPED':' · MODEL'));
+ const active=dispatchState?.run?.phase==='finished'?null:dispatchState?.station;
+ const target=Number.isFinite(active?.distance)?active.distance:Number($("tl-mission-station")?.value)||s.nearestStop||s.length;
+ const d=target-s.pos,profile=M.TRAINS[s.profile],decel=profile.brake*(s.adhesion??1)+.03+9.80665*s.grade/100;
  const ideal=decel>0?s.speed*s.speed/(2*decel):Infinity;
  const due=ideal+Math.max(2,s.speed*.15)>=d;
  updateText("tvr-speed",fmt(s.speed*3.6,1));
@@ -258,15 +263,29 @@ function renderTrain(s){
  updateText("tvr-grade","GRADE "+fmt(s.grade,1)+"%");
  updateText("tvr-brake","BRAKE COMMAND "+fmt(s.brake,0)+"%");
  updateText("tvr-stop","IDEAL STOP "+(Number.isFinite(ideal)?fmt(ideal,0):"n/a")+" m");
- updateText("tvr-cue",s.speed<.3?"STOPPED":d<0?"MARKER PASSED":due?"BRAKE CUE":"APPROACH");
+ updateText("tvr-cue",dispatchState?.run?.phase==="doors-open"?"DOORS OPEN":dispatchState?.run?.phase==="at-platform"?"AT PLATFORM":dispatchState?.run?.phase==="finished"?"RUN FINISHED":d< -15?"TARGET MISSED":s.speed<.3?"STOPPED":due?"BRAKE CUE":"APPROACH");
  updateText("tvmr-0",fmt(s.speed*3.6,1)+" km/h");updateText("tvmr-1",fmt(d,0)+" m");updateText("tvmr-2",fmt(s.grade,1)+"%");updateText("tvmr-3",fmt(s.brake,0)+"%");
  $("tvr-cue")?.setAttribute("fill",due&&s.speed>.3?"#f5be77":"#a9f3ce");
  const pct=safe(s.pos/Math.max(1,target)*220,0,220);
  $("tvr-progress")?.setAttribute("width",pct.toFixed(1));
  setTransform("tvr-ties",`translate(0 ${Math.round(s.pos%20)*.65})`);
- $("tl-train-scene")?.setAttribute("aria-label",`Generic rail cab schematic: speed ${fmt(s.speed*3.6,1)} kilometers per hour, ${fmt(d,0)} meters to selected stop, full-model braking distance ${Number.isFinite(ideal)?fmt(ideal,0):"undefined"} meters.`);
+ $("tl-train-scene")?.setAttribute("aria-label",`${modelName} teaching instrument: speed ${fmt(s.speed*3.6,1)} kilometers per hour, ${fmt(d,0)} meters to ${active?.name||"selected target"}, model braking estimate ${Number.isFinite(ideal)?fmt(ideal,0):"undefined"} meters. Not surveyed track or historically reconstructed cab.`);
 }
 function renderSub(s){
+ const vessel=$("hr-sub-vehicle")?.value||s.vesselProfile||"generic";
+ const vesselName=vessel==="generic"?"GENERIC DEPTH STUDY":(typeof TransitHistorical!=="undefined"?TransitHistorical.references[vessel]?.label:null)||vessel;
+ updateText("tvs-vessel","SUBMARINE · "+vesselName.toUpperCase().slice(0,37));
+ const hull=$("tvs-hull-outline"),tower=$("tvs-superstructure");
+ const outline=vessel==="holland"?
+  "M336 276Q301 279 299 293Q301 308 336 310H563Q602 306 600 293Q601 278 563 276Z":
+  vessel==="gato"?"M312 281Q334 262 370 261H548Q594 267 608 292Q594 314 549 316H370Q326 315 312 281Z":
+  vessel==="albacore"||vessel==="nautilus"?
+  "M291 292Q350 254 453 257Q555 255 623 292Q554 330 453 329Q351 332 291 292Z":
+  "M326 257h254a41 34 0 0 1 0 68H326a41 34 0 0 1 0-68z";
+ const superstructure=vessel==="holland"?"M433 276V246H461V276Z":vessel==="gato"?
+  "M423 261V233H469V261Z":vessel==="albacore"?"M427 258L439 219H464L481 258Z":
+  vessel==="nautilus"?"M426 258L440 220H473L487 258Z":"M417 257v-27h45v27";
+ hull?.setAttribute("d",outline);tower?.setAttribute("d",superstructure);
  const target=safe(Number($("tl-mission-depth")?.value)||75,0,1000),depth=safe(s.depth,0,1000);
  const max= Math.min(1000,Math.max(200,Math.ceil(Math.max(target,depth)*1.18/200)*200));
  const y=v=>76+safe(v/max,0,1)*385;
@@ -279,9 +298,9 @@ function renderSub(s){
  updateText("tvs-rate","VERTICAL RATE "+fmt(s.verticalSpeed,2)+" m/s");
  updateText("tvs-ballast","TRIM "+fmt(s.actualBallast??s.ballast,1)+"%");
  updateText("tvms-0",fmt(depth,1)+" m");updateText("tvms-1",fmt(s.pressure/1e5,1)+" bar");updateText("tvms-2",fmt(s.verticalSpeed,2)+" m/s");updateText("tvms-3",fmt(s.actualBallast??s.ballast,1)+"%");
- $("tl-sub-scene")?.setAttribute("aria-label",`Submarine buoyancy schematic: depth ${fmt(depth,1)} meters, pressure ${fmt(s.pressure/1e5,1)} bar absolute, vertical speed ${fmt(s.verticalSpeed,2)} meters per second. No mapped seafloor.`);
+ $("tl-sub-scene")?.setAttribute("aria-label",`${vesselName} depth schematic: depth ${fmt(depth,1)} meters, pressure ${fmt(s.pressure/1e5,1)} bar absolute, vertical speed ${fmt(s.verticalSpeed,2)} meters per second. Hull outline is not to scale; no mapped seafloor.`);
 }
-let mode="flight",lastDescription=-1;
+let mode="flight",lastDescription=-1,dispatchState=null;
 function update(e){
  const data=e.detail;if(!data?.state)return;
  const next=data.mode;
@@ -293,13 +312,20 @@ function update(e){
  if(Math.floor(t/3)!==lastDescription||data.observing){
  lastDescription=Math.floor(t/3);
  const label=mode==="flight"
-  ?data.observing?"Imported CSV selected. This conceptual cockpit shows model values, not observed orientation or a recreated view.":`Generic aircraft. Heading ${fmt(state.heading,0)}°, groundspeed ${fmt((state.groundSpeed??state.speed)*1.943844,0)} kn; no satellite terrain or live flight feed.`
-  :mode==="train"?`Illustrative track position ${fmt(state.pos/1000,2)} km, speed ${fmt(state.speed*3.6,1)} km/h; no real route or signals.`
-  :`Schematic depth ${fmt(state.depth,1)} m, ${fmt(state.pressure/1e5,1)} bar absolute; no mapped seafloor.`;
+  ?data.observing?"Imported CSV position selected. The instrument numbers are from the independent teaching model, not recorded attitude or an outside-camera view.":`${(M.AIRCRAFT[state.profile]?.name||"Generic aircraft").split(" · ")[0]}. Heading ${fmt(state.heading,0)}°, modeled ground speed ${fmt((state.groundSpeed??state.speed)*1.943844,0)} kn; no terrain-camera feed.`
+  :mode==="train"?`${(M.TRAINS[state.profile]?.name||"Generic train").split(" · ")[0]}: modeled position ${fmt(state.pos/1000,2)} km, speed ${fmt(state.speed*3.6,1)} km/h; ${dispatchState?.station?"current station target "+dispatchState.station.name:"illustrative station markers"}. No operational signals or track limits.`
+  :`Schematic depth ${fmt(state.depth,1)} m, ${fmt(state.pressure/1e5,1)} bar absolute; vessel ${$("hr-sub-vehicle")?.value||"generic"}. No continuous mapped seafloor.`;
  updateText("tv-view-summary",label);
  }
 }
 root.addEventListener("leh-transit-state",update);
+root.addEventListener("leh-transit-dispatch-update",event=>{
+ dispatchState=event.detail||null;
+ if(root.transitLatest?.mode==="train")renderTrain(root.transitLatest.state);
+});
+root.addEventListener("leh-transit-fleet-change",()=>{
+ if(root.transitLatest?.mode==="sub")renderSub(root.transitLatest.state);
+});
 quickButtons(mode);updateText("tv-view-explainer",explainer[mode]);updateText("tl-view-title",modeTitle[mode]);
 const initial=M.flightInit($("tl-plane")?.value||"trainer");
 renderFlight(initial,false);
