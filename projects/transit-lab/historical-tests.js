@@ -13,4 +13,8 @@ assert.equal(w.towardDeg,90);
 assert.equal(w.fromDeg,270);
 assert.throws(()=>H.observedWind({windSpeed:{value:null},windDirection:{value:90},timestamp:fakeDate}));
 assert.throws(()=>H.observedWind({windSpeed:{value:-1},windDirection:{value:90},timestamp:fakeDate}));
+assert.ok(Math.abs(H.r160.limit-55*.44704)<1e-9);
+assert.ok(Math.abs(H.r160.traction-2.5*.44704)<1e-9);
+assert.equal(H.r160.brake,H.r160.traction);
+assert.ok(H.references.r160.source.includes('NYC%20Subway'));
 console.log('Historical profile and wind normalization tests passed.');

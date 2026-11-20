@@ -86,7 +86,7 @@ try{samples.push({...T.usgsParse(await query(T.usgsUrl(p.lat,p.lon))),...p,km});
 catch(error){failures.push(km+' km: '+error.message);}
 }
 if(id!==generation)return;
-flight=samples;showSamples();
+flight=samples;root.dispatchEvent(new CustomEvent('leh-transit-flight-terrain-samples',{detail:{samples:flight}}));showSamples();
 if(failures.length)result($('tc-results').textContent+' Unavailable: '+failures.join('; ')+'.');
 redrawMarkers();drawProfile();annotate();
 }finally{button.disabled=false;}
@@ -94,11 +94,11 @@ redrawMarkers();drawProfile();annotate();
 $('tc-sub-survey').addEventListener('click',async()=>{
 if(!state||mode!=='sub')return;const snapshot={...state},id=++generation,button=$('tc-sub-survey');button.disabled=true;
 result('Requesting one NOAA global relief grid cell.');
-try{const v=T.etopoParse(await query(T.etopoUrl(snapshot.lat,snapshot.lon)));if(id!==generation)return;seabed={...v,lat:snapshot.lat,lon:snapshot.lon};showSamples();redrawMarkers();annotate();}
-catch(error){if(id===generation){seabed=null;result('Seafloor query unavailable: '+error.message);annotate();}}
+try{const v=T.etopoParse(await query(T.etopoUrl(snapshot.lat,snapshot.lon)));if(id!==generation)return;seabed={...v,lat:snapshot.lat,lon:snapshot.lon};root.dispatchEvent(new CustomEvent('leh-transit-seabed-sample',{detail:{sample:seabed}}));showSamples();redrawMarkers();annotate();}
+catch(error){if(id===generation){seabed=null;root.dispatchEvent(new CustomEvent('leh-transit-seabed-sample',{detail:{sample:null}}));result('Seafloor query unavailable: '+error.message);annotate();}}
 finally{button.disabled=false;}
 });
-$('tc-clear').addEventListener('click',()=>{generation++;flight=[];seabed=null;result('Locally held samples cleared.');drawProfile();redrawMarkers();annotate();});
+$('tc-clear').addEventListener('click',()=>{generation++;flight=[];seabed=null;root.dispatchEvent(new CustomEvent('leh-transit-flight-terrain-samples',{detail:{samples:[]}}));root.dispatchEvent(new CustomEvent('leh-transit-seabed-sample',{detail:{sample:null}}));result('Locally held samples cleared.');drawProfile();redrawMarkers();annotate();});
 root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;state=event.detail.state;if(mode!==event.detail.mode)setMode(event.detail.mode);else annotate();});
 root.addEventListener('leh-transit-map-ready',event=>{map=event.detail?.map||null;redrawMarkers();});
 if(root.transitLatest?.state)state=root.transitLatest.state;

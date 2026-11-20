@@ -16,24 +16,26 @@ function flightStep(s,dt){const p=AIRCRAFT[s.profile];if(!p)throw Error('Unknown
   return {...s,...loc,speed:nextSpeed,alt:Math.max(0,s.alt+.5*(speed+nextSpeed)*Math.sin(gamma)*dt),heading,time:s.time+dt,density:rho,drag,liftCoefficient:cl,stalled:cl>p.clMax,turnRate:turnRate*TO_DEG};
 }
 const TRAINS={metro:{name:'Metro · generic',limit:22.2,traction:1.1,brake:1.25},regional:{name:'Regional rail · generic',limit:44.4,traction:.75,brake:1.05},highspeed:{name:'High-speed rail · generic',limit:83.3,traction:.55,brake:.9}};
-function trainInit(profile='metro'){if(!TRAINS[profile])throw Error('Unknown train profile');return {kind:'train',profile,pos:0,speed:0,throttle:0,brake:0,grade:0,time:0,length:10000,limit:TRAINS[profile].limit,terminalOverrun:false,stops:[0,2500,5500,10000],station:'Depart origin'};}
+function trainInit(profile='metro'){if(!TRAINS[profile])throw Error('Unknown train profile');return {kind:'train',profile,pos:0,speed:0,throttle:0,brake:0,grade:0,time:0,length:10000,limit:TRAINS[profile].limit,adhesion:1,terminalOverrun:false,stops:[0,2500,5500,10000],station:'Depart origin'};}
 function brakingDistance(speed,decel){return decel>0?speed*speed/(2*decel):Infinity;}
-function trainStep(s,dt){dt=clamp(Number(dt)||0,0,2);const spec=TRAINS[s.profile];const rolling=.03,traction=spec.traction*clamp(s.throttle,0,100)/100,brake=spec.brake*clamp(s.brake,0,100)/100;
+function trainStep(s,dt){dt=clamp(Number(dt)||0,0,2);const spec=TRAINS[s.profile];const rolling=.03,adhesion=clamp(Number.isFinite(s.adhesion)?s.adhesion:1,.3,1),traction=spec.traction*clamp(s.throttle,0,100)/100*adhesion,brake=spec.brake*clamp(s.brake,0,100)/100*adhesion;
   const accel=traction-brake-rolling-G*clamp(s.grade,-4,4)/100;
   let speed=clamp(s.speed+accel*dt,0,s.limit),pos=clamp(s.pos+.5*(s.speed+speed)*dt,0,s.length);
   // Clipping to the route boundary is not a physical or successful platform stop.
   const terminalOverrun=Boolean(s.terminalOverrun)||(pos===s.length&&speed>.5);
   if(pos===s.length)speed=0;
-  return {...s,pos,speed,time:s.time+dt,accel,terminalOverrun,brakingDistance:brakingDistance(speed,spec.brake),nearestStop:s.stops.find(x=>x>pos+.1)??s.length};
+  return {...s,pos,speed,time:s.time+dt,accel,adhesion,terminalOverrun,brakingDistance:brakingDistance(speed,spec.brake*adhesion),nearestStop:s.stops.find(x=>x>pos+.1)??s.length};
 }
-function subInit(){return {kind:'sub',lat:36.14,lon:-74.55,depth:50,verticalSpeed:0,ballast:0,speed:3,heading:90,time:0,waterDensity:1025,pressure:oceanPressure(50),accel:0};}
+function subInit(){return {kind:'sub',lat:36.14,lon:-74.55,depth:50,verticalSpeed:0,ballast:0,speed:3,heading:90,currentKnots:0,currentToward:90,groundSpeedKnots:3,trackDeg:90,time:0,waterDensity:1025,pressure:oceanPressure(50),accel:0};}
 function oceanPressure(depth,rho=1025){return 101325+rho*G*Math.max(0,depth);} // absolute Pa, surface = standard atmosphere
 function subStep(s,dt){dt=clamp(Number(dt)||0,0,2);const rho=clamp(Number(s.waterDensity)||1025,1000,1030),neutralMass=1000000,volume=neutralMass/1025;const totalMass=neutralMass+clamp(s.ballast,-100,100)*50; // ±5 t ballast: illustrative control
   const buoyancy=rho*volume*G,weight=totalMass*G;
   const accel=(weight-buoyancy)/totalMass-.045*s.verticalSpeed*Math.abs(s.verticalSpeed); // velocity opposite drag
   let verticalSpeed=clamp(s.verticalSpeed+accel*dt,-3,3),depth=clamp(s.depth+(s.verticalSpeed+verticalSpeed)*.5*dt,0,1000);if(depth===0||depth===1000)verticalSpeed=0;
-  const horizontal=clamp(s.speed,0,20)*.514444*dt,h=s.heading*TO_RAD,loc=moveLatLon(s.lat,s.lon,horizontal*Math.cos(h),horizontal*Math.sin(h));
-  return {...s,...loc,depth,verticalSpeed,accel,pressure:oceanPressure(depth,rho),time:s.time+dt};
+  const flow=clamp(Number(s.currentKnots)||0,0,5),direction=((Number(s.currentToward)||0)%360+360)%360,h=s.heading*TO_RAD,ch=direction*TO_RAD;
+  const north=(clamp(s.speed,0,20)*Math.cos(h)+flow*Math.cos(ch))*.514444,east=(clamp(s.speed,0,20)*Math.sin(h)+flow*Math.sin(ch))*.514444;
+  const loc=moveLatLon(s.lat,s.lon,north*dt,east*dt),groundSpeedKnots=Math.hypot(north,east)/.514444,trackDeg=(Math.atan2(east,north)*TO_DEG+360)%360;
+  return {...s,...loc,depth,verticalSpeed,accel,currentKnots:flow,currentToward:direction,groundSpeedKnots,trackDeg,pressure:oceanPressure(depth,rho),time:s.time+dt};
 }
 function parseTrackCsv(csv){const lines=String(csv).replace(/^\uFEFF/,'').trim().split(/\r?\n/).filter(Boolean);if(lines.length<2)throw Error('CSV needs a header and at least one row.');
   function parseRow(l){const r=[];let q=false,v='';for(let i=0;i<l.length;i++){const c=l[i];if(c==='"'){if(q&&l[i+1]==='"'){v+='"';i++;}else q=!q;}else if(c===','&&!q){r.push(v.trim());v='';}else v+=c;}r.push(v.trim());return r;}

@@ -104,6 +104,7 @@ $('mta-load').addEventListener('click',async()=>{
 });
 root.addEventListener('leh-transit-state',event=>{if(event.detail?.mode==='train'&&active)activeStationStatus(event.detail.state);});
 
+root.addEventListener('leh-transit-route-selected',event=>{const r=event.detail?.route;if(!r||!Array.isArray(r.stations))return;active=r;if(r.trip){listStations(r);$('mta-status').textContent='Selected published GTFS trip · '+(r.trip.headsign||r.trip.tripId)+' · '+r.stations.length+' scheduled station calls matched to the geographic service line. Published times are not live arrivals.';}});
 function visibility(next){mode=next;panel.hidden=mode!=='train';}
 root.addEventListener('leh-transit-state',e=>{if(e.detail?.mode&&e.detail.mode!==mode)visibility(e.detail.mode);});
 visibility(root.querySelector('[data-mode][aria-pressed="true"]')?.dataset.mode||'flight');
