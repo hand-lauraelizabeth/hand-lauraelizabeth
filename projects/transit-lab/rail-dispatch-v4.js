@@ -71,7 +71,7 @@ function advance(run,s){
    const precisionPenalty=Math.min(8,Math.floor(error/3));
    if(precisionPenalty)penalty(run,precisionPenalty,'platform alignment '+error.toFixed(1)+' m from the target',now);
    if(run.arrivalDelta!==null){
-    const timingPenalty=Math.min(12,Math.floor(Math.max(0,Math.abs(run.arrivalDelta)-30)/60)*2);
+    const timingPenalty=Math.min(12,Math.ceil(Math.max(0,Math.abs(run.arrivalDelta)-30)/60)*2);
     if(timingPenalty)penalty(run,timingPenalty,'published arrival offset '+Math.round(run.arrivalDelta)+' s',now);
    }
    run.currentResult={name:target.name,distanceM:target.distance,served:false,clockS:now,scheduledElapsedS:target.scheduled,timetableDeltaS:run.arrivalDelta,alignmentErrorM:Math.round(error*10)/10};
