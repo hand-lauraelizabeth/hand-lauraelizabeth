@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),A=require('./data-adapters.js'),N=require('./mta-routes.js');
+const demo={type:'Feature',properties:{service:'7',service_name:'Flushing Local'},geometry:{type:'MultiLineString',coordinates:[[[-73.9,40.7],[-73.88,40.71]],[[-73.91,40.7],[-73.8,40.73],[-73.7,40.76]]]}};
+const route=N.convert(demo,A);
+assert.equal(route.service,'7');assert.equal(route.segmentCount,2);
+assert.ok(route.lengthM>15000);
+assert.ok(route.isRepresentative);
+assert.ok(route.name.includes('Flushing Local'));
+const routes=N.normalize({type:'FeatureCollection',features:[demo]},A);
+assert.equal(routes.length,1);assert.equal(routes[0].service,'7');
+assert.throws(()=>N.normalize({type:'features',features:[]},A));
+assert.throws(()=>N.convert({type:'Feature',properties:{},geometry:{type:'Point',coordinates:[-73,40]}},A));
+assert.ok(N.URL.includes('data.ny.gov/resource/s692-irgq.geojson'));
+console.log('MTA public route geometry normalization tests passed.');
