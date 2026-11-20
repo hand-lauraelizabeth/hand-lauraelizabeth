@@ -250,7 +250,7 @@ function renderFlight(s,observing){
 }
 function renderTrain(s){
  updateText('tvr-title',s.routeName?'RAIL LAB · MAPPED GEOGRAPHY · '+(s.length/1000).toFixed(2)+' km':'RAIL LAB · CAB VIEW · GENERIC 10 km');
- const target=Number($("tl-mission-station")?.value)||s.nearestStop||2500,d=target-s.pos,profile=M.TRAINS[s.profile],decel=profile.brake+.03+9.80665*s.grade/100;
+ const target=Number($("tl-mission-station")?.value)||s.nearestStop||s.length,d=target-s.pos,profile=M.TRAINS[s.profile],decel=profile.brake*(s.adhesion??1)+.03+9.80665*s.grade/100;
  const ideal=decel>0?s.speed*s.speed/(2*decel):Infinity;
  const due=ideal+Math.max(2,s.speed*.15)>=d;
  updateText("tvr-speed",fmt(s.speed*3.6,1));
