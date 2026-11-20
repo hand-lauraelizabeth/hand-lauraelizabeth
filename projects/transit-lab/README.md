@@ -122,3 +122,18 @@ Player-facing feedback includes a horizontally scrollable route strip for upcomi
 The gameplay logic is testable independently as TransitDispatch in the rail-dispatch-v4.js module. Tests cover invalid/missing GTFS times, exact GTFS dwell attribution, platform thresholds, missed calls, timetable comparison, modeled door-open movement inhibition, terminal overruns and reports. The new cab rendering coalesces canvas updates into animation frames, and map pins are restyled only as station states change to reduce mobile work.
 
 No claim is made to reproduce verified track grades, wheel-rail friction, railway blocks, signals, train protection, rolling-stock-specific controller behavior, current operating assignments or real-time position. These await additional data and engineering implementation.
+
+## Historical Fleet and illustrated vehicle studies (November 2026)
+
+Historical vehicle choices supplement the generic models. The new fleet includes **Ford 5-AT Tri-Motor (1928)** and **Ryan NYP Spirit of St. Louis (1927)** for flight, **IND R1 City Car (1930–1931)**, **NYCT R32 Brightliner (1964)** and **LNER A4 Mallard (1938)** for rail, and **USS Holland (SS-1, 1900)** and **USS Albacore (AGSS-569, 1953)** for submerged navigation.
+
+Selecting a plane supplies the point-mass model with labeled mass, wing, drag and thrust assumptions; selecting a railcar changes modeled acceleration, braking and speed ceiling. Submarine choices use a sourced submerged-speed reference or interface cap and a bounded **illustrative** acceleration response. The submarines do not acquire authentic trim, reactor, diesel-electric, pressure-hull or propulsion models.
+
+Original responsive vector studies illustrate the designs without external images. The moving scene renders named vehicle badges and original, not-to-scale hull sketches; flight background parallax now follows elapsed modeled distance. Vehicle entries link to their museum and naval historical sources.
+
+**Provenance boundaries:** Ford Tri-Motor museum references document a 74 ft wingspan and 132 mph maximum, while model mass, wing area, thrust and drag are illustrative. Smithsonian documentation for Ryan NYP records a 5,135 lb takeoff weight, used as the point-mass reference rather than a full 1927 flight reconstruction. The National Railway Museum records Mallard at 126 mph in a record run; **75 mph is a distinct classroom ceiling, not the record or a historic line restriction**. R1/R32 acceleration and braking are modeled, not retrieved acceptance tests. Holland has a documented 5 kn submerged speed; Albacore has a published speed above 20 kn, so its 20 kn interface cap is not its maximum.
+
+Real mapped MTA lines and GTFS stations describe their selected modern geographic/schedule sources; applying historic railcars is an educational juxtaposition, **not** an authenticated historical assignment, signal system, timetable or track-speed claim. NWS surface winds are contemporary observations only; satellite imagery, NOAA seabed and USGS elevations remain opt-in geographic context, not unverified historical terrain, subway grade or past ocean conditions.
+
+Run the 94-assertion historical-fleet-v5-tests.js suite as well as the earlier historical and scene tests. The WordPress one-line loader builder includes this module after rail-dispatch-v4.js; deploy it after previous modules and replace older scene-v3.js and historical-profiles.js source payloads.
+

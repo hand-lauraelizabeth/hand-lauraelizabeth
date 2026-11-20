@@ -53,17 +53,18 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   rect(ctx,0,0,W,H,gradient(ctx,'#135589','#89bfcc'));
   ctx.save();ctx.translate(480,270);ctx.rotate(-(s.bank||0)*Math.PI/180);ctx.translate(-480,-270+(s.flightPath||0)*7);
   rect(ctx,-240,-600,1500,885,gradient(ctx,'#1c4c86','#98d0d3'));
-  const phase=(s.heading||0)*.01745;
+  const phase=(s.heading||0)*.01745+(s.time||0)*Math.max(8,s.speed||0)*.00018;
   for(let layer=0;layer<4;layer++){
    ctx.beginPath();ctx.moveTo(-210,310+layer*48);
    for(let x=-210;x<1180;x+=18)ctx.lineTo(x,310+layer*47+Math.sin(x*.006+layer+phase)*21+Math.sin(x*.013-layer-phase)*11);
    ctx.lineTo(1180,980);ctx.lineTo(-210,980);ctx.closePath();ctx.fillStyle=['#91aa99','#6c9185','#436b68','#2b505a'][layer];ctx.fill();
   }
   for(let k=0;k<14;k++){
-   const x=((k*211-(s.heading||0)*5)%1520+1520)%1520-240,y=120+(k*67)%150;
+   const x=((k*211-(s.heading||0)*5-(s.time||0)*(s.groundSpeed??s.speed??0)*.12)%1520+1520)%1520-240,y=120+(k*67)%150;
    ctx.beginPath();ctx.ellipse(x,y,80+(k%3)*20,8+(k%4)*4,0,0,Math.PI*2);ctx.fillStyle='#e8f8f52b';ctx.fill();
   }
   ctx.restore();
+  if(typeof TransitFleetV5!=='undefined')TransitFleetV5.drawBadge(ctx,'flight',s.profile,686,156);
   ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,468);ctx.quadraticCurveTo(480,415,960,468);ctx.lineTo(960,H);ctx.fillStyle='#0a2130';ctx.fill();
   segment(ctx,425,280,465,280,'#f8e0a0',5);segment(ctx,494,280,534,280,'#f8e0a0',5);segment(ctx,480,269,480,293,'#f8e0a0',4);
   readout(ctx,30,'TRUE AIRSPEED',fmt(s.speed*1.943844)+' kn');
@@ -114,6 +115,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
    t(ctx,name,signX+13,signY+28,name.length>22?15:20,'#f4fff9','700');
    t(ctx,'SCHEMATIC PLATFORM · '+Math.max(0,Math.round(distanceToStop))+' m',signX+6,signY+61,13,'#e5fcf3','700');
   }
+  if(typeof TransitFleetV5!=='undefined')TransitFleetV5.drawBadge(ctx,'train',s.profile,686,151);
   ctx.beginPath();ctx.moveTo(0,540);ctx.lineTo(0,459);ctx.quadraticCurveTo(480,415,960,459);ctx.lineTo(960,540);ctx.fillStyle='#0b1d2b';ctx.fill();
   readout(ctx,27,'SPEED',fmt(s.speed*3.6,1)+' km/h');
   readout(ctx,253,'MAPPED DISTANCE',fmt(s.pos/1000,2)+' km',230);
@@ -145,10 +147,13 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
   for(let i=0;i<5;i++){const y=132+i*70;segment(ctx,50,y,903,y,'#81c3d133',1);t(ctx,fmt(s.depth-120+i*60)+'m',37,y-6,14,'#b7d6e1');}
   ctx.save();ctx.translate(480+Math.sin((s.time||0)/5)*5,291);
   ctx.fillStyle='#d5cea7';ctx.strokeStyle='#f5ebc1';ctx.lineWidth=4;
-  ctx.beginPath();ctx.moveTo(-160,-21);ctx.quadraticCurveTo(-196,0,-160,21);ctx.lineTo(132,21);ctx.quadraticCurveTo(196,0,132,-21);ctx.closePath();ctx.fill();ctx.stroke();
-  rect(ctx,-26,-42,60,21,'#b5b39c');rect(ctx,1,-60,7,18,'#c9c8ae');
-  for(const dx of [-108,-52,50,109]){ctx.beginPath();ctx.arc(dx,1,6,0,Math.PI*2);ctx.fillStyle='#507d89';ctx.fill();}
+  if(!(typeof TransitFleetV5!=='undefined'&&TransitFleetV5.drawHull(ctx,root.dataset.fleetSub||''))){
+   ctx.beginPath();ctx.moveTo(-160,-21);ctx.quadraticCurveTo(-196,0,-160,21);ctx.lineTo(132,21);ctx.quadraticCurveTo(196,0,132,-21);ctx.closePath();ctx.fill();ctx.stroke();
+   rect(ctx,-26,-42,60,21,'#b5b39c');rect(ctx,1,-60,7,18,'#c9c8ae');
+   for(const dx of [-108,-52,50,109]){ctx.beginPath();ctx.arc(dx,1,6,0,Math.PI*2);ctx.fillStyle='#507d89';ctx.fill();}
+  }
   ctx.restore();
+  if(typeof TransitFleetV5!=='undefined')TransitFleetV5.drawBadge(ctx,'sub',root.dataset.fleetSub||'',672,156);
   readout(ctx,25,'DEPTH (MODEL)',fmt(s.depth,1)+' m',222);
   readout(ctx,271,'PRESSURE',fmt(s.pressure/100000,2)+' bar',215);
   readout(ctx,720,'GROUND TRACK',fmt(s.trackDeg??s.heading)+'°',210);
@@ -189,6 +194,9 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
  root.addEventListener('leh-transit-seabed-sample',event=>{bathymetry=event.detail?.sample||null;scheduleDraw();});
  root.addEventListener('leh-transit-flight-terrain-samples',event=>{terrainSamples=event.detail?.samples||[];scheduleDraw();});
  root.addEventListener('leh-transit-dispatch-update',event=>{dispatchState=event.detail||null;scheduleDraw();});
+ root.addEventListener('leh-transit-fleet-change',scheduleDraw);
+ $('tl-plane')?.addEventListener('change',scheduleDraw);
+ $('tl-train-profile')?.addEventListener('change',scheduleDraw);
  root.addEventListener('leh-transit-state',event=>{if(!event.detail?.state)return;mode=event.detail.mode;state=event.detail.state;observing=event.detail.observing;scheduleDraw();});
  if(root.transitLatest){mode=root.transitLatest.mode;state=root.transitLatest.state;}
  choose('instrument');
