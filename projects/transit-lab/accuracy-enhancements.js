@@ -16,7 +16,7 @@ function show(){
   const s=seen.flight;$('tl-wind-output').textContent='Groundspeed '+fmt(s.groundSpeed*1.943844,0)+' kn · ground track '+fmt(s.trackDeg,0)+'° · heading '+fmt(s.heading,0)+'° · equivalent airspeed '+fmt(s.equivalentAirspeed*1.943844,0)+' kn. Only wind affects the ground track; lift calculations use air-relative speed.';
  }
  if(seen.train){
-  const s=seen.train,spec=M.TRAINS[s.profile],remaining=Math.max(0,s.nearestStop-s.pos),decel=Math.max(.05,spec.brake+.03+M.G*s.grade/100),ideal=M.brakingDistance(s.speed,decel),advice=(ideal+2*s.speed)*1.15;
+  const s=seen.train,spec=M.TRAINS[s.profile],remaining=Math.max(0,s.nearestStop-s.pos),decel=Math.max(.05,spec.brake*(s.adhesion??1)+.03+M.G*s.grade/100),ideal=M.brakingDistance(s.speed,decel),advice=(ideal+2*s.speed)*1.15;
   const el=$('tl-rail-output');el.classList.toggle('warning',advice>=remaining&&s.speed>.1);
   el.textContent=(s.speed<.1?'Stopped':advice>=remaining?'Braking window reached (model only)':'Approach margin available')+'. Station '+fmt(remaining,0)+' m ahead · ideal braking distance '+fmt(ideal,0)+' m · response-and-margin estimate '+fmt(advice,0)+' m. Real systems also require adhesion, gradients, signal and speed-profile data.';
  }
@@ -26,7 +26,7 @@ function show(){
 }
 function update(){if(typeof requestAnimationFrame==='function')requestAnimationFrame(show);else show();}
 M.flightStep=function(s,dt){
- const v=flight(s,dt),ws=Number($('tl-wind').value)*.514444,dir=Number($('tl-wind-direction').value)*r,n=ws*Math.cos(dir),e=ws*Math.sin(dir);
+ const v=flight(s,dt),gust=Number($('ev-gust')?.value||0)*(Math.sin(v.time/5)*.65+Math.sin(v.time/1.7)*.35),ws=Math.max(0,Number($('tl-wind').value)+gust)*.514444,dir=Number($('tl-wind-direction').value)*r,n=ws*Math.cos(dir),e=ws*Math.sin(dir);
  const loc=M.moveLatLon(v.lat,v.lon,n*dt,e*dt),air=v.speed*Math.cos(v.flightPath*r),gn=air*Math.cos(v.heading*r)+n,ge=air*Math.sin(v.heading*r)+e;
  seen.flight=Object.assign({},v,loc,{groundSpeed:Math.hypot(gn,ge),trackDeg:(Math.atan2(ge,gn)*d+360)%360,equivalentAirspeed:v.speed*Math.sqrt(v.density/1.225)});update();return seen.flight;
 };
