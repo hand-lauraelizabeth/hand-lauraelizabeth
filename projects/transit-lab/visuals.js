@@ -132,7 +132,7 @@ const train=`
 </g>
 <rect x="18" y="70" width="924" height="383" rx="12" fill="none" stroke="#598b8b" stroke-width="2"/>
 <rect x="36" y="30" width="452" height="52" rx="10" fill="#092a34" opacity=".96" stroke="#396e74"/>
-<text x="51" y="62" class="tv-tiny" fill="#d2f7e5">RAIL LAB · CAB VIEW · HYPOTHETICAL 10 km</text>
+<text id="tvr-title" x="51" y="62" class="tv-tiny" fill="#d2f7e5">RAIL LAB · CAB VIEW · TEACHING MODEL</text>
 <rect x="672" y="90" width="252" height="116" rx="15" fill="#061c27" stroke="#83ada9" stroke-width="2"/>
 <text x="697" y="121" class="tv-tiny tv-soft">TRAIN SPEED</text>
 <text id="tvr-speed" x="798" y="175" class="tv-digit tv-monospace" text-anchor="middle" fill="#f4fff6">0</text>
@@ -249,6 +249,7 @@ function renderFlight(s,observing){
  $("tl-flight-scene")?.setAttribute("aria-label",`Generic flight model: airspeed ${fmt(knots,0)} knots, altitude ${fmt(s.alt*3.28084,0)} feet, ground track ${fmt(track,0)} degrees, bank ${fmt(bank,1)} degrees. This is not a cockpit camera or measured attitude.`);
 }
 function renderTrain(s){
+ updateText('tvr-title',s.routeName?'RAIL LAB · MAPPED GEOGRAPHY · '+(s.length/1000).toFixed(2)+' km':'RAIL LAB · CAB VIEW · GENERIC 10 km');
  const target=Number($("tl-mission-station")?.value)||s.nearestStop||2500,d=target-s.pos,profile=M.TRAINS[s.profile],decel=profile.brake+.03+9.80665*s.grade/100;
  const ideal=decel>0?s.speed*s.speed/(2*decel):Infinity;
  const due=ideal+Math.max(2,s.speed*.15)>=d;
