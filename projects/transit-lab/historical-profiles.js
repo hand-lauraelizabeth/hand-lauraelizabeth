@@ -7,6 +7,9 @@ const TransitHistorical=(()=>{
    additionalSource:'https://www.museumofflight.org/exhibits-and-events/aircraft/douglas-dc-3',
    facts:['1935 first flight','11,430 kg historical gross mass','987 ft² wing area','370 km/h published top speed'],
    assumptions:'Point-mass drag, thrust, CLmax and maneuver behavior remain illustrative, not DC-3 flight-test data.'},
+  r160:{label:'NYCT R160 · archival railcar specification (2011)',source:'https://nycscdatasheet.yolasite.com/resources/August_2011/NYC%20Subway%20Car%20Datasheet.pdf',
+   facts:['Published 55 mph maximum vehicle speed','2.5 mph/s published acceleration','2.5 mph/s listed in-service deceleration (2011 datasheet)','AC propulsion and dynamic braking; operating assignments may change'],
+   assumptions:'Published performance figures are historical vehicle-level references, not proven 2026 line limits. Constant acceleration/deceleration and adhesion factors remain an educational simplified model.'},
   gg1:{label:'Pennsylvania Railroad GG1 · 1934',source:'https://www.asme.org/about-asme/engineering-history/landmarks/83-penn-rr-gg1-electric-locomotive-4800',
    facts:['1934 prototype','4,620 continuous horsepower','Passenger service exceeding 100 mph'],
    assumptions:'A 100 mph model speed ceiling and generic train traction and braking; route and train consist are not reproduced.'},
@@ -20,6 +23,7 @@ const TransitHistorical=(()=>{
  const dc3={name:'Douglas DC-3 · historical-reference inputs',mass:11430,wing:987*.09290304,
   cd0:.035,k:.05,thrust:42000,clMax:1.6,speed:75,alt:1600,throttle:48,maxSpeed:370/3.6};
  const gg1={name:'PRR GG1 · historical-reference ceiling',limit:100*.44704,traction:.5,brake:.92};
+ const r160={name:'NYCT R160 · 2011 archival acceleration/braking',limit:55*.44704,traction:2.5*.44704,brake:2.5*.44704};
  function observedWind(properties){
   const speed=properties?.windSpeed?.value,from=properties?.windDirection?.value;
   if(!Number.isFinite(speed)||speed<0||!Number.isFinite(from))throw Error('Observation does not include a valid wind speed and direction.');
@@ -27,7 +31,7 @@ const TransitHistorical=(()=>{
   if(!Number.isFinite(date))throw Error('Observation timestamp is unavailable.');
   return {speedKnots:speed*1.943844,fromDeg:((from%360)+360)%360,towardDeg:((from+180)%360+360)%360,observedAt:new Date(date).toISOString(),ageMinutes:(Date.now()-date)/60000};
  }
- return {references,dc3,gg1,observedWind};
+ return {references,dc3,gg1,r160,observedWind};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=TransitHistorical;
 (function historicalLab(){
@@ -38,12 +42,14 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitHistorical;
  const M=TransitModels,H=TransitHistorical,$=id=>document.getElementById(id);
  M.AIRCRAFT.dc3={...H.dc3};
  M.TRAINS.gg1={...H.gg1};
+ M.TRAINS.r160={...H.r160};
  function addOption(selectId,value,label){
   const s=$(selectId);if(!s||Array.from(s.options).some(o=>o.value===value))return;
   const option=document.createElement('option');option.value=value;option.textContent=label;s.append(option);
  }
  addOption('tl-plane','dc3','Douglas DC-3 · historical reference (1935)');
  addOption('tl-train-profile','gg1','PRR GG1 · historic electric locomotive (1934)');
+ addOption('tl-train-profile','r160','NYCT R160 · archival 2011 performance reference');
  const style=document.createElement('style');
  style.textContent='#leh-transit .hr-panel{background:#f0f6f0;border:1px solid #b8d0c1;border-radius:10px;padding:.8rem;margin:.75rem 0;line-height:1.5}#leh-transit .hr-panel p{font-size:.84rem}#leh-transit .hr-panel a{font-size:.84rem}#leh-transit .hr-panel h3{font-size:1.04rem;margin:.1rem 0 .45rem;font-family:Georgia,serif}#leh-transit .hr-panel ul{padding-left:1.15rem;margin:.4rem 0;font-size:.83rem}#leh-transit .hr-panel label{display:block;margin:.4rem 0}#leh-transit .hr-panel .actions{margin:.45rem 0}';
  document.head.append(style);
@@ -72,7 +78,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitHistorical;
  }
  function render(){
   details('hr-flight-details',$('tl-plane').value==='dc3'?H.references.dc3:null);
-  details('hr-rail-details',$('tl-train-profile').value==='gg1'?H.references.gg1:null);
+  details('hr-rail-details',H.references[$('tl-train-profile').value]||null);
   details('hr-sub-details',H.references[$('hr-sub-vehicle').value]||null);
  }
  function vesselConfig(){
