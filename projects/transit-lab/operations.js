@@ -10,7 +10,7 @@ function flightEnvelope(s,p){
  return {stallSpeed,margin:s.speed/stallSpeed,loadFactor:1/Math.cos(bank),verticalFpm:s.speed*Math.sin(gamma)*196.850394};
 }
 function railApproach(s,p,target){
- const remaining=target-s.pos,decel=p.brake+.03+G*clamp(s.grade,-4,4)/100;
+ const remaining=target-s.pos,decel=p.brake*clamp(Number.isFinite(s.adhesion)?s.adhesion:1,.3,1)+.03+G*clamp(s.grade,-4,4)/100;
  const idealStop=decel>0?s.speed*s.speed/(2*decel):Infinity,planning=1.15*(idealStop+2*s.speed);
  return {remaining,idealStop,planning,brakeWindow:s.speed>.5&&planning>=remaining,overshot:remaining< -15||(target===s.length&&Boolean(s.terminalOverrun)),platformStop:!s.terminalOverrun&&Math.abs(remaining)<=15&&s.speed<=.5};
 }
