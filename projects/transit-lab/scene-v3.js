@@ -34,7 +34,8 @@ const TransitSceneMath=(()=>{
    route?.stations?.find(v=>Number.isFinite(v.distanceM)&&v.distanceM>=finite(s?.pos)-15)||null;
   const at=stop?(Number.isFinite(stop.distance)?stop.distance:stop.distanceM):null;
   const remaining=Number.isFinite(at)?at-finite(s?.pos):null;
-  const description=String(stop?.structure||route?.structure||'').toLowerCase();
+  const matched=Number.isFinite(at)?route?.stations?.find(v=>Number.isFinite(v.distanceM)&&Math.abs(v.distanceM-at)<=35):null;
+  const description=String(stop?.structure||matched?.structure||route?.structure||'').toLowerCase();
   const knownStructure=description.includes('underground')||description.includes('subway')||
    description.includes('elevated')||description.includes('surface')||description.includes('at-grade')||
    description.includes('open cut');
@@ -179,6 +180,22 @@ if(typeof module!=='undefined'&&module.exports)module.exports=TransitSceneMath;
    const name=String(stop?.name||'Station').slice(0,29);
    t(ctx,name,signX+13,signY+28,name.length>22?15:20,'#f4fff9','700');
    t(ctx,'ILLUSTRATED PLATFORM · '+Math.max(0,Math.round(distanceToStop))+' m',signX+6,signY+61,13,'#e5fcf3','700');
+  }
+  // The simulator models different vehicle types, not an identical subway cab for every train.
+  // These are visibly schematic silhouettes, not historically reconstructed interiors.
+  const frame=s.profile==='mallard'?'steam':s.profile==='gg1'?'electric':
+   s.profile==='r32'||s.profile==='r160'?'stainless':s.profile==='r1'?'early-metro':null;
+  if(frame==='steam'){
+   ctx.beginPath();ctx.moveTo(360,448);ctx.lineTo(403,355);ctx.lineTo(553,355);
+   ctx.lineTo(602,448);ctx.closePath();ctx.fillStyle='#263d55';ctx.fill();ctx.strokeStyle='#d5b874';ctx.lineWidth=4;ctx.stroke();
+   rect(ctx,464,324,40,33,'#172c40');rect(ctx,478,305,13,23,'#364b5a');
+   t(ctx,'STREAMLINED STEAM-LOCO STUDY',483,382,13,'#f5e1b3','700','center');
+  }else if(frame){
+   const paint=frame==='stainless'?'#bbc7ce':frame==='electric'?'#425d6b':'#456f59';
+   rect(ctx,362,366,24,74,paint);rect(ctx,569,366,25,74,paint);
+   rect(ctx,362,366,232,12,paint);
+   t(ctx,frame==='electric'?'ELECTRIC LOCOMOTIVE STUDY':frame==='early-metro'?'EARLY SUBWAY CAR STUDY':'STAINLESS SUBWAY CAR STUDY',
+    479,388,12,'#fff4d2','700','center');
   }
   if(typeof TransitFleetV5!=='undefined')TransitFleetV5.drawBadge(ctx,'train',s.profile,686,151);
   ctx.beginPath();ctx.moveTo(0,540);ctx.lineTo(0,459);ctx.quadraticCurveTo(480,415,960,459);ctx.lineTo(960,540);ctx.fillStyle='#0b1d2b';ctx.fill();
