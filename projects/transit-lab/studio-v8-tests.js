@@ -1,0 +1,28 @@
+/* Standalone numerical/source-boundary regression checks for Transit Studio v8. */
+'use strict';
+const assert=require('node:assert/strict');
+const C=require('./studio-v8.js');
+const elev=C.parseCSV('latitude,longitude,elevation_m\n40,-74,4\n40.001,-74,12\n40.002,-74,7\n','flight');
+assert.equal(elev.kind,'elevation');
+assert.equal(elev.points.length,3);
+assert(elev.lengthM>200&&elev.lengthM<230);
+assert.equal(elev.min,4);assert.equal(elev.max,12);
+const depth=C.parseCSV('latitude,longitude,depth_m\n38,-70,20\n38.05,-70,120\n','sub');
+assert.equal(depth.kind,'depth');assert.equal(depth.max,120);
+assert.throws(()=>C.parseCSV('latitude,longitude,elevation_m\n95,0,12\n96,0,13'));
+assert.throws(()=>C.parseCSV('latitude,longitude,elevation_m\n10,0,12\n10,0,14'));
+assert.throws(()=>C.parseCSV('latitude,longitude,elevation_m\n10,0,nan\n10.1,0,14'));
+assert.throws(()=>C.parseCSV('latitude,longitude,elevation_m\n10,0,2\n10.1,0,\n'));
+const flightBase={mass:100,thrust:10,cd0:.04,k:.05};
+const plane=C.validateVariant('flight',flightBase,{name:'Test derivative',massFactor:1.2,powerFactor:.8,dragFactor:1.1});
+assert.equal(plane.mass,120);assert.equal(plane.thrust,8);
+assert.equal(flightBase.mass,100);assert(plane.name.startsWith('EXPERIMENTAL:'));
+const trainBase={limit:40,traction:2,brake:1};
+const train=C.validateVariant('train',trainBase,{name:'Rail prototype',massFactor:1.5,powerFactor:1.5,dragFactor:.8});
+assert.equal(train.limit,40);assert.equal(train.traction,3);assert.equal(train.brake,.8);
+assert.equal(trainBase.traction,2);
+assert.throws(()=>C.validateVariant('flight',flightBase,{name:'Bad',massFactor:5,powerFactor:1,dragFactor:1}));
+const summary=C.summarize([{t:0,mode:'flight',vehicle:'DC3',speedMps:20,position:100},{t:2,mode:'flight',vehicle:'DC3',speedMps:22,position:150}]);
+assert.equal(summary.avgSpeed,21);assert.equal(summary.positionChange,50);assert.equal(summary.time,2);
+assert.equal(summary.observed,false);
+console.log('Transit Studio v8 numerical and source-boundary checks passed.');
