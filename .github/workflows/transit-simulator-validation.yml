@@ -37,6 +37,7 @@ jobs:
           node projects/transit-lab/scene-v3-tests.js
           node projects/transit-lab/historical-fleet-v5-tests.js
           node projects/transit-lab/studio-v8-tests.js
+          node projects/transit-lab/studio-v9-tests.js
       - name: Build WordPress-safe simulator loader
         run: |
           python3 scripts/build_simulation_loader.py transit --output /tmp/transit-loader.html
@@ -46,6 +47,6 @@ jobs:
           assert data.startswith('<script id="leh-transit-safe-loader">')
           assert data.endswith('</script>\n')
           assert data.count('<script') == 1
-          assert 'studio-v7' not in data and 'studio-v8' not in data
+          assert 'studio-v7' not in data and 'studio-v8' not in data and 'studio-v9' not in data
           assert len(data) > 1000
           PY
