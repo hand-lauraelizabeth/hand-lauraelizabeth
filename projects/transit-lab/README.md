@@ -153,3 +153,16 @@ The instrument view and illustrated moving view now use the same modeled quantit
 
 
 The submarine external view also places the **surface at a model-derived depth** where visible, and suppresses negative depth ticks. The sketch does not represent actual sea-surface conditions or local bathymetry.
+
+
+## Advanced simulation studio and engineering bench (November 2026)
+
+The simulator extends its original instrumented teaching models with two companion modules, both loaded after the core simulation and historical-reference modules.
+
+**Visual studio — `studio-v7.js`:** A responsive, illustrated scene for flight, railway and submarine operation, with model-responsive motion, camera choices, environmental scenarios, a searchable machine hangar, and a reversible what-if panel. Visual details are reconstructed for instruction; they are not manufacturer-certified interiors, direct satellite camera views, measured route environments or 6-DOF flight/hull dynamics. Published historic attributes remain separate from estimated behavior.
+
+**Engineering bench — `studio-v8.js`:** A local model-run recorder samples simulated time, speed and position. Runs can be compared and exported to CSV or JSON; browser persistence happens only after choosing Save. The geographic cross-section studio accepts a WGS84 CSV with `latitude,longitude,elevation_m` or `latitude,longitude,depth_m`, requires source, version, datum and use-rights acknowledgement, and visualizes the numeric profile without automatically changing vehicle physics. Experimental aircraft/rail derivatives are explicitly labeled, use bounded changes to educational parameters, and never inherit verified historical status. The original vehicle speed ceiling is not inferred to increase with traction or power.
+
+**Explicit external requests:** NASA GIBS imagery, NOAA coastal water-level observations, published MTA geometry, imported track data and other geospatial sources are requested or imported only through deliberate user interaction. Observation timestamps, vertical datums, licensing and geographic uncertainties must be reviewed. A real data layer is not proof of a validated physical model. This is educational software, not operational navigation, dispatch or engineering-certification guidance.
+
+**Build and verification:** Run `python scripts/build_simulation_loader.py transit` from the repository root to package the ordered modules for WordPress. Do not paste executable multi-line scripts into WordPress page content; its auto-formatting can corrupt JavaScript. Test the numerical/data boundaries with `node projects/transit-lab/studio-v8-tests.js`, then check Start/Pause, Step, Reset, machine creation, CSV input, all simulation modes and the map request boundaries in a real browser. The supplemental code does not silently change external observations or overwrite user-supplied sources.
