@@ -1,0 +1,30 @@
+name: Public WordPress read-only acceptance
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "19 10 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  published-tool-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install browser testing library
+        run: python -m pip install --disable-pip-version-check selenium==4.27.1
+      - name: Exercise public pages with synthetic inputs
+        env:
+          LEH_TEST_LIVE_TOOLS: "1"
+        run: python scripts/test_live_tool_interactions.py
+
+# No WordPress login, secrets, deployment, or write actions.
+# Ordinary PR runs use only versioned local tool tests.

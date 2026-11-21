@@ -2,18 +2,8 @@ name: Live SUNY transfer baseline
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "projects/college-career-matching/suny_step_live_snapshot.py"
-      - "projects/college-career-matching/suny_transfer_agreement_adapter.py"
-      - "projects/college-career-matching/suny_institution_identity.py"
-      - "projects/college-career-matching/suny_transfer_identity_bridge.py"
-      - "projects/college-career-matching/suny_transfer_program_review.py"
-      - "projects/college-career-matching/suny_transfer_live_pipeline.py"
-      - "projects/college-career-matching/suny_step_reviewed_aliases.csv"
-      - "scripts/college_career_ingest.py"
-      - "scripts/college_career_sources.py"
-      - ".github/workflows/live-suny-transfer.yml"
+  schedule:
+    - cron: "23 12 * * 1"
 
 permissions:
   contents: read
@@ -23,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
       - name: Fetch current IPEDS directory
@@ -38,7 +28,7 @@ jobs:
           python projects/college-career-matching/suny_transfer_live_pipeline.py --ipeds-hd "$IPEDS_FILE" --output-dir "${{ runner.temp }}/suny-transfer-live"
           cat "${{ runner.temp }}/suny-transfer-live/suny_transfer_live_baseline.json"
       - name: Upload baseline and review outputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: suny-transfer-live-baseline
           path: |
