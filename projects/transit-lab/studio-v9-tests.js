@@ -1,5 +1,5 @@
 'use strict';
-const assert=require('node:assert/strict'),G=require('./transit_studio_v9.js');
+const assert=require('node:assert/strict'),G=require('./studio-v9.js');
 const near=(a,b,d)=>assert.ok(Math.abs(a-b)<=d,`${a} vs ${b}`);
 assert.deepEqual(G.point(40.7,-73.9),{lat:40.7,lon:-73.9});
 assert.throws(()=>G.point(95,-73),/Invalid/);assert.throws(()=>G.point(44,NaN),/Invalid/);
