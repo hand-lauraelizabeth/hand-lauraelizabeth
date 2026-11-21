@@ -1,0 +1,51 @@
+name: Transit Simulation Lab regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "projects/transit-lab/**"
+      - "scripts/build_simulation_loader.py"
+      - ".github/workflows/transit-simulator-validation.yml"
+  pull_request:
+    paths:
+      - "projects/transit-lab/**"
+      - "scripts/build_simulation_loader.py"
+      - ".github/workflows/transit-simulator-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - name: Check all simulator source syntax
+        run: |
+          set -euo pipefail
+          for file in projects/transit-lab/*.js; do node --check "$file"; done
+      - name: Run numerical and integration regression tests
+        run: |
+          set -euo pipefail
+          node projects/transit-lab/tests.js
+          node projects/transit-lab/scene-v3-tests.js
+          node projects/transit-lab/historical-fleet-v5-tests.js
+          node projects/transit-lab/studio-v8-tests.js
+      - name: Build WordPress-safe simulator loader
+        run: |
+          python3 scripts/build_simulation_loader.py transit --output /tmp/transit-loader.html
+          python3 - <<'PY'
+          from pathlib import Path
+          data=Path('/tmp/transit-loader.html').read_text()
+          assert data.startswith('<script id="leh-transit-safe-loader">')
+          assert data.endswith('</script>\n')
+          assert data.count('<script') == 1
+          assert 'studio-v7' not in data and 'studio-v8' not in data
+          assert len(data) > 1000
+          PY
