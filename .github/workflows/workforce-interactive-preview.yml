@@ -1,0 +1,36 @@
+name: Workforce Explorer interactive release candidate smoke
+on:
+  push:
+    branches:
+      - release/workforce-interactive-preview-20261102
+    paths:
+      - 'projects/workforce-opportunity-explorer/**'
+      - '.github/workflows/workforce-interactive-preview.yml'
+  pull_request:
+    paths:
+      - 'projects/workforce-opportunity-explorer/**'
+      - '.github/workflows/workforce-interactive-preview.yml'
+  workflow_dispatch:
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser smoke dependencies
+        run: |
+          npm install --no-save playwright@1.56.1 axe-core@4.10.3
+          npx playwright install --with-deps chromium
+      - name: Test filters, CSV import, missing data and accessibility
+        run: node projects/workforce-opportunity-explorer/test_interactive_preview.cjs
+      - name: Verify externally hosted review preview interactions
+        run: node projects/workforce-opportunity-explorer/test_hosted_preview.cjs
+      - name: Preserve hosted preview screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workforce-hosted-preview-screenshot
+          path: projects/workforce-opportunity-explorer/hosted-preview-smoke.png
+          if-no-files-found: ignore
