@@ -1,6 +1,6 @@
 # Cash Flow & Bill Timing Simulator
 
-A free, browser-local planning tool for testing how income dates, bill dates, and recurring payment timing could affect **end-of-day** balances. Add dated events, compare a shifted event schedule against the baseline, and export the scenario as CSV. No account, bank connection, or remote upload is required.
+A free, browser-local planning tool for testing how income dates, bill dates, and recurring payment timing could affect **end-of-day** balances. Add dated events, compare a shifted event schedule against the baseline, and export projected results as CSV or JSON. No account, bank connection, or remote upload is required.
 
 ## Use
 
@@ -20,9 +20,9 @@ The scenario summary also distinguishes dates that were below zero in the baseli
 
 ## Export and spreadsheet safety
 
-Export creates a UTF-8 CSV with date, daily change, end-of-day balance, event IDs, and event labels. Numeric balances retain two decimal places. Text resembling spreadsheet formulas is prefixed with an apostrophe before CSV quoting; this changes the original text and is only a **defense in depth**, not a universal guarantee against formula execution in every spreadsheet program or import setting.
+The interface uses `exportSafeCSV`, which checks projected event IDs and labels before creating a UTF-8 CSV with date, daily change, end-of-day balance, event IDs, and event labels. Numeric balances retain two decimal places. **If an event ID or label contains formula-like text, certain separator-followed formulas, direction controls, or unsupported control characters, CSV export is refused** with a recoverable error; use the JSON export to preserve those values instead. The lower-level legacy `exportCSV` function still applies apostrophe prefixing to some formula-like strings, but it is not the interface's safety gate. Neither path establishes universal spreadsheet safety.
 
-When opening CSV in Excel, Google Sheets, or another spreadsheet program, inspect the import preview and explicitly treat **Event IDs** and **Event labels** as **text**, especially when untrusted names or labels are present. Check date and currency formatting, and do not enable formula execution from imported text. The CSV contains planning estimates only; verify important decisions against actual financial records.
+When an accepted CSV is opened in Excel, Google Sheets, or another spreadsheet program, inspect the import preview and explicitly treat **Event IDs** and **Event labels** as **text**, especially when untrusted names or labels are present. Check date and currency formatting, and do not enable formula execution from imported text. The CSV contains planning estimates only; verify important decisions against actual financial records.
 
 ## Automated validation
 
