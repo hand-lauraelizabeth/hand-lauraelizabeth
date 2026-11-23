@@ -38,6 +38,7 @@ jobs:
           node projects/transit-lab/historical-fleet-v5-tests.js
           node projects/transit-lab/studio-v8-tests.js
           node projects/transit-lab/studio-v9-tests.js
+          node projects/transit-lab/operator-view-v10-tests.js
       - name: Build WordPress-safe simulator loader
         run: |
           python3 scripts/build_simulation_loader.py transit --output /tmp/transit-loader.html
