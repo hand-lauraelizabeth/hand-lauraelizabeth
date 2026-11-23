@@ -17,6 +17,8 @@ PROJECTS = ROOT / "projects"
 
 TOOL_URLS = {
     "audience-lifecycle-crm-migration": "https://www.lauraelizabethhand.com/resources/project-operations-tools/audience-lifecycle-crm-migration-planner/",
+    "chess-lab": "https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/chess-lab/",
+    "transit-lab": "https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/transit-simulation-lab/",
     "college-career-matching": "https://www.lauraelizabethhand.com/resources/data-decision-making-tools/college-career-explorer/",
     "curriculum-planning-canvas": "https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/curriculum-planning-canvas/",
     "ethical-ai-scenario-auditor": "https://www.lauraelizabethhand.com/resources/learning-curriculum-tools/ethical-ai-scenario-auditor/",
