@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),C=require('./operator-view-v10.js');
+const close=(a,b,t=.0001)=>assert.ok(Math.abs(a-b)<t,a+' vs '+b);
+close(C.bearing({lat:0,lon:0},{lat:1,lon:0}),0);close(C.bearing({lat:0,lon:0},{lat:0,lon:1}),90);
+assert.equal(C.turn(350,10),20);assert.equal(C.turn(10,350),-20);
+const r={points:[{lat:40,lon:-74},{lat:40,lon:-73.99},{lat:40.01,lon:-73.99}]};
+close(C.routeAt(r,0).lon,-74);assert.ok(C.curve(r,780)!==0);
+const s=C.stop({speed:20,pos:1000,nearestStop:1200,adhesion:.5},1);
+close(s.ideal,400);close(s.response,30);close(s.margin,-230);
+assert.match(s.status,/exceeded/);assert.equal(C.stop({speed:0,pos:0,stops:[500]},1).status,'Stopped');
+const f=C.parseWeather({current:{time:'2026-11-23T10:00',temperature_2m:8,precipitation:0,cloud_cover:50,wind_speed_10m:10,wind_direction_10m:90,weather_code:3}});
+close(C.crosswind(f,0),10);assert.ok(C.weatherUrl(40.7,-73.9).includes('wind_speed_unit=ms'));
+assert.throws(()=>C.weatherUrl(91,0),/Mapped/);assert.throws(()=>C.parseWeather({current:{time:'bad'}}),/Missing/);
+console.log('Transit operator v10: geo, stopping and weather checks passed.');
