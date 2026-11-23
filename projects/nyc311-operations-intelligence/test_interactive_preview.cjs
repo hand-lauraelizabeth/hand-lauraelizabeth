@@ -65,6 +65,7 @@ const assert = require('node:assert/strict');
   await page.getByRole('button',{name:'Load ZIP comparison'}).click();
   await page.waitForFunction(()=>document.querySelector('#geo-message').textContent.includes('unavailable'));
   assert.equal(await page.locator('#geo-table tr').count(),0,'failed source must clear previous results');
+  assert.doesNotMatch(await page.locator('#geo-bars').getAttribute('aria-label'),/10001: 42 requests/,'failed ZIP request must clear stale accessible chart summary');
   assert.ok(zipCalls>=3);
   mainMode='limit';
   await page.getByRole('button',{name:'Refresh live data'}).click();
