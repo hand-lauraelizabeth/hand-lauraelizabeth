@@ -48,7 +48,7 @@ async function loadZipComparison(){
  geoController=new AbortController();
  const requestVersion=++geoRequestVersion;
  const kind=$("geo-type").value,box=$("geo-bars"),table=$("geo-table"),message=$("geo-message");
- $("geo-fetch").disabled=true;message.textContent="Loading privacy-bounded ZIP totals…";box.replaceChildren();table.replaceChildren();
+ $("geo-fetch").disabled=true;message.textContent="Loading privacy-bounded ZIP totals…";box.replaceChildren();table.replaceChildren();box.setAttribute("aria-label","ZIP comparison loading; no totals available");
  try{
   const days=Number($("geo-window").value),end=new Date(),start=new Date(end.getTime()-days*86400000),iso=d=>d.toISOString().slice(0,19);
   const category=kind==="noise"?"upper(complaint_type) like '%NOISE%'":"complaint_type in('HEAT/HOT WATER','PLUMBING','WATER LEAK','MOLD','PAINT/PLASTER','UNSANITARY CONDITION','PESTS','RODENT','DOOR/WINDOW','ELECTRIC','APPLIANCE','FLOORING/STAIRS')";
