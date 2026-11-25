@@ -17,3 +17,11 @@ Closure status marks an administrative workflow state, not confirmed issue resol
 ## Development sequence
 
 The next stage will add scalable DuckDB duplicate-key auditing, monthly closure-duration distributions, published time-window denominators, validated multi-year ingestion, and a responsive staging visualization. No WordPress production content or existing national college-search data is changed by this repository project.
+
+## Interactive explorer: review candidate versus production
+
+The [interactive preview](interactive-preview.html) is a **review-only** interface with borough, complaint-family, date-window, and ZIP-grouped comparisons. Its [hosted review URL](https://raw.githack.com/hand-lauraelizabeth/hand-lauraelizabeth/release/nyc311-interactive-preview-20261102/projects/nyc311-operations-intelligence/interactive-preview.html) may show a third-party external-content notice. The [release-candidate record](RELEASE_CANDIDATE_STATUS.md) identifies the exact automated checks and outstanding gates.
+
+The [existing public WordPress explorer](https://www.lauraelizabethhand.com/nyc-311-operations-explorer-demo/) is a **separate deployment**. Its operation does not verify or authorize this branch. The fictional example in the review candidate is synthetic; live API views use grouped records, and thresholded or omitted cells must never be treated as zeros or reconstructed from other views. ZIP comparisons are request-count rankings, not population-adjusted rates or geographic polygons.
+
+Before integration, independently verify the candidate's unmocked API and recovery states, keyboard/mobile behavior, disclosure risks across filters and time windows, and approval for this exact release. The historical September research-grade lab remains on a separate privacy/provenance hold. No source CSV, raw request, address, or individual-level data should be committed or embedded.
